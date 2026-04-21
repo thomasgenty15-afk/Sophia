@@ -54,6 +54,13 @@ const REQUEST_SCHEMA = z.object({
   force_regenerate: z.boolean().optional(),
   pace: z.enum(["cool", "normal", "intense"]).optional(),
   preserve_active_transformation_id: z.string().trim().min(1).optional(),
+  adjustment_context: z.object({
+    review_id: z.string().uuid().optional(),
+    scope: z.enum(["level", "plan"]),
+    effective_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    reason: z.string().trim().min(1).max(280),
+    assistant_message: z.string().trim().min(1).max(3000).optional(),
+  }).optional(),
 });
 
 const ACTIVE_OR_RESERVED_PLAN_STATUSES = [
@@ -135,6 +142,14 @@ function isPlanContentV3(value: unknown): value is PlanContentV3 {
 
 type GeneratePlanMode = "generate_and_activate" | "preview" | "confirm";
 
+type PlanAdjustmentGenerationContext = {
+  reviewId: string | null;
+  scope: "level" | "plan";
+  effectiveStartDate: string;
+  reason: string;
+  assistantMessage: string | null;
+};
+
 type PlanScheduleAnchor = {
   version: 1;
   timezone: string;
@@ -209,6 +224,19 @@ function buildScheduleAnchor(args: {
     is_partial_anchor_week: isPartial,
     week_starts_on: "monday",
   };
+}
+
+function buildScheduleAnchorFromUserTimeContext(args: {
+  userTimeContext: Awaited<ReturnType<typeof getUserTimeContext>>;
+  effectiveStartDate?: string | null;
+}): PlanScheduleAnchor {
+  const effectiveStartDate = args.effectiveStartDate?.trim() || null;
+  return buildScheduleAnchor({
+    nowUtc: args.userTimeContext.now_utc,
+    userTimezone: args.userTimeContext.user_timezone,
+    userLocalDate: effectiveStartDate ?? args.userTimeContext.user_local_date,
+    userLocalHuman: effectiveStartDate ?? args.userTimeContext.user_local_human,
+  });
 }
 
 function applyScheduleAnchorToPlan(
@@ -548,6 +576,15 @@ async function handleRequest(req: Request): Promise<Response> {
       pace: parsedBody.data.pace ?? null,
       preserveActiveTransformationId:
         parsedBody.data.preserve_active_transformation_id ?? null,
+      adjustmentContext: parsedBody.data.adjustment_context
+        ? {
+          reviewId: parsedBody.data.adjustment_context.review_id ?? null,
+          scope: parsedBody.data.adjustment_context.scope,
+          effectiveStartDate: parsedBody.data.adjustment_context.effective_start_date,
+          reason: parsedBody.data.adjustment_context.reason,
+          assistantMessage: parsedBody.data.adjustment_context.assistant_message ?? null,
+        }
+        : null,
     });
 
     console.info("[generate-plan-v2][response_ready]", {
@@ -631,6 +668,7 @@ export async function generatePlanV2ForTransformation(params: {
   forceRegenerate: boolean;
   pace: "cool" | "normal" | "intense" | null;
   preserveActiveTransformationId: string | null;
+  adjustmentContext: PlanAdjustmentGenerationContext | null;
 }): Promise<{
   cycle: UserCycleRow;
   transformation: UserTransformationRow;
@@ -676,6 +714,7 @@ export async function generatePlanV2ForTransformation(params: {
     transformationId: params.transformationId,
   });
   const previousPlanPreview = latestDraftPlan?.content as PlanContentV3 | null;
+  const isActivePlanAdjustment = params.adjustmentContext != null;
 
   if (params.mode === "confirm") {
     console.info("[generate-plan-v2][confirm][precheck]", {
@@ -703,11 +742,19 @@ export async function generatePlanV2ForTransformation(params: {
       transformation_id: params.transformationId,
       draft_plan_id: latestDraftPlan.id,
     });
-    await deleteOtherPlansForTransformation({
-      admin: params.admin,
-      transformationId: params.transformationId,
-      keepPlanId: latestDraftPlan.id,
-    });
+    if (isActivePlanAdjustment) {
+      await archiveLockedPlansForTransformation({
+        admin: params.admin,
+        transformationId: params.transformationId,
+        now,
+      });
+    } else {
+      await deleteOtherPlansForTransformation({
+        admin: params.admin,
+        transformationId: params.transformationId,
+        keepPlanId: latestDraftPlan.id,
+      });
+    }
 
     return await activatePersistedPlan({
       admin: params.admin,
@@ -724,7 +771,7 @@ export async function generatePlanV2ForTransformation(params: {
   const lockedPlan = context.existingPlans.find((plan) =>
     plan.status === "active" || plan.status === "paused"
   );
-  if (lockedPlan) {
+  if (lockedPlan && !isActivePlanAdjustment) {
     if (params.mode === "confirm") {
       console.info("[generate-plan-v2][confirm][activate_locked_plan]", {
         request_id: params.requestId,
@@ -870,7 +917,7 @@ export async function generatePlanV2ForTransformation(params: {
   }
 
   const attemptNumber = computeNextGenerationAttempt(context.existingPlans);
-  if (attemptNumber > 2) {
+  if (!isActivePlanAdjustment && attemptNumber > 2) {
     throw new GeneratePlanV2Error(
       409,
       "Maximum plan generation attempts reached for this transformation",
@@ -915,16 +962,15 @@ export async function generatePlanV2ForTransformation(params: {
     calibrationFields,
     planTypeClassification,
   });
+  const currentJourney = extractMultiPartJourneyPayload(context.transformation.handoff_payload);
   const userTimeContext = await getUserTimeContext({
     supabase: params.admin,
     userId: params.userId,
     now: new Date(now),
   });
-  const scheduleAnchor = buildScheduleAnchor({
-    nowUtc: userTimeContext.now_utc,
-    userTimezone: userTimeContext.user_timezone,
-    userLocalDate: userTimeContext.user_local_date,
-    userLocalHuman: userTimeContext.user_local_human,
+  const scheduleAnchor = buildScheduleAnchorFromUserTimeContext({
+    userTimeContext,
+    effectiveStartDate: params.adjustmentContext?.effectiveStartDate ?? null,
   });
 
   const planInput = {
@@ -976,6 +1022,9 @@ export async function generatePlanV2ForTransformation(params: {
     previous_transformation_questionnaire_schema:
       context.previousTransformation?.questionnaire_schema ?? null,
     previous_transformation_plan_preview: context.previousTransformationPlan,
+    journey_part_number: currentJourney?.part_number ?? null,
+    journey_total_parts: currentJourney?.estimated_total_parts ?? null,
+    journey_continuation_hint: currentJourney?.continuation_hint ?? null,
     user_requested_pace: requestedPace,
     user_age: calculateAgeFromBirthDate(context.cycle.birth_date_snapshot, now),
     user_gender: context.cycle.gender_snapshot,
@@ -1018,7 +1067,11 @@ export async function generatePlanV2ForTransformation(params: {
     planTypeClassification,
     llmInput: generatedPlan.finalLlmInput,
   });
-  const plan = applyScheduleAnchorToPlan(generatedPlan.plan, scheduleAnchor);
+  const plan = applyPlanAdjustmentMetadata(
+    applyScheduleAnchorToPlan(generatedPlan.plan, scheduleAnchor),
+    params.adjustmentContext,
+    lockedPlan ?? null,
+  );
 
   const planId = crypto.randomUUID();
   const planRow = buildPlanRow({
@@ -1030,6 +1083,7 @@ export async function generatePlanV2ForTransformation(params: {
     status: params.mode === "preview" ? "draft" : "generated",
     generationFeedback,
     generationInputSnapshot,
+    generationReason: isActivePlanAdjustment ? "plan_adjustment" : null,
   });
 
   const { error: insertPlanError } = await params.admin
@@ -1069,6 +1123,14 @@ export async function generatePlanV2ForTransformation(params: {
       journeyContext: null,
     };
   }
+  if (isActivePlanAdjustment) {
+    await archiveLockedPlansForTransformation({
+      admin: params.admin,
+      transformationId: params.transformationId,
+      now,
+    });
+  }
+
   return await activatePersistedPlan({
     admin: params.admin,
     userId: params.userId,
@@ -1763,6 +1825,30 @@ async function archiveDraftPlans(args: {
   }
 }
 
+async function archiveLockedPlansForTransformation(args: {
+  admin: SupabaseClient;
+  transformationId: string;
+  now: string;
+}): Promise<void> {
+  const { error } = await args.admin
+    .from("user_plans_v2")
+    .update({
+      status: "archived",
+      archived_at: args.now,
+      updated_at: args.now,
+    } as any)
+    .eq("transformation_id", args.transformationId)
+    .in("status", ["active", "paused"]);
+
+  if (error) {
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to archive current active plan before adjustment",
+      { cause: error },
+    );
+  }
+}
+
 async function activatePersistedPlan(args: {
   admin: SupabaseClient;
   userId: string;
@@ -1789,11 +1875,16 @@ async function activatePersistedPlan(args: {
     userId: args.userId,
     now: new Date(args.now),
   });
-  const refreshedScheduleAnchor = buildScheduleAnchor({
-    nowUtc: userTimeContext.now_utc,
-    userTimezone: userTimeContext.user_timezone,
-    userLocalDate: userTimeContext.user_local_date,
-    userLocalHuman: userTimeContext.user_local_human,
+  const adjustmentRevision = isPlainObject(persistedPlan.metadata?.plan_adjustment_revision)
+    ? persistedPlan.metadata?.plan_adjustment_revision as Record<string, unknown>
+    : null;
+  const effectiveStartDate =
+    typeof adjustmentRevision?.effective_start_date === "string"
+      ? adjustmentRevision.effective_start_date
+      : null;
+  const refreshedScheduleAnchor = buildScheduleAnchorFromUserTimeContext({
+    userTimeContext,
+    effectiveStartDate,
   });
   const plan = applyScheduleAnchorToPlan(persistedPlan, refreshedScheduleAnchor);
 
@@ -3106,6 +3197,33 @@ export function computeNextGenerationAttempt(
   return maxAttempt + 1;
 }
 
+function applyPlanAdjustmentMetadata(
+  plan: PlanContentV3,
+  adjustmentContext: PlanAdjustmentGenerationContext | null,
+  previousPlan: Pick<UserPlanV2Row, "id" | "version"> | null,
+): PlanContentV3 {
+  if (!adjustmentContext) return plan;
+
+  return {
+    ...plan,
+    metadata: {
+      ...(plan.metadata ?? {}),
+      plan_adjustment_revision: {
+        version: 1,
+        source: "dashboard_adjustment",
+        review_id: adjustmentContext.reviewId,
+        scope: adjustmentContext.scope,
+        effective_start_date: adjustmentContext.effectiveStartDate,
+        reason: adjustmentContext.reason,
+        assistant_message: adjustmentContext.assistantMessage,
+        previous_plan_id: previousPlan?.id ?? null,
+        previous_plan_version: previousPlan?.version ?? null,
+        adjusted_at: new Date().toISOString(),
+      },
+    },
+  };
+}
+
 function buildPlanRow(params: {
   userId: string;
   planId: string;
@@ -3115,6 +3233,7 @@ function buildPlanRow(params: {
   status?: UserPlanV2Row["status"];
   generationFeedback: string | null;
   generationInputSnapshot: Record<string, unknown>;
+  generationReason?: string | null;
 }): UserPlanV2Row {
   return {
     id: params.planId,
@@ -3126,9 +3245,11 @@ function buildPlanRow(params: {
     title: params.plan.title,
     content: params.plan as unknown as Record<string, unknown>,
     generation_attempts: params.attemptNumber,
-    last_generation_reason: params.attemptNumber === 1
-      ? "initial_generation"
-      : "regeneration",
+    last_generation_reason: params.generationReason ?? (
+      params.attemptNumber === 1
+        ? "initial_generation"
+        : "regeneration"
+    ),
     generation_feedback: params.generationFeedback,
     generation_input_snapshot: params.generationInputSnapshot,
     activated_at: null,

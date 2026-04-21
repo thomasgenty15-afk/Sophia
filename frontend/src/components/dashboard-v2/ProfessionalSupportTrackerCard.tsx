@@ -7,7 +7,6 @@ import {
   getProfessionalSupportStatusLabel,
   getProfessionalSupportTimingLabel,
 } from "../../lib/professionalSupport";
-import { getDisplayPhaseOrder } from "../../lib/planPhases";
 import { supabase } from "../../lib/supabase";
 import type { UserProfessionalSupportRecommendationRow } from "../../types/v2";
 
@@ -217,7 +216,7 @@ export function ProfessionalSupportTrackerCard({
             {visibleRecommendations.map((recommendation) => {
               const definition = getProfessionalDefinition(recommendation.professional_key);
               const displayLevelOrder = recommendation.target_level_order != null
-                ? getDisplayPhaseOrder(recommendation.target_level_order)
+                ? recommendation.target_level_order
                 : null;
               const canMarkCompleted = recommendation.status === "pending" ||
                 recommendation.status === "booked";

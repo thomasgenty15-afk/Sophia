@@ -1,13 +1,3 @@
-import { useEffect, useRef, useState } from "react";
-
-const MESSAGES = [
-  "Analyse de tes priorités…",
-  "Construction de la structure…",
-  "Calibration du rythme…",
-  "Assemblage des axes de travail…",
-  "Finalisation du plan…",
-];
-
 const STARS = [
   { top: "10%",  left: "7%",  delay: "0s",    dur: "3.2s" },
   { top: "18%",  left: "91%", delay: "0.7s",  dur: "4.0s" },
@@ -24,23 +14,6 @@ const STARS = [
 ];
 
 export function PlanGenerationScreen() {
-  const [msgText, setMsgText] = useState(MESSAGES[0]);
-  const [msgOpacity, setMsgOpacity] = useState(1);
-  const msgIndexRef = useRef(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMsgOpacity(0);
-      const t = setTimeout(() => {
-        msgIndexRef.current = (msgIndexRef.current + 1) % MESSAGES.length;
-        setMsgText(MESSAGES[msgIndexRef.current]);
-        setMsgOpacity(1);
-      }, 380);
-      return () => clearTimeout(t);
-    }, 2600);
-    return () => clearInterval(interval);
-  }, []);
-
   return (
     <div className="relative mx-auto flex min-h-[60vh] w-full max-w-2xl items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm">
 
@@ -127,25 +100,9 @@ export function PlanGenerationScreen() {
 
         {/* ── Text section ─────────────────────────────────────────── */}
         <div className="text-center">
-          <h2 className="mb-4 font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Sophia assemble ton plan.
           </h2>
-          <div className="flex h-7 items-center justify-center">
-            <p
-              className="text-base text-gray-500"
-              style={{
-                opacity: msgOpacity,
-                transition: msgOpacity === 0
-                  ? "opacity 0.3s ease"
-                  : undefined,
-                animation: msgOpacity === 1
-                  ? "msg-in 0.4s ease-out forwards"
-                  : undefined,
-              }}
-            >
-              {msgText}
-            </p>
-          </div>
         </div>
 
       </div>

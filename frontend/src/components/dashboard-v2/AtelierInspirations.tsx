@@ -1,4 +1,4 @@
-import { BookOpen, Compass, Target, Check, ChevronDown, Loader2, Sparkles } from "lucide-react";
+import { BookOpen, Compass, Target, ChevronDown, Loader2, Pencil, Sparkles } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import type {
   Phase1DeepWhyState,
@@ -160,7 +160,7 @@ type AtelierInspirationsProps = {
 };
 
 const STORY_INTRO_HELPER =
-  "Sophia t'a ecrit cette histoire, ou plutot l'histoire de ta transformation, a partir des informations qu'elle a sur toi. Elle espere que cela pourra t'aider a te projeter dans les vertus, les difficultes et l'etat d'esprit que cette transformation demande.";
+  "Sophia a ecrit cette histoire a partir de ce qu'elle a compris de toi. Elle est la pour t'aider a retrouver du sens, du recul et de la force quand le chemin devient plus exigeant.";
 
 function appendSuggestedAnswer(currentValue: string, suggestion: string) {
   const trimmedCurrent = currentValue.trim();
@@ -169,6 +169,10 @@ function appendSuggestedAnswer(currentValue: string, suggestion: string) {
   if (!trimmedCurrent) return trimmedSuggestion;
   if (trimmedCurrent.includes(trimmedSuggestion)) return currentValue;
   return `${trimmedCurrent}\n\n${trimmedSuggestion}`;
+}
+
+function normalizeAnswer(value: string | null | undefined) {
+  return (value ?? "").trim();
 }
 
 function CardShell({
@@ -237,14 +241,20 @@ export function AtelierInspirations({
 }: AtelierInspirationsProps) {
   const [storyDetailsAnswer, setStoryDetailsAnswer] = useState("");
   const [deepWhyDrafts, setDeepWhyDrafts] = useState<Record<string, string>>({});
+  const [deepWhyEditing, setDeepWhyEditing] = useState<Record<string, boolean>>({});
 
   const [isStoryExpanded, setIsStoryExpanded] = useState(false);
   const [isDeepWhyExpanded, setIsDeepWhyExpanded] = useState(true);
   const [isPrinciplesExpanded, setIsPrinciplesExpanded] = useState(false);
+  const [isUsageOpen, setIsUsageOpen] = useState(false);
 
   useEffect(() => {
     setStoryDetailsAnswer(phase1Story?.details_answer ?? "");
   }, [phase1Story?.details_answer, phase1Story?.status]);
+
+  useEffect(() => {
+    setDeepWhyEditing({});
+  }, [phase1DeepWhy?.answers]);
 
   const deepWhyQuestions = phase1DeepWhy?.questions ?? [];
   const savedDeepWhyAnswers = phase1DeepWhy?.answers ?? [];
@@ -255,9 +265,9 @@ export function AtelierInspirations({
     Object.prototype.hasOwnProperty.call(deepWhyDrafts, questionId)
       ? deepWhyDrafts[questionId] ?? ""
       : savedDeepWhyMap.get(questionId) ?? "";
-  const deepWhySavedCount = deepWhyQuestions.filter((question) =>
-    Boolean(savedDeepWhyMap.get(question.id)?.trim())
-  ).length;
+  const hasPendingDeepWhyChanges = deepWhyQuestions.some((question) =>
+    getDeepWhyDraftValue(question.id) !== (savedDeepWhyMap.get(question.id) ?? "")
+  );
   const hasDeepWhyQuestions = deepWhyQuestions.length > 0;
   const deepWhySavedComplete = hasDeepWhyQuestions &&
     deepWhyQuestions.every((question) => Boolean(savedDeepWhyMap.get(question.id)?.trim()));
@@ -273,33 +283,44 @@ export function AtelierInspirations({
 
   return (
     <div className="space-y-5">
+      <section className="rounded-[30px] border border-violet-200 bg-white px-5 py-5 shadow-sm">
+        <button
+          type="button"
+          onClick={() => setIsUsageOpen((value) => !value)}
+          className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-violet-700 transition-colors hover:text-violet-900"
+        >
+          {isUsageOpen ? "Masquer les explications" : "Comment utiliser cet espace"}
+          <ChevronDown
+            className={`h-4 w-4 transition-transform duration-200 ${isUsageOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {isUsageOpen ? (
+          <div className="mt-4 rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-amber-50 px-5 py-5 text-left text-sm leading-7 text-stone-700 animate-fade-in">
+            Cet espace est la pour te recentrer. Reviens-y quand le doute monte, quand tu te
+            disperses, ou quand tu veux retrouver le fil interieur de ta transformation. Tu y
+            retrouveras ton pourquoi profond, ton histoire et tes principes pour remettre du sens,
+            de la clarte et de l'elan dans ton chemin.
+          </div>
+        ) : null}
+      </section>
+
       <CardShell
         title="Ton pourquoi profond"
-        subtitle="Ici, on va un peu plus loin que dans le questionnaire pour faire ressortir le vrai moteur, les douleurs concretes, les blocages passes et ce que tu veux retrouver."
-        icon={<Target className="h-5 w-5 text-amber-700" />}
-        accentClass="bg-amber-50"
+        subtitle="Quand tout se brouille, reviens ici pour te rappeler ce que tu veux vraiment proteger, retrouver et faire grandir."
+        icon={<Target className="h-5 w-5 text-violet-700" />}
+        accentClass="bg-violet-50"
         isOpen={isDeepWhyExpanded}
         onToggle={() => setIsDeepWhyExpanded((v) => !v)}
       >
-          <div className="rounded-2xl border border-amber-100 bg-amber-50/60 px-4 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                {hasDeepWhyQuestions ? (
-                  <p className="text-xs font-semibold text-amber-900/70">
-                    {deepWhySavedCount} / {deepWhyQuestions.length} reponses enregistrees
-                  </p>
-                ) : (
-                  <p className="text-xs font-semibold text-amber-900/70">
-                    Aucune reponse enregistree
-                  </p>
-                )}
-              </div>
+          <div className="rounded-2xl border border-violet-100 bg-violet-50/60 px-4 py-4">
+            <div className="flex flex-wrap items-center justify-end gap-3">
               {!hasDeepWhyQuestions && onPrepareDeepWhy ? (
                 <button
                   type="button"
                   onClick={onPrepareDeepWhy}
                   disabled={deepWhyPreparing}
-                  className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-white px-4 py-2 text-xs font-semibold text-amber-900 disabled:opacity-60"
+                  className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-4 py-2 text-xs font-semibold text-violet-900 disabled:opacity-60"
                 >
                   {deepWhyPreparing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
                   Activer
@@ -308,53 +329,87 @@ export function AtelierInspirations({
             </div>
 
             {!hasDeepWhyQuestions ? (
-              <div className="mt-4 rounded-2xl border border-dashed border-amber-200 bg-white/70 px-4 py-4 text-sm leading-6 text-amber-950/75">
-                Le pourquoi profond se prepare sur demande. Ici, Sophia repart de ce qui a deja ete dit dans le questionnaire, mais elle t'aide a aller plus loin et plus concret.
+              <div className="mt-4 rounded-2xl border border-dashed border-violet-200 bg-white/70 px-4 py-4 text-sm leading-6 text-violet-950/75">
+                Active cet espace quand tu veux aller au-dela du plan et remettre des mots sur ce
+                qui t'appelle vraiment.
               </div>
             ) : (
               <div className="mt-4 space-y-4">
-                <div className="rounded-2xl border border-amber-200 bg-white/80 px-4 py-4 text-sm leading-6 text-amber-950/80">
-                  Ici, on va un peu plus loin que dans le questionnaire: on cherche le vrai moteur, les points de douleur du quotidien, ce qui te bloquait avant, puis ce que tu veux vraiment retrouver une fois transformé.
-                </div>
                 {deepWhyQuestions.map((question, index) => {
                   const savedAnswer = savedDeepWhyMap.get(question.id);
                   const currentValue = getDeepWhyDraftValue(question.id);
+                  const savedAnswerNormalized = normalizeAnswer(savedAnswer);
+                  const currentValueNormalized = normalizeAnswer(currentValue);
+                  const hasSavedAnswer = Boolean(savedAnswerNormalized);
+                  const isEditing = Boolean(deepWhyEditing[question.id]);
+                  const isDirty = currentValue !== (savedAnswer ?? "");
+                  const showEditor = !hasSavedAnswer || isEditing;
 
                   return (
                     <div key={question.id} className="rounded-2xl border border-white/80 bg-white/80 px-4 py-4 shadow-sm">
                       <div className="flex items-start gap-3">
-                        <div className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
-                          savedAnswer?.trim()
-                            ? "bg-emerald-600 text-white"
-                            : "bg-stone-200 text-stone-600"
-                        }`}>
-                          {savedAnswer?.trim() ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                        <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">
+                          {index + 1}
                         </div>
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <p className="text-sm font-semibold leading-6 text-stone-900">
                               {question.question}
                             </p>
-                            {savedAnswer?.trim() ? (
-                              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
-                                Validee
+                            {isEditing ? (
+                              <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${
+                                isDirty
+                                  ? "bg-violet-100 text-violet-900"
+                                  : "bg-stone-100 text-stone-600"
+                              }`}>
+                                {isDirty ? "A enregistrer" : "Modification"}
                               </span>
                             ) : null}
+                            {hasSavedAnswer && !isEditing ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDeepWhyEditing((current) => ({
+                                    ...current,
+                                    [question.id]: true,
+                                  }))}
+                                className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1 text-[11px] font-semibold text-violet-900 transition-colors hover:bg-violet-50"
+                                aria-label={`Modifier la reponse pour ${question.question}`}
+                              >
+                                <Pencil className="h-3 w-3" />
+                                Modifier
+                              </button>
+                            ) : null}
                           </div>
-                          <textarea
-                            value={currentValue}
-                            onChange={(event) => {
-                              const nextValue = event.target.value;
-                              setDeepWhyDrafts((current) => ({
-                                ...current,
-                                [question.id]: nextValue,
-                              }));
-                            }}
-                            rows={3}
-                            placeholder="Une reponse sincere suffit. Pas besoin d'ecrire beaucoup."
-                            className="mt-3 w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-amber-300"
-                          />
-                          {question.suggested_answers.length > 0 ? (
+                          {showEditor ? (
+                            <>
+                              <p className="mt-2 text-xs leading-5 text-stone-500">
+                                {isDirty
+                                  ? "Ta modification n'est pas encore enregistree."
+                                  : hasSavedAnswer
+                                  ? "Tu peux ajuster cette reponse puis enregistrer."
+                                  : "Une reponse sincere suffit. Pas besoin d'ecrire beaucoup."}
+                              </p>
+                              <textarea
+                                value={currentValue}
+                                onChange={(event) => {
+                                  const nextValue = event.target.value;
+                                  setDeepWhyDrafts((current) => ({
+                                    ...current,
+                                    [question.id]: nextValue,
+                                  }));
+                                }}
+                                rows={3}
+                                placeholder="Une reponse sincere suffit. Pas besoin d'ecrire beaucoup."
+                                className="mt-3 w-full rounded-2xl border border-violet-100 bg-white px-4 py-3 text-sm text-stone-800 outline-none transition focus:border-violet-300 focus:ring-4 focus:ring-violet-100/50"
+                              />
+                            </>
+                          ) : (
+                            <div className="mt-3 rounded-2xl border border-violet-100 bg-violet-50/40 px-4 py-3 text-sm leading-6 text-stone-700">
+                              {currentValueNormalized}
+                            </div>
+                          )}
+                          {showEditor && !hasSavedAnswer && question.suggested_answers.length > 0 ? (
                             <div className="mt-3 flex flex-wrap gap-2">
                               {question.suggested_answers.map((suggestion) => (
                                 <button
@@ -371,7 +426,7 @@ export function AtelierInspirations({
                                       ),
                                     }));
                                   }}
-                                  className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-900 transition-colors hover:bg-amber-100"
+                                  className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-medium text-violet-900 transition-colors hover:bg-violet-100"
                                 >
                                   <span className="text-sm leading-none">+</span>
                                   {suggestion}
@@ -384,10 +439,10 @@ export function AtelierInspirations({
                     </div>
                   );
                 })}
-                {onSaveDeepWhyAnswers ? (
+                {onSaveDeepWhyAnswers && hasPendingDeepWhyChanges ? (
                   <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/80 bg-white/70 px-4 py-4">
-                    <p className="text-sm text-amber-950/80">
-                      Enregistre tes reponses quand tu veux. Tu pourras les modifier plus tard si besoin.
+                    <p className="text-sm text-violet-950/80">
+                      Tu as des modifications non enregistrees.
                     </p>
                     <button
                       type="button"
@@ -400,7 +455,7 @@ export function AtelierInspirations({
                           })),
                         )}
                       disabled={savingDeepWhy}
-                      className="inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
+                      className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-4 py-2 text-xs font-semibold text-white disabled:opacity-60"
                     >
                       {savingDeepWhy ? (
                         <>
@@ -420,7 +475,7 @@ export function AtelierInspirations({
 
       <CardShell
         title="Ton histoire"
-        subtitle="Ton récit de transformation, construit à partir de ton pourquoi profond."
+        subtitle="A relire quand tu as besoin de reprendre de la force et de te souvenir du chemin que tu es en train d'ouvrir."
         icon={<BookOpen className="h-5 w-5 text-rose-700" />}
         accentClass="bg-rose-50"
         isOpen={isStoryExpanded}
@@ -444,7 +499,7 @@ export function AtelierInspirations({
             <p className="mt-4 text-sm italic leading-relaxed text-stone-700">
               {phase1Story?.intro ||
                 inspirationNarrative ||
-                "Ton histoire se construit à partir de ce que tu clarifies dans ton pourquoi profond."}
+                "Relis cette histoire quand tu as besoin de retrouver du souffle, du recul et le sens de ton chemin."}
             </p>
             {phase1Story?.status === "generated" ? (
               <p className="mt-3 text-sm leading-6 text-stone-600">
@@ -543,7 +598,7 @@ export function AtelierInspirations({
 
       <CardShell
         title="Les 5 principes de ton histoire"
-        subtitle="Les 5 repères retenus pour cette transformation. Ils prolongent le récit au lieu de le remplacer."
+        subtitle="Tes 5 reperes interieurs pour garder le cap et savoir comment avancer, meme dans les jours flous."
         icon={<Compass className="h-5 w-5 text-emerald-700" />}
         accentClass="bg-emerald-50"
         isOpen={isPrinciplesExpanded}

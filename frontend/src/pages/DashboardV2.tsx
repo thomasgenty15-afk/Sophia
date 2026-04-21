@@ -41,7 +41,10 @@ import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
 import { ProfessionalSupportTrackerCard } from "../components/dashboard-v2/ProfessionalSupportTrackerCard";
 import {
   PlanRevisionPanel,
+  type PlanRevisionConversationMode,
+  type PlanReviewSessionStatus,
   type PlanRevisionProposal,
+  type PlanRevisionPanelAction,
   type PlanRevisionThreadEntry,
 } from "../components/dashboard-v2/PlanRevisionPanel";
 import { PreferencesSection } from "../components/dashboard-v2/PreferencesSection";
@@ -86,6 +89,7 @@ import { extractProfessionalSupport } from "../lib/professionalSupport";
 import { parsePlanScheduleAnchor } from "../lib/planSchedule";
 import { supabase } from "../lib/supabase";
 import { extractLevelToolRecommendationState } from "../lib/toolRecommendations";
+import type { PlanContentV3 } from "../types/v2";
 import UserProfile from "../components/UserProfile";
 
 const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
@@ -241,6 +245,20 @@ type ReviewPlanResponse = {
   regeneration_feedback: string | null;
   clarification_question: string | null;
   assistant_summary: string;
+  assistant_message: string;
+  conversation_mode: PlanRevisionConversationMode;
+  conversation_thread: PlanRevisionThreadEntry[];
+  precision_count: number;
+  message_count: number;
+  session_status: PlanReviewSessionStatus;
+  session_expires_at: string | null;
+};
+
+type GeneratePlanPreviewResponse = {
+  request_id: string;
+  plan_id: string;
+  plan_preview: PlanContentV3 | null;
+  plan_status: "draft" | "generated" | "active" | "paused" | "completed" | "archived";
 };
 
 type CompleteLevelResponse = {
@@ -262,6 +280,66 @@ type ResourceFocusTarget = {
   defenseTriggerKey: string;
   token: number;
 };
+
+type PlanAdjustmentRevision = {
+  effective_start_date: string;
+  reason: string;
+  scope: "level" | "plan";
+  assistant_message?: string | null;
+};
+
+function getBrowserLocalYmd(now = new Date()): string {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildPlanAdjustmentFeedback(args: {
+  proposal: PlanRevisionProposal;
+  initialComment: string;
+  precisionComment: string | null;
+}): string {
+  return [
+    args.proposal.regeneration_feedback?.trim() || null,
+    `Commentaire initial du user: ${args.initialComment.trim()}`,
+    args.precisionComment?.trim()
+      ? `Précision ajoutée ensuite par le user: ${args.precisionComment.trim()}`
+      : null,
+    args.proposal.assistant_summary?.trim()
+      ? `Lecture actuelle de Sophia: ${args.proposal.assistant_summary.trim()}`
+      : null,
+  ].filter((entry): entry is string => Boolean(entry && entry.trim().length > 0)).join("\n\n");
+}
+
+function getPreviewScope(mode: PlanRevisionConversationMode): "level" | "plan" | null {
+  if (mode === "level_adjustment") return "level";
+  if (mode === "plan_adjustment") return "plan";
+  return null;
+}
+
+function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const candidate = value as Record<string, unknown>;
+  const effectiveStartDate = typeof candidate.effective_start_date === "string"
+    ? candidate.effective_start_date.trim()
+    : "";
+  const reason = typeof candidate.reason === "string"
+    ? candidate.reason.trim()
+    : "";
+  const scope = candidate.scope === "level" ? "level" : candidate.scope === "plan" ? "plan" : null;
+
+  if (!effectiveStartDate || !reason || !scope) return null;
+
+  return {
+    effective_start_date: effectiveStartDate,
+    reason,
+    scope,
+    assistant_message: typeof candidate.assistant_message === "string"
+      ? candidate.assistant_message.trim()
+      : null,
+  };
+}
 
 export default function DashboardV2() {
   const navigate = useNavigate();
@@ -378,6 +456,16 @@ export default function DashboardV2() {
   const [planReviewThread, setPlanReviewThread] = useState<PlanRevisionThreadEntry[]>([]);
   const [planReviewProposal, setPlanReviewProposal] = useState<PlanRevisionProposal | null>(null);
   const [planReviewBusy, setPlanReviewBusy] = useState(false);
+  const [planReviewSessionStatus, setPlanReviewSessionStatus] =
+    useState<PlanReviewSessionStatus | null>(null);
+  const [planReviewSessionExpiresAt, setPlanReviewSessionExpiresAt] = useState<string | null>(null);
+  const [planReviewPreview, setPlanReviewPreview] = useState<PlanContentV3 | null>(null);
+  const [planReviewPreviewPlanId, setPlanReviewPreviewPlanId] = useState<string | null>(null);
+  const [planReviewComposerMode, setPlanReviewComposerMode] = useState<
+    "initial" | "precision" | "chat" | "hidden"
+  >("initial");
+  const [planReviewInitialComment, setPlanReviewInitialComment] = useState<string | null>(null);
+  const [planReviewPrecisionComment, setPlanReviewPrecisionComment] = useState<string | null>(null);
   const [isLevelCompletionModalOpen, setIsLevelCompletionModalOpen] = useState(false);
   const [levelCompletionBusy, setLevelCompletionBusy] = useState(false);
   const [levelCompletionError, setLevelCompletionError] = useState<string | null>(null);
@@ -426,6 +514,170 @@ export default function DashboardV2() {
     });
     setActiveTab("lab");
   };
+
+  const clearPlanReviewSessionState = () => {
+    setPlanReviewThread([]);
+    setPlanReviewProposal(null);
+    setPlanReviewSessionStatus(null);
+    setPlanReviewSessionExpiresAt(null);
+    setPlanReviewPreview(null);
+    setPlanReviewPreviewPlanId(null);
+    setPlanReviewComposerMode("initial");
+    setPlanReviewInitialComment(null);
+    setPlanReviewPrecisionComment(null);
+    setPlanReviewInput("");
+  };
+
+  useEffect(() => {
+    if (!transformation) {
+      clearPlanReviewSessionState();
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const { data, error: sessionError } = await supabase
+        .from("user_plan_review_requests")
+        .select("*")
+        .eq("transformation_id", transformation.id)
+        .order("updated_at", { ascending: false })
+        .limit(5);
+
+      if (cancelled) return;
+      if (sessionError) {
+        console.error("[DashboardV2] load active plan review session failed", sessionError);
+        clearPlanReviewSessionState();
+        return;
+      }
+
+      const activeSession = (data ?? []).find((entry) =>
+        entry?.session_status === "active" || entry?.session_status === "preview_ready"
+      ) ?? null;
+
+      if (!activeSession) {
+        clearPlanReviewSessionState();
+        return;
+      }
+
+      const thread = Array.isArray(activeSession.conversation_thread)
+        ? activeSession.conversation_thread.filter((entry: unknown): entry is PlanRevisionThreadEntry =>
+          Boolean(
+            entry &&
+              typeof entry === "object" &&
+              !Array.isArray(entry) &&
+              ((entry as { role?: unknown }).role === "user" ||
+                (entry as { role?: unknown }).role === "assistant") &&
+              typeof (entry as { content?: unknown }).content === "string" &&
+              typeof (entry as { created_at?: unknown }).created_at === "string",
+          )
+        )
+        : [];
+
+      const userMessages = thread.filter((entry: PlanRevisionThreadEntry) => entry.role === "user");
+
+      setPlanReviewThread(thread);
+      setPlanReviewProposal({
+        review_id: activeSession.id,
+        review_kind: activeSession.review_kind,
+        adjustment_scope: activeSession.adjustment_scope,
+        decision: activeSession.decision,
+        understanding: activeSession.understanding,
+        impact: activeSession.impact,
+        proposed_changes: Array.isArray(activeSession.proposed_changes)
+          ? activeSession.proposed_changes.filter((item: unknown): item is string => typeof item === "string")
+          : [],
+        control_mode: activeSession.control_mode,
+        resistance_note: activeSession.resistance_note,
+        principle_reminder: activeSession.principle_reminder,
+        offer_complete_level: Boolean(activeSession.offer_complete_level),
+        regeneration_feedback: activeSession.regeneration_feedback,
+        clarification_question: activeSession.clarification_question,
+        assistant_summary: typeof activeSession.assistant_message === "string"
+          ? activeSession.assistant_message
+          : typeof activeSession.assistant_summary === "string"
+            ? activeSession.assistant_summary
+            : "",
+        conversation_mode: activeSession.conversation_mode,
+        precision_count: typeof activeSession.precision_count === "number" ? activeSession.precision_count : Math.max(0, userMessages.length - 1),
+        message_count: typeof activeSession.message_count === "number" ? activeSession.message_count : thread.length,
+        session_status: activeSession.session_status,
+        session_expires_at: typeof activeSession.session_expires_at === "string" ? activeSession.session_expires_at : null,
+      });
+      setPlanReviewSessionStatus(activeSession.session_status);
+      setPlanReviewSessionExpiresAt(typeof activeSession.session_expires_at === "string" ? activeSession.session_expires_at : null);
+      setPlanReviewInitialComment(userMessages[0]?.content ?? null);
+      setPlanReviewPrecisionComment(userMessages[1]?.content ?? null);
+      setPlanReviewComposerMode(activeSession.conversation_mode === "explanation_chat" || activeSession.conversation_mode === "guardrail_chat"
+        ? "chat"
+        : "hidden");
+      setPlanReviewInput("");
+
+      if (typeof activeSession.preview_plan_id === "string" && activeSession.preview_plan_id.length > 0) {
+        const { data: previewRow, error: previewError } = await supabase
+          .from("user_plans_v2")
+          .select("id,content")
+          .eq("id", activeSession.preview_plan_id)
+          .maybeSingle();
+
+        if (previewError) {
+          console.error("[DashboardV2] load plan adjustment preview failed", previewError);
+          setPlanReviewPreview(null);
+          setPlanReviewPreviewPlanId(null);
+          return;
+        }
+
+        const previewContent = previewRow?.content as Record<string, unknown> | null;
+        if (previewContent?.version === 3 && Array.isArray(previewContent.phases)) {
+          setPlanReviewPreview(previewContent as PlanContentV3);
+          setPlanReviewPreviewPlanId(previewRow?.id ?? null);
+        } else {
+          setPlanReviewPreview(null);
+          setPlanReviewPreviewPlanId(null);
+        }
+      } else {
+        setPlanReviewPreview(null);
+        setPlanReviewPreviewPlanId(null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [transformation?.id]);
+
+  useEffect(() => {
+    if (!planReviewProposal?.review_id || !planReviewSessionExpiresAt) return;
+
+    const intervalId = window.setInterval(() => {
+      if (new Date(planReviewSessionExpiresAt).getTime() > Date.now()) return;
+
+      const reviewId = planReviewProposal.review_id;
+      const previewPlanId = planReviewPreviewPlanId;
+      clearPlanReviewSessionState();
+      if (previewPlanId) {
+        void supabase
+          .from("user_plans_v2")
+          .update({
+            status: "archived",
+            archived_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", previewPlanId);
+      }
+      void supabase
+        .from("user_plan_review_requests")
+        .update({
+          session_status: "expired",
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", reviewId);
+    }, 30_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [planReviewPreviewPlanId, planReviewProposal?.review_id, planReviewSessionExpiresAt]);
+
   const completedPlanItemTitles = useMemo(
     () =>
       planItems
@@ -558,6 +810,11 @@ export default function DashboardV2() {
     transformation &&
       transformation.status === "active" &&
       !isOutOfPlanScope,
+  );
+  const hasCycleRelaunchAction = Boolean(
+    !hasSequencedNextTransformation &&
+      !hasSimpleNextTransformation &&
+      canShowTransformationEndAction,
   );
   const nextSequencedTransformation = hasSequencedNextTransformation
     ? recommendedAdditionalTransformation
@@ -923,9 +1180,16 @@ export default function DashboardV2() {
   };
 
   const handlePlanReviewSubmit = async (overrideComment?: string) => {
-    if (!transformation || !plan || !planContentV3) return;
-    const userComment = (overrideComment ?? planReviewInput).trim();
+    const rawComment = typeof overrideComment === "string"
+      ? overrideComment
+      : planReviewInput;
+    const userComment = rawComment.trim();
     if (!userComment) return;
+
+    if (!transformation || !plan || !planContentV3) {
+      setDashboardActionError("Le plan actif n'est pas encore prêt pour une analyse de demande.");
+      return;
+    }
 
     setPlanReviewBusy(true);
     setDashboardActionError(null);
@@ -935,6 +1199,7 @@ export default function DashboardV2() {
         "review-plan-v1",
         {
           body: {
+            review_id: planReviewProposal?.review_id ?? undefined,
             transformation_id: transformation.id,
             plan_id: plan.id,
             scope: "active_plan",
@@ -959,12 +1224,7 @@ export default function DashboardV2() {
       if (fnError) throw fnError;
       if (!data) throw new Error("La proposition de révision est vide.");
 
-      const now = new Date().toISOString();
-      setPlanReviewThread((current) => [
-        ...current,
-        { role: "user", content: userComment, created_at: now },
-        { role: "assistant", content: data.assistant_summary, created_at: now },
-      ]);
+      setPlanReviewThread(data.conversation_thread);
       setPlanReviewProposal({
         review_id: data.review_id,
         review_kind: data.review_kind,
@@ -980,7 +1240,26 @@ export default function DashboardV2() {
         regeneration_feedback: data.regeneration_feedback,
         clarification_question: data.clarification_question,
         assistant_summary: data.assistant_summary,
+        conversation_mode: data.conversation_mode,
+        precision_count: data.precision_count,
+        message_count: data.message_count,
+        session_status: data.session_status,
+        session_expires_at: data.session_expires_at,
       });
+      setPlanReviewSessionStatus(data.session_status);
+      setPlanReviewSessionExpiresAt(data.session_expires_at);
+      if (!planReviewInitialComment) {
+        setPlanReviewInitialComment(userComment);
+      } else if (planReviewComposerMode === "precision") {
+        setPlanReviewPrecisionComment(userComment);
+      }
+      setPlanReviewComposerMode(
+        data.conversation_mode === "explanation_chat" || data.conversation_mode === "guardrail_chat"
+          ? "chat"
+          : "hidden",
+      );
+      setPlanReviewPreview(null);
+      setPlanReviewPreviewPlanId(null);
       setPlanReviewInput("");
     } catch (reviewError) {
       console.error("[DashboardV2] active plan review failed", reviewError);
@@ -994,24 +1273,363 @@ export default function DashboardV2() {
     }
   };
 
-  const handlePlanReviewDismiss = async () => {
+  const handlePlanReviewRequestPrecision = () => {
+    setDashboardActionError(null);
+    setPlanReviewInput("");
+    setPlanReviewComposerMode("precision");
+  };
+
+  const handlePlanReviewGeneratePreview = async () => {
+    if (!transformation || !plan || !planReviewProposal || !planReviewInitialComment) return;
+
+    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
+    if (!previewScope) return;
+
+    const effectiveStartDate = getBrowserLocalYmd();
+    const feedback = buildPlanAdjustmentFeedback({
+      proposal: planReviewProposal,
+      initialComment: planReviewInitialComment,
+      precisionComment: planReviewPrecisionComment,
+    });
+
+    setPlanReviewBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke<GeneratePlanPreviewResponse>(
+        "generate-plan-v2",
+        {
+          body: {
+            transformation_id: transformation.id,
+            mode: "preview",
+            feedback,
+            force_regenerate: true,
+            adjustment_context: {
+              review_id: planReviewProposal.review_id,
+              scope: previewScope,
+              effective_start_date: effectiveStartDate,
+              reason: planReviewProposal.understanding.slice(0, 280),
+              assistant_message: planReviewProposal.assistant_summary,
+            },
+          },
+        },
+      );
+
+      if (fnError) throw fnError;
+      if (!data?.plan_preview) throw new Error("Le preview du plan ajusté est vide.");
+
+      const now = new Date().toISOString();
+      const nextExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+      const { error: updateError } = await supabase
+        .from("user_plan_review_requests")
+        .update({
+          session_status: "preview_ready",
+          preview_plan_id: data.plan_id,
+          effective_start_date: effectiveStartDate,
+          session_expires_at: nextExpiresAt,
+          updated_at: now,
+        })
+        .eq("id", planReviewProposal.review_id);
+      if (updateError) throw updateError;
+
+      setPlanReviewPreview(data.plan_preview);
+      setPlanReviewPreviewPlanId(data.plan_id);
+      setPlanReviewSessionStatus("preview_ready");
+      setPlanReviewSessionExpiresAt(nextExpiresAt);
+      setPlanReviewProposal((current) => current
+        ? {
+          ...current,
+          session_status: "preview_ready",
+          session_expires_at: nextExpiresAt,
+        }
+        : current);
+    } catch (previewError) {
+      console.error("[DashboardV2] plan review preview failed", previewError);
+      setDashboardActionError(
+        previewError instanceof Error
+          ? previewError.message
+          : "Impossible de préparer le plan ajusté pour le moment.",
+      );
+    } finally {
+      setPlanReviewBusy(false);
+    }
+  };
+
+  const handlePlanReviewConfirmPreview = async () => {
+    if (!transformation || !plan || !planReviewProposal || !planReviewPreview) return;
+
+    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
+    if (!previewScope) return;
+
+    setPlanReviewBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      const effectiveStartDate =
+        planReviewPreviewRevision?.effective_start_date ??
+        getBrowserLocalYmd();
+      const { data, error: fnError } = await supabase.functions.invoke<GeneratePlanPreviewResponse>(
+        "generate-plan-v2",
+        {
+          body: {
+            transformation_id: transformation.id,
+            mode: "confirm",
+            adjustment_context: {
+              review_id: planReviewProposal.review_id,
+              scope: previewScope,
+              effective_start_date: effectiveStartDate,
+              reason: planReviewProposal.understanding.slice(0, 280),
+              assistant_message: planReviewProposal.assistant_summary,
+            },
+          },
+        },
+      );
+
+      if (fnError) throw fnError;
+
+      const now = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from("user_plan_review_requests")
+        .update({
+          session_status: "completed",
+          completed_at: now,
+          finalized_plan_id: data?.plan_id ?? null,
+          updated_at: now,
+        })
+        .eq("id", planReviewProposal.review_id);
+      if (updateError) throw updateError;
+
+      clearPlanReviewSessionState();
+      await refetch();
+    } catch (confirmError) {
+      console.error("[DashboardV2] plan review confirm failed", confirmError);
+      setDashboardActionError(
+        confirmError instanceof Error
+          ? confirmError.message
+          : "Impossible d'appliquer le plan ajusté pour le moment.",
+      );
+    } finally {
+      setPlanReviewBusy(false);
+    }
+  };
+
+  const handlePlanReviewRestart = async () => {
     if (!planReviewProposal) return;
 
     const reviewId = planReviewProposal.review_id;
-    setPlanReviewProposal(null);
+    const previewPlanId = planReviewPreviewPlanId;
+    clearPlanReviewSessionState();
+
+    if (previewPlanId) {
+      await supabase
+        .from("user_plans_v2")
+        .update({
+          status: "archived",
+          archived_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", previewPlanId);
+    }
 
     const { error: updateError } = await supabase
       .from("user_plan_review_requests")
       .update({
-        status: "dismissed",
+        session_status: "restarted",
+        completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq("id", reviewId);
 
     if (updateError) {
-      console.error("[DashboardV2] dismiss active plan review failed", updateError);
+      console.error("[DashboardV2] restart active plan review failed", updateError);
     }
   };
+
+  const handlePlanReviewComplete = async () => {
+    if (!planReviewProposal) {
+      clearPlanReviewSessionState();
+      return;
+    }
+
+    const reviewId = planReviewProposal.review_id;
+    const previewPlanId = planReviewPreviewPlanId;
+    clearPlanReviewSessionState();
+
+    if (previewPlanId) {
+      await supabase
+        .from("user_plans_v2")
+        .update({
+          status: "archived",
+          archived_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", previewPlanId);
+    }
+
+    const { error: updateError } = await supabase
+      .from("user_plan_review_requests")
+      .update({
+        session_status: "completed",
+        completed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reviewId);
+
+    if (updateError) {
+      console.error("[DashboardV2] complete active plan review failed", updateError);
+    }
+  };
+
+  const planReviewPreviewRevision = parsePlanAdjustmentRevision(
+    planReviewPreview?.metadata?.plan_adjustment_revision,
+  );
+  const planReviewShowComposer =
+    !planReviewProposal ||
+    planReviewComposerMode === "precision" ||
+    (planReviewComposerMode === "chat" && planReviewThread.length < 10);
+  const planReviewSubmitLabel = planReviewComposerMode === "precision"
+    ? "Envoyer la précision"
+    : planReviewComposerMode === "chat"
+      ? "Envoyer"
+      : "Analyser la demande";
+  const planReviewHelperText = planReviewComposerMode === "precision"
+    ? "Tu peux ajouter une seule précision avant de prévisualiser le plan ajusté."
+    : planReviewComposerMode === "chat"
+      ? "Tu peux poursuivre cet échange brièvement. La conversation se ferme automatiquement après 30 minutes d'inactivité."
+      : null;
+  const planReviewActions: PlanRevisionPanelAction[] = (() => {
+    if (!planReviewProposal) return [];
+
+    const actions: PlanRevisionPanelAction[] = [];
+    const previewScope = getPreviewScope(planReviewProposal.conversation_mode);
+    const canAddPrecision = previewScope !== null &&
+      planReviewProposal.precision_count === 0 &&
+      !planReviewPreview;
+
+    if (canAddPrecision) {
+      actions.push({
+        key: "precision",
+        label: "Ajouter une précision",
+        onClick: handlePlanReviewRequestPrecision,
+        disabled: planReviewBusy,
+        variant: "secondary",
+      });
+    }
+
+    if (previewScope && !planReviewPreview) {
+      actions.push({
+        key: "preview",
+        label: previewScope === "level" ? "Voir le niveau ajusté" : "Voir le plan ajusté",
+        onClick: () => void handlePlanReviewGeneratePreview(),
+        disabled: planReviewBusy,
+        variant: "primary",
+      });
+    }
+
+    if (planReviewProposal.offer_complete_level) {
+      actions.push({
+        key: "complete-level",
+        label: "Valider ce niveau et passer au suivant",
+        onClick: () => {
+          setLevelCompletionError(null);
+          setIsLevelCompletionModalOpen(true);
+        },
+        disabled: planReviewBusy,
+        variant: "secondary",
+      });
+    }
+
+    if (planReviewPreview) {
+      actions.unshift({
+        key: "confirm-preview",
+        label: "Valider le plan ajusté",
+        onClick: () => void handlePlanReviewConfirmPreview(),
+        disabled: planReviewBusy,
+        variant: "primary",
+      });
+    }
+
+    actions.push({
+      key: "restart",
+      label: "Recommencer",
+      onClick: () => void handlePlanReviewRestart(),
+      disabled: planReviewBusy,
+      variant: "ghost",
+    });
+    actions.push({
+      key: "complete",
+      label: "Terminer",
+      onClick: () => void handlePlanReviewComplete(),
+      disabled: planReviewBusy,
+      variant: "danger",
+    });
+
+    return actions;
+  })();
+  const planReviewPreviewNode = planReviewPreview ? (
+    <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-700">
+            Prévisualisation
+          </p>
+          <h4 className="mt-2 text-lg font-semibold text-stone-950">
+            {planReviewProposal?.conversation_mode === "level_adjustment"
+              ? "Voici le niveau ajusté"
+              : "Voici le plan ajusté"}
+          </h4>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
+            {planReviewPreviewRevision
+              ? `La modification s'applique à partir du ${planReviewPreviewRevision.effective_start_date}. Tout ce qui précède reste figé.`
+              : "La modification s'applique à partir d'aujourd'hui. Tout ce qui précède reste figé."}
+          </p>
+        </div>
+        {planReviewPreviewRevision ? (
+          <div className="rounded-full border border-blue-200 bg-white px-3 py-1 text-xs font-semibold text-blue-800">
+            {planReviewPreviewRevision.scope === "level" ? "Niveau ajusté" : "Plan ajusté"}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+          Cap actuel
+        </p>
+        <p className="mt-2 text-base font-semibold text-stone-950">
+          {planReviewPreview.current_level_runtime?.title ?? planReviewPreview.title}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-stone-700">
+          {planReviewPreview.current_level_runtime?.phase_objective ?? planReviewPreview.progression_logic}
+        </p>
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-white px-4 py-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
+          Marqueur de révision
+        </p>
+        <p className="mt-2 text-sm leading-6 text-stone-700">
+          {planReviewPreviewRevision?.reason ?? planReviewProposal?.understanding}
+        </p>
+      </div>
+
+      {Array.isArray(planReviewPreview.plan_blueprint?.levels) &&
+      planReviewPreview.plan_blueprint.levels.length > 0 ? (
+        <div className="mt-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-stone-500">
+            Suite visible
+          </p>
+          <div className="mt-3 space-y-2">
+            {planReviewPreview.plan_blueprint.levels.slice(0, 4).map((level) => (
+              <div key={level.phase_id} className="text-sm text-stone-700">
+                Niveau {level.level_order} · {level.title}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  ) : null;
 
   const handleLevelCompletionSubmit = async (answers: Record<string, string>) => {
     if (!transformation || !plan || !currentLevel) return;
@@ -1109,7 +1727,9 @@ export default function DashboardV2() {
   };
 
   const handleOpenMultiPartTransitionGate = () => {
-    if (!hasSequencedNextTransformation && !hasSimpleNextTransformation) return;
+    if (!hasSequencedNextTransformation && !hasSimpleNextTransformation && !hasCycleRelaunchAction) {
+      return;
+    }
     setDashboardActionError(null);
     setIsMultiPartTransitionModalOpen(true);
   };
@@ -1314,6 +1934,39 @@ export default function DashboardV2() {
     }
   };
 
+  const handleContinueToNewCycle = async () => {
+    if (!transformation || !cycle) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      await releaseCurrentTransformationForNextStep("completed");
+
+      const now = new Date().toISOString();
+      const { error: cycleError } = await supabase
+        .from("user_cycles")
+        .update({
+          status: "completed",
+          updated_at: now,
+        })
+        .eq("id", cycle.id);
+      if (cycleError) throw cycleError;
+
+      setIsMultiPartTransitionModalOpen(false);
+      handleStartOnboarding();
+    } catch (actionError) {
+      console.error("[DashboardV2] new cycle launch after completion failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de lancer un nouveau parcours pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
   const handleLetGoAndContinueToNextTransformation = async (reason: string) => {
     if (!hasSimpleNextTransformation) return;
 
@@ -1335,6 +1988,44 @@ export default function DashboardV2() {
         actionError instanceof Error
           ? actionError.message
           : "Impossible d'abandonner cette transformation pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
+  const handleLetGoAndStartNewCycle = async (reason: string) => {
+    if (!transformation || !cycle) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      console.info("[DashboardV2] cycle abandoned before restart", {
+        transformation_id: transformation.id,
+        reason,
+      });
+
+      await releaseCurrentTransformationForNextStep("abandoned");
+
+      const now = new Date().toISOString();
+      const { error: cycleError } = await supabase
+        .from("user_cycles")
+        .update({
+          status: "abandoned",
+          updated_at: now,
+        })
+        .eq("id", cycle.id);
+      if (cycleError) throw cycleError;
+
+      setIsMultiPartTransitionModalOpen(false);
+      handleStartOnboarding();
+    } catch (actionError) {
+      console.error("[DashboardV2] cycle restart after let-go failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de relancer un nouveau parcours pour le moment.",
       );
     } finally {
       setMultiPartTransitionBusy(false);
@@ -1664,8 +2355,15 @@ export default function DashboardV2() {
               {/* ── SIDEBAR (Niveau 2 : Scope & Préférences) ── */}
               <div className="lg:col-span-3 space-y-4">
                 <div className="rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm flex flex-col gap-1">
-                  <div className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-stone-400">
-                    Mes Parcours
+                  <div className="px-3 pb-2 pt-1">
+                    <div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                      Mes Parcours
+                    </div>
+                    {hasSequencedNextTransformation ? (
+                      <p className="mt-2 text-sm leading-5 text-amber-800">
+                        La 2e partie de ce parcours se débloque depuis la page du plan.
+                      </p>
+                    ) : null}
                   </div>
                   
                   {scopeTransformations.map((item) => {
@@ -1701,20 +2399,14 @@ export default function DashboardV2() {
 
                   <div className="h-px bg-stone-100 my-3" />
 
-                  {!hasSequencedNextTransformation ? (
-                    <button
-                      type="button"
-                      onClick={handleOpenAdditionalPlanFlow}
-                      className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
-                    >
-                      <Plus className="h-4 w-4" />
-                      Ajouter une transformation
-                    </button>
-                  ) : (
-                    <div className="mx-1 rounded-[16px] border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm font-medium text-amber-900">
-                      La 2e partie de ce parcours se débloque depuis la page du plan.
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={handleOpenAdditionalPlanFlow}
+                    className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Ajouter une transformation
+                  </button>
 
                   <button
                     type="button"
@@ -1893,17 +2585,17 @@ export default function DashboardV2() {
                                   <PlanRevisionPanel
                                     value={planReviewInput}
                                     thread={planReviewThread}
-                                    proposal={planReviewProposal}
                                     isBusy={planReviewBusy}
+                                    errorMessage={dashboardActionError}
                                     currentLevelOrder={currentLevel?.phase_order ?? null}
                                     currentLevelTitle={currentLevel?.title ?? null}
+                                    showComposer={planReviewShowComposer}
+                                    submitLabel={planReviewSubmitLabel}
+                                    helperText={planReviewHelperText}
+                                    previewNode={planReviewPreviewNode}
+                                    actions={planReviewActions}
                                     onChange={setPlanReviewInput}
                                     onSubmit={handlePlanReviewSubmit}
-                                    onDismissProposal={handlePlanReviewDismiss}
-                                    onCompleteLevel={() => {
-                                      setLevelCompletionError(null);
-                                      setIsLevelCompletionModalOpen(true);
-                                    }}
                                   />
                                 </>
                               }
@@ -1937,6 +2629,8 @@ export default function DashboardV2() {
                                   ? handleOpenMultiPartTransitionGate
                                   : hasSimpleNextTransformation
                                     ? handleOpenMultiPartTransitionGate
+                                  : hasCycleRelaunchAction
+                                    ? handleOpenMultiPartTransitionGate
                                   : canShowTransformationEndAction
                                     ? handleEndSimpleTransformation
                                   : undefined
@@ -1945,6 +2639,8 @@ export default function DashboardV2() {
                                 hasSequencedNextTransformation
                                   ? "Passer à la 2ème transformation"
                                   : hasSimpleNextTransformation
+                                    ? "Passer à la prochaine transformation"
+                                  : hasCycleRelaunchAction
                                     ? "Passer à la prochaine transformation"
                                   : canShowTransformationEndAction
                                     ? "Mettre fin à la transformation"
@@ -1957,6 +2653,8 @@ export default function DashboardV2() {
                                     : "La 2e partie restera verrouillée tant que cette 1re partie n'est pas vraiment bouclée."
                                   : hasSimpleNextTransformation
                                     ? "Avant d'ouvrir la transformation suivante, confirme que l'objectif global de ta transformation actuelle est vraiment atteint."
+                                  : hasCycleRelaunchAction
+                                    ? "Avant de relancer un nouveau parcours, confirme que l'objectif global de cette transformation est vraiment atteint."
                                   : canShowTransformationEndAction
                                     ? isTransformationReadyForClosure
                                       ? "La transformation est terminée. Il ne reste plus qu'à valider la clôture pour la faire entrer dans ta Base de vie."
@@ -1964,19 +2662,25 @@ export default function DashboardV2() {
                                   : null
                               }
                               journeyContext={activePlanContent.journey_context}
+                              planAdjustmentRevision={parsePlanAdjustmentRevision(
+                                planContentV3?.metadata?.plan_adjustment_revision,
+                              )}
                             />
                             {allPhasesCompleted ? (
                               <PlanRevisionPanel
                                 value={planReviewInput}
                                 thread={planReviewThread}
-                                proposal={planReviewProposal}
                                 isBusy={planReviewBusy}
+                                errorMessage={dashboardActionError}
                                 currentLevelOrder={null}
                                 currentLevelTitle={null}
+                                showComposer={planReviewShowComposer}
+                                submitLabel={planReviewSubmitLabel}
+                                helperText={planReviewHelperText}
+                                previewNode={planReviewPreviewNode}
+                                actions={planReviewActions}
                                 onChange={setPlanReviewInput}
                                 onSubmit={handlePlanReviewSubmit}
-                                onDismissProposal={handlePlanReviewDismiss}
-                                onCompleteLevel={() => {}}
                               />
                             ) : null}
                           </>
@@ -2065,6 +2769,8 @@ export default function DashboardV2() {
                                   ? "Ici, la suite n'est pas un choix libre: l'étape 2 se débloque seulement quand l'étape 1 a vraiment atteint son cap."
                                   : hasSimpleNextTransformation
                                     ? "Ici, tu peux passer à la prochaine transformation. Pour ajouter une nouvelle transformation en parallèle (max 2), passe par le menu."
+                                    : hasCycleRelaunchAction
+                                      ? "Ici, tu peux clôturer cette transformation et relancer un nouveau parcours si tu veux ouvrir un nouveau cycle."
                                     : "Aucune transformation suivante n'est prête ici pour le moment. Si tu veux en ajouter une, passe par le menu."}
                               </p>
                             </div>
@@ -2107,7 +2813,7 @@ export default function DashboardV2() {
                               >
                                 Passer à la 2ème transformation
                               </button>
-                            ) : hasSimpleNextTransformation ? (
+                            ) : hasSimpleNextTransformation || hasCycleRelaunchAction ? (
                               <button
                                 type="button"
                                 onClick={handleOpenMultiPartTransitionGate}
@@ -2146,14 +2852,14 @@ export default function DashboardV2() {
                           <button
                             type="button"
                             onClick={() => setIsLabUsageOpen((value) => !value)}
-                            className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-stone-500 transition-colors hover:text-stone-700"
+                            className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-emerald-700 transition-colors hover:text-emerald-900"
                           >
                             {isLabUsageOpen ? "Masquer les explications" : "Comment utiliser cet espace"}
                             {isLabUsageOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                           </button>
 
                           {isLabUsageOpen ? (
-                            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 text-left text-sm leading-6 text-stone-700 animate-fade-in">
+                            <div className="mt-4 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-teal-50 px-5 py-4 text-left text-sm leading-6 text-stone-700 animate-fade-in">
                               <p className="mb-3">
                                 Cet espace sert a te donner des appuis concrets selon le moment que tu traverses. L'idee n'est pas
                                 de tout theoriser, mais d'avoir la bonne aide au bon moment.
@@ -2366,7 +3072,7 @@ export default function DashboardV2() {
         mode={hasSequencedNextTransformation ? "multi_part" : "simple"}
         isOpen={Boolean(
           isMultiPartTransitionModalOpen &&
-            (hasSequencedNextTransformation || hasSimpleNextTransformation),
+            (hasSequencedNextTransformation || hasSimpleNextTransformation || hasCycleRelaunchAction),
         )}
         canEvaluateTarget={hasSequencedNextTransformation ? transitionCheckpointReached : true}
         busy={multiPartTransitionBusy || planReviewBusy}
@@ -2389,13 +3095,17 @@ export default function DashboardV2() {
         onConfirmReached={
           hasSequencedNextTransformation
             ? handleContinueToNextPart
-            : handleContinueToNextSimpleTransformation
+            : hasSimpleNextTransformation
+              ? handleContinueToNextSimpleTransformation
+              : handleContinueToNewCycle
         }
         onAdjustPlan={handleAdjustCurrentPlanForTransition}
         onLetGoAndContinue={
           hasSimpleNextTransformation
             ? handleLetGoAndContinueToNextTransformation
-            : undefined
+            : hasCycleRelaunchAction
+              ? handleLetGoAndStartNewCycle
+              : undefined
         }
       />
 

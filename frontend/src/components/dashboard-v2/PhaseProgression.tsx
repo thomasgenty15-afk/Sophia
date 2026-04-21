@@ -41,6 +41,12 @@ const DAY_CODES: DayCode[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 type PhaseProgressionProps = {
   phases: PhaseRuntimeData[];
   scheduleAnchor?: PlanScheduleAnchor | null;
+  planAdjustmentRevision?: {
+    effective_start_date: string;
+    reason: string;
+    scope: "level" | "plan";
+    assistant_message?: string | null;
+  } | null;
   phase1Node?: React.ReactNode;
   activePhaseFooterNode?: React.ReactNode;
   renderPhaseFooterNode?: (phase: PhaseRuntimeData) => React.ReactNode;
@@ -390,6 +396,7 @@ function CompletedPhase({
 function ActivePhase({
   phase,
   scheduleAnchor,
+  planAdjustmentRevision,
   primaryMetricLabel,
   unlockStateByItemId,
   busyItemId,
@@ -408,6 +415,12 @@ function ActivePhase({
 }: {
   phase: PhaseRuntimeData;
   scheduleAnchor?: PlanScheduleAnchor | null;
+  planAdjustmentRevision?: {
+    effective_start_date: string;
+    reason: string;
+    scope: "level" | "plan";
+    assistant_message?: string | null;
+  } | null;
   primaryMetricLabel?: string | null;
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
@@ -655,6 +668,19 @@ function ActivePhase({
               </span>
             ) : null}
           </div>
+          {planAdjustmentRevision ? (
+            <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 px-4 py-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">
+                Plan ajusté le {planAdjustmentRevision.effective_start_date}
+              </p>
+              <p className="mt-2 text-sm leading-6 text-stone-700">
+                {planAdjustmentRevision.reason}
+              </p>
+              <p className="mt-2 text-xs text-stone-500">
+                La partie précédente reste figée. À partir d&apos;ici, tu vois la version ajustée.
+              </p>
+            </div>
+          ) : null}
           <div className="mt-4 space-y-3">
             {weekEntries.map((entry) => {
               const { week, weekCalendar, status, weekTarget, weekSections, weekItems, weekMissionTiming } = entry;
@@ -1006,6 +1032,7 @@ export function PhaseProgressionSkeleton() {
 export function PhaseProgression({
   phases,
   scheduleAnchor,
+  planAdjustmentRevision,
   phase1Node,
   activePhaseFooterNode,
   renderPhaseFooterNode,
@@ -1134,6 +1161,7 @@ export function PhaseProgression({
                   <ActivePhase
                     phase={phase}
                     scheduleAnchor={scheduleAnchor}
+                    planAdjustmentRevision={planAdjustmentRevision}
                     primaryMetricLabel={primaryMetricLabel}
                     unlockStateByItemId={unlockStateByItemId}
                     busyItemId={busyItemId}

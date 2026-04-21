@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { supabase } from "../lib/supabase";
-import { getDisplayPhaseOrder } from "../lib/planPhases";
 import type {
   CurrentLevelRuntime,
   HeartbeatMetric,
@@ -312,8 +311,25 @@ function buildPhaseRuntime(
 
   let foundActive = false;
   return mergedPhases
-    .sort((a, b) => a.phase_order - b.phase_order)
+    .sort((a, b) => {
+      const leftOrder =
+        currentLevelRuntime?.phase_id === a.phase_id &&
+          typeof currentLevelRuntime.level_order === "number"
+          ? currentLevelRuntime.level_order
+          : a.phase_order;
+      const rightOrder =
+        currentLevelRuntime?.phase_id === b.phase_id &&
+          typeof currentLevelRuntime.level_order === "number"
+          ? currentLevelRuntime.level_order
+          : b.phase_order;
+      return leftOrder - rightOrder;
+    })
     .map((phase) => {
+      const effectivePhaseOrder =
+        currentLevelRuntime?.phase_id === phase.phase_id &&
+          typeof currentLevelRuntime.level_order === "number"
+          ? currentLevelRuntime.level_order
+          : phase.phase_order;
       const items = sortItems(itemsByPhase.get(phase.phase_id) ?? []);
       const allDone =
         items.length > 0 &&
@@ -327,11 +343,11 @@ function buildPhaseRuntime(
 
       const blueprintLevel =
         blueprintByPhaseId.get(phase.phase_id) ??
-        blueprintByOrder.get(phase.phase_order) ??
+        blueprintByOrder.get(effectivePhaseOrder) ??
         null;
       const isCurrentLevel =
         currentLevelRuntime?.phase_id === phase.phase_id ||
-        currentLevelRuntime?.level_order === phase.phase_order;
+        currentLevelRuntime?.level_order === effectivePhaseOrder;
       const blueprintStatus = blueprintLevel?.status ?? null;
 
       let state: "completed" | "active" | "future";
@@ -340,7 +356,7 @@ function buildPhaseRuntime(
           state = "active";
         } else if (
           blueprintStatus === "completed" ||
-          (explicitCurrentLevelOrder != null && phase.phase_order < explicitCurrentLevelOrder)
+          (explicitCurrentLevelOrder != null && effectivePhaseOrder < explicitCurrentLevelOrder)
         ) {
           state = "completed";
         } else {
@@ -377,7 +393,7 @@ function buildPhaseRuntime(
 
       return {
         phase_id: phase.phase_id,
-        phase_order: getDisplayPhaseOrder(phase.phase_order),
+        phase_order: effectivePhaseOrder,
         title,
         rationale,
         phase_objective: phaseObjective,

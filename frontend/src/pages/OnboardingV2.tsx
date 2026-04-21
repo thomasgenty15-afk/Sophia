@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Loader2, RefreshCcw } from "lucide-react";
 
@@ -9,6 +9,7 @@ import { PlanGenerationScreen } from "../components/onboarding-v2/PlanGeneration
 import { PlanReviewScreen } from "../components/onboarding-v2/PlanReviewScreen";
 import { CustomQuestionnaire } from "../components/onboarding-v2/CustomQuestionnaire";
 import { MinimalProfile } from "../components/onboarding-v2/MinimalProfile";
+import { ProgressiveLoader } from "../components/onboarding-v2/ProgressiveLoader";
 import { useAuth } from "../context/AuthContext";
 import {
   clearOnboardingV2Draft,
@@ -127,6 +128,35 @@ function buildPlanRegenerationFeedback(
   return quickFeedback || trimmedFeedback;
 }
 
+function questionnaireAnswersEqual(
+  left: Record<string, unknown>,
+  right: Record<string, string | string[]>,
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+
+  for (const key of rightKeys) {
+    const leftValue = left[key];
+    const rightValue = right[key];
+
+    if (typeof rightValue === "string") {
+      if (leftValue !== rightValue) return false;
+      continue;
+    }
+
+    if (!Array.isArray(leftValue) || leftValue.length !== rightValue.length) {
+      return false;
+    }
+
+    if (leftValue.some((value, index) => value !== rightValue[index])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function mergeTransitionDebriefIntoHandoffPayload(args: {
   handoffPayload: Record<string, unknown> | null;
   answers: Record<string, string | string[]>;
@@ -198,6 +228,36 @@ function getErrorStatus(error: unknown): number | null {
     if (typeof context?.status === "number") return context.status;
   }
   return null;
+}
+
+function isPlanGenerationTimeout(error: unknown): boolean {
+  const status = getErrorStatus(error);
+  if (status === 408 || status === 504) return true;
+
+  const message = getErrorMessage(error, "").toLowerCase();
+  return message.includes("gateway time-out") ||
+    message.includes("gateway timeout") ||
+    message.includes("timed out") ||
+    message.includes("timeout");
+}
+
+function isPlanContentV3Candidate(value: unknown): value is PlanContentV3 {
+  if (!value || typeof value !== "object") return false;
+
+  const candidate = value as {
+    version?: unknown;
+    title?: unknown;
+    phases?: unknown;
+  };
+  return candidate.version === 3 &&
+    typeof candidate.title === "string" &&
+    Array.isArray(candidate.phases);
+}
+
+function wait(ms: number) {
+  return new Promise<void>((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
 }
 
 function isAuthFunctionError(error: unknown): boolean {
@@ -461,11 +521,15 @@ export default function OnboardingV2() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const postAuthHydrationAttemptRef = useRef<string | null>(null);
+  const activeOnboardingActionTokenRef = useRef(0);
   const [draft, setDraft] = useState<OnboardingV2Draft>(() =>
     loadOnboardingV2Draft() ?? createEmptyOnboardingV2Draft()
   );
   const [error, setError] = useState<string | null>(null);
-  const [loadingLabel, setLoadingLabel] = useState<string | null>(null);
+  const [loadingState, setLoadingState] = useState<{
+    id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate" | null;
+    label?: string;
+  }>({ id: null });
   const [postAuthHydrating, setPostAuthHydrating] = useState(false);
   const [hydrationRetryKey, setHydrationRetryKey] = useState(0);
   const [storedProfileFields, setStoredProfileFields] = useState({
@@ -493,6 +557,103 @@ export default function OnboardingV2() {
   ]);
   const effectiveUser = onboardingAuthMode === "authenticated" ? user : null;
   const onboardingAuthLoading = authLoading || onboardingAuthMode === "checking";
+  const beginOnboardingAction = useCallback((
+    state: { id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate"; label: string },
+  ) => {
+    const token = activeOnboardingActionTokenRef.current + 1;
+    activeOnboardingActionTokenRef.current = token;
+    setLoadingState(state);
+    return token;
+  }, []);
+  const isOnboardingActionCurrent = useCallback(
+    (token: number) => activeOnboardingActionTokenRef.current === token,
+    [],
+  );
+  const finishOnboardingAction = useCallback((token: number) => {
+    if (!isOnboardingActionCurrent(token)) return;
+    setLoadingState({ id: null });
+  }, [isOnboardingActionCurrent]);
+  const cancelOnboardingActions = useCallback(() => {
+    activeOnboardingActionTokenRef.current += 1;
+    setLoadingState({ id: null });
+  }, []);
+  const recoverPlanPreviewAfterTimeout = useCallback(async (args: {
+    actionToken: number;
+    transformationId: string;
+    requestStartedAt: string;
+    maxWaitMs?: number;
+    pollIntervalMs?: number;
+  }): Promise<PlanContentV3 | null> => {
+    const maxWaitMs = args.maxWaitMs ?? 90_000;
+    const pollIntervalMs = args.pollIntervalMs ?? 3_000;
+    const deadline = Date.now() + maxWaitMs;
+
+    setLoadingState({
+      id: "plan",
+      label: "Le plan prend plus de temps que prévu, Sophia finalise le brouillon…",
+    });
+
+    while (Date.now() <= deadline) {
+      if (!isOnboardingActionCurrent(args.actionToken)) return null;
+
+      const { data, error } = await supabase
+        .from("user_plans_v2")
+        .select("id,status,content,updated_at")
+        .eq("transformation_id", args.transformationId)
+        .eq("status", "draft")
+        .gte("updated_at", args.requestStartedAt)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!isOnboardingActionCurrent(args.actionToken)) return null;
+
+      if (error) {
+        console.warn("[onboarding][plan_preview_recovery][query_failed]", {
+          transformation_id: args.transformationId,
+          request_started_at: args.requestStartedAt,
+          error_message: getErrorMessage(error, "unknown_error"),
+        });
+      } else if (data && isPlanContentV3Candidate(data.content)) {
+        console.info("[onboarding][plan_preview_recovery][draft_found]", {
+          transformation_id: args.transformationId,
+          plan_id: data.id,
+          updated_at: data.updated_at ?? null,
+        });
+        return data.content;
+      }
+
+      if (Date.now() + pollIntervalMs > deadline) break;
+      await wait(pollIntervalMs);
+    }
+
+    return null;
+  }, [isOnboardingActionCurrent]);
+  const handleQuestionnaireDraftChange = useCallback(
+    (answers: Record<string, string | string[]>) => {
+      setDraft((current) => {
+        const activeTransformationId =
+          current.questionnaire_schema?.transformation_id ??
+          current.active_transformation_id;
+        if (!activeTransformationId) return current;
+
+        if (questionnaireAnswersEqual(current.questionnaire_answers, answers)) {
+          return current;
+        }
+
+        return saveOnboardingV2Draft({
+          ...current,
+          questionnaire_answers: answers,
+          transformations: current.transformations.map((transformation) =>
+            transformation.id === activeTransformationId
+              ? { ...transformation, questionnaire_answers: answers }
+              : transformation
+          ),
+        }, { sync: false });
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -998,6 +1159,7 @@ export default function OnboardingV2() {
 
   async function handleStageBack(targetStage: OnboardingV2Draft["stage"]) {
     setError(null);
+    cancelOnboardingActions();
 
     try {
       if (
@@ -1030,6 +1192,7 @@ export default function OnboardingV2() {
 
   async function handleRestart() {
     setError(null);
+    cancelOnboardingActions();
 
     try {
       if (effectiveUser && draft.cycle_id) {
@@ -1154,36 +1317,47 @@ export default function OnboardingV2() {
   }
 
   async function handleAnalyzeAsGuest() {
-    setLoadingLabel("Sophia structure tes pensées…");
-    const response = await intakeToTransformationsGuest({
-      anonymousSessionId: draft.anonymous_session_id,
-      rawIntakeText: draft.raw_intake_text,
+    const actionToken = beginOnboardingAction({
+      id: "analyze",
+      label: "Sophia structure tes pensées…",
     });
-    console.log("[frontend_response_received]", {
-      source: "guest",
-      name: "cycle-draft/intake",
-      at: new Date().toISOString(),
-    });
-    const firstTransformation = getRecommendedTransformation(
-      response.transformations,
-    );
+    try {
+      const response = await intakeToTransformationsGuest({
+        anonymousSessionId: draft.anonymous_session_id,
+        rawIntakeText: draft.raw_intake_text,
+      });
+      if (!isOnboardingActionCurrent(actionToken)) return;
+      console.log("[frontend_response_received]", {
+        source: "guest",
+        name: "cycle-draft/intake",
+        at: new Date().toISOString(),
+      });
+      const firstTransformation = getRecommendedTransformation(
+        response.transformations,
+      );
 
-    persistDraft(setDraft, {
-      cycle_id: null,
-      cycle_status: response.cycle_status,
-      stage: response.needs_clarification ? "capture" : "priorities",
-      pending_auth_action: null,
-      needs_clarification: response.needs_clarification,
-      clarification_prompt: response.clarification_prompt,
-      aspects: [],
-      provisional_groups: [],
-      validated_groups: [],
-      deferred_aspects: [],
-      transformations: response.transformations,
-      active_transformation_id: firstTransformation?.id ?? null,
-      questionnaire_schema: null,
-      questionnaire_answers: {},
-    }, { sync: false });
+      persistDraft(setDraft, {
+        cycle_id: null,
+        cycle_status: response.cycle_status,
+        stage: response.needs_clarification ? "capture" : "priorities",
+        pending_auth_action: null,
+        needs_clarification: response.needs_clarification,
+        clarification_prompt: response.clarification_prompt,
+        aspects: [],
+        provisional_groups: [],
+        validated_groups: [],
+        deferred_aspects: [],
+        transformations: response.transformations,
+        active_transformation_id: firstTransformation?.id ?? null,
+        questionnaire_schema: null,
+        questionnaire_answers: {},
+      }, { sync: false });
+    } catch (error) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
+      throw error;
+    } finally {
+      finishOnboardingAction(actionToken);
+    }
   }
 
   async function handleAnalyze() {
@@ -1202,14 +1376,16 @@ export default function OnboardingV2() {
           ),
         );
         return;
-      } finally {
-        setLoadingLabel(null);
       }
     }
 
+    const actionToken = beginOnboardingAction({
+      id: "analyze",
+      label: "Sophia structure tes pensées…",
+    });
     try {
-      setLoadingLabel("Sophia structure tes pensées…");
       await clearServerDownstreamState({ targetStage: "capture" });
+      if (!isOnboardingActionCurrent(actionToken)) return;
       const response = await invokeFunction<IntakeToTransformationsResponse>(
         "intake-to-transformations-v2",
         {
@@ -1217,6 +1393,7 @@ export default function OnboardingV2() {
           cycle_id: draft.cycle_id ?? undefined,
         },
       );
+      if (!isOnboardingActionCurrent(actionToken)) return;
       const transformations = response.transformations.map(
         mapCrystallizedTransformation,
       );
@@ -1239,6 +1416,7 @@ export default function OnboardingV2() {
         questionnaire_answers: {},
       });
     } catch (invokeError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
       if (isAuthFunctionError(invokeError)) {
         try {
           setOnboardingAuthMode("guest");
@@ -1261,14 +1439,17 @@ export default function OnboardingV2() {
         ),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
   async function persistTransformationFocusSelection(params: {
     selectedTransformationId: string;
     transformations: TransformationPreviewV2[];
-  }) {
+  }): Promise<{
+    transformations: TransformationPreviewV2[];
+    selectedTransformationId: string;
+  }> {
     if (!draft.cycle_id) {
       return {
         transformations: params.transformations,
@@ -1277,6 +1458,22 @@ export default function OnboardingV2() {
     }
 
     const now = new Date().toISOString();
+    const { data: cycleRows, error: cycleRowsError } = await supabase
+      .from("user_transformations")
+      .select("id, priority_order, status")
+      .eq("cycle_id", draft.cycle_id);
+    if (cycleRowsError) throw cycleRowsError;
+
+    const cycleRowsList = (cycleRows as Array<{
+      id: string;
+      priority_order: number | null;
+      status: TransformationPreviewV2["status"];
+    }> | null) ?? [];
+    const currentCycleMaxPriority = Math.max(
+      0,
+      ...cycleRowsList.map((item) => item.priority_order ?? 0),
+    );
+
     const persistedExistingTransformations = params.transformations.filter((item) =>
       !item.id.startsWith("manual-")
     );
@@ -1303,43 +1500,26 @@ export default function OnboardingV2() {
       },
     });
 
-    const stagedExistingTransformations = draft.transformations.filter((item) =>
-      !item.id.startsWith("manual-")
-    );
-    const stagedExistingMaxPriority = Math.max(
-      0,
-      ...stagedExistingTransformations.map((item) => item.priority_order ?? 0),
-    );
+    if (cycleRowsList.length > 0) {
+      for (const [index, transformation] of cycleRowsList.entries()) {
+        const { error: stageError } = await supabase
+          .from("user_transformations")
+          .update({
+            priority_order: currentCycleMaxPriority + index + 1,
+            updated_at: now,
+          })
+          .eq("id", transformation.id)
+          .eq("cycle_id", draft.cycle_id);
 
-    if (stagedExistingTransformations.length > 0) {
-      const stageResults = await Promise.all(
-        stagedExistingTransformations.map((transformation, index) =>
-          supabase
-            .from("user_transformations")
-            .update({
-              priority_order: stagedExistingMaxPriority + index + 1,
-              updated_at: now,
-            })
-            .eq("id", transformation.id)
-            .eq("cycle_id", draft.cycle_id)
-        ),
-      );
-
-      const failedStage = stageResults.find((result) => result.error);
-      if (failedStage?.error) throw failedStage.error;
+        if (stageError) throw stageError;
+      }
     }
 
     const insertedTransformations: TransformationPreviewV2[] = [];
     if (manualTransformations.length > 0) {
-      const existingMaxPriority = Math.max(
-        0,
-        ...draft.transformations
-          .filter((item) => !item.id.startsWith("manual-"))
-          .map((item) => item.priority_order ?? 0),
-      );
       const insertRows = manualTransformations.map((transformation, index) => ({
         cycle_id: draft.cycle_id,
-        priority_order: existingMaxPriority + index + 1,
+        priority_order: currentCycleMaxPriority + cycleRowsList.length + index + 1,
         status: transformation.status,
         title: transformation.title,
         internal_summary: transformation.internal_summary,
@@ -1372,43 +1552,99 @@ export default function OnboardingV2() {
     const removedTransformations = draft.transformations
       .filter((item) => removedTransformationIds.includes(item.id))
       .sort((a, b) => a.priority_order - b.priority_order)
-      .map((transformation, index) => ({
+      .map((transformation) => ({
         ...transformation,
         cycle_id: draft.cycle_id!,
         status: "abandoned" as const,
-        priority_order: params.transformations.length + index + 1,
       }));
 
-    const updateTargets = [
+    const visibleTargets: Array<TransformationPreviewV2 & { cycle_id: string }> = [
       ...persistedExistingTransformations.map((transformation) => ({
         ...transformation,
         cycle_id: draft.cycle_id!,
       })),
-      ...removedTransformations,
+      ...manualTransformations.map((transformation, index) => {
+        const inserted = insertedTransformations[index];
+        return {
+          ...transformation,
+          id: inserted?.id ?? transformation.id,
+          cycle_id: draft.cycle_id!,
+        };
+      }),
     ];
 
-    const updateResults = await Promise.all(
-      updateTargets.map(async (transformation) => {
+    const untouchedCycleRows = cycleRowsList
+      .filter((row) =>
+        !visibleTargets.some((transformation) => transformation.id === row.id) &&
+        !removedTransformations.some((transformation) => transformation.id === row.id)
+      )
+      .sort((a, b) => (a.priority_order ?? 0) - (b.priority_order ?? 0));
+
+    const fullUpdateTargets: Array<TransformationPreviewV2 & {
+      cycle_id: string;
+      priority_order: number;
+    }> = [
+      ...visibleTargets.map((transformation, index) => ({
+        ...transformation,
+        priority_order: index + 1,
+      })),
+      ...removedTransformations,
+    ].map((transformation, index) => ({
+      ...transformation,
+      priority_order: index + 1,
+    }));
+
+    const trailingOrderUpdates = untouchedCycleRows.map((row, index) => ({
+        id: row.id,
+        cycle_id: draft.cycle_id!,
+        status: row.status,
+        priority_order: fullUpdateTargets.length + index + 1,
+    }));
+
+    const updateTargets = [...fullUpdateTargets, ...trailingOrderUpdates];
+
+    const updateResults: typeof fullUpdateTargets = [];
+    for (const transformation of [...updateTargets].sort((a, b) => a.priority_order - b.priority_order)) {
+      const baseUpdate = {
+        priority_order: transformation.priority_order,
+        status: transformation.status,
+        updated_at: now,
+      };
+      const isFullUpdate =
+        "title" in transformation &&
+        "internal_summary" in transformation &&
+        "user_summary" in transformation;
+      if (!isFullUpdate) {
         const { error } = await supabase
           .from("user_transformations")
-          .update({
-            priority_order: transformation.priority_order,
-            status: transformation.status,
-            title: transformation.title,
-            internal_summary: transformation.internal_summary,
-            user_summary: transformation.user_summary,
-            handoff_payload: buildOnboardingPayload(transformation),
-            questionnaire_schema: null,
-            questionnaire_answers: null,
-            updated_at: now,
-          })
+          .update(baseUpdate)
           .eq("id", transformation.id)
           .eq("cycle_id", draft.cycle_id);
         if (error) throw error;
+        continue;
+      }
 
-        return transformation;
-      }),
-    );
+      const fullTransformation =
+        transformation as TransformationPreviewV2 & { cycle_id: string; priority_order: number };
+      const updatePayload = {
+          ...baseUpdate,
+          title: fullTransformation.title,
+          internal_summary: fullTransformation.internal_summary,
+          user_summary: fullTransformation.user_summary,
+          handoff_payload: buildOnboardingPayload(fullTransformation),
+          questionnaire_schema: null,
+          questionnaire_answers: null,
+        };
+
+      const { error } = await supabase
+        .from("user_transformations")
+        .update(updatePayload)
+        .eq("id", transformation.id)
+        .eq("cycle_id", draft.cycle_id);
+      if (error) throw error;
+
+      updateResults.push(fullTransformation);
+    }
 
     const updatedById = new Map(updateResults.map((transformation) => [
       transformation.id,
@@ -1424,7 +1660,10 @@ export default function OnboardingV2() {
 
     const persistedTransformations = params.transformations.map((transformation) => {
       if (transformation.is_manual) {
-        return insertedByLocalId.get(transformation.id) ?? transformation;
+        const inserted = insertedByLocalId.get(transformation.id);
+        return (inserted ? updatedById.get(inserted.id) : null) ??
+          inserted ??
+          transformation;
       }
       return updatedById.get(transformation.id) ??
         transformation;
@@ -1462,6 +1701,10 @@ export default function OnboardingV2() {
     setError(null);
 
     if (!effectiveUser) {
+      const actionToken = beginOnboardingAction({
+        id: "questionnaire",
+        label: "Sophia prépare ton questionnaire…",
+      });
       try {
         const source = transformationsOverride ?? draft.transformations;
         const transformation = source.find((item) => item.id === transformationId);
@@ -1473,11 +1716,11 @@ export default function OnboardingV2() {
           active_transformation_id: draft.active_transformation_id,
         });
 
-        setLoadingLabel("Sophia prépare ton questionnaire…");
         const response = await generateCycleDraftQuestionnaireGuest({
           anonymousSessionId: draft.anonymous_session_id,
           transformation,
         });
+        if (!isOnboardingActionCurrent(actionToken)) return;
 
         const schema: QuestionnaireSchemaV2 = response.schema ?? {
           version: 1,
@@ -1517,37 +1760,54 @@ export default function OnboardingV2() {
         });
         return;
       } catch (invokeError) {
+        if (!isOnboardingActionCurrent(actionToken)) return;
         setError(
           getErrorMessage(invokeError, "Impossible de générer le questionnaire."),
         );
         return;
       } finally {
-        setLoadingLabel(null);
+        finishOnboardingAction(actionToken);
       }
     }
 
+    const actionToken = beginOnboardingAction({
+      id: "questionnaire",
+      label: "Sophia prépare ton questionnaire…",
+    });
     try {
-      const source = transformationsOverride ?? draft.transformations;
-      const transformation = source.find((item) => item.id === transformationId) ?? null;
+      let source = transformationsOverride ?? draft.transformations;
+      let resolvedTransformationId = transformationId;
+      let transformation = source.find((item) => item.id === resolvedTransformationId) ?? null;
       console.info("[onboarding][questionnaire][auth][start]", {
-        transformation_id: transformationId,
+        transformation_id: resolvedTransformationId,
         transformation_title: transformation?.title ?? null,
         active_transformation_id: draft.active_transformation_id,
       });
 
-      setLoadingLabel("Sophia prépare ton questionnaire…");
+      if (draft.entry_mode === "add_transformation" && draft.stage === "questionnaire_setup") {
+        const persistedSelection = await persistTransformationFocusSelection({
+          selectedTransformationId: resolvedTransformationId,
+          transformations: source,
+        });
+        if (!isOnboardingActionCurrent(actionToken)) return;
+        source = persistedSelection.transformations;
+        resolvedTransformationId = persistedSelection.selectedTransformationId;
+        transformation = source.find((item) => item.id === resolvedTransformationId) ?? null;
+      }
       await clearServerDownstreamState({
         targetStage: "questionnaire",
-        activeTransformationId: transformationId,
+        activeTransformationId: resolvedTransformationId,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
       const response = await invokeFunction<GenerateQuestionnaireResponse>(
         "generate-questionnaire-v2",
-        { transformation_id: transformationId },
+        { transformation_id: resolvedTransformationId },
       );
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       const schema: QuestionnaireSchemaV2 = response.schema ?? {
         version: 1,
-        transformation_id: transformationId,
+        transformation_id: resolvedTransformationId,
         questions: response.questions,
         metadata: {
           design_principle: "court_adapte_utile_et_mesurable",
@@ -1568,7 +1828,7 @@ export default function OnboardingV2() {
       };
 
       const transformations = source.map((transformation) =>
-        transformation.id === transformationId
+        transformation.id === resolvedTransformationId
           ? { ...transformation, questionnaire_schema: schema }
           : { ...transformation, questionnaire_schema: null, questionnaire_answers: null }
       );
@@ -1577,15 +1837,19 @@ export default function OnboardingV2() {
         cycle_status: response.cycle_status,
         stage: "questionnaire",
         transformations,
-        active_transformation_id: transformationId,
+        active_transformation_id: resolvedTransformationId,
         questionnaire_schema: schema,
+        questionnaire_answers: {},
+        plan_review: null,
+        roadmap_transition: null,
       });
     } catch (invokeError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
       setError(
         getErrorMessage(invokeError, "Impossible de générer le questionnaire."),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -1600,15 +1864,19 @@ export default function OnboardingV2() {
         return;
       }
 
+      const actionToken = beginOnboardingAction({
+        id: "plan",
+        label: "Sophia prépare la 2e partie…",
+      });
+      const requestStartedAt = new Date().toISOString();
       try {
-        setLoadingLabel("Sophia prépare la 2e partie…");
-
         const { data: transformationRow, error: transformationLoadError } = await supabase
           .from("user_transformations")
           .select("handoff_payload")
           .eq("id", currentTransformation.id)
           .maybeSingle();
         if (transformationLoadError) throw transformationLoadError;
+        if (!isOnboardingActionCurrent(actionToken)) return;
 
         const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
           handoffPayload:
@@ -1646,6 +1914,7 @@ export default function OnboardingV2() {
           plan_review: null,
           roadmap_transition: null,
         });
+        if (!isOnboardingActionCurrent(actionToken)) return;
 
         const response = await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
           transformation_id: currentTransformation.id,
@@ -1657,6 +1926,7 @@ export default function OnboardingV2() {
         if (!response.plan_preview) {
           throw new Error("Le preview du plan est manquant.");
         }
+        if (!isOnboardingActionCurrent(actionToken)) return;
 
         const planReview: PlanReviewDraft = {
           plan_preview: response.plan_preview,
@@ -1668,6 +1938,24 @@ export default function OnboardingV2() {
           plan_review: planReview,
         });
       } catch (submitError) {
+        if (!isOnboardingActionCurrent(actionToken)) return;
+        if (isPlanGenerationTimeout(submitError)) {
+          const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+            actionToken,
+            transformationId: currentTransformation.id,
+            requestStartedAt,
+          });
+          if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
+            persistDraft(setDraft, {
+              stage: "plan_review",
+              plan_review: {
+                plan_preview: recoveredPreview,
+                feedback: "",
+              },
+            });
+            return;
+          }
+        }
         persistDraft(setDraft, { stage: "questionnaire" });
         setError(
           getErrorMessage(
@@ -1676,7 +1964,7 @@ export default function OnboardingV2() {
           ),
         );
       } finally {
-        setLoadingLabel(null);
+        finishOnboardingAction(actionToken);
       }
       return;
     }
@@ -1723,13 +2011,17 @@ export default function OnboardingV2() {
 
     if (!draft.cycle_id) return;
 
+    const actionToken = beginOnboardingAction({
+      id: "save",
+      label: "Enregistrement des réponses…",
+    });
     try {
-      setLoadingLabel("Enregistrement des réponses…");
       await clearServerDownstreamState({
         targetStage: "profile",
         activeTransformationId: currentTransformation.id,
         clearQuestionnaires: false,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       const { error: updateError } = await supabase
         .from("user_transformations")
@@ -1740,6 +2032,7 @@ export default function OnboardingV2() {
         .eq("id", currentTransformation.id);
 
       if (updateError) throw updateError;
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       const classificationResponse = await invokeFunction<ClassifyPlanTypeResponse>(
         "classify-plan-type-v1",
@@ -1747,6 +2040,7 @@ export default function OnboardingV2() {
           transformation_id: currentTransformation.id,
         },
       );
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       const { error: cycleError } = await supabase
         .from("user_cycles")
@@ -1775,11 +2069,12 @@ export default function OnboardingV2() {
         ),
       });
     } catch (submitError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
       setError(
         getErrorMessage(submitError, "Impossible d’enregistrer les réponses."),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -1795,14 +2090,19 @@ export default function OnboardingV2() {
     const resolvedGender =
       draft.profile.gender || storedProfileFields.genderValue || null;
 
+    const actionToken = beginOnboardingAction({
+      id: "plan",
+      label: "Sophia génère ton plan…",
+    });
+    const requestStartedAt = new Date().toISOString();
     try {
-      setLoadingLabel("Sophia génère ton plan…");
       const now = new Date().toISOString();
       await clearServerDownstreamState({
         targetStage: "profile",
         activeTransformationId: currentTransformation.id,
         clearQuestionnaires: false,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       const { error: profileError } = await supabase
         .from("profiles")
@@ -1825,6 +2125,7 @@ export default function OnboardingV2() {
         })
         .eq("id", draft.cycle_id);
       if (cycleError) throw cycleError;
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       persistDraft(setDraft, {
         cycle_status: "ready_for_plan",
@@ -1840,6 +2141,7 @@ export default function OnboardingV2() {
       }, {
         timeoutMs: 180_000,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
       if (!response.plan_preview) {
         throw new Error("Le preview du plan est manquant.");
       }
@@ -1859,6 +2161,26 @@ export default function OnboardingV2() {
         transformations: nextTransformations,
       });
     } catch (submitError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
+      if (isPlanGenerationTimeout(submitError)) {
+        const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+          actionToken,
+          transformationId: currentTransformation.id,
+          requestStartedAt,
+        });
+        if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
+          persistDraft(setDraft, {
+            cycle_status: "ready_for_plan",
+            stage: "plan_review",
+            plan_review: {
+              plan_preview: recoveredPreview,
+              feedback: "",
+            },
+            transformations: updatedTransformations ?? draft.transformations,
+          });
+          return;
+        }
+      }
       if (getErrorStatus(submitError) === 409) {
         const msg = getErrorMessage(submitError, "");
 
@@ -1929,7 +2251,7 @@ export default function OnboardingV2() {
         ),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -1942,8 +2264,12 @@ export default function OnboardingV2() {
     );
     setError(null);
 
+    const actionToken = beginOnboardingAction({
+      id: "plan",
+      label: "Sophia ajuste ton plan…",
+    });
+    const requestStartedAt = new Date().toISOString();
     try {
-      setLoadingLabel("Sophia ajuste ton plan…");
       persistDraft(setDraft, { stage: "generating_plan" });
 
       const response = await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
@@ -1955,6 +2281,7 @@ export default function OnboardingV2() {
       }, {
         timeoutMs: 180_000,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       if (!response.plan_preview) {
         throw new Error("Le plan ajusté n'a pas pu être récupéré.");
@@ -1968,6 +2295,24 @@ export default function OnboardingV2() {
         },
       });
     } catch (submitError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
+      if (isPlanGenerationTimeout(submitError)) {
+        const recoveredPreview = await recoverPlanPreviewAfterTimeout({
+          actionToken,
+          transformationId: currentTransformation.id,
+          requestStartedAt,
+        });
+        if (recoveredPreview && isOnboardingActionCurrent(actionToken)) {
+          persistDraft(setDraft, {
+            stage: "plan_review",
+            plan_review: {
+              plan_preview: recoveredPreview,
+              feedback,
+            },
+          });
+          return;
+        }
+      }
       persistDraft(setDraft, { stage: "plan_review" });
       setError(
         getErrorMessage(
@@ -1976,7 +2321,7 @@ export default function OnboardingV2() {
         ),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -1985,9 +2330,11 @@ export default function OnboardingV2() {
 
     setError(null);
 
+    const actionToken = beginOnboardingAction({
+      id: "activate",
+      label: "Activation du plan…",
+    });
     try {
-      setLoadingLabel("Activation du plan…");
-
       console.info("[onboarding][plan_confirm][start]", {
         user_id: effectiveUser.id,
         cycle_id: draft.cycle_id,
@@ -2008,15 +2355,18 @@ export default function OnboardingV2() {
       }, {
         timeoutMs: 180_000,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       await supabase
         .from("profiles")
         .update({ onboarding_completed: true })
         .eq("id", effectiveUser.id);
+      if (!isOnboardingActionCurrent(actionToken)) return;
 
       clearOnboardingV2Draft();
       navigate("/dashboard", { replace: true });
     } catch (submitError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
       console.error("[onboarding][plan_confirm][failed]", {
         cycle_id: draft.cycle_id,
         transformation_id: currentTransformation.id,
@@ -2105,7 +2455,7 @@ export default function OnboardingV2() {
         ),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -2128,13 +2478,18 @@ export default function OnboardingV2() {
       return;
     }
 
+    const actionToken = beginOnboardingAction({
+      id: "focus",
+      label: "Sophia prépare ton point de départ…",
+    });
     try {
-      setLoadingLabel("Sophia prépare ton point de départ…");
       await clearServerDownstreamState({
         targetStage: "priorities",
         activeTransformationId: payload.selectedTransformationId,
       });
+      if (!isOnboardingActionCurrent(actionToken)) return;
       const persisted = await persistTransformationFocusSelection(payload);
+      if (!isOnboardingActionCurrent(actionToken)) return;
       persistDraft(setDraft, {
         cycle_status: "prioritized",
         stage: "questionnaire_setup",
@@ -2146,6 +2501,7 @@ export default function OnboardingV2() {
         roadmap_transition: null,
       });
     } catch (submitError) {
+      if (!isOnboardingActionCurrent(actionToken)) return;
       setError(
         getErrorMessage(
           submitError,
@@ -2153,7 +2509,7 @@ export default function OnboardingV2() {
         ),
       );
     } finally {
-      setLoadingLabel(null);
+      finishOnboardingAction(actionToken);
     }
   }
 
@@ -2284,11 +2640,59 @@ export default function OnboardingV2() {
         </section>
       )}
 
-      {!isPostAuthTransition && loadingLabel && (
-        <div className="mx-auto mb-6 flex max-w-3xl items-center gap-3 rounded-2xl border border-gray-200 bg-white px-5 py-4 text-gray-700 shadow-sm">
-          <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-          <span className="font-medium">{loadingLabel}</span>
-        </div>
+      {!isPostAuthTransition && loadingState.id && (
+        <ProgressiveLoader
+          durationPerStep={
+            loadingState.id === "analyze" ? 4300 :
+            loadingState.id === "plan" ? 6000 :
+            loadingState.id === "save" ? 5000 :
+            2500
+          }
+          steps={
+            loadingState.id === "analyze"
+              ? [
+                  "Analyse de ton texte...",
+                  "Extraction des concepts clés...",
+                  "Identification des priorités...",
+                  "Structuration des idées...",
+                  "Catégorisation des sujets...",
+                  "Enrichissement du contexte...",
+                  "Préparation des choix...",
+                ]
+              : loadingState.id === "questionnaire"
+              ? [
+                  "Analyse du focus...",
+                  "Définition des axes...",
+                  "Génération des questions...",
+                  "Finalisation du questionnaire...",
+                ]
+              : loadingState.id === "plan"
+              ? [
+                  "Analyse de ton profil...",
+                  "Étude de tes réponses au questionnaire...",
+                  "Définition de la stratégie globale...",
+                  "Création de la structure du plan...",
+                  "Découpage en étapes actionnables...",
+                  "Ajustement du rythme et de la durée...",
+                  "Intégration des bonnes pratiques...",
+                  "Vérification de la cohérence...",
+                  "Personnalisation des conseils...",
+                  "Finalisation de ton plan sur mesure...",
+                ]
+              : loadingState.id === "focus"
+              ? [
+                  "Analyse des priorités...",
+                  "Préparation du point de départ...",
+                ]
+              : loadingState.id === "save"
+              ? [
+                  "Enregistrement des réponses...",
+                  "Classification de la transformation...",
+                  "Étude de la faisabilité one shot...",
+                ]
+              : [loadingState.label || "Chargement..."]
+          }
+        />
       )}
 
       {!isPostAuthTransition && error && (
@@ -2303,7 +2707,7 @@ export default function OnboardingV2() {
           onChange={(value) =>
             persistDraft(setDraft, { raw_intake_text: value })}
           onSubmit={handleAnalyze}
-          isSubmitting={Boolean(loadingLabel)}
+          isSubmitting={Boolean(loadingState.id !== null)}
           clarificationPrompt={draft.clarification_prompt}
           introTitle={
             isCycleReprioritizationCapture
@@ -2339,11 +2743,11 @@ export default function OnboardingV2() {
           transformations={draft.transformations}
           initialSelectedId={draft.active_transformation_id}
           onConfirm={handleTransformationFocusConfirm}
-          isSubmitting={Boolean(loadingLabel)}
+          isSubmitting={Boolean(loadingState.id !== null)}
         />
       )}
 
-      {draft.stage === "questionnaire_setup" && !loadingLabel && (
+      {draft.stage === "questionnaire_setup" && !loadingState.id && (
         <section className="mx-auto w-full max-w-3xl rounded-2xl border border-blue-100 bg-white p-6 shadow-sm md:p-8">
           <h2 className="mb-3 text-2xl font-semibold text-gray-900">
             Préparation du questionnaire…
@@ -2355,7 +2759,7 @@ export default function OnboardingV2() {
           </p>
           <button
             type="button"
-            disabled={Boolean(loadingLabel)}
+            disabled={Boolean(loadingState.id !== null)}
             onClick={() => {
               if (draft.active_transformation_id) {
                 void handleGenerateQuestionnaire(draft.active_transformation_id);
@@ -2373,15 +2777,18 @@ export default function OnboardingV2() {
         <CustomQuestionnaire
           schema={draft.questionnaire_schema}
           initialAnswers={draft.questionnaire_answers}
+          onChange={handleQuestionnaireDraftChange}
           onSubmit={handleQuestionnaireSubmit}
+          allowBackwardNavigation={
+            !isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema)
+          }
           onBack={() => {
             if (isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema)) {
-              navigate("/dashboard");
               return;
             }
             void handleStageBack("priorities");
           }}
-          isSubmitting={Boolean(loadingLabel)}
+          isSubmitting={Boolean(loadingState.id !== null)}
         />
       )}
 
@@ -2390,7 +2797,7 @@ export default function OnboardingV2() {
           value={draft.profile}
           onChange={(profile) => persistDraft(setDraft, { profile })}
           onSubmit={handleProfileSubmit}
-          isSubmitting={Boolean(loadingLabel)}
+          isSubmitting={Boolean(loadingState.id !== null)}
           currentTransformationTitle={currentTransformation?.title ?? null}
           planTypeClassification={currentTransformation?.plan_type_classification ?? null}
           questionnaireSchema={currentTransformation?.questionnaire_schema ?? null}
@@ -2407,7 +2814,7 @@ export default function OnboardingV2() {
           plan={draft.plan_review.plan_preview}
           professionalSupport={currentTransformation?.professional_support ?? null}
           feedback={draft.plan_review.feedback}
-          isBusy={Boolean(loadingLabel)}
+          isBusy={Boolean(loadingState.id !== null)}
           onFeedbackChange={(feedback) =>
             persistDraft(setDraft, {
               plan_review: draft.plan_review

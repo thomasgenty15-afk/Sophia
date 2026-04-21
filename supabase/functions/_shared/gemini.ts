@@ -150,6 +150,13 @@ export async function generateWithGemini(
     Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0
       ? Math.floor(Number(meta?.httpTimeoutMs))
       : parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 110_000);
+  const GEMINI_31_PRO_HTTP_TIMEOUT_MS =
+    Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0
+      ? Math.floor(Number(meta?.httpTimeoutMs))
+      : parseTimeoutMs(
+        Deno.env.get("GEMINI_31_PRO_HTTP_TIMEOUT_MS"),
+        Math.max(GEMINI_HTTP_TIMEOUT_MS, 150_000),
+      );
   // Separate (looser) timeout for eval-like traffic. Keep it configurable without affecting normal chat latency.
   // Note: run-evals also has its own wall-clock chunking (`max_wall_clock_ms_per_request`) so do not set this absurdly high.
   const GEMINI_EVAL_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_EVAL_HTTP_TIMEOUT_MS"), 240_000);
@@ -409,7 +416,7 @@ export async function generateWithGemini(
       return evalTimeout;
     }
     if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 60_000);
-    if (/\bgemini-3\.1[-.]pro(?:-preview)?\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 120_000);
+    if (/\bgemini-3\.1[-.]pro(?:-preview)?\b/i.test(mm)) return GEMINI_31_PRO_HTTP_TIMEOUT_MS;
     if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 60_000);
     return GEMINI_HTTP_TIMEOUT_MS;
   };

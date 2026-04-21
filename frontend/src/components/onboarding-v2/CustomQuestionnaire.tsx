@@ -36,9 +36,39 @@ type CustomQuestionnaireProps = {
   schema: QuestionnaireSchemaV2;
   initialAnswers?: Record<string, unknown>;
   onSubmit: (answers: Record<string, QuestionnaireAnswerValue>) => void;
+  onChange?: (answers: Record<string, QuestionnaireAnswerValue>) => void;
   onBack?: () => void;
   isSubmitting: boolean;
+  allowBackwardNavigation?: boolean;
 };
+
+function answersEqual(
+  left: Record<string, QuestionnaireAnswerValue>,
+  right: Record<string, QuestionnaireAnswerValue>,
+): boolean {
+  const leftKeys = Object.keys(left);
+  const rightKeys = Object.keys(right);
+  if (leftKeys.length !== rightKeys.length) return false;
+
+  for (const key of leftKeys) {
+    const leftValue = left[key];
+    const rightValue = right[key];
+
+    if (typeof leftValue === "string" || typeof rightValue === "string") {
+      if (leftValue !== rightValue) return false;
+      continue;
+    }
+
+    const normalizedLeft = Array.isArray(leftValue) ? leftValue : [];
+    const normalizedRight = Array.isArray(rightValue) ? rightValue : [];
+    if (normalizedLeft.length !== normalizedRight.length) return false;
+    if (normalizedLeft.some((value, index) => value !== normalizedRight[index])) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function normalizeAnswers(
   initialAnswers: Record<string, unknown> | undefined,
@@ -71,6 +101,85 @@ function normalizeAnswers(
     }
   }
   return normalized;
+}
+
+function evaluateVisibilityRule(
+  rule: QuestionnaireSchemaV2["questions"][number]["visible_if"],
+  answers: Record<string, QuestionnaireAnswerValue>,
+): boolean {
+  if (!rule) return true;
+
+  const rawAnswer = answers[rule.question_id];
+  if (rawAnswer == null) return false;
+
+  const compareAsNumber = typeof rule.value === "number";
+  const comparableValue = typeof rawAnswer === "string"
+    ? rawAnswer.trim()
+    : Array.isArray(rawAnswer)
+    ? rawAnswer[0]?.trim() ?? ""
+    : "";
+
+  if (compareAsNumber) {
+    const answerNumber = Number(comparableValue);
+    if (!Number.isFinite(answerNumber)) return false;
+
+    switch (rule.operator) {
+      case "lt":
+        return answerNumber < (rule.value as number);
+      case "lte":
+        return answerNumber <= (rule.value as number);
+      case "gt":
+        return answerNumber > (rule.value as number);
+      case "gte":
+        return answerNumber >= (rule.value as number);
+      case "eq":
+        return answerNumber === (rule.value as number);
+      case "neq":
+        return answerNumber !== (rule.value as number);
+      default:
+        return true;
+    }
+  }
+
+  switch (rule.operator) {
+    case "eq":
+      return comparableValue === String(rule.value);
+    case "neq":
+      return comparableValue !== String(rule.value);
+    default:
+      return false;
+  }
+}
+
+function getVisibleQuestions(
+  questions: QuestionnaireSchemaV2["questions"],
+  answers: Record<string, QuestionnaireAnswerValue>,
+) {
+  return questions.filter((question) =>
+    evaluateVisibilityRule(question.visible_if ?? null, answers)
+  );
+}
+
+function pruneHiddenAnswers(
+  questions: QuestionnaireSchemaV2["questions"],
+  answers: Record<string, QuestionnaireAnswerValue>,
+): Record<string, QuestionnaireAnswerValue> {
+  const visibleQuestionIds = new Set(
+    getVisibleQuestions(questions, answers).map((question) => question.id),
+  );
+  let changed = false;
+  const next: Record<string, QuestionnaireAnswerValue> = {};
+
+  for (const [key, value] of Object.entries(answers)) {
+    const question = questions.find((candidate) => candidate.id === key);
+    if (question && !visibleQuestionIds.has(key)) {
+      changed = true;
+      continue;
+    }
+    next[key] = value;
+  }
+
+  return changed ? next : answers;
 }
 
 function isClockTimeQuestion(question: QuestionnaireSchemaV2["questions"][number]): boolean {
@@ -171,8 +280,10 @@ export function CustomQuestionnaire({
   schema,
   initialAnswers,
   onSubmit,
+  onChange,
   onBack,
   isSubmitting,
+  allowBackwardNavigation = true,
 }: CustomQuestionnaireProps) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<
@@ -183,11 +294,31 @@ export function CustomQuestionnaire({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setAnswers(normalizeAnswers(initialAnswers, schema));
+    const normalized = normalizeAnswers(initialAnswers, schema);
+    setAnswers((current) => answersEqual(current, normalized) ? current : normalized);
   }, [initialAnswers, schema]);
 
-  const questions = schema.questions;
+  useEffect(() => {
+    onChange?.(answers);
+  }, [answers, onChange]);
+
+  const questions = useMemo(
+    () => getVisibleQuestions(schema.questions, answers),
+    [schema.questions, answers],
+  );
+  useEffect(() => {
+    setIndex((current) => Math.min(current, Math.max(questions.length - 1, 0)));
+  }, [questions.length]);
+
   const currentQuestion = questions[index];
+  useEffect(() => {
+    setAnswers((current) => {
+      const pruned = pruneHiddenAnswers(schema.questions, current);
+      return answersEqual(current, pruned) ? current : pruned;
+    });
+  }, [schema.questions, answers]);
+
+  if (!currentQuestion) return null;
   const currentAnswer = answers[currentQuestion.id];
   const currentQuestionUsesTimeInput = isClockTimeQuestion(currentQuestion);
 
@@ -276,9 +407,24 @@ export function CustomQuestionnaire({
       return typeof currentAnswer === "string" && isValidTimeValue(currentAnswer);
     }
     if (currentQuestion.kind === "number") {
-      return typeof currentAnswer === "string" &&
-        currentAnswer.trim().length > 0 &&
-        Number.isFinite(Number(currentAnswer));
+      if (typeof currentAnswer !== "string" || currentAnswer.trim().length === 0) {
+        return false;
+      }
+      const numericValue = Number(currentAnswer);
+      if (!Number.isFinite(numericValue)) return false;
+      if (
+        typeof currentQuestion.min_value === "number" &&
+        numericValue < currentQuestion.min_value
+      ) {
+        return false;
+      }
+      if (
+        typeof currentQuestion.max_value === "number" &&
+        numericValue > currentQuestion.max_value
+      ) {
+        return false;
+      }
+      return true;
     }
     if (currentQuestion.kind === "text") {
       return typeof currentAnswer === "string" && currentAnswer.trim().length > 0;
@@ -307,6 +453,9 @@ export function CustomQuestionnaire({
   }
 
   function handlePrevious() {
+    if (!allowBackwardNavigation) {
+      return;
+    }
     if (index === 0) {
       onBack?.();
       return;
@@ -527,7 +676,7 @@ export function CustomQuestionnaire({
 
         <div className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-between gap-3 border-t border-gray-200 bg-white/95 p-4 backdrop-blur md:static md:mt-8 md:border-none md:bg-transparent md:p-0">
           <div>
-            {index > 0 && (
+            {allowBackwardNavigation && index > 0 && (
               <button
                 type="button"
                 onClick={handlePrevious}

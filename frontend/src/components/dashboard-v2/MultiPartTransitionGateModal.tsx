@@ -105,12 +105,12 @@ export function MultiPartTransitionGateModal({
                   <div>
                     <p className="text-sm font-semibold text-amber-950">
                       {mode === "multi_part"
-                        ? "L'étape 2 n'est pas encore déblocable."
+                        ? "L'étape 2 s'ouvre dès que l'objectif de cette 1re partie est atteint."
                         : "Ce n'est pas encore le bon moment pour passer à la suite."}
                     </p>
                     <p className="mt-2 text-sm leading-6 text-amber-900">
                       {mode === "multi_part"
-                        ? "Tu n'es pas encore au point de passage vers la suite. Continue cette 1re partie, ou ajuste le plan actuel si la fin ne colle plus à ta réalité."
+                        ? "Si tu as vraiment atteint ce cap, tu peux confirmer et passer à la suite. Sinon, le plus juste est de continuer cette 1re partie ou d'ajuster la fin du plan pour qu'elle colle mieux à ta réalité."
                         : "Vérifie d'abord si cette transformation a vraiment atteint son objectif global. Sinon, le plus utile est d'ajuster le plan ou de choisir consciemment de passer à autre chose."}
                     </p>
                   </div>

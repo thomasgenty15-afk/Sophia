@@ -33,7 +33,6 @@ function configureAudioElement(audio: HTMLAudioElement) {
   audio.loop = true;
   audio.preload = "metadata";
   audio.volume = AUDIO_VOLUME;
-  audio.playsInline = true;
 }
 
 export function OnboardingAmbientAudioProvider({

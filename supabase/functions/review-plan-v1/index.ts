@@ -35,6 +35,7 @@ const CURRENT_LEVEL_CONTEXT_SCHEMA = z.object({
 });
 
 const REQUEST_SCHEMA = z.object({
+  review_id: z.string().uuid().optional(),
   transformation_id: z.string().uuid(),
   plan_id: z.string().uuid().optional(),
   scope: z.enum(["onboarding_preview", "active_plan"]),
@@ -79,8 +80,21 @@ const REVIEW_RESULT_SCHEMA = z.object({
 });
 
 type PlanReviewThreadEntry = z.infer<typeof PLAN_REVIEW_THREAD_ENTRY_SCHEMA>;
+type PersistedPlanReviewThreadEntry = PlanReviewThreadEntry & { created_at: string };
 type CurrentLevelContext = z.infer<typeof CURRENT_LEVEL_CONTEXT_SCHEMA>;
 type ReviewResult = z.infer<typeof REVIEW_RESULT_SCHEMA>;
+type ConversationMode =
+  | "level_adjustment"
+  | "plan_adjustment"
+  | "explanation_chat"
+  | "guardrail_chat";
+
+type ReviewPlanSessionStatus =
+  | "active"
+  | "preview_ready"
+  | "completed"
+  | "expired"
+  | "restarted";
 
 type ReviewContext = {
   transformation: UserTransformationRow;
@@ -151,6 +165,7 @@ async function handleRequest(req: Request): Promise<Response> {
       admin,
       requestId,
       userId: authData.user.id,
+      reviewId: parsedBody.data.review_id ?? null,
       transformationId: parsedBody.data.transformation_id,
       planId: parsedBody.data.plan_id ?? null,
       scope: parsedBody.data.scope,
@@ -175,7 +190,14 @@ async function handleRequest(req: Request): Promise<Response> {
       offer_complete_level: result.review.offer_complete_level,
       regeneration_feedback: result.review.regeneration_feedback,
       clarification_question: result.review.clarification_question,
-      assistant_summary: buildAssistantSummary(result.review),
+      assistant_summary: result.assistantMessage,
+      assistant_message: result.assistantMessage,
+      conversation_mode: result.conversationMode,
+      conversation_thread: result.conversationThread,
+      precision_count: result.precisionCount,
+      message_count: result.messageCount,
+      session_status: result.sessionStatus,
+      session_expires_at: result.sessionExpiresAt,
     });
   } catch (error) {
     const ctx = getRequestContext(req);
@@ -213,6 +235,7 @@ export async function reviewPlan(args: {
   admin: SupabaseClient;
   requestId: string;
   userId: string;
+  reviewId: string | null;
   transformationId: string;
   planId: string | null;
   scope: "onboarding_preview" | "active_plan";
@@ -223,6 +246,13 @@ export async function reviewPlan(args: {
 }): Promise<{
   reviewId: string;
   review: ReviewResult;
+  assistantMessage: string;
+  conversationMode: ConversationMode;
+  conversationThread: PersistedPlanReviewThreadEntry[];
+  precisionCount: number;
+  messageCount: number;
+  sessionStatus: ReviewPlanSessionStatus;
+  sessionExpiresAt: string;
 }> {
   const context = await loadReviewContext(
     args.admin,
@@ -244,65 +274,157 @@ export async function reviewPlan(args: {
       plan: args.plan,
     });
 
-  const reviewId = crypto.randomUUID();
+  const conversationMode = deriveConversationMode(review);
+  const assistantMessage = buildAssistantSummary(review, conversationMode);
+  const conversationThread: PersistedPlanReviewThreadEntry[] = [
+    ...args.priorThread.map((entry) => ({
+      role: entry.role,
+      content: entry.content,
+      created_at: new Date().toISOString(),
+    })),
+    { role: "user" as const, content: args.userComment, created_at: new Date().toISOString() },
+    { role: "assistant" as const, content: assistantMessage, created_at: new Date().toISOString() },
+  ];
+  const precisionCount = Math.max(
+    0,
+    conversationThread.filter((entry) => entry.role === "user").length - 1,
+  );
+  const messageCount = conversationThread.length;
+  const reviewId = args.reviewId ?? crypto.randomUUID();
   const now = new Date().toISOString();
-  const { error: insertError } = await args.admin
-    .from("user_plan_review_requests")
-    .insert({
-      id: reviewId,
-      user_id: args.userId,
-      transformation_id: args.transformationId,
-      plan_id: context.plan?.id ?? null,
-      surface: args.scope,
-      user_comment: args.userComment,
-      prior_thread: args.priorThread,
-      plan_snapshot: args.plan,
-      review_kind: review.review_kind,
-      decision: review.decision,
-      understanding: review.understanding,
-      impact: review.impact,
-      proposed_changes: review.proposed_changes,
-      regeneration_feedback: review.regeneration_feedback,
-      clarification_question: review.clarification_question,
-      status: "proposed",
-      created_at: now,
-      updated_at: now,
-    } as never);
+  const sessionExpiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  const payload = {
+    id: reviewId,
+    user_id: args.userId,
+    transformation_id: args.transformationId,
+    plan_id: context.plan?.id ?? null,
+    surface: args.scope,
+    user_comment: args.userComment,
+    prior_thread: args.priorThread,
+    plan_snapshot: args.plan,
+    review_kind: review.review_kind,
+    adjustment_scope: review.adjustment_scope,
+    decision: review.decision,
+    understanding: review.understanding,
+    impact: review.impact,
+    proposed_changes: review.proposed_changes,
+    control_mode: review.control_mode,
+    resistance_note: review.resistance_note,
+    principle_reminder: review.principle_reminder,
+    offer_complete_level: review.offer_complete_level,
+    regeneration_feedback: review.regeneration_feedback,
+    clarification_question: review.clarification_question,
+    conversation_mode: conversationMode,
+    assistant_message: assistantMessage,
+    conversation_thread: conversationThread,
+    session_status: "active" as ReviewPlanSessionStatus,
+    message_count: messageCount,
+    precision_count: precisionCount,
+    session_expires_at: sessionExpiresAt,
+    status: "proposed",
+    updated_at: now,
+  };
 
-  if (insertError) {
+  const persistResult = args.reviewId
+    ? await args.admin
+      .from("user_plan_review_requests")
+      .update(payload as never)
+      .eq("id", reviewId)
+      .eq("user_id", args.userId)
+    : await args.admin
+      .from("user_plan_review_requests")
+      .insert({
+        ...payload,
+        created_at: now,
+      } as never);
+
+  if (persistResult.error) {
     throw new ReviewPlanV1Error(
       500,
       "Failed to persist plan review request",
-      { cause: insertError },
+      { cause: persistResult.error },
     );
   }
 
-  return { reviewId, review };
+  return {
+    reviewId,
+    review,
+    assistantMessage,
+    conversationMode,
+    conversationThread,
+    precisionCount,
+    messageCount,
+    sessionStatus: "active",
+    sessionExpiresAt,
+  };
 }
 
-export function buildAssistantSummary(review: ReviewResult): string {
-  const scopeLabel = formatAdjustmentScope(review.adjustment_scope);
-  const changes = review.proposed_changes.length > 0
-    ? `Proposition: ${review.proposed_changes.join(" | ")}.`
-    : "Proposition: pas de modification immédiate.";
-  const resistance = review.resistance_note ? `Frein utile: ${review.resistance_note}.` : "";
-  const principle = review.principle_reminder ? `Principe: ${review.principle_reminder}.` : "";
-  const control = review.offer_complete_level
-    ? "Option: passer au niveau suivant reste possible si tu le souhaites."
-    : "";
-  const clarification = review.clarification_question
-    ? `Question: ${review.clarification_question}`
-    : "";
+export function buildAssistantSummary(
+  review: ReviewResult,
+  conversationMode: ConversationMode,
+): string {
+  const caution = review.resistance_note ? ` ${review.resistance_note}` : "";
+  const principle = review.principle_reminder ? ` ${review.principle_reminder}` : "";
+
+  if (conversationMode === "explanation_chat") {
+    return [
+      review.understanding,
+      review.impact,
+      review.clarification_question
+        ? `Si tu veux, tu peux m'ajouter une précision: ${review.clarification_question}`
+        : "Si tu veux, tu peux m'ajouter ce qui te paraît encore flou et je te réponds simplement.",
+    ].join(" ");
+  }
+
+  if (conversationMode === "guardrail_chat") {
+    return [
+      review.understanding,
+      review.impact,
+      caution.trim(),
+      principle.trim(),
+      "Si tu veux, on peut en parler rapidement pour trouver une version qui protège mieux la logique du plan.",
+    ].filter(Boolean).join(" ");
+  }
+
+  if (conversationMode === "level_adjustment") {
+    return [
+      `Oui, ça change quelque chose pour le niveau actuel. ${review.impact}`,
+      caution.trim(),
+      principle.trim(),
+      "Si tu veux, je peux te montrer une version ajustée du niveau à partir d'aujourd'hui.",
+    ].filter(Boolean).join(" ");
+  }
+
   return [
-    `J'ai compris: ${review.understanding}.`,
-    `Portee: ${scopeLabel}.`,
-    `Impact: ${review.impact}.`,
-    resistance,
-    principle,
-    changes,
-    control,
-    clarification,
+    `Oui, ça change quelque chose pour la suite du plan. ${review.impact}`,
+    caution.trim(),
+    principle.trim(),
+    "Si tu veux, je peux te montrer une version ajustée du plan à partir d'aujourd'hui.",
   ].filter(Boolean).join(" ");
+}
+
+function deriveConversationMode(review: ReviewResult): ConversationMode {
+  if (review.control_mode === "clarify_only") {
+    return review.review_kind === "clarification"
+      ? "explanation_chat"
+      : "guardrail_chat";
+  }
+
+  if (review.decision === "no_change" && review.offer_complete_level) {
+    return review.adjustment_scope === "current_level_only"
+      ? "level_adjustment"
+      : "plan_adjustment";
+  }
+
+  if (review.decision === "no_change") {
+    return review.review_kind === "clarification"
+      ? "explanation_chat"
+      : "guardrail_chat";
+  }
+
+  return review.adjustment_scope === "current_level_only"
+    ? "level_adjustment"
+    : "plan_adjustment";
 }
 
 export function buildMegaTestReview(userComment: string): ReviewResult {
@@ -437,9 +559,8 @@ async function loadReviewContext(
 ): Promise<ReviewContext> {
   const { data: transformation, error: transformationError } = await admin
     .from("user_transformations")
-    .select("*, user_cycles!inner(id, user_id)")
+    .select("*")
     .eq("id", transformationId)
-    .eq("user_cycles.user_id", userId)
     .maybeSingle();
 
   if (transformationError) {
@@ -449,6 +570,22 @@ async function loadReviewContext(
   }
 
   if (!transformation) {
+    throw new ReviewPlanV1Error(404, "Transformation not found for this user");
+  }
+
+  const { data: cycleRow, error: cycleError } = await admin
+    .from("user_cycles")
+    .select("id, user_id")
+    .eq("id", transformation.cycle_id)
+    .maybeSingle();
+
+  if (cycleError) {
+    throw new ReviewPlanV1Error(500, "Failed to load transformation cycle", {
+      cause: cycleError,
+    });
+  }
+
+  if (!cycleRow || cycleRow.user_id !== userId) {
     throw new ReviewPlanV1Error(404, "Transformation not found for this user");
   }
 

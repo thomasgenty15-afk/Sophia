@@ -11,7 +11,6 @@ import {
   persistOnboardingV2DraftLocally,
   type TransformationPreviewV2,
 } from "../lib/onboardingV2";
-import { supabase } from "../lib/supabase";
 
 type DashboardTransformationPreviewInput = {
   id: string;
@@ -25,11 +24,6 @@ type DashboardTransformationPreviewInput = {
   questionnaire_answers: Record<string, unknown> | null;
   handoff_payload: Record<string, unknown> | null;
 };
-
-function normalizeSelectionContext(value: string | null | undefined) {
-  const trimmed = value?.trim() ?? "";
-  return trimmed || null;
-}
 
 function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error && error.message.trim()) return error.message;
@@ -149,97 +143,6 @@ export default function AddTransformationPage() {
     );
   }
 
-  async function persistUpcomingTransformations(nextTransformations: TransformationPreviewV2[]) {
-    if (!cycle) return nextTransformations;
-
-    const originalById = new Map(remainingTransformations.map((item) => [item.id, item]));
-    const nextIds = new Set(nextTransformations.map((item) => item.id));
-    const removedIds = remainingTransformations
-      .map((item) => item.id)
-      .filter((id) => !nextIds.has(id));
-
-    for (const transformationId of removedIds) {
-      const { error: removeError } = await supabase.functions.invoke("update-roadmap-v3", {
-        body: {
-          action: "remove",
-          cycle_id: cycle.id,
-          transformation_id: transformationId,
-        },
-      });
-      if (removeError) throw removeError;
-    }
-
-    const hasActiveTransformation = activeTransformations.length > 0;
-    const now = new Date().toISOString();
-
-    await Promise.all(
-      nextTransformations.map(async (transformation, index) => {
-        const original = originalById.get(transformation.id);
-        if (!original) return;
-
-        const previousSelectionContext = normalizeSelectionContext(
-          typeof original.handoff_payload?.onboarding_v2 === "object" &&
-            original.handoff_payload?.onboarding_v2 &&
-            "selection_context" in original.handoff_payload.onboarding_v2
-            ? String(
-              (original.handoff_payload.onboarding_v2 as { selection_context?: unknown })
-                .selection_context ?? "",
-            )
-            : null,
-        );
-        const nextSelectionContext = normalizeSelectionContext(transformation.selection_context);
-        const nextPriorityOrder = lockedVisibleTransformations.length + index + 1;
-        const nextStatus =
-          hasActiveTransformation
-            ? "pending"
-            : index === 0
-              ? "ready"
-              : "pending";
-
-        const handoffPayload = {
-          ...(original.handoff_payload ?? {}),
-          onboarding_v2: {
-            ...(((original.handoff_payload?.onboarding_v2 as Record<string, unknown> | undefined) ?? {})),
-            selection_context: nextSelectionContext,
-          },
-        };
-
-        const shouldUpdateSelectionContext = previousSelectionContext !== nextSelectionContext;
-        const shouldUpdatePriority = original.priority_order !== nextPriorityOrder;
-        const shouldUpdateStatus = original.status !== nextStatus;
-
-        if (!shouldUpdateSelectionContext && !shouldUpdatePriority && !shouldUpdateStatus) {
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from("user_transformations")
-          .update({
-            priority_order: nextPriorityOrder,
-            status: nextStatus,
-            handoff_payload: handoffPayload,
-            updated_at: now,
-          })
-          .eq("id", transformation.id)
-          .eq("cycle_id", cycle.id);
-
-        if (updateError) throw updateError;
-      }),
-    );
-
-    return nextTransformations.map((transformation, index) => ({
-      ...transformation,
-      cycle_id: cycle.id,
-      priority_order: lockedVisibleTransformations.length + index + 1,
-      status:
-        hasActiveTransformation
-          ? ("pending" as const)
-          : index === 0
-            ? ("ready" as const)
-            : ("pending" as const),
-    }));
-  }
-
   async function handleContinue(payload: {
     selectedTransformationId: string;
     transformations: TransformationPreviewV2[];
@@ -250,8 +153,8 @@ export default function AddTransformationPage() {
     setBusyAction("continue");
 
     try {
-      const persistedTransformations = await persistUpcomingTransformations(payload.transformations);
-      const selectedTransformation = persistedTransformations.find((item) =>
+      const draftTransformations = buildDraftTransformations(payload.transformations);
+      const selectedTransformation = draftTransformations.find((item) =>
         item.id === payload.selectedTransformationId
       );
 
@@ -271,12 +174,10 @@ export default function AddTransformationPage() {
           ? "questionnaire"
           : "questionnaire_setup",
         raw_intake_text: cycle.raw_intake_text,
-        transformations: buildDraftTransformations(persistedTransformations),
+        transformations: draftTransformations,
         active_transformation_id: selectedTransformation.id,
-        questionnaire_schema:
-          (selectedTransformation.questionnaire_schema as Record<string, unknown> | null) ?? null,
-        questionnaire_answers:
-          (selectedTransformation.questionnaire_answers as Record<string, unknown> | null) ?? {},
+        questionnaire_schema: selectedTransformation.questionnaire_schema ?? null,
+        questionnaire_answers: selectedTransformation.questionnaire_answers ?? {},
         plan_review: null,
         roadmap_transition: null,
       });
@@ -305,7 +206,7 @@ export default function AddTransformationPage() {
     setBusyAction("reprioritize");
 
     try {
-      const persistedTransformations = await persistUpcomingTransformations(params.transformations);
+      const draftTransformations = buildDraftTransformations(params.transformations);
       const baseDraft = createEmptyOnboardingV2Draft();
 
       persistOnboardingV2DraftLocally({
@@ -316,7 +217,7 @@ export default function AddTransformationPage() {
         cycle_status: cycle.status,
         stage: "capture",
         raw_intake_text: "",
-        transformations: buildDraftTransformations(persistedTransformations),
+        transformations: draftTransformations,
         active_transformation_id: null,
         questionnaire_schema: null,
         questionnaire_answers: {},

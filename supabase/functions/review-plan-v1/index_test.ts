@@ -65,11 +65,10 @@ Deno.test("buildAssistantSummary composes the structured review", () => {
     offer_complete_level: false,
     regeneration_feedback: "Simplifie le debut.",
     clarification_question: null,
-  });
+  }, "level_adjustment");
 
-  assertStringIncludes(summary, "J'ai compris");
-  assertStringIncludes(summary, "Impact");
-  assertStringIncludes(summary, "Simplifier le premier pas");
+  assertStringIncludes(summary, "niveau actuel");
+  assertStringIncludes(summary, "à partir d'aujourd'hui");
 });
 
 Deno.test("buildMegaTestReview returns advance-ready control mode for fast-progress asks", () => {

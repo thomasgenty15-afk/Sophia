@@ -69,7 +69,8 @@ export function Phase1FoundationCard({
             </span>
           </div>
           <p className="mt-2 text-sm leading-6 text-stone-600">
-            Ici, Sophia t'aide a vraiment commencer: clarifier d'abord ton pourquoi profond, puis poser ton appui narratif avant d'entrer dans l'execution du plan.
+            Ici, tu reviens a ce qui te guide quand ca tangue: ton pourquoi profond, ton histoire,
+            et les reperes qui remettent du sens sur le chemin.
           </p>
           <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -96,13 +97,13 @@ export function Phase1FoundationCard({
         <ChecklistRow
           done={deepWhyComplete}
           title="Pourquoi profond complete"
-          detail="Toutes les formulations cle sont remplies pour te rappeler ce qui compte quand l'elan baisse."
+          detail="Les mots qui te rappellent ce que tu veux proteger, retrouver et ne plus laisser t'echapper."
           onClick={onOpenInspiration}
         />
         <ChecklistRow
           done={Boolean(phase1?.runtime.story_viewed_or_validated)}
           title="Ton histoire consultee"
-          detail="Une histoire courte et utile, nourrie par ton pourquoi profond, pour te reconnecter au sens du parcours."
+          detail="Une histoire a relire quand tu as besoin de retrouver de la force et du sens."
           onClick={onOpenInspiration}
         />
       </div>

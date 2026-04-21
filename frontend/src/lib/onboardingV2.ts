@@ -38,6 +38,12 @@ export type QuestionnaireOptionV2 = {
   label: string;
 };
 
+export type QuestionnaireVisibilityRuleV2 = {
+  question_id: string;
+  operator: "lt" | "lte" | "gt" | "gte" | "eq" | "neq";
+  value: string | number;
+};
+
 export type QuestionnaireMeasurementHintsV2 = {
   metric_key: string;
   metric_label: string;
@@ -71,6 +77,7 @@ export type QuestionnaireQuestionV2 = {
   suggested_value?: number | null;
   min_value?: number | null;
   max_value?: number | null;
+  visible_if?: QuestionnaireVisibilityRuleV2 | null;
 };
 
 export type QuestionnaireSchemaV2 = {

@@ -96,6 +96,10 @@ export type PlanGenerationInput = {
   previous_transformation_questionnaire_answers?: Record<string, unknown> | null;
   previous_transformation_questionnaire_schema?: Record<string, unknown> | null;
   previous_transformation_plan_preview?: PlanContentV3 | null;
+  /** Position courante dans un parcours multi-parties si applicable. */
+  journey_part_number?: number | null;
+  journey_total_parts?: number | null;
+  journey_continuation_hint?: string | null;
   /** Feedback explicite de l'utilisateur sur une version précédente du plan. */
   regeneration_feedback?: string | null;
   /** Feedback technique interne si une première sortie a échoué la validation. */
@@ -1071,7 +1075,8 @@ Le premier niveau de plan généré du plan, qui sera affiché comme un niveau d
 - Si le sujet permet un premier levier environnemental concret, ce premier niveau de plan doit commencer par ça.
 - Pour le sommeil, préfère par défaut un micro-step de signal de nuit concret (ex: éteindre la lampe, se mettre dans le noir, sortir des écrans, préparer le rituel de coucher) plutôt qu'un simple logging.
 - Le Heartbeat de ce premier niveau de plan doit mesurer l'exécution du micro-step, pas la documentation du problème.
-- Ce premier niveau de plan généré doit rester un vrai baby step : faible friction, faible charge, premier gain crédible.
+- Si aucune continuité explicite de parcours n'est fournie, ce premier niveau de plan généré doit rester un vrai baby step : faible friction, faible charge, premier gain crédible.
+- Si on t'indique explicitement que tu génères la partie 2 d'un parcours déjà lancé, n'applique PAS cette logique de baby step de démarrage : repars du niveau réellement atteint, prolonge l'élan et fais sentir une continuité claire avec la partie précédente.
 
 ## Ancrage calendaire réel
 
@@ -1709,6 +1714,26 @@ ${summarizePreviousPlanForPrompt(input.previous_plan_preview)}`
 
 Tu dois t'appuyer explicitement sur cet héritage pour dessiner la partie suivante : conserve ce qui a aidé, retire ce qui a moins bien servi, et fais progresser le plan au lieu de repartir de zéro.`
       : "";
+  const journeyPartNumber = input.journey_part_number ?? null;
+  const journeyTotalParts = input.journey_total_parts ?? null;
+  const isSecondPartContinuation =
+    journeyPartNumber != null &&
+    journeyTotalParts != null &&
+    journeyPartNumber >= 2 &&
+    journeyTotalParts >= 2;
+  const continuityBlock =
+    journeyPartNumber != null || journeyTotalParts != null || input.journey_continuation_hint
+      ? `\n\n## Contexte de continuité du parcours
+
+- Partie courante : ${journeyPartNumber ?? "Non renseignée"} / ${journeyTotalParts ?? "Non renseigné"}
+- Indication de continuité : ${input.journey_continuation_hint ?? "Aucune"}
+
+${
+  isSecondPartContinuation
+    ? "IMPORTANT : tu génères une partie de continuité, pas un redémarrage. Le premier niveau généré ne doit PAS reformuler un baby step de reprise du type « pas encore de cible directe », « préparer le terrain », ou un micro-levier d'entrée trop prudent. Il doit assumer les acquis de la partie précédente et attaquer directement la suite logique du travail déjà engagé."
+    : "S'il s'agit de la première partie ou d'un plan standalone, garde la logique normale de progressivité et de premier niveau très accessible."
+}`
+      : "";
 
   const validationFeedback = Array.isArray(input.system_validation_feedback)
     ? input.system_validation_feedback
@@ -1804,7 +1829,7 @@ ${input.user_summary}
 
 ## Profil utilisateur
 
-${profileBlock}${calibrationBlock}${answersBlock}${classificationBlock}${timeBlock}${previousTransformationBlock}${previousPlanBlock}${feedbackBlock}${validationFeedbackBlock}
+${profileBlock}${calibrationBlock}${answersBlock}${classificationBlock}${timeBlock}${continuityBlock}${previousTransformationBlock}${previousPlanBlock}${feedbackBlock}${validationFeedbackBlock}
 
 ## Rythme souhaite par l'utilisateur
 
@@ -1836,6 +1861,7 @@ Rappels importants :
 - retourne un \`current_level_runtime\` détaillé uniquement pour le niveau courant
 - tu dois aussi remplir \`metadata.plan_adjustment_context\` avec une logique interne exploitable plus tard pour ajuster le niveau courant, les niveaux suivants, ou le plan complet sans perdre le fil
 - le premier niveau généré du JSON doit être particulièrement clair et concret car c'est lui qui sera relu en détail avant validation
+- si tu génères explicitement la partie 2 d'un parcours déjà engagé, le premier niveau généré doit montrer une continuité assumée avec la partie précédente, pas un redémarrage en baby step
 - n'inclus pas le contenu réel de cartes de défense / d'attaque pour les actions du niveau de plan 2 dans ce JSON ; le produit affichera seulement des placeholders à ce stade
 - si le niveau courant dure plus d'une semaine, renseigne \`current_level_runtime.weeks\` avec une progression cumulative semaine par semaine
 - les semaines servent surtout à préciser le dosage, les répétitions et les jours de mission ; n'invente pas forcément de nouvelles actions chaque semaine
