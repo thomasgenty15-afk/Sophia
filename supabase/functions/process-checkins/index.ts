@@ -1298,12 +1298,35 @@ Deno.serve(async (req) => {
 
           const { data: reminder } = await supabaseAdmin
             .from("user_recurring_reminders")
-            .select("id,status,unanswered_probe_count,probe_last_sent_at")
+            .select("id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at")
             .eq("id", recurringReminderId)
             .eq("user_id", checkin.user_id)
             .maybeSingle();
 
           if (!reminder || (reminder as any).status !== "active") {
+            await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({
+                status: "cancelled",
+                processed_at: new Date().toISOString(),
+              })
+              .eq("id", checkin.id);
+            continue;
+          }
+
+          const endsAt = parseIsoMs((reminder as any)?.ends_at);
+          if (endsAt !== null && endsAt <= Date.now()) {
+            await supabaseAdmin
+              .from("user_recurring_reminders")
+              .update({
+                status: "expired",
+                ended_reason: "expired",
+                deactivated_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as any)
+              .eq("id", recurringReminderId)
+              .eq("user_id", checkin.user_id);
+
             await supabaseAdmin
               .from("scheduled_checkins")
               .update({

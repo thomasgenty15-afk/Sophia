@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { TransformationFocusStep } from "../components/onboarding-v2/TransformationFocusStep";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
 import { useDashboardV2Data } from "../hooks/useDashboardV2Data";
-import { isVisibleTransformationStatus } from "../lib/dashboardTransformations";
 import {
   createEmptyOnboardingV2Draft,
   persistOnboardingV2DraftLocally,
@@ -110,17 +109,6 @@ export default function AddTransformationPage() {
     () => transformations.filter((item) => item.status === "ready" || item.status === "pending"),
     [transformations],
   );
-  const lockedVisibleTransformations = useMemo(
-    () =>
-      transformations
-        .filter((item) =>
-          isVisibleTransformationStatus(item.status) &&
-          item.status !== "ready" &&
-          item.status !== "pending"
-        )
-        .map((item) => toTransformationPreviewFromDashboard(item as DashboardTransformationPreviewInput)),
-    [transformations],
-  );
   const remainingTransformationPreviews = useMemo(
     () =>
       remainingTransformations.map((item) =>
@@ -132,15 +120,11 @@ export default function AddTransformationPage() {
   const hasReachedLimit = activeTransformations.length >= 2;
 
   function buildDraftTransformations(nextTransformations: TransformationPreviewV2[]) {
-    const nextWithAbsoluteOrder = nextTransformations.map((item, index) => ({
+    return nextTransformations.map((item, index) => ({
       ...item,
       cycle_id: cycle?.id ?? item.cycle_id,
-      priority_order: lockedVisibleTransformations.length + index + 1,
+      priority_order: index + 1,
     }));
-
-    return [...lockedVisibleTransformations, ...nextWithAbsoluteOrder].sort(
-      (left, right) => left.priority_order - right.priority_order,
-    );
   }
 
   async function handleContinue(payload: {
@@ -242,15 +226,6 @@ export default function AddTransformationPage() {
   return (
     <div className="min-h-screen bg-stone-50 px-4 py-6 md:px-6 md:py-10">
       <div className="mx-auto w-full max-w-5xl">
-        <button
-          type="button"
-          onClick={() => navigate("/dashboard")}
-          className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-medium text-stone-600 shadow-sm transition hover:border-blue-200 hover:text-stone-900"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Retour au dashboard
-        </button>
-
         {loading ? (
           <div className="mt-8 flex items-center gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm text-stone-600 shadow-sm">
             <Loader2 className="h-4 w-4 animate-spin text-blue-600" />

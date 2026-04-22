@@ -35,6 +35,7 @@ import { DimensionSection } from "../components/dashboard-v2/DimensionSection";
 import { LabCardsPanel } from "../components/dashboard-v2/LabCardsPanel";
 import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletionModal";
 import { MultiPartTransitionGateModal } from "../components/dashboard-v2/MultiPartTransitionGateModal";
+import { MultiPartTransitionQuestionnaireModal } from "../components/dashboard-v2/MultiPartTransitionQuestionnaireModal";
 import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
 import { Phase1KickoffFlow } from "../components/dashboard-v2/Phase1KickoffFlow";
 import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
@@ -82,10 +83,16 @@ import { buildLevelReviewQuestions } from "../lib/levelCompletion";
 import {
   createEmptyOnboardingV2Draft,
   persistOnboardingV2DraftLocally,
+  type QuestionnaireSchemaV2,
   toTransformationPreview,
 } from "../lib/onboardingV2";
-import { buildMultiPartTransitionQuestionnaireSchema } from "../lib/multiPartTransitionQuestionnaire";
+import { newRequestId, requestHeaders } from "../lib/requestId";
+import {
+  buildMultiPartTransitionQuestionnaireSchema,
+  buildSimpleTransitionQuestionnaireSchema,
+} from "../lib/multiPartTransitionQuestionnaire";
 import { extractProfessionalSupport } from "../lib/professionalSupport";
+import { getDisplayPhaseOrder } from "../lib/planPhases";
 import { parsePlanScheduleAnchor } from "../lib/planSchedule";
 import { supabase } from "../lib/supabase";
 import { extractLevelToolRecommendationState } from "../lib/toolRecommendations";
@@ -112,6 +119,36 @@ function toPositiveIntegerOrNull(value: unknown): number | null {
     }
   }
   return null;
+}
+
+async function invokeFunctionWithTimeout<T>(
+  name: string,
+  body: Record<string, unknown>,
+  timeoutMs = 180_000,
+): Promise<T> {
+  const requestId = newRequestId();
+  const invokePromise = supabase.functions.invoke<T>(name, {
+    body,
+    headers: requestHeaders(requestId),
+  });
+
+  const result = await Promise.race([
+    invokePromise,
+    new Promise<never>((_, reject) => {
+      window.setTimeout(() => {
+        const timeoutError = new Error(
+          `La requête ${name} a dépassé ${Math.round(timeoutMs / 1000)} secondes.`,
+        ) as Error & { status?: number };
+        timeoutError.name = "FunctionInvokeTimeoutError";
+        timeoutError.status = 408;
+        reject(timeoutError);
+      }, timeoutMs);
+    }),
+  ]);
+
+  const { data, error } = result;
+  if (error) throw error;
+  return data as T;
 }
 
 function extractTransformationJourneyMetadata(
@@ -226,7 +263,7 @@ function extractSplitTransformationGoal(
 }
 
 type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences";
-type ArchitectTab = "coaching" | "wishlist" | "stories" | "reflections" | "quotes";
+type ArchitectTab = "atelier" | "wishlist" | "stories" | "reflections" | "quotes";
 type DashboardScopeId = string | "out_of_plan";
 
 type ReviewPlanResponse = {
@@ -276,6 +313,60 @@ type CompleteLevelResponse = {
   } | null;
 };
 
+type GeneratePlanResponse = {
+  request_id: string;
+  transformation_id: string;
+  cycle_id: string;
+  plan_id: string;
+  plan_version: number;
+  generation_attempts: number;
+  distributed_items_count: number;
+  event_warnings: string[];
+  plan_preview?: PlanContentV3;
+  plan_status?: string;
+  roadmap_changed?: boolean;
+};
+
+const REACTIVATABLE_PLAN_STATUS_PRIORITY = {
+  active: 0,
+  paused: 1,
+  completed: 2,
+  archived: 3,
+  generated: 4,
+  draft: 5,
+} as const;
+
+const REACTIVATED_TRANSFORMATION_STORAGE_KEY =
+  "sophia:dashboard:reactivated_transformation_id";
+
+function readReactivatedTransformationId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = window.sessionStorage
+      .getItem(REACTIVATED_TRANSFORMATION_STORAGE_KEY)
+      ?.trim();
+    return value || null;
+  } catch {
+    return null;
+  }
+}
+
+function persistReactivatedTransformationId(transformationId: string | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (transformationId) {
+      window.sessionStorage.setItem(
+        REACTIVATED_TRANSFORMATION_STORAGE_KEY,
+        transformationId,
+      );
+    } else {
+      window.sessionStorage.removeItem(REACTIVATED_TRANSFORMATION_STORAGE_KEY);
+    }
+  } catch {
+    // ignore sessionStorage failures
+  }
+}
+
 type ResourceFocusTarget = {
   defenseTriggerKey: string;
   token: number;
@@ -293,6 +384,16 @@ function getBrowserLocalYmd(now = new Date()): string {
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatCompletedTransformationDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "numeric",
+    month: "short",
+  }).format(parsed);
 }
 
 function buildPlanAdjustmentFeedback(args: {
@@ -338,6 +439,37 @@ function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | n
     assistant_message: typeof candidate.assistant_message === "string"
       ? candidate.assistant_message.trim()
       : null,
+  };
+}
+
+function mergeTransitionDebriefIntoHandoffPayload(args: {
+  handoffPayload: Record<string, unknown> | null;
+  answers: Record<string, string | string[]>;
+  questionnaireSchema: QuestionnaireSchemaV2;
+  previousTransformationId: string | null;
+  source: string;
+}): Record<string, unknown> {
+  const current = args.handoffPayload && typeof args.handoffPayload === "object" &&
+      !Array.isArray(args.handoffPayload)
+    ? { ...args.handoffPayload }
+    : {};
+  const onboardingV2 = current.onboarding_v2 && typeof current.onboarding_v2 === "object" &&
+      !Array.isArray(current.onboarding_v2)
+    ? { ...(current.onboarding_v2 as Record<string, unknown>) }
+    : {};
+
+  return {
+    ...current,
+    onboarding_v2: {
+      ...onboardingV2,
+      transition_debrief: {
+        source: args.source,
+        previous_transformation_id: args.previousTransformationId,
+        answered_at: new Date().toISOString(),
+        questionnaire_schema: args.questionnaireSchema,
+        answers: args.answers,
+      },
+    },
   };
 }
 
@@ -442,7 +574,8 @@ export default function DashboardV2() {
   const [mode, setMode] = useState<"action" | "architecte">("action");
   const [isLabUsageOpen, setIsLabUsageOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>("plan");
-  const [architectTab, setArchitectTab] = useState<ArchitectTab>("coaching");
+  const [architectTab, setArchitectTab] = useState<ArchitectTab>("atelier");
+  const [isAtelierUsageOpen, setIsAtelierUsageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileInitialTab, setProfileInitialTab] = useState<
     "general" | "subscription" | "settings"
@@ -456,6 +589,9 @@ export default function DashboardV2() {
   const [planReviewThread, setPlanReviewThread] = useState<PlanRevisionThreadEntry[]>([]);
   const [planReviewProposal, setPlanReviewProposal] = useState<PlanRevisionProposal | null>(null);
   const [planReviewBusy, setPlanReviewBusy] = useState(false);
+  const [planReviewBusyAction, setPlanReviewBusyAction] = useState<
+    "submit" | "preview" | "confirm" | null
+  >(null);
   const [planReviewSessionStatus, setPlanReviewSessionStatus] =
     useState<PlanReviewSessionStatus | null>(null);
   const [planReviewSessionExpiresAt, setPlanReviewSessionExpiresAt] = useState<string | null>(null);
@@ -477,18 +613,38 @@ export default function DashboardV2() {
   const [completingTransformation, setCompletingTransformation] = useState(false);
   const [isMultiPartTransitionModalOpen, setIsMultiPartTransitionModalOpen] = useState(false);
   const [multiPartTransitionBusy, setMultiPartTransitionBusy] = useState(false);
+  const [isTransitionQuestionnaireModalOpen, setIsTransitionQuestionnaireModalOpen] = useState(false);
+  const [transitionQuestionnaireBusy, setTransitionQuestionnaireBusy] = useState(false);
+  const [transitionQuestionnaireError, setTransitionQuestionnaireError] = useState<string | null>(null);
+  const [reactivatingTransformationId, setReactivatingTransformationId] = useState<string | null>(null);
+  const [reactivationError, setReactivationError] = useState<string | null>(null);
+  const [phase1BypassTransformationId, setPhase1BypassTransformationId] = useState<string | null>(
+    () => readReactivatedTransformationId(),
+  );
 
   const isOutOfPlanScope = selectedScopeId === "out_of_plan";
+  const shouldBypassPhase1 =
+    Boolean(transformation?.id) && transformation?.id === phase1BypassTransformationId;
   const shouldBlockForPhase1 = Boolean(
     isV3 &&
       transformation &&
       !isOutOfPlanScope &&
+      !shouldBypassPhase1 &&
       !phase1Completed,
   );
   const activeTransformations = transformations.filter((item) => item.status === "active");
   const scopeTransformations = activeTransformations;
   const visibleTransformations = useMemo(
     () => transformations.filter((item) => isVisibleTransformationStatus(item.status)),
+    [transformations],
+  );
+  const completedTransformations = useMemo(
+    () =>
+      transformations
+        .filter((item) => item.status === "completed")
+        .sort((left, right) =>
+          (right.completed_at ?? right.updated_at).localeCompare(left.completed_at ?? left.updated_at)
+        ),
     [transformations],
   );
   const remainingTransformations = transformations.filter((item) =>
@@ -848,6 +1004,33 @@ export default function DashboardV2() {
   const transitionGlobalObjective = hasSequencedNextTransformation
     ? nextSequencedTransformationObjective
     : planContentV3?.global_objective ?? null;
+  const transitionQuestionnaireSchema = useMemo(
+    () =>
+      nextSequencedTransformation
+        ? buildMultiPartTransitionQuestionnaireSchema({
+          transformationId: nextSequencedTransformation.id,
+          currentTransformationTitle: transformation?.title ?? activePlanContent?.title ?? null,
+          nextTransformationTitle: nextSequencedTransformation.title,
+          previousTransformationId:
+            transformation?.id ?? activePlanContent?.transformation_id ?? null,
+        })
+        : hasSimpleNextTransformation && transformation
+          ? buildSimpleTransitionQuestionnaireSchema({
+            transformationId: transformation.id,
+            currentTransformationTitle: transformation.title ?? activePlanContent?.title ?? null,
+            nextTransformationTitle: nextRecommendedTransformationTitle,
+          })
+        : null,
+    [
+      activePlanContent?.title,
+      activePlanContent?.transformation_id,
+      hasSimpleNextTransformation,
+      nextRecommendedTransformationTitle,
+      nextSequencedTransformation,
+      transformation?.id,
+      transformation?.title,
+    ],
+  );
 
   useEffect(() => {
     if (selectedScopeId === "out_of_plan") return;
@@ -867,6 +1050,21 @@ export default function DashboardV2() {
     isOutOfPlanScope,
     loading,
     transformation,
+  ]);
+
+  useEffect(() => {
+    if (
+      isTransitionQuestionnaireModalOpen &&
+      !hasSequencedNextTransformation &&
+      !hasSimpleNextTransformation
+    ) {
+      setIsTransitionQuestionnaireModalOpen(false);
+      setTransitionQuestionnaireError(null);
+    }
+  }, [
+    hasSequencedNextTransformation,
+    hasSimpleNextTransformation,
+    isTransitionQuestionnaireModalOpen,
   ]);
 
   useEffect(() => {
@@ -1192,36 +1390,34 @@ export default function DashboardV2() {
     }
 
     setPlanReviewBusy(true);
+    setPlanReviewBusyAction("submit");
     setDashboardActionError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke<ReviewPlanResponse>(
+      const data = await invokeFunctionWithTimeout<ReviewPlanResponse>(
         "review-plan-v1",
         {
-          body: {
-            review_id: planReviewProposal?.review_id ?? undefined,
-            transformation_id: transformation.id,
-            plan_id: plan.id,
-            scope: "active_plan",
-            user_comment: userComment,
-            prior_thread: planReviewThread.map((entry) => ({
-              role: entry.role,
-              content: entry.content,
-            })),
-            current_level_context: currentLevel
-              ? {
-                  phase_id: currentLevel.phase_id,
-                  phase_order: currentLevel.phase_order,
-                  title: currentLevel.title,
-                  objective: currentLevel.phase_objective,
-                }
-              : null,
-            plan_content: planContentV3,
-          },
+          review_id: planReviewProposal?.review_id ?? undefined,
+          transformation_id: transformation.id,
+          plan_id: plan.id,
+          scope: "active_plan",
+          user_comment: userComment,
+          prior_thread: planReviewThread.map((entry) => ({
+            role: entry.role,
+            content: entry.content,
+          })),
+          current_level_context: currentLevel
+            ? {
+                phase_id: currentLevel.phase_id,
+                phase_order: currentLevel.phase_order,
+                title: currentLevel.title,
+                objective: currentLevel.phase_objective,
+              }
+            : null,
+          plan_content: planContentV3,
         },
+        120_000,
       );
-
-      if (fnError) throw fnError;
       if (!data) throw new Error("La proposition de révision est vide.");
 
       setPlanReviewThread(data.conversation_thread);
@@ -1270,6 +1466,7 @@ export default function DashboardV2() {
       );
     } finally {
       setPlanReviewBusy(false);
+      setPlanReviewBusyAction(null);
     }
   };
 
@@ -1293,29 +1490,26 @@ export default function DashboardV2() {
     });
 
     setPlanReviewBusy(true);
+    setPlanReviewBusyAction("preview");
     setDashboardActionError(null);
 
     try {
-      const { data, error: fnError } = await supabase.functions.invoke<GeneratePlanPreviewResponse>(
+      const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
         "generate-plan-v2",
         {
-          body: {
-            transformation_id: transformation.id,
-            mode: "preview",
-            feedback,
-            force_regenerate: true,
-            adjustment_context: {
-              review_id: planReviewProposal.review_id,
-              scope: previewScope,
-              effective_start_date: effectiveStartDate,
-              reason: planReviewProposal.understanding.slice(0, 280),
-              assistant_message: planReviewProposal.assistant_summary,
-            },
+          transformation_id: transformation.id,
+          mode: "preview",
+          feedback,
+          force_regenerate: true,
+          adjustment_context: {
+            review_id: planReviewProposal.review_id,
+            scope: previewScope,
+            effective_start_date: effectiveStartDate,
+            reason: planReviewProposal.understanding.slice(0, 280),
+            assistant_message: planReviewProposal.assistant_summary,
           },
         },
       );
-
-      if (fnError) throw fnError;
       if (!data?.plan_preview) throw new Error("Le preview du plan ajusté est vide.");
 
       const now = new Date().toISOString();
@@ -1353,6 +1547,7 @@ export default function DashboardV2() {
       );
     } finally {
       setPlanReviewBusy(false);
+      setPlanReviewBusyAction(null);
     }
   };
 
@@ -1363,30 +1558,27 @@ export default function DashboardV2() {
     if (!previewScope) return;
 
     setPlanReviewBusy(true);
+    setPlanReviewBusyAction("confirm");
     setDashboardActionError(null);
 
     try {
       const effectiveStartDate =
         planReviewPreviewRevision?.effective_start_date ??
         getBrowserLocalYmd();
-      const { data, error: fnError } = await supabase.functions.invoke<GeneratePlanPreviewResponse>(
+      const data = await invokeFunctionWithTimeout<GeneratePlanPreviewResponse>(
         "generate-plan-v2",
         {
-          body: {
-            transformation_id: transformation.id,
-            mode: "confirm",
-            adjustment_context: {
-              review_id: planReviewProposal.review_id,
-              scope: previewScope,
-              effective_start_date: effectiveStartDate,
-              reason: planReviewProposal.understanding.slice(0, 280),
-              assistant_message: planReviewProposal.assistant_summary,
-            },
+          transformation_id: transformation.id,
+          mode: "confirm",
+          adjustment_context: {
+            review_id: planReviewProposal.review_id,
+            scope: previewScope,
+            effective_start_date: effectiveStartDate,
+            reason: planReviewProposal.understanding.slice(0, 280),
+            assistant_message: planReviewProposal.assistant_summary,
           },
         },
       );
-
-      if (fnError) throw fnError;
 
       const now = new Date().toISOString();
       const { error: updateError } = await supabase
@@ -1411,6 +1603,7 @@ export default function DashboardV2() {
       );
     } finally {
       setPlanReviewBusy(false);
+      setPlanReviewBusyAction(null);
     }
   };
 
@@ -1498,6 +1691,13 @@ export default function DashboardV2() {
     : planReviewComposerMode === "chat"
       ? "Tu peux poursuivre cet échange brièvement. La conversation se ferme automatiquement après 30 minutes d'inactivité."
       : null;
+  const planReviewBusyLabel = planReviewBusyAction === "preview"
+    ? "Sophia prépare le niveau ajusté…"
+    : planReviewBusyAction === "confirm"
+      ? "Sophia applique le niveau ajusté…"
+      : planReviewBusyAction === "submit"
+        ? "Sophia analyse ta demande…"
+        : null;
   const planReviewActions: PlanRevisionPanelAction[] = (() => {
     if (!planReviewProposal) return [];
 
@@ -1524,6 +1724,9 @@ export default function DashboardV2() {
         onClick: () => void handlePlanReviewGeneratePreview(),
         disabled: planReviewBusy,
         variant: "primary",
+        isLoading: planReviewBusyAction === "preview",
+        loadingLabel:
+          previewScope === "level" ? "Chargement du niveau…" : "Chargement du plan…",
       });
     }
 
@@ -1547,6 +1750,8 @@ export default function DashboardV2() {
         onClick: () => void handlePlanReviewConfirmPreview(),
         disabled: planReviewBusy,
         variant: "primary",
+        isLoading: planReviewBusyAction === "confirm",
+        loadingLabel: "Validation en cours…",
       });
     }
 
@@ -1622,7 +1827,7 @@ export default function DashboardV2() {
           <div className="mt-3 space-y-2">
             {planReviewPreview.plan_blueprint.levels.slice(0, 4).map((level) => (
               <div key={level.phase_id} className="text-sm text-stone-700">
-                Niveau {level.level_order} · {level.title}
+                Niveau {getDisplayPhaseOrder(level.level_order)} · {level.title}
               </div>
             ))}
           </div>
@@ -1678,11 +1883,16 @@ export default function DashboardV2() {
   };
 
   const handleCompleteTransformation = async (payload: {
-    lineRedEntries: string[];
-    declicsDraft: typeof closureDraft;
-    declicsUser: NonNullable<typeof closureDraft>;
+    lineGreenEntry: { action: string; why: string };
+    lineRedEntry: { action: string; why: string };
+    feedback: {
+      helpfulness_rating: number;
+      improvement_reasons: string[];
+      improvement_detail: string | null;
+      most_helpful_area: string;
+    };
   }) => {
-    if (!transformation) return;
+    if (!transformation || !closureDraft) return;
 
     setCompletingTransformation(true);
     setDashboardActionError(null);
@@ -1691,9 +1901,11 @@ export default function DashboardV2() {
       const { error } = await supabase.functions.invoke("complete-transformation-v1", {
         body: {
           transformation_id: transformation.id,
-          line_red_entries: payload.lineRedEntries,
-          declics_draft: payload.declicsDraft,
-          declics_user: payload.declicsUser,
+          line_green_entry: payload.lineGreenEntry,
+          line_red_entry: payload.lineRedEntry,
+          feedback: payload.feedback,
+          declics_draft: closureDraft,
+          declics_user: closureDraft,
         },
       });
       if (error) throw error;
@@ -1792,6 +2004,49 @@ export default function DashboardV2() {
     if (planError) throw planError;
     if (transformationError) throw transformationError;
     if (cycleUpdateResult.error) throw cycleUpdateResult.error;
+
+    const reminderKinds =
+      nextStatus === "completed"
+        ? ["plan_free"]
+        : ["plan_free", "potion_follow_up"];
+    const reminderStatus =
+      nextStatus === "completed"
+        ? "completed"
+        : "archived";
+    const reminderEndReason =
+      nextStatus === "completed"
+        ? "plan_completed"
+        : "plan_stopped";
+
+    const { data: reminderRows, error: reminderError } = await supabase
+      .from("user_recurring_reminders")
+      .update({
+        status: reminderStatus,
+        ended_reason: reminderEndReason,
+        deactivated_at: now,
+        updated_at: now,
+      } as any)
+      .eq("user_id", user.id)
+      .eq("transformation_id", transformation.id)
+      .in("initiative_kind", reminderKinds)
+      .in("status", ["active", "inactive"])
+      .select("id");
+
+    if (reminderError) throw reminderError;
+
+    const reminderIds = ((reminderRows as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+    if (reminderIds.length > 0) {
+      const { error: cancelCheckinsError } = await supabase
+        .from("scheduled_checkins")
+        .update({
+          status: "cancelled",
+          processed_at: now,
+        } as any)
+        .in("recurring_reminder_id", reminderIds)
+        .in("status", ["pending", "retrying", "awaiting_user"]);
+
+      if (cancelCheckinsError) throw cancelCheckinsError;
+    }
   };
 
   const handleEndSimpleTransformation = async () => {
@@ -1860,45 +2115,16 @@ export default function DashboardV2() {
   };
 
   const handleContinueToNextPart = async () => {
-    if (!cycle || !nextSequencedTransformation) return;
+    if (!cycle || !nextSequencedTransformation || !transitionQuestionnaireSchema) return;
 
-    setMultiPartTransitionBusy(true);
+    setTransitionQuestionnaireError(null);
     setDashboardActionError(null);
 
     try {
-      await releaseCurrentTransformationForNextStep("completed");
-
-      const baseDraft = createEmptyOnboardingV2Draft();
-      const visibleTransformationPreviews = visibleTransformations.map((item) =>
-        toTransformationPreview(item)
-      );
-
-      persistOnboardingV2DraftLocally({
-        ...baseDraft,
-        entry_mode: "add_transformation",
-        preserved_active_transformation_id:
-          transformation?.id ?? activePlanContent?.transformation_id ?? null,
-        cycle_id: cycle.id,
-        cycle_status: "questionnaire_in_progress",
-        stage: "questionnaire",
-        raw_intake_text: cycle.raw_intake_text,
-        transformations: visibleTransformationPreviews,
-        active_transformation_id: nextSequencedTransformation.id,
-        questionnaire_schema: buildMultiPartTransitionQuestionnaireSchema({
-          transformationId: nextSequencedTransformation.id,
-          currentTransformationTitle: transformation?.title ?? activePlanContent?.title ?? null,
-          nextTransformationTitle: nextSequencedTransformation.title,
-          previousTransformationId:
-            transformation?.id ?? activePlanContent?.transformation_id ?? null,
-        }),
-        questionnaire_answers: {},
-        plan_review: null,
-        roadmap_transition: null,
-      });
-
       setIsMultiPartTransitionModalOpen(false);
-      startSession();
-      navigate("/onboarding-v2");
+      window.setTimeout(() => {
+        setIsTransitionQuestionnaireModalOpen(true);
+      }, 0);
     } catch (actionError) {
       console.error("[DashboardV2] next part transition failed", actionError);
       setDashboardActionError(
@@ -1906,22 +2132,167 @@ export default function DashboardV2() {
           ? actionError.message
           : "Impossible de préparer la 2e partie pour le moment.",
       );
+    }
+  };
+
+  const handleCloseTransitionQuestionnaire = () => {
+    if (transitionQuestionnaireBusy) return;
+    setTransitionQuestionnaireError(null);
+    setIsTransitionQuestionnaireModalOpen(false);
+  };
+
+  const handleSubmitTransitionQuestionnaire = async (
+    answers: Record<string, string | string[]>,
+  ) => {
+    if (!cycle || !transformation || !transitionQuestionnaireSchema) {
+      return;
+    }
+
+    setTransitionQuestionnaireBusy(true);
+    setTransitionQuestionnaireError(null);
+    setDashboardActionError(null);
+
+    try {
+      if (hasSimpleNextTransformation) {
+        const { data: transformationRow, error: transformationLoadError } = await supabase
+          .from("user_transformations")
+          .select("handoff_payload")
+          .eq("id", transformation.id)
+          .maybeSingle();
+        if (transformationLoadError) throw transformationLoadError;
+
+        const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
+          handoffPayload:
+            (transformationRow as { handoff_payload?: Record<string, unknown> | null } | null)
+              ?.handoff_payload ?? null,
+          answers,
+          questionnaireSchema: transitionQuestionnaireSchema,
+          previousTransformationId: null,
+          source: "simple_transition_debrief",
+        });
+
+        const now = new Date().toISOString();
+        const { error: updateError } = await supabase
+          .from("user_transformations")
+          .update({
+            handoff_payload: handoffPayload,
+            updated_at: now,
+          })
+          .eq("id", transformation.id);
+        if (updateError) throw updateError;
+
+        await releaseCurrentTransformationForNextStep("completed");
+        setIsTransitionQuestionnaireModalOpen(false);
+        await refetch();
+        handoffToNextTransformationSelection();
+        return;
+      }
+
+      if (!nextSequencedTransformation) {
+        throw new Error("La transformation suivante est introuvable.");
+      }
+
+      const { data: transformationRow, error: transformationLoadError } = await supabase
+        .from("user_transformations")
+        .select("handoff_payload")
+        .eq("id", nextSequencedTransformation.id)
+        .maybeSingle();
+      if (transformationLoadError) throw transformationLoadError;
+
+      const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
+        handoffPayload:
+          (transformationRow as { handoff_payload?: Record<string, unknown> | null } | null)
+            ?.handoff_payload ?? null,
+        answers,
+        questionnaireSchema: transitionQuestionnaireSchema,
+        previousTransformationId: transformation.id,
+        source: "multi_part_transition_debrief",
+      });
+
+      const now = new Date().toISOString();
+      const { error: updateError } = await supabase
+        .from("user_transformations")
+        .update({
+          questionnaire_schema: transitionQuestionnaireSchema,
+          questionnaire_answers: answers,
+          handoff_payload: handoffPayload,
+          updated_at: now,
+        })
+        .eq("id", nextSequencedTransformation.id);
+      if (updateError) throw updateError;
+
+      const { data, error } = await supabase.functions.invoke("generate-plan-v2", {
+        body: {
+          transformation_id: nextSequencedTransformation.id,
+          mode: "preview",
+          pace: cycle.requested_pace ?? undefined,
+        },
+      });
+      if (error) throw error;
+
+      const response = data as GeneratePlanResponse | null;
+      if (!response?.plan_preview) {
+        throw new Error("Le preview du plan est manquant.");
+      }
+
+      await releaseCurrentTransformationForNextStep("completed");
+
+      const baseDraft = createEmptyOnboardingV2Draft();
+      const visibleTransformationPreviews = visibleTransformations.map((item) =>
+        item.id === nextSequencedTransformation.id
+          ? toTransformationPreview({
+            ...item,
+            questionnaire_schema: transitionQuestionnaireSchema,
+            questionnaire_answers: answers,
+          })
+          : toTransformationPreview(item)
+      );
+
+      persistOnboardingV2DraftLocally({
+        ...baseDraft,
+        entry_mode: "add_transformation",
+        preserved_active_transformation_id: transformation.id,
+        cycle_id: cycle.id,
+        cycle_status: "ready_for_plan",
+        stage: "plan_review",
+        raw_intake_text: cycle.raw_intake_text,
+        transformations: visibleTransformationPreviews,
+        active_transformation_id: nextSequencedTransformation.id,
+        questionnaire_schema: transitionQuestionnaireSchema,
+        questionnaire_answers: answers,
+        plan_review: {
+          plan_preview: response.plan_preview,
+          feedback: "",
+        },
+        roadmap_transition: null,
+      });
+
+      setIsTransitionQuestionnaireModalOpen(false);
+      startSession();
+      navigate("/onboarding-v2");
+    } catch (actionError) {
+      console.error("[DashboardV2] transition questionnaire submit failed", actionError);
+      setTransitionQuestionnaireError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de préparer la 2e partie pour le moment.",
+      );
     } finally {
-      setMultiPartTransitionBusy(false);
+      setTransitionQuestionnaireBusy(false);
     }
   };
 
   const handleContinueToNextSimpleTransformation = async () => {
-    if (!hasSimpleNextTransformation) return;
+    if (!hasSimpleNextTransformation || !transitionQuestionnaireSchema) return;
 
-    setMultiPartTransitionBusy(true);
     setDashboardActionError(null);
+    setTransitionQuestionnaireError(null);
 
     try {
-      await releaseCurrentTransformationForNextStep("completed");
       setIsMultiPartTransitionModalOpen(false);
-      await refetch();
-      handoffToNextTransformationSelection();
+      window.setTimeout(() => {
+        setIsTransitionQuestionnaireModalOpen(true);
+      }, 0);
     } catch (actionError) {
       console.error("[DashboardV2] simple transformation handoff failed", actionError);
       setDashboardActionError(
@@ -1929,8 +2300,106 @@ export default function DashboardV2() {
           ? actionError.message
           : "Impossible de passer à la prochaine transformation pour le moment.",
       );
+    }
+  };
+
+  const handleReactivateTransformation = async (transformationId: string) => {
+    if (!cycle) return;
+
+    const targetTransformation = transformations.find((item) => item.id === transformationId);
+    if (!targetTransformation) return;
+
+    setReactivatingTransformationId(transformationId);
+    setReactivationError(null);
+    setDashboardActionError(null);
+
+    try {
+      const { data: existingPlans, error: existingPlanError } = await supabase
+        .from("user_plans_v2")
+        .select("id,status,activated_at,completed_at,archived_at,updated_at")
+        .eq("cycle_id", cycle.id)
+        .eq("transformation_id", targetTransformation.id)
+        .in("status", ["draft", "generated", "active", "paused", "completed", "archived"]);
+      if (existingPlanError) throw existingPlanError;
+
+      const existingPlan = ((existingPlans ?? []) as Array<{
+        id: string;
+        status: keyof typeof REACTIVATABLE_PLAN_STATUS_PRIORITY;
+        activated_at: string | null;
+        completed_at: string | null;
+        archived_at: string | null;
+        updated_at: string;
+      }>).sort((left, right) => {
+        const leftPriority = REACTIVATABLE_PLAN_STATUS_PRIORITY[left.status] ?? 99;
+        const rightPriority = REACTIVATABLE_PLAN_STATUS_PRIORITY[right.status] ?? 99;
+        if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+
+        const leftDate =
+          left.completed_at ??
+          left.activated_at ??
+          left.archived_at ??
+          left.updated_at;
+        const rightDate =
+          right.completed_at ??
+          right.activated_at ??
+          right.archived_at ??
+          right.updated_at;
+        return rightDate.localeCompare(leftDate);
+      })[0] ?? null;
+
+      if (!existingPlan?.id) {
+        throw new Error("Aucun plan existant n'a été trouvé pour cette transformation.");
+      }
+
+      const now = new Date().toISOString();
+      const [{ error: cycleError }, { error: transformationError }, { error: planError }] =
+        await Promise.all([
+          supabase
+            .from("user_cycles")
+            .update({
+              status: "active",
+              active_transformation_id: targetTransformation.id,
+              updated_at: now,
+            })
+            .eq("id", cycle.id),
+          supabase
+            .from("user_transformations")
+            .update({
+              status: "active",
+              activated_at: now,
+              completed_at: null,
+              updated_at: now,
+            })
+            .eq("id", targetTransformation.id),
+          supabase
+            .from("user_plans_v2")
+            .update({
+              status: "active",
+              activated_at: now,
+              completed_at: null,
+              archived_at: null,
+              updated_at: now,
+            })
+            .eq("id", existingPlan.id),
+        ]);
+
+      if (cycleError) throw cycleError;
+      if (transformationError) throw transformationError;
+      if (planError) throw planError;
+
+      persistReactivatedTransformationId(targetTransformation.id);
+      setPhase1BypassTransformationId(targetTransformation.id);
+      setActiveTab("plan");
+      setSelectedScopeId(targetTransformation.id);
+    } catch (actionError) {
+      console.error("[DashboardV2] transformation reactivation failed", actionError);
+      setReactivationError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de relancer cette transformation pour le moment.",
+      );
     } finally {
-      setMultiPartTransitionBusy(false);
+      setReactivatingTransformationId(null);
     }
   };
 
@@ -2140,7 +2609,7 @@ export default function DashboardV2() {
                 <div className="flex bg-emerald-950/50 p-1.5 rounded-xl border border-emerald-800/50 shadow-lg min-w-max">
                   {(
                     [
-                      { key: "coaching", icon: Sparkles, label: "L'Atelier" },
+                      { key: "atelier", icon: Sparkles, label: "Identité" },
                       { key: "wishlist", icon: MapIcon, label: "Envies" },
                       { key: "stories", icon: Book, label: "Histoires" },
                       { key: "reflections", icon: Lightbulb, label: "Réflexions" },
@@ -2169,16 +2638,51 @@ export default function DashboardV2() {
             </div>
 
             {/* Architect tab content */}
-            {architectTab === "coaching" && (
+            {architectTab === "atelier" && (
               <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px] p-6 md:p-12">
                 <div className="max-w-4xl mx-auto w-full">
                   <div className="text-center mb-12">
                     <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">
-                      L'Atelier
+                      Identité
                     </h1>
-                    <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic">
+                    <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
                       "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
                     </p>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsAtelierUsageOpen((value) => !value)}
+                      className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
+                    >
+                      {isAtelierUsageOpen
+                        ? "Masquer les explications"
+                        : "Comment utiliser cet espace"}
+                      {isAtelierUsageOpen
+                        ? <ChevronUp className="w-4 h-4" />
+                        : <ChevronDown className="w-4 h-4" />}
+                    </button>
+
+                    {isAtelierUsageOpen ? (
+                      <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
+                        <p className="mb-3">
+                          Cet espace, c&apos;est l&apos;endroit où tu reviens à toi. Pas à ce que tu dois
+                          produire, pas à l&apos;image qu&apos;il faut tenir, mais à ce qui te construit en
+                          profondeur. Pendant 3 mois, tu traverses 37 modules d&apos;identité pour mieux
+                          comprendre qui tu es, ce que tu portes, ce que tu veux vraiment incarner,
+                          et la façon dont tu veux avancer dans ta vie.
+                        </p>
+                        <p>
+                          Ici, on touche à ton rapport à toi, à ta vision, à tes blessures, à tes
+                          élans, à tes standards, à ta solidité intérieure. Ce que ça change, ce
+                          n&apos;est pas juste de la clarté sur le papier: c&apos;est une sensation plus
+                          nette d&apos;alignement, plus de stabilité, plus de confiance, et des choix qui
+                          commencent enfin à te ressembler. Et quand ce socle est posé, la Forge
+                          s&apos;ouvre avec 148 modules pour aller encore plus loin, affiner ton
+                          identité, renforcer ta structure et donner plus de puissance à la personne
+                          que tu deviens.
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
 
                   <div className="flex items-center justify-center gap-3 mb-8">
@@ -2186,7 +2690,7 @@ export default function DashboardV2() {
                       <Hammer className="w-4 h-4" />
                     </div>
                     <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
-                      Niveau de plan 1 : La construction du temple
+                      Phase 1 : La construction du temple
                     </h2>
                   </div>
 
@@ -2208,7 +2712,7 @@ export default function DashboardV2() {
                         <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
                       </div>
                       <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
-                        Niveau de plan 2 : Amélioration du Temple
+                        Phase 2 : Amélioration du Temple
                       </h2>
                     </div>
 
@@ -2421,6 +2925,64 @@ export default function DashboardV2() {
                     Préférences
                   </button>
                 </div>
+
+                {completedTransformations.length > 0 ? (
+                  <div className="rounded-[24px] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] p-4 shadow-sm">
+                    <div className="flex items-center gap-2 px-1">
+                      <RefreshCcw className="h-4 w-4 text-amber-700" />
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-amber-700">
+                        Réactiver
+                      </p>
+                    </div>
+                    <p className="mt-2 px-1 text-sm leading-5 text-stone-700">
+                      Rouvre une transformation terminée directement en review de plan.
+                    </p>
+
+                    {reactivationError ? (
+                      <div className="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-800">
+                        {reactivationError}
+                      </div>
+                    ) : null}
+
+                    <div className="mt-3 space-y-2">
+                      {completedTransformations.map((item) => {
+                        const isBusy = reactivatingTransformationId === item.id;
+                        const completedLabel = formatCompletedTransformationDate(
+                          item.completed_at ?? item.updated_at,
+                        );
+
+                        return (
+                          <div
+                            key={item.id}
+                            className="rounded-[18px] border border-amber-100 bg-white/80 px-3 py-3"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-stone-900">
+                                  {item.title || `Transformation ${item.priority_order}`}
+                                </p>
+                                {completedLabel ? (
+                                  <p className="mt-1 text-xs text-stone-500">
+                                    Terminée le {completedLabel}
+                                  </p>
+                                ) : null}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => void handleReactivateTransformation(item.id)}
+                                disabled={Boolean(reactivatingTransformationId)}
+                                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {isBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
+                                {isBusy ? "Ouverture..." : "Réactiver"}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               {/* ── MAIN CONTENT (Niveau 3 : Outils & Contenu) ── */}
@@ -2592,6 +3154,7 @@ export default function DashboardV2() {
                                     showComposer={planReviewShowComposer}
                                     submitLabel={planReviewSubmitLabel}
                                     helperText={planReviewHelperText}
+                                    busyLabel={planReviewBusyLabel}
                                     previewNode={planReviewPreviewNode}
                                     actions={planReviewActions}
                                     onChange={setPlanReviewInput}
@@ -2677,6 +3240,7 @@ export default function DashboardV2() {
                                 showComposer={planReviewShowComposer}
                                 submitLabel={planReviewSubmitLabel}
                                 helperText={planReviewHelperText}
+                                busyLabel={planReviewBusyLabel}
                                 previewNode={planReviewPreviewNode}
                                 actions={planReviewActions}
                                 onChange={setPlanReviewInput}
@@ -3016,8 +3580,16 @@ export default function DashboardV2() {
                   <div className="animate-fade-in">
                     <RemindersSection
                       userId={user.id}
+                      cycleId={cycle?.id ?? null}
+                      transformationId={transformation?.id ?? null}
+                      transformationTitle={transformation?.title ?? null}
+                      scopeKind="transformation"
                       isLocked={!canAccessWhatsappFeatures}
                       onUnlockRequest={() => navigate("/upgrade")}
+                      onMoveToBaseDeVie={() => {
+                        setSelectedScopeId("out_of_plan");
+                        setActiveTab("lab");
+                      }}
                     />
                   </div>
                 ) : (
@@ -3109,6 +3681,34 @@ export default function DashboardV2() {
         }
       />
 
+      <MultiPartTransitionQuestionnaireModal
+        isOpen={Boolean(
+          isTransitionQuestionnaireModalOpen &&
+            transformation &&
+            transitionQuestionnaireSchema,
+        )}
+        currentTransformationTitle={
+          transformation?.title ??
+          (transformation ? `Transformation ${transformation.priority_order}` : "Transformation active")
+        }
+        nextTransformationTitle={
+          hasSequencedNextTransformation
+            ? nextSequencedTransformationTitle
+            : nextRecommendedTransformationTitle
+        }
+        schema={transitionQuestionnaireSchema}
+        initialAnswers={
+          hasSequencedNextTransformation
+            ? nextSequencedTransformation?.questionnaire_answers ?? null
+            : null
+        }
+        busy={transitionQuestionnaireBusy}
+        error={transitionQuestionnaireError}
+        onBackToPlan={handleCloseTransitionQuestionnaire}
+        onClose={handleCloseTransitionQuestionnaire}
+        onSubmit={handleSubmitTransitionQuestionnaire}
+      />
+
       <TransformationClosureModal
         isOpen={Boolean(
           isClosureModalOpen &&
@@ -3121,9 +3721,9 @@ export default function DashboardV2() {
           transformation?.title ??
           (transformation ? `Transformation ${transformation.priority_order}` : "")
         }
-        initialLineRedEntries={currentBaseDeViePayload?.line_red_entries ?? []}
-        initialDeclicsDraft={closureDraft}
-        initialDeclicsUser={currentBaseDeViePayload?.declics_user ?? null}
+        initialLineGreenEntry={currentBaseDeViePayload?.line_green_entry ?? null}
+        initialLineRedEntry={currentBaseDeViePayload?.line_red_entry ?? null}
+        initialFeedback={currentBaseDeViePayload?.closure_feedback ?? null}
         busy={completingTransformation}
         onClose={handleCloseClosureModal}
         onSubmit={handleCompleteTransformation}

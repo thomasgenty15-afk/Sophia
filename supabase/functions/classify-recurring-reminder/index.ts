@@ -339,6 +339,7 @@ async function seedReminderUntilNextSunday(params: {
         {
           user_id: reminder.user_id,
           origin: "rendez_vous",
+          recurring_reminder_id: reminder.id,
           event_context: eventContext,
           draft_message: draft,
           message_mode: "static",
@@ -383,6 +384,7 @@ async function seedReminderUntilNextSunday(params: {
           {
             user_id: reminder.user_id,
             origin: "rendez_vous",
+            recurring_reminder_id: reminder.id,
             event_context: eventContext,
             draft_message: fallbackDraftFromInstruction(reminder.message_instruction),
             message_mode: "static",

@@ -6,18 +6,63 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 
 Deno.serve(async (req) => {
+  // ── DEBUG ENTRY (trace every incoming request) ───────────────────────────────
+  const debugEntryRid = req.headers.get("x-request-id") ?? "no-header-rid"
+  console.log(JSON.stringify({
+    tag: "sophia_brain_entry",
+    method: req.method,
+    url: req.url,
+    origin: req.headers.get("origin") ?? null,
+    has_auth: Boolean(req.headers.get("authorization")),
+    has_apikey: Boolean(req.headers.get("apikey")),
+    content_type: req.headers.get("content-type") ?? null,
+    x_request_id: debugEntryRid,
+  }))
+
   // Gestion du CORS
   if (req.method === 'OPTIONS') {
+    console.log(JSON.stringify({ tag: "sophia_brain_options", x_request_id: debugEntryRid }))
     return handleCorsOptions(req)
   }
   const corsBlock = enforceCors(req)
-  if (corsBlock) return corsBlock
+  if (corsBlock) {
+    console.log(JSON.stringify({ tag: "sophia_brain_cors_block", x_request_id: debugEntryRid, status: corsBlock.status }))
+    return corsBlock
+  }
 
   const requestId = getRequestId(req)
   let authedUserId: string | null = null
 
   try {
-    const body = await req.json()
+    // Read raw body text first so we can log it on parse failure (no PII beyond what the client sent).
+    const rawBodyText = await req.text()
+    console.log(JSON.stringify({
+      tag: "sophia_brain_body_raw",
+      request_id: requestId,
+      byte_length: rawBodyText.length,
+      body_preview: rawBodyText.slice(0, 500),
+    }))
+    let body: any
+    try {
+      body = rawBodyText.length > 0 ? JSON.parse(rawBodyText) : {}
+    } catch (parseErr) {
+      console.error(JSON.stringify({
+        tag: "sophia_brain_body_parse_error",
+        request_id: requestId,
+        error: parseErr instanceof Error ? parseErr.message : String(parseErr),
+        body_preview: rawBodyText.slice(0, 500),
+      }))
+      throw parseErr
+    }
+    console.log(JSON.stringify({
+      tag: "sophia_brain_body_parsed",
+      request_id: requestId,
+      keys: body && typeof body === "object" ? Object.keys(body) : [],
+      has_message: Boolean(body?.message ?? body?.content),
+      history_length: Array.isArray(body?.history) ? body.history.length : null,
+      scope: body?.scope ?? null,
+      channel: body?.channel ?? null,
+    }))
     let message = (body?.message ?? body?.content ?? "").toString()
     const clientHistory = Array.isArray(body?.history) ? body.history : []
     let forceMode = (body?.forceMode ?? body?.force_mode) as string | undefined
@@ -58,6 +103,7 @@ Deno.serve(async (req) => {
     // Auth Check
     const authHeader = (req.headers.get('Authorization') ?? "").trim()
     if (!authHeader) {
+      console.log(JSON.stringify({ tag: "sophia_brain_auth_missing", request_id: requestId }))
       return jsonResponse(
         req,
         { error: "Missing Authorization header", request_id: requestId },
@@ -72,6 +118,12 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) {
+      console.log(JSON.stringify({
+        tag: "sophia_brain_auth_failed",
+        request_id: requestId,
+        auth_error: authError ? (authError.message ?? String(authError)) : null,
+        has_user: Boolean(user),
+      }))
       return jsonResponse(
         req,
         { error: "Unauthorized", request_id: requestId },
@@ -79,6 +131,11 @@ Deno.serve(async (req) => {
       )
     }
     authedUserId = user.id
+    console.log(JSON.stringify({
+      tag: "sophia_brain_auth_ok",
+      request_id: requestId,
+      user_id: user.id,
+    }))
 
     function sanitizeHistory(raw: any[]): any[] {
       const rows = Array.isArray(raw) ? raw : []
@@ -136,6 +193,17 @@ Deno.serve(async (req) => {
               : null,
         }
       : undefined
+
+    console.log(JSON.stringify({
+      tag: "sophia_brain_before_process",
+      request_id: requestId,
+      user_id: user.id,
+      message_length: message.length,
+      history_length: history.length,
+      scope: scope ?? null,
+      channel,
+      force_mode: forceMode ?? null,
+    }))
 
     // LE CŒUR DU RÉACTEUR
     const response = await processMessage(

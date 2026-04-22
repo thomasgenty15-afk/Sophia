@@ -1,8 +1,12 @@
 import type {
+  BaseDeVieLineEntry,
   BaseDeVieDeclics,
   PlanContentV2,
   PlanContentV3,
   PlanItemStatus,
+  TransformationClosureFeedback,
+  TransformationClosureHelpfulnessArea,
+  TransformationClosureImprovementReason,
   UserTransformationBaseDeViePayload,
   UserTransformationRow,
 } from "../types/v2";
@@ -49,6 +53,73 @@ function normalizeDeclics(value: unknown): BaseDeVieDeclics | null {
   };
 }
 
+function normalizeLineEntry(value: unknown): BaseDeVieLineEntry | null {
+  if (!isRecord(value)) return null;
+
+  const action = normalizeText(value.action, 220);
+  const why = normalizeText(value.why, 1000);
+
+  if (!action || !why) return null;
+
+  return {
+    action,
+    why,
+  };
+}
+
+const IMPROVEMENT_REASONS = new Set<TransformationClosureImprovementReason>([
+  "plan_unclear",
+  "pace_too_intense",
+  "actions_too_hard",
+  "actions_not_real_life",
+  "sophia_not_helpful_moment",
+  "progress_not_visible",
+  "need_more_support",
+  "other",
+]);
+
+const HELPFULNESS_AREAS = new Set<TransformationClosureHelpfulnessArea>([
+  "habits",
+  "one_off_actions",
+  "sophia_messages",
+  "plan_structure",
+  "progress_tracking",
+  "other",
+]);
+
+function normalizeClosureFeedback(value: unknown): TransformationClosureFeedback | null {
+  if (!isRecord(value)) return null;
+
+  const helpfulnessRating = Number(value.helpfulness_rating);
+  const rating = Number.isInteger(helpfulnessRating) &&
+      helpfulnessRating >= 1 &&
+      helpfulnessRating <= 10
+    ? helpfulnessRating
+    : null;
+
+  const mostHelpfulArea = HELPFULNESS_AREAS.has(value.most_helpful_area as TransformationClosureHelpfulnessArea)
+    ? value.most_helpful_area as TransformationClosureHelpfulnessArea
+    : null;
+
+  if (rating == null || !mostHelpfulArea) return null;
+
+  const improvementReasons = Array.isArray(value.improvement_reasons)
+    ? value.improvement_reasons
+      .map((item) => String(item ?? "").trim())
+      .filter((item): item is TransformationClosureImprovementReason =>
+        IMPROVEMENT_REASONS.has(item as TransformationClosureImprovementReason)
+      )
+      .slice(0, 8)
+    : [];
+
+  return {
+    helpfulness_rating: rating,
+    improvement_reasons: [...new Set(improvementReasons)],
+    improvement_detail: normalizeText(value.improvement_detail, 1600) || null,
+    most_helpful_area: mostHelpfulArea,
+  };
+}
+
 export function getBaseDeViePayload(
   value: unknown,
 ): UserTransformationBaseDeViePayload | null {
@@ -56,8 +127,11 @@ export function getBaseDeViePayload(
 
   return {
     line_red_entries: normalizeLineRedEntries(value.line_red_entries),
+    line_green_entry: normalizeLineEntry(value.line_green_entry),
+    line_red_entry: normalizeLineEntry(value.line_red_entry),
     declics_draft: normalizeDeclics(value.declics_draft),
     declics_user: normalizeDeclics(value.declics_user),
+    closure_feedback: normalizeClosureFeedback(value.closure_feedback),
     validated_at: normalizeText(value.validated_at, 80) || null,
     last_edited_at: normalizeText(value.last_edited_at, 80) || null,
   };

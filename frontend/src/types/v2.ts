@@ -281,10 +281,43 @@ export type BaseDeVieDeclics = {
   identity_shift: string;
 };
 
+export type BaseDeVieLineEntry = {
+  action: string;
+  why: string;
+};
+
+export type TransformationClosureImprovementReason =
+  | "plan_unclear"
+  | "pace_too_intense"
+  | "actions_too_hard"
+  | "actions_not_real_life"
+  | "sophia_not_helpful_moment"
+  | "progress_not_visible"
+  | "need_more_support"
+  | "other";
+
+export type TransformationClosureHelpfulnessArea =
+  | "habits"
+  | "one_off_actions"
+  | "sophia_messages"
+  | "plan_structure"
+  | "progress_tracking"
+  | "other";
+
+export type TransformationClosureFeedback = {
+  helpfulness_rating: number;
+  improvement_reasons: TransformationClosureImprovementReason[];
+  improvement_detail: string | null;
+  most_helpful_area: TransformationClosureHelpfulnessArea;
+};
+
 export type UserTransformationBaseDeViePayload = {
   line_red_entries: string[];
+  line_green_entry: BaseDeVieLineEntry | null;
+  line_red_entry: BaseDeVieLineEntry | null;
   declics_draft: BaseDeVieDeclics | null;
   declics_user: BaseDeVieDeclics | null;
+  closure_feedback: TransformationClosureFeedback | null;
   validated_at: string | null;
   last_edited_at: string | null;
 };
@@ -678,6 +711,7 @@ export type PotionFollowUpStrategy = {
   scheduled_duration_days?: number | null;
   scheduled_message_count?: number | null;
   scheduled_at?: string | null;
+  linked_recurring_reminder_id?: string | null;
 };
 
 export type PotionDefinition = {

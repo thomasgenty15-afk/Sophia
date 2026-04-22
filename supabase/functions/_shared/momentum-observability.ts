@@ -101,32 +101,67 @@ export async function logMomentumObservabilityEvent(opts: {
   }
 }
 
+// V1 stores pending_transition under `stability`; V2 stores it under `_internal.stability`.
+function readPendingTransition(
+  momentum: MomentumStateSnapshot,
+): Record<string, any> | null {
+  const pending = momentum?.stability?.pending_transition
+    ?? momentum?._internal?.stability?.pending_transition
+    ?? null;
+  return pending && typeof pending === "object" ? pending : null;
+}
+
 function pendingSnapshot(momentum: MomentumStateSnapshot): Record<string, unknown> | null {
-  const pending = momentum.stability.pending_transition;
+  const pending = readPendingTransition(momentum);
   if (!pending) return null;
   return {
-    target_state: pending.target_state,
+    target_state: pending.target_state ?? null,
     reason: pending.reason ?? null,
-    confirmations: pending.confirmations,
-    first_seen_at: pending.first_seen_at,
-    last_seen_at: pending.last_seen_at,
-    source: pending.source,
+    confirmations: pending.confirmations ?? null,
+    first_seen_at: pending.first_seen_at ?? null,
+    last_seen_at: pending.last_seen_at ?? null,
+    source: pending.source ?? null,
   };
 }
 
+// V1 has a top-level `metrics` block. V2 has no such block and relies on
+// `blockers` + `_internal.metrics_cache` instead. Be defensive for both.
 function metricsSnapshot(momentum: MomentumStateSnapshot): Record<string, unknown> {
+  const m = momentum?.metrics ?? momentum?._internal?.metrics_cache ?? {};
   return {
-    days_since_last_user_message: momentum.metrics.days_since_last_user_message ?? null,
-    completed_actions_7d: momentum.metrics.completed_actions_7d ?? null,
-    missed_actions_7d: momentum.metrics.missed_actions_7d ?? null,
-    partial_actions_7d: momentum.metrics.partial_actions_7d ?? null,
-    improved_vitals_14d: momentum.metrics.improved_vitals_14d ?? null,
-    worsened_vitals_14d: momentum.metrics.worsened_vitals_14d ?? null,
-    emotional_high_72h: momentum.metrics.emotional_high_72h ?? null,
-    emotional_medium_72h: momentum.metrics.emotional_medium_72h ?? null,
-    consent_soft_declines_7d: momentum.metrics.consent_soft_declines_7d ?? null,
-    consent_explicit_stops_7d: momentum.metrics.consent_explicit_stops_7d ?? null,
-    last_gap_hours: momentum.metrics.last_gap_hours ?? null,
+    days_since_last_user_message: m?.days_since_last_user_message ?? null,
+    completed_actions_7d: m?.completed_actions_7d ?? null,
+    missed_actions_7d: m?.missed_actions_7d ?? null,
+    partial_actions_7d: m?.partial_actions_7d ?? null,
+    improved_vitals_14d: m?.improved_vitals_14d ?? null,
+    worsened_vitals_14d: m?.worsened_vitals_14d ?? null,
+    emotional_high_72h: m?.emotional_high_72h ?? null,
+    emotional_medium_72h: m?.emotional_medium_72h ?? null,
+    consent_soft_declines_7d: m?.consent_soft_declines_7d ?? null,
+    consent_explicit_stops_7d: m?.consent_explicit_stops_7d ?? null,
+    last_gap_hours: m?.last_gap_hours ?? null,
+  };
+}
+
+// Unified blocker counts that work for both shapes:
+// - V1 exposes them directly under `metrics.{active,chronic}_blockers_count`.
+// - V2 only has `blockers.blocker_kind` + `blockers.blocker_repeat_score`.
+function blockerCounts(
+  momentum: MomentumStateSnapshot,
+): { active: number; chronic: number } {
+  const v1Active = momentum?.metrics?.active_blockers_count;
+  const v1Chronic = momentum?.metrics?.chronic_blockers_count;
+  if (typeof v1Active === "number" || typeof v1Chronic === "number") {
+    return {
+      active: Number(v1Active ?? 0) || 0,
+      chronic: Number(v1Chronic ?? 0) || 0,
+    };
+  }
+  const kind = momentum?.blockers?.blocker_kind;
+  const repeat = Number(momentum?.blockers?.blocker_repeat_score ?? 0) || 0;
+  return {
+    active: kind ? 1 : 0,
+    chronic: repeat >= 6 ? 1 : 0,
   };
 }
 
@@ -143,18 +178,25 @@ export function buildMomentumStateObservabilityEvents(args: {
     state_reason: args.next.state_reason ?? null,
     classifier_source: args.source,
     dimensions: {
-      engagement: args.next.dimensions.engagement.level,
-      progression: args.next.dimensions.progression.level,
-      emotional_load: args.next.dimensions.emotional_load.level,
-      consent: args.next.dimensions.consent.level,
+      engagement: args.next.dimensions?.engagement?.level ?? null,
+      // V2 stores this as `execution_traction`; V1 used `progression`.
+      // Fall back across both to stay resilient to either snapshot shape.
+      progression: args.next.dimensions?.execution_traction?.level
+        ?? args.next.dimensions?.progression?.level
+        ?? null,
+      emotional_load: args.next.dimensions?.emotional_load?.level ?? null,
+      consent: args.next.dimensions?.consent?.level ?? null,
     },
-    blocker_summary: {
-      active_count: args.next.metrics.active_blockers_count ?? 0,
-      chronic_count: args.next.metrics.chronic_blockers_count ?? 0,
-      top_action: nextSummary.top_blocker_action ?? null,
-      top_category: nextSummary.top_blocker_category ?? null,
-      top_stage: nextSummary.top_blocker_stage ?? null,
-    },
+    blocker_summary: (() => {
+      const counts = blockerCounts(args.next);
+      return {
+        active_count: counts.active,
+        chronic_count: counts.chronic,
+        top_action: nextSummary.top_blocker_action ?? null,
+        top_category: nextSummary.top_blocker_category ?? null,
+        top_stage: nextSummary.top_blocker_stage ?? null,
+      };
+    })(),
     pending_transition: pendingSnapshot(args.next),
     metrics_snapshot: metricsSnapshot(args.next),
     previous_summary: previousSummary,
@@ -168,8 +210,8 @@ export function buildMomentumStateObservabilityEvents(args: {
     payload: basePayload,
   }];
 
-  const prevPending = args.previous.stability.pending_transition;
-  const nextPending = args.next.stability.pending_transition;
+  const prevPending = readPendingTransition(args.previous);
+  const nextPending = readPendingTransition(args.next);
   if (
     nextPending &&
     (

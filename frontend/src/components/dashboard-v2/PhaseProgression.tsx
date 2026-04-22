@@ -18,6 +18,7 @@ import {
   getPlanWeekCalendar,
   type PlanScheduleAnchor,
 } from "../../lib/planSchedule";
+import { getDisplayPhaseOrder } from "../../lib/planPhases";
 import { supabase } from "../../lib/supabase";
 import type { UserLevelToolRecommendationRow } from "../../types/v2";
 import { LevelToolRecommendationsCard } from "./LevelToolRecommendationsCard";
@@ -326,7 +327,7 @@ function CompletedPhase({
           </div>
           <div className="text-left">
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
-              Niveau de plan {phase.phase_order} — Terminé
+              Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — Terminé
             </p>
             <div className="flex items-center gap-2">
               <h4 className="text-base font-bold text-emerald-950">
@@ -542,7 +543,7 @@ function ActivePhase({
       <div className="mb-6 flex flex-col justify-between gap-4 md:flex-row md:items-center">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-stone-100 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-600">
-            Niveau de plan {phase.phase_order} — En cours
+            Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — En cours
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <h3 className="text-base font-bold text-stone-900">
@@ -919,7 +920,7 @@ function FuturePhase({
           </div>
           <div>
             <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-              Niveau de plan {phase.phase_order} — À venir
+              Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — À venir
             </p>
             <div className="flex items-center gap-2">
               <h4 className="text-base font-bold text-stone-700">
@@ -956,7 +957,7 @@ function FuturePhase({
         </div>
         <div>
           <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500">
-            Niveau de plan {phase.phase_order} — À venir
+            Niveau de plan {getDisplayPhaseOrder(phase.phase_order)} — À venir
           </p>
           <div className="flex items-center gap-2">
             <h4 className="text-base font-bold text-stone-700">

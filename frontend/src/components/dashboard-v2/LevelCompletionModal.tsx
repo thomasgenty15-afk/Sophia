@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, Loader2, Sparkles, X } from "lucide-react";
 
+import { getDisplayPhaseOrder } from "../../lib/planPhases";
 import type {
   LevelReviewAnswerMap,
   LevelReviewQuestion,
@@ -57,7 +58,7 @@ export function LevelCompletionModal({
                 Fin de niveau
               </p>
               <h3 className="mt-2 text-2xl font-semibold">
-                {levelOrder ? `Niveau de plan ${levelOrder}` : "Niveau actuel"}
+                {levelOrder ? `Niveau de plan ${getDisplayPhaseOrder(levelOrder)}` : "Niveau actuel"}
               </h3>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-white/80">
                 {levelTitle}

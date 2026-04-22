@@ -29,20 +29,12 @@ const ENRICHED_RECOMMENDATION_SCHEMA = z.object({
   reason: z.string().min(1).max(220),
   priority_rank: z.number().int().min(1).max(3),
   timing_kind: z.enum([
-    "now",
-    "after_phase1",
     "during_target_level",
-    "before_next_level",
-    "if_blocked",
   ] satisfies [ProfessionalSupportTimingKind, ...ProfessionalSupportTimingKind[]]),
-  target_level_order: z.number().int().min(1).max(12).nullable(),
+  target_level_order: z.number().int().min(2).max(12).nullable(),
   timing_reason: z.string().min(1).max(240),
 }).superRefine((value, ctx) => {
-  if (
-    (value.timing_kind === "during_target_level" ||
-      value.timing_kind === "before_next_level") &&
-    value.target_level_order == null
-  ) {
+  if (value.target_level_order == null) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "target_level_order is required for level-based timing kinds",
@@ -360,7 +352,7 @@ export async function classifyAndPersistProfessionalSupport(args: {
       recommendation_level: professionalSupport.recommendation_level,
       summary: professionalSupport.summary,
       reason: recommendation.reason,
-      timing_kind: recommendation.timing_kind ?? "now",
+      timing_kind: recommendation.timing_kind ?? "during_target_level",
       target_phase_id: targetPhaseId,
       target_level_order: recommendation.target_level_order ?? null,
       timing_reason: recommendation.timing_reason ?? recommendation.reason,
@@ -593,9 +585,12 @@ ${JSON.stringify({
 
 ## Product timing model
 
-- Sophia has a universal foundation step before the generated plan levels. Use timing_kind = "after_phase1" if the recommendation should appear only once that foundation step is done.
-- Generated plan levels start at level_order ${input.plan.current_level_runtime?.level_order ?? 1}.
-- Use target_level_order only when the recommendation is meaningfully tied to a specific generated level.
+- Every recommendation must be tied to a specific generated plan level.
+- Never use a generic timing such as "after the foundation", "before a level", "now", or "if blocked".
+- Generated plan levels start at level 2 for professional-support timing.
+- target_level_order is mandatory for every recommendation and must be >= 2.
+- Every recommendation must happen during a specific generated level.
+- Always use "during_target_level".
 
 ## Current generated level
 
@@ -669,12 +664,12 @@ Rules:
 - Each recommendation.reason must explain why this professional is relevant in this specific case.
 - priority_rank must be unique and start at 1.
 - timing_kind must be one of:
-  - now
-  - after_phase1
   - during_target_level
-  - before_next_level
-  - if_blocked
-- target_level_order should be null unless the recommendation is clearly tied to a generated level.
+- Every recommendation must have a target_level_order.
+- target_level_order must be >= 2.
+- Never use a timing that is not attached to an explicit level number.
+- Never use a timing that happens before a level.
+- Prefer level 2 by default when the recommendation should appear as early as possible.
 - timing_reason must explain why this is the right moment in the journey.
 - Each recommendation object MUST use the property name "key" exactly.
 - Do not mention links, products, marketplaces, brands, or clinics.
@@ -690,8 +685,8 @@ Rules:
       "key": "general_practitioner",
       "reason": "Concrete reason",
       "priority_rank": 1,
-      "timing_kind": "after_phase1",
-      "target_level_order": null,
+      "timing_kind": "during_target_level",
+      "target_level_order": 2,
       "timing_reason": "Why the timing makes sense"
     }
   ]

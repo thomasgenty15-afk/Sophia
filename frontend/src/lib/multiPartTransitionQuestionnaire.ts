@@ -3,9 +3,15 @@ import type {
   QuestionnaireSchemaV2,
   QuestionnaireVisibilityRuleV2,
 } from "./onboardingV2";
+import {
+  transformationClosureHelpfulnessAreaOptions,
+  transformationClosureImprovementReasonOptions,
+} from "./transformationClosure";
 
 export const MULTI_PART_TRANSITION_QUESTIONNAIRE_SOURCE =
   "multi_part_transition_debrief";
+export const SIMPLE_TRANSITION_QUESTIONNAIRE_SOURCE =
+  "simple_transition_debrief";
 
 function buildTextQuestion(args: {
   id: string;
@@ -26,6 +32,31 @@ function buildTextQuestion(args: {
     allow_other: false,
     placeholder: args.placeholder,
     max_selections: null,
+    visible_if: args.visibleIf ?? null,
+  };
+}
+
+function buildChoiceQuestion(args: {
+  id: string;
+  kind: "single_choice" | "multiple_choice";
+  question: string;
+  helperText: string;
+  options: Array<{ id: string; label: string }>;
+  required?: boolean;
+  visibleIf?: QuestionnaireVisibilityRuleV2;
+  maxSelections?: number | null;
+}): QuestionnaireQuestionV2 {
+  return {
+    id: args.id,
+    kind: args.kind,
+    question: args.question,
+    helper_text: args.helperText,
+    required: args.required ?? true,
+    capture_goal: args.helperText,
+    options: args.options,
+    allow_other: false,
+    placeholder: null,
+    max_selections: args.kind === "multiple_choice" ? (args.maxSelections ?? 3) : null,
     visible_if: args.visibleIf ?? null,
   };
 }
@@ -71,17 +102,15 @@ export function buildMultiPartTransitionQuestionnaireSchema(args: {
     version: 1,
     transformation_id: args.transformationId,
     questions: [
-      buildTextQuestion({
-        id: "part_1_what_you_liked",
-        question: "Qu'est-ce que tu as le plus aimé ou trouvé utile dans cette 1re partie ?",
-        helperText: `On veut conserver dans "${nextLabel}" ce qui t'a vraiment aidé dans "${currentLabel}".`,
-        placeholder: "Exemple : le ton, le rythme, certains outils, la structure, une habitude précise…",
-      }),
-      buildTextQuestion({
-        id: "part_1_what_you_did_not_like",
-        question: "Qu'est-ce que tu as moins aimé ou trouvé moins utile ?",
-        helperText: "Dis ce qu'il vaut mieux alléger, retirer ou reformuler pour la suite.",
-        placeholder: "Exemple : trop long, trop répétitif, pas assez concret, mal adapté à ton rythme…",
+      buildChoiceQuestion({
+        id: "part_1_most_helpful_area",
+        kind: "single_choice",
+        question: "Qu'est-ce qui t'a le plus aidé dans cette 1re partie ?",
+        helperText: "",
+        options: transformationClosureHelpfulnessAreaOptions.map((option) => ({
+          id: option.value,
+          label: option.label,
+        })),
       }),
       buildNumberQuestion({
         id: "part_1_helpfulness_rating",
@@ -92,11 +121,16 @@ export function buildMultiPartTransitionQuestionnaireSchema(args: {
         suggestedValue: 8,
         unit: "/10",
       }),
-      buildTextQuestion({
-        id: "part_1_helpfulness_rating_why",
-        question: "Pourquoi tu lui donnes cette note ?",
-        helperText: "Cette question n'apparaît que si la note est en dessous de 8, pour comprendre ce qu'il faut corriger pour la suite.",
-        placeholder: "Exemple : ce qui a manqué, ce qui a freiné, ce qui aurait rendu le plan plus utile pour toi…",
+      buildChoiceQuestion({
+        id: "part_1_improvement_reasons",
+        kind: "multiple_choice",
+        question: "Qu'est-ce qu'on aurait pu mieux faire pour la suite ?",
+        helperText: "",
+        options: transformationClosureImprovementReasonOptions.map((option) => ({
+          id: option.value,
+          label: option.label,
+        })),
+        maxSelections: 4,
         visibleIf: {
           question_id: "part_1_helpfulness_rating",
           operator: "lt",
@@ -120,6 +154,75 @@ export function buildMultiPartTransitionQuestionnaireSchema(args: {
       },
       source: MULTI_PART_TRANSITION_QUESTIONNAIRE_SOURCE,
       previous_transformation_id: args.previousTransformationId,
+      current_transformation_title: args.currentTransformationTitle,
+      next_transformation_title: args.nextTransformationTitle,
+    },
+  };
+}
+
+export function buildSimpleTransitionQuestionnaireSchema(args: {
+  transformationId: string;
+  currentTransformationTitle: string | null;
+  nextTransformationTitle: string | null;
+}): QuestionnaireSchemaV2 {
+  const currentLabel = args.currentTransformationTitle?.trim() || "cette transformation";
+  const nextLabel = args.nextTransformationTitle?.trim() || "la suite";
+
+  return {
+    version: 1,
+    transformation_id: args.transformationId,
+    questions: [
+      buildChoiceQuestion({
+        id: "most_helpful_area",
+        kind: "single_choice",
+        question: "Qu'est-ce qui t'a le plus aidé dans cette transformation ?",
+        helperText: "",
+        options: transformationClosureHelpfulnessAreaOptions.map((option) => ({
+          id: option.value,
+          label: option.label,
+        })),
+      }),
+      buildNumberQuestion({
+        id: "helpfulness_rating",
+        question: "Sur 10, à quel point ce plan t'a aidé ?",
+        helperText: "Donne une note simple et honnête, sans chercher la réponse idéale.",
+        minValue: 0,
+        maxValue: 10,
+        suggestedValue: 8,
+        unit: "/10",
+      }),
+      buildChoiceQuestion({
+        id: "improvement_reasons",
+        kind: "multiple_choice",
+        question: "Qu'est-ce qu'on aurait pu mieux faire pour la suite ?",
+        helperText: "",
+        options: transformationClosureImprovementReasonOptions.map((option) => ({
+          id: option.value,
+          label: option.label,
+        })),
+        maxSelections: 4,
+        visibleIf: {
+          question_id: "helpfulness_rating",
+          operator: "lt",
+          value: 8,
+        },
+      }),
+    ],
+    metadata: {
+      design_principle: "short_transition_temperature_check_before_next_transformation",
+      measurement_hints: {
+        metric_key: "simple_transition_readiness",
+        metric_label: "Bilan de fin de transformation",
+        unit: null,
+        direction: "stabilize",
+        measurement_mode: "score",
+        baseline_prompt: "Comment cette transformation t'a réellement aidé ?",
+        target_prompt: "Que faut-il conserver ou corriger pour la suite ?",
+        suggested_target_value: 8,
+        rationale: "Questionnaire de debrief court avant de choisir la prochaine transformation.",
+        confidence: 0.95,
+      },
+      source: SIMPLE_TRANSITION_QUESTIONNAIRE_SOURCE,
       current_transformation_title: args.currentTransformationTitle,
       next_transformation_title: args.nextTransformationTitle,
     },

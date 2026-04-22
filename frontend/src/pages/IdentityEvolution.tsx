@@ -907,41 +907,25 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
         content: m.text,
       }));
 
-      const contextOverrideRaw = [
-        `Type: Module Individuel (Forge)`,
-        `ModuleId: ${module.id}`,
-        `Titre: ${module.title}`,
-        `Système: ${module.originalWeekTitle || 'Inconnu'}`,
-        `Immersion: ${isImmersive ? 'on' : 'off'}`,
-        ``,
-        `=== QUESTION CLÉ (INTÉGRAL) ===`,
-        `Question: ${specificQuestion}`,
-        ``,
-        `Aide:`,
-        specificHelper,
-        ``,
-        `=== CONTENU ACTUEL DU MODULE (EN COURS D'ÉDITION) ===`,
-        trunc(content, 8000) || "(vide)",
-      ].join('\n');
-      const contextOverride = trunc(contextOverrideRaw, 20000);
+      const contextualizedMessage = trunc([
+        `Contexte module forge.`,
+        `Module: ${module.title}.`,
+        `Système d'origine: ${module.originalWeekTitle || 'Inconnu'}.`,
+        `Question clé: ${specificQuestion}.`,
+        specificHelper ? `Aide: ${specificHelper}` : "",
+        content.trim().length
+          ? `Contenu actuel: ${trunc(content, 1200)}`
+          : "Contenu actuel: (vide)",
+        `Ma demande: ${userText}`,
+      ].filter(Boolean).join('\n\n'), 6000);
 
       const clientRequestId = newRequestId();
       const { data, error } = await supabase.functions.invoke('sophia-brain', {
         body: {
-          message: userText,
+          message: contextualizedMessage,
           history: historyForBrain,
-          forceMode: 'architect',
-          contextOverride,
           channel: 'web',
           scope: `module:${module.id}`,
-          messageMetadata: {
-            source: 'module_conversation',
-            ui: 'IdentityEvolution.EvolutionForge',
-            moduleKind: 'individual',
-            moduleId: module.id,
-            immersion: isImmersive,
-            moduleTitle: module.title,
-          },
         },
         headers: requestHeaders(clientRequestId)
       });
@@ -952,8 +936,30 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
       const assistantText = sanitizeBrokenGlyphs(rawText);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
     } catch (e: any) {
+      let detailedMessage =
+        typeof e?.message === "string" && e.message.trim().length > 0
+          ? e.message.trim()
+          : "Erreur lors de l'appel à Sophia.";
+      try {
+        const errorBody = await e?.context?.json?.();
+        const errorText = typeof errorBody?.error === "string"
+          ? errorBody.error.trim()
+          : "";
+        const requestId = typeof errorBody?.request_id === "string"
+          ? errorBody.request_id.trim()
+          : "";
+        if (errorText) {
+          detailedMessage = requestId
+            ? `${errorText} (request_id: ${requestId})`
+            : errorText;
+        }
+        console.error("[IdentityEvolution] Chat error body:", errorBody);
+        console.error("[IdentityEvolution] Chat error details:", JSON.stringify(errorBody?.details ?? null));
+      } catch {
+        // ignore body parsing failures
+      }
       console.error("[IdentityEvolution] Chat error:", e);
-      setChatError(e?.message || "Erreur lors de l'appel à Sophia.");
+      setChatError(detailedMessage);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "Désolée, je bug un instant. Réessaie dans quelques secondes." }]);
     } finally {
       setIsChatLoading(false);

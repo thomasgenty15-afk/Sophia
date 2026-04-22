@@ -312,17 +312,11 @@ export function getProfessionalSupportTimingLabel(
   timingKind: ProfessionalSupportTimingKind,
   displayLevelOrder: number | null,
 ) {
-  if (timingKind === "now") return "A envisager maintenant";
-  if (timingKind === "after_phase1") return "A envisager après ton socle";
-  if (timingKind === "if_blocked") return "À utiliser si ça bloque";
-  if (timingKind === "before_next_level") {
-    return displayLevelOrder
-      ? `À prévoir avant le niveau ${displayLevelOrder}`
-      : "À prévoir avant le prochain niveau";
-  }
-  return displayLevelOrder
-    ? `Plutôt pendant le niveau ${displayLevelOrder}`
-    : "Plutôt pendant le niveau cible";
+  const resolvedLevelOrder = displayLevelOrder != null && displayLevelOrder >= 2
+    ? displayLevelOrder
+    : 2;
+  if (timingKind === "if_blocked") return `Pendant le niveau ${resolvedLevelOrder} si ça bloque`;
+  return `Pendant le niveau ${resolvedLevelOrder}`;
 }
 
 export function getProfessionalSupportStatusLabel(

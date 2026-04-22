@@ -5,6 +5,8 @@ import {
   RefreshCcw,
 } from "lucide-react";
 
+import { getDisplayPhaseOrder } from "../../lib/planPhases";
+
 export type PlanRevisionThreadEntry = {
   role: "user" | "assistant";
   content: string;
@@ -52,6 +54,8 @@ export type PlanRevisionPanelAction = {
   onClick: () => void;
   disabled?: boolean;
   variant?: "primary" | "secondary" | "ghost" | "danger";
+  isLoading?: boolean;
+  loadingLabel?: string;
 };
 
 type PlanRevisionPanelProps = {
@@ -65,6 +69,7 @@ type PlanRevisionPanelProps = {
   composerPlaceholder?: string;
   submitLabel?: string;
   helperText?: string | null;
+  busyLabel?: string | null;
   previewNode?: ReactNode;
   actions?: PlanRevisionPanelAction[];
   onChange: (value: string) => void;
@@ -96,6 +101,7 @@ export function PlanRevisionPanel({
   composerPlaceholder,
   submitLabel = "Analyser la demande",
   helperText,
+  busyLabel,
   previewNode,
   actions = [],
   onChange,
@@ -103,7 +109,7 @@ export function PlanRevisionPanel({
 }: PlanRevisionPanelProps) {
   const canSubmit = value.trim().length > 0 && !isBusy;
   const levelLabel = currentLevelOrder
-    ? `Niveau de plan ${currentLevelOrder}`
+    ? `Niveau de plan ${getDisplayPhaseOrder(currentLevelOrder)}`
     : "Niveau de plan actuel";
 
   return (
@@ -181,6 +187,13 @@ export function PlanRevisionPanel({
         </div>
       ) : null}
 
+      {isBusy && busyLabel ? (
+        <div className="mt-4 inline-flex items-center gap-2 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>{busyLabel}</span>
+        </div>
+      ) : null}
+
       {actions.length > 0 ? (
         <div className="mt-5 flex flex-wrap gap-3">
           {actions.map((action) => (
@@ -191,7 +204,14 @@ export function PlanRevisionPanel({
               disabled={Boolean(action.disabled)}
               className={`inline-flex items-center justify-center rounded-xl border px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${actionClassName(action.variant)}`}
             >
-              {action.label}
+              {action.isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {action.loadingLabel ?? action.label}
+                </>
+              ) : (
+                action.label
+              )}
             </button>
           ))}
         </div>

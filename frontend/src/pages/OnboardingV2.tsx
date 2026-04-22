@@ -31,6 +31,7 @@ import {
   toTransformationPreview,
   type TransformationPreviewV2,
 } from "../lib/onboardingV2";
+import { resolveOnboardingBackAction } from "../lib/onboardingBackNavigation";
 import {
   isMultiPartTransitionQuestionnaireSchema,
   MULTI_PART_TRANSITION_QUESTIONNAIRE_SOURCE,
@@ -91,6 +92,42 @@ type ClassifyPlanTypeResponse = {
   transformation_id: string;
   cycle_id: string;
   classification: PlanTypeClassificationV1;
+};
+
+type DraftTransformationFromTextResponse = {
+  request_id: string;
+  analysis: {
+    updated_existing_transformations: Array<{
+      id: string;
+      title: string;
+      internal_summary: string;
+      user_summary: string;
+      questionnaire_context: string[];
+    }>;
+    new_transformations: Array<{
+      title: string;
+      internal_summary: string;
+      user_summary: string;
+      questionnaire_context: string[];
+    }>;
+    recommended_selection: {
+      kind: "existing" | "new";
+      existing_transformation_id?: string | null;
+      new_transformation_index?: number | null;
+    };
+  };
+  // Authoritative list of transformations still open for this cycle at the
+  // moment the edge function ran. The frontend should use this as the merge
+  // base so that LLM "updated_existing_transformations" entries can always be
+  // matched, even when the local draft.transformations was cleared/out-of-sync.
+  open_transformations?: Array<{
+    id: string;
+    title: string | null;
+    internal_summary: string;
+    user_summary: string;
+    priority_order: number | null;
+    status: string;
+  }>;
 };
 
 type PlanRegenerationVariant = "shorter" | "longer";
@@ -155,6 +192,209 @@ function questionnaireAnswersEqual(
   }
 
   return true;
+}
+
+function deriveManualTransformationTitle(rawText: string): string {
+  const normalized = rawText.replace(/\s+/g, " ").trim();
+  if (!normalized) return "Nouveau sujet prioritaire";
+
+  const firstSentence = normalized.split(/[.!?\n]/)[0]?.trim() ?? normalized;
+  const withoutLead = firstSentence
+    .replace(/^(alors là|j'ai envie de|je veux|je voudrais|le but c'?est de|mon sujet c'?est)\s+/i, "")
+    .trim();
+  const candidate = withoutLead || firstSentence;
+
+  return candidate.length > 72 ? `${candidate.slice(0, 69).trim()}...` : candidate;
+}
+
+function buildManualTransformationFromCapture(args: {
+  rawText: string;
+  cycleId: string | null;
+  existingTransformations: TransformationPreviewV2[];
+  aiDraft?: DraftTransformationFromTextResponse["analysis"]["new_transformations"][number] | null;
+  priorityOrder?: number | null;
+}): TransformationPreviewV2 {
+  const normalized = args.rawText.replace(/\s+/g, " ").trim();
+  const maxPriority = Math.max(
+    0,
+    ...args.existingTransformations.map((item) => item.priority_order ?? 0),
+  );
+  const aiDraft = args.aiDraft ?? null;
+  const priorityOrder = args.priorityOrder ?? maxPriority + 1;
+
+  return {
+    id: `manual-${crypto.randomUUID()}`,
+    cycle_id: args.cycleId ?? "",
+    priority_order: priorityOrder,
+    recommended_order: null,
+    recommended_progress_indicator: null,
+    status: "pending",
+    title: aiDraft?.title?.trim() || deriveManualTransformationTitle(normalized),
+    internal_summary: aiDraft?.internal_summary?.trim() ||
+      (`Transformation ajoutée depuis le texte libre utilisateur. ` +
+        `Sujet brut: ${normalized}`),
+    user_summary: aiDraft?.user_summary?.trim() ||
+      normalized ||
+      "Tu as ajouté un nouveau sujet prioritaire à intégrer dans la suite du cycle.",
+    questionnaire_context: Array.isArray(aiDraft?.questionnaire_context)
+      ? aiDraft.questionnaire_context
+      : [],
+    questionnaire_schema: null,
+    questionnaire_answers: null,
+    source_group_index: null,
+    ordering_rationale: null,
+    selection_context: null,
+    is_manual: true,
+  };
+}
+
+function applyDraftTransformationAnalysis(args: {
+  currentTransformations: TransformationPreviewV2[];
+  cycleId: string | null;
+  rawText: string;
+  analysis: DraftTransformationFromTextResponse["analysis"];
+}): {
+  transformations: TransformationPreviewV2[];
+  selectedTransformationId: string;
+} | null {
+  const updatedById = new Map(
+    args.analysis.updated_existing_transformations.map((transformation) => [
+      transformation.id,
+      transformation,
+    ]),
+  );
+
+  const nextTransformations = args.currentTransformations.map((transformation) => {
+    const update = updatedById.get(transformation.id);
+    if (!update) return transformation;
+    return {
+      ...transformation,
+      title: update.title,
+      internal_summary: update.internal_summary,
+      user_summary: update.user_summary,
+      questionnaire_context: update.questionnaire_context,
+      questionnaire_schema: null,
+      questionnaire_answers: null,
+      selection_context: null,
+    };
+  });
+
+  const nextPriorityBase = Math.max(
+    0,
+    ...nextTransformations.map((item) => item.priority_order ?? 0),
+  );
+  const createdTransformations = args.analysis.new_transformations.map((transformation, index) =>
+    buildManualTransformationFromCapture({
+      rawText: args.rawText,
+      cycleId: args.cycleId,
+      existingTransformations: nextTransformations,
+      aiDraft: transformation,
+      priorityOrder: nextPriorityBase + index + 1,
+    })
+  );
+
+  const mergedTransformations = [...nextTransformations, ...createdTransformations];
+  if (mergedTransformations.length === 0) return null;
+
+  let selectedTransformationId: string | null = null;
+  if (args.analysis.recommended_selection.kind === "existing") {
+    selectedTransformationId =
+      args.analysis.recommended_selection.existing_transformation_id ?? null;
+  } else {
+    const selectedNewIndex = args.analysis.recommended_selection.new_transformation_index ?? -1;
+    selectedTransformationId = createdTransformations[selectedNewIndex]?.id ?? null;
+  }
+
+  if (!selectedTransformationId) {
+    selectedTransformationId =
+      createdTransformations[0]?.id ??
+      args.analysis.updated_existing_transformations[0]?.id ??
+      mergedTransformations[0]?.id ??
+      null;
+  }
+
+  if (!selectedTransformationId) return null;
+
+  return {
+    transformations: mergedTransformations,
+    selectedTransformationId,
+  };
+}
+
+function isPendingCycleTransformation(transformation: TransformationPreviewV2): boolean {
+  return transformation.status === "ready" || transformation.status === "pending";
+}
+
+function isManualTransformationId(transformationId: string | null | undefined): boolean {
+  return typeof transformationId === "string" && transformationId.startsWith("manual-");
+}
+
+// Build a TransformationPreviewV2-shaped entry from the minimal payload the
+// edge function returns when there is no richer local candidate available.
+function buildPreviewFromServerOpenTransformation(args: {
+  entry: NonNullable<DraftTransformationFromTextResponse["open_transformations"]>[number];
+  cycleId: string;
+}): TransformationPreviewV2 {
+  const normalizedStatus = args.entry.status as TransformationPreviewV2["status"];
+  return {
+    id: args.entry.id,
+    cycle_id: args.cycleId,
+    priority_order: args.entry.priority_order ?? 0,
+    recommended_order: null,
+    recommended_progress_indicator: null,
+    status: normalizedStatus,
+    title: args.entry.title,
+    internal_summary: args.entry.internal_summary,
+    user_summary: args.entry.user_summary,
+    questionnaire_context: [],
+    questionnaire_schema: null,
+    questionnaire_answers: null,
+    source_group_index: null,
+    ordering_rationale: null,
+    selection_context: null,
+    is_manual: false,
+  };
+}
+
+// Merge the locally-held candidate transformations with the authoritative list
+// of open transformations returned by the edge function. Local entries win
+// whenever they exist for a given id (they carry extra UI metadata), but any
+// id present server-side and missing locally is added back so the LLM's
+// `updated_existing_transformations` entries can always be reconciled.
+function reconcileCandidateTransformations(args: {
+  candidateTransformations: TransformationPreviewV2[];
+  serverOpenTransformations: DraftTransformationFromTextResponse["open_transformations"];
+  cycleId: string | null;
+}): TransformationPreviewV2[] {
+  const serverList = args.serverOpenTransformations ?? [];
+  if (serverList.length === 0) return args.candidateTransformations;
+
+  const byId = new Map(
+    args.candidateTransformations.map((item) => [item.id, item] as const),
+  );
+  const ordered: TransformationPreviewV2[] = [];
+  for (const entry of serverList) {
+    const existing = byId.get(entry.id);
+    if (existing) {
+      ordered.push(existing);
+      byId.delete(entry.id);
+      continue;
+    }
+    ordered.push(
+      buildPreviewFromServerOpenTransformation({
+        entry,
+        cycleId: args.cycleId ?? "",
+      }),
+    );
+  }
+
+  // Preserve any strictly-local candidate (e.g. manual-*) not present on the
+  // server snapshot, at the end of the list.
+  for (const remaining of byId.values()) {
+    ordered.push(remaining);
+  }
+
+  return ordered;
 }
 
 function mergeTransitionDebriefIntoHandoffPayload(args: {
@@ -422,7 +662,10 @@ function shouldAdoptServerDraft(
   const localHasContent =
     localDraft.stage !== "capture" ||
     localDraft.raw_intake_text.trim().length > 0 ||
-    localDraft.aspects.length > 0;
+    localDraft.aspects.length > 0 ||
+    localDraft.transformations.length > 0 ||
+    localDraft.entry_mode === "add_transformation" ||
+    Boolean(localDraft.cycle_id);
 
   if (localHasContent) {
     // Guard against a deliberately-reversed navigation being overwritten by a
@@ -556,6 +799,21 @@ export default function OnboardingV2() {
     draft.preserved_active_transformation_id,
   ]);
   const effectiveUser = onboardingAuthMode === "authenticated" ? user : null;
+  const isMultiPartTransitionFlow = useMemo(
+    () =>
+      draft.entry_mode === "add_transformation" &&
+      isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema),
+    [draft.entry_mode, draft.questionnaire_schema],
+  );
+  const backAction = useMemo(
+    () =>
+      resolveOnboardingBackAction({
+        entryMode: draft.entry_mode,
+        stage: draft.stage,
+        isMultiPartTransitionFlow,
+      }),
+    [draft.entry_mode, draft.stage, isMultiPartTransitionFlow],
+  );
   const onboardingAuthLoading = authLoading || onboardingAuthMode === "checking";
   const beginOnboardingAction = useCallback((
     state: { id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate"; label: string },
@@ -1146,8 +1404,13 @@ export default function OnboardingV2() {
     };
     if (args.targetStage === "capture") {
       cyclePatch.active_transformation_id = null;
-    } else if (args.activeTransformationId !== undefined) {
+    } else if (
+      args.activeTransformationId !== undefined &&
+      !isManualTransformationId(args.activeTransformationId)
+    ) {
       cyclePatch.active_transformation_id = args.activeTransformationId;
+    } else if (args.activeTransformationId !== undefined) {
+      cyclePatch.active_transformation_id = null;
     }
 
     const { error: updateCycleError } = await supabase
@@ -1187,6 +1450,110 @@ export default function OnboardingV2() {
           "Impossible de revenir en arrière pour le moment.",
         ),
       );
+    }
+  }
+
+  async function completePreservedTransformationForMultiPartTransition() {
+    if (!effectiveUser || !draft.cycle_id || !preservedCycleActiveTransformationId) return;
+
+    const now = new Date().toISOString();
+    const { data: previousTransformation, error: loadPreviousError } = await supabase
+      .from("user_transformations")
+      .select("id,status")
+      .eq("id", preservedCycleActiveTransformationId)
+      .eq("cycle_id", draft.cycle_id)
+      .maybeSingle();
+
+    if (loadPreviousError) throw loadPreviousError;
+    if (!previousTransformation) return;
+    if (
+      previousTransformation.status === "completed" ||
+      previousTransformation.status === "abandoned" ||
+      previousTransformation.status === "archived" ||
+      previousTransformation.status === "cancelled"
+    ) {
+      return;
+    }
+
+    const [{ error: planError }, { error: transformationError }, cycleUpdateResult] = await Promise.all([
+      supabase
+        .from("user_plans_v2")
+        .update({
+          status: "completed",
+          completed_at: now,
+          updated_at: now,
+        })
+        .eq("transformation_id", preservedCycleActiveTransformationId)
+        .in("status", ["active", "paused"]),
+      supabase
+        .from("user_transformations")
+        .update({
+          status: "completed",
+          completed_at: now,
+          updated_at: now,
+        })
+        .eq("id", preservedCycleActiveTransformationId)
+        .in("status", ["draft", "ready", "pending", "active"]),
+      supabase
+        .from("user_cycles")
+        .update({
+          active_transformation_id: null,
+          updated_at: now,
+        })
+        .eq("id", draft.cycle_id),
+    ]);
+
+    if (planError) throw planError;
+    if (transformationError) throw transformationError;
+    if (cycleUpdateResult.error) throw cycleUpdateResult.error;
+
+    const { data: reminderRows, error: reminderError } = await supabase
+      .from("user_recurring_reminders")
+      .update({
+        status: "completed",
+        ended_reason: "plan_completed",
+        deactivated_at: now,
+        updated_at: now,
+      } as never)
+      .eq("user_id", effectiveUser.id)
+      .eq("transformation_id", preservedCycleActiveTransformationId)
+      .in("initiative_kind", ["plan_free"])
+      .in("status", ["active", "inactive"])
+      .select("id");
+
+    if (reminderError) throw reminderError;
+
+    const reminderIds = ((reminderRows as Array<{ id: string }> | null) ?? []).map((row) => row.id);
+    if (reminderIds.length === 0) return;
+
+    const { error: cancelCheckinsError } = await supabase
+      .from("scheduled_checkins")
+      .update({
+        status: "cancelled",
+        processed_at: now,
+      } as never)
+      .in("recurring_reminder_id", reminderIds)
+      .in("status", ["pending", "retrying", "awaiting_user"]);
+
+    if (cancelCheckinsError) throw cancelCheckinsError;
+  }
+
+  function handleBackClick() {
+    setError(null);
+    cancelOnboardingActions();
+
+    if (backAction.kind === "dashboard") {
+      navigate("/dashboard");
+      return;
+    }
+
+    if (backAction.kind === "local_stage_reset") {
+      persistDraft(setDraft, buildStageResetPatch(draft, backAction.stage));
+      return;
+    }
+
+    if (backAction.kind === "server_stage_reset") {
+      void handleStageBack(backAction.stage);
     }
   }
 
@@ -1363,6 +1730,101 @@ export default function OnboardingV2() {
   async function handleAnalyze() {
     if (!draft.raw_intake_text.trim()) return;
     setError(null);
+    const candidateTransformations = draft.transformations.filter(isPendingCycleTransformation);
+
+    if (
+      draft.entry_mode === "add_transformation" &&
+      draft.stage === "capture" &&
+      draft.cycle_id
+    ) {
+      const persistDraftTransformation = (
+        params?: {
+          analysis?: DraftTransformationFromTextResponse["analysis"] | null;
+          serverOpenTransformations?: DraftTransformationFromTextResponse["open_transformations"];
+        },
+      ) => {
+        // Reconcile the local candidate list with the authoritative list of
+        // open transformations returned by the server. This guarantees that
+        // any id the LLM references via updated_existing_transformations is
+        // present in the merge base, even when draft.transformations was
+        // stale or empty (e.g. after a server-snapshot adoption race).
+        const mergeBase = reconcileCandidateTransformations({
+          candidateTransformations,
+          serverOpenTransformations: params?.serverOpenTransformations ?? [],
+          cycleId: draft.cycle_id,
+        });
+
+        const analyzed =
+          params?.analysis
+            ? applyDraftTransformationAnalysis({
+              currentTransformations: mergeBase,
+              cycleId: draft.cycle_id,
+              rawText: draft.raw_intake_text,
+              analysis: params.analysis,
+            })
+            : null;
+
+        const fallbackTransformation = buildManualTransformationFromCapture({
+          rawText: draft.raw_intake_text,
+          cycleId: draft.cycle_id,
+          existingTransformations: mergeBase,
+        });
+
+        const nextTransformations = analyzed?.transformations ??
+          [...mergeBase, fallbackTransformation];
+        const nextSelectedId = analyzed?.selectedTransformationId ?? fallbackTransformation.id;
+
+        persistDraft(setDraft, {
+          cycle_status: "prioritized",
+          stage: "priorities",
+          transformations: nextTransformations,
+          active_transformation_id: nextSelectedId,
+          questionnaire_schema: null,
+          questionnaire_answers: {},
+          raw_intake_text: "",
+        });
+      };
+
+      if (!effectiveUser) {
+        persistDraftTransformation();
+        return;
+      }
+
+      const actionToken = beginOnboardingAction({
+        id: "analyze",
+        label: "Sophia reformule ce nouveau sujet…",
+      });
+      try {
+        const response = await invokeFunction<DraftTransformationFromTextResponse>(
+          "draft-transformation-from-text-v1",
+          {
+            raw_text: draft.raw_intake_text,
+            cycle_id: draft.cycle_id,
+            existing_transformations: candidateTransformations.map((transformation) => ({
+              id: transformation.id,
+              title: transformation.title,
+              internal_summary: transformation.internal_summary,
+              user_summary: transformation.user_summary,
+              priority_order: transformation.priority_order,
+              status: transformation.status,
+            })),
+          },
+          { timeoutMs: 45_000 },
+        );
+        if (!isOnboardingActionCurrent(actionToken)) return;
+        persistDraftTransformation({
+          analysis: response.analysis,
+          serverOpenTransformations: response.open_transformations,
+        });
+      } catch (error) {
+        console.warn("[OnboardingV2] Falling back to manual draft transformation", error);
+        if (!isOnboardingActionCurrent(actionToken)) return;
+        persistDraftTransformation();
+      } finally {
+        finishOnboardingAction(actionToken);
+      }
+      return;
+    }
 
     if (!effectiveUser) {
       try {
@@ -1898,6 +2360,10 @@ export default function OnboardingV2() {
           })
           .eq("id", currentTransformation.id);
         if (updateError) throw updateError;
+        if (!isOnboardingActionCurrent(actionToken)) return;
+
+        await completePreservedTransformationForMultiPartTransition();
+        if (!isOnboardingActionCurrent(actionToken)) return;
 
         persistDraft(setDraft, {
           questionnaire_answers: answers,
@@ -2375,6 +2841,46 @@ export default function OnboardingV2() {
         error_message: getErrorMessage(submitError, "plan_confirm_failed"),
         raw_error: submitError,
       });
+      if (isPlanGenerationTimeout(submitError)) {
+        try {
+          const [{ data: cycleCheck }, { data: existingPlan }] = await Promise.all([
+            supabase
+              .from("user_cycles")
+              .select("status,active_transformation_id")
+              .eq("id", draft.cycle_id)
+              .maybeSingle(),
+            supabase
+              .from("user_plans_v2")
+              .select("id,status")
+              .eq("transformation_id", currentTransformation.id)
+              .in("status", ["generated", "active", "paused"])
+              .order("updated_at", { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+          ]);
+
+          const shouldRedirect =
+            cycleCheck?.status === "active" ||
+            existingPlan?.status === "active" ||
+            existingPlan?.status === "paused";
+
+          if (shouldRedirect) {
+            try {
+              await supabase
+                .from("profiles")
+                .update({ onboarding_completed: true })
+                .eq("id", effectiveUser.id);
+            } catch {
+              // best-effort
+            }
+            clearOnboardingV2Draft();
+            navigate("/dashboard", { replace: true });
+            return;
+          }
+        } catch {
+          // ignore recovery errors and fall through to standard handling
+        }
+      }
       if (getErrorStatus(submitError) === 409) {
         const msg = getErrorMessage(submitError, "").toLowerCase();
         let shouldRedirect = msg.includes("active v2 plan");
@@ -2485,7 +2991,9 @@ export default function OnboardingV2() {
     try {
       await clearServerDownstreamState({
         targetStage: "priorities",
-        activeTransformationId: payload.selectedTransformationId,
+        activeTransformationId: isManualTransformationId(payload.selectedTransformationId)
+          ? null
+          : payload.selectedTransformationId,
       });
       if (!isOnboardingActionCurrent(actionToken)) return;
       const persisted = await persistTransformationFocusSelection(payload);
@@ -2555,21 +3063,10 @@ export default function OnboardingV2() {
     <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-6 md:py-10">
       <div className="mx-auto mb-6 flex max-w-3xl flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          {draft.stage !== "capture" && draft.stage !== "generating_plan" && (
+          {draft.stage !== "generating_plan" && backAction.kind !== "none" && (
             <button
               type="button"
-              onClick={() => {
-                const prev: Record<string, OnboardingV2Draft["stage"]> = {
-                  validation: "capture",
-                  priorities: "capture",
-                  questionnaire_setup: "priorities",
-                  questionnaire: "priorities",
-                  profile: "questionnaire",
-                  plan_review: "profile",
-                };
-                const back = prev[draft.stage];
-                if (back) void handleStageBack(back);
-              }}
+              onClick={handleBackClick}
               className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-blue-200 hover:text-gray-900"
             >
               ←&nbsp;Retour
@@ -2739,9 +3236,15 @@ export default function OnboardingV2() {
 
       {draft.stage === "priorities" && (
         <TransformationFocusStep
-          key={`${draft.active_transformation_id ?? "none"}:${draft.transformations.map((item) => item.id).join(",")}`}
-          transformations={draft.transformations}
-          initialSelectedId={draft.active_transformation_id}
+          key={`${draft.active_transformation_id ?? "none"}:${draft.transformations.filter(isPendingCycleTransformation).map((item) => item.id).join(",")}`}
+          transformations={draft.transformations.filter(isPendingCycleTransformation)}
+          initialSelectedId={
+            draft.transformations.some((item) =>
+              item.id === draft.active_transformation_id && isPendingCycleTransformation(item)
+            )
+              ? draft.active_transformation_id
+              : draft.transformations.find(isPendingCycleTransformation)?.id ?? null
+          }
           onConfirm={handleTransformationFocusConfirm}
           isSubmitting={Boolean(loadingState.id !== null)}
         />

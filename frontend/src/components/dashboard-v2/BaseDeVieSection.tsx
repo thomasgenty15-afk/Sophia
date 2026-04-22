@@ -16,9 +16,15 @@ import {
 
 import { formatBaseDeVieDate, getBaseDeViePayload } from "../../lib/baseDeVie";
 import { supabase } from "../../lib/supabase";
+import {
+  getTransformationClosureHelpfulnessAreaLabel,
+  getTransformationClosureImprovementReasonLabel,
+} from "../../lib/transformationClosure";
 import { useBaseDeVie, type BaseDeVieArsenalItem } from "../../hooks/useBaseDeVie";
 import type {
+  BaseDeVieLineEntry,
   BaseDeVieDeclics,
+  TransformationClosureFeedback,
   UserTransformationBaseDeViePayload,
   UserTransformationRow,
 } from "../../types/v2";
@@ -51,18 +57,36 @@ function buildFallbackDeclics(transformation: UserTransformationRow): BaseDeVieD
 
 function buildPayloadForSave(args: {
   existingPayload: UserTransformationBaseDeViePayload | null;
-  lineRedEntries: string[];
-  declicsDraft: BaseDeVieDeclics | null;
-  declicsUser: BaseDeVieDeclics;
+  lineGreenEntry: BaseDeVieLineEntry;
+  lineRedEntry: BaseDeVieLineEntry;
+  feedback: TransformationClosureFeedback;
 }): UserTransformationBaseDeViePayload {
   const now = new Date().toISOString();
   return {
-    line_red_entries: args.lineRedEntries,
-    declics_draft: args.declicsDraft,
-    declics_user: args.declicsUser,
+    line_red_entries: [args.lineRedEntry.action],
+    line_green_entry: args.lineGreenEntry,
+    line_red_entry: args.lineRedEntry,
+    declics_draft: args.existingPayload?.declics_draft ?? null,
+    declics_user: args.existingPayload?.declics_user ?? args.existingPayload?.declics_draft ?? null,
+    closure_feedback: args.feedback,
     validated_at: args.existingPayload?.validated_at ?? now,
     last_edited_at: now,
   };
+}
+
+function getLineGreenEntry(payload: UserTransformationBaseDeViePayload | null): BaseDeVieLineEntry | null {
+  return payload?.line_green_entry ?? null;
+}
+
+function getLineRedEntry(payload: UserTransformationBaseDeViePayload | null): BaseDeVieLineEntry | null {
+  if (payload?.line_red_entry) return payload.line_red_entry;
+  const fallbackAction = payload?.line_red_entries[0]?.trim() ?? "";
+  return fallbackAction
+    ? {
+        action: fallbackAction,
+        why: "",
+      }
+    : null;
 }
 
 function arsenalIcon(kind: BaseDeVieArsenalItem["kind"]) {
@@ -156,38 +180,65 @@ export function BaseDeVieSection({
     }
   }, [expandedTransformationId, records]);
 
+  const lineGreenRecords = useMemo(
+    () =>
+      records.filter((record) => Boolean(getLineGreenEntry(record.payload))),
+    [records],
+  );
+
   const lineRedRecords = useMemo(
     () =>
-      records.filter((record) => (record.payload?.line_red_entries.length ?? 0) > 0),
+      records.filter((record) => Boolean(getLineRedEntry(record.payload))),
     [records],
   );
 
   const handleEditSubmit = async (payload: {
-    lineRedEntries: string[];
-    declicsDraft: BaseDeVieDeclics | null;
-    declicsUser: BaseDeVieDeclics;
+    lineGreenEntry: BaseDeVieLineEntry;
+    lineRedEntry: BaseDeVieLineEntry;
+    feedback: TransformationClosureFeedback;
   }) => {
-    if (!editingTransformation) return;
+    if (!editingTransformation || !userId) return;
 
     setSavingEdit(true);
     try {
       const existingPayload = getBaseDeViePayload(editingTransformation.base_de_vie_payload);
       const nextPayload = buildPayloadForSave({
         existingPayload,
-        lineRedEntries: payload.lineRedEntries,
-        declicsDraft: payload.declicsDraft,
-        declicsUser: payload.declicsUser,
+        lineGreenEntry: payload.lineGreenEntry,
+        lineRedEntry: payload.lineRedEntry,
+        feedback: payload.feedback,
       });
 
-      const { error } = await supabase
+      const updateTimestamp = new Date().toISOString();
+      const transformationUpdate = supabase
         .from("user_transformations")
         .update({
           base_de_vie_payload: nextPayload as unknown as Record<string, unknown>,
-          updated_at: new Date().toISOString(),
+          updated_at: updateTimestamp,
         })
         .eq("id", editingTransformation.id);
+      const feedbackUpdate = supabase
+        .from("user_transformation_closure_feedback")
+        .upsert({
+          user_id: userId,
+          cycle_id: editingTransformation.cycle_id,
+          transformation_id: editingTransformation.id,
+          helpfulness_rating: payload.feedback.helpfulness_rating,
+          improvement_reasons: payload.feedback.improvement_reasons,
+          improvement_detail: payload.feedback.improvement_detail,
+          most_helpful_area: payload.feedback.most_helpful_area,
+          updated_at: updateTimestamp,
+        } as never, {
+          onConflict: "transformation_id",
+        });
 
-      if (error) throw error;
+      const [{ error: transformationError }, { error: feedbackError }] = await Promise.all([
+        transformationUpdate,
+        feedbackUpdate,
+      ]);
+
+      if (transformationError) throw transformationError;
+      if (feedbackError) throw feedbackError;
 
       setEditingTransformation(null);
       await refresh();
@@ -211,16 +262,83 @@ export function BaseDeVieSection({
           </h2>
           <p className="mt-3 text-sm leading-7 text-stone-700">
             Ici, tu retrouves ce que tes transformations ont vraiment laissé en toi:
-            tes lignes rouges, tes déclics validés, ton arsenal construit dans le temps
+            tes lignes vertes, tes lignes rouges, tes déclics validés, ton arsenal construit dans le temps
             et le moteur d’initiatives qui reste actif au quotidien.
           </p>
         </div>
       </section>
 
+      <section className="rounded-[30px] border border-emerald-200 bg-white px-6 py-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+              La Ligne Verte
+            </p>
+            <h3 className="mt-3 text-2xl font-semibold text-stone-950">
+              Ce que tu veux refaire parce que ça te fait du bien
+            </h3>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="mt-5 flex items-center gap-2 text-sm text-stone-500">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Chargement de la Base de vie...
+          </div>
+        ) : lineGreenRecords.length > 0 ? (
+          <div className="mt-5 grid gap-4 xl:grid-cols-2">
+            {lineGreenRecords.map((record) => {
+              const lineGreenEntry = getLineGreenEntry(record.payload);
+              if (!lineGreenEntry) return null;
+
+              return (
+                <article
+                  key={record.transformation.id}
+                  className="rounded-[24px] border border-emerald-100 bg-emerald-50/60 px-5 py-5"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        {formatBaseDeVieDate(record.transformation.completed_at)}
+                      </p>
+                      <h4 className="mt-2 text-lg font-semibold text-stone-950">
+                        {record.transformation.title || `Transformation ${record.transformation.priority_order}`}
+                      </h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTransformation(record.transformation)}
+                      className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-emerald-200 hover:text-emerald-700"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Modifier
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-3 rounded-[22px] border border-emerald-100 bg-white px-4 py-4 text-sm leading-6 text-stone-700">
+                    <div>
+                      <p className="font-semibold text-stone-950">Quoi</p>
+                      <p>{lineGreenEntry.action}</p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-stone-950">Pourquoi</p>
+                      <p>{lineGreenEntry.why}</p>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="mt-5 rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-5 py-6 text-sm leading-6 text-stone-600">
+            Ta ligne verte apparaîtra ici quand tu clôtureras une transformation.
+          </div>
+        )}
+      </section>
+
       <section className="rounded-[30px] border border-stone-200 bg-white px-6 py-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-rose-700">
               La Ligne Rouge
             </p>
             <h3 className="mt-3 text-2xl font-semibold text-stone-950">
@@ -236,41 +354,48 @@ export function BaseDeVieSection({
           </div>
         ) : lineRedRecords.length > 0 ? (
           <div className="mt-5 grid gap-4 xl:grid-cols-2">
-            {lineRedRecords.map((record) => (
-              <article
-                key={record.transformation.id}
-                className="rounded-[24px] border border-stone-200 bg-stone-50 px-5 py-5"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                      {formatBaseDeVieDate(record.transformation.completed_at)}
-                    </p>
-                    <h4 className="mt-2 text-lg font-semibold text-stone-950">
-                      {record.transformation.title || `Transformation ${record.transformation.priority_order}`}
-                    </h4>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditingTransformation(record.transformation)}
-                    className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-emerald-200 hover:text-emerald-700"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                    Modifier
-                  </button>
-                </div>
-                <ul className="mt-4 space-y-2">
-                  {record.payload?.line_red_entries.map((entry) => (
-                    <li
-                      key={entry}
-                      className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-700"
+            {lineRedRecords.map((record) => {
+              const lineRedEntry = getLineRedEntry(record.payload);
+              if (!lineRedEntry) return null;
+
+              return (
+                <article
+                  key={record.transformation.id}
+                  className="rounded-[24px] border border-rose-100 bg-rose-50/60 px-5 py-5"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        {formatBaseDeVieDate(record.transformation.completed_at)}
+                      </p>
+                      <h4 className="mt-2 text-lg font-semibold text-stone-950">
+                        {record.transformation.title || `Transformation ${record.transformation.priority_order}`}
+                      </h4>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setEditingTransformation(record.transformation)}
+                      className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-2 text-xs font-semibold text-stone-700 transition hover:border-emerald-200 hover:text-emerald-700"
                     >
-                      {entry}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+                      <Pencil className="h-3.5 w-3.5" />
+                      Modifier
+                    </button>
+                  </div>
+                  <div className="mt-4 space-y-3 rounded-[22px] border border-rose-100 bg-white px-4 py-4 text-sm leading-6 text-stone-700">
+                    <div>
+                      <p className="font-semibold text-stone-950">Quoi</p>
+                      <p>{lineRedEntry.action}</p>
+                    </div>
+                    {lineRedEntry.why ? (
+                      <div>
+                        <p className="font-semibold text-stone-950">Pourquoi</p>
+                        <p>{lineRedEntry.why}</p>
+                      </div>
+                    ) : null}
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
           <div className="mt-5 rounded-[24px] border border-dashed border-stone-300 bg-stone-50 px-5 py-6 text-sm leading-6 text-stone-600">
@@ -283,7 +408,7 @@ export function BaseDeVieSection({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
-              Historique des Déclics et Arsenal
+              Historique des transformations
             </p>
             <h3 className="mt-3 text-2xl font-semibold text-stone-950">
               Le chemin parcouru, transformation par transformation
@@ -302,6 +427,9 @@ export function BaseDeVieSection({
               const isExpanded = expandedTransformationId === record.transformation.id;
               const payload = record.payload;
               const declics = payload?.declics_user ?? payload?.declics_draft ?? buildFallbackDeclics(record.transformation);
+              const lineGreenEntry = getLineGreenEntry(payload);
+              const lineRedEntry = getLineRedEntry(payload);
+              const closureFeedback = payload?.closure_feedback ?? null;
 
               return (
                 <article
@@ -324,7 +452,7 @@ export function BaseDeVieSection({
                         {record.transformation.title || `Transformation ${record.transformation.priority_order}`}
                       </h4>
                       <p className="mt-2 text-sm leading-6 text-stone-600">
-                        {declics.insight}
+                        {lineGreenEntry?.action ?? declics.insight}
                       </p>
                     </div>
                     {isExpanded ? (
@@ -338,7 +466,7 @@ export function BaseDeVieSection({
                     <div className="border-t border-stone-200 bg-white px-5 py-5">
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <p className="text-sm font-medium text-stone-600">
-                          Déclics validés et arsenal généré pendant cette transformation.
+                          Ce que cette transformation laisse dans ta Base de vie, et ce qu'elle nous apprend côté produit.
                         </p>
                         <button
                           type="button"
@@ -348,6 +476,63 @@ export function BaseDeVieSection({
                           <Pencil className="h-3.5 w-3.5" />
                           Modifier
                         </button>
+                      </div>
+
+                      <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                        <div className="rounded-[24px] border border-emerald-100 bg-emerald-50/70 p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                            Ligne Verte
+                          </p>
+                          {lineGreenEntry ? (
+                            <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
+                              <div>
+                                <p className="font-semibold text-stone-950">Quoi</p>
+                                <p>{lineGreenEntry.action}</p>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-stone-950">Pourquoi</p>
+                                <p>{lineGreenEntry.why}</p>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="mt-4 text-sm leading-6 text-stone-500">
+                              Pas encore définie pour cette transformation.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="rounded-[24px] border border-rose-100 bg-rose-50/70 p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-700">
+                            Ligne Rouge
+                          </p>
+                          {lineRedEntry ? (
+                            <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
+                              <div>
+                                <p className="font-semibold text-stone-950">Quoi</p>
+                                <p>{lineRedEntry.action}</p>
+                              </div>
+                              {lineRedEntry.why ? (
+                                <div>
+                                  <p className="font-semibold text-stone-950">Pourquoi</p>
+                                  <p>{lineRedEntry.why}</p>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <p className="mt-4 text-sm leading-6 text-stone-500">
+                              Pas encore définie pour cette transformation.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
+                            Synthèse
+                          </p>
+                          <p className="mt-4 text-sm leading-6 text-stone-700">
+                            {record.transformation.user_summary}
+                          </p>
+                        </div>
                       </div>
 
                       <div className="mt-5 grid gap-4 lg:grid-cols-3">
@@ -373,11 +558,45 @@ export function BaseDeVieSection({
 
                         <div className="rounded-[24px] border border-stone-200 bg-stone-50 p-5">
                           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-stone-500">
-                            Synthèse
+                            Retour de fin
                           </p>
-                          <p className="mt-4 text-sm leading-6 text-stone-700">
-                            {record.transformation.user_summary}
-                          </p>
+                          {closureFeedback ? (
+                            <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
+                              <div>
+                                <p className="font-semibold text-stone-950">Note</p>
+                                <p>{closureFeedback.helpfulness_rating}/10</p>
+                              </div>
+                              <div>
+                                <p className="font-semibold text-stone-950">Le plus utile</p>
+                                <p>{getTransformationClosureHelpfulnessAreaLabel(closureFeedback.most_helpful_area)}</p>
+                              </div>
+                              {closureFeedback.improvement_reasons.length > 0 ? (
+                                <div>
+                                  <p className="font-semibold text-stone-950">À améliorer</p>
+                                  <div className="mt-2 flex flex-wrap gap-2">
+                                    {closureFeedback.improvement_reasons.map((reason) => (
+                                      <span
+                                        key={reason}
+                                        className="rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-medium text-stone-700"
+                                      >
+                                        {getTransformationClosureImprovementReasonLabel(reason)}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : null}
+                              {closureFeedback.improvement_detail ? (
+                                <div>
+                                  <p className="font-semibold text-stone-950">Détail</p>
+                                  <p>{closureFeedback.improvement_detail}</p>
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : (
+                            <p className="mt-4 text-sm leading-6 text-stone-500">
+                              Pas encore de retour structuré enregistré pour cette transformation.
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -453,6 +672,8 @@ export function BaseDeVieSection({
 
         <RemindersSection
           userId={userId}
+          cycleId={cycleId}
+          scopeKind="out_of_plan"
           isLocked={isLocked}
           onUnlockRequest={onUnlockRequest}
         />
@@ -470,15 +691,14 @@ export function BaseDeVieSection({
           editingTransformation?.title ??
           (editingTransformation ? `Transformation ${editingTransformation.priority_order}` : "")
         }
-        initialLineRedEntries={
-          getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.line_red_entries ?? []
+        initialLineGreenEntry={
+          getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.line_green_entry ?? null
         }
-        initialDeclicsDraft={
-          getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.declics_draft ??
-          (editingTransformation ? buildFallbackDeclics(editingTransformation) : null)
-        }
-        initialDeclicsUser={
-          getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.declics_user ?? null
+        initialLineRedEntry={getLineRedEntry(
+          getBaseDeViePayload(editingTransformation?.base_de_vie_payload) ?? null,
+        )}
+        initialFeedback={
+          getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.closure_feedback ?? null
         }
         busy={savingEdit}
         onClose={() => !savingEdit && setEditingTransformation(null)}

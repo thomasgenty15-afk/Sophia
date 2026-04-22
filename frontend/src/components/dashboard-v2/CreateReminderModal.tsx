@@ -8,6 +8,7 @@ export type ReminderFormValues = {
   rationale: string | null;
   time: string;
   days: string[];
+  destination: 'current_plan' | 'base_de_vie';
 };
 
 interface CreateReminderModalProps {
@@ -16,6 +17,8 @@ interface CreateReminderModalProps {
   onSubmit: (data: ReminderFormValues) => Promise<void>;
   isSubmitting?: boolean;
   initialValues?: Partial<ReminderFormValues> | null;
+  scopeMode?: 'transformation' | 'out_of_plan';
+  transformationTitle?: string | null;
 }
 
 const DAYS = [
@@ -34,6 +37,8 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
   onSubmit,
   isSubmitting = false,
   initialValues,
+  scopeMode = 'out_of_plan',
+  transformationTitle = null,
 }) => {
   const [message, setMessage] = useState('');
   const [rationale, setRationale] = useState('');
@@ -45,6 +50,9 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
     'thu',
     'fri',
   ]);
+  const [destination, setDestination] = useState<'current_plan' | 'base_de_vie'>(
+    scopeMode === 'transformation' ? 'current_plan' : 'base_de_vie'
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -54,17 +62,21 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
       setRationale(initialValues.rationale || '');
       setTime(initialValues.time || '09:00');
       setSelectedDays(initialValues.days || ['mon', 'tue', 'wed', 'thu', 'fri']);
+      setDestination(initialValues.destination || (scopeMode === 'transformation'
+        ? 'current_plan'
+        : 'base_de_vie'));
       return;
     }
 
     resetForm();
-  }, [isOpen, initialValues]);
+  }, [isOpen, initialValues, scopeMode]);
 
   const resetForm = () => {
     setMessage('');
     setRationale('');
     setTime('09:00');
     setSelectedDays(['mon', 'tue', 'wed', 'thu', 'fri']);
+    setDestination(scopeMode === 'transformation' ? 'current_plan' : 'base_de_vie');
   };
 
   const toggleDay = (key: string) => {
@@ -83,6 +95,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
       rationale: rationale.trim() || null,
       time,
       days: selectedDays,
+      destination,
     });
     resetForm();
   };
@@ -124,6 +137,55 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
             </div>
 
             <div className="space-y-6 p-4 md:p-6">
+              {scopeMode === 'transformation' && !initialValues ? (
+                <div>
+                  <label className="mb-2 block text-xs font-bold text-slate-700">
+                    Où doit vivre cette initiative ?
+                  </label>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={() => setDestination('current_plan')}
+                      className={clsx(
+                        'rounded-2xl border px-4 py-3 text-left transition-all',
+                        destination === 'current_plan'
+                          ? 'border-amber-500 bg-amber-50 text-amber-900'
+                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      )}
+                    >
+                      <div className="text-xs font-bold uppercase tracking-[0.14em]">
+                        Plan actuel
+                      </div>
+                      <p className="mt-1 text-sm leading-5">
+                        Pour soutenir {transformationTitle ? transformationTitle : 'ta transformation en cours'}.
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDestination('base_de_vie')}
+                      className={clsx(
+                        'rounded-2xl border px-4 py-3 text-left transition-all',
+                        destination === 'base_de_vie'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                          : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                      )}
+                    >
+                      <div className="text-xs font-bold uppercase tracking-[0.14em]">
+                        Base de vie
+                      </div>
+                      <p className="mt-1 text-sm leading-5">
+                        Pour une initiative plus libre, qui vit hors du plan.
+                      </p>
+                    </button>
+                  </div>
+                  {destination === 'base_de_vie' ? (
+                    <p className="mt-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs leading-5 text-emerald-800">
+                      Cette initiative sera créée dans ta Base de vie, puis l&apos;interface y basculera automatiquement.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
               <div>
                 <label className="mb-1.5 block text-xs font-bold text-slate-700">
                   Quelle initiative veux-tu planifier avec Sophia ?

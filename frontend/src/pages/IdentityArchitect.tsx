@@ -366,76 +366,37 @@ const IdentityArchitect = () => {
 
       const activeAnswer = answers[activeQ?.id] || "";
 
-      const allQuestionsFull = currentWeek.subQuestions
+      const answeredQuestionsSummary = currentWeek.subQuestions
         .map((q, idx) => {
-          const answer = answers[q.id] || "";
-          const answerBlock = answer.trim().length > 0
-            ? trunc(answer, 2500)
-            : "(vide)";
-          return [
-            `### Q${idx + 1} / ${currentWeek.subQuestions.length}`,
-            `ID: ${q.id}`,
-            `Titre: ${q.question}`,
-            ``,
-            `PROMPT (intégral):`,
-            q.placeholder,
-            ``,
-            `AIDE (intégrale):`,
-            q.helperText,
-            ``,
-            `RÉPONSE UTILISATEUR (si présente):`,
-            answerBlock,
-          ].join("\n");
+          const answer = oneLine(answers[q.id] || "");
+          if (!answer) return null;
+          return `Q${idx + 1} ${q.question}: ${trunc(answer, 220)}`;
         })
-        .join("\n\n---\n\n");
+        .filter((entry): entry is string => Boolean(entry))
+        .slice(0, 5)
+        .join("\n");
 
-      const contextOverrideRaw = [
-        `Type: Module Semaine (Architecte)`,
-        `Week: ${weekNumber}`,
-        `ModuleId: ${moduleId}`,
-        `Titre: ${currentWeek.title}`,
-        `Zen mode: ${zenModeQuestionId ? 'on' : 'off'}`,
-        ``,
-        `=== QUESTION ACTIVE (RÉFÉRENCE ABSOLUE) ===`,
-        `ActiveQuestionIndex: ${activeQuestionIndex} / ${currentWeek.subQuestions.length}`,
-        `ActiveQuestionId: ${activeQ?.id || 'N/A'}`,
-        `ActiveQuestionTitle: ${activeQ?.question || 'N/A'}`,
-        ``,
-        `ACTIVE_PROMPT (intégral):`,
-        activeQ?.placeholder || '',
-        ``,
-        `ACTIVE_AIDE (intégrale):`,
-        activeQ?.helperText || '',
-        ``,
-        `ACTIVE_RÉPONSE (si présente):`,
-        activeAnswer.trim().length ? trunc(activeAnswer, 3000) : '(vide)',
-        ``,
-        `=== TOUTES LES QUESTIONS CLÉS DE LA SEMAINE (INTÉGRAL) ===`,
-        allQuestionsFull || "(aucune question trouvée)",
-      ].join("\n");
-
-      const contextOverride = trunc(contextOverrideRaw, 20000);
+      const contextualizedMessage = trunc([
+        `Contexte module identité.`,
+        `Semaine ${weekNumber} - ${currentWeek.title}.`,
+        `Question active: ${activeQ?.question || 'N/A'}.`,
+        activeQ?.helperText ? `Aide: ${oneLine(activeQ.helperText)}` : "",
+        activeAnswer.trim().length
+          ? `Ma réponse actuelle: ${trunc(oneLine(activeAnswer), 600)}`
+          : "Ma réponse actuelle: (vide)",
+        answeredQuestionsSummary
+          ? `Autres réponses utiles:\n${answeredQuestionsSummary}`
+          : "",
+        `Ma demande: ${userText}`,
+      ].filter(Boolean).join("\n\n"), 6000);
 
       const clientRequestId = newRequestId();
       const { data, error } = await supabase.functions.invoke('sophia-brain', {
         body: {
-          message: userText,
+          message: contextualizedMessage,
           history: historyForBrain,
-          forceMode: 'architect',
-          contextOverride,
           channel: 'web',
           scope: `module:${moduleId}`,
-          messageMetadata: {
-            source: 'module_conversation',
-            ui: 'IdentityArchitect',
-            moduleKind: 'week',
-            moduleId,
-            weekNumber,
-            activeQuestion,
-            zenMode: !!zenModeQuestionId,
-            activeQuestionText: activeQ?.question,
-            activeQuestionIndex,
-          },
         }
         ,
         headers: requestHeaders(clientRequestId)
@@ -448,8 +409,30 @@ const IdentityArchitect = () => {
       const assistantText = sanitizeBrokenGlyphs(rawText);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
     } catch (e: any) {
+      let detailedMessage =
+        typeof e?.message === "string" && e.message.trim().length > 0
+          ? e.message.trim()
+          : "Erreur lors de l'appel à Sophia.";
+      try {
+        const errorBody = await e?.context?.json?.();
+        const errorText = typeof errorBody?.error === "string"
+          ? errorBody.error.trim()
+          : "";
+        const requestId = typeof errorBody?.request_id === "string"
+          ? errorBody.request_id.trim()
+          : "";
+        if (errorText) {
+          detailedMessage = requestId
+            ? `${errorText} (request_id: ${requestId})`
+            : errorText;
+        }
+        console.error("[IdentityArchitect] Chat error body:", errorBody);
+        console.error("[IdentityArchitect] Chat error details:", JSON.stringify(errorBody?.details ?? null));
+      } catch {
+        // ignore body parsing failures
+      }
       console.error("[IdentityArchitect] Chat error:", e);
-      setChatError(e?.message || "Erreur lors de l'appel à Sophia.");
+      setChatError(detailedMessage);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "Désolée, je bug un instant. Réessaie dans quelques secondes." }]);
     } finally {
       setIsChatLoading(false);
