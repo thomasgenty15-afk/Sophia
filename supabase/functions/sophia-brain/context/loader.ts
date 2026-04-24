@@ -53,6 +53,10 @@ import {
   retrieveGlobalMemoriesByFullKeys,
   retrieveGlobalMemoriesByThemes,
 } from "../global_memory.ts";
+import {
+  isScopeMemoryEligible,
+  loadScopeMemoryPromptContext,
+} from "../scope_memory.ts";
 import type { DispatcherMemoryPlan } from "../router/dispatcher.ts";
 import type { SurfaceRuntimeAddon } from "../surface_state.ts";
 import { getSurfaceDefinition } from "../surface_registry.ts";
@@ -587,6 +591,7 @@ export async function loadContextForMode(
 ): Promise<ContextLoadResult> {
   const startTime = Date.now();
   const profile = getContextProfile(opts.mode);
+  const scopedMemoryEligible = isScopeMemoryEligible(opts.scope);
   const memoryStrategy = resolveContextMemoryLoadStrategy({
     mode: opts.mode,
     profile,
@@ -714,6 +719,37 @@ export async function loadContextForMode(
           "[ContextLoader] failed to load user_profile_facts (non-blocking):",
           e,
         );
+      }),
+    );
+  }
+
+  if (opts.channel === "whatsapp") {
+    const whatsappFilRouge = String(
+      (opts.tempMemory as any)?.__whatsapp_fil_rouge?.text ?? "",
+    ).trim();
+    if (whatsappFilRouge) {
+      context.whatsappFilRouge =
+        `=== FIL ROUGE WHATSAPP (COURT TERME) ===\n${whatsappFilRouge}\n\n`;
+      elementsLoaded.push("whatsapp_fil_rouge");
+    }
+  }
+
+  if (scopedMemoryEligible) {
+    promises.push(
+      loadScopeMemoryPromptContext({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        scopeRaw: opts.scope,
+      }).then((scopeMemoryContext) => {
+        if (!scopeMemoryContext) return;
+        if (scopeMemoryContext.summaryBlock) {
+          context.shortTerm = scopeMemoryContext.summaryBlock;
+          elementsLoaded.push("scope_memory_summary");
+        }
+        if (scopeMemoryContext.recentTurnsBlock) {
+          context.recentTurns = scopeMemoryContext.recentTurnsBlock;
+          elementsLoaded.push("scope_memory_recent_turns");
+        }
       }),
     );
   }
@@ -1158,7 +1194,7 @@ export async function loadContextForMode(
   }
 
   // 8. Short-term context (fil rouge synthétisé)
-  if (profile.short_term) {
+  if (profile.short_term && !scopedMemoryEligible) {
     const shortTerm = (opts.state?.short_term_context ?? "").toString().trim();
     if (shortTerm) {
       context.shortTerm =
@@ -1192,7 +1228,7 @@ export async function loadContextForMode(
   }
 
   // 9. Recent turns (history)
-  if (profile.history_depth > 0 && opts.history?.length) {
+  if (!scopedMemoryEligible && profile.history_depth > 0 && opts.history?.length) {
     const recentTurns = (opts.history ?? [])
       .slice(-profile.history_depth)
       .map((m: any) => {
@@ -1547,6 +1583,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.rendezVousSummary) ctx += loaded.rendezVousSummary + "\n\n";
   if (loaded.temporal) ctx += loaded.temporal;
   if (loaded.facts) ctx += loaded.facts;
+  if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
   if (loaded.northStarContext) ctx += loaded.northStarContext + "\n\n";

@@ -2,8 +2,6 @@ import { describe, expect, it, beforeEach, afterEach } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAuthedTestUser, createServiceRoleClient } from "../test/supabaseTestUtils";
 
-const IS_STUB = process.env.MEGA_TEST_MODE !== "0";
-
 describe("edge functions: client-facing (stubbed by default)", () => {
   let userId: string;
   let client: SupabaseClient;
@@ -23,17 +21,6 @@ describe("edge functions: client-facing (stubbed by default)", () => {
     } catch {
       // ignore
     }
-  });
-
-  it("generate-feedback returns {feedback, insight, tip}", async () => {
-    const { data, error } = await client.functions.invoke("generate-feedback", {
-      body: { energyLevel: 60, wins: "x", block: "y", ratings: ["yes", "yes", "yes", "yes"], nextFocus: "z", history: [] },
-    });
-    if (error) throw error;
-    expect(typeof data.feedback).toBe("string");
-    expect(typeof data.insight).toBe("string");
-    expect(typeof data.tip).toBe("string");
-    if (IS_STUB) expect(data.feedback).toContain("MEGA_TEST_STUB");
   });
 
   it("sophia-brain logs user+assistant messages and initializes chat state", async () => {
@@ -65,4 +52,3 @@ describe("edge functions: client-facing (stubbed by default)", () => {
     expect(state.updated_at).toBeTruthy();
   });
 });
-

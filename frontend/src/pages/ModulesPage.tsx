@@ -117,7 +117,6 @@ export const ModulesPage = () => {
 
   const weeks = Object.values(modules).filter(m => m.type === 'week');
   const forge = Object.values(modules).filter(m => m.type === 'forge');
-  const roundTables = Object.values(modules).filter(m => m.type === 'round_table');
 
   return (
     <div className="min-h-screen bg-[#021a15] text-white flex flex-col">
@@ -164,8 +163,8 @@ export const ModulesPage = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                   
-                  {/* COLONNE PRINCIPALE : LE TEMPLE (2/3 largeur) */}
-                  <div className="lg:col-span-8 space-y-8">
+                  {/* COLONNE PRINCIPALE : LE TEMPLE */}
+                  <div className="lg:col-span-12 space-y-8">
                       <div className="flex items-center gap-3 mb-6">
                           <div className="h-8 w-8 rounded-full bg-amber-600/20 text-amber-500 flex items-center justify-center border border-amber-600/40">
                               🔨
@@ -195,29 +194,6 @@ export const ModulesPage = () => {
                               </div>
                           </div>
                       )}
-                  </div>
-
-                  {/* SIDEBAR : RITUELS & TABLE RONDE (1/3 largeur) */}
-                  <div className="lg:col-span-4 space-y-8">
-                       <div className="sticky top-24">
-                          <div className="p-6 rounded-2xl bg-[#05221d] border border-white/5">
-                              <h3 className="font-serif text-xl text-white mb-6 flex items-center gap-2">
-                                  <span className="text-2xl">⚔️</span> Rituels
-                              </h3>
-                              
-                              {roundTables.length === 0 ? (
-                                  <div className="text-center py-8 text-white/30 text-sm border-dashed border border-white/10 rounded-lg">
-                                      <p>La Table Ronde s'ouvrira<br/>après la fin du Temple.</p>
-                                  </div>
-                              ) : (
-                                  <div className="space-y-4">
-                                      {roundTables.map(m => (
-                                      <ModuleCard key={m.id} module={m} onComplete={completeModule} />
-                                      ))}
-                                  </div>
-                              )}
-                          </div>
-                       </div>
                   </div>
 
               </div>

@@ -371,7 +371,6 @@ Ces fichiers touchent des tables V1 mais appartiennent a des fonctionnalites qui
 | `frontend/src/pages/Grimoire.tsx` | Via `grimoire.ts` | SUIT |
 | `frontend/src/pages/FrameworkExecution.tsx` | `user_framework_entries` | A DECIDER — framework execution V2 ? |
 | `frontend/src/components/FrameworkHistoryModal.tsx` | `user_framework_entries` | SUIT FrameworkExecution |
-| `frontend/src/pages/WeeklyAlignment.tsx` | `user_round_table_entries`, `user_week_states` | GARDER — systeme modules orthogonal |
 | `frontend/src/pages/IdentityArchitect.tsx` | `user_module_state_entries` | GARDER |
 | `frontend/src/pages/IdentityEvolution.tsx` | `user_module_archives`, `user_week_states` | GARDER |
 | `frontend/src/pages/AdminUsageDashboard.tsx` | Mapping `sort-priorities`, `summarize-context` | GARDER — pour reporting historique |

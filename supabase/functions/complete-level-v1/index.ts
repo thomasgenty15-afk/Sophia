@@ -9,11 +9,13 @@ import {
   buildLevelReviewSchema,
   buildLevelReviewSummary,
   buildNextLevelTransition,
+  isLevelReviewWindowOpen,
   isLevelTransitionReady,
   normalizeLevelReviewAnswers,
 } from "../_shared/v2-level-completion.ts";
-import { tryAdvancePhaseItems } from "../_shared/v2-runtime.ts";
+import { generatePlanV2ForTransformation } from "../generate-plan-v2/index.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
+import { getUserTimeContext } from "../_shared/user_time_context.ts";
 import {
   badRequest,
   jsonResponse,
@@ -188,6 +190,95 @@ async function loadRecentWeeklySignals(
     );
 }
 
+function cleanPromptText(value: unknown, max = 240): string {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (!text) return "Non renseigné";
+  return text.length <= max ? text : `${text.slice(0, max - 3).trimEnd()}...`;
+}
+
+function summarizePhaseForPrompt(phase: PlanContentV3["phases"][number] | null): string {
+  if (!phase) return "Aucun niveau suivant dans le plan actuel.";
+  const items = phase.items
+    .slice(0, 8)
+    .map((item) =>
+      `- [${item.dimension}] ${cleanPromptText(item.title, 90)}: ${cleanPromptText(item.description, 160)}`
+    )
+    .join("\n");
+  return [
+    `Niveau ${phase.phase_order}: ${cleanPromptText(phase.title, 120)}`,
+    `Objectif: ${cleanPromptText(phase.phase_objective, 220)}`,
+    `Pourquoi maintenant: ${cleanPromptText(phase.why_this_now ?? phase.rationale, 220)}`,
+    `Items:\n${items || "- Aucun item"}`,
+  ].join("\n");
+}
+
+function formatAnswerForPrompt(
+  schema: ReturnType<typeof buildLevelReviewSchema>,
+  answers: Record<string, string>,
+): string {
+  return schema
+    .map((question) => {
+      const raw = answers[question.id];
+      if (!raw) return null;
+      const selected = question.options.find((option) => option.value === raw);
+      return `- ${question.label}: ${selected?.label ?? raw}`;
+    })
+    .filter((line): line is string => Boolean(line))
+    .join("\n");
+}
+
+function buildLevelCompletionRegenerationFeedback(args: {
+  plan: PlanContentV3;
+  currentPhase: PlanContentV3["phases"][number];
+  nextPhase: PlanContentV3["phases"][number] | null;
+  schema: ReturnType<typeof buildLevelReviewSchema>;
+  answers: Record<string, string>;
+  summary: Record<string, unknown>;
+  decision: string;
+  decisionReason: string;
+}): string {
+  const futureBlueprint = args.plan.plan_blueprint?.levels?.length
+    ? args.plan.plan_blueprint.levels
+      .map((level) =>
+        `- N${level.level_order} ${cleanPromptText(level.title, 90)} (${level.estimated_duration_weeks} sem.): ${cleanPromptText(level.preview_summary ?? level.intention, 160)}`
+      )
+      .join("\n")
+    : "Aucun blueprint futur explicite.";
+
+  return `Bilan de fin de niveau: le niveau courant est considéré comme terminé et ne doit pas être régénéré comme niveau courant.
+
+Objectif de cet appel IA:
+- décider si les réponses imposent de garder, alléger, accélérer ou réorienter la suite
+- générer le prochain niveau comme nouveau current_level_runtime
+- modifier les niveaux suivants dans le même plan si les informations du bilan l'exigent
+- ne pas repartir de zéro: utiliser le plan précédent comme base, conserver ce qui reste pertinent, et changer uniquement ce que le bilan justifie
+
+Niveau terminé:
+${summarizePhaseForPrompt(args.currentPhase)}
+
+Prochain niveau prévu avant bilan:
+${summarizePhaseForPrompt(args.nextPhase)}
+
+Blueprint futur avant bilan:
+${futureBlueprint}
+
+Réponses utilisateur:
+${formatAnswerForPrompt(args.schema, args.answers)}
+
+Synthèse structurée du bilan:
+${JSON.stringify(args.summary, null, 2)}
+
+Décision initiale de Sophia avant génération: ${args.decision}.
+Raison: ${args.decisionReason}
+
+Contraintes de génération:
+- le nouveau current_level_runtime doit commencer après le niveau ${args.currentPhase.phase_order}
+- si la suite paraît cohérente et les difficultés sont faibles, garde la logique globale et ajuste seulement le dosage
+- si la suite ne paraît pas cohérente, explique implicitement ce qui change via le nouveau niveau et le blueprint futur
+- réutilise explicitement la fierté déclarée comme signal de ce qui doit être conservé
+- si une difficulté bloquante apparaît, simplifie la charge du prochain niveau avant d'ajouter de nouvelles exigences`;
+}
+
 export async function completeLevelV1(args: {
   admin: SupabaseClient;
   requestId: string;
@@ -245,10 +336,21 @@ export async function completeLevelV1(args: {
   }
 
   const planItems = await loadPlanItems(args.admin, plan.id);
-  if (!isLevelTransitionReady(currentPhase.phase_id, planItems)) {
+  const userTimeContext = await getUserTimeContext({
+    supabase: args.admin,
+    userId: args.userId,
+    now: new Date(now),
+  });
+  const transitionReady = isLevelTransitionReady(currentPhase.phase_id, planItems);
+  const reviewWindowOpen = isLevelReviewWindowOpen({
+    plan: planContent,
+    currentLevel: currentLevelRuntime,
+    userLocalDate: userTimeContext.user_local_date,
+  });
+  if (!transitionReady && !reviewWindowOpen) {
     throw new CompleteLevelV1Error(
       409,
-      "Ce niveau n'est pas encore prêt pour son bilan de fin.",
+      "Ce bilan se débloque deux jours avant la fin du niveau, ou quand toutes ses actions sont bouclées.",
     );
   }
 
@@ -256,6 +358,7 @@ export async function completeLevelV1(args: {
     currentLevel: currentLevelRuntime,
     items: planItems.filter((item) => item.phase_id === currentPhase.phase_id),
     weeks: currentLevelRuntime.weeks,
+    primaryMetricLabel: planContent.primary_metric?.label ?? null,
   });
   const answers = normalizeLevelReviewAnswers(schema, args.answers);
   const summary = buildLevelReviewSummary({
@@ -302,11 +405,70 @@ export async function completeLevelV1(args: {
     });
   }
 
-  const nextPlanContent: PlanContentV3 = {
-    ...planContent,
-    plan_blueprint: transition.nextBlueprint,
-    current_level_runtime: transition.nextRuntime,
-  };
+  const nextPhase = [...planContent.phases]
+    .sort((left, right) => left.phase_order - right.phase_order)
+    .find((phase) => phase.phase_order > currentPhase.phase_order) ?? null;
+  let resultingPlanContent: PlanContentV3;
+  let resultingPlanId = plan.id;
+  let nextRuntime = transition.nextRuntime;
+
+  if (transition.nextRuntime) {
+    const regenerationFeedback = buildLevelCompletionRegenerationFeedback({
+      plan: planContent,
+      currentPhase,
+      nextPhase,
+      schema,
+      answers,
+      summary: summary as unknown as Record<string, unknown>,
+      decision: transition.preview.decision,
+      decisionReason: transition.preview.reason,
+    });
+
+    const generated = await generatePlanV2ForTransformation({
+      admin: args.admin,
+      requestId: args.requestId,
+      userId: args.userId,
+      transformationId: transformation.id,
+      mode: "generate_and_activate",
+      feedback: regenerationFeedback,
+      forceRegenerate: true,
+      pace: null,
+      preserveActiveTransformationId: transformation.id,
+      adjustmentContext: {
+        reviewId,
+        scope: "plan",
+        effectiveStartDate: userTimeContext.user_local_date,
+        reason: `Bilan de fin du niveau ${currentPhase.phase_order}`,
+        assistantMessage: transition.preview.reason,
+      },
+    });
+
+    resultingPlanContent = generated.plan;
+    resultingPlanId = generated.planRow.id;
+    nextRuntime = generated.plan.current_level_runtime ?? transition.nextRuntime;
+  } else {
+    resultingPlanContent = {
+      ...planContent,
+      plan_blueprint: transition.nextBlueprint,
+      current_level_runtime: null,
+    };
+
+    const { error: planUpdateError } = await args.admin
+      .from("user_plans_v2")
+      .update({
+        content: resultingPlanContent as unknown as Record<string, unknown>,
+        status: "completed",
+        completed_at: plan.completed_at ?? now,
+        updated_at: now,
+      })
+      .eq("id", plan.id);
+
+    if (planUpdateError) {
+      throw new CompleteLevelV1Error(500, "Failed to update plan after level review", {
+        cause: planUpdateError,
+      });
+    }
+  }
 
   const { error: generationInsertError } = await args.admin
     .from("user_plan_level_generation_events")
@@ -318,19 +480,22 @@ export async function completeLevelV1(args: {
       transformation_id: transformation.id,
       plan_id: plan.id,
       from_phase_id: currentPhase.phase_id,
-      to_phase_id: transition.nextRuntime?.phase_id ?? null,
+      to_phase_id: nextRuntime?.phase_id ?? null,
       decision: transition.preview.decision,
       decision_reason: transition.preview.reason,
       generation_input: {
         review_summary: summary,
         weekly_signals: weeklySignals,
+        source_plan_id: plan.id,
+        resulting_plan_id: resultingPlanId,
+        used_ai_generation: Boolean(transition.nextRuntime),
       },
       previous_current_level_runtime: currentLevelRuntime as unknown as Record<string, unknown>,
-      next_current_level_runtime: transition.nextRuntime as unknown as Record<string, unknown> | null,
+      next_current_level_runtime: nextRuntime as unknown as Record<string, unknown> | null,
       previous_plan_blueprint:
         planContent.plan_blueprint as unknown as Record<string, unknown> | null,
       next_plan_blueprint:
-        transition.nextBlueprint as unknown as Record<string, unknown>,
+        resultingPlanContent.plan_blueprint as unknown as Record<string, unknown> | null,
       created_at: now,
     } as never);
 
@@ -340,48 +505,29 @@ export async function completeLevelV1(args: {
     });
   }
 
-  const planStatus = transition.nextRuntime ? "active" : "completed";
-  const { error: planUpdateError } = await args.admin
-    .from("user_plans_v2")
-    .update({
-      content: nextPlanContent as unknown as Record<string, unknown>,
-      status: planStatus,
-      completed_at: transition.nextRuntime ? null : (plan.completed_at ?? now),
-      updated_at: now,
-    })
-    .eq("id", plan.id);
-
-  if (planUpdateError) {
-    throw new CompleteLevelV1Error(500, "Failed to update plan after level review", {
-      cause: planUpdateError,
-    });
-  }
-
-  if (transition.nextRuntime) {
-    await tryAdvancePhaseItems(args.admin, plan.id, args.userId);
-  }
-
   try {
     await logV2Event(args.admin, V2_EVENT_TYPES.PHASE_TRANSITION, {
       user_id: args.userId,
       cycle_id: cycle.id,
       transformation_id: transformation.id,
-      plan_id: plan.id,
-      reason: transition.nextRuntime ? "level_review_completed" : "final_level_completed",
+      plan_id: resultingPlanId,
+      reason: nextRuntime ? "level_review_completed_ai" : "final_level_completed",
       metadata: {
         review_id: reviewId,
         generation_event_id: generationEventId,
         from_phase_id: currentPhase.phase_id,
-        to_phase_id: transition.nextRuntime?.phase_id ?? null,
+        to_phase_id: nextRuntime?.phase_id ?? null,
         decision: transition.preview.decision,
+        source_plan_id: plan.id,
+        resulting_plan_id: resultingPlanId,
       },
     });
   } catch {
     // Non-blocking audit logging.
   }
 
-  const summaryText = transition.nextRuntime
-    ? `Niveau suivant prêt: ${transition.nextRuntime.title}. ${transition.preview.reason}`
+  const summaryText = nextRuntime
+    ? `Niveau suivant prêt: ${nextRuntime.title}. ${transition.preview.reason}`
     : "Dernier niveau validé. Le plan est maintenant terminé.";
 
   return {
@@ -390,12 +536,12 @@ export async function completeLevelV1(args: {
     decision: transition.preview.decision,
     decisionReason: transition.preview.reason,
     summary: summaryText,
-    nextLevel: transition.nextRuntime
+    nextLevel: nextRuntime
       ? {
-          phase_id: transition.nextRuntime.phase_id,
-          level_order: transition.nextRuntime.level_order,
-          title: transition.nextRuntime.title,
-          duration_weeks: transition.nextRuntime.duration_weeks,
+          phase_id: nextRuntime.phase_id,
+          level_order: nextRuntime.level_order,
+          title: nextRuntime.title,
+          duration_weeks: nextRuntime.duration_weeks,
         }
       : null,
   };

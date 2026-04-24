@@ -63,6 +63,7 @@ export interface LoadedContext {
   globalMemories?: string;
   topicMemories?: string;
   facts?: string;
+  whatsappFilRouge?: string;
   shortTerm?: string;
   recentTurns?: string;
   trackProgressAddon?: string;

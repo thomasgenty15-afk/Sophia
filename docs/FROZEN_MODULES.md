@@ -159,8 +159,6 @@ Fonctions edge standalone non ciblees par la refonte.
 ### Modules & Feedback
 
 - `supabase/functions/complete-module/index.ts`
-- `supabase/functions/generate-feedback/index.ts`
-- `supabase/functions/create-round-table-summary/index.ts`
 - `supabase/functions/detect-future-events/index.ts`
 
 ### Identite & Profil

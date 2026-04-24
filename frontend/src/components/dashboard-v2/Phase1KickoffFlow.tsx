@@ -113,7 +113,7 @@ export function Phase1KickoffFlow({
     <section className="rounded-[32px] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] md:p-8">
       <div className="max-w-3xl">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
-          Debut du plan
+          Niveau 1
         </p>
         <h2 className="mt-2 text-3xl font-semibold tracking-tight text-stone-950">
           {transformationTitle || "Ton plan"}

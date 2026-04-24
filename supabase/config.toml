@@ -374,8 +374,6 @@ STRIPE_PRICE_ID_ARCHITECTE_YEARLY = "env(STRIPE_PRICE_ID_ARCHITECTE_YEARLY)"
 # They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
 [functions.create-module-memory]
 verify_jwt = false
-[functions.create-round-table-summary]
-verify_jwt = false
 [functions.update-core-identity]
 verify_jwt = false
 [functions.detect-future-events]

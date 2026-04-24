@@ -45,107 +45,139 @@ export function isLevelTransitionReady(
     scoped.every((item) => TERMINAL_ITEM_STATUSES.has(item.status));
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseYmdParts(ymd: string): [number, number, number] | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+function dateFromYmdUtc(ymd: string): Date | null {
+  const parts = parseYmdParts(ymd);
+  if (!parts) return null;
+  const [year, month, day] = parts;
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
+function formatYmdUtc(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDaysYmd(ymd: string, days: number): string | null {
+  const date = dateFromYmdUtc(ymd);
+  if (!date) return null;
+  date.setUTCDate(date.getUTCDate() + days);
+  return formatYmdUtc(date);
+}
+
+function getPlanLevelEndDate(
+  anchor: Record<string, unknown>,
+  durationWeeks: number,
+): string | null {
+  const anchorWeekEnd = typeof anchor.anchor_week_end === "string"
+    ? anchor.anchor_week_end.trim()
+    : "";
+  if (!anchorWeekEnd) return null;
+  return addDaysYmd(anchorWeekEnd, (Math.max(1, durationWeeks) - 1) * 7);
+}
+
+export function isLevelReviewWindowOpen(args: {
+  plan: Pick<PlanContentV3, "metadata">;
+  currentLevel: Pick<CurrentLevelRuntime, "duration_weeks">;
+  userLocalDate: string;
+  unlockDaysBeforeEnd?: number;
+}): boolean {
+  const metadata = isRecord(args.plan.metadata) ? args.plan.metadata : null;
+  const anchor = isRecord(metadata?.schedule_anchor) ? metadata.schedule_anchor : null;
+  if (!anchor) return false;
+
+  const endDate = getPlanLevelEndDate(anchor, args.currentLevel.duration_weeks);
+  const unlockDate = endDate
+    ? addDaysYmd(endDate, -(args.unlockDaysBeforeEnd ?? 2))
+    : null;
+
+  return Boolean(unlockDate && args.userLocalDate >= unlockDate);
+}
+
 export function buildLevelReviewSchema(args: {
   currentLevel: Pick<CurrentLevelRuntime, "duration_weeks" | "review_focus" | "title">;
   items: Pick<UserPlanItemRow, "dimension">[];
   weeks: PlanLevelWeek[];
+  primaryMetricLabel?: string | null;
 }): LevelReviewQuestion[] {
   const questions: LevelReviewQuestion[] = [
     {
-      id: "pace_feel",
-      label: "À la fin de ce niveau, comment tu as vécu le rythme ?",
-      helper_text: "Ça nous aide à régler le dosage du niveau suivant.",
+      id: "global_metric_state",
+      label: `Où est-ce que ça en est sur ${
+        cleanText(args.primaryMetricLabel) ?? "la métrique globale"
+      } ?`,
+      helper_text: "Même une estimation suffit: l'objectif est de situer le cap réel avant la suite.",
       input_type: "single_select",
       options: [
-        { value: "too_light", label: "Trop léger" },
-        { value: "balanced", label: "Bien dosé" },
-        { value: "too_heavy", label: "Trop lourd" },
+        { value: "strong_progress", label: "Net progrès" },
+        { value: "slight_progress", label: "Léger progrès" },
+        { value: "stable", label: "Plutôt stable" },
+        { value: "regressed", label: "Ça a reculé" },
+        { value: "unclear", label: "Difficile à dire" },
       ],
       required: true,
     },
     {
-      id: "readiness",
-      label: "Pour la suite, tu te sens comment ?",
-      helper_text: null,
+      id: "next_plan_coherence",
+      label: "Est-ce que la suite du plan te paraît cohérente ?",
+      helper_text: "Sophia décidera si le prochain niveau et les niveaux suivants doivent rester tels quels ou changer.",
       input_type: "single_select",
       options: [
-        { value: "need_more_time", label: "J'ai encore besoin d'un sas doux" },
-        { value: "ready", label: "Je suis prêt pour la suite" },
-        { value: "very_ready", label: "Je peux accélérer un peu" },
+        { value: "yes", label: "Oui, ça reste cohérent" },
+        { value: "mostly", label: "Globalement oui" },
+        { value: "no", label: "Non, ça ne colle pas" },
+        { value: "not_sure", label: "Je ne sais pas encore" },
       ],
       required: true,
     },
+    {
+      id: "coherence_reason",
+      label: "Si ce n'est pas cohérent, qu'est-ce qui ne l'est pas ?",
+      helper_text: null,
+      input_type: "free_text",
+      options: [],
+      placeholder: "Exemple: le prochain niveau va trop vite, ou il ne répond plus au vrai blocage.",
+      required: false,
+    },
+    {
+      id: "difficulty_signal",
+      label: "Est-ce qu'il y a eu des difficultés importantes sur ce niveau ?",
+      helper_text: "On distingue un frottement normal d'un vrai signal d'ajustement.",
+      input_type: "single_select",
+      options: [
+        { value: "no", label: "Non, rien de majeur" },
+        { value: "minor", label: "Oui, mais gérable" },
+        { value: "blocking", label: "Oui, ça a vraiment bloqué" },
+      ],
+      required: true,
+    },
+    {
+      id: "difficulty_details",
+      label: "Si oui, qu'est-ce qui a été difficile ?",
+      helper_text: null,
+      input_type: "free_text",
+      options: [],
+      placeholder: `Exemple: dans "${args.currentLevel.title}", j'ai décroché quand...`,
+      required: false,
+    },
+    {
+      id: "pride",
+      label: "De quoi tu es fier avec ce niveau ?",
+      helper_text: "Ce point sert aussi à garder ce qui marche dans le prochain niveau.",
+      input_type: "free_text",
+      options: [],
+      placeholder: "Exemple: j'ai tenu le cap même quand c'était imparfait.",
+      required: true,
+    },
   ];
-
-  if (args.currentLevel.duration_weeks > 1 || args.weeks.length > 1) {
-    questions.push({
-      id: "weekly_fit",
-      label: "Le découpage semaine par semaine t'a aidé comment ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "clear", label: "C'était clair et progressif" },
-        { value: "uneven", label: "Certaines semaines étaient mal placées" },
-        { value: "too_dense", label: "Le niveau restait trop dense" },
-      ],
-      required: true,
-    });
-  }
-
-  if (args.items.some((item) => item.dimension === "missions")) {
-    questions.push({
-      id: "mission_fit",
-      label: "Les missions de ce niveau étaient comment ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "good", label: "Bien placées" },
-        { value: "move_some", label: "Certaines étaient mal placées" },
-        { value: "lighten_some", label: "Certaines étaient trop lourdes" },
-      ],
-      required: true,
-    });
-  }
-
-  if (args.items.some((item) => item.dimension === "habits")) {
-    questions.push({
-      id: "habit_fit",
-      label: "Et pour les habitudes de ce niveau ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "keep", label: "Le dosage est bon" },
-        { value: "lighten", label: "Il faudra les alléger un peu" },
-        { value: "unstable", label: "Je n'ai pas réussi à les tenir" },
-      ],
-      required: true,
-    });
-  }
-
-  questions.push({
-    id: "support_need",
-    label: "Pour le prochain niveau, tu as besoin de quoi ?",
-    helper_text: args.currentLevel.review_focus.length > 0
-      ? `Focus actuel: ${args.currentLevel.review_focus.slice(0, 3).join(" • ")}`
-      : null,
-    input_type: "single_select",
-    options: [
-      { value: "enough", label: "On peut garder le même cadre" },
-      { value: "need_more", label: "J'ai besoin de plus de soutien" },
-      { value: "need_less", label: "J'ai besoin de quelque chose de plus simple" },
-    ],
-    required: true,
-  });
-
-  questions.push({
-    id: "free_text",
-    label: "S'il y a un point à ne pas rater pour la suite, note-le ici.",
-    helper_text: null,
-    input_type: "free_text",
-    options: [],
-    placeholder: `Exemple: dans "${args.currentLevel.title}", le rythme du mardi me coupait l'élan.`,
-    required: false,
-  });
 
   return questions;
 }
@@ -183,22 +215,36 @@ export function buildLevelReviewSummary(args: {
   items: Pick<UserPlanItemRow, "dimension">[];
   answers: LevelReviewAnswerMap;
 }): LevelReviewSummary {
+  const globalMetricState = args.answers.global_metric_state as
+    | LevelReviewSummary["global_metric_state"]
+    | undefined;
+  const nextPlanCoherence = args.answers.next_plan_coherence as
+    | LevelReviewSummary["next_plan_coherence"]
+    | undefined;
+  const difficultySignal = args.answers.difficulty_signal as
+    | LevelReviewSummary["difficulty_signal"]
+    | undefined;
+
   return {
     level_kind: inferLevelKind(args.items),
-    pace_signal: (args.answers.pace_feel as LevelReviewSummary["pace_signal"] | undefined) ??
-      "balanced",
+    global_metric_state: globalMetricState ?? "unclear",
+    next_plan_coherence: nextPlanCoherence ?? "not_sure",
+    coherence_reason: cleanText(args.answers.coherence_reason),
+    difficulty_signal: difficultySignal ?? "minor",
+    difficulty_details: cleanText(args.answers.difficulty_details),
+    pride: cleanText(args.answers.pride) ?? "",
+    pace_signal: "balanced",
     readiness_signal:
-      (args.answers.readiness as LevelReviewSummary["readiness_signal"] | undefined) ??
-      "ready",
-    weekly_fit_signal:
-      (args.answers.weekly_fit as LevelReviewSummary["weekly_fit_signal"] | undefined) ?? null,
-    mission_signal:
-      (args.answers.mission_fit as LevelReviewSummary["mission_signal"] | undefined) ?? null,
-    habit_signal:
-      (args.answers.habit_fit as LevelReviewSummary["habit_signal"] | undefined) ?? null,
-    support_signal:
-      (args.answers.support_need as LevelReviewSummary["support_signal"] | undefined) ?? null,
-    free_text: cleanText(args.answers.free_text),
+      nextPlanCoherence === "yes" || nextPlanCoherence === "mostly" ? "ready" : "need_more_time",
+    weekly_fit_signal: null,
+    mission_signal: null,
+    habit_signal: difficultySignal === "blocking" ? "unstable" : null,
+    support_signal: difficultySignal === "blocking" ? "need_more" : "enough",
+    free_text: cleanText([
+      args.answers.coherence_reason,
+      args.answers.difficulty_details,
+      args.answers.pride,
+    ].filter(Boolean).join(" | ")),
   };
 }
 
@@ -207,20 +253,24 @@ function deriveTransitionDecision(
   nextPhase: PlanPhase | null,
 ): LevelTransitionDecision {
   if (
-    summary.pace_signal === "too_heavy" ||
-    summary.readiness_signal === "need_more_time"
+    summary.difficulty_signal === "blocking" ||
+    summary.next_plan_coherence === "no" ||
+    summary.global_metric_state === "regressed"
   ) {
     return nextPhase?.duration_weeks && nextPhase.duration_weeks > 1 ? "extend" : "lighten";
   }
 
   if (
-    summary.pace_signal === "too_light" &&
-    summary.readiness_signal === "very_ready"
+    summary.global_metric_state === "strong_progress" &&
+    summary.next_plan_coherence === "yes" &&
+    summary.difficulty_signal === "no"
   ) {
     return nextPhase?.duration_weeks && nextPhase.duration_weeks > 1 ? "shorten" : "keep";
   }
 
   if (
+    summary.difficulty_signal === "minor" ||
+    summary.next_plan_coherence === "not_sure" ||
     summary.support_signal === "need_less" ||
     summary.mission_signal === "lighten_some" ||
     summary.habit_signal === "lighten" ||

@@ -1,4 +1,4 @@
-export type ModuleType = 'week' | 'forge' | 'round_table';
+export type ModuleType = 'week' | 'forge';
 
 export interface ModuleDefinition {
   id: string;
@@ -108,29 +108,9 @@ export const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
     title: 'Semaine 12 : L\'Envol',
     type: 'week',
     
-    // C'est ici que le chemin se sépare !
-    nextModuleIds: [
-        'round_table_1', // La Table Ronde démarre
-        'forge_access'   // Accès Global à la Forge
-    ], 
+    nextModuleIds: ['forge_access'],
     unlockCondition: 'fixed_delay',
     unlockDelayDays: 7 // 7 jours après la semaine 12 (Comme le reste)
-  },
-
-  // --- PARCOURS TABLE RONDE ---
-  'round_table_1': {
-    id: 'round_table_1',
-    title: 'Table Ronde #1',
-    type: 'round_table',
-    nextModuleIds: ['round_table_2'],
-    unlockCondition: 'next_sunday'
-  },
-  'round_table_2': {
-    id: 'round_table_2',
-    title: 'Table Ronde #2',
-    type: 'round_table',
-    nextModuleIds: ['round_table_3'],
-    unlockCondition: 'next_sunday'
   },
 
   // --- PARCOURS FORGE ---

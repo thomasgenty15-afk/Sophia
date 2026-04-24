@@ -125,7 +125,6 @@ const TIER2_SOURCE_PATTERNS = [
   "trigger_daily_bilan",
   "trigger_weekly_bilan",
   "generate-questionnaire",
-  "generate-feedback",
   "momentum_outreach",
 ];
 

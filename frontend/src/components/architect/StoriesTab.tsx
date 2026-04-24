@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookOpen,
   Bot,
@@ -8,7 +8,6 @@ import {
   Clock,
   Info,
   Loader2,
-  MessageSquare,
   Plus,
   Save,
   Search,
@@ -20,7 +19,17 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
+import {
+  clearStoryDraftCache,
+  isArchitectDraftExpired,
+  loadStoryDraftCache,
+  persistStoryDraftCache,
+} from '../../lib/architectDraftCache';
+import { newRequestId, requestHeaders } from '../../lib/requestId';
 import { supabase } from '../../lib/supabase';
+
+const sanitizeBrokenGlyphs = (s: string) =>
+  s.replace(/[\uFFFD\uFFFE\uFFFF]/g, '').replace(/\uD83D[\uDC00-\uDFFF]|\uD83C[\uDC00-\uDFFF]/g, '').trim();
 
 interface Story {
   id: string;
@@ -146,34 +155,17 @@ const mergeStoryAtTop = (stories: Story[], nextStory: Story): Story[] => [
   ...stories.filter((story) => story.id !== nextStory.id),
 ];
 
-const buildSophiaReply = (story: Story, prompt: string) => {
-  const normalizedPrompt = prompt.toLowerCase();
-  const hasTitle = story.title.trim().length > 0;
-  const filledBullets = story.bulletPoints.filter((bullet) => bullet.trim().length > 0);
-  const hasTags = story.topicTags.length > 0;
-
-  if (normalizedPrompt.includes('accroche') || normalizedPrompt.includes('intro')) {
-    return "Commence par une image concrète ou une scène précise. L'accroche doit donner envie d'entrer dans ton histoire en moins de dix secondes.";
-  }
-
-  if (normalizedPrompt.includes('leçon') || normalizedPrompt.includes('morale')) {
-    return "Ta leçon doit être simple, humaine et transférable. Demande-toi : qu'est-ce que cette histoire fait comprendre ou ressentir à l'autre ?";
-  }
-
-  if (!hasTitle) {
-    return "Commence par nommer l'histoire comme une promesse ou une tension. Un bon titre aide déjà Sophia à comprendre l'angle de communication.";
-  }
-
-  if (filledBullets.length < 3) {
-    return "Tu peux renforcer ton histoire avec 4 temps simples : contexte, rupture, bascule, transformation. Note-les d'abord en bullet points, puis affine le récit.";
-  }
-
-  if (!hasTags) {
-    return "Ajoute 2 ou 3 tags d'usage, par exemple leadership, résilience, vente, famille, humour. Cela t'aidera à retrouver rapidement la bonne histoire au bon moment.";
-  }
-
-  return "Ton brouillon commence à devenir exploitable. Maintenant, vérifie surtout : quelle émotion on ressent, quelle idée tu veux transmettre, et dans quel contexte tu pourras réutiliser cette histoire.";
-};
+function TypingDot() {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className="inline-block w-2 h-2 rounded-full bg-emerald-200/90 animate-pulse"
+        aria-hidden="true"
+      />
+      <span className="sr-only">Sophia est en train d'écrire...</span>
+    </span>
+  );
+}
 
 export const StoriesTab: React.FC = () => {
   const { user } = useAuth();
@@ -181,17 +173,23 @@ export const StoriesTab: React.FC = () => {
   const [showWhy, setShowWhy] = useState(false);
   const [showMobileSophia, setShowMobileSophia] = useState(false);
   const [showMobileSophiaDetails, setShowMobileSophiaDetails] = useState(false);
+  const [showDesktopSophiaDetails, setShowDesktopSophiaDetails] = useState(true);
   const [stories, setStories] = useState<Story[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isChatLoading, setIsChatLoading] = useState(false);
   const [busyStoryId, setBusyStoryId] = useState<string | null>(null);
   const [storyToDelete, setStoryToDelete] = useState<string | null>(null);
   const [draftStory, setDraftStory] = useState<Story>(createEmptyStory());
   const [draftTagInput, setDraftTagInput] = useState('');
   const [chatInput, setChatInput] = useState('');
+  // Temporary scope ID for the current editing session.
+  // For new stories: a temp UUID until saved; for existing: the story's real ID.
+  const chatScopeRef = useRef<string>(crypto.randomUUID());
+  const [filRouge, setFilRouge] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<StoryChatMessage[]>([
     {
       id: 1,
@@ -199,6 +197,98 @@ export const StoriesTab: React.FC = () => {
       text: "Je peux t'aider à transformer un épisode vécu en histoire utile pour parler, convaincre ou inspirer. On part de ton réel, pas d'une histoire inventée. Commence par me donner le contexte ou l'émotion clé.",
     },
   ]);
+
+  const isDraftScope = (scope: string) => scope.startsWith('story:draft:');
+
+  const hasMeaningfulDraft = () =>
+    Boolean(
+      draftStory.title.trim() ||
+      draftStory.duration.trim() ||
+      draftStory.bulletPoints.some((bullet) => bullet.trim()) ||
+      draftStory.speechMap.trim() ||
+      draftStory.topicTags.length > 0 ||
+      chatMessages.length > 1
+    );
+
+  const persistCurrentDraft = () => {
+    if (!user?.id) return;
+    const scope = chatScopeRef.current;
+    if (!isDraftScope(scope) || !hasMeaningfulDraft()) return;
+    persistStoryDraftCache(user.id, {
+      scope,
+      title: draftStory.title,
+      duration: draftStory.duration,
+      bulletPoints: draftStory.bulletPoints,
+      speechMap: draftStory.speechMap,
+      topicTags: draftStory.topicTags,
+      filRouge,
+    });
+  };
+
+  const clearCurrentDraft = () => {
+    if (!user?.id) return;
+    clearStoryDraftCache(user.id);
+  };
+
+  const deleteDraftScopeData = async (scope: string) => {
+    if (!user?.id || !isDraftScope(scope)) return;
+    try {
+      await supabase
+        .from('conversation_scope_memories')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('scope', scope);
+      await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('scope', scope);
+    } catch (error) {
+      console.warn('[StoriesTab] draft cleanup failed', error);
+    }
+  };
+
+  const loadChatHistory = async (scope: string, fallbackText: string) => {
+    if (!user?.id) {
+      return [{ id: 1, sender: 'ai' as const, text: fallbackText }];
+    }
+
+    const { data } = await supabase
+      .from('chat_messages')
+      .select('role, content, created_at')
+      .eq('user_id', user.id)
+      .eq('scope', scope)
+      .order('created_at', { ascending: true })
+      .limit(40);
+
+    if (data && data.length > 0) {
+      return data.map((row, i) => ({
+        id: Date.now() + i,
+        sender: row.role === 'user' ? 'user' as const : 'ai' as const,
+        text: row.content as string,
+      }));
+    }
+
+    return [{ id: 1, sender: 'ai' as const, text: fallbackText }];
+  };
+
+  const closeDraftComposer = () => {
+    if (hasMeaningfulDraft()) {
+      persistCurrentDraft();
+    } else {
+      const scope = chatScopeRef.current;
+      clearCurrentDraft();
+      if (isDraftScope(scope)) {
+        void deleteDraftScopeData(scope);
+      }
+    }
+
+    setIsModalOpen(false);
+    setShowMobileSophia(false);
+    setShowMobileSophiaDetails(false);
+    setDraftTagInput('');
+    setChatInput('');
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -250,6 +340,12 @@ export const StoriesTab: React.FC = () => {
     };
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!isModalOpen || !user?.id || !isDraftScope(chatScopeRef.current)) return;
+    if (!hasMeaningfulDraft()) return;
+    persistCurrentDraft();
+  }, [user?.id, isModalOpen, draftStory, filRouge, chatMessages]);
+
   const filteredStories = useMemo(
     () =>
       stories.filter(
@@ -260,11 +356,41 @@ export const StoriesTab: React.FC = () => {
     [searchQuery, stories]
   );
 
-  const openCreateModal = () => {
+  const openCreateModal = async () => {
+    setFilRouge(null);
     setDraftStory(createEmptyStory());
     setDraftTagInput('');
     setChatInput('');
     setStatusMsg(null);
+
+    const cachedDraft = user?.id ? loadStoryDraftCache(user.id) : null;
+    if (cachedDraft && isArchitectDraftExpired(cachedDraft.updatedAt)) {
+      clearCurrentDraft();
+      void deleteDraftScopeData(cachedDraft.scope);
+    }
+
+    if (cachedDraft && !isArchitectDraftExpired(cachedDraft.updatedAt)) {
+      chatScopeRef.current = cachedDraft.scope;
+      setFilRouge(cachedDraft.filRouge);
+      setDraftStory({
+        id: cachedDraft.scope,
+        title: cachedDraft.title,
+        duration: cachedDraft.duration,
+        bulletPoints: cachedDraft.bulletPoints.length > 0 ? cachedDraft.bulletPoints : [''],
+        speechMap: cachedDraft.speechMap,
+        topicTags: cachedDraft.topicTags,
+      });
+      setStatusMsg("Brouillon non enregistré repris.");
+      setChatMessages(await loadChatHistory(
+        cachedDraft.scope,
+        "Nouvelle histoire. Je vais t'aider à structurer un épisode de ton vécu pour qu'il soit clair, mémorable et réutilisable dans tes conversations.",
+      ));
+      setIsModalOpen(true);
+      return;
+    }
+
+    const tempId = crypto.randomUUID();
+    chatScopeRef.current = `story:draft:${tempId}`;
     setChatMessages([
       {
         id: 1,
@@ -275,7 +401,10 @@ export const StoriesTab: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (story: Story) => {
+  const openEditModal = async (story: Story) => {
+    const scope = `story:${story.id}`;
+    chatScopeRef.current = scope;
+    setFilRouge(null);
     setDraftStory({
       ...story,
       bulletPoints: story.bulletPoints.length > 0 ? story.bulletPoints : [''],
@@ -283,22 +412,18 @@ export const StoriesTab: React.FC = () => {
     setDraftTagInput('');
     setChatInput('');
     setStatusMsg(null);
-    setChatMessages([
-      {
-        id: 1,
-        sender: 'ai',
-        text: "Je vois déjà la base de ton histoire. On peut maintenant affiner ce vécu pour qu'il soit plus clair, plus vivant et plus utile en communication.",
-      },
-    ]);
+    // Load existing chat history for this story
+    const welcomeMsg: StoryChatMessage = {
+      id: 1,
+      sender: 'ai',
+      text: "Je vois déjà la base de ton histoire. On peut maintenant affiner ce vécu pour qu'il soit plus clair, plus vivant et plus utile en communication.",
+    };
+    setChatMessages(await loadChatHistory(scope, welcomeMsg.text));
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
-    setIsModalOpen(false);
-    setShowMobileSophia(false);
-    setShowMobileSophiaDetails(false);
-    setDraftTagInput('');
-    setChatInput('');
+    closeDraftComposer();
   };
 
   const updateDraftStory = (updates: Partial<Story>) => {
@@ -448,6 +573,25 @@ export const StoriesTab: React.FC = () => {
 
       const savedStory = rowToStory(savedRow);
       setStories((current) => mergeStoryAtTop(current, savedStory));
+
+      // Migrate chat history from draft scope to real story scope
+      const oldScope = chatScopeRef.current;
+      const newScope = `story:${savedStory.id}`;
+      if (oldScope !== newScope && oldScope.startsWith('story:draft:') && user?.id) {
+        await supabase
+          .from('chat_messages')
+          .update({ scope: newScope })
+          .eq('user_id', user.id)
+          .eq('scope', oldScope);
+        await supabase
+          .from('conversation_scope_memories')
+          .update({ scope: newScope })
+          .eq('user_id', user.id)
+          .eq('scope', oldScope);
+        chatScopeRef.current = newScope;
+      }
+
+      clearCurrentDraft();
       closeModal();
     } catch (error: any) {
       console.error('[StoriesTab] save failed', error);
@@ -485,24 +629,88 @@ export const StoriesTab: React.FC = () => {
     }
   };
 
-  const handleSendChat = () => {
+  const handleSendChat = async () => {
     const trimmed = chatInput.trim();
-    if (!trimmed) return;
+    if (!trimmed || isChatLoading || !user?.id) return;
 
-    const userMessage: StoryChatMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: trimmed,
-    };
-
-    const aiMessage: StoryChatMessage = {
-      id: Date.now() + 1,
-      sender: 'ai',
-      text: buildSophiaReply(draftStory, trimmed),
-    };
-
-    setChatMessages((current) => [...current, userMessage, aiMessage]);
+    const userMessage: StoryChatMessage = { id: Date.now(), sender: 'user', text: trimmed };
+    setChatMessages((current) => [...current, userMessage]);
     setChatInput('');
+    setIsChatLoading(true);
+    persistStoryDraftCache(user.id, {
+      scope: chatScopeRef.current,
+      title: draftStory.title,
+      duration: draftStory.duration,
+      bulletPoints: draftStory.bulletPoints,
+      speechMap: draftStory.speechMap,
+      topicTags: draftStory.topicTags,
+      filRouge,
+    });
+
+    try {
+      const contextLines: string[] = [
+        '=== CONTEXTE HISTOIRE (UI) ===',
+        "Cette fiche d'histoire à remplir comporte exactement 5 parties visibles.",
+        "1. Nom : le titre évocateur de l'histoire.",
+        "2. Durée : la durée estimée pour raconter l'histoire.",
+        "3. Bullet points : les faits bruts, la chronologie concrète de ce qu'il s'est passé.",
+        "4. Speech map : la version racontable, avec structure, rythme, accroche, bascule et leçon.",
+        "5. Tags : quelques mots-clés pour retrouver l'histoire plus tard.",
+        "Si l'utilisateur demande un premier jet, un brouillon, ou de remplir la structure, réponds directement dans ce format :",
+        "Nom : ...",
+        "Durée : ...",
+        "Bullet points :",
+        "- ...",
+        "- ...",
+        "- ...",
+        "Speech map : ...",
+        "Tags : tag1, tag2, tag3",
+        "Ne demande pas ce qu'il y a à remplir : la structure est déjà définie par l'interface.",
+        `Nom actuel : ${draftStory.title || '(pas encore nommée)'}`,
+        `Durée actuelle : ${draftStory.duration || '(non définie)'}`,
+        `Bullet points actuels : ${draftStory.bulletPoints.filter(Boolean).join(' | ') || '(vide)'}`,
+        `Speech map actuelle : ${draftStory.speechMap ? draftStory.speechMap.slice(0, 500) : '(vide)'}`,
+        `Tags actuels : ${draftStory.topicTags.join(', ') || '(aucun)'}`,
+        "L'utilisateur est en train de construire ou affiner une histoire personnelle pour la communication.",
+        "Aide-le à clarifier le contexte, la rupture, la bascule et la transformation de son récit.",
+        "Quand c'est utile, formule une réponse directement exploitable et copiable dans les champs visibles.",
+      ];
+      if (filRouge) contextLines.push(`Fil rouge (synthèse en cours) : ${filRouge}`);
+
+      const requestId = newRequestId();
+      const { data, error } = await supabase.functions.invoke('sophia-brain', {
+        body: {
+          message: trimmed,
+          scope: chatScopeRef.current,
+          contextOverride: contextLines.join('\n'),
+          requestId,
+        },
+        headers: requestHeaders(requestId),
+      });
+
+      if (error) throw error;
+
+      let rawText: string = String(data?.content ?? data?.reply ?? data?.message ?? '').trim();
+      const filRougeMatch = rawText.match(/<!--fil_rouge:([\s\S]*?)-->/);
+      if (filRougeMatch) {
+        setFilRouge(filRougeMatch[1].trim());
+        rawText = rawText.replace(/<!--fil_rouge:[\s\S]*?-->/, '').trim();
+      }
+      const assistantText = sanitizeBrokenGlyphs(rawText) || "Je n'ai pas réussi à formuler une réponse. Réessaie ?";
+
+      setChatMessages((current) => [
+        ...current,
+        { id: Date.now(), sender: 'ai', text: assistantText },
+      ]);
+    } catch (err) {
+      console.error('[StoriesTab] chat error', err);
+      setChatMessages((current) => [
+        ...current,
+        { id: Date.now(), sender: 'ai', text: "Une erreur s'est produite. Réessaie dans un instant." },
+      ]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   return (
@@ -608,7 +816,7 @@ export const StoriesTab: React.FC = () => {
 
           <button
             type="button"
-            onClick={openCreateModal}
+            onClick={() => void openCreateModal()}
             className="w-full lg:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-emerald-900/50"
           >
             <Plus className="w-5 h-5" />
@@ -650,7 +858,7 @@ export const StoriesTab: React.FC = () => {
                   </p>
                   <button
                     type="button"
-                    onClick={openCreateModal}
+                    onClick={() => void openCreateModal()}
                     className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base transition-colors shadow-lg shadow-emerald-900/50"
                   >
                     <Plus className="w-4 h-4 md:w-5 md:h-5" />
@@ -715,7 +923,7 @@ export const StoriesTab: React.FC = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 lg:p-6">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeDraftComposer} />
 
           <div className="relative w-full h-[calc(100dvh-24px)] lg:h-[92vh] lg:max-w-7xl rounded-[28px] border border-emerald-800/60 bg-emerald-950 shadow-2xl overflow-hidden flex flex-col lg:flex-row">
             <div className="w-full min-h-0 flex flex-col lg:w-[64%] lg:border-r border-emerald-900/60">
@@ -728,7 +936,7 @@ export const StoriesTab: React.FC = () => {
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={closeModal}
+                    onClick={closeDraftComposer}
                     className="p-2.5 md:p-3 text-emerald-400 hover:text-white hover:bg-emerald-900/50 rounded-xl transition-colors"
                   >
                     <X className="w-5 h-5" />
@@ -940,39 +1148,58 @@ export const StoriesTab: React.FC = () => {
 
             <div className="hidden lg:flex w-[36%] min-h-0 flex-col bg-emerald-900/10">
               <div className="border-b border-emerald-900/60 px-4 md:px-6 py-4 md:py-5 shrink-0">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-900/60 border border-emerald-800/60 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-emerald-300" />
-                  </div>
-                  <div>
-                    <div className="text-sm md:text-base uppercase tracking-[0.2em] text-emerald-500 font-bold">
-                      SOPHIA
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-emerald-900/60 border border-emerald-800/60 flex items-center justify-center">
+                      <Bot className="w-5 h-5 text-emerald-300" />
+                    </div>
+                    <div>
+                      <div className="text-sm md:text-base uppercase tracking-[0.2em] text-emerald-500 font-bold">
+                        SOPHIA
+                      </div>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowDesktopSophiaDetails((current) => !current)}
+                    className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-400 hover:text-white transition-colors"
+                  >
+                    {showDesktopSophiaDetails ? 'Réduire' : 'Détails'}
+                    {showDesktopSophiaDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  </button>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-4 text-sm text-emerald-200/80 leading-relaxed">
-                  <p>Sophia part du contexte de cette fiche : titre, bullet points, speech map, tags et intention de communication.</p>
-                  <div className="mt-3 pt-3 border-t border-emerald-800/30 flex items-start gap-2 text-emerald-400/80 text-xs font-medium">
-                    <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                    <p>
-                      Pense à <strong>sauvegarder</strong> tes modifications pour que Sophia puisse les prendre en compte dans ses réponses.
-                    </p>
+                {showDesktopSophiaDetails && (
+                  <>
+                    <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-4 text-sm text-emerald-200/80 leading-relaxed">
+                      <p>Sophia part du contexte de cette fiche : titre, bullet points, speech map, tags et intention de communication.</p>
+                      <div className="mt-3 pt-3 border-t border-emerald-800/30 flex items-start gap-2 text-emerald-400/80 text-xs font-medium">
+                        <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                        <p>
+                          Pense à <strong>sauvegarder</strong> tes modifications pour que Sophia puisse les prendre en compte dans ses réponses.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {['Trouve une accroche', 'Clarifie la leçon', 'Rends-la plus mémorable', "Où l'utiliser ?"].map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => setChatInput(suggestion)}
+                          className="px-3 py-2 rounded-full bg-emerald-950/50 border border-emerald-800/50 text-xs text-emerald-300 hover:text-white hover:border-emerald-600 transition-colors"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+                {!showDesktopSophiaDetails && (
+                  <div className="text-xs text-emerald-500/80">
+                    Espace d'aide masqué.
                   </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                          {['Trouve une accroche', 'Clarifie la leçon', 'Rends-la plus mémorable', "Où l'utiliser ?"].map((suggestion) => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => setChatInput(suggestion)}
-                      className="px-3 py-2 rounded-full bg-emerald-950/50 border border-emerald-800/50 text-xs text-emerald-300 hover:text-white hover:border-emerald-600 transition-colors"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
+                )}
               </div>
 
               <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4">
@@ -989,26 +1216,38 @@ export const StoriesTab: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                {isChatLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[90%] rounded-2xl p-4 text-sm leading-relaxed bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                      <TypingDot />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-t border-emerald-900/60 p-4 md:p-6 shrink-0">
-                <div className="rounded-2xl border border-emerald-800/50 bg-emerald-950/50 p-3">
-                  <div className="flex items-start gap-3">
-                    <MessageSquare className="w-4 h-4 text-emerald-500 mt-3 shrink-0" />
-                    <textarea
-                      value={chatInput}
-                      onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Demande à Sophia..."
-                      className="flex-1 min-h-[72px] bg-transparent text-sm text-white placeholder-emerald-700 resize-none focus:outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSendChat}
-                      className="mt-1 p-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void handleSendChat();
+                      }
+                    }}
+                    placeholder="Discuter avec Sophia..."
+                    className="w-full bg-emerald-950 border border-emerald-800 rounded-xl pl-4 pr-14 py-4 text-sm text-white placeholder-emerald-700 focus:ring-1 focus:ring-emerald-500 outline-none shadow-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void handleSendChat()}
+                    disabled={isChatLoading}
+                    className="absolute right-2 top-2 bottom-2 w-10 flex items-center justify-center bg-emerald-800 hover:bg-emerald-700 text-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {isChatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1094,23 +1333,37 @@ export const StoriesTab: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[90%] rounded-2xl p-4 text-sm leading-relaxed bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                        <TypingDot />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="border-t border-emerald-900/60 px-4 py-3 shrink-0">
-                  <div className="flex items-start gap-3">
-                    <MessageSquare className="w-4 h-4 text-emerald-500 mt-3 shrink-0" />
-                    <textarea
+                <div className="p-4 border-t border-emerald-900 bg-emerald-950 shrink-0">
+                  <div className="relative">
+                    <input
+                      type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
-                      placeholder="Demande à Sophia..."
-                      className="flex-1 min-h-[72px] bg-transparent text-sm text-white placeholder-emerald-700 resize-none focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          void handleSendChat();
+                        }
+                      }}
+                      placeholder="Répondre..."
+                      className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-emerald-600/80 focus:ring-1 focus:ring-emerald-500 outline-none"
                     />
                     <button
                       type="button"
-                      onClick={handleSendChat}
-                      className="mt-1 p-3 text-white transition-colors hover:text-emerald-300"
+                      onClick={() => void handleSendChat()}
+                      disabled={isChatLoading}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 p-2 disabled:opacity-50"
                     >
-                      <Send className="w-4 h-4" />
+                      {isChatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>

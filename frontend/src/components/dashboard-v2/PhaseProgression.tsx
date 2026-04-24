@@ -16,6 +16,7 @@ import type {
 import {
   formatPlanDateRange,
   getPlanWeekCalendar,
+  isPlanLevelReviewWindowOpen,
   type PlanScheduleAnchor,
 } from "../../lib/planSchedule";
 import { getDisplayPhaseOrder } from "../../lib/planPhases";
@@ -440,6 +441,11 @@ function ActivePhase({
   onLevelToolRecommendationChanged: () => Promise<void>;
 }) {
   const sections = buildSections(phase.items);
+  const levelReviewUnlocked = phase.transition_ready ||
+    isPlanLevelReviewWindowOpen({
+      anchor: scheduleAnchor ?? null,
+      durationWeeks: phase.duration_weeks ?? (phase.weeks.length || 1),
+    });
   const [showLevelDetails, setShowLevelDetails] = useState(false);
   const [weekPlanningStatusByKey, setWeekPlanningStatusByKey] = useState<Record<string, WeekPlanningStatus>>({});
   const [planningModalWeekKey, setPlanningModalWeekKey] = useState<string | null>(null);
@@ -835,7 +841,7 @@ function ActivePhase({
         />
       ) : null}
 
-      {phase.transition_ready ? (
+      {levelReviewUnlocked ? (
         <div className="mb-10 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="max-w-2xl">
@@ -843,8 +849,9 @@ function ActivePhase({
                 Bilan de fin de niveau
               </p>
               <p className="mt-2 text-sm leading-6 text-stone-700">
-                Tu as bouclé les actions de ce niveau. Prends 2 minutes pour dire comment il s&apos;est
-                passé avant de lancer la suite.
+                {phase.transition_ready
+                  ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour dire comment il s'est passé avant de lancer la suite."
+                  : "Le questionnaire de fin de niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer le prochain niveau et ajuster la suite si nécessaire."}
               </p>
             </div>
             {onCompleteLevel ? (

@@ -907,17 +907,23 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
         content: m.text,
       }));
 
-      const contextualizedMessage = trunc([
-        `Contexte module forge.`,
-        `Module: ${module.title}.`,
-        `Système d'origine: ${module.originalWeekTitle || 'Inconnu'}.`,
-        `Question clé: ${specificQuestion}.`,
-        specificHelper ? `Aide: ${specificHelper}` : "",
-        content.trim().length
-          ? `Contenu actuel: ${trunc(content, 1200)}`
-          : "Contenu actuel: (vide)",
-        `Ma demande: ${userText}`,
-      ].filter(Boolean).join('\n\n'), 6000);
+      // The module context goes into contextOverride (system context), not the message.
+      // La forge is focused: Sophia only needs this specific module's instructions.
+      const forgeContextLines: string[] = [
+        `Module forge : ${module.title}`,
+        `Système d'origine : ${module.originalWeekTitle || 'Inconnu'}`,
+        `Question clé : ${specificQuestion}`,
+      ];
+      if (specificHelper) {
+        forgeContextLines.push(`Aide : ${specificHelper}`);
+      }
+      if (content.trim().length) {
+        forgeContextLines.push(`Contenu actuel de l'utilisateur : ${trunc(content, 1200)}`);
+      }
+      const forgeContextOverride = trunc(forgeContextLines.filter(Boolean).join("\n"), 4000);
+
+      // message = exactly what the user typed.
+      const contextualizedMessage = userText;
 
       const clientRequestId = newRequestId();
       const { data, error } = await supabase.functions.invoke('sophia-brain', {
@@ -926,6 +932,7 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
           history: historyForBrain,
           channel: 'web',
           scope: `module:${module.id}`,
+          contextOverride: forgeContextOverride,
         },
         headers: requestHeaders(clientRequestId)
       });

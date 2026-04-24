@@ -506,8 +506,16 @@ class RoadmapActionError extends Error {
 // ---------------------------------------------------------------------------
 // HTTP handler
 // ---------------------------------------------------------------------------
+//
+// IMPORTANT: `Deno.serve(...)` must NEVER run when this file is imported from
+// elsewhere (e.g. sophia-brain/agents/roadmap_review.ts imports
+// `executeRoadmapAction` from here). Otherwise two `Deno.serve` handlers get
+// registered inside the importing worker and requests addressed to the host
+// function (e.g. /sophia-brain) can be intercepted by this handler,
+// producing bogus "Invalid request body" 400s with this file's Zod schema.
+// Gate with `import.meta.main`: true only when this module is the entrypoint.
 
-Deno.serve(async (req) => {
+const httpHandler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
 
   const corsError = enforceCors(req);
@@ -590,4 +598,8 @@ Deno.serve(async (req) => {
 
     return serverError(req, requestId, "Failed to update roadmap");
   }
-});
+};
+
+if (import.meta.main) {
+  Deno.serve(httpHandler);
+}

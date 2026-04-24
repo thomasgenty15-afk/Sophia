@@ -25,7 +25,7 @@ describe("ultimate: DB triggers (profiles/email/week12)", () => {
         .from("user_week_states")
         .delete()
         .eq("user_id", userId)
-        .in("module_id", ["week_12", "round_table_1", "forge_access"]);
+        .in("module_id", ["week_12", "forge_access"]);
       await client.auth.signOut();
     } catch {
       // ignore
@@ -56,7 +56,7 @@ describe("ultimate: DB triggers (profiles/email/week12)", () => {
       .toBe(newEmail);
   });
 
-  it("on_week12_manual_unlock: creates round_table_1 + forge_access when week_12 is manually set available", async () => {
+  it("on_week12_manual_unlock: creates forge_access when week_12 is manually set available", async () => {
     const nowIso = new Date().toISOString();
     const { error: seedErr } = await admin.from("user_week_states").upsert(
       {
@@ -73,11 +73,10 @@ describe("ultimate: DB triggers (profiles/email/week12)", () => {
       .from("user_week_states")
       .select("module_id,status,available_at")
       .eq("user_id", userId)
-      .in("module_id", ["round_table_1", "forge_access"]);
+      .in("module_id", ["forge_access"]);
     if (unlockedErr) throw unlockedErr;
 
     const ids = new Set((unlocked ?? []).map((r) => r.module_id));
-    expect(ids.has("round_table_1")).toBe(true);
     expect(ids.has("forge_access")).toBe(true);
   });
 });
@@ -316,7 +315,7 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
     expect(w3Avail).toBeGreaterThan(new Date(nowIso).getTime() + 6 * 24 * 60 * 60 * 1000);
   });
 
-  it("on_module_activity_unlock: week_12 first activity schedules round_table_1 (next Sunday 09:00) + forge_access (+7d)", async () => {
+  it("on_module_activity_unlock: week_12 first activity schedules forge_access (+7d)", async () => {
     // Seed week_12 state (so the trigger can find it)
     const { error: seedErr } = await client.from("user_week_states").upsert(
       { user_id: userId, module_id: "week_12", status: "available", available_at: new Date().toISOString() },
@@ -339,18 +338,11 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
       .from("user_week_states")
       .select("module_id,status,available_at")
       .eq("user_id", userId)
-      .in("module_id", ["round_table_1", "forge_access"]);
+      .in("module_id", ["forge_access"]);
     if (error) throw error;
 
     const byId = new Map((data ?? []).map((r) => [r.module_id, r]));
-    expect(byId.get("round_table_1")).toBeTruthy();
     expect(byId.get("forge_access")).toBeTruthy();
-
-    // round_table_1 should be scheduled at 09:00 of next Sunday
-    const rt = byId.get("round_table_1")!;
-    const rtDate = new Date(rt.available_at);
-    expect(rt.status).toBe("available");
-    expect(rtDate.getUTCHours()).toBe(9);
 
     // forge_access should be >= now + 6 days (timezone tolerance)
     const fa = byId.get("forge_access")!;
@@ -435,7 +427,6 @@ describe("ultimate: edge-triggered side effects (memories + core identity + arch
       await admin.from("memories").delete().eq("user_id", userId);
       await admin.from("user_core_identity_archive").delete().eq("user_id", userId);
       await admin.from("user_core_identity").delete().eq("user_id", userId);
-      await admin.from("user_round_table_entries").delete().eq("user_id", userId);
       await admin.from("user_module_state_entries").delete().eq("user_id", userId);
       await admin.from("user_week_states").delete().eq("user_id", userId);
       await client.auth.signOut();
@@ -531,52 +522,6 @@ describe("ultimate: edge-triggered side effects (memories + core identity + arch
         { timeout: 20_000, interval: 400 },
       )
       .satisfy(({ insight, history }) => insight === 1 && history >= 1);
-  });
-
-  it.skipIf(!IS_FULL)("round table trigger: insert user_round_table_entries => creates weekly_review memory", async () => {
-    const moduleId = "round_table_1";
-    const { error: rtErr } = await admin.from("user_round_table_entries").insert({
-      user_id: userId,
-      module_id: moduleId,
-      energy_level: 55,
-      wins_3: "1) X 2) Y 3) Z",
-      main_blocker: "Fatigue",
-      identity_alignment: "moyen",
-      week_intention: "Dormir plus",
-    });
-    if (rtErr) throw rtErr;
-
-    // Assert: user_round_table_entries row exists (table touched)
-    const { data: rtRow, error: rtReadErr } = await admin
-      .from("user_round_table_entries")
-      .select("module_id,energy_level,wins_3,main_blocker,identity_alignment,week_intention")
-      .eq("user_id", userId)
-      .eq("module_id", moduleId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-    if (rtReadErr) throw rtReadErr;
-    expect(rtRow.module_id).toBe(moduleId);
-    expect(rtRow.energy_level).toBe(55);
-    expect(rtRow.wins_3).toContain("1) X");
-
-    await expect
-      .poll(
-        async () => {
-          const { data, error } = await admin
-            .from("memories")
-            .select("id,source_type,source_id,type,content")
-            .eq("user_id", userId)
-            .eq("source_type", "weekly_review")
-            .eq("source_id", moduleId)
-            .eq("type", "insight")
-            .maybeSingle();
-          if (error) throw error;
-          return data?.id ?? null;
-        },
-        { timeout: 15_000, interval: 300 },
-      )
-      .not.toBeNull();
   });
 
   it.skipIf(!IS_FULL)("core identity trigger: week completed => writes user_core_identity", async () => {
@@ -712,8 +657,6 @@ describe("ultimate: edge-triggered side effects (memories + core identity + arch
   });
 
 });
-
-
 
 
 

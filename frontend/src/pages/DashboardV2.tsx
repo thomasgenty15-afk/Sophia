@@ -21,7 +21,7 @@ import {
   Plus,
   Zap,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
 import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
@@ -93,7 +93,7 @@ import {
 } from "../lib/multiPartTransitionQuestionnaire";
 import { extractProfessionalSupport } from "../lib/professionalSupport";
 import { getDisplayPhaseOrder } from "../lib/planPhases";
-import { parsePlanScheduleAnchor } from "../lib/planSchedule";
+import { isPlanLevelReviewWindowOpen, parsePlanScheduleAnchor } from "../lib/planSchedule";
 import { supabase } from "../lib/supabase";
 import { extractLevelToolRecommendationState } from "../lib/toolRecommendations";
 import type { PlanContentV3 } from "../types/v2";
@@ -571,7 +571,10 @@ export default function DashboardV2() {
 
   const { modules } = useModules();
 
-  const [mode, setMode] = useState<"action" | "architecte">("action");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<"action" | "architecte">(
+    searchParams.get("mode") === "architecte" ? "architecte" : "action"
+  );
   const [isLabUsageOpen, setIsLabUsageOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>("plan");
   const [architectTab, setArchitectTab] = useState<ArchitectTab>("atelier");
@@ -861,9 +864,18 @@ export default function DashboardV2() {
             weeks: currentLevel.weeks,
             reviewFocus: currentLevel.review_focus,
             dimensions: [...new Set(currentLevel.items.map((item) => item.dimension))],
+            primaryMetricLabel: planContentV3?.primary_metric?.label ?? null,
           })
         : [],
-    [currentLevel],
+    [currentLevel, planContentV3?.primary_metric?.label],
+  );
+  const isCurrentLevelReviewUnlocked = Boolean(
+    currentLevel &&
+      (currentLevel.transition_ready ||
+        isPlanLevelReviewWindowOpen({
+          anchor: scheduleAnchor,
+          durationWeeks: currentLevel.duration_weeks ?? (currentLevel.weeks.length || 1),
+        })),
   );
   const levelToolRecommendationsByPhaseId = useMemo(() => {
     const grouped = new globalThis.Map<
@@ -2718,20 +2730,15 @@ export default function DashboardV2() {
 
                     {(() => {
                       const forgeModule = modules["forge_access"];
-                      const roundTableModule = modules["round_table_1"];
                       const now = new Date();
 
                       const isForgeUnlocked =
                         forgeModule?.state &&
                         (!forgeModule.state.available_at ||
                           new Date(forgeModule.state.available_at) <= now);
-                      const isRoundTableUnlocked =
-                        roundTableModule?.state &&
-                        (!roundTableModule.state.available_at ||
-                          new Date(roundTableModule.state.available_at) <= now);
 
                       const getUnlockText = (
-                        mod: typeof forgeModule | typeof roundTableModule | undefined,
+                        mod: typeof forgeModule | undefined,
                       ) => {
                         if (!mod?.state) return "Débloqué après Semaine 12";
                         if (mod.state.available_at) {
@@ -2748,42 +2755,7 @@ export default function DashboardV2() {
                       };
 
                       return (
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div
-                            onClick={() => {
-                              if (!isRoundTableUnlocked) return;
-                              if (!hasArchitecteAccess(subscription))
-                                return navigate("/upgrade");
-                              navigate("/architecte/alignment");
-                            }}
-                            className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${
-                              isRoundTableUnlocked
-                                ? "cursor-pointer hover:scale-[1.02]"
-                                : "cursor-not-allowed opacity-70"
-                            }`}
-                          >
-                            <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                              <MapIcon className="w-12 h-12 md:w-24 md:h-24" />
-                            </div>
-                            <h3 className="text-white font-bold text-lg md:text-xl mb-2">
-                              La Table Ronde
-                            </h3>
-                            <p className="text-emerald-400 text-xs md:text-sm mb-6">
-                              Rituel du Dimanche · 15 min
-                            </p>
-
-                            {isRoundTableUnlocked ? (
-                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-emerald-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-emerald-900/50">
-                                <Zap className="w-3 h-3" /> Accès Ouvert
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
-                                <Lock className="w-3 h-3" />{" "}
-                                {getUnlockText(roundTableModule)}
-                              </div>
-                            )}
-                          </div>
-
+                        <div className="grid gap-6">
                           <div
                             onClick={() => {
                               if (!isForgeUnlocked) return;
@@ -3733,7 +3705,7 @@ export default function DashboardV2() {
         isOpen={Boolean(
           isLevelCompletionModalOpen &&
             currentLevel &&
-            currentLevel.transition_ready,
+            isCurrentLevelReviewUnlocked,
         )}
         levelOrder={currentLevel?.phase_order ?? null}
         levelTitle={currentLevel?.title ?? ""}

@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX, X } from "lucide-react";
 
 type OnboardingAmbientAudioContextValue = {
   isSessionActive: boolean;
@@ -16,6 +16,7 @@ type OnboardingAmbientAudioContextValue = {
 
 const SESSION_ACTIVE_KEY = "sophia.onboarding_ambient_audio.active";
 const SESSION_MUTED_KEY = "sophia.onboarding_ambient_audio.muted";
+const SESSION_CONTROLS_HIDDEN_KEY = "sophia.onboarding_ambient_audio.controls_hidden";
 const AUDIO_SRC = "/audio/zen-onboarding.mp3";
 const AUDIO_VOLUME = 0.42;
 
@@ -46,6 +47,9 @@ export function OnboardingAmbientAudioProvider({
   const [isMuted, setIsMuted] = useState(() =>
     getStoredSessionFlag(SESSION_MUTED_KEY)
   );
+  const [areControlsHidden, setAreControlsHidden] = useState(() =>
+    getStoredSessionFlag(SESSION_CONTROLS_HIDDEN_KEY)
+  );
   const [audioUnavailable, setAudioUnavailable] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -59,6 +63,14 @@ export function OnboardingAmbientAudioProvider({
     if (typeof window === "undefined") return;
     window.sessionStorage.setItem(SESSION_MUTED_KEY, isMuted ? "1" : "0");
   }, [isMuted]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.setItem(
+      SESSION_CONTROLS_HIDDEN_KEY,
+      areControlsHidden ? "1" : "0",
+    );
+  }, [areControlsHidden]);
 
   useEffect(() => {
     return () => {
@@ -97,6 +109,7 @@ export function OnboardingAmbientAudioProvider({
 
   function startSession() {
     setIsSessionActive(true);
+    setAreControlsHidden(false);
     setAudioUnavailable(false);
 
     if (isMuted) return;
@@ -134,6 +147,10 @@ export function OnboardingAmbientAudioProvider({
     });
   }
 
+  function hideControls() {
+    setAreControlsHidden(true);
+  }
+
   const value: OnboardingAmbientAudioContextValue = {
     isSessionActive,
     isMuted,
@@ -144,22 +161,32 @@ export function OnboardingAmbientAudioProvider({
   return (
     <OnboardingAmbientAudioContext.Provider value={value}>
       {children}
-      {isSessionActive && (
+      {isSessionActive && !areControlsHidden && (
         <div className="pointer-events-none fixed bottom-5 right-5 z-[80]">
           <div className="flex flex-col items-end gap-2">
-            <button
-              type="button"
-              onClick={toggleMuted}
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white/95 px-4 py-3 text-sm font-medium text-stone-700 shadow-[0_14px_40px_-20px_rgba(15,23,42,0.45)] backdrop-blur"
-              aria-pressed={!isMuted}
-            >
-              {isMuted ? (
-                <VolumeX className="h-4 w-4 text-stone-500" />
-              ) : (
-                <Volume2 className="h-4 w-4 text-blue-600" />
-              )}
-              {isMuted ? "Son off" : "Son on"}
-            </button>
+            <div className="pointer-events-auto inline-flex items-center overflow-hidden rounded-full border border-stone-200 bg-white/95 shadow-[0_14px_40px_-20px_rgba(15,23,42,0.45)] backdrop-blur">
+              <button
+                type="button"
+                onClick={toggleMuted}
+                className="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium text-stone-700"
+                aria-pressed={!isMuted}
+              >
+                {isMuted ? (
+                  <VolumeX className="h-4 w-4 text-stone-500" />
+                ) : (
+                  <Volume2 className="h-4 w-4 text-blue-600" />
+                )}
+                {isMuted ? "Son off" : "Son on"}
+              </button>
+              <button
+                type="button"
+                onClick={hideControls}
+                className="inline-flex h-full items-center justify-center border-l border-stone-200 px-3 text-stone-400 transition hover:bg-stone-50 hover:text-stone-700"
+                aria-label="Masquer le contrôle audio"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
             {audioUnavailable && (
               <p className="max-w-[240px] rounded-2xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 shadow-sm">
                 L'ambiance audio n'a pas pu se lancer sur ce navigateur.

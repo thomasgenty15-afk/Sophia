@@ -59,6 +59,7 @@ import { buildConversationPulse } from "../conversation_pulse_builder.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 import { isLikelyOneShotReminderRequest } from "../lib/one_shot_reminder_tool.ts";
+import { maybeCompactScopeMemory } from "../scope_memory.ts";
 import {
   buildCoachingInterventionRuntimeAddon,
   buildKnownCoachingBlockersFromTempMemory,
@@ -2235,6 +2236,14 @@ export async function processMessage(
               },
             },
           );
+          await maybeCompactScopeMemory({
+            supabase,
+            userId,
+            scopeRaw: scope,
+            requestId: meta?.requestId ?? null,
+            model: meta?.model ?? null,
+            forceRealAi: meta?.forceRealAi,
+          });
         }
         return {
           content: responseContent,
@@ -2992,6 +3001,14 @@ export async function processMessage(
         },
       },
     );
+    await maybeCompactScopeMemory({
+      supabase,
+      userId,
+      scopeRaw: scope,
+      requestId: meta?.requestId ?? null,
+      model: meta?.model ?? null,
+      forceRealAi: meta?.forceRealAi,
+    });
   }
 
   await trace("routing_decision_summary", "routing", {

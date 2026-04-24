@@ -305,14 +305,13 @@ with
     select '__USER_ID__'::uuid as uid
   ),
 
-  -- 1) Semaines + portes d’entrée Forge/Table Ronde
+  -- 1) Semaines + porte d’entrée Forge
   weeks as (
     select generate_series(1, 12) as w
   ),
   week_state_ids as (
     select format('week_%s', w) as module_id from weeks
     union all select 'forge_access'
-    union all select 'round_table_1'   -- uniquement celle-ci
   ),
   upsert_week_states as (
     insert into public.user_week_states (user_id, module_id, status, available_at, completed_at)

@@ -210,10 +210,10 @@ const ProductArchitect = () => {
                   Contenu Exclusif
                 </div>
                 <h2 className="text-3xl md:text-4xl font-serif font-bold mb-6 text-white">
-                  La Forge & La Table Ronde
+                  La Forge
                 </h2>
                 <p className="text-emerald-200/70 mb-8 leading-relaxed">
-                  Accède à un espace de travail mental unique. Chaque semaine, un nouveau module pour forger une facette de ton caractère, et un rituel hebdomadaire pour aligner tes actions.
+                  Accède à un espace de travail mental unique. Chaque semaine, un nouveau module pour forger une facette de ton caractère et consolider tes actions.
                 </p>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3 text-emerald-100">
@@ -222,7 +222,7 @@ const ProductArchitect = () => {
                   </li>
                   <li className="flex items-center gap-3 text-emerald-100">
                     <Sword className="w-5 h-5 text-emerald-500" />
-                    <span>Rituel hebdomadaire "Table Ronde"</span>
+                    <span>Progression structurée après les 12 semaines</span>
                   </li>
                   <li className="flex items-center gap-3 text-emerald-100">
                     <Sword className="w-5 h-5 text-emerald-500" />

@@ -981,6 +981,12 @@ export type LevelTransitionDecision =
 
 export type LevelReviewSummary = {
   level_kind: "clarity" | "mission" | "habit" | "hybrid";
+  global_metric_state?: "strong_progress" | "slight_progress" | "stable" | "regressed" | "unclear";
+  next_plan_coherence?: "yes" | "mostly" | "no" | "not_sure";
+  coherence_reason?: string | null;
+  difficulty_signal?: "no" | "minor" | "blocking";
+  difficulty_details?: string | null;
+  pride?: string;
   pace_signal: "too_light" | "balanced" | "too_heavy";
   readiness_signal: "need_more_time" | "ready" | "very_ready";
   weekly_fit_signal?: "clear" | "uneven" | "too_dense" | null;

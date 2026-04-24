@@ -771,6 +771,14 @@ export async function generatePlanV2ForTransformation(params: {
   const lockedPlan = context.existingPlans.find((plan) =>
     plan.status === "active" || plan.status === "paused"
   );
+  const activeAdjustmentBasePlanRow = isActivePlanAdjustment && lockedPlan
+    ? await loadPlanById({
+      admin: params.admin,
+      planId: lockedPlan.id,
+    })
+    : null;
+  const activeAdjustmentBasePlan =
+    activeAdjustmentBasePlanRow?.content as unknown as PlanContentV3 | null;
   if (lockedPlan && !isActivePlanAdjustment) {
     if (params.mode === "confirm") {
       console.info("[generate-plan-v2][confirm][activate_locked_plan]", {
@@ -1035,7 +1043,12 @@ export async function generatePlanV2ForTransformation(params: {
     anchor_week_end: scheduleAnchor.anchor_week_end,
     days_remaining_in_anchor_week: scheduleAnchor.days_remaining_in_anchor_week,
     is_partial_anchor_week: scheduleAnchor.is_partial_anchor_week,
-    previous_plan_preview: params.forceRegenerate ? previousPlanPreview : null,
+    previous_plan_preview: activeAdjustmentBasePlan?.version === 3 &&
+        Array.isArray(activeAdjustmentBasePlan.phases)
+      ? activeAdjustmentBasePlan
+      : params.forceRegenerate
+      ? previousPlanPreview
+      : null,
     regeneration_feedback: params.feedback?.trim() || null,
     plan_type_classification: planTypeClassification,
   } as const;

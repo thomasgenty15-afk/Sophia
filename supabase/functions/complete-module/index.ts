@@ -51,20 +51,17 @@ async function getEffectiveTierForUser(supabaseAdmin: any, userId: string): Prom
   }
 }
 
-// --- REGISTRY ---
-type ModuleType = 'week' | 'forge' | 'round_table';
-
 interface TargetModule {
   id: string;
   delayDays?: number;
-  condition?: 'next_sunday' | 'immediate' | 'fixed_delay';
+  condition?: 'immediate' | 'fixed_delay';
 }
 
 interface ModuleDefinition {
   id: string;
   nextModules?: (string | TargetModule)[]; 
   defaultUnlockDelayDays?: number;
-  defaultUnlockCondition?: 'next_sunday' | 'immediate' | 'fixed_delay';
+  defaultUnlockCondition?: 'immediate' | 'fixed_delay';
 }
 
 const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
@@ -76,27 +73,15 @@ const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
   'week_12': { 
     id: 'week_12', 
     nextModules: [
-      { id: 'forge_level_2', delayDays: 7, condition: 'fixed_delay' },
-      { id: 'round_table_1', condition: 'next_sunday' } 
+      { id: 'forge_access', delayDays: 7, condition: 'fixed_delay' },
     ]
   },
   'forge_level_2': { id: 'forge_level_2', nextModules: ['forge_level_3'], defaultUnlockDelayDays: 5 },
-  'round_table_1': { id: 'round_table_1', nextModules: ['round_table_2'], defaultUnlockCondition: 'next_sunday' },
-  'round_table_2': { id: 'round_table_2', nextModules: ['round_table_3'], defaultUnlockCondition: 'next_sunday' },
 };
 
 // --- HELPER DATES ---
 function getUnlockDate(condition: string = 'fixed_delay', delayDays: number = 0): Date {
   const now = new Date();
-  if (condition === 'next_sunday') {
-    const nextSunday = new Date(now);
-    nextSunday.setDate(now.getDate() + (7 - now.getDay()) % 7);
-    if (nextSunday.getDay() === now.getDay()) { 
-        nextSunday.setDate(nextSunday.getDate() + 7);
-    }
-    nextSunday.setHours(9, 0, 0, 0);
-    return nextSunday;
-  }
   const unlockDate = new Date(now);
   unlockDate.setDate(now.getDate() + delayDays);
   return unlockDate;
@@ -160,10 +145,10 @@ serve(async (req) => {
   const table = getTableForModule(moduleId);
 
   // --- 1. LOGIC: FORGE & MICRO-MEMORY (Le Micro-Souvenir) ---
-  // Uniquement pour les modules de la Forge (pas Table Ronde, pas Semaine globale)
+  // Uniquement pour les modules de la Forge (pas Semaine globale)
   let aiSummary: string | null = null;
 
-  if (table === 'user_module_state_entries' && !moduleId.startsWith('round_table_')) {
+  if (table === 'user_module_state_entries') {
     try {
       console.log(`[CompleteModule] Fetching content for ${moduleId} user ${user.id}`);
       const { data: entry, error: fetchError } = await supabaseClient
@@ -276,7 +261,7 @@ serve(async (req) => {
         const n = Number(id.replace("week_", ""));
         if (Number.isFinite(n) && n > 2 && !hasFullArchitecte) return false;
       }
-      if ((id.startsWith("forge") || id.startsWith("round_table")) && !hasFullArchitecte) return false;
+      if (id.startsWith("forge") && !hasFullArchitecte) return false;
       return true;
     });
 
@@ -286,7 +271,7 @@ serve(async (req) => {
     if (modulePayloads.length > 0) {
       const allowedModulePayloads = modulePayloads.filter((p: any) => {
         const id = String(p.module_id ?? "");
-        if ((id.startsWith("forge") || id.startsWith("round_table")) && !hasFullArchitecte) return false;
+        if (id.startsWith("forge") && !hasFullArchitecte) return false;
         return true;
       });
       if (allowedModulePayloads.length > 0) {

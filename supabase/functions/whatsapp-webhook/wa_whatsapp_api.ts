@@ -2,10 +2,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { sendWhatsAppGraph } from "../_shared/whatsapp_graph.ts";
 import { createWhatsAppOutboundRow, markWhatsAppOutboundFailed, markWhatsAppOutboundSent, markWhatsAppOutboundSkipped } from "../_shared/whatsapp_outbound_tracking.ts";
-function denoEnv(name) {
+function denoEnv(name: string) {
   return globalThis?.Deno?.env?.get?.(name);
 }
-export async function sendWhatsAppText(toE164, body) {
+export async function sendWhatsAppText(toE164: string, body: string) {
   const payload = {
     messaging_product: "whatsapp",
     to: toE164.replace("+", ""),
@@ -23,7 +23,17 @@ export async function sendWhatsAppText(toE164, body) {
   };
   return res.data;
 }
-export async function sendWhatsAppTextTracked(params) {
+export async function sendWhatsAppTextTracked(params: {
+  admin: any;
+  requestId: string;
+  userId: string;
+  toE164: string;
+  body: string;
+  purpose?: string | null;
+  isProactive?: boolean;
+  replyToWaMessageId?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
   const { admin, requestId, userId, toE164, body } = params;
   const graphPayload = {
     messaging_product: "whatsapp",
@@ -57,7 +67,10 @@ export async function sendWhatsAppTextTracked(params) {
       error_message: sendRes.non_retry_reason ?? "whatsapp_send_failed",
       error_payload: sendRes.error
     });
-    const err = new Error(`WhatsApp send failed (${sendRes.http_status ?? "network"}): ${JSON.stringify(sendRes.error)}`);
+    const err = new Error(`WhatsApp send failed (${sendRes.http_status ?? "network"}): ${JSON.stringify(sendRes.error)}`) as Error & {
+      outbound_tracking_id?: string;
+      http_status?: number | null;
+    };
     err.outbound_tracking_id = outboundId;
     err.http_status = sendRes.http_status;
     throw err;

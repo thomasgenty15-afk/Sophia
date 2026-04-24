@@ -10,103 +10,78 @@ export function buildLevelReviewQuestions(args: {
   weeks: PlanLevelWeek[];
   reviewFocus: string[];
   dimensions: PlanDimension[];
+  primaryMetricLabel?: string | null;
 }): LevelReviewQuestion[] {
   const questions: LevelReviewQuestion[] = [
     {
-      id: "pace_feel",
-      label: "À la fin de ce niveau, comment tu as vécu le rythme ?",
-      helper_text: "Ça nous aide à régler le dosage du niveau suivant.",
+      id: "global_metric_state",
+      label: `Où est-ce que ça en est sur ${
+        args.primaryMetricLabel?.trim() || "la métrique globale"
+      } ?`,
+      helper_text: "Même une estimation suffit: l'objectif est de situer le cap réel avant la suite.",
       input_type: "single_select",
       options: [
-        { value: "too_light", label: "Trop léger" },
-        { value: "balanced", label: "Bien dosé" },
-        { value: "too_heavy", label: "Trop lourd" },
+        { value: "strong_progress", label: "Net progrès" },
+        { value: "slight_progress", label: "Léger progrès" },
+        { value: "stable", label: "Plutôt stable" },
+        { value: "regressed", label: "Ça a reculé" },
+        { value: "unclear", label: "Difficile à dire" },
       ],
       required: true,
     },
     {
-      id: "readiness",
-      label: "Pour la suite, tu te sens comment ?",
-      helper_text: null,
+      id: "next_plan_coherence",
+      label: "Est-ce que la suite du plan te paraît cohérente ?",
+      helper_text: "Sophia décidera si le prochain niveau et les niveaux suivants doivent rester tels quels ou changer.",
       input_type: "single_select",
       options: [
-        { value: "need_more_time", label: "J'ai encore besoin d'un sas doux" },
-        { value: "ready", label: "Je suis prêt pour la suite" },
-        { value: "very_ready", label: "Je peux accélérer un peu" },
+        { value: "yes", label: "Oui, ça reste cohérent" },
+        { value: "mostly", label: "Globalement oui" },
+        { value: "no", label: "Non, ça ne colle pas" },
+        { value: "not_sure", label: "Je ne sais pas encore" },
       ],
       required: true,
     },
+    {
+      id: "coherence_reason",
+      label: "Si ce n'est pas cohérent, qu'est-ce qui ne l'est pas ?",
+      helper_text: null,
+      input_type: "free_text",
+      options: [],
+      placeholder: "Exemple: le prochain niveau va trop vite, ou il ne répond plus au vrai blocage.",
+      required: false,
+    },
+    {
+      id: "difficulty_signal",
+      label: "Est-ce qu'il y a eu des difficultés importantes sur ce niveau ?",
+      helper_text: "On distingue un frottement normal d'un vrai signal d'ajustement.",
+      input_type: "single_select",
+      options: [
+        { value: "no", label: "Non, rien de majeur" },
+        { value: "minor", label: "Oui, mais gérable" },
+        { value: "blocking", label: "Oui, ça a vraiment bloqué" },
+      ],
+      required: true,
+    },
+    {
+      id: "difficulty_details",
+      label: "Si oui, qu'est-ce qui a été difficile ?",
+      helper_text: null,
+      input_type: "free_text",
+      options: [],
+      placeholder: `Exemple: dans "${args.title}", j'ai décroché quand...`,
+      required: false,
+    },
+    {
+      id: "pride",
+      label: "De quoi tu es fier avec ce niveau ?",
+      helper_text: "Ce point sert aussi à garder ce qui marche dans le prochain niveau.",
+      input_type: "free_text",
+      options: [],
+      placeholder: "Exemple: j'ai tenu le cap même quand c'était imparfait.",
+      required: true,
+    },
   ];
-
-  if ((args.durationWeeks ?? 0) > 1 || args.weeks.length > 1) {
-    questions.push({
-      id: "weekly_fit",
-      label: "Le découpage semaine par semaine t'a aidé comment ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "clear", label: "C'était clair et progressif" },
-        { value: "uneven", label: "Certaines semaines étaient mal placées" },
-        { value: "too_dense", label: "Le niveau restait trop dense" },
-      ],
-      required: true,
-    });
-  }
-
-  if (args.dimensions.includes("missions")) {
-    questions.push({
-      id: "mission_fit",
-      label: "Les missions de ce niveau étaient comment ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "good", label: "Bien placées" },
-        { value: "move_some", label: "Certaines étaient mal placées" },
-        { value: "lighten_some", label: "Certaines étaient trop lourdes" },
-      ],
-      required: true,
-    });
-  }
-
-  if (args.dimensions.includes("habits")) {
-    questions.push({
-      id: "habit_fit",
-      label: "Et pour les habitudes de ce niveau ?",
-      helper_text: null,
-      input_type: "single_select",
-      options: [
-        { value: "keep", label: "Le dosage est bon" },
-        { value: "lighten", label: "Il faudra les alléger un peu" },
-        { value: "unstable", label: "Je n'ai pas réussi à les tenir" },
-      ],
-      required: true,
-    });
-  }
-
-  questions.push({
-    id: "support_need",
-    label: "Pour le prochain niveau, tu as besoin de quoi ?",
-    helper_text: args.reviewFocus.length > 0
-      ? `Focus actuel: ${args.reviewFocus.slice(0, 3).join(" • ")}`
-      : null,
-    input_type: "single_select",
-    options: [
-      { value: "enough", label: "On peut garder le même cadre" },
-      { value: "need_more", label: "J'ai besoin de plus de soutien" },
-      { value: "need_less", label: "J'ai besoin de quelque chose de plus simple" },
-    ],
-    required: true,
-  });
-
-  questions.push({
-    id: "free_text",
-    label: "S'il y a un point à ne pas rater pour la suite, note-le ici.",
-    helper_text: null,
-    input_type: "free_text",
-    options: [],
-    placeholder: `Exemple: dans "${args.title}", le rythme du mardi me coupait l'élan.`,
-    required: false,
-  });
 
   return questions;
 }

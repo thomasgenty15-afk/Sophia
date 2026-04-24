@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
 import { getUserState, normalizeScope } from "../state-manager.ts"
+import { isScopeMemoryEligible } from "../scope_memory.ts"
 
 type ChatMessageRow = {
   role: "user" | "assistant" | "system"
@@ -59,6 +60,9 @@ export async function runSynthesizer(opts: {
   } = opts
 
   const scope = normalizeScope(scopeRaw, "web")
+  if (isScopeMemoryEligible(scope)) {
+    return { updated: false, reason: "managed_by_scope_memory", newMessages: 0 }
+  }
   const state = await getUserState(supabase, userId, scope)
   const prevContext = String(state.short_term_context ?? "").trim()
   const unprocessedMessages = toSafeNonNegativeInt((state as any)?.unprocessed_msg_count)

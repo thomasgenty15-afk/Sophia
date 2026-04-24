@@ -36,10 +36,14 @@ function discoverTriggers(): string[] {
   const files = fs
     .readdirSync(migDir)
     .filter((f) => f.endsWith(".sql"))
-    .filter((f) => !f.includes("_OLD"));
+    .filter((f) => !f.includes("_OLD"))
+    .sort();
 
   for (const f of files) {
     const text = fs.readFileSync(path.join(migDir, f), "utf8");
+    for (const m of text.matchAll(/drop\s+trigger\s+if\s+exists[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi)) {
+      triggers.delete(m[1]);
+    }
     // Important: avoid matching comment blocks like "Create Trigger" followed by a newline.
     // Only match trigger declarations on a single line.
     for (const m of text.matchAll(/create\s+(?:or\s+replace\s+)?trigger[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi)) {
@@ -59,11 +63,9 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "classify-recurring-reminder",
       "complete-module",
       "create-module-memory",
-      "create-round-table-summary",
       "detect-future-events",
       "ethical-text-validator",
       "eval-judge",
-      "generate-feedback",
       "notify-profile-change",
       "process-checkins",
       "process-eval-judge-jobs",
@@ -117,7 +119,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "on_week12_manual_unlock",
       "on_module_created_memory",
       "on_module_updated_memory",
-      "on_round_table_saved",
       "on_week_completed_identity",
       "on_module_updated_identity",
       "on_plan_completed_archive",

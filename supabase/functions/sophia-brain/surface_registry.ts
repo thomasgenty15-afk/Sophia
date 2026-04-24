@@ -158,7 +158,6 @@ export const SURFACE_REGISTRY: SurfaceDefinition[] = [
     aliases: ["atelier", "l'atelier", "coaching", "temple"],
     triggerKeywords: [
       "forge",
-      "table ronde",
       "transformation",
       "identité",
       "blocage profond",

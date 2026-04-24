@@ -7,7 +7,6 @@ import DashboardV2 from "./pages/DashboardV2";
 import AddTransformationPage from "./pages/AddTransformationPage";
 import Grimoire from "./pages/Grimoire";
 import IdentityArchitect from "./pages/IdentityArchitect";
-import WeeklyAlignment from "./pages/WeeklyAlignment";
 import IdentityEvolution from "./pages/IdentityEvolution";
 import OnboardingV2 from "./pages/OnboardingV2";
 import ProductPlan from "./pages/ProductPlan";
@@ -131,14 +130,6 @@ function App() {
                   <RequireAppAccess>
                     <IdentityArchitect />
                   </RequireAppAccess>
-                }
-              />
-              <Route
-                path="/architecte/alignment"
-                element={
-                  <RequireArchitecte>
-                    <WeeklyAlignment />
-                  </RequireArchitecte>
                 }
               />
               <Route

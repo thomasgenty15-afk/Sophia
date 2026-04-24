@@ -1,7 +1,20 @@
 import { processMessage } from "../sophia-brain/router.ts";
+import { extractHiddenFilRougeNote } from "../sophia-brain/chat_text.ts";
+import { getUserState, updateUserState } from "../sophia-brain/state-manager.ts";
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
 import { loadHistory } from "./wa_db.ts";
-export async function replyWithBrain(params) {
+export async function replyWithBrain(params: {
+  admin: any;
+  requestId: string;
+  userId: string;
+  inboundText: string;
+  fromE164: string;
+  contextOverride?: string | null;
+  whatsappMode?: "onboarding" | "normal";
+  forceMode?: any;
+  purpose?: string | null;
+  replyToWaMessageId?: string | null;
+}) {
   const startedAtMs = Date.now();
   const scope = "whatsapp";
   console.log(`[whatsapp-webhook] trace ${JSON.stringify({
@@ -42,13 +55,33 @@ export async function replyWithBrain(params) {
     mode: brain.mode ?? null,
     user_id: params.userId
   })}`);
+  const parsed = extractHiddenFilRougeNote(brain.content);
+  const visibleReply = parsed.visibleText.trim() || String(brain.content ?? "").trim();
+  if (parsed.note) {
+    try {
+      const state = await getUserState(params.admin as any, params.userId, scope);
+      const nextTempMemory = {
+        ...(((state as any)?.temp_memory ?? {}) as Record<string, unknown>),
+        __whatsapp_fil_rouge: {
+          text: parsed.note,
+          marker: parsed.marker,
+          updated_at: new Date().toISOString(),
+        },
+      };
+      await updateUserState(params.admin as any, params.userId, scope, {
+        temp_memory: nextTempMemory,
+      } as any);
+    } catch (error) {
+      console.warn("[whatsapp-webhook] failed to persist whatsapp fil rouge", error);
+    }
+  }
   const sendStartedAtMs = Date.now();
   const sendResp = await sendWhatsAppTextTracked({
     admin: params.admin,
     requestId: params.requestId,
     userId: params.userId,
     toE164: params.fromE164,
-    body: brain.content,
+    body: visibleReply,
     purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
     isProactive: false,
     replyToWaMessageId: params.replyToWaMessageId ?? null
@@ -67,7 +100,7 @@ export async function replyWithBrain(params) {
     user_id: params.userId,
     scope,
     role: "assistant",
-    content: brain.content,
+    content: visibleReply,
     agent_used: brain.mode,
     metadata: {
       channel: "whatsapp",
@@ -75,7 +108,8 @@ export async function replyWithBrain(params) {
       outbound_tracking_id: outboundTrackingId,
       is_proactive: false,
       reply_to_wa_message_id: params.replyToWaMessageId ?? null,
-      purpose: params.purpose ?? "whatsapp_state_soft_brain_reply"
+      purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
+      has_hidden_fil_rouge: Boolean(parsed.note),
     }
   });
   console.log(`[whatsapp-webhook] trace ${JSON.stringify({

@@ -9,7 +9,7 @@ import {
 } from "./memory_provenance.ts";
 import { processTopicsFromWatcher } from "./topic_memory.ts";
 
-type ArchitectSourceKind = "module" | "round_table";
+type ArchitectSourceKind = "module";
 type ArchitectUpdateKind =
   | "creation"
   | "precision"
@@ -197,17 +197,6 @@ function isTrivialReformulation(oldText: string, newText: string): boolean {
   if (previous === current) return true;
   const overlap = jaccard(tokenize(previous), tokenize(current));
   return overlap >= 0.92;
-}
-
-function buildRoundTableText(record: Record<string, unknown>): string {
-  const lines = [
-    `Énergie: ${compactText(record.energy_level, 80)}/100`,
-    `Victoires: ${compactText(record.wins_3, 600)}`,
-    `Blocage principal: ${compactText(record.main_blocker, 400)}`,
-    `Alignement identitaire: ${compactText(record.identity_alignment, 120)}`,
-    `Intention de semaine: ${compactText(record.week_intention, 400)}`,
-  ].filter((line) => !line.endsWith(": "));
-  return lines.join("\n").trim();
 }
 
 function buildArchitectProvenance(params: {
@@ -431,16 +420,10 @@ export async function ingestArchitectMemorySource(params: {
 
   const tableName = String(params.tableName ?? "").trim() ||
     "user_module_state_entries";
-  const kind: ArchitectSourceKind = tableName === "user_round_table_entries"
-    ? "round_table"
-    : "module";
+  const kind: ArchitectSourceKind = "module";
 
-  const newText = kind === "round_table"
-    ? buildRoundTableText(record)
-    : extractStructuredText(record.content);
-  const oldText = kind === "round_table"
-    ? buildRoundTableText((params.oldRecord ?? {}) as Record<string, unknown>)
-    : extractStructuredText((params.oldRecord ?? {}).content);
+  const newText = extractStructuredText(record.content);
+  const oldText = extractStructuredText((params.oldRecord ?? {}).content);
 
   if (newText.length < 20) {
     const result = {
@@ -501,10 +484,7 @@ export async function ingestArchitectMemorySource(params: {
   }
 
   const weekNum = deriveWeekNumFromModuleId(moduleId);
-  const questionContext = kind === "module" ? findModuleQuestion(moduleId) : {
-    canonicalId: null,
-    questionText: `Table ronde ${moduleId}`,
-  };
+  const questionContext = findModuleQuestion(moduleId);
   const updateKind = classifyArchitectUpdateKind(oldText, newText);
   const provenance = buildArchitectProvenance({
     kind,
@@ -517,18 +497,13 @@ export async function ingestArchitectMemorySource(params: {
     triggerOp: params.oldRecord ? "update" : "insert",
   });
 
-  const transcript = kind === "round_table"
-    ? [
-      "USER: Table ronde hebdomadaire Architecte",
-      `USER: ${newText}`,
-    ].join("\n")
-    : [
-      "USER: Module Architecte",
-      questionContext.questionText
-        ? `USER: Question du module: ${questionContext.questionText}`
-        : "",
-      `USER: Réponse actuelle: ${newText}`,
-    ].filter(Boolean).join("\n");
+  const transcript = [
+    "USER: Module Architecte",
+    questionContext.questionText
+      ? `USER: Question du module: ${questionContext.questionText}`
+      : "",
+    `USER: Réponse actuelle: ${newText}`,
+  ].filter(Boolean).join("\n");
 
   const currentContext = buildArchitectCurrentContext({
     kind,

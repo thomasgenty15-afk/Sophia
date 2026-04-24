@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Lightbulb,
   Plus,
@@ -10,7 +10,6 @@ import {
   ChevronDown,
   ChevronUp,
   Bot,
-  MessageSquare,
   Send,
   Info,
   Sparkles,
@@ -18,7 +17,17 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
+import { newRequestId, requestHeaders } from '../../lib/requestId';
+import {
+  clearReflectionDraftCache,
+  isArchitectDraftExpired,
+  loadReflectionDraftCache,
+  persistReflectionDraftCache,
+} from '../../lib/architectDraftCache';
 import { useAuth } from '../../context/AuthContext';
+
+const sanitizeBrokenGlyphs = (s: string) =>
+  s.replace(/[\uFFFD\uFFFE\uFFFF]/g, '').replace(/\uD83D[\uDC00-\uDFFF]|\uD83C[\uDC00-\uDFFF]/g, '').trim();
 
 type ReflectionRow = {
   id: string;
@@ -52,6 +61,18 @@ const CHAT_SUGGESTIONS = ['Aide-moi à approfondir', 'Trouve un exemple', 'Résu
 
 function buildChatMessages(text: string): ChatMessage[] {
   return [{ id: 1, sender: 'ai', text }];
+}
+
+function TypingDot() {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className="inline-block w-2 h-2 rounded-full bg-emerald-200/90 animate-pulse"
+        aria-hidden="true"
+      />
+      <span className="sr-only">Sophia est en train d'écrire...</span>
+    </span>
+  );
 }
 
 function formatReflectionDate(iso: string): string {
@@ -114,6 +135,7 @@ export const ReflectionsTab: React.FC = () => {
   const [showExplanation, setShowExplanation] = useState(false);
   const [showMobileSophia, setShowMobileSophia] = useState(false);
   const [showMobileSophiaDetails, setShowMobileSophiaDetails] = useState(false);
+  const [showDesktopSophiaDetails, setShowDesktopSophiaDetails] = useState(true);
   const [reflections, setReflections] = useState<Reflection[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusMsg, setStatusMsg] = useState<string | null>(null);
@@ -129,6 +151,9 @@ export const ReflectionsTab: React.FC = () => {
   const [formTags, setFormTags] = useState('');
   const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>(buildChatMessages(DEFAULT_CHAT_TEXT));
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const chatScopeRef = useRef<string>(crypto.randomUUID());
+  const [filRouge, setFilRouge] = useState<string | null>(null);
 
   const filteredReflections = useMemo(
     () =>
@@ -151,6 +176,93 @@ export const ReflectionsTab: React.FC = () => {
     setChatInput('');
     setChatMessages(buildChatMessages(DEFAULT_CHAT_TEXT));
     setStatusMsg(null);
+    setFilRouge(null);
+  };
+
+  const isDraftScope = (scope: string) => scope.startsWith('reflection:draft:');
+
+  const hasMeaningfulDraft = () =>
+    Boolean(
+      formTitle.trim() ||
+      formContent.trim() ||
+      formTags.trim() ||
+      chatMessages.length > 1
+    );
+
+  const persistCurrentDraft = () => {
+    if (!user?.id) return;
+    const scope = chatScopeRef.current;
+    if (!isDraftScope(scope) || !hasMeaningfulDraft()) return;
+    persistReflectionDraftCache(user.id, {
+      scope,
+      title: formTitle,
+      content: formContent,
+      tags: formTags,
+      filRouge,
+    });
+  };
+
+  const clearCurrentDraft = () => {
+    if (!user?.id) return;
+    clearReflectionDraftCache(user.id);
+  };
+
+  const deleteDraftScopeData = async (scope: string) => {
+    if (!user?.id || !isDraftScope(scope)) return;
+    try {
+      await supabase
+        .from('conversation_scope_memories')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('scope', scope);
+      await supabase
+        .from('chat_messages')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('scope', scope);
+    } catch (error) {
+      console.warn('[ReflectionsTab] draft cleanup failed', error);
+    }
+  };
+
+  const loadChatHistory = async (scope: string, fallbackText: string) => {
+    if (!user?.id) return buildChatMessages(fallbackText);
+    const { data } = await supabase
+      .from('chat_messages')
+      .select('role, content, created_at')
+      .eq('user_id', user.id)
+      .eq('scope', scope)
+      .order('created_at', { ascending: true })
+      .limit(40);
+
+    if (data && data.length > 0) {
+      return data.map((row, i) => ({
+        id: Date.now() + i,
+        sender: row.role === 'user' ? 'user' as const : 'ai' as const,
+        text: row.content as string,
+      }));
+    }
+
+    return buildChatMessages(fallbackText);
+  };
+
+  const closeDraftComposer = () => {
+    if (editingId) {
+      resetForm();
+      return;
+    }
+
+    if (hasMeaningfulDraft()) {
+      persistCurrentDraft();
+    } else {
+      const scope = chatScopeRef.current;
+      clearCurrentDraft();
+      if (isDraftScope(scope)) {
+        void deleteDraftScopeData(scope);
+      }
+    }
+
+    resetForm();
   };
 
   const loadReflections = async () => {
@@ -207,52 +319,110 @@ export const ReflectionsTab: React.FC = () => {
     }
   };
 
-  const buildSophiaReply = (title: string, content: string, prompt: string) => {
-    const normalizedPrompt = prompt.toLowerCase();
+  useEffect(() => {
+    if (!isAdding || editingId || !user?.id || !isDraftScope(chatScopeRef.current)) return;
+    if (!hasMeaningfulDraft()) return;
+    persistCurrentDraft();
+  }, [user?.id, isAdding, editingId, formTitle, formContent, formTags, filRouge, chatMessages]);
 
-    if (normalizedPrompt.includes('approfondir') || normalizedPrompt.includes('développer')) {
-      return "Pour approfondir cette idée, demande-toi : d'où vient cette pensée ? Est-ce lié à une expérience récente ou à une observation plus ancienne ?";
-    }
-
-    if (normalizedPrompt.includes('résumer') || normalizedPrompt.includes('synthétiser')) {
-      return "Si tu devais expliquer cette réflexion à un enfant de 10 ans en une seule phrase, que dirais-tu ?";
-    }
-
-    if (!title) {
-      return "Commence par donner un titre à ta réflexion, même provisoire. Ça t'aidera à garder le cap sur l'idée principale.";
-    }
-
-    if (content.length < 50) {
-      return "C'est un bon début. Peux-tu me donner un exemple concret pour illustrer cette pensée ?";
-    }
-
-    return "C'est une réflexion intéressante. Comment pourrais-tu appliquer cette idée concrètement dans ton quotidien dès demain ?";
-  };
-
-  const openCreate = () => {
+  const openCreate = async () => {
     resetForm();
+
+    const cachedDraft = user?.id ? loadReflectionDraftCache(user.id) : null;
+    if (cachedDraft && isArchitectDraftExpired(cachedDraft.updatedAt)) {
+      clearCurrentDraft();
+      void deleteDraftScopeData(cachedDraft.scope);
+    }
+
+    if (cachedDraft && !isArchitectDraftExpired(cachedDraft.updatedAt)) {
+      chatScopeRef.current = cachedDraft.scope;
+      setFormTitle(cachedDraft.title);
+      setFormContent(cachedDraft.content);
+      setFormTags(cachedDraft.tags);
+      setFilRouge(cachedDraft.filRouge);
+      setChatInput('');
+      setStatusMsg("Brouillon non enregistré repris.");
+      setChatMessages(await loadChatHistory(cachedDraft.scope, CREATE_CHAT_TEXT));
+      setIsAdding(true);
+      return;
+    }
+
+    chatScopeRef.current = `reflection:draft:${crypto.randomUUID()}`;
     setChatMessages(buildChatMessages(CREATE_CHAT_TEXT));
     setIsAdding(true);
   };
 
-  const handleSendChat = () => {
+  const handleSendChat = async () => {
     const trimmed = chatInput.trim();
-    if (!trimmed) return;
+    if (!trimmed || isChatLoading || !user?.id) return;
 
-    const userMessage: ChatMessage = {
-      id: Date.now(),
-      sender: 'user',
-      text: trimmed,
-    };
-
-    const aiMessage: ChatMessage = {
-      id: Date.now() + 1,
-      sender: 'ai',
-      text: buildSophiaReply(formTitle, formContent, trimmed),
-    };
-
-    setChatMessages((current) => [...current, userMessage, aiMessage]);
+    const userMessage: ChatMessage = { id: Date.now(), sender: 'user', text: trimmed };
+    setChatMessages((current) => [...current, userMessage]);
     setChatInput('');
+    setIsChatLoading(true);
+    persistReflectionDraftCache(user.id, {
+      scope: chatScopeRef.current,
+      title: formTitle,
+      content: formContent,
+      tags: formTags,
+      filRouge,
+    });
+
+    try {
+      const contextLines: string[] = [
+        '=== CONTEXTE RÉFLEXION (UI) ===',
+        "La réflexion à remplir dans cette interface comporte exactement 3 parties visibles.",
+        "1. Sujet : une phrase courte qui nomme clairement l'idée principale.",
+        "2. Développement : le corps rédigé de la réflexion, avec nuance, observation et mise en perspective.",
+        "3. Tags : quelques mots-clés séparés par des virgules pour retrouver l'idée plus tard.",
+        "Si l'utilisateur demande un premier jet, un brouillon, ou de remplir les 3 parties, réponds directement dans ce format :",
+        "Sujet : ...",
+        "Développement : ...",
+        "Tags : tag1, tag2, tag3",
+        "Ne demande pas quelles sont les 3 parties : elles sont déjà définies par l'interface.",
+        `Sujet actuel : ${formTitle || '(pas encore nommé)'}`,
+        `Développement actuel : ${formContent ? formContent.slice(0, 500) : '(vide)'}`,
+        `Tags actuels : ${formTags.trim() || '(aucun)'}`,
+        "L'utilisateur est en train de structurer ou approfondir une réflexion personnelle.",
+        "Aide-le à clarifier l'idée centrale, à trouver des exemples, ou à challenger son raisonnement.",
+        "Quand c'est utile, formule une réponse directement exploitable et copiable dans les champs visibles.",
+      ];
+      if (filRouge) contextLines.push(`Fil rouge (synthèse en cours) : ${filRouge}`);
+
+      const requestId = newRequestId();
+      const { data, error } = await supabase.functions.invoke('sophia-brain', {
+        body: {
+          message: trimmed,
+          scope: chatScopeRef.current,
+          contextOverride: contextLines.join('\n'),
+          requestId,
+        },
+        headers: requestHeaders(requestId),
+      });
+
+      if (error) throw error;
+
+      let rawText: string = String(data?.content ?? data?.reply ?? data?.message ?? '').trim();
+      const filRougeMatch = rawText.match(/<!--fil_rouge:([\s\S]*?)-->/);
+      if (filRougeMatch) {
+        setFilRouge(filRougeMatch[1].trim());
+        rawText = rawText.replace(/<!--fil_rouge:[\s\S]*?-->/, '').trim();
+      }
+      const assistantText = sanitizeBrokenGlyphs(rawText) || "Je n'ai pas réussi à formuler une réponse. Réessaie ?";
+
+      setChatMessages((current) => [
+        ...current,
+        { id: Date.now(), sender: 'ai', text: assistantText },
+      ]);
+    } catch (err) {
+      console.error('[ReflectionsTab] chat error', err);
+      setChatMessages((current) => [
+        ...current,
+        { id: Date.now(), sender: 'ai', text: "Une erreur s'est produite. Réessaie dans un instant." },
+      ]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -329,9 +499,28 @@ export const ReflectionsTab: React.FC = () => {
           .single();
         if (error) throw error;
 
-        setReflections((current) => [rowToReflection(data as ReflectionRow), ...current]);
+        const newReflection = rowToReflection(data as ReflectionRow);
+        // Migrate chat history from draft scope to real reflection scope
+        const oldScope = chatScopeRef.current;
+        const newScope = `reflection:${newReflection.id}`;
+        if (oldScope !== newScope && oldScope.startsWith('reflection:draft:')) {
+          await supabase
+            .from('chat_messages')
+            .update({ scope: newScope })
+            .eq('user_id', user.id)
+            .eq('scope', oldScope);
+          await supabase
+            .from('conversation_scope_memories')
+            .update({ scope: newScope })
+            .eq('user_id', user.id)
+            .eq('scope', oldScope);
+          chatScopeRef.current = newScope;
+        }
+
+        setReflections((current) => [newReflection, ...current]);
       }
 
+      clearCurrentDraft();
       resetForm();
     } catch (error) {
       console.error('[ReflectionsTab] save failed', error);
@@ -341,16 +530,20 @@ export const ReflectionsTab: React.FC = () => {
     }
   };
 
-  const editReflection = (ref: Reflection) => {
+  const editReflection = async (ref: Reflection) => {
+    const scope = `reflection:${ref.id}`;
+    chatScopeRef.current = scope;
+    setFilRouge(null);
     setStatusMsg(null);
     setFormTitle(ref.title);
     setFormContent(ref.content);
     setFormTags(ref.tags.join(', '));
     setEditingId(ref.id);
     setChatInput('');
-    setChatMessages(buildChatMessages(EDIT_CHAT_TEXT));
     setShowMobileSophia(false);
     setShowMobileSophiaDetails(false);
+    // Load existing chat history for this reflection
+    setChatMessages(await loadChatHistory(scope, EDIT_CHAT_TEXT));
     setIsAdding(true);
   };
 
@@ -435,7 +628,7 @@ export const ReflectionsTab: React.FC = () => {
 
         {isAdding && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 lg:p-6">
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={resetForm} />
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeDraftComposer} />
 
             <div className="relative w-full h-[calc(100dvh-24px)] lg:h-[92vh] lg:max-w-7xl rounded-[28px] border border-emerald-800/60 bg-emerald-950 shadow-2xl overflow-hidden flex flex-col lg:flex-row">
               <div className="w-full min-h-0 flex flex-col lg:w-[64%] lg:border-r border-emerald-900/60">
@@ -447,7 +640,7 @@ export const ReflectionsTab: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <button
-                      onClick={resetForm}
+                      onClick={closeDraftComposer}
                       className="p-2.5 md:p-3 text-emerald-400 hover:text-white hover:bg-emerald-900/50 rounded-xl transition-colors"
                     >
                       <X className="w-5 h-5" />
@@ -530,35 +723,54 @@ export const ReflectionsTab: React.FC = () => {
 
               <div className="hidden lg:flex w-[36%] min-h-0 flex-col bg-emerald-900/10">
                 <div className="border-b border-emerald-900/60 px-4 md:px-6 py-4 md:py-5 shrink-0">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-emerald-900/60 border border-emerald-800/60 flex items-center justify-center">
-                      <Bot className="w-5 h-5 text-emerald-300" />
+                  <div className="flex items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-900/60 border border-emerald-800/60 flex items-center justify-center">
+                        <Bot className="w-5 h-5 text-emerald-300" />
+                      </div>
+                      <div>
+                        <div className="text-sm md:text-base uppercase tracking-[0.2em] text-emerald-500 font-bold">SOPHIA</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-sm md:text-base uppercase tracking-[0.2em] text-emerald-500 font-bold">SOPHIA</div>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowDesktopSophiaDetails((current) => !current)}
+                      className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-emerald-400 hover:text-white transition-colors"
+                    >
+                      {showDesktopSophiaDetails ? 'Réduire' : 'Détails'}
+                      {showDesktopSophiaDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
                   </div>
 
-                  <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-4 text-sm text-emerald-200/80 leading-relaxed">
-                    <p>Sophia t'aide à creuser tes idées, à trouver des exemples ou à synthétiser ta pensée.</p>
-                    <div className="mt-3 pt-3 border-t border-emerald-800/30 flex items-start gap-2 text-emerald-400/80 text-xs font-medium">
-                      <Info className="w-4 h-4 shrink-0 mt-0.5" />
-                      <p>Pense à <strong>sauvegarder</strong> tes modifications pour que Sophia puisse les prendre en compte dans ses réponses.</p>
-                    </div>
-                  </div>
+                  {showDesktopSophiaDetails && (
+                    <>
+                      <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-4 text-sm text-emerald-200/80 leading-relaxed">
+                        <p>Sophia t'aide à creuser tes idées, à trouver des exemples ou à synthétiser ta pensée.</p>
+                        <div className="mt-3 pt-3 border-t border-emerald-800/30 flex items-start gap-2 text-emerald-400/80 text-xs font-medium">
+                          <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                          <p>Pense à <strong>sauvegarder</strong> tes modifications pour que Sophia puisse les prendre en compte dans ses réponses.</p>
+                        </div>
+                      </div>
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {CHAT_SUGGESTIONS.map((suggestion) => (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => setChatInput(suggestion)}
-                        className="px-3 py-2 rounded-full bg-emerald-950/50 border border-emerald-800/50 text-xs text-emerald-300 hover:text-white hover:border-emerald-600 transition-colors"
-                      >
-                        {suggestion}
-                      </button>
-                    ))}
-                  </div>
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {CHAT_SUGGESTIONS.map((suggestion) => (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => setChatInput(suggestion)}
+                            className="px-3 py-2 rounded-full bg-emerald-950/50 border border-emerald-800/50 text-xs text-emerald-300 hover:text-white hover:border-emerald-600 transition-colors"
+                          >
+                            {suggestion}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {!showDesktopSophiaDetails && (
+                    <div className="text-xs text-emerald-500/80">
+                      Espace d'aide masqué.
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex-1 min-h-0 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4">
@@ -575,25 +787,38 @@ export const ReflectionsTab: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[90%] rounded-2xl p-4 text-sm leading-relaxed bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                        <TypingDot />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="border-t border-emerald-900/60 p-4 md:p-6 shrink-0">
-                  <div className="rounded-2xl border border-emerald-800/50 bg-emerald-950/50 p-3">
-                    <div className="flex items-start gap-3">
-                      <MessageSquare className="w-4 h-4 text-emerald-500 mt-3 shrink-0" />
-                      <textarea
-                        value={chatInput}
-                        onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Demande à Sophia..."
-                        className="flex-1 min-h-[72px] bg-transparent text-sm text-white placeholder-emerald-700 resize-none focus:outline-none"
-                      />
-                      <button
-                        onClick={handleSendChat}
-                        className="mt-1 p-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white transition-colors"
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
-                    </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          void handleSendChat();
+                        }
+                      }}
+                      placeholder="Discuter avec Sophia..."
+                      className="w-full bg-emerald-950 border border-emerald-800 rounded-xl pl-4 pr-14 py-4 text-sm text-white placeholder-emerald-700 focus:ring-1 focus:ring-emerald-500 outline-none shadow-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void handleSendChat()}
+                      disabled={isChatLoading}
+                      className="absolute right-2 top-2 bottom-2 w-10 flex items-center justify-center bg-emerald-800 hover:bg-emerald-700 text-emerald-100 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      {isChatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
               </div>
@@ -676,22 +901,37 @@ export const ReflectionsTab: React.FC = () => {
                         </div>
                       </div>
                     ))}
+                    {isChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[90%] rounded-2xl p-4 text-sm leading-relaxed bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                          <TypingDot />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="border-t border-emerald-900/60 px-4 py-3 shrink-0">
-                    <div className="flex items-start gap-3">
-                      <MessageSquare className="w-4 h-4 text-emerald-500 mt-3 shrink-0" />
-                      <textarea
+                  <div className="p-4 border-t border-emerald-900 bg-emerald-950 shrink-0">
+                    <div className="relative">
+                      <input
+                        type="text"
                         value={chatInput}
                         onChange={(e) => setChatInput(e.target.value)}
-                        placeholder="Demande à Sophia..."
-                        className="flex-1 min-h-[72px] bg-transparent text-sm text-white placeholder-emerald-700 resize-none focus:outline-none"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            void handleSendChat();
+                          }
+                        }}
+                        placeholder="Répondre..."
+                        className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-emerald-600/80 focus:ring-1 focus:ring-emerald-500 outline-none"
                       />
                       <button
-                        onClick={handleSendChat}
-                        className="mt-1 p-3 text-white transition-colors hover:text-emerald-300"
+                        type="button"
+                        onClick={() => void handleSendChat()}
+                        disabled={isChatLoading}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 p-2 disabled:opacity-50"
                       >
-                        <Send className="w-4 h-4" />
+                        {isChatLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
@@ -769,7 +1009,7 @@ export const ReflectionsTab: React.FC = () => {
                   Prends un moment pour poser tes pensées, tes doutes ou tes idées du moment.
                 </p>
                 <button
-                  onClick={() => setIsAdding(true)}
+                  onClick={() => void openCreate()}
                   className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 md:px-6 py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base transition-colors shadow-lg shadow-emerald-900/50"
                 >
                   <Plus className="w-4 h-4 md:w-5 md:h-5" />

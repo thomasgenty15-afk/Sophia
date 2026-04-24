@@ -105,6 +105,39 @@ export function normalizeChatText(
   return collapseBlankLines ? out.replace(/\n{3,}/g, "\n\n").trim() : out;
 }
 
+const FIL_ROUGE_MARKERS = [
+  "fil_rouge_whatsapp",
+  "fil_rouge",
+];
+
+export function extractHiddenFilRougeNote(
+  text: unknown,
+): { visibleText: string; note: string | null; marker: string | null } {
+  const raw = String(text ?? "");
+  for (const marker of FIL_ROUGE_MARKERS) {
+    const pattern = new RegExp(
+      `(?:\\n|\\r\\n)?<!--\\s*${marker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*$`,
+      "i",
+    );
+    const match = raw.match(pattern);
+    if (!match) continue;
+    const note = String(match[1] ?? "").trim().replace(/\s+/g, " ").slice(
+      0,
+      500,
+    );
+    const visibleText = raw.replace(pattern, "").trimEnd();
+    return {
+      visibleText,
+      note: note || null,
+      marker,
+    };
+  }
+  return {
+    visibleText: raw,
+    note: null,
+    marker: null,
+  };
+}
 
 
 

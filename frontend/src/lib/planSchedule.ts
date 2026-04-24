@@ -198,6 +198,29 @@ export function getPlanWeekCalendar(
   };
 }
 
+export function getPlanLevelEndDate(
+  anchor: PlanScheduleAnchor,
+  durationWeeks: number | null | undefined,
+): string | null {
+  const weekCount = Math.max(1, Math.floor(durationWeeks ?? 1));
+  return addDaysYmd(anchor.anchor_week_end, (weekCount - 1) * 7);
+}
+
+export function isPlanLevelReviewWindowOpen(args: {
+  anchor: PlanScheduleAnchor | null;
+  durationWeeks: number | null | undefined;
+  now?: Date;
+  unlockDaysBeforeEnd?: number;
+}): boolean {
+  if (!args.anchor) return false;
+  const endDate = getPlanLevelEndDate(args.anchor, args.durationWeeks);
+  const localToday = getLocalYmdInTimezone(args.anchor.timezone, args.now ?? new Date());
+  if (!endDate || !localToday) return false;
+
+  const unlockDate = addDaysYmd(endDate, -(args.unlockDaysBeforeEnd ?? 2));
+  return Boolean(unlockDate && compareYmd(localToday, unlockDate) >= 0);
+}
+
 function formatPlainDate(
   ymd: string,
   options: Intl.DateTimeFormatOptions,

@@ -72,7 +72,7 @@ Supprimer les tests qui invoquent :
 - `sort-priorities`
 - `break-down-action`
 Supprimer le teardown `user_plans` (V1).
-Garder les tests `generate-feedback`, `sophia-brain`, etc.
+Garder les tests `sophia-brain`, etc.
 
 ### `frontend/src/edge/coverage-guard.int.test.ts`
 
@@ -413,7 +413,6 @@ Apres tous les batches :
 
 - `weekly_bilan_recaps` — utilise par le V2 comme persistence complementaire
 - `user_personal_actions` — table utilisee par le dashboard pour des actions personnelles (hors scope V2)
-- `user_round_table_entries` — systeme modules (orthogonal)
 - `user_framework_entries` — sera supprime avec Grimoire
 - `AdminUsageDashboard.tsx` — mapping historique des familles LLM (mentions textuelles, pas de `.from()`)
 - Tables V1 en base de donnees — on ne les drop PAS. Elles restent en base mais plus aucun code ne les lit.

@@ -13,10 +13,6 @@ Deno.test("deriveWeekNumFromModuleId: extracts axis week from architect module i
     deriveWeekNumFromModuleId("a1_c1_m1_174000") === 1,
     "should extract week 1 even with suffix",
   );
-  assert(
-    deriveWeekNumFromModuleId("round_table_1") === null,
-    "round tables are not axis modules",
-  );
 });
 
 Deno.test("classifyArchitectUpdateKind: distinguishes creation / precision / contradiction", () => {
