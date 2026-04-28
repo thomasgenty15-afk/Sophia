@@ -30,7 +30,7 @@ type WeekPlanningItemState = {
       ordinal: number;
       default_day: DayCode;
       planned_day: DayCode;
-      status: "planned" | "done" | "missed" | "rescheduled";
+      status: "planned" | "done" | "partial" | "missed" | "rescheduled";
     }>;
   };
 };
@@ -51,7 +51,10 @@ type WeekPlanningModalProps = {
   onSaved: (status: "pending_confirmation" | "confirmed") => void;
 };
 
-const inflightBundleLoads = new Map<string, Promise<WeekPlanningBundleResponse>>();
+const inflightBundleLoads = new Map<
+  string,
+  Promise<WeekPlanningBundleResponse>
+>();
 
 function frenchLabel(day: DayCode) {
   return {
@@ -81,7 +84,9 @@ function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
   const seen = new Set<DayCode>();
   for (const day of days ?? []) {
     const normalized = String(day ?? "").trim().toLowerCase() as DayCode;
-    if ((DAY_CODES as readonly string[]).includes(normalized)) seen.add(normalized);
+    if ((DAY_CODES as readonly string[]).includes(normalized)) {
+      seen.add(normalized);
+    }
   }
   return [...seen];
 }
@@ -136,7 +141,10 @@ function cardLabel(item: DashboardV2PlanItemRuntime) {
   return "Action";
 }
 
-function buildBundleLoadKey(weekStartDate: string, requestItems: WeekPlanningModalRequestItem[]) {
+function buildBundleLoadKey(
+  weekStartDate: string,
+  requestItems: WeekPlanningModalRequestItem[],
+) {
   return JSON.stringify({
     week_start_date: weekStartDate,
     items: requestItems,
@@ -163,22 +171,28 @@ export function WeekPlanningModal({
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [bundle, setBundle] = useState<WeekPlanningBundleResponse | null>(null);
-  const [selectedDaysByItemId, setSelectedDaysByItemId] = useState<Record<string, DayCode[]>>({});
+  const [selectedDaysByItemId, setSelectedDaysByItemId] = useState<
+    Record<string, DayCode[]>
+  >({});
 
-  const allowedDays = useMemo(() => getAllowedDays(weekCalendar), [weekCalendar]);
+  const allowedDays = useMemo(() => getAllowedDays(weekCalendar), [
+    weekCalendar,
+  ]);
 
-  const requestItems = useMemo<WeekPlanningModalRequestItem[]>(() =>
-    items.map((item) => {
-      const preferred = item.dimension === "habits"
-        ? allowedDays
-        : normalizeDayCodes(preferredDaysByItemId.get(item.id));
-      return {
-        plan_item_id: item.id,
-        preferred_days: preferred.length > 0 ? preferred : allowedDays,
-        target_reps_override: weeklyTargetForItem(item, allowedDays.length),
-      };
-    }),
-  [allowedDays, items, preferredDaysByItemId]);
+  const requestItems = useMemo<WeekPlanningModalRequestItem[]>(
+    () =>
+      items.map((item) => {
+        const preferred = item.dimension === "habits"
+          ? allowedDays
+          : normalizeDayCodes(preferredDaysByItemId.get(item.id));
+        return {
+          plan_item_id: item.id,
+          preferred_days: preferred.length > 0 ? preferred : allowedDays,
+          target_reps_override: weeklyTargetForItem(item, allowedDays.length),
+        };
+      }),
+    [allowedDays, items, preferredDaysByItemId],
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -190,22 +204,26 @@ export function WeekPlanningModal({
       setError(null);
       setInfo(null);
       try {
-        const requestKey = buildBundleLoadKey(weekCalendar.anchorWeekStart, requestItems);
-        const pending = inflightBundleLoads.get(requestKey) ?? supabase.functions
-          .invoke("habit-week-planning-v1", {
-            body: {
-              action: "get_bundle_state",
-              week_start_date: weekCalendar.anchorWeekStart,
-              items: requestItems,
-            },
-          })
-          .then(({ data, error: invokeError }) => {
-            if (invokeError) throw invokeError;
-            return data as WeekPlanningBundleResponse;
-          })
-          .finally(() => {
-            inflightBundleLoads.delete(requestKey);
-          });
+        const requestKey = buildBundleLoadKey(
+          weekCalendar.anchorWeekStart,
+          requestItems,
+        );
+        const pending = inflightBundleLoads.get(requestKey) ??
+          supabase.functions
+            .invoke("habit-week-planning-v1", {
+              body: {
+                action: "get_bundle_state",
+                week_start_date: weekCalendar.anchorWeekStart,
+                items: requestItems,
+              },
+            })
+            .then(({ data, error: invokeError }) => {
+              if (invokeError) throw invokeError;
+              return data as WeekPlanningBundleResponse;
+            })
+            .finally(() => {
+              inflightBundleLoads.delete(requestKey);
+            });
         inflightBundleLoads.set(requestKey, pending);
         const payload = await pending;
         if (cancelled) return;
@@ -213,12 +231,20 @@ export function WeekPlanningModal({
         setSelectedDaysByItemId(
           Object.fromEntries(payload.items.map((entry) => [
             entry.plan_item.id,
-            normalizeDayCodes(entry.week.occurrences.map((occurrence) => occurrence.planned_day)),
+            normalizeDayCodes(
+              entry.week.occurrences.map((occurrence) =>
+                occurrence.planned_day
+              ),
+            ),
           ])),
         );
       } catch (loadError) {
         if (cancelled) return;
-        setError(loadError instanceof Error ? loadError.message : "Impossible de charger le planning de la semaine.");
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Impossible de charger le planning de la semaine.",
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -245,7 +271,9 @@ export function WeekPlanningModal({
       if (selected.length >= target) return current;
       return {
         ...current,
-        [itemId]: [...selected, day].sort((left, right) => DAY_CODES.indexOf(left) - DAY_CODES.indexOf(right)),
+        [itemId]: [...selected, day].sort((left, right) =>
+          DAY_CODES.indexOf(left) - DAY_CODES.indexOf(right)
+        ),
       };
     });
   };
@@ -277,7 +305,10 @@ export function WeekPlanningModal({
             items: items.map((item) => ({
               plan_item_id: item.id,
               planned_days: normalizeDayCodes(selectedDaysByItemId[item.id]),
-              target_reps_override: weeklyTargetForItem(item, allowedDays.length),
+              target_reps_override: weeklyTargetForItem(
+                item,
+                allowedDays.length,
+              ),
             })),
           },
         },
@@ -288,7 +319,11 @@ export function WeekPlanningModal({
       setInfo("Planning enregistre pour cette semaine.");
       onSaved(payload.bundle_status);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Impossible d'enregistrer le planning.");
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Impossible d'enregistrer le planning.",
+      );
     } finally {
       setSaving(false);
     }
@@ -302,7 +337,9 @@ export function WeekPlanningModal({
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
               Planning de semaine
             </p>
-            <h3 className="mt-1 text-lg font-bold text-stone-950">{weekTitle}</h3>
+            <h3 className="mt-1 text-lg font-bold text-stone-950">
+              {weekTitle}
+            </h3>
             <p className="mt-1 text-sm text-stone-600">
               Tu choisis ici quels jours porteront chaque action de la semaine.
             </p>
@@ -317,137 +354,168 @@ export function WeekPlanningModal({
         </div>
 
         <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
-          {loading ? (
-            <div className="flex items-center gap-2 text-sm text-stone-600">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Chargement du planning...
-            </div>
-          ) : null}
+          {loading
+            ? (
+              <div className="flex items-center gap-2 text-sm text-stone-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Chargement du planning...
+              </div>
+            )
+            : null}
 
-          {error ? (
-            <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
-          ) : null}
+          {error
+            ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )
+            : null}
 
-          {info ? (
-            <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              {info}
-            </div>
-          ) : null}
+          {info
+            ? (
+              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {info}
+              </div>
+            )
+            : null}
 
-          {!loading && bundle ? (
-            <div className="space-y-4">
-              <div className="rounded-3xl border border-stone-200 bg-stone-50 px-4 py-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                      Statut
-                    </p>
-                    <p className="mt-1 text-sm font-semibold text-stone-900">
-                      {bundle.bundle_status === "confirmed" ? "Planning confirme" : "Planning a confirmer"}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                      Fenetre visible
-                    </p>
-                    <p className="mt-1 text-sm text-stone-600">
-                      {allowedDays.map((day) => dayLong(day)).join(", ")}
-                    </p>
+          {!loading && bundle
+            ? (
+              <div className="space-y-4">
+                <div className="rounded-3xl border border-stone-200 bg-stone-50 px-4 py-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Statut
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-stone-900">
+                        {bundle.bundle_status === "confirmed"
+                          ? "Planning confirme"
+                          : "Planning a confirmer"}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                        Fenetre visible
+                      </p>
+                      <p className="mt-1 text-sm text-stone-600">
+                        {allowedDays.map((day) => dayLong(day)).join(", ")}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {bundle.items.map((entry) => {
-                const item = items.find((candidate) => candidate.id === entry.plan_item.id);
-                if (!item) return null;
+                {bundle.items.map((entry) => {
+                  const item = items.find((candidate) =>
+                    candidate.id === entry.plan_item.id
+                  );
+                  if (!item) {
+                    return null;
+                  }
 
-                const selected = normalizeDayCodes(selectedDaysByItemId[item.id]);
-                const target = weeklyTargetForItem(item, allowedDays.length);
-                const isHabit = item.dimension === "habits";
-                const suggestedDays = normalizeDayCodes(
-                  entry.week.occurrences.map((occurrence) => occurrence.default_day),
-                );
-                const showSuggestedDays = suggestedDays.length > 0 && !sameDayCodes(suggestedDays, selected);
+                  const selected = normalizeDayCodes(
+                    selectedDaysByItemId[item.id],
+                  );
+                  const target = weeklyTargetForItem(item, allowedDays.length);
+                  const isHabit = item.dimension === "habits";
+                  const suggestedDays = normalizeDayCodes(
+                    entry.week.occurrences.map((occurrence) =>
+                      occurrence.default_day
+                    ),
+                  );
+                  const showSuggestedDays = suggestedDays.length > 0 &&
+                    !sameDayCodes(suggestedDays, selected);
 
-                return (
-                  <div
-                    key={item.id}
-                    className="rounded-3xl border border-stone-200 bg-white px-4 py-4 shadow-sm"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-                          {cardLabel(item)}
-                        </p>
-                        <p className="mt-1 text-base font-bold text-stone-950">{item.title}</p>
-                        <p className="mt-1 text-sm text-stone-600">
-                          {isHabit
-                            ? `${target} repetition${target > 1 ? "s" : ""} a placer cette semaine`
-                            : "1 jour a confirmer cette semaine"}
-                        </p>
+                  return (
+                    <div
+                      key={item.id}
+                      className="rounded-3xl border border-stone-200 bg-white px-4 py-4 shadow-sm"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                            {cardLabel(item)}
+                          </p>
+                          <p className="mt-1 text-base font-bold text-stone-950">
+                            {item.title}
+                          </p>
+                          <p className="mt-1 text-sm text-stone-600">
+                            {isHabit
+                              ? `${target} repetition${
+                                target > 1 ? "s" : ""
+                              } a placer cette semaine`
+                              : "1 jour a confirmer cette semaine"}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
+                          {selected.length} / {target}
+                        </span>
                       </div>
-                      <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-700">
-                        {selected.length} / {target}
-                      </span>
-                    </div>
 
-                    <div className="mt-4 grid grid-cols-7 gap-2">
-                      {allowedDays.map((day) => {
-                        const daySelected = selected.includes(day);
-                        return (
-                          <button
-                            key={`${item.id}:${day}`}
-                            type="button"
-                            onClick={() =>
-                              isHabit
-                                ? toggleHabitDay(item.id, day, target)
-                                : selectSingleDay(item.id, day)}
-                            disabled={saving}
-                            className={`rounded-2xl border px-2 py-3 text-center transition ${
-                              daySelected
-                                ? "border-emerald-300 bg-emerald-50 text-emerald-700"
-                                : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
-                            } disabled:cursor-not-allowed disabled:opacity-50`}
-                          >
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.16em]">
-                              {frenchLabel(day)}
-                            </div>
-                            <div className="mt-2 flex justify-center">
-                              <span className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px] ${
+                      <div className="mt-4 grid grid-cols-7 gap-2">
+                        {allowedDays.map((day) => {
+                          const daySelected = selected.includes(day);
+                          return (
+                            <button
+                              key={`${item.id}:${day}`}
+                              type="button"
+                              onClick={() =>
+                                isHabit
+                                  ? toggleHabitDay(item.id, day, target)
+                                  : selectSingleDay(item.id, day)}
+                              disabled={saving}
+                              className={`rounded-2xl border px-2 py-3 text-center transition ${
                                 daySelected
-                                  ? "border-emerald-300 bg-emerald-100 text-emerald-700"
-                                  : "border-stone-200 text-stone-400"
-                              }`}>
-                                {daySelected ? <Check className="h-3 w-3" /> : ""}
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {showSuggestedDays ? (
-                      <div className="mt-3 text-xs text-stone-500">
-                        Proposition initiale:{" "}
-                        {suggestedDays.map((day) =>
-                          dayLong(day)
-                        ).join(", ")}
+                                  ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                                  : "border-stone-200 bg-white text-stone-600 hover:border-stone-300"
+                              } disabled:cursor-not-allowed disabled:opacity-50`}
+                            >
+                              <div className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+                                {frenchLabel(day)}
+                              </div>
+                              <div className="mt-2 flex justify-center">
+                                <span
+                                  className={`inline-flex h-5 w-5 items-center justify-center rounded-full border text-[11px] ${
+                                    daySelected
+                                      ? "border-emerald-300 bg-emerald-100 text-emerald-700"
+                                      : "border-stone-200 text-stone-400"
+                                  }`}
+                                >
+                                  {daySelected
+                                    ? <Check className="h-3 w-3" />
+                                    : ""}
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
                       </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
+
+                      {showSuggestedDays
+                        ? (
+                          <div className="mt-3 text-xs text-stone-500">
+                            Proposition initiale: {suggestedDays.map((day) =>
+                              dayLong(day)
+                            ).join(
+                              ", ",
+                            )}
+                          </div>
+                        )
+                        : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )
+            : null}
         </div>
 
         <div className="border-t border-stone-200 px-5 py-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-stone-500">
               <CalendarDays className="h-3.5 w-3.5" />
-              Le planning de la semaine suivante se debloque quand elle devient la semaine courante.
+              Le planning de la semaine suivante se debloque quand elle devient
+              la semaine courante.
             </div>
             <button
               type="button"
@@ -455,8 +523,12 @@ export function WeekPlanningModal({
               disabled={saving || !allItemsReady}
               className="inline-flex items-center justify-center gap-2 rounded-2xl bg-stone-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-stone-950 disabled:opacity-60"
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarDays className="h-4 w-4" />}
-              {bundle?.bundle_status === "confirmed" ? "Modifier le planning" : "Valider le planning"}
+              {saving
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <CalendarDays className="h-4 w-4" />}
+              {bundle?.bundle_status === "confirmed"
+                ? "Modifier le planning"
+                : "Valider le planning"}
             </button>
           </div>
         </div>

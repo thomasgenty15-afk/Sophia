@@ -238,18 +238,6 @@ async function applyCoachingPause(params: {
     .lt("scheduled_for", params.pauseUntilIso);
   if (morningCancelErr) throw morningCancelErr;
 
-  const pendingKinds = ["weekly_bilan", "bilan_reschedule"] as const;
-  const { error: pendingErr } = await params.supabase
-    .from("whatsapp_pending_actions")
-    .update({
-      status: "cancelled",
-      processed_at: nowIso,
-    } as any)
-    .eq("user_id", params.userId)
-    .in("kind", [...pendingKinds])
-    .eq("status", "pending");
-  if (pendingErr) throw pendingErr;
-
   const { error: morningPendingErr } = await params.supabase
     .from("whatsapp_pending_actions")
     .update({
@@ -543,7 +531,6 @@ Règles CRITIQUES :
   - le message de motivation du matin sur les actions actives
 - N'inclus PAS dans la pause coaching:
   - les rappels récurrents configurés par l'utilisateur
-  - les memory_echo
   - les check-ins ponctuels watcher d'événements
   - la simple volonté d'arrêter la conversation en cours
   - la pause d'une action précise

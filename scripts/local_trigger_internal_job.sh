@@ -5,8 +5,6 @@ set -euo pipefail
 # Usage:
 #   ./scripts/local_trigger_internal_job.sh detect-future-events
 #   ./scripts/local_trigger_internal_job.sh process-checkins
-#   ./scripts/local_trigger_internal_job.sh trigger-memory-echo
-#   ./scripts/local_trigger_internal_job.sh trigger-memory-echo '{"email":"thomas@example.com","force":true}'
 
 FN="${1:-}"
 if [[ -z "${FN}" ]]; then
@@ -86,5 +84,4 @@ HTTP_CODE="$(curl -s -o /tmp/sophia_internal_job_out.json -w "%{http_code}" \
 echo "HTTP ${HTTP_CODE}"
 cat /tmp/sophia_internal_job_out.json || true
 echo
-
 

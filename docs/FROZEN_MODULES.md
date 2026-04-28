@@ -1,8 +1,7 @@
 # Modules geles — Refonte V2
 
-> Ces fichiers ne doivent PAS etre modifies pendant la refonte V2,
-> sauf bugfix critique approuve explicitement.
-> Derniere mise a jour: 2026-03-23
+> Ces fichiers ne doivent PAS etre modifies pendant la refonte V2, sauf bugfix
+> critique approuve explicitement. Derniere mise a jour: 2026-03-23
 
 > **Convention:** les fichiers de test (`_test.ts`, `.test.ts`, `.int.test.ts`)
 > associes a un module gele sont egalement geles. Ils ne sont pas listes
@@ -12,16 +11,23 @@
 
 ## Backend — Brain modules geles (section 29.1 Keep)
 
-Ces modules sont explicitement marques "keep presque tel quel" dans la cartographie.
+Ces modules sont explicitement marques "keep presque tel quel" dans la
+cartographie.
 
-- `supabase/functions/sophia-brain/momentum_policy.ts` — politique momentum stable
-- `supabase/functions/sophia-brain/coaching_interventions.ts` — catalogue d'interventions coaching
-- `supabase/functions/sophia-brain/coaching_intervention_tracking.ts` — tracking des interventions
-- `supabase/functions/sophia-brain/coaching_intervention_observability.ts` — observabilite coaching
+- `supabase/functions/sophia-brain/momentum_policy.ts` — politique momentum
+  stable
+- `supabase/functions/sophia-brain/coaching_interventions.ts` — catalogue
+  d'interventions coaching
+- `supabase/functions/sophia-brain/coaching_intervention_tracking.ts` — tracking
+  des interventions
+- `supabase/functions/sophia-brain/coaching_intervention_observability.ts` —
+  observabilite coaching
 - `supabase/functions/sophia-brain/event_memory.ts` — memoire evenementielle
 - `supabase/functions/sophia-brain/topic_memory.ts` — memoire thematique
-- `supabase/functions/sophia-brain/global_memory.ts` — memoire globale (compaction)
-- `supabase/functions/sophia-brain/architect_memory.ts` — memoire architecte identitaire
+- `supabase/functions/sophia-brain/global_memory.ts` — memoire globale
+  (compaction)
+- `supabase/functions/sophia-brain/architect_memory.ts` — memoire architecte
+  identitaire
 
 ## Backend — Brain modules geles (hors cartographie)
 
@@ -31,7 +37,8 @@ Modules brain stables, non cibles par la refonte V2.
 - `supabase/functions/sophia-brain/router.ts` — routeur principal
 - `supabase/functions/sophia-brain/supervisor.ts` — superviseur de conversation
 - `supabase/functions/sophia-brain/chat_text.ts` — utilitaires texte chat
-- `supabase/functions/sophia-brain/coaching_intervention_selector.ts` — selecteur d'interventions
+- `supabase/functions/sophia-brain/coaching_intervention_selector.ts` —
+  selecteur d'interventions
 - `supabase/functions/sophia-brain/memory_provenance.ts` — provenance memoire
 - `supabase/functions/sophia-brain/profile_facts.ts` — faits profil utilisateur
 - `supabase/functions/sophia-brain/surface_registry.ts` — registre de surfaces
@@ -42,7 +49,8 @@ Modules brain stables, non cibles par la refonte V2.
 ### Agents geles
 
 - `supabase/functions/sophia-brain/agents/companion.ts` — agent compagnon
-- `supabase/functions/sophia-brain/agents/investigator.ts` — agent investigateur (dispatcher)
+- `supabase/functions/sophia-brain/agents/investigator.ts` — agent investigateur
+  (dispatcher)
 - `supabase/functions/sophia-brain/agents/sentry.ts` — agent sentinelle
 - `supabase/functions/sophia-brain/agents/synthesizer.ts` — agent synthetiseur
 - `supabase/functions/sophia-brain/agents/watcher.ts` — agent veilleur
@@ -137,7 +145,6 @@ Fonctions edge standalone non ciblees par la refonte.
 
 - `supabase/functions/trigger-global-memory-compaction/index.ts`
 - `supabase/functions/trigger-memorizer-daily/index.ts`
-- `supabase/functions/trigger-memory-echo/index.ts`
 - `supabase/functions/process-plan-topic-memory/index.ts`
 - `supabase/functions/create-module-memory/index.ts`
 - `supabase/functions/get-coaching-intervention-scorecard/index.ts`
@@ -151,7 +158,6 @@ Fonctions edge standalone non ciblees par la refonte.
 ### Scheduling & Proactive
 
 - `supabase/functions/schedule-morning-active-action-checkins/index.ts`
-- `supabase/functions/trigger-proactive-scheduler/index.ts`
 - `supabase/functions/trigger-synthesizer-batch/index.ts`
 - `supabase/functions/trigger-watcher-batch/index.ts`
 - `supabase/functions/classify-recurring-reminder/index.ts`
@@ -196,20 +202,25 @@ Fonctions edge standalone non ciblees par la refonte.
 - `supabase/functions/_shared/gemini.ts` — client Gemini
 - `supabase/functions/_shared/llm-usage.ts` — tracking usage LLM
 - `supabase/functions/_shared/brain-trace.ts` — tracing brain
-- `supabase/functions/_shared/coaching-observability.ts` — observabilite coaching
+- `supabase/functions/_shared/coaching-observability.ts` — observabilite
+  coaching
 - `supabase/functions/_shared/memory-observability.ts` — observabilite memoire
-- `supabase/functions/_shared/momentum-observability.ts` — observabilite momentum
+- `supabase/functions/_shared/momentum-observability.ts` — observabilite
+  momentum
 - `supabase/functions/_shared/common-validators.ts` — validateurs communs
 - `supabase/functions/_shared/billing-tier.ts` — tiers de facturation
 - `supabase/functions/_shared/stripe.ts` — client Stripe
 - `supabase/functions/_shared/whatsapp_graph.ts` — API WhatsApp
-- `supabase/functions/_shared/whatsapp_outbound_tracking.ts` — tracking WhatsApp sortant
+- `supabase/functions/_shared/whatsapp_outbound_tracking.ts` — tracking WhatsApp
+  sortant
 - `supabase/functions/_shared/whatsapp_winback.ts` — winback WhatsApp
 - `supabase/functions/_shared/access_ended_whatsapp.ts` — message fin d'acces
 - `supabase/functions/_shared/checkin_scope.ts` — scope des check-ins
 - `supabase/functions/_shared/scheduled_checkins.ts` — check-ins programmes
-- `supabase/functions/_shared/proactive_template_queue.ts` — queue templates proactifs
-- `supabase/functions/_shared/user_time_context.ts` — contexte temporel utilisateur
+- `supabase/functions/_shared/proactive_template_queue.ts` — queue templates
+  proactifs
+- `supabase/functions/_shared/user_time_context.ts` — contexte temporel
+  utilisateur
 - `supabase/functions/_shared/identity-manager.ts` — gestionnaire d'identite
 - `supabase/functions/_shared/resend.ts` — client email Resend
 - `supabase/functions/_shared/weeksContent.ts` — contenu des semaines
@@ -320,23 +331,23 @@ Fonctions edge standalone non ciblees par la refonte.
 - `frontend/src/config/modules-registry.ts` — registre de modules V1
 
 > **Note:** `frontend/src/App.tsx`, `frontend/src/main.tsx` et
-> `frontend/src/security/RouteGuards.tsx` ne sont PAS geles car ils
-> devront etre modifies pour integrer les nouvelles routes V2.
+> `frontend/src/security/RouteGuards.tsx` ne sont PAS geles car ils devront etre
+> modifies pour integrer les nouvelles routes V2.
 
 ---
 
 ## Modules explicitement NON geles (seront refactores/supprimes)
 
-> Rappel: ces fichiers SERONT modifies par la V2. Cf. section 29.2 et 29.3
-> de `docs/v2-systemes-vivants-implementation.md`.
+> Rappel: ces fichiers SERONT modifies par la V2. Cf. section 29.2 et 29.3 de
+> `docs/v2-systemes-vivants-implementation.md`.
 
 ### 29.2 — Refactor fort
 
 **Backend Brain:**
+
 - `supabase/functions/sophia-brain/momentum_state.ts`
 - `supabase/functions/sophia-brain/momentum_morning_nudge.ts`
 - `supabase/functions/sophia-brain/momentum_outreach.ts`
-- `supabase/functions/sophia-brain/momentum_proactive_selector.ts`
 - `supabase/functions/sophia-brain/router/dispatcher.ts`
 - `supabase/functions/sophia-brain/router/run.ts`
 - `supabase/functions/sophia-brain/state-manager.ts`
@@ -345,9 +356,7 @@ Fonctions edge standalone non ciblees par la refonte.
 - `supabase/functions/sophia-brain/agents/investigator-weekly/run.ts`
 
 **Backend Edge Functions:**
-- `supabase/functions/trigger-daily-bilan/index.ts`
-- `supabase/functions/trigger-weekly-bilan/payload.ts`
-- `supabase/functions/trigger-weekly-bilan/index.ts`
+
 - `supabase/functions/schedule-recurring-checkins/index.ts`
 - `supabase/functions/process-checkins/index.ts`
 
@@ -356,6 +365,8 @@ Fonctions edge standalone non ciblees par la refonte.
 ### 29.3 — Delete ou deprecate ciblee
 
 - Toute logique runtime basee sur `current_phase`
-- Suggestions weekly centrees `activate/deactivate/swap` sans lecture dimensionnelle
+- Suggestions weekly centrees `activate/deactivate/swap` sans lecture
+  dimensionnelle
 - Toute vue dashboard qui suppose `phases` comme structure primaire
-- Tout pipeline qui traite `actions/frameworks/vital_signs` comme source canonique au lieu des `plan_items`
+- Tout pipeline qui traite `actions/frameworks/vital_signs` comme source
+  canonique au lieu des `plan_items`

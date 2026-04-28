@@ -23,10 +23,16 @@ function discoverTriggers(): string[] {
   const triggers = new Set<string>();
 
   // From squashed schema
-  const squashed = repoPathFromFrontend("supabase", "migrations", "20241210120000_squashed_schema.sql");
+  const squashed = repoPathFromFrontend(
+    "supabase",
+    "migrations",
+    "20241210120000_squashed_schema.sql",
+  );
   if (fs.existsSync(squashed)) {
     const text = fs.readFileSync(squashed, "utf8");
-    for (const m of text.matchAll(/CREATE\s+OR\s+REPLACE\s+TRIGGER\s+"([^"]+)"/gi)) {
+    for (
+      const m of text.matchAll(/CREATE\s+OR\s+REPLACE\s+TRIGGER\s+"([^"]+)"/gi)
+    ) {
       triggers.add(m[1]);
     }
   }
@@ -41,12 +47,20 @@ function discoverTriggers(): string[] {
 
   for (const f of files) {
     const text = fs.readFileSync(path.join(migDir, f), "utf8");
-    for (const m of text.matchAll(/drop\s+trigger\s+if\s+exists[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi)) {
+    for (
+      const m of text.matchAll(
+        /drop\s+trigger\s+if\s+exists[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi,
+      )
+    ) {
       triggers.delete(m[1]);
     }
     // Important: avoid matching comment blocks like "Create Trigger" followed by a newline.
     // Only match trigger declarations on a single line.
-    for (const m of text.matchAll(/create\s+(?:or\s+replace\s+)?trigger[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi)) {
+    for (
+      const m of text.matchAll(
+        /create\s+(?:or\s+replace\s+)?trigger[ \t]+"?([a-zA-Z_][a-zA-Z0-9_]*)"?/gi,
+      )
+    ) {
       triggers.add(m[1]);
     }
   }
@@ -82,15 +96,11 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "stripe-sync-subscription",
       "stripe-webhook",
       "test-env",
-      "trigger-daily-bilan",
       "trigger-global-memory-compaction",
       "trigger-memorizer-daily",
-      "trigger-memory-echo",
-      "trigger-proactive-scheduler",
       "trigger-retention-emails",
       "trigger-synthesizer-batch",
       "trigger-watcher-batch",
-      "trigger-weekly-bilan",
       "update-core-identity",
       "whatsapp-optin",
       "whatsapp-send",

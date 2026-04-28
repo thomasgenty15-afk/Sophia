@@ -9,9 +9,9 @@ import {
   type ConversationPulseInput,
   type ConversationPulseValidationResult,
   type EventMemorySummary,
-  type RecentTransformationHandoffSummary,
   parseConversationPulseLLMResponse,
   type RecentBilanSummary,
+  type RecentTransformationHandoffSummary,
 } from "../_shared/v2-prompts/conversation-pulse.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { getActiveTransformationRuntime } from "../_shared/v2-runtime.ts";
@@ -103,63 +103,6 @@ function eventDateLabel(row: EventMemoryRow): string {
     }
   }
   return String(row.status ?? "").trim() === "upcoming" ? "upcoming" : "recent";
-}
-
-function summarizeDailyBilanRow(
-  row: Record<string, unknown>,
-): RecentBilanSummary | null {
-  const payload = (row.message_payload ?? {}) as Record<string, unknown>;
-  const output = (payload.daily_bilan_output ?? {}) as Record<string, unknown>;
-  const mode = String(output.mode ?? "").trim();
-  const titles = Array.isArray(payload.target_item_titles)
-    ? payload.target_item_titles.map((value) => String(value ?? "").trim())
-      .filter(Boolean)
-    : [];
-  const scheduledFor = String(row.scheduled_for ?? "").trim();
-  const date = scheduledFor ? scheduledFor.slice(0, 10) : "";
-  if (!date) return null;
-
-  const modeLabel = mode === "check_blocker"
-    ? "blocker"
-    : mode === "check_supportive"
-    ? "support"
-    : mode === "check_progress"
-    ? "progress"
-    : "light";
-  const summary = titles.length > 0
-    ? `Daily ${modeLabel} sur ${titles.slice(0, 2).join(" / ")}`
-    : `Daily ${modeLabel}`;
-
-  return {
-    kind: "daily",
-    date,
-    summary: compactText(summary, 120),
-  };
-}
-
-function summarizeWeeklyRecapRow(
-  row: Record<string, unknown>,
-): RecentBilanSummary | null {
-  const date = String(row.week_start ?? "").trim();
-  if (!date) return null;
-
-  const decisions = Array.isArray(row.decisions_next_week)
-    ? row.decisions_next_week.map((value) => compactText(value, 80)).filter(
-      Boolean,
-    )
-    : [];
-  const coachNote = compactText(row.coach_note ?? "", 100);
-  const summary = decisions.length > 0
-    ? `Weekly: ${decisions.slice(0, 2).join(" | ")}`
-    : coachNote
-    ? `Weekly: ${coachNote}`
-    : "Weekly bilan récent";
-
-  return {
-    kind: "weekly",
-    date,
-    summary: compactText(summary, 140),
-  };
 }
 
 function summarizeEventMemoryRow(
@@ -352,43 +295,8 @@ async function loadRecentBilans(args: {
   userId: string;
   nowIso: string;
 }): Promise<RecentBilanSummary[]> {
-  const sinceIso = new Date(
-    (parseIsoMs(args.nowIso) ?? Date.now()) - SEVEN_DAYS_MS,
-  ).toISOString();
-  const previousWeeksStartIso = new Date(
-    (parseIsoMs(args.nowIso) ?? Date.now()) - (21 * 24 * 60 * 60 * 1000),
-  ).toISOString().slice(0, 10);
-
-  const [dailyResult, weeklyResult] = await Promise.all([
-    args.supabase
-      .from("scheduled_checkins")
-      .select("scheduled_for, message_payload")
-      .eq("user_id", args.userId)
-      .eq("event_context", "daily_bilan_v2")
-      .gte("scheduled_for", sinceIso)
-      .order("scheduled_for", { ascending: false })
-      .limit(3),
-    args.supabase
-      .from("weekly_bilan_recaps")
-      .select("week_start, decisions_next_week, coach_note, created_at")
-      .eq("user_id", args.userId)
-      .gte("week_start", previousWeeksStartIso)
-      .order("week_start", { ascending: false })
-      .limit(2),
-  ]);
-
-  if (dailyResult.error) throw dailyResult.error;
-  if (weeklyResult.error) throw weeklyResult.error;
-
-  const daily = ((dailyResult.data as Record<string, unknown>[] | null) ?? [])
-    .map(summarizeDailyBilanRow)
-    .filter((item): item is RecentBilanSummary => item != null);
-
-  const weekly = ((weeklyResult.data as Record<string, unknown>[] | null) ?? [])
-    .map(summarizeWeeklyRecapRow)
-    .filter((item): item is RecentBilanSummary => item != null);
-
-  return [...weekly, ...daily].slice(0, 3);
+  void args;
+  return [];
 }
 
 async function loadNearbyEventMemories(args: {
@@ -561,8 +469,13 @@ export async function buildConversationPulse(
     }
   }
 
-  const [timezone, messages, recentBilans, eventMemories, recentTransformationHandoff] =
-    await Promise.all([
+  const [
+    timezone,
+    messages,
+    recentBilans,
+    eventMemories,
+    recentTransformationHandoff,
+  ] = await Promise.all([
     loadUserTimezone(args.supabase, args.userId),
     loadRecentMessages({
       supabase: args.supabase,
@@ -637,7 +550,10 @@ export async function buildConversationPulse(
       runtime.transformationId,
       { type: "conversation_pulse_generated", pulse: validation.pulse },
     ).catch((err) =>
-      console.warn("[conversation_pulse_builder] principle unlock check failed:", err)
+      console.warn(
+        "[conversation_pulse_builder] principle unlock check failed:",
+        err,
+      )
     );
   }
 

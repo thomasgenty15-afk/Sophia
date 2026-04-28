@@ -4,8 +4,6 @@
 -- - detect-future-events: every day at 04:00
 -- - process-checkins: every 3 minutes
 -- - trigger-watcher-batch: every 4 hours
--- - trigger-daily-bilan: every day at 21:01
--- - trigger-memory-echo: every other Sunday at 10:00 (based on week number parity)
 --
 -- Security:
 -- - Uses Vault at runtime to fetch INTERNAL_FUNCTION_SECRET and sends it in X-Internal-Secret header.
@@ -35,6 +33,16 @@ begin
   end if;
 
   select jobid into existing_jobid from cron.job where jobname = 'trigger-daily-bilan' limit 1;
+  if existing_jobid is not null then
+    perform cron.unschedule(existing_jobid);
+  end if;
+
+  select jobid into existing_jobid from cron.job where jobname = 'trigger-weekly-bilan' limit 1;
+  if existing_jobid is not null then
+    perform cron.unschedule(existing_jobid);
+  end if;
+
+  select jobid into existing_jobid from cron.job where jobname = 'trigger-proactive-scheduler' limit 1;
   if existing_jobid is not null then
     perform cron.unschedule(existing_jobid);
   end if;
@@ -82,47 +90,7 @@ select cron.schedule(
   $$
 );
 
--- 3) Memory echo: every other Sunday 10:00
--- We schedule every Sunday 10:00, but only execute on even ISO week numbers.
-select cron.schedule(
-  'trigger-memory-echo',
-  '0 10 * * 0',
-  $$
-  select
-    case
-      when (extract(week from now())::int % 2) = 0 then
-        net.http_post(
-          url := 'http://host.docker.internal:54321/functions/v1/trigger-memory-echo',
-          headers := jsonb_build_object(
-            'Content-Type', 'application/json',
-            'X-Internal-Secret', (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1)
-          ),
-          body := '{}'::jsonb
-        )
-      else
-        null
-    end as request_id;
-  $$
-);
-
--- 4) Daily bilan: every day 21:01
-select cron.schedule(
-  'trigger-daily-bilan',
-  '1 21 * * *',
-  $$
-  select
-    net.http_post(
-      url := 'http://host.docker.internal:54321/functions/v1/trigger-daily-bilan',
-      headers := jsonb_build_object(
-        'Content-Type', 'application/json',
-        'X-Internal-Secret', (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1)
-      ),
-      body := '{}'::jsonb
-    ) as request_id;
-  $$
-);
-
--- 5) Watcher batch: every 4 hours
+-- 3) Watcher batch: every 4 hours
 -- Runs the Veilleur (context/memory analysis) for users with unprocessed messages.
 select cron.schedule(
   'trigger-watcher-batch',
@@ -139,4 +107,3 @@ select cron.schedule(
     ) as request_id;
   $$
 );
-

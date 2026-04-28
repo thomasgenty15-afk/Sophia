@@ -23,8 +23,18 @@ import {
   allowRelaunchGreetingFromLastMessage,
   applyScheduledCheckinGreetingPolicy,
   applyWhatsappProactiveOpeningPolicy,
+  computeScheduledForFromLocal,
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
+import {
+  ACTION_EVENING_REVIEW_BUTTONS,
+  ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+  ACTION_MORNING_EVENT_CONTEXT,
+  buildActionEveningReviewMessageFromTitles,
+  buildLightMorningFallbackMessage,
+  buildLightMorningInstruction,
+  MORNING_LIGHT_GREETING_EVENT_CONTEXT,
+} from "../_shared/action_occurrences.ts";
 import {
   getMomentumOutreachStateFromEventContext,
   isMomentumOutreachEventContext,
@@ -44,9 +54,7 @@ import {
   recordSoftContact,
   writeRepairMode,
 } from "../sophia-brain/repair_mode_engine.ts";
-import {
-  transitionRendezVous,
-} from "../_shared/v2-rendez-vous.ts";
+import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
 
 console.log("Process Checkins: Function initialized");
@@ -68,6 +76,17 @@ function parseStringArray(value: unknown): string[] {
     ? value.map((item) => cleanText(item)).filter(Boolean)
     : [];
 }
+
+type ActionEveningReviewTarget = {
+  occurrence_id: string;
+  cycle_id: string;
+  transformation_id: string;
+  plan_id: string;
+  plan_item_id: string;
+  title: string;
+  kind: string;
+  tracking_type: string | null;
+};
 
 function morningPlanStrategy(plan: any): string | null {
   return cleanText(plan?.posture ?? plan?.strategy) || null;
@@ -180,6 +199,93 @@ async function markScheduledCheckinDeliveryState(params: {
     .from("scheduled_checkins")
     .update(patch as any)
     .eq("id", params.checkinId);
+}
+
+async function loadOpenActionEveningReviewTargets(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  occurrenceIds: string[];
+  timezone: string;
+  now?: Date;
+}): Promise<ActionEveningReviewTarget[]> {
+  const occurrenceIds = [...new Set(params.occurrenceIds)].filter(Boolean);
+  if (occurrenceIds.length === 0) return [];
+
+  const { data: occurrences, error: occurrencesErr } = await params
+    .supabaseAdmin
+    .from("user_habit_week_occurrences")
+    .select("id,cycle_id,transformation_id,plan_id,plan_item_id,status")
+    .eq("user_id", params.userId)
+    .in("id", occurrenceIds)
+    .in("status", ["planned", "rescheduled"]);
+  if (occurrencesErr) throw occurrencesErr;
+
+  const rows = (occurrences ?? []) as Array<Record<string, unknown>>;
+  if (rows.length === 0) return [];
+
+  const planItemIds = [
+    ...new Set(rows.map((row) => cleanText(row.plan_item_id)).filter(Boolean)),
+  ];
+  const dayStartIso = computeScheduledForFromLocal({
+    timezone: params.timezone,
+    dayOffset: 0,
+    localTimeHHMM: "00:00",
+    now: params.now ?? new Date(),
+  });
+  const dayEndIso = computeScheduledForFromLocal({
+    timezone: params.timezone,
+    dayOffset: 1,
+    localTimeHHMM: "00:00",
+    now: params.now ?? new Date(),
+  });
+
+  const [itemsResult, entriesResult] = await Promise.all([
+    params.supabaseAdmin
+      .from("user_plan_items")
+      .select("id,title,kind,tracking_type,status")
+      .eq("user_id", params.userId)
+      .in("id", planItemIds),
+    params.supabaseAdmin
+      .from("user_plan_item_entries")
+      .select("plan_item_id")
+      .eq("user_id", params.userId)
+      .in("plan_item_id", planItemIds)
+      .gte("effective_at", dayStartIso)
+      .lt("effective_at", dayEndIso),
+  ]);
+  if (itemsResult.error) throw itemsResult.error;
+  if (entriesResult.error) throw entriesResult.error;
+
+  const itemById = new Map(
+    ((itemsResult.data ?? []) as Array<Record<string, unknown>>).map((row) => [
+      cleanText(row.id),
+      row,
+    ]),
+  );
+  const loggedItemIds = new Set(
+    ((entriesResult.data ?? []) as Array<Record<string, unknown>>).map((row) =>
+      cleanText(row.plan_item_id)
+    ),
+  );
+
+  return rows.flatMap((occurrence) => {
+    const planItemId = cleanText(occurrence.plan_item_id);
+    if (!planItemId || loggedItemIds.has(planItemId)) return [];
+    const item = itemById.get(planItemId);
+    if (!item) return [];
+    const status = cleanText(item.status);
+    if (!["active", "in_maintenance", "stalled"].includes(status)) return [];
+    return [{
+      occurrence_id: cleanText(occurrence.id),
+      cycle_id: cleanText(occurrence.cycle_id),
+      transformation_id: cleanText(occurrence.transformation_id),
+      plan_id: cleanText(occurrence.plan_id),
+      plan_item_id: planItemId,
+      title: cleanText(item.title) || "Action",
+      kind: cleanText(item.kind),
+      tracking_type: cleanText(item.tracking_type) || null,
+    }];
+  });
 }
 
 function getRecurringReminderIdFromEventContext(
@@ -555,29 +661,7 @@ async function processPendingProactiveTemplateCandidates(params: {
 
     if (!skipped) {
       const followUpKind = String(payload.follow_up_kind ?? "").trim();
-      if (followUpKind === "weekly_bilan") {
-        await params.supabaseAdmin.from("whatsapp_pending_actions").insert({
-          user_id: userId,
-          kind: "weekly_bilan",
-          status: "pending",
-          payload: {
-            weekly_review_payload: payload.weekly_review_payload ?? null,
-            source: "proactive_template_queue",
-          },
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        });
-      } else if (followUpKind === "memory_echo") {
-        await params.supabaseAdmin.from("whatsapp_pending_actions").insert({
-          user_id: userId,
-          kind: "memory_echo",
-          status: "pending",
-          payload: {
-            strategy: payload.strategy ?? null,
-            data: payload.data ?? null,
-          },
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-        });
-      } else if (followUpKind === "recurring_reminder") {
+      if (followUpKind === "recurring_reminder") {
         if (payload.recurring_reminder_id) {
           await params.supabaseAdmin
             .from("user_recurring_reminders")
@@ -823,7 +907,8 @@ function buildRendezVousEventGrounding(rdv: {
   const handoff = rendezVousSourceRefs(
     rendezVousSourceRefs(rdv.source_refs).transformation_handoff,
   );
-  const previousTitle = String(handoff.previous_transformation_title ?? "").trim();
+  const previousTitle = String(handoff.previous_transformation_title ?? "")
+    .trim();
   const nextTitle = String(handoff.next_transformation_title ?? "").trim();
   const recapLines = sourceRefStringArray(handoff.recap_lines, 4);
   const wins = sourceRefStringArray(handoff.wins, 3);
@@ -836,7 +921,9 @@ function buildRendezVousEventGrounding(rdv: {
   if (relationalSignals.length > 0) {
     lines.push(`relational_signals=${relationalSignals.join(" | ")}`);
   }
-  if (recapLines.length > 0) lines.push(`handoff_recap=${recapLines.join(" | ")}`);
+  if (recapLines.length > 0) {
+    lines.push(`handoff_recap=${recapLines.join(" | ")}`);
+  }
   if (coachingMemory) lines.push(`coaching_memory=${coachingMemory}`);
 
   return lines.join("\n");
@@ -957,7 +1044,8 @@ async function processDueRendezVous(params: {
             ? rdv.trigger_reason
             : null,
           posture: typeof rdv.posture === "string" ? rdv.posture : null,
-          source_refs: (rdv.source_refs as Record<string, unknown> | null) ?? null,
+          source_refs: (rdv.source_refs as Record<string, unknown> | null) ??
+            null,
         }),
         source: "process_checkins:rendez_vous",
         requestId: params.requestId,
@@ -967,11 +1055,13 @@ async function processDueRendezVous(params: {
         `[process-checkins] request_id=${params.requestId} rendez_vous_dynamic_gen_failed rdv_id=${rdvId}`,
         e,
       );
-      bodyText = "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
+      bodyText =
+        "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
     }
 
     if (!bodyText.trim()) {
-      bodyText = "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
+      bodyText =
+        "Je passe te proposer un moment pour faire le point ensemble, si tu veux.";
     }
 
     try {
@@ -1279,6 +1369,12 @@ Deno.serve(async (req) => {
       const eventContext = String((checkin as any)?.event_context ?? "");
       const isMomentumOutreach = isMomentumOutreachEventContext(eventContext);
       const isMomentumMorningNudge = isMorningNudgeEventContext(eventContext);
+      const isActionMorningEncouragement =
+        eventContext === ACTION_MORNING_EVENT_CONTEXT;
+      const isMorningLightGreeting =
+        eventContext === MORNING_LIGHT_GREETING_EVENT_CONTEXT;
+      const isActionEveningReview =
+        eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT;
       const recurringReminderId = getRecurringReminderIdFromEventContext(
         eventContext,
       );
@@ -1298,7 +1394,9 @@ Deno.serve(async (req) => {
 
           const { data: reminder } = await supabaseAdmin
             .from("user_recurring_reminders")
-            .select("id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at")
+            .select(
+              "id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at",
+            )
             .eq("id", recurringReminderId)
             .eq("user_id", checkin.user_id)
             .maybeSingle();
@@ -1663,6 +1761,204 @@ Deno.serve(async (req) => {
           );
         }
       }
+      if (isActionMorningEncouragement || isMorningLightGreeting) {
+        const occurrenceIds = parseStringArray(payload?.occurrence_ids);
+        if (isActionMorningEncouragement && occurrenceIds.length === 0) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: "action_morning_no_occurrences",
+            requestId,
+          });
+          continue;
+        }
+
+        mode = "dynamic";
+        payload = {
+          ...payload,
+          source: isActionMorningEncouragement
+            ? "process_checkins:action_morning_encouragement"
+            : "process_checkins:morning_light_greeting",
+          instruction: String(payload?.instruction ?? "").trim() ||
+            (isMorningLightGreeting
+              ? buildLightMorningInstruction()
+              : "Message WhatsApp du matin: encourage brièvement le user à réaliser les actions prévues aujourd'hui."),
+          event_grounding: String(payload?.event_grounding ?? "").trim() ||
+            `event_context=${eventContext}`,
+          chat_capability: "track_progress_only",
+        };
+        if (!bodyText.trim() && isMorningLightGreeting) {
+          bodyText = buildLightMorningFallbackMessage();
+        }
+        try {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ message_payload: payload })
+            .eq("id", checkin.id);
+          (checkin as any).message_payload = payload;
+        } catch (e) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} persist_action_morning_payload_failed checkin_id=${checkin.id}`,
+            e,
+          );
+        }
+      }
+      if (isActionEveningReview) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const occurrenceIds = parseStringArray(payload?.occurrence_ids);
+        if (occurrenceIds.length === 0) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            errorMessage: "action_evening_review_no_occurrences",
+            requestId,
+          });
+          continue;
+        }
+
+        const targets = await loadOpenActionEveningReviewTargets({
+          supabaseAdmin,
+          userId: String(checkin.user_id),
+          occurrenceIds,
+          timezone: userTimezone,
+        });
+        if (targets.length === 0) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            errorMessage: "action_evening_review_already_answered",
+            requestId,
+          });
+          continue;
+        }
+
+        if (!in24hConversationWindow) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            errorMessage: "action_evening_review_requires_24h_window",
+            requestId,
+          });
+          continue;
+        }
+
+        const reviewBody = buildActionEveningReviewMessageFromTitles(
+          targets.map((target) => target.title),
+        );
+        try {
+          const resp = await callWhatsappSend({
+            user_id: checkin.user_id,
+            message: {
+              type: "interactive_buttons",
+              body: reviewBody,
+              buttons: ACTION_EVENING_REVIEW_BUTTONS,
+            },
+            purpose: "action_evening_review",
+            require_opted_in: true,
+            metadata_extra: {
+              source: "scheduled_checkin",
+              event_context: checkin.event_context,
+              original_checkin_id: checkin.id,
+              purpose: "action_evening_review",
+              occurrence_ids: targets.map((target) => target.occurrence_id),
+              plan_item_ids: [
+                ...new Set(targets.map((target) => target.plan_item_id)),
+              ],
+            },
+          });
+          const skipped = Boolean((resp as any)?.skipped);
+          if (skipped) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              draftMessage: reviewBody,
+              errorMessage: String(
+                (resp as any)?.skip_reason ?? "action_evening_review_skipped",
+              ),
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            continue;
+          }
+
+          const { error: pendErr } = await supabaseAdmin
+            .from("whatsapp_pending_actions")
+            .insert({
+              user_id: checkin.user_id,
+              kind: "scheduled_checkin",
+              status: "pending",
+              scheduled_checkin_id: checkin.id,
+              payload: {
+                action_evening_review: true,
+                event_context: checkin.event_context,
+                draft_message: reviewBody,
+                message_mode: "interactive_buttons",
+                occurrence_ids: targets.map((target) => target.occurrence_id),
+                targets,
+                local_date: cleanText(payload?.local_date),
+                week_start_date: cleanText(payload?.week_start_date),
+              },
+              expires_at: new Date(Date.now() + 18 * 60 * 60 * 1000)
+                .toISOString(),
+            });
+          if (pendErr) throw pendErr;
+
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "awaiting_user",
+            attemptCount,
+            draftMessage: reviewBody,
+            errorMessage: null,
+            requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          processedCount++;
+          continue;
+        } catch (e) {
+          const status = (e as any)?.status;
+          const msg = e instanceof Error ? e.message : String(e);
+          const nextStatus = shouldRetryScheduledCheckinDelivery(status)
+            ? "retrying"
+            : "failed";
+          await logEdgeFunctionError({
+            functionName: "process-checkins",
+            error: msg,
+            requestId,
+            userId: checkin.user_id,
+            source: "whatsapp",
+            metadata: {
+              checkin_id: checkin.id,
+              event_context: checkin.event_context,
+              checkin_purpose: "action_evening_review",
+              downstream_status: status ?? null,
+              downstream_error: (e as any)?.data ?? null,
+            },
+          });
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: nextStatus,
+            attemptCount,
+            scheduledFor: nextStatus === "retrying"
+              ? computeNextRetryAtIso(attemptCount)
+              : null,
+            errorMessage: msg,
+            requestId,
+          });
+          continue;
+        }
+      }
       if (mode === "dynamic") {
         try {
           bodyText = await generateDynamicWhatsAppCheckinMessage({
@@ -1735,14 +2031,9 @@ Deno.serve(async (req) => {
         }
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
-      const isDailyBilanCheckin = eventContext === "daily_bilan_reschedule" ||
-        eventContext === "daily_bilan_v2";
-      const isWeeklyBilanCheckin = eventContext === "weekly_bilan_v2";
-      const checkinPurpose = isDailyBilanCheckin
-        ? "daily_bilan"
-        : isWeeklyBilanCheckin
-        ? "weekly_bilan"
-        : (recurringReminderId ? "recurring_reminder" : "scheduled_checkin");
+      const checkinPurpose = recurringReminderId
+        ? "recurring_reminder"
+        : "scheduled_checkin";
       const recurringReminderNeedsTemplate = Boolean(recurringReminderId) &&
         !in24hConversationWindow;
       let recurringReminderQuotaConsumed = false;

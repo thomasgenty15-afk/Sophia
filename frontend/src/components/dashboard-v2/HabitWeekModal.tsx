@@ -1,4 +1,4 @@
-import { Loader2, Check, RotateCcw, X } from "lucide-react";
+import { Check, Loader2, RotateCcw, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { supabase } from "../../lib/supabase";
@@ -22,8 +22,12 @@ type HabitWeekOccurrence = {
   planned_day: DayCode;
   original_planned_day: DayCode | null;
   actual_day: DayCode | null;
-  status: "planned" | "done" | "missed" | "rescheduled";
-  source: "default_generated" | "weekly_confirmed" | "auto_rescheduled" | "manual_change";
+  status: "planned" | "done" | "partial" | "missed" | "rescheduled";
+  source:
+    | "default_generated"
+    | "weekly_confirmed"
+    | "auto_rescheduled"
+    | "manual_change";
 };
 
 type HabitWeekRescheduleEvent = {
@@ -125,11 +129,13 @@ function statusLabel(status: HabitWeekPlan["status"]) {
 
 function occurrenceStatusLabel(occurrence: HabitWeekOccurrence) {
   if (occurrence.status === "done") {
-    return occurrence.actual_day && occurrence.actual_day !== occurrence.planned_day
+    return occurrence.actual_day &&
+        occurrence.actual_day !== occurrence.planned_day
       ? `Fait le ${dayLong(occurrence.actual_day)}`
       : "Fait";
   }
   if (occurrence.status === "missed") return "Pas fait";
+  if (occurrence.status === "partial") return "Partiel";
   if (occurrence.status === "rescheduled") {
     return occurrence.original_planned_day
       ? `Reporte depuis ${dayLong(occurrence.original_planned_day)}`
@@ -175,21 +181,28 @@ export function HabitWeekModal({
       setLoading(true);
       setError(null);
       try {
-        const { data, error: invokeError } = await supabase.functions.invoke("habit-week-planning-v1", {
-          body: {
-            action: "get_state",
-            plan_item_id: item.id,
-            current_week_start: currentWeekStart,
-            target_reps_override: item.target_reps ?? 0,
+        const { data, error: invokeError } = await supabase.functions.invoke(
+          "habit-week-planning-v1",
+          {
+            body: {
+              action: "get_state",
+              plan_item_id: item.id,
+              current_week_start: currentWeekStart,
+              target_reps_override: item.target_reps ?? 0,
+            },
           },
-        });
+        );
         if (invokeError) throw invokeError;
         if (cancelled) return;
         const next = data as HabitWeekStateResponse;
         setState(next);
       } catch (loadError) {
         if (cancelled) return;
-        setError(loadError instanceof Error ? loadError.message : "Impossible de charger le planning hebdo.");
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Impossible de charger le planning hebdo.",
+        );
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -240,7 +253,8 @@ export function HabitWeekModal({
     }
 
     return entries.sort((left, right) => {
-      const dayDiff = DAY_CODES.indexOf(left.day) - DAY_CODES.indexOf(right.day);
+      const dayDiff = DAY_CODES.indexOf(left.day) -
+        DAY_CODES.indexOf(right.day);
       if (dayDiff !== 0) return dayDiff;
       if (left.kind !== right.kind) return left.kind === "history" ? -1 : 1;
       if (left.kind === "occurrence" && right.kind === "occurrence") {
@@ -259,19 +273,22 @@ export function HabitWeekModal({
     setError(null);
     setInfo(null);
     try {
-      const { data, error: invokeError } = await supabase.functions.invoke("habit-week-planning-v1", {
-        body: {
-          action: "validate_occurrence",
-          plan_item_id: item.id,
-          occurrence_id: occurrence.id,
-          decision,
-          target_day: options?.targetDay,
-          actual_day: options?.actualDay,
-          current_day: currentDayCode,
-          current_week_start: currentWeekStart,
-          target_reps_override: item.target_reps ?? 0,
+      const { data, error: invokeError } = await supabase.functions.invoke(
+        "habit-week-planning-v1",
+        {
+          body: {
+            action: "validate_occurrence",
+            plan_item_id: item.id,
+            occurrence_id: occurrence.id,
+            decision,
+            target_day: options?.targetDay,
+            actual_day: options?.actualDay,
+            current_day: currentDayCode,
+            current_week_start: currentWeekStart,
+            target_reps_override: item.target_reps ?? 0,
+          },
         },
-      });
+      );
       if (invokeError) throw invokeError;
       const payload = data as HabitWeekStateResponse;
       setState(payload);
@@ -281,12 +298,18 @@ export function HabitWeekModal({
       } else if (payload.validation_result?.rescheduled_to) {
         setInfo("Pas fait enregistre.");
       } else if (decision === "missed") {
-        setInfo("Occurrence marquee comme non faite. Aucun autre spot libre cette semaine.");
+        setInfo(
+          "Occurrence marquee comme non faite. Aucun autre spot libre cette semaine.",
+        );
       } else {
         setInfo("Jour de l'habitude modifie.");
       }
     } catch (actionError) {
-      setError(actionError instanceof Error ? actionError.message : "Impossible de mettre a jour ce jour.");
+      setError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de mettre a jour ce jour.",
+      );
     } finally {
       setSaving(false);
     }
@@ -302,9 +325,13 @@ export function HabitWeekModal({
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
               Habitude
             </p>
-            <h3 className="mt-1 text-lg font-bold text-stone-950">{item.title}</h3>
+            <h3 className="mt-1 text-lg font-bold text-stone-950">
+              {item.title}
+            </h3>
             <p className="mt-1 text-sm text-stone-600">
-              {item.target_reps ?? 0} repetitions visees cette semaine. Ici tu renseignes seulement ce qui a ete fait ou non.
+              {item.target_reps ?? 0}{" "}
+              repetitions visees cette semaine. Ici tu renseignes seulement ce
+              qui a ete fait ou non.
             </p>
           </div>
           <button
@@ -316,27 +343,34 @@ export function HabitWeekModal({
           </button>
         </div>
         <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
-          {loading ? (
-            <div className="flex items-center gap-2 text-sm text-stone-600">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Chargement du planning...
-            </div>
-          ) : null}
+          {loading
+            ? (
+              <div className="flex items-center gap-2 text-sm text-stone-600">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Chargement du planning...
+              </div>
+            )
+            : null}
 
-          {error ? (
-            <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {error}
-            </div>
-          ) : null}
+          {error
+            ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                {error}
+              </div>
+            )
+            : null}
 
-          {info ? (
-            <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-              {info}
-            </div>
-          ) : null}
+          {info
+            ? (
+              <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {info}
+              </div>
+            )
+            : null}
 
-          {!loading && state ? (
-            <div className="space-y-4">
+          {!loading && state
+            ? (
+              <div className="space-y-4">
                 <div className="rounded-3xl border border-stone-200 bg-stone-50 px-4 py-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -348,16 +382,19 @@ export function HabitWeekModal({
                       </p>
                     </div>
                     <div className="text-sm text-stone-600">
-                      {currentOccurrences.length} occurrence{currentOccurrences.length > 1 ? "s" : ""}
+                      {currentOccurrences.length}{" "}
+                      occurrence{currentOccurrences.length > 1 ? "s" : ""}
                     </div>
                   </div>
                 </div>
 
-                {currentOccurrences.length === 0 ? (
-                  <div className="rounded-3xl border border-dashed border-stone-300 px-4 py-5 text-sm text-stone-600">
-                    Aucun jour n'est planifie cette semaine.
-                  </div>
-                ) : null}
+                {currentOccurrences.length === 0
+                  ? (
+                    <div className="rounded-3xl border border-dashed border-stone-300 px-4 py-5 text-sm text-stone-600">
+                      Aucun jour n'est planifie cette semaine.
+                    </div>
+                  )
+                  : null}
 
                 {displayEntries.map((entry) => {
                   if (entry.kind === "history") {
@@ -388,7 +425,8 @@ export function HabitWeekModal({
 
                   const occurrence = entry.occurrence;
                   const isFutureOccurrence =
-                    DAY_CODES.indexOf(occurrence.planned_day) > DAY_CODES.indexOf(currentDayCode);
+                    DAY_CODES.indexOf(occurrence.planned_day) >
+                      DAY_CODES.indexOf(currentDayCode);
 
                   return (
                     <div
@@ -404,78 +442,110 @@ export function HabitWeekModal({
                             {dayLong(occurrence.planned_day)}
                           </p>
                           <p className="mt-1 text-sm text-stone-600">
-                            {occurrence.status === "rescheduled" && latestRescheduleEventByOccurrenceId.has(occurrence.id)
-                              ? `Reporte depuis ${dayLong(latestRescheduleEventByOccurrenceId.get(occurrence.id)!.from_day)}`
+                            {occurrence.status === "rescheduled" &&
+                                latestRescheduleEventByOccurrenceId.has(
+                                  occurrence.id,
+                                )
+                              ? `Reporte depuis ${
+                                dayLong(
+                                  latestRescheduleEventByOccurrenceId.get(
+                                    occurrence.id,
+                                  )!.from_day,
+                                )
+                              }`
                               : occurrenceStatusLabel(occurrence)}
                           </p>
                         </div>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          occurrence.status === "done"
-                            ? "bg-emerald-50 text-emerald-700"
-                            : occurrence.status === "missed"
-                            ? "bg-rose-50 text-rose-700"
-                            : occurrence.status === "rescheduled"
-                            ? "bg-amber-50 text-amber-700"
-                            : "bg-stone-100 text-stone-600"
-                        }`}>
+                        <span
+                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                            occurrence.status === "done"
+                              ? "bg-emerald-50 text-emerald-700"
+                              : occurrence.status === "missed"
+                              ? "bg-rose-50 text-rose-700"
+                              : occurrence.status === "partial"
+                              ? "bg-sky-50 text-sky-700"
+                              : occurrence.status === "rescheduled"
+                              ? "bg-amber-50 text-amber-700"
+                              : "bg-stone-100 text-stone-600"
+                          }`}
+                        >
                           {occurrence.status === "done"
                             ? "Fait"
                             : occurrence.status === "missed"
                             ? "Pas fait"
+                            : occurrence.status === "partial"
+                            ? "Partiel"
                             : occurrence.status === "rescheduled"
                             ? "Reporte"
                             : "A valider"}
                         </span>
                       </div>
 
-                      {occurrence.status !== "done" && !isFutureOccurrence ? (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => void handleOccurrenceAction(occurrence, "done")}
-                            disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60"
-                          >
-                            {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                            Fait
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void handleOccurrenceAction(occurrence, "missed")}
-                            disabled={saving}
-                            className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-60"
-                          >
-                            <X className="h-3.5 w-3.5" />
-                            Pas fait
-                          </button>
-                        </div>
-                      ) : null}
+                      {occurrence.status !== "done" &&
+                          occurrence.status !== "partial" &&
+                          !isFutureOccurrence
+                        ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleOccurrenceAction(occurrence, "done")}
+                              disabled={saving}
+                              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60"
+                            >
+                              {saving
+                                ? (
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                )
+                                : <Check className="h-3.5 w-3.5" />}
+                              Fait
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                void handleOccurrenceAction(
+                                  occurrence,
+                                  "missed",
+                                )}
+                              disabled={saving}
+                              className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-60"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                              Pas fait
+                            </button>
+                          </div>
+                        )
+                        : null}
                     </div>
                   );
                 })}
-            </div>
-          ) : null}
+              </div>
+            )
+            : null}
         </div>
 
         <div className="border-t border-stone-200 px-5 py-4">
           <div className="flex items-center justify-between gap-3 text-xs text-stone-500">
             <div className="flex items-center gap-2">
               <RotateCcw className="h-3.5 w-3.5" />
-              Si tu marques "Pas fait", Sophia essaie de replacer l'habitude plus tard dans la semaine.
+              Si tu marques "Pas fait", Sophia essaie de replacer l'habitude
+              plus tard dans la semaine.
             </div>
             <div className="flex items-center gap-4">
-              {onOpenWeekPlanning ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onOpenWeekPlanning();
-                  }}
-                  className="font-semibold text-stone-700 transition hover:text-stone-950"
-                >
-                  Modifier ma semaine
-                </button>
-              ) : null}
+              {onOpenWeekPlanning
+                ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onOpenWeekPlanning();
+                    }}
+                    className="font-semibold text-stone-700 transition hover:text-stone-950"
+                  >
+                    Modifier ma semaine
+                  </button>
+                )
+                : null}
               <button
                 type="button"
                 onClick={onClose}

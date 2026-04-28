@@ -5,7 +5,12 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
-import { jsonResponse, parseJsonBody, serverError, z } from "../_shared/http.ts";
+import {
+  jsonResponse,
+  parseJsonBody,
+  serverError,
+  z,
+} from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 
 const DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
@@ -40,8 +45,12 @@ type HabitWeekOccurrenceRow = {
   planned_day: DayCode;
   original_planned_day: DayCode | null;
   actual_day: DayCode | null;
-  status: "planned" | "done" | "missed" | "rescheduled";
-  source: "default_generated" | "weekly_confirmed" | "auto_rescheduled" | "manual_change";
+  status: "planned" | "done" | "partial" | "missed" | "rescheduled";
+  source:
+    | "default_generated"
+    | "weekly_confirmed"
+    | "auto_rescheduled"
+    | "manual_change";
   validated_at: string | null;
   created_at: string;
   updated_at: string;
@@ -54,7 +63,8 @@ function getErrorText(error: unknown): string {
     "details",
     "hint",
     "code",
-  ].map((key) => String((error as Record<string, unknown>)[key] ?? "").trim()).filter(Boolean);
+  ].map((key) => String((error as Record<string, unknown>)[key] ?? "").trim())
+    .filter(Boolean);
   return parts.join(" | ").toLowerCase();
 }
 
@@ -62,12 +72,18 @@ function errorMentions(error: unknown, token: string): boolean {
   return getErrorText(error).includes(token.toLowerCase());
 }
 
-function normalizePlanRow(row: Record<string, unknown> | null): HabitWeekPlanRow | null {
+function normalizePlanRow(
+  row: Record<string, unknown> | null,
+): HabitWeekPlanRow | null {
   if (!row) return null;
   return {
     ...(row as unknown as HabitWeekPlanRow),
-    default_days: normalizeDayCodes(row.default_days as string[] | null | undefined),
-    planned_days: normalizeDayCodes(row.planned_days as string[] | null | undefined),
+    default_days: normalizeDayCodes(
+      row.default_days as string[] | null | undefined,
+    ),
+    planned_days: normalizeDayCodes(
+      row.planned_days as string[] | null | undefined,
+    ),
   };
 }
 
@@ -77,7 +93,8 @@ function normalizeOccurrenceRows(
 ): HabitWeekOccurrenceRow[] {
   return rows.map((row) => {
     const ordinal = Number(row.ordinal ?? 0);
-    const plannedDay = normalizeDayCodes([String(row.planned_day ?? "")])[0] ?? "mon";
+    const plannedDay = normalizeDayCodes([String(row.planned_day ?? "")])[0] ??
+      "mon";
     const defaultDay = normalizeDayCodes([String(row.default_day ?? "")])[0] ??
       plan?.default_days?.[Math.max(0, ordinal - 1)] ??
       plannedDay;
@@ -86,7 +103,8 @@ function normalizeOccurrenceRows(
       ordinal,
       default_day: defaultDay,
       planned_day: plannedDay,
-      original_planned_day: normalizeDayCodes([String(row.original_planned_day ?? "")])[0] ?? null,
+      original_planned_day:
+        normalizeDayCodes([String(row.original_planned_day ?? "")])[0] ?? null,
       actual_day: normalizeDayCodes([String(row.actual_day ?? "")])[0] ?? null,
     };
   });
@@ -103,7 +121,9 @@ async function upsertOccurrences(
     });
   if (!error) return;
   if (errorMentions(error, "default_day")) {
-    const legacyRows = rows.map(({ default_day: _defaultDay, ...rest }) => rest);
+    const legacyRows = rows.map(({ default_day: _defaultDay, ...rest }) =>
+      rest
+    );
     const { error: legacyError } = await admin
       .from("user_habit_week_occurrences")
       .upsert(legacyRows, {
@@ -225,7 +245,8 @@ class HabitWeekPlanningError extends Error {
 function getSupabaseEnv() {
   const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
   const anonKey = String(Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
-  const serviceRoleKey = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  const serviceRoleKey = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "")
+    .trim();
   if (!url || !anonKey || !serviceRoleKey) {
     throw new Error("Missing Supabase environment for habit-week-planning-v1");
   }
@@ -236,7 +257,9 @@ function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
   const unique = new Set<DayCode>();
   for (const day of days ?? []) {
     const normalized = String(day ?? "").trim().toLowerCase() as DayCode;
-    if ((DAY_CODES as readonly string[]).includes(normalized)) unique.add(normalized);
+    if ((DAY_CODES as readonly string[]).includes(normalized)) {
+      unique.add(normalized);
+    }
   }
   return [...unique];
 }
@@ -284,7 +307,9 @@ function buildDefaultDays(args: {
 }): DayCode[] {
   const fromPreferred = normalizeDayCodes(args.preferredDays);
   const fromPlan = normalizeDayCodes(args.item.scheduled_days);
-  const availableDays = fromPreferred.length > 0 ? fromPreferred : [...DAY_CODES];
+  const availableDays = fromPreferred.length > 0
+    ? fromPreferred
+    : [...DAY_CODES];
   const target = Math.min(
     effectiveWeeklyTarget(args.item, args.targetRepsOverride),
     availableDays.length,
@@ -292,10 +317,10 @@ function buildDefaultDays(args: {
   if (target === 0) return [];
 
   if (args.item.dimension !== "habits") {
-    const candidate = availableDays.find((day) => fromPlan.includes(day))
-      ?? availableDays[0]
-      ?? fromPlan[0]
-      ?? DAY_CODES[0];
+    const candidate = availableDays.find((day) => fromPlan.includes(day)) ??
+      availableDays[0] ??
+      fromPlan[0] ??
+      DAY_CODES[0];
     return candidate ? [candidate] : [];
   }
 
@@ -337,14 +362,21 @@ async function loadHabitItem(
 ): Promise<UserPlanItemRow> {
   const { data, error } = await admin
     .from("user_plan_items")
-    .select("id,user_id,cycle_id,transformation_id,plan_id,dimension,target_reps,scheduled_days,title,status")
+    .select(
+      "id,user_id,cycle_id,transformation_id,plan_id,dimension,target_reps,scheduled_days,title,status",
+    )
     .eq("id", planItemId)
     .eq("user_id", userId)
     .maybeSingle();
   if (error) {
-    throw new HabitWeekPlanningError(500, "Impossible de charger cet item de plan", undefined, {
-      cause: error,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de charger cet item de plan",
+      undefined,
+      {
+        cause: error,
+      },
+    );
   }
   if (!data) throw new HabitWeekPlanningError(404, "Item de plan introuvable");
   return data as UserPlanItemRow;
@@ -360,47 +392,71 @@ async function loadWeekState(
   occurrences: HabitWeekOccurrenceRow[];
   rescheduleEvents: HabitWeekRescheduleEventRow[];
 }> {
-  const [planResult, occurrencesResult, rescheduleEventsResult] = await Promise.all([
-    admin
-      .from("user_habit_week_plans")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("plan_item_id", item.id)
-      .eq("week_start_date", weekStartDate)
-      .maybeSingle(),
-    admin
-      .from("user_habit_week_occurrences")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("plan_item_id", item.id)
-      .eq("week_start_date", weekStartDate)
-      .order("ordinal", { ascending: true }),
-    admin
-      .from("user_habit_week_reschedule_events")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("plan_item_id", item.id)
-      .eq("week_start_date", weekStartDate)
-      .order("created_at", { ascending: true }),
-  ]);
+  const [planResult, occurrencesResult, rescheduleEventsResult] = await Promise
+    .all([
+      admin
+        .from("user_habit_week_plans")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("plan_item_id", item.id)
+        .eq("week_start_date", weekStartDate)
+        .maybeSingle(),
+      admin
+        .from("user_habit_week_occurrences")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("plan_item_id", item.id)
+        .eq("week_start_date", weekStartDate)
+        .order("ordinal", { ascending: true }),
+      admin
+        .from("user_habit_week_reschedule_events")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("plan_item_id", item.id)
+        .eq("week_start_date", weekStartDate)
+        .order("created_at", { ascending: true }),
+    ]);
 
   if (planResult.error) {
-    throw new HabitWeekPlanningError(500, "Impossible de charger le planning hebdo", undefined, {
-      cause: planResult.error,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de charger le planning hebdo",
+      undefined,
+      {
+        cause: planResult.error,
+      },
+    );
   }
   if (occurrencesResult.error) {
-    throw new HabitWeekPlanningError(500, "Impossible de charger les occurrences de l'habitude", undefined, {
-      cause: occurrencesResult.error,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de charger les occurrences de l'habitude",
+      undefined,
+      {
+        cause: occurrencesResult.error,
+      },
+    );
   }
-  if (rescheduleEventsResult.error && !errorMentions(rescheduleEventsResult.error, "user_habit_week_reschedule_events")) {
-    throw new HabitWeekPlanningError(500, "Impossible de charger l'historique des reports", undefined, {
-      cause: rescheduleEventsResult.error,
-    });
+  if (
+    rescheduleEventsResult.error &&
+    !errorMentions(
+      rescheduleEventsResult.error,
+      "user_habit_week_reschedule_events",
+    )
+  ) {
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de charger l'historique des reports",
+      undefined,
+      {
+        cause: rescheduleEventsResult.error,
+      },
+    );
   }
 
-  const normalizedPlan = normalizePlanRow(planResult.data as Record<string, unknown> | null);
+  const normalizedPlan = normalizePlanRow(
+    planResult.data as Record<string, unknown> | null,
+  );
   const normalizedOccurrences = normalizeOccurrenceRows(
     (occurrencesResult.data as Array<Record<string, unknown>> | null) ?? [],
     normalizedPlan,
@@ -409,7 +465,9 @@ async function loadWeekState(
   return {
     plan: normalizedPlan,
     occurrences: normalizedOccurrences,
-    rescheduleEvents: (rescheduleEventsResult.data as HabitWeekRescheduleEventRow[] | null) ?? [],
+    rescheduleEvents:
+      (rescheduleEventsResult.data as HabitWeekRescheduleEventRow[] | null) ??
+        [],
   };
 }
 
@@ -428,11 +486,13 @@ async function seedWeekIfMissing(
   rescheduleEvents: HabitWeekRescheduleEventRow[];
 }> {
   const existing = await loadWeekState(admin, userId, item, weekStartDate);
-  if (existing.plan && existing.occurrences.length > 0) return {
-    plan: existing.plan,
-    occurrences: existing.occurrences,
-    rescheduleEvents: existing.rescheduleEvents,
-  };
+  if (existing.plan && existing.occurrences.length > 0) {
+    return {
+      plan: existing.plan,
+      occurrences: existing.occurrences,
+      rescheduleEvents: existing.rescheduleEvents,
+    };
+  }
 
   const defaultDays = buildDefaultDays({
     item,
@@ -458,9 +518,14 @@ async function seedWeekIfMissing(
     .select("*")
     .single();
   if (planError) {
-    throw new HabitWeekPlanningError(500, "Impossible de creer le planning hebdo", undefined, {
-      cause: planError,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de creer le planning hebdo",
+      undefined,
+      {
+        cause: planError,
+      },
+    );
   }
 
   if (existing.occurrences.length === 0) {
@@ -484,16 +549,24 @@ async function seedWeekIfMissing(
       try {
         await upsertOccurrences(admin, occurrencesPayload);
       } catch (occurrencesError) {
-        throw new HabitWeekPlanningError(500, "Impossible de creer les occurrences de la semaine", undefined, {
-          cause: occurrencesError,
-        });
+        throw new HabitWeekPlanningError(
+          500,
+          "Impossible de creer les occurrences de la semaine",
+          undefined,
+          {
+            cause: occurrencesError,
+          },
+        );
       }
     }
   }
 
   const seeded = await loadWeekState(admin, userId, item, weekStartDate);
   if (!seeded.plan) {
-    throw new HabitWeekPlanningError(500, "Le planning hebdo n'a pas pu etre initialise");
+    throw new HabitWeekPlanningError(
+      500,
+      "Le planning hebdo n'a pas pu etre initialise",
+    );
   }
   return {
     plan: seeded.plan,
@@ -523,13 +596,22 @@ async function syncWeekPlanning(args: {
     : null;
   const target = effectiveWeeklyTarget(item, args.targetRepsOverride);
   if (plannedDays.length > target) {
-    throw new HabitWeekPlanningError(400, "Tu ne peux pas planifier plus de jours que la frequence cible.", {
-      target_reps: target,
-      planned_count: plannedDays.length,
-    });
+    throw new HabitWeekPlanningError(
+      400,
+      "Tu ne peux pas planifier plus de jours que la frequence cible.",
+      {
+        target_reps: target,
+        planned_count: plannedDays.length,
+      },
+    );
   }
-  if (defaultDaysOverride && defaultDaysOverride.length !== plannedDays.length) {
-    throw new HabitWeekPlanningError(400, "Les jours proposes doivent correspondre au nombre de jours planifies.");
+  if (
+    defaultDaysOverride && defaultDaysOverride.length !== plannedDays.length
+  ) {
+    throw new HabitWeekPlanningError(
+      400,
+      "Les jours proposes doivent correspondre au nombre de jours planifies.",
+    );
   }
 
   const existing = await seedWeekIfMissing(admin, userId, item, weekStartDate, {
@@ -541,7 +623,9 @@ async function syncWeekPlanning(args: {
     .from("user_habit_week_plans")
     .update({
       status: args.status,
-      confirmed_at: args.status === "confirmed" ? now : existing.plan.confirmed_at,
+      confirmed_at: args.status === "confirmed"
+        ? now
+        : existing.plan.confirmed_at,
       updated_at: now,
     })
     .eq("id", existing.plan.id)
@@ -549,18 +633,29 @@ async function syncWeekPlanning(args: {
     .select("*")
     .single();
   if (planError) {
-    throw new HabitWeekPlanningError(500, "Impossible de sauvegarder ce planning", undefined, {
-      cause: planError,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de sauvegarder ce planning",
+      undefined,
+      {
+        cause: planError,
+      },
+    );
   }
 
-  const doneOccurrences = existing.occurrences.filter((occurrence) => occurrence.status === "done");
+  const lockedOccurrences = existing.occurrences.filter((occurrence) =>
+    occurrence.status === "done" || occurrence.status === "partial"
+  );
   const editableOccurrences = existing.occurrences
-    .filter((occurrence) => occurrence.status !== "done")
+    .filter((occurrence) =>
+      occurrence.status !== "done" && occurrence.status !== "partial"
+    )
     .sort((left, right) => left.ordinal - right.ordinal);
 
   const desiredOrdinals = plannedDays.map((_, index) => index + 1);
-  const toDelete = editableOccurrences.filter((occurrence) => !desiredOrdinals.includes(occurrence.ordinal));
+  const toDelete = editableOccurrences.filter((occurrence) =>
+    !desiredOrdinals.includes(occurrence.ordinal)
+  );
   if (toDelete.length > 0) {
     const { error: deleteError } = await admin
       .from("user_habit_week_occurrences")
@@ -568,15 +663,22 @@ async function syncWeekPlanning(args: {
       .in("id", toDelete.map((occurrence) => occurrence.id))
       .eq("user_id", userId);
     if (deleteError) {
-      throw new HabitWeekPlanningError(500, "Impossible de nettoyer les jours retires", undefined, {
-        cause: deleteError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible de nettoyer les jours retires",
+        undefined,
+        {
+          cause: deleteError,
+        },
+      );
     }
   }
 
   const rowsToUpsert = plannedDays.map((day, index) => {
     const ordinal = index + 1;
-    const existingOccurrence = editableOccurrences.find((occurrence) => occurrence.ordinal === ordinal);
+    const existingOccurrence = editableOccurrences.find((occurrence) =>
+      occurrence.ordinal === ordinal
+    );
     return {
       id: existingOccurrence?.id,
       user_id: userId,
@@ -586,12 +688,17 @@ async function syncWeekPlanning(args: {
       plan_item_id: item.id,
       week_start_date: weekStartDate,
       ordinal,
-      default_day: defaultDaysOverride?.[index] ?? existingOccurrence?.default_day ?? day,
+      default_day: defaultDaysOverride?.[index] ??
+        existingOccurrence?.default_day ?? day,
       planned_day: day,
       original_planned_day: existingOccurrence?.original_planned_day ?? null,
       actual_day: existingOccurrence?.actual_day ?? null,
-      status: existingOccurrence?.status === "rescheduled" ? "rescheduled" : "planned",
-      source: args.status === "confirmed" ? "weekly_confirmed" : existingOccurrence?.source ?? "manual_change",
+      status: existingOccurrence?.status === "rescheduled"
+        ? "rescheduled"
+        : "planned",
+      source: args.status === "confirmed"
+        ? "weekly_confirmed"
+        : existingOccurrence?.source ?? "manual_change",
       validated_at: existingOccurrence?.validated_at ?? null,
       updated_at: now,
     };
@@ -601,16 +708,26 @@ async function syncWeekPlanning(args: {
     try {
       await upsertOccurrences(admin, rowsToUpsert);
     } catch (upsertError) {
-      throw new HabitWeekPlanningError(500, "Impossible de mettre a jour les jours de l'habitude", undefined, {
-        cause: upsertError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible de mettre a jour les jours de l'habitude",
+        undefined,
+        {
+          cause: upsertError,
+        },
+      );
     }
   }
 
   const refreshed = await loadWeekState(admin, userId, item, weekStartDate);
   return {
     plan: (planData as HabitWeekPlanRow),
-    occurrences: [...doneOccurrences, ...refreshed.occurrences.filter((occurrence) => occurrence.status !== "done")]
+    occurrences: [
+      ...lockedOccurrences,
+      ...refreshed.occurrences.filter((occurrence) =>
+        occurrence.status !== "done" && occurrence.status !== "partial"
+      ),
+    ]
       .sort((left, right) => left.ordinal - right.ordinal),
     rescheduleEvents: refreshed.rescheduleEvents,
   };
@@ -673,10 +790,16 @@ async function getBundleState(args: {
   }>;
 }) {
   const weekItems = await Promise.all(args.items.map(async (entry) => {
-    let week = await seedWeekIfMissing(args.admin, args.userId, entry.item, args.weekStartDate, {
-      preferredDays: entry.preferredDays,
-      targetRepsOverride: entry.targetRepsOverride,
-    });
+    let week = await seedWeekIfMissing(
+      args.admin,
+      args.userId,
+      entry.item,
+      args.weekStartDate,
+      {
+        preferredDays: entry.preferredDays,
+        targetRepsOverride: entry.targetRepsOverride,
+      },
+    );
     const expectedDays = buildDefaultDays({
       item: entry.item,
       preferredDays: entry.preferredDays,
@@ -687,7 +810,8 @@ async function getBundleState(args: {
 
     if (
       week.plan.status === "pending_confirmation" &&
-      (!arraysEqual(currentPlannedDays, expectedDays) || !arraysEqual(currentDefaultDays, expectedDays))
+      (!arraysEqual(currentPlannedDays, expectedDays) ||
+        !arraysEqual(currentDefaultDays, expectedDays))
     ) {
       week = await syncWeekPlanning({
         admin: args.admin,
@@ -706,7 +830,10 @@ async function getBundleState(args: {
         id: entry.item.id,
         title: entry.item.title,
         dimension: entry.item.dimension,
-        target_reps: effectiveWeeklyTarget(entry.item, entry.targetRepsOverride),
+        target_reps: effectiveWeeklyTarget(
+          entry.item,
+          entry.targetRepsOverride,
+        ),
         scheduled_days: normalizeDayCodes(entry.item.scheduled_days),
         status: entry.item.status,
       },
@@ -715,11 +842,13 @@ async function getBundleState(args: {
     };
   }));
 
-  const bundleStatus = weekItems.every((entry) =>
-    entry.week.plan.status === "confirmed" || entry.week.plan.status === "auto_applied"
-  )
-    ? "confirmed"
-    : "pending_confirmation";
+  const bundleStatus =
+    weekItems.every((entry) =>
+        entry.week.plan.status === "confirmed" ||
+        entry.week.plan.status === "auto_applied"
+      )
+      ? "confirmed"
+      : "pending_confirmation";
 
   return {
     week_start_date: args.weekStartDate,
@@ -780,15 +909,28 @@ async function validateOccurrence(args: {
     .eq("plan_item_id", args.item.id)
     .maybeSingle();
   if (error) {
-    throw new HabitWeekPlanningError(500, "Impossible de charger cette occurrence", undefined, {
-      cause: error,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de charger cette occurrence",
+      undefined,
+      {
+        cause: error,
+      },
+    );
   }
   if (!data) throw new HabitWeekPlanningError(404, "Occurrence introuvable");
 
-  const occurrence = normalizeOccurrenceRows([data as Record<string, unknown>], null)[0];
-  const weekState = await loadWeekState(args.admin, args.userId, args.item, occurrence.week_start_date);
-  const siblings = weekState.occurrences.filter((row) => row.id !== occurrence.id);
+  const occurrence =
+    normalizeOccurrenceRows([data as Record<string, unknown>], null)[0];
+  const weekState = await loadWeekState(
+    args.admin,
+    args.userId,
+    args.item,
+    occurrence.week_start_date,
+  );
+  const siblings = weekState.occurrences.filter((row) =>
+    row.id !== occurrence.id
+  );
   const occupiedDays = new Set<DayCode>(
     siblings
       .filter((row) => row.status !== "missed")
@@ -798,9 +940,13 @@ async function validateOccurrence(args: {
   const currentDay = args.currentDay ?? occurrence.planned_day;
 
   if (args.decision === "done") {
-    const actualDay = args.actualDay ?? occurrence.actual_day ?? occurrence.planned_day;
+    const actualDay = args.actualDay ?? occurrence.actual_day ??
+      occurrence.planned_day;
     if (DAY_CODES.indexOf(actualDay) > DAY_CODES.indexOf(currentDay)) {
-      throw new HabitWeekPlanningError(400, "Tu ne peux pas valider un jour futur comme deja fait.");
+      throw new HabitWeekPlanningError(
+        400,
+        "Tu ne peux pas valider un jour futur comme deja fait.",
+      );
     }
     const { error: updateError } = await args.admin
       .from("user_habit_week_occurrences")
@@ -813,9 +959,14 @@ async function validateOccurrence(args: {
       .eq("id", occurrence.id)
       .eq("user_id", args.userId);
     if (updateError) {
-      throw new HabitWeekPlanningError(500, "Impossible de valider ce jour", undefined, {
-        cause: updateError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible de valider ce jour",
+        undefined,
+        {
+          cause: updateError,
+        },
+      );
     }
     return { rescheduled_to: null };
   }
@@ -826,10 +977,16 @@ async function validateOccurrence(args: {
       throw new HabitWeekPlanningError(400, "Choisis un jour de report.");
     }
     if (DAY_CODES.indexOf(targetDay) < DAY_CODES.indexOf(currentDay)) {
-      throw new HabitWeekPlanningError(400, "Le report ne peut se faire que vers aujourd'hui ou un jour futur.");
+      throw new HabitWeekPlanningError(
+        400,
+        "Le report ne peut se faire que vers aujourd'hui ou un jour futur.",
+      );
     }
     if (occupiedDays.has(targetDay)) {
-      throw new HabitWeekPlanningError(409, "Ce jour est deja pris par une autre repetition.");
+      throw new HabitWeekPlanningError(
+        409,
+        "Ce jour est deja pris par une autre repetition.",
+      );
     }
     try {
       await insertRescheduleEvent(args.admin, {
@@ -846,15 +1003,21 @@ async function validateOccurrence(args: {
         created_at: now,
       });
     } catch (historyError) {
-      throw new HabitWeekPlanningError(500, "Impossible d'enregistrer l'historique du report", undefined, {
-        cause: historyError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible d'enregistrer l'historique du report",
+        undefined,
+        {
+          cause: historyError,
+        },
+      );
     }
     const { error: updateError } = await args.admin
       .from("user_habit_week_occurrences")
       .update({
         planned_day: targetDay,
-        original_planned_day: occurrence.original_planned_day ?? occurrence.planned_day,
+        original_planned_day: occurrence.original_planned_day ??
+          occurrence.planned_day,
         status: "rescheduled",
         source: "manual_change",
         updated_at: now,
@@ -862,14 +1025,23 @@ async function validateOccurrence(args: {
       .eq("id", occurrence.id)
       .eq("user_id", args.userId);
     if (updateError) {
-      throw new HabitWeekPlanningError(500, "Impossible de deplacer ce jour", undefined, {
-        cause: updateError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible de deplacer ce jour",
+        undefined,
+        {
+          cause: updateError,
+        },
+      );
     }
     return { rescheduled_to: targetDay };
   }
 
-  const fallbackDay = nextAvailableDay(occurrence.planned_day, currentDay, occupiedDays);
+  const fallbackDay = nextAvailableDay(
+    occurrence.planned_day,
+    currentDay,
+    occupiedDays,
+  );
   if (!fallbackDay) {
     const { error: updateError } = await args.admin
       .from("user_habit_week_occurrences")
@@ -881,9 +1053,14 @@ async function validateOccurrence(args: {
       .eq("id", occurrence.id)
       .eq("user_id", args.userId);
     if (updateError) {
-      throw new HabitWeekPlanningError(500, "Impossible de marquer ce jour comme non fait", undefined, {
-        cause: updateError,
-      });
+      throw new HabitWeekPlanningError(
+        500,
+        "Impossible de marquer ce jour comme non fait",
+        undefined,
+        {
+          cause: updateError,
+        },
+      );
     }
     return { rescheduled_to: null };
   }
@@ -903,16 +1080,22 @@ async function validateOccurrence(args: {
       created_at: now,
     });
   } catch (historyError) {
-    throw new HabitWeekPlanningError(500, "Impossible d'enregistrer l'historique du report", undefined, {
-      cause: historyError,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible d'enregistrer l'historique du report",
+      undefined,
+      {
+        cause: historyError,
+      },
+    );
   }
 
   const { error: updateError } = await args.admin
     .from("user_habit_week_occurrences")
     .update({
       planned_day: fallbackDay,
-      original_planned_day: occurrence.original_planned_day ?? occurrence.planned_day,
+      original_planned_day: occurrence.original_planned_day ??
+        occurrence.planned_day,
       status: "rescheduled",
       source: "auto_rescheduled",
       updated_at: now,
@@ -920,9 +1103,14 @@ async function validateOccurrence(args: {
     .eq("id", occurrence.id)
     .eq("user_id", args.userId);
   if (updateError) {
-    throw new HabitWeekPlanningError(500, "Impossible de reporter ce jour", undefined, {
-      cause: updateError,
-    });
+    throw new HabitWeekPlanningError(
+      500,
+      "Impossible de reporter ce jour",
+      undefined,
+      {
+        cause: updateError,
+      },
+    );
   }
   return { rescheduled_to: fallbackDay };
 }
@@ -937,7 +1125,10 @@ async function handleRequest(req: Request): Promise<Response> {
 
   try {
     if (req.method !== "POST") {
-      return jsonResponse(req, { error: "Method Not Allowed", request_id: requestId }, { status: 405 });
+      return jsonResponse(req, {
+        error: "Method Not Allowed",
+        request_id: requestId,
+      }, { status: 405 });
     }
 
     const parsedBody = await parseJsonBody(req, REQUEST_SCHEMA, requestId);
@@ -945,19 +1136,28 @@ async function handleRequest(req: Request): Promise<Response> {
 
     const env = getSupabaseEnv();
     const authHeader = String(
-      req.headers.get("Authorization") ?? req.headers.get("authorization") ?? "",
+      req.headers.get("Authorization") ?? req.headers.get("authorization") ??
+        "",
     ).trim();
     if (!authHeader) {
-      return jsonResponse(req, { error: "Missing Authorization header", request_id: requestId }, { status: 401 });
+      return jsonResponse(req, {
+        error: "Missing Authorization header",
+        request_id: requestId,
+      }, { status: 401 });
     }
 
     const userClient = createClient(env.url, env.anonKey, {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const { data: authData, error: authError } = await userClient.auth
+      .getUser();
     if (authError || !authData?.user) {
-      return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+      return jsonResponse(
+        req,
+        { error: "Unauthorized", request_id: requestId },
+        { status: 401 },
+      );
     }
 
     const admin = createClient(env.url, env.serviceRoleKey, {
@@ -966,7 +1166,11 @@ async function handleRequest(req: Request): Promise<Response> {
     const body = parsedBody.data;
 
     if (body.action === "get_state") {
-      const item = await loadHabitItem(admin, authData.user.id, body.plan_item_id);
+      const item = await loadHabitItem(
+        admin,
+        authData.user.id,
+        body.plan_item_id,
+      );
       const state = await getState({
         admin,
         userId: authData.user.id,
@@ -980,7 +1184,11 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (body.action === "confirm_week") {
-      const item = await loadHabitItem(admin, authData.user.id, body.plan_item_id);
+      const item = await loadHabitItem(
+        admin,
+        authData.user.id,
+        body.plan_item_id,
+      );
       const week = await syncWeekPlanning({
         admin,
         userId: authData.user.id,
@@ -1026,7 +1234,11 @@ async function handleRequest(req: Request): Promise<Response> {
       return jsonResponse(req, { request_id: requestId, ...state });
     }
 
-    const item = await loadHabitItem(admin, authData.user.id, body.plan_item_id);
+    const item = await loadHabitItem(
+      admin,
+      authData.user.id,
+      body.plan_item_id,
+    );
 
     const validationResult = await validateOccurrence({
       admin,

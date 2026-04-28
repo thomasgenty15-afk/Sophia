@@ -15,7 +15,6 @@
     "plan-exec:audit:export": "node ./scripts/export_plan_execution_audit_bundle.mjs",
     "memory-v2:audit:export": "node ./scripts/export_memory_v2_audit_bundle.mjs",
     "momentum-v2:audit:export": "node ./scripts/export_momentum_v2_audit_bundle.mjs",
-    "bilans-v2:audit:export": "node ./scripts/export_bilans_v2_audit_bundle.mjs",
     "pulse-v2:audit:export": "node ./scripts/export_conversation_pulse_v2_audit_bundle.mjs",
     "coaching-v2:audit:export": "node ./scripts/export_coaching_v2_audit_bundle.mjs",
     "proactive-v2:audit:export": "node ./scripts/export_proactive_v2_audit_bundle.mjs",

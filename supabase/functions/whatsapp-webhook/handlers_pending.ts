@@ -1,4 +1,3 @@
-import { generateWithGemini } from "../_shared/gemini.ts";
 import { fetchLatestPending, markPending } from "./wa_db.ts";
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
 import {
@@ -14,8 +13,14 @@ import {
 } from "../_shared/scheduled_checkins.ts";
 import type { RendezVousKind } from "../_shared/v2-types.ts";
 import { transitionRendezVous } from "../_shared/v2-rendez-vous.ts";
-import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts";
 import { registerRendezVousRefusal } from "../sophia-brain/rendez_vous_decision.ts";
+import {
+  ACTION_EVENING_DONE_ID,
+  ACTION_EVENING_MISSED_ID,
+  ACTION_EVENING_PARTIAL_ID,
+  ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+} from "../_shared/action_occurrences.ts";
+import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 
 const RENDEZ_VOUS_KINDS = new Set([
   "pre_event_grounding",
@@ -24,18 +29,6 @@ const RENDEZ_VOUS_KINDS = new Set([
   "mission_preparation",
   "transition_handoff",
 ]);
-
-function classifyWeeklyBilanIntent(text: string) {
-  const t = String(text ?? "").trim().toLowerCase();
-  if (!t) return "unknown";
-  if (/^(oui|yes|go|ok|carr[ée]ment)\b/.test(t)) return "accept";
-  if (/\bon\s+le\s+fait\b/.test(t)) return "accept";
-  if (/\b(c'est parti|vas[- ]?y)\b/.test(t)) return "accept";
-  if (
-    /\b(pas maintenant|plus tard|demain|non|pas dispo|une autre fois)\b/.test(t)
-  ) return "decline";
-  return "unknown";
-}
 
 function classifyRendezVousIntent(text: string) {
   const t = String(text ?? "").trim().toLowerCase();
@@ -54,8 +47,256 @@ function asRendezVousKind(value: unknown): RendezVousKind | null {
 }
 
 async function fetchLatestCheckinPending(admin: any, userId: string) {
-  return await fetchLatestPending(admin, userId, "scheduled_checkin") ??
-    await fetchLatestPending(admin, userId, "daily_bilan");
+  return await fetchLatestPending(admin, userId, "scheduled_checkin");
+}
+
+function nextDateYmd(localDate: string): string {
+  const date = new Date(`${localDate}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+function eveningReviewDecisionFromActionId(actionIdRaw: unknown):
+  | { occurrenceStatus: "done"; entryOutcome: "completed" }
+  | { occurrenceStatus: "partial"; entryOutcome: "partial" }
+  | { occurrenceStatus: "missed"; entryOutcome: "missed" }
+  | null {
+  const actionId = String(actionIdRaw ?? "").trim();
+  if (actionId === ACTION_EVENING_DONE_ID) {
+    return { occurrenceStatus: "done", entryOutcome: "completed" };
+  }
+  if (actionId === ACTION_EVENING_PARTIAL_ID) {
+    return { occurrenceStatus: "partial", entryOutcome: "partial" };
+  }
+  if (actionId === ACTION_EVENING_MISSED_ID) {
+    return { occurrenceStatus: "missed", entryOutcome: "missed" };
+  }
+  return null;
+}
+
+function entryKindForEveningReview(target: any, outcome: string) {
+  if (outcome === "missed") return "skip";
+  if (outcome === "partial") return "partial";
+  const kind = String(target?.kind ?? "").trim();
+  const trackingType = String(target?.tracking_type ?? "").trim();
+  return kind === "milestone" ||
+      ["count", "scale", "milestone"].includes(trackingType)
+    ? "progress"
+    : "checkin";
+}
+
+function asPlanItemEntryKind(value: string):
+  | "checkin"
+  | "progress"
+  | "skip"
+  | "partial"
+  | "blocker"
+  | "support_feedback" {
+  if (
+    value === "progress" || value === "skip" || value === "partial" ||
+    value === "blocker" || value === "support_feedback"
+  ) {
+    return value;
+  }
+  return "checkin";
+}
+
+async function fetchLatestActionEveningReviewPending(
+  admin: any,
+  userId: string,
+) {
+  const { data, error } = await admin
+    .from("whatsapp_pending_actions")
+    .select("id,scheduled_checkin_id,status,payload")
+    .eq("user_id", userId)
+    .eq("kind", "scheduled_checkin")
+    .eq("status", "pending")
+    .filter(
+      "payload->>event_context",
+      "eq",
+      ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+    )
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data ?? null;
+}
+
+async function handleActionEveningReviewReply(params: {
+  admin: any;
+  userId: string;
+  fromE164: string;
+  requestId: string;
+  actionId?: string | null;
+}) {
+  const decision = eveningReviewDecisionFromActionId(params.actionId);
+  if (!decision) return false;
+
+  const pending = await fetchLatestActionEveningReviewPending(
+    params.admin,
+    params.userId,
+  );
+  if (!pending) return false;
+
+  const payload = pending?.payload ?? {};
+  const targets = Array.isArray(payload?.targets) ? payload.targets : [];
+  const occurrenceIds = Array.isArray(payload?.occurrence_ids)
+    ? payload.occurrence_ids.map((id: unknown) => String(id ?? "").trim())
+      .filter(Boolean)
+    : targets.map((target: any) => String(target?.occurrence_id ?? "").trim())
+      .filter(Boolean);
+  if (occurrenceIds.length === 0 || targets.length === 0) {
+    await markPending(params.admin, pending.id, "cancelled");
+    return false;
+  }
+
+  const nowIso = new Date().toISOString();
+  const localDate = String(payload?.local_date ?? "").trim() ||
+    nowIso.slice(0, 10);
+  const effectiveAt = `${localDate}T12:00:00.000Z`;
+  const dayStartIso = `${localDate}T00:00:00.000Z`;
+  const dayEndIso = `${nextDateYmd(localDate)}T00:00:00.000Z`;
+
+  await params.admin
+    .from("user_habit_week_occurrences")
+    .update({
+      status: decision.occurrenceStatus,
+      validated_at: nowIso,
+      updated_at: nowIso,
+    })
+    .eq("user_id", params.userId)
+    .in("id", occurrenceIds)
+    .in("status", ["planned", "rescheduled"]);
+
+  const uniqueTargetsByItem = new Map<string, any>();
+  for (const target of targets) {
+    const planItemId = String(target?.plan_item_id ?? "").trim();
+    if (planItemId && !uniqueTargetsByItem.has(planItemId)) {
+      uniqueTargetsByItem.set(planItemId, target);
+    }
+  }
+  const planItemIds = [...uniqueTargetsByItem.keys()];
+  const { data: existingEntries, error: existingEntriesErr } = await params
+    .admin
+    .from("user_plan_item_entries")
+    .select("plan_item_id")
+    .eq("user_id", params.userId)
+    .in("plan_item_id", planItemIds)
+    .gte("effective_at", dayStartIso)
+    .lt("effective_at", dayEndIso);
+  if (existingEntriesErr) throw existingEntriesErr;
+  const alreadyLogged = new Set(
+    ((existingEntries ?? []) as any[]).map((row) =>
+      String(row?.plan_item_id ?? "").trim()
+    ),
+  );
+
+  const entries = [...uniqueTargetsByItem.values()]
+    .filter((target) =>
+      !alreadyLogged.has(String(target?.plan_item_id ?? "").trim())
+    )
+    .map((target) => ({
+      id: crypto.randomUUID(),
+      user_id: params.userId,
+      cycle_id: String(target?.cycle_id ?? "").trim(),
+      transformation_id: String(target?.transformation_id ?? "").trim(),
+      plan_id: String(target?.plan_id ?? "").trim(),
+      plan_item_id: String(target?.plan_item_id ?? "").trim(),
+      entry_kind: entryKindForEveningReview(target, decision.entryOutcome),
+      outcome: decision.entryOutcome,
+      value_numeric: null,
+      value_text: null,
+      difficulty_level: null,
+      blocker_hint: null,
+      created_at: nowIso,
+      effective_at: effectiveAt,
+      metadata: {
+        source: "action_evening_review_v2",
+        channel: "whatsapp",
+        action_id: String(params.actionId ?? "").trim(),
+        pending_action_id: pending.id,
+        scheduled_checkin_id: pending.scheduled_checkin_id ?? null,
+        local_date: localDate,
+      },
+    }));
+
+  if (entries.length > 0) {
+    const { error: insertErr } = await params.admin
+      .from("user_plan_item_entries")
+      .insert(entries);
+    if (insertErr) throw insertErr;
+    for (const entry of entries) {
+      await logV2Event(params.admin, V2_EVENT_TYPES.PLAN_ITEM_ENTRY_LOGGED, {
+        user_id: params.userId,
+        cycle_id: entry.cycle_id,
+        transformation_id: entry.transformation_id,
+        plan_id: entry.plan_id,
+        plan_item_id: entry.plan_item_id,
+        entry_id: entry.id,
+        entry_kind: asPlanItemEntryKind(entry.entry_kind),
+        effective_at: entry.effective_at,
+        metadata: entry.metadata,
+      }).catch((error) => {
+        console.warn(
+          "[handlers_pending] action evening v2 event failed",
+          error,
+        );
+      });
+    }
+  }
+
+  if (pending.scheduled_checkin_id) {
+    await params.admin.from("scheduled_checkins").update({
+      status: "sent",
+      processed_at: nowIso,
+      delivery_last_error: null,
+      delivery_last_error_at: null,
+      delivery_last_request_id: params.requestId,
+    }).eq("id", pending.scheduled_checkin_id);
+  }
+  await markPending(params.admin, pending.id, "done");
+
+  const actionCount = planItemIds.length;
+  const txt = decision.entryOutcome === "completed"
+    ? `C'est noté: ${
+      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
+    } comme faite.`
+    : decision.entryOutcome === "partial"
+    ? `C'est noté: ${
+      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
+    } en partiel.`
+    : `C'est noté: ${
+      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
+    } comme non faite.`;
+  const sendResp = await sendWhatsAppTextTracked({
+    admin: params.admin,
+    requestId: params.requestId,
+    userId: params.userId,
+    toE164: params.fromE164,
+    body: txt,
+    purpose: "action_evening_review",
+    isProactive: false,
+  });
+  const outId = sendResp?.messages?.[0]?.id ?? null;
+  const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
+  await params.admin.from("chat_messages").insert({
+    user_id: params.userId,
+    scope: "whatsapp",
+    role: "assistant",
+    content: txt,
+    agent_used: "companion",
+    metadata: {
+      channel: "whatsapp",
+      wa_outbound_message_id: outId,
+      outbound_tracking_id: outboundTrackingId,
+      is_proactive: false,
+      source: "action_evening_review",
+      purpose: "action_evening_review",
+      event_context: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+    },
+  });
+  return true;
 }
 
 export async function maybeCompletePendingRendezVous(params: {
@@ -65,7 +306,11 @@ export async function maybeCompletePendingRendezVous(params: {
   nowIso: string;
   requestId: string;
 }) {
-  const pending = await fetchLatestPending(params.admin, params.userId, "rendez_vous");
+  const pending = await fetchLatestPending(
+    params.admin,
+    params.userId,
+    "rendez_vous",
+  );
   if (!pending) return false;
 
   const intent = classifyRendezVousIntent(params.inboundText);
@@ -105,11 +350,19 @@ export async function handlePendingActions(params: {
   isOptInYes?: boolean;
   isCheckinYes?: boolean;
   isCheckinLater?: boolean;
-  isEchoYes?: boolean;
-  isEchoLater?: boolean;
+  actionId?: string | null;
   inboundText: string;
 }) {
   const { admin, userId, fromE164, requestId } = params;
+  const handledActionEveningReview = await handleActionEveningReviewReply({
+    admin,
+    userId,
+    fromE164,
+    requestId,
+    actionId: params.actionId,
+  });
+  if (handledActionEveningReview) return true;
+
   const accessPending = await fetchLatestPending(
     admin,
     userId,
@@ -189,7 +442,11 @@ export async function handlePendingActions(params: {
       return true;
     }
   }
-  const rendezVousPending = await fetchLatestPending(admin, userId, "rendez_vous");
+  const rendezVousPending = await fetchLatestPending(
+    admin,
+    userId,
+    "rendez_vous",
+  );
   if (rendezVousPending && !params.isOptInYes) {
     const intent = params.isCheckinLater
       ? "decline"
@@ -281,12 +538,7 @@ export async function handlePendingActions(params: {
     const mode = String(payload?.message_mode ?? "static").trim().toLowerCase();
     const payloadEventContext = String(payload?.event_context ?? "");
     let outboundEventContext = payloadEventContext;
-    let outboundPurpose = payloadEventContext === "daily_bilan_reschedule" ||
-        payloadEventContext === "daily_bilan_v2"
-      ? "daily_bilan"
-      : payloadEventContext === "weekly_bilan_v2"
-      ? "weekly_bilan"
-      : "scheduled_checkin";
+    const outboundPurpose = "scheduled_checkin";
     const draft = payload?.draft_message;
     let textToSend = typeof draft === "string" ? draft.trim() : "";
     if (scheduledId && mode === "dynamic") {
@@ -299,12 +551,6 @@ export async function handlePendingActions(params: {
           row?.event_context ?? payloadEventContext,
         );
         outboundEventContext = rowEventContext || payloadEventContext;
-        outboundPurpose = outboundEventContext === "daily_bilan_reschedule" ||
-            outboundEventContext === "daily_bilan_v2"
-          ? "daily_bilan"
-          : outboundEventContext === "weekly_bilan_v2"
-          ? "weekly_bilan"
-          : "scheduled_checkin";
         const persistedDraft = typeof row?.draft_message === "string"
           ? row.draft_message.trim()
           : "";
@@ -432,9 +678,7 @@ export async function handlePendingActions(params: {
       userId,
       toE164: fromE164,
       body: okMsg,
-      purpose: pending?.purpose === "daily_bilan"
-        ? "daily_bilan"
-        : "scheduled_checkin",
+      purpose: "scheduled_checkin",
       isProactive: false,
     });
     const outId = sendResp?.messages?.[0]?.id ?? null;
@@ -454,207 +698,5 @@ export async function handlePendingActions(params: {
     });
     return true;
   }
-  // Weekly bilan template: user chooses to start now or postpone.
-  const weeklyPending = await fetchLatestPending(admin, userId, "weekly_bilan");
-  if (weeklyPending && !params.isOptInYes) {
-    const intent = classifyWeeklyBilanIntent(params.inboundText);
-    if (intent === "decline") {
-      await markPending(admin, weeklyPending.id, "cancelled");
-      const txt =
-        "Ok, pas de souci. On laisse le bilan hebdo pour une autre fois.";
-      const sendResp = await sendWhatsAppTextTracked({
-        admin,
-        requestId,
-        userId,
-        toE164: fromE164,
-        body: txt,
-        purpose: "weekly_bilan",
-        isProactive: false,
-      });
-      const outId = sendResp?.messages?.[0]?.id ?? null;
-      const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
-      await admin.from("chat_messages").insert({
-        user_id: userId,
-        scope: "whatsapp",
-        role: "assistant",
-        content: txt,
-        agent_used: "companion",
-        metadata: {
-          channel: "whatsapp",
-          wa_outbound_message_id: outId,
-          outbound_tracking_id: outboundTrackingId,
-          is_proactive: false,
-          source: "weekly_bilan",
-        },
-      });
-      return true;
-    }
-    if (intent === "accept") {
-      const opening =
-        "Parfait. On peut faire le bilan ici.\n\nCommence par me dire en une phrase: cette semaine, qu'est-ce qui a le mieux tenu pour toi ?";
-      const sendResp = await sendWhatsAppTextTracked({
-        admin,
-        requestId,
-        userId,
-        toE164: fromE164,
-        body: opening,
-        purpose: "weekly_bilan",
-        isProactive: false,
-      });
-      const outId = sendResp?.messages?.[0]?.id ?? null;
-      const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
-      await admin.from("chat_messages").insert({
-        user_id: userId,
-        scope: "whatsapp",
-        role: "assistant",
-        content: opening,
-        agent_used: "companion",
-        metadata: {
-          channel: "whatsapp",
-          wa_outbound_message_id: outId,
-          outbound_tracking_id: outboundTrackingId,
-          is_proactive: false,
-          source: "weekly_bilan",
-        },
-      });
-      await markPending(admin, weeklyPending.id, "done");
-      return true;
-    }
-  }
-  // Memory echo: user accepts -> send a warmer intro then generate and send the actual echo.
-  if (params.isEchoYes && !params.isOptInYes) {
-    const pending = await fetchLatestPending(admin, userId, "memory_echo");
-    // IMPORTANT: Don't swallow generic "vas-y"/"oui" if there is no pending memory_echo.
-    if (!pending) return false;
-    const intro =
-      "Je repensais a un sujet qu'on avait deja evoque ensemble, et j'avais envie de prendre de tes nouvelles la-dessus 🙂";
-    const introResp = await sendWhatsAppTextTracked({
-      admin,
-      requestId,
-      userId,
-      toE164: fromE164,
-      body: intro,
-      purpose: "memory_echo",
-      isProactive: false,
-    });
-    const introId = introResp?.messages?.[0]?.id ?? null;
-    const introTrackingId = introResp?.outbound_tracking_id ?? null;
-    await admin.from("chat_messages").insert({
-      user_id: userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: intro,
-      agent_used: "companion",
-      metadata: {
-        channel: "whatsapp",
-        wa_outbound_message_id: introId,
-        outbound_tracking_id: introTrackingId,
-        is_proactive: false,
-        source: "memory_echo",
-      },
-    });
-    const strategy = pending.payload?.strategy;
-    const data = pending.payload?.data;
-    const { data: prof } = await admin.from("profiles").select(
-      "timezone, locale",
-    ).eq("id", userId).maybeSingle();
-    const tctx = buildUserTimeContextFromValues({
-      timezone: prof?.timezone ?? null,
-      locale: prof?.locale ?? null,
-    });
-    const prompt = `Tu es "L'Archiviste", une facette de Sophia.\n` +
-      `Repères temporels (critiques):\n${tctx.prompt_block}\n\n` +
-      `Strategie: ${strategy}\n` +
-      `Donnees: ${JSON.stringify(data)}\n\n` +
-      `Ton role: reprendre contact avec un sujet important du passe de facon naturelle, jamais abrupte.\n` +
-      `Le user doit comprendre en une lecture d'ou ca sort et pourquoi tu poses la question maintenant.\n\n` +
-      `CONSIGNES:\n` +
-      `- Ecris un message WhatsApp en 2 ou 3 petits paragraphes max.\n` +
-      `- Commence par une transition douce, pas seche. Exemples d'esprit: "Je repensais a un truc qu'on avait evoque il y a quelque temps..." / "Je me suis souvenu d'un sujet qu'on avait aborde ensemble...".\n` +
-      `- Fais une allusion courte au sujet ET au fait que ca remonte un peu (ex: il y a quelques semaines / il y a quelques mois), sans refaire tout l'historique.\n` +
-      `- Explique implicitement pourquoi tu relances: prendre des nouvelles, voir comment ca a bouge depuis, reconnecter le user a son chemin.\n` +
-      `- Puis pose 1 seule question simple, chaleureuse et concrete.\n` +
-      `- Ton: humain, doux, utile, pas dramatique, pas robot.\n` +
-      `- Pas de markdown. Pas de liste. Pas de gros pave.\n` +
-      `- Mets 1 emoji naturel maximum.\n` +
-      `- Interdit d'attaquer directement par une question seche sans contexte.\n` +
-      `- Interdit de commencer par Bonjour/Salut/Hello.\n\n` +
-      `Genere le message final.`;
-    const echo = await generateWithGemini(
-      prompt,
-      "Génère le message d'écho.",
-      0.7,
-      false,
-      [],
-      "auto",
-      {
-        requestId,
-        userId,
-        source: "whatsapp-webhook:memory-echo",
-      },
-    );
-    const echoResp = await sendWhatsAppTextTracked({
-      admin,
-      requestId,
-      userId,
-      toE164: fromE164,
-      body: String(echo),
-      purpose: "memory_echo",
-      isProactive: false,
-    });
-    const echoId = echoResp?.messages?.[0]?.id ?? null;
-    const echoTrackingId = echoResp?.outbound_tracking_id ?? null;
-    await admin.from("chat_messages").insert({
-      user_id: userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: String(echo),
-      agent_used: "companion",
-      metadata: {
-        channel: "whatsapp",
-        wa_outbound_message_id: echoId,
-        outbound_tracking_id: echoTrackingId,
-        is_proactive: false,
-        source: "memory_echo",
-      },
-    });
-    await markPending(admin, pending.id, "done");
-    return true;
-  }
-  if (params.isEchoLater && !params.isOptInYes) {
-    const pending = await fetchLatestPending(admin, userId, "memory_echo");
-    // Don't swallow generic "plus tard" if there is no pending memory_echo.
-    if (!pending) return false;
-    await markPending(admin, pending.id, "cancelled");
-    const okMsg = "Ok 🙂 Je garde ça sous le coude. Dis-moi quand tu veux.";
-    const sendResp = await sendWhatsAppTextTracked({
-      admin,
-      requestId,
-      userId,
-      toE164: fromE164,
-      body: okMsg,
-      purpose: "memory_echo",
-      isProactive: false,
-    });
-    const outId = sendResp?.messages?.[0]?.id ?? null;
-    const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
-    await admin.from("chat_messages").insert({
-      user_id: userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: okMsg,
-      agent_used: "companion",
-      metadata: {
-        channel: "whatsapp",
-        wa_outbound_message_id: outId,
-        outbound_tracking_id: outboundTrackingId,
-        is_proactive: false,
-      },
-    });
-    return true;
-  }
-  // ═══════════════════════════════════════════════════════════════════════════
-  // BILAN RESCHEDULE: removed (we no longer reschedule bilans)
-  // ═══════════════════════════════════════════════════════════════════════════
   return false;
 }
