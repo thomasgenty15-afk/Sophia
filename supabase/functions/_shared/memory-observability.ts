@@ -9,7 +9,12 @@ function parseBoolEnv(v: string | undefined): boolean {
 
 function truncateDeep(
   input: unknown,
-  opts?: { maxLen?: number; maxDepth?: number; maxKeys?: number; maxArray?: number },
+  opts?: {
+    maxLen?: number;
+    maxDepth?: number;
+    maxKeys?: number;
+    maxArray?: number;
+  },
 ): unknown {
   const maxLen = Math.max(64, Math.floor(opts?.maxLen ?? 1200));
   const maxDepth = Math.max(1, Math.floor(opts?.maxDepth ?? 7));
@@ -17,7 +22,9 @@ function truncateDeep(
   const maxArray = Math.max(5, Math.floor(opts?.maxArray ?? 25));
   const seen = new WeakSet<object>();
 
-  const clamp = (s: string) => (s.length > maxLen ? s.slice(0, maxLen) + "…" : s);
+  const clamp = (
+    s: string,
+  ) => (s.length > maxLen ? s.slice(0, maxLen) + "…" : s);
   const rec = (v: any, depth: number): any => {
     if (v == null) return v;
     const t = typeof v;
@@ -27,7 +34,9 @@ function truncateDeep(
     if (depth >= maxDepth) return "[truncated_depth]";
     if (seen.has(v)) return "[circular]";
     seen.add(v);
-    if (Array.isArray(v)) return v.slice(0, maxArray).map((x) => rec(x, depth + 1));
+    if (Array.isArray(v)) {
+      return v.slice(0, maxArray).map((x) => rec(x, depth + 1));
+    }
     const out: Record<string, unknown> = {};
     for (const k of Object.keys(v).slice(0, maxKeys)) {
       out[k] = rec(v[k], depth + 1);
@@ -38,8 +47,14 @@ function truncateDeep(
 }
 
 export function isMemoryObservabilityEnabled(): boolean {
-  const value = (globalThis as any)?.Deno?.env?.get?.("MEMORY_OBSERVABILITY_ON");
-  return parseBoolEnv(value);
+  try {
+    const value = (globalThis as any)?.Deno?.env?.get?.(
+      "MEMORY_OBSERVABILITY_ON",
+    );
+    return parseBoolEnv(value);
+  } catch {
+    return false;
+  }
 }
 
 export async function logMemoryObservabilityEvent(opts: {

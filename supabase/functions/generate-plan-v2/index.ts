@@ -59,6 +59,7 @@ const REQUEST_SCHEMA = z.object({
     scope: z.enum(["level", "plan"]),
     effective_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     reason: z.string().trim().min(1).max(280),
+    user_change_summary: z.string().trim().min(1).max(900).optional(),
     assistant_message: z.string().trim().min(1).max(3000).optional(),
   }).optional(),
 });
@@ -147,6 +148,7 @@ type PlanAdjustmentGenerationContext = {
   scope: "level" | "plan";
   effectiveStartDate: string;
   reason: string;
+  userChangeSummary: string | null;
   assistantMessage: string | null;
 };
 
@@ -582,6 +584,7 @@ async function handleRequest(req: Request): Promise<Response> {
           scope: parsedBody.data.adjustment_context.scope,
           effectiveStartDate: parsedBody.data.adjustment_context.effective_start_date,
           reason: parsedBody.data.adjustment_context.reason,
+          userChangeSummary: parsedBody.data.adjustment_context.user_change_summary ?? null,
           assistantMessage: parsedBody.data.adjustment_context.assistant_message ?? null,
         }
         : null,
@@ -3228,6 +3231,7 @@ function applyPlanAdjustmentMetadata(
         scope: adjustmentContext.scope,
         effective_start_date: adjustmentContext.effectiveStartDate,
         reason: adjustmentContext.reason,
+        user_change_summary: adjustmentContext.userChangeSummary,
         assistant_message: adjustmentContext.assistantMessage,
         previous_plan_id: previousPlan?.id ?? null,
         previous_plan_version: previousPlan?.version ?? null,

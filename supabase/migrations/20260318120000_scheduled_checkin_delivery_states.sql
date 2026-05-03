@@ -103,7 +103,7 @@ begin
   end if;
 
   perform net.http_post(
-    url := rtrim(base_url, '/') || '/functions/v1/schedule-morning-active-action-checkins',
+    url := rtrim(base_url, '/') || '/functions/v1/schedule-whatsapp-v2-checkins',
     headers := jsonb_build_object(
       'content-type', 'application/json',
       'apikey', anon_key,

@@ -205,7 +205,7 @@ Deno.test("resolveV2RetrievalPlan: answer_user_now loads everything", () => {
   assertEquals(plan.load_global_memories, true);
   assertEquals(plan.load_topic_memories, true);
   assertEquals(plan.load_event_memories, true);
-  assertEquals(plan.load_identity, true);
+  assertEquals(plan.load_identity, false);
   assertEquals(plan.load_coaching, true);
   assertExists(plan.global_scope_filter);
   assertEquals(plan.global_scope_filter!.length, 3);
@@ -261,7 +261,7 @@ Deno.test("getBudgetForContract scales with tier", () => {
   assertEquals(minimal.global_max < full.global_max, true);
   assertEquals(minimal.topic_max <= full.topic_max, true);
   assertEquals(minimal.identity_max, 0);
-  assertEquals(full.identity_max > 0, true);
+  assertEquals(full.identity_max, 0);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

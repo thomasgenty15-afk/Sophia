@@ -16,8 +16,8 @@ import {
 } from "../context/loader.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import {
-  detectAttackKeywordTrigger,
   type AttackKeywordTriggerPayload,
+  detectAttackKeywordTrigger,
 } from "../../_shared/attack_keyword.ts";
 import {
   generateWithGemini,
@@ -54,6 +54,10 @@ import {
   logBrainTrace,
 } from "../../_shared/brain-trace.ts";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
+import { runMemoryV2ActiveLoader } from "../../_shared/memory/runtime/active_loader.ts";
+import { runMemoryV2Shadow } from "../../_shared/memory/runtime/shadow.ts";
+import { SupabaseMemorizerRepository } from "../../_shared/memory/memorizer/persist.ts";
+import { runMemorizerWriteCanaryIfEnabled } from "../../_shared/memory/memorizer/write_canary.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { buildConversationPulse } from "../conversation_pulse_builder.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
@@ -283,12 +287,14 @@ async function loadAttackKeywordMatch(args: {
 
   if (error) throw error;
 
-  const rows = (data as Array<{
-    scope_kind: LabScopeKind;
-    transformation_id: string | null;
-    last_updated_at: string;
-    content: AttackCardContent;
-  }> | null) ?? [];
+  const rows = (data as
+    | Array<{
+      scope_kind: LabScopeKind;
+      transformation_id: string | null;
+      last_updated_at: string;
+      content: AttackCardContent;
+    }>
+    | null) ?? [];
 
   const candidates = rows.flatMap((row) => {
     const content = row.content;
@@ -297,7 +303,9 @@ async function loadAttackKeywordMatch(args: {
     return content.techniques.flatMap((technique) => {
       if (technique.technique_key !== "pre_engagement") return [];
       const generated = technique.generated_result;
-      if (!generated || !isAttackKeywordTriggerPayload(generated.keyword_trigger)) {
+      if (
+        !generated || !isAttackKeywordTriggerPayload(generated.keyword_trigger)
+      ) {
         return [];
       }
 
@@ -1421,7 +1429,9 @@ async function maybeLogDefenseCardWinParallel(args: {
 
     const cardSummary = content.impulses
       ?.map((imp) =>
-        `${imp.label} (${imp.impulse_id}): ${imp.triggers?.length ?? 0} triggers`
+        `${imp.label} (${imp.impulse_id}): ${
+          imp.triggers?.length ?? 0
+        } triggers`
       )
       .join("; ") ?? "";
 
@@ -2514,7 +2524,9 @@ export async function processMessage(
   const injectedContext = [
     opts?.contextOverride,
     attackKeywordContextOverride || null,
-  ].filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+  ].filter((value): value is string =>
+    typeof value === "string" && value.trim().length > 0
+  )
     .join("\n\n");
   const contextLoadResult = await loadContextForMode({
     supabase,
@@ -2536,7 +2548,105 @@ export async function processMessage(
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
+  const activeTopicStateV1 = (tempMemory as any)?.__active_topic_state_v1 ??
+    null;
+  const v1MemoryRuntimeSnapshot = {
+    context_load_ms: contextLoadResult?.metrics?.load_ms ?? contextLatencyMs,
+    retrieval_mode: targetMode === "sentry"
+      ? "safety_first"
+      : "topic_continuation",
+    active_topic_id: typeof activeTopicStateV1?.active_topic_id === "string"
+      ? activeTopicStateV1.active_topic_id
+      : null,
+    payload_item_ids: [],
+  };
+  let memoryV2RuntimeTempMemory: Record<string, unknown> | null = null;
+  let memoryV2ActiveApplied = false;
+  try {
+    const active = await runMemoryV2ActiveLoader({
+      supabase,
+      userId,
+      scope,
+      channel,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      userMessage,
+      history,
+      tempMemory,
+      memoryPlan: contextual.dispatcherResult?.memory_plan ?? null,
+      userTime: userTime as any,
+      v1: v1MemoryRuntimeSnapshot,
+    });
+    if (active) {
+      memoryV2ActiveApplied = true;
+      memoryV2RuntimeTempMemory = active.tempMemory;
+      contextLoadResult.context.eventMemories = undefined;
+      contextLoadResult.context.globalMemories = undefined;
+      contextLoadResult.context.topicMemories = undefined;
+      contextLoadResult.context.memoryV2Payload = active.context_block;
+      contextLoadResult.metrics.elements_loaded.push(
+        "memory_v2_active_payload",
+      );
+      contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
+      await trace("brain:memory_v2_active_loader", "context", {
+        active_topic_id: active.active_topic_id,
+        retrieval_mode: active.retrieval_mode,
+        topic_decision: active.topic_decision,
+        payload_item_count: active.payload_item_ids.length,
+        metrics: active.metrics,
+      }, "info");
+    }
+  } catch (error) {
+    await logMemoryObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "memory_v2_runtime_active",
+      eventName: "memory.runtime.active.error",
+      payload: {
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    console.warn("[Router] Memory V2 active loader failed; using V1:", error);
+  }
+
   context = buildContextString(contextLoadResult.context);
+  if (!memoryV2ActiveApplied) {
+    try {
+      const shadow = await runMemoryV2Shadow({
+        supabase,
+        userId,
+        scope,
+        channel,
+        requestId: meta?.requestId,
+        turnId: loggedMessageId,
+        userMessage,
+        history,
+        tempMemory,
+        userTime: userTime as any,
+        v1: v1MemoryRuntimeSnapshot,
+      });
+      memoryV2RuntimeTempMemory = shadow?.tempMemory ?? null;
+    } catch (error) {
+      await logMemoryObservabilityEvent({
+        supabase,
+        userId,
+        requestId: meta?.requestId,
+        turnId: loggedMessageId,
+        channel,
+        scope,
+        sourceComponent: "memory_v2_runtime_shadow",
+        eventName: "memory.runtime.shadow.error",
+        payload: {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+      console.warn("[Router] Memory V2 shadow failed (non-blocking):", error);
+    }
+  }
   if (researchRequested && researchQuery.length > 0) {
     const researchStartMs = Date.now();
     try {
@@ -2782,6 +2892,17 @@ export async function processMessage(
     };
   } catch {
     // keep current mergedTempMemory
+  }
+  if (memoryV2RuntimeTempMemory) {
+    mergedTempMemory = {
+      ...mergedTempMemory,
+      __active_topic_state_v2:
+        (memoryV2RuntimeTempMemory as any).__active_topic_state_v2 ??
+          (mergedTempMemory as any).__active_topic_state_v2,
+      __memory_payload_state_v2:
+        (memoryV2RuntimeTempMemory as any).__memory_payload_state_v2 ??
+          (mergedTempMemory as any).__memory_payload_state_v2,
+    };
   }
 
   const coachingMemoryBeforeProposal = readCoachingInterventionMemory(
@@ -3125,9 +3246,10 @@ export async function processMessage(
     console.warn("[Router] persistTurnSummaryLog failed (non-blocking):", e);
   }
 
-  const conversationTurnCount = history.filter((entry) =>
-    entry && typeof entry === "object" && entry.role === "user"
-  ).length + 1;
+  const conversationTurnCount =
+    history.filter((entry) =>
+      entry && typeof entry === "object" && entry.role === "user"
+    ).length + 1;
 
   // P0-1: Fire-and-forget conversation pulse generation.
   // Gated on turn count >= 3 to avoid wasting LLM calls on early turns.
@@ -3140,6 +3262,53 @@ export async function processMessage(
       source: "router_end_of_turn",
     }).catch((e) => {
       console.warn("[Router] buildConversationPulse failed (non-blocking):", e);
+    });
+  }
+
+  if (loggedMessageId) {
+    const activeTopicStateV2 =
+      (mergedTempMemory as any)?.__active_topic_state_v2 ?? null;
+    runMemorizerWriteCanaryIfEnabled(
+      new SupabaseMemorizerRepository(supabase),
+      {
+        user_id: userId,
+        messages: [{
+          id: loggedMessageId,
+          user_id: userId,
+          role: "user",
+          content: userMessage,
+          metadata: opts?.messageMetadata ?? {},
+        }],
+        active_topic: activeTopicStateV2?.active_topic_id
+          ? {
+            id: String(activeTopicStateV2.active_topic_id),
+            slug: activeTopicStateV2.active_topic_slug ?? null,
+            title: String(
+              activeTopicStateV2.active_topic_slug ??
+                activeTopicStateV2.active_topic_id,
+            ),
+            lifecycle_stage: activeTopicStateV2.lifecycle_stage ?? null,
+          }
+          : null,
+        known_topics: activeTopicStateV2?.active_topic_id
+          ? [{
+            id: String(activeTopicStateV2.active_topic_id),
+            slug: activeTopicStateV2.active_topic_slug ?? null,
+            title: String(
+              activeTopicStateV2.active_topic_slug ??
+                activeTopicStateV2.active_topic_id,
+            ),
+            lifecycle_stage: activeTopicStateV2.lifecycle_stage ?? null,
+          }]
+          : [],
+        trigger_type: "chat_turn_canary",
+        model_name: envString(
+          "MEMORY_V2_EXTRACTION_MODEL",
+          "gemini-3-flash-preview",
+        ),
+      },
+    ).catch((e) => {
+      console.warn("[Router] Memory V2 write canary failed (non-blocking):", e);
     });
   }
 

@@ -1,0 +1,63 @@
+{
+  "id": "03_true_switch_work",
+  "description": "Clear switch from a relationship topic to work conflict.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "rupture_couple",
+        "title": "Rupture couple",
+        "lifecycle_stage": "durable",
+      },
+      {
+        "slug": "travail_manager",
+        "title": "Conflit manager",
+        "lifecycle_stage": "durable",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Pour Lina je veux juste tenir sans lui reecrire ce soir.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["tenir", "sans lui reecrire"],
+            "domain_keys_any_of": ["relations.couple"],
+            "linked_topic_slug": "rupture_couple",
+          },
+        ],
+      },
+    },
+    {
+      "user": "Changement de sujet: au travail mon manager m'a encore humilie en reunion.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "switch",
+        "active_topic_slug": "travail_manager",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["manager", "humilie en reunion"],
+            "domain_keys_any_of": ["travail.conflits"],
+            "sensitivity_level": "sensitive",
+            "linked_topic_slug": "travail_manager",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

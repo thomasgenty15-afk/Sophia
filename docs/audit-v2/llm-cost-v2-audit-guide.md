@@ -56,7 +56,7 @@ Frequence attendue: max 1x/jour pour pulse.
 | `sophia-brain:coaching-intervention-selector` | Micro-selection coaching              | `supabase/functions/sophia-brain/coaching_intervention_selector.ts`   | Flash                        |
 | `sophia-brain:coaching-intervention-followup` | Tracking follow-up                    | `supabase/functions/sophia-brain/coaching_intervention_tracking.ts`   | Flash                        |
 | `process_checkins:momentum_morning_nudge`     | Posture morning nudge                 | `supabase/functions/process-checkins/index.ts`                        | Flash                        |
-| `schedule_morning_nudge_v2`                   | Morning nudge scheduler               | `supabase/functions/schedule-morning-active-action-checkins/index.ts` | Flash                        |
+| `schedule_whatsapp_v2_checkins`                   | Morning nudge scheduler               | `supabase/functions/schedule-whatsapp-v2-checkins/index.ts` | Flash                        |
 | `sophia-brain:router_emergency`               | Emergency handler                     | `supabase/functions/sophia-brain/router/emergency.ts`                 | Flash                        |
 | `sophia-brain:state-manager`                  | State management                      | `supabase/functions/sophia-brain/state-manager.ts`                    | Flash                        |
 | `trigger-watcher-batch`                       | Watcher analysis                      | `supabase/functions/sophia-brain/agents/watcher.ts`                   | Flash                        |

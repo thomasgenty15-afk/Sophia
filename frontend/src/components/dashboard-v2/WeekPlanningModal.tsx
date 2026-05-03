@@ -514,8 +514,7 @@ export function WeekPlanningModal({
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs text-stone-500">
               <CalendarDays className="h-3.5 w-3.5" />
-              Le planning de la semaine suivante se debloque quand elle devient
-              la semaine courante.
+              Tu peux preparer la semaine suivante avant qu'elle commence.
             </div>
             <button
               type="button"

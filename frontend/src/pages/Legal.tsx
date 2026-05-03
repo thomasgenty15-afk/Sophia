@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { ArrowLeft, Shield, FileText, Lock, Scale, Mail, Eye, Briefcase } from 'lucide-react';
+import { useEffect } from 'react';
+import { ArrowLeft, Shield, FileText, Scale, Mail, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import SEO from '../components/SEO';
 
@@ -21,7 +21,7 @@ const Legal = () => {
   }, [location]);
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+    <div className="min-h-screen bg-[#fbf7ef] font-sans text-[#17211d] selection:bg-[#cfe8d7] selection:text-[#17211d]">
       <SEO 
         title="Mentions Légales & CGU"
         description={seoDescription}
@@ -35,63 +35,78 @@ const Legal = () => {
           "inLanguage": "fr-FR"
         }}
       />
-      {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-50 border-b border-white/30 bg-[#fffaf1]/78 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:h-20 md:px-6">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 transition-colors text-sm font-medium px-3 py-2 rounded-lg hover:bg-slate-50"
+            className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold text-[#52635b] transition-colors hover:bg-white/52 hover:text-[#17211d]"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="h-4 w-4" />
             Retour
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-8 h-8 rounded-lg" />
-            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-          </div>
-          <div className="w-20"></div> {/* Spacer for balance */}
+          <button onClick={() => navigate('/')} className="flex items-center gap-2">
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="h-8 w-8 rounded-lg" />
+            <span className="hidden text-lg font-bold leading-none tracking-tight text-[#17211d] sm:inline md:text-xl">Sophia</span>
+          </button>
+          <button
+            onClick={() => navigate('/auth')}
+            className="rounded-full bg-[#17211d] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#31453b]/18 transition-colors hover:bg-[#002d21] md:px-5 md:py-2.5 md:text-sm"
+          >
+            Accès Membre
+          </button>
+        </div>
+        <div className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-[#52635b] md:hidden">
+          <button onClick={() => navigate('/le-plan')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Le Plan</button>
+          <button onClick={() => navigate('/l-architecte')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Architecte</button>
+          <button onClick={() => navigate('/formules')} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Offres</button>
+          <button className="shrink-0 rounded-full bg-[#e3f1e6] px-4 py-2 text-[#002d21]">Légal</button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-slate-900 tracking-tight">Mentions Légales</h1>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto">
-            Transparence, sécurité et conformité. Voici les règles du jeu pour bâtir votre empire avec Sophia.
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-x-0 top-0 -z-10 h-[420px] bg-[linear-gradient(130deg,#f7d8bb_0%,#e9eedc_38%,#c6e5db_100%)] opacity-80" />
+        <div className="mx-auto max-w-4xl px-4 py-12 md:py-16">
+        <div className="mb-12 text-center md:mb-16">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/36 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#002d21] shadow-sm backdrop-blur-md">
+            <Shield className="h-3.5 w-3.5" />
+            Cadre légal Sophia
+          </div>
+          <h1 className="mb-5 text-4xl font-bold tracking-tight text-[#17211d] md:text-6xl">Mentions légales</h1>
+          <p className="mx-auto max-w-2xl text-lg leading-8 text-[#405148]">
+            Transparence, sécurité, confidentialité et conditions d'utilisation du coach IA Sophia.
           </p>
         </div>
         
-        {/* Navigation Rapide */}
-        <div className="flex flex-wrap gap-4 justify-center mb-12">
-          <a href="#mentions-legales" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-slate-900 hover:border-slate-400 transition-all">
-            <Briefcase className="w-4 h-4" /> Mentions Légales
+        <div className="mb-12 flex flex-wrap justify-center gap-3">
+          <a href="#mentions-legales" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
+            <Briefcase className="h-4 w-4" /> Mentions légales
           </a>
-          <a href="#cgu" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:border-indigo-200 transition-all">
-            <FileText className="w-4 h-4" /> CGU
+          <a href="#cgu" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
+            <FileText className="h-4 w-4" /> CGU
           </a>
-          <a href="#confidentialite" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-emerald-600 hover:border-emerald-200 transition-all">
-            <Shield className="w-4 h-4" /> Confidentialité
+          <a href="#confidentialite" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
+            <Shield className="h-4 w-4" /> Confidentialité
           </a>
-          <a href="#cgv" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-rose-600 hover:border-rose-200 transition-all">
-            <Scale className="w-4 h-4" /> CGV
+          <a href="#cgv" className="flex items-center gap-2 rounded-full border border-white/54 bg-white/52 px-4 py-2 text-sm font-bold text-[#405148] shadow-sm backdrop-blur transition-colors hover:bg-[#e3f1e6] hover:text-[#002d21]">
+            <Scale className="h-4 w-4" /> CGV
           </a>
         </div>
 
         <div className="grid gap-12">
           
           {/* Mentions Légales (Nouveau) */}
-          <section id="mentions-legales" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-slate-100 rounded-2xl text-slate-600">
-                <Briefcase className="w-8 h-8" />
+          <section id="mentions-legales" className="scroll-mt-32 rounded-3xl border border-[#eadfce] bg-white/72 p-8 shadow-sm backdrop-blur md:p-12">
+            <div className="mb-8 flex items-center gap-4 border-b border-[#eadfce] pb-8">
+              <div className="rounded-full bg-[#e3f1e6] p-3 text-[#002d21]">
+                <Briefcase className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Mentions Légales</h2>
-                <p className="text-slate-500 text-sm">Informations légales obligatoires</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Mentions légales</h2>
+                <p className="text-sm text-[#6f8178]">Informations légales obligatoires</p>
               </div>
             </div>
             
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
+            <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
               <h3>1. Éditeur du site</h3>
               <p>
                 Le site <strong>sophia-coach.ai</strong> est édité par la société <strong>IKIZEN</strong>.
@@ -100,7 +115,7 @@ const Legal = () => {
               <h3>2. Contact</h3>
               <p>
                 Pour toute question ou demande, vous pouvez nous contacter à l'adresse suivante :<br/>
-                <a href="mailto:sophia@sophia-coach.ai" className="text-violet-600 hover:underline">sophia@sophia-coach.ai</a>
+                <a href="mailto:sophia@sophia-coach.ai" className="text-[#002d21] hover:underline">sophia@sophia-coach.ai</a>
               </p>
 
               <h3>3. Hébergement</h3>
@@ -120,19 +135,19 @@ const Legal = () => {
           </section>
 
           {/* CGU */}
-          <section id="cgu" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-indigo-50 rounded-2xl text-indigo-600">
-                <FileText className="w-8 h-8" />
+          <section id="cgu" className="scroll-mt-32 rounded-3xl border border-[#eadfce] bg-white/72 p-8 shadow-sm backdrop-blur md:p-12">
+            <div className="mb-8 flex items-center gap-4 border-b border-[#eadfce] pb-8">
+              <div className="rounded-full bg-[#e3f1e6] p-3 text-[#002d21]">
+                <FileText className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Conditions Générales d'Utilisation</h2>
-                <p className="text-slate-500 text-sm">Règles d'accès et d'usage de la plateforme</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Conditions Générales d'Utilisation</h2>
+                <p className="text-sm text-[#6f8178]">Règles d'accès et d'usage de la plateforme</p>
               </div>
             </div>
             
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-indigo-600">
-              <p className="italic text-sm text-slate-400 mb-6">En vigueur au {new Date().toLocaleDateString('fr-FR')}</p>
+            <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d] prose-a:text-[#002d21]">
+              <p className="mb-6 text-sm italic text-[#6f8178]">En vigueur au {new Date().toLocaleDateString('fr-FR')}</p>
               
               <h3>1. Objet et Acceptation</h3>
               <p>
@@ -151,7 +166,7 @@ const Legal = () => {
                 <li>Interagir avec une IA conversationnelle pour le soutien motivationnel et le suivi d'habitudes.</li>
                 <li>Accéder à des outils de structuration de l'identité et de suivi de progression.</li>
               </ul>
-              <p className="bg-indigo-50 p-4 rounded-xl border border-indigo-100 text-indigo-800 text-sm">
+              <p className="rounded-2xl border border-[#cfe8d7] bg-[#eef8ef] p-4 text-sm text-[#002d21]">
                 <strong>Avertissement IA :</strong> Les conseils et contenus générés par Sophia sont produits par des algorithmes d'intelligence artificielle. Ils sont fournis à titre informatif et d'aide à la décision, mais ne sauraient remplacer le jugement professionnel humain, ni constituer un conseil juridique, médical ou financier certifié.
               </p>
 
@@ -187,18 +202,18 @@ const Legal = () => {
           </section>
 
           {/* Politique de Confidentialité */}
-          <section id="confidentialite" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600">
-                <Shield className="w-8 h-8" />
+          <section id="confidentialite" className="scroll-mt-32 rounded-3xl border border-[#eadfce] bg-white/72 p-8 shadow-sm backdrop-blur md:p-12">
+            <div className="mb-8 flex items-center gap-4 border-b border-[#eadfce] pb-8">
+              <div className="rounded-full bg-[#e3f1e6] p-3 text-[#002d21]">
+                <Shield className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Politique de Confidentialité</h2>
-                <p className="text-slate-500 text-sm">Protection de vos données personnelles (RGPD)</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Politique de confidentialité</h2>
+                <p className="text-sm text-[#6f8178]">Protection de vos données personnelles (RGPD)</p>
               </div>
             </div>
             
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
+            <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
               <h3>1. Données Collectées</h3>
               <p>
                 Dans le cadre de l'utilisation de Sophia, nous collectons les données suivantes :
@@ -235,12 +250,12 @@ const Legal = () => {
               <p>
                 Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et de portabilité de vos données.
               </p>
-              <div className="bg-emerald-50 p-6 rounded-xl border border-emerald-100 flex items-start gap-4 not-prose mt-6">
-                <Mail className="w-6 h-6 text-emerald-600 mt-1 flex-shrink-0" />
+              <div className="not-prose mt-6 flex items-start gap-4 rounded-2xl border border-[#cfe8d7] bg-[#eef8ef] p-6">
+                <Mail className="mt-1 h-6 w-6 flex-shrink-0 text-[#002d21]" />
                 <div>
-                  <h4 className="font-bold text-emerald-900 text-sm mb-1">Exercer vos droits</h4>
-                  <p className="text-emerald-800 text-sm">
-                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-emerald-950">sophia@sophia-coach.ai</a>
+                  <h4 className="mb-1 text-sm font-bold text-[#17211d]">Exercer vos droits</h4>
+                  <p className="text-sm text-[#405148]">
+                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-[#002d21]">sophia@sophia-coach.ai</a>
                   </p>
                 </div>
               </div>
@@ -248,18 +263,18 @@ const Legal = () => {
           </section>
 
           {/* CGV */}
-          <section id="cgv" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
-             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
-              <div className="p-3 bg-rose-50 rounded-2xl text-rose-600">
-                <Scale className="w-8 h-8" />
+          <section id="cgv" className="scroll-mt-32 rounded-3xl border border-[#eadfce] bg-white/72 p-8 shadow-sm backdrop-blur md:p-12">
+             <div className="mb-8 flex items-center gap-4 border-b border-[#eadfce] pb-8">
+              <div className="rounded-full bg-[#fff0de] p-3 text-[#b26c3a]">
+                <Scale className="h-8 w-8" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-slate-900">Conditions Générales de Vente</h2>
-                <p className="text-slate-500 text-sm">Abonnements, paiements et rétractation</p>
+                <h2 className="text-2xl font-bold text-[#17211d]">Conditions Générales de Vente</h2>
+                <p className="text-sm text-[#6f8178]">Abonnements, paiements et rétractation</p>
               </div>
             </div>
             
-            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
+            <div className="prose prose-slate max-w-none text-[#52635b] prose-headings:font-bold prose-headings:text-[#17211d]">
               <h3>1. Offres et Prix</h3>
               <p>
                 Les services sont proposés sous forme d'abonnements (mensuels ou annuels) ou d'achats uniques. Les tarifs sont indiqués en Euros (€) toutes taxes comprises (TTC) sur la page "Tarifs". IKIZEN se réserve le droit de modifier ses prix à tout moment, mais le Service sera facturé sur la base des tarifs en vigueur au moment de la validation de la commande.
@@ -279,7 +294,7 @@ const Legal = () => {
               </p>
 
               <h3>4. Absence de Droit de Rétractation</h3>
-              <p className="bg-rose-50 p-4 rounded-xl border border-rose-100 text-rose-800 text-sm font-medium">
+              <p className="rounded-2xl border border-[#f6d8b8] bg-[#fff8ec] p-4 text-sm font-medium text-[#8a5633]">
                 Conformément à l'article L.221-28 du Code de la consommation, le droit de rétractation ne peut être exercé pour les contrats de fourniture d'un contenu numérique non fourni sur un support matériel (SaaS) dont l'exécution a commencé après accord préalable exprès du consommateur et renoncement exprès à son droit de rétractation.
               </p>
               <p>
@@ -295,11 +310,12 @@ const Legal = () => {
 
         </div>
         
-        <div className="mt-16 pt-8 border-t border-slate-200 text-center">
-          <p className="text-slate-400 text-sm font-medium">
-            © {new Date().getFullYear()} IKIZEN • Fait avec <span className="text-rose-400">♥</span> et Intelligence Artificielle.
+        <div className="mt-16 border-t border-[#eadfce] pt-8 text-center">
+          <p className="text-sm font-medium text-[#6f8178]">
+            © {new Date().getFullYear()} IKIZEN • Sophia Coach
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

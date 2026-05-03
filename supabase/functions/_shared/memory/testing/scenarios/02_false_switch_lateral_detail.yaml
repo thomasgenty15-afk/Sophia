@@ -1,0 +1,59 @@
+{
+  "id": "02_false_switch_lateral_detail",
+  "description": "A lateral detail should not switch away from the active discipline topic.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "discipline_matin",
+        "title": "Discipline du matin",
+        "lifecycle_stage": "durable",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "J'ai encore rate ma routine du matin.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "action_observation",
+            "contains": ["rate", "routine du matin"],
+            "domain_keys_any_of": ["habitudes.execution"],
+            "linked_topic_slug": "discipline_matin",
+            "linked_action": true,
+          },
+        ],
+      },
+    },
+    {
+      "user": "Au passage mon cafe etait degueu, mais le vrai sujet c'est que je repousse tout.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "active_topic_slug": "discipline_matin",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["repousse tout"],
+            "domain_keys_any_of": ["habitudes.procrastination"],
+            "linked_topic_slug": "discipline_matin",
+          },
+        ],
+        "forbidden_items": [{ "kind": "fact", "contains": ["cafe"] }],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

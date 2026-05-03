@@ -436,7 +436,7 @@ Phase D: user_cycle_drafts + weekly conversation digest        [EN COURS]
   et la surcharge conclut sur `simplify` sans technique residuelle.
 - **Lot 6C.2:** le morning nudge V2 est operationnel de bout en bout.
   `momentum_morning_nudge.ts` applique la cascade V2 avec budget hebdo et
-  cooldown same-item; `schedule-morning-active-action-checkins` cree des
+  cooldown same-item; `schedule-whatsapp-v2-checkins` cree des
   `scheduled_checkins` en `morning_nudge_v2`; `process-checkins` genere le
   message au moment d'envoi; `momentum_outreach.ts` lit `momentum_state_v2` et
   les `plan_items`; le watcher annule aussi les contexts morning V2.
@@ -586,7 +586,7 @@ Phase D: user_cycle_drafts + weekly conversation digest        [EN COURS]
   refus + cooldown. Le critere `mission_preparation` est reporte tant que le
   runtime n'expose pas d'echeance fiable pour les plan items mission.
 - **Phase C.2 (V2.1):** integration runtime finalisee. Le scheduler
-  `schedule-morning-active-action-checkins` consomme maintenant le proactive
+  `schedule-whatsapp-v2-checkins` consomme maintenant le proactive
   windows engine via `resolveRendezVousDecisionForRuntime` et arbitre entre
   creation d'un `scheduled_checkins` morning nudge et creation d'un
   `user_rendez_vous` reel. `process-checkins` delivre les rendez-vous

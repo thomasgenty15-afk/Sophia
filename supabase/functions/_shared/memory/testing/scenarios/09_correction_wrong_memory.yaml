@@ -1,0 +1,75 @@
+{
+  "id": "09_correction_wrong_memory",
+  "description": "User correction should supersede or invalidate the wrong memory.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "wrong_relation",
+        "kind": "fact",
+        "content_text": "Tania est la soeur du user.",
+        "status": "active",
+        "entity_aliases": ["Tania"],
+      },
+    ],
+    "entities": [
+      {
+        "display_name": "Tania",
+        "aliases": ["Tania"],
+        "relation_to_user": "sister",
+        "entity_type": "person",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Non, Tania c'est mon ex, pas ma soeur.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["correction"],
+        "topic_decision": "stay",
+        "applied_operations": [
+          { "operation_type": "supersede", "target_kind": "memory_item" },
+        ],
+        "created_entities": [
+          {
+            "display_name": "Tania",
+            "aliases_any_of": ["Tania"],
+            "relation_to_user": "ex_partner",
+            "entity_type": "person",
+          },
+        ],
+        "created_items": [
+          {
+            "kind": "fact",
+            "contains": ["Tania", "mon ex"],
+            "domain_keys_any_of": ["relations.couple"],
+            "sensitivity_level": "sensitive",
+            "linked_entity_aliases_any_of": ["Tania"],
+          },
+        ],
+      },
+    },
+    {
+      "user": "Je veux que tu gardes bien cette correction.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["correction"],
+        "topic_decision": "stay",
+        "payload_does_not_contain": [
+          { "kind": "fact", "contains": "soeur", "entity_alias": "Tania" },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

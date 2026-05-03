@@ -1810,7 +1810,7 @@ Tests (7 scenarios, 1 par posture):
 - `supabase/functions/sophia-brain/momentum_morning_nudge.ts` (wiring runtime)
 - `supabase/functions/sophia-brain/momentum_outreach.ts` (adaptation V2)
 - `supabase/functions/process-checkins/index.ts` (generation et logging a l'envoi)
-- `supabase/functions/schedule-morning-active-action-checkins/index.ts` (creation des `scheduled_checkins` V2)
+- `supabase/functions/schedule-whatsapp-v2-checkins/index.ts` (creation des `scheduled_checkins` V2)
 - `supabase/functions/sophia-brain/agents/watcher.ts` (annulation des contexts morning legacy + V2)
 
 **Scope detaille:**
@@ -2496,7 +2496,7 @@ peut que skip ou downgrade_to_soft_presence.
 - `supabase/migrations/20260325113000_create_user_relation_preferences.sql`
 - `supabase/functions/sophia-brain/relation_preferences_engine.ts`
 - `supabase/functions/sophia-brain/relation_preferences_engine_test.ts`
-- `supabase/functions/schedule-morning-active-action-checkins/index.ts`
+- `supabase/functions/schedule-whatsapp-v2-checkins/index.ts`
 - `supabase/functions/_shared/scheduled_checkins.ts`
 - `supabase/functions/sophia-brain/proactive_windows_engine.ts`
 - `supabase/functions/sophia-brain/router/run.ts`
@@ -2657,7 +2657,7 @@ Contexte:
 - Le proactive windows engine (proactive_windows_engine.ts) decide deja des
   fenetres et des postures.
 - Le cooldown engine (cooldown_engine.ts) gere deja `refused_rendez_vous`.
-- Le scheduler morning (schedule-morning-active-action-checkins) cree des
+- Le scheduler morning (schedule-whatsapp-v2-checkins) cree des
   `scheduled_checkins`.
 - La table `user_rendez_vous` a un lifecycle propre
   (draft→scheduled→delivered→completed|skipped|cancelled).
@@ -2701,7 +2701,7 @@ proactive et choisit le canal (nudge simple vs rendez-vous).
   modification du contrat pur)
 - `supabase/functions/sophia-brain/rendez_vous_decision.ts` (new — couche de
   decision au-dessus du proactive engine)
-- `supabase/functions/schedule-morning-active-action-checkins/index.ts`
+- `supabase/functions/schedule-whatsapp-v2-checkins/index.ts`
   (wiring scheduler -> nudge vs rendez-vous)
 - `supabase/functions/process-checkins/index.ts` (adapter pour delivrer les
   rendez-vous)
@@ -2722,7 +2722,7 @@ proactive et choisit le canal (nudge simple vs rendez-vous).
   (momentum, repair mode, relation preferences, historique proactif,
   conversation pulse, event memories, victoires recentes) sans modifier le
   contrat pur de `evaluateProactiveWindow`.
-- Le scheduler `schedule-morning-active-action-checkins` appelle cette couche et
+- Le scheduler `schedule-whatsapp-v2-checkins` appelle cette couche et
   arbitre par user entre trois issues:
   1. `skip` du proactive engine → pas de nudge ni de rendez-vous pour ce slot
   2. decision `rendez_vous` → creation de `user_rendez_vous` via
@@ -2764,7 +2764,7 @@ proactive et choisit le canal (nudge simple vs rendez-vous).
 
 - `deno test supabase/functions/sophia-brain/rendez_vous_decision_test.ts supabase/functions/_shared/v2-rendez-vous_test.ts --no-check` → OK (25 tests)
 - `deno check supabase/functions/sophia-brain/rendez_vous_decision.ts` → OK
-- `deno check supabase/functions/schedule-morning-active-action-checkins/index.ts`
+- `deno check supabase/functions/schedule-whatsapp-v2-checkins/index.ts`
   et `deno check supabase/functions/process-checkins/index.ts` restent bloques
   uniquement par 2 erreurs TypeScript preexistantes dans
   `_shared/checkin_scope.ts`

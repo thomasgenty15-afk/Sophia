@@ -157,7 +157,7 @@ Fonctions edge standalone non ciblees par la refonte.
 
 ### Scheduling & Proactive
 
-- `supabase/functions/schedule-morning-active-action-checkins/index.ts`
+- `supabase/functions/schedule-whatsapp-v2-checkins/index.ts`
 - `supabase/functions/trigger-synthesizer-batch/index.ts`
 - `supabase/functions/trigger-watcher-batch/index.ts`
 - `supabase/functions/classify-recurring-reminder/index.ts`

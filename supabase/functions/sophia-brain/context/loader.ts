@@ -29,9 +29,7 @@ import type {
   UserPlanItemEntryRow,
 } from "../../_shared/v2-types.ts";
 import type { AgentMode } from "../state-manager.ts";
-import {
-  getCoreIdentity,
-} from "../state-manager.ts";
+import { getCoreIdentity } from "../state-manager.ts";
 import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
@@ -66,9 +64,7 @@ import type {
   LoadedContext,
   OnDemandTriggers,
 } from "./types.ts";
-import {
-  getContextProfile,
-} from "./types.ts";
+import { getContextProfile } from "./types.ts";
 import {
   readMomentumStateV2,
   summarizeMomentumBlockersForPrompt,
@@ -77,6 +73,7 @@ import { formatCoachingInterventionAddon } from "../coaching_intervention_select
 
 const IDENTITY_MAX_ITEMS = 2;
 const IDENTITY_MAX_BLOCK_TOKENS = 280;
+const CORE_IDENTITY_RETRIEVAL_ENABLED = false;
 
 type DispatcherMemoryBudget = {
   globalThemeMax: number;
@@ -308,7 +305,7 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
       source: "historical",
       usePlan: false,
       skipAllMemory: false,
-      loadIdentity: params.profile.identity,
+      loadIdentity: params.profile.identity && CORE_IDENTITY_RETRIEVAL_ENABLED,
       globalThemeKeys: [],
       globalSubthemeKeys: [],
       topicQueries: [],
@@ -346,7 +343,7 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
       .filter((target) => target.type === "event")
       .map((target) => target.query_hint ?? target.key),
   );
-  const loadIdentity = !skipAllMemory &&
+  const loadIdentity = CORE_IDENTITY_RETRIEVAL_ENABLED && !skipAllMemory &&
     targets.some((target) => target.type === "core_identity");
   const hasExplicitGlobalTargets = globalThemeKeys.length > 0 ||
     globalSubthemeKeys.length > 0;
@@ -446,7 +443,8 @@ export function resolveContextMemoryLoadStrategy(params: {
     return {
       ...dispatcherStrategy,
       source: "dispatcher_capped",
-      loadIdentity: dispatcherStrategy.loadIdentity && v2Plan.load_identity,
+      loadIdentity: CORE_IDENTITY_RETRIEVAL_ENABLED &&
+        dispatcherStrategy.loadIdentity && v2Plan.load_identity,
       fallbackSemanticGlobalMax: Math.min(
         dispatcherStrategy.fallbackSemanticGlobalMax,
         v2Plan.budget.global_max,
@@ -474,7 +472,8 @@ export function resolveContextMemoryLoadStrategy(params: {
     source: "v2_intent",
     usePlan: true,
     skipAllMemory: false,
-    loadIdentity: params.profile.identity && v2Plan.load_identity,
+    loadIdentity: CORE_IDENTITY_RETRIEVAL_ENABLED &&
+      params.profile.identity && v2Plan.load_identity,
     globalThemeKeys: [],
     globalSubthemeKeys: [],
     topicQueries: [],
@@ -1181,7 +1180,9 @@ export async function loadContextForMode(
 
   const activePlanId = opts.v2Runtime?.plan?.id ?? null;
 
-  if (activePlanId && (opts.mode === "companion" || opts.mode === "investigator")) {
+  if (
+    activePlanId && (opts.mode === "companion" || opts.mode === "investigator")
+  ) {
     const indicators = await loadPlanItemIndicators(
       opts.supabase,
       opts.userId,
@@ -1228,7 +1229,9 @@ export async function loadContextForMode(
   }
 
   // 9. Recent turns (history)
-  if (!scopedMemoryEligible && profile.history_depth > 0 && opts.history?.length) {
+  if (
+    !scopedMemoryEligible && profile.history_depth > 0 && opts.history?.length
+  ) {
     const recentTurns = (opts.history ?? [])
       .slice(-profile.history_depth)
       .map((m: any) => {
@@ -1359,7 +1362,9 @@ export async function loadContextForMode(
     defenseCardWinAddon &&
     opts.mode === "companion"
   ) {
-    context.defenseCardWinAddon = formatDefenseCardWinAddon(defenseCardWinAddon);
+    context.defenseCardWinAddon = formatDefenseCardWinAddon(
+      defenseCardWinAddon,
+    );
     if (context.defenseCardWinAddon) {
       elementsLoaded.push("defense_card_win_addon");
     }
@@ -1589,6 +1594,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.northStarContext) ctx += loaded.northStarContext + "\n\n";
   if (loaded.weeklyRecapContext) ctx += loaded.weeklyRecapContext + "\n\n";
   if (loaded.planItemIndicators) ctx += loaded.planItemIndicators + "\n\n";
+  if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
   if (loaded.identity) ctx += loaded.identity;
   if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.globalMemories) ctx += loaded.globalMemories;
@@ -2653,7 +2659,9 @@ function formatDefenseCardPendingTriggersAddon(addon: any): string {
       const situation = String(t.situation ?? "").trim().slice(0, 160);
       const signal = String(t.signal ?? "").trim().slice(0, 160);
       const impulseId = String(t.impulse_id ?? "").trim();
-      return `${i + 1}. Pulsion "${impulseId}" — Situation: "${situation}" | Signal: "${signal}"`;
+      return `${
+        i + 1
+      }. Pulsion "${impulseId}" — Situation: "${situation}" | Signal: "${signal}"`;
     })
     .join("\n");
 

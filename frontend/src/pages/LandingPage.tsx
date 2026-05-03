@@ -1,617 +1,514 @@
-import { Link } from 'react-router-dom';
-import SEO from '../components/SEO';
-import { 
-  ArrowRight, 
-  Brain, 
-  Target, 
-  Sparkles, 
-  Shield, 
-  Zap, 
+import { Link } from "react-router-dom";
+import SEO from "../components/SEO";
+import {
+  ArrowRight,
   BookOpen,
   CheckCircle2,
-  Play,
-  Lock,
-  Fish,
+  Heart,
+  Leaf,
   MessageCircle,
-  Smartphone
-} from 'lucide-react';
+  Moon,
+  Play,
+  Shield,
+  Sparkles,
+  Sunrise,
+  Waves,
+} from "lucide-react";
 
-import Footer from '../components/Footer';
-import { useOnboardingAmbientAudio } from '../hooks/useOnboardingAmbientAudio';
+import Footer from "../components/Footer";
+import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
 
 const LandingPage = () => {
-  const seoDescription = "Sophia est un coach IA proactif sur WhatsApp qui transforme un objectif flou en plan clair, te relance, suit tes progrès et ajuste ton exécution dans la vraie vie.";
+  const seoDescription =
+    "Sophia est un coach IA sur WhatsApp qui transforme ce que tu veux changer en plan clair, puis te soutient au quotidien pour t'aider à avancer sans pression inutile.";
   const { startSession } = useOnboardingAmbientAudio();
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
-      <SEO 
-        title="Coach IA WhatsApp pour passer à l'action"
+    <div className="min-h-screen bg-[#fbf7ef] text-[#17211d] font-sans selection:bg-[#cfe8d7] selection:text-[#17211d]">
+      <SEO
+        title="Coach IA WhatsApp pour tenir tes changements"
         description={seoDescription}
         canonical="https://sophia-coach.ai/"
         structuredData={[
           {
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": "Sophia Coach",
-            "url": "https://sophia-coach.ai/",
-            "logo": "https://sophia-coach.ai/apple-touch-icon.png"
+            name: "Sophia Coach",
+            url: "https://sophia-coach.ai/",
+            logo: "https://sophia-coach.ai/apple-touch-icon.png",
           },
           {
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": "Sophia Coach",
-            "url": "https://sophia-coach.ai/",
-            "inLanguage": "fr-FR"
+            name: "Sophia Coach",
+            url: "https://sophia-coach.ai/",
+            inLanguage: "fr-FR",
           },
           {
             "@context": "https://schema.org",
             "@type": "SoftwareApplication",
-            "name": "Sophia Coach",
-            "applicationCategory": "BusinessApplication",
-            "operatingSystem": "Web",
-            "url": "https://sophia-coach.ai/",
-            "description": seoDescription,
-            "inLanguage": "fr-FR"
-          }
+            name: "Sophia Coach",
+            applicationCategory: "BusinessApplication",
+            operatingSystem: "Web",
+            url: "https://sophia-coach.ai/",
+            description: seoDescription,
+            inLanguage: "fr-FR",
+          },
         ]}
       />
-      
-      {/* NAVBAR */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">Powered by IKIZEN</span>
+
+      <style>{`
+        @keyframes sophia-rise {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes sophia-breathe {
+          0%, 100% { transform: translateY(0) scaleX(1); opacity: 0.78; }
+          50% { transform: translateY(-8px) scaleX(1.02); opacity: 1; }
+        }
+
+        @keyframes sophia-drift {
+          0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+          50% { transform: translate3d(0, -12px, 0) rotate(1deg); }
+        }
+
+        @keyframes sophia-glow {
+          0%, 100% { opacity: 0.42; transform: translateY(0); }
+          50% { opacity: 0.72; transform: translateY(-10px); }
+        }
+
+        html {
+          scroll-behavior: smooth;
+        }
+
+        .sophia-rise {
+          animation: sophia-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .sophia-drift {
+          animation: sophia-drift 8s ease-in-out infinite;
+        }
+
+        .sophia-sanctuary {
+          background:
+            linear-gradient(180deg, rgba(251,247,239,0) 0%, rgba(251,247,239,0.16) 58%, #fbf7ef 100%),
+            linear-gradient(130deg, #f7d8bb 0%, #e9eedc 32%, #c6e5db 62%, #c5d9f1 100%);
+        }
+
+        .sophia-sanctuary::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0.02) 42%, rgba(255,255,255,0.18)),
+            repeating-linear-gradient(105deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 48px);
+          opacity: 0.82;
+        }
+
+        .sophia-landscape {
+          position: absolute;
+          inset: auto -10% -18% -10%;
+          height: 44%;
+          background:
+            radial-gradient(ellipse at 16% 20%, rgba(255,255,255,0.42) 0 18%, transparent 46%),
+            linear-gradient(145deg, rgba(40,112,92,0.44) 0%, rgba(141,184,137,0.36) 34%, rgba(244,196,149,0.24) 70%, rgba(255,255,255,0) 100%);
+          clip-path: polygon(0 34%, 14% 18%, 30% 30%, 44% 12%, 61% 24%, 76% 10%, 100% 26%, 100% 100%, 0 100%);
+          filter: blur(0.2px);
+        }
+
+        .sophia-light-path {
+          position: absolute;
+          left: 14%;
+          right: 14%;
+          bottom: 10%;
+          height: 34%;
+          border-radius: 999px 999px 0 0;
+          background: linear-gradient(180deg, rgba(255,255,255,0.42), rgba(255,255,255,0));
+          filter: blur(18px);
+          animation: sophia-glow 9s ease-in-out infinite;
+        }
+
+        .sophia-breath-line {
+          animation: sophia-breathe 7.5s ease-in-out infinite;
+          transform-origin: center;
+        }
+      `}</style>
+
+      <nav className="fixed top-0 z-50 w-full border-b border-white/30 bg-[#fffaf1]/78 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:h-20 md:px-6">
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="h-8 w-8 rounded-lg" />
+            <div className="flex items-baseline gap-2">
+              <span className="text-lg font-bold leading-none tracking-tight text-[#17211d] md:text-xl">Sophia</span>
+              <span className="hidden text-[10px] font-semibold uppercase tracking-[0.18em] text-[#6f8178] min-[360px]:inline">
+                Powered by IKIZEN
+              </span>
             </div>
-          </div>
+          </Link>
+
           <div className="flex items-center gap-4 md:gap-8">
-            <div className="hidden md:flex gap-6 text-sm font-medium text-slate-600">
-              <Link to="/le-plan" className="hover:text-violet-600 transition-colors">Le Plan</Link>
-              <Link to="/l-architecte" className="hover:text-violet-600 transition-colors flex items-center gap-1">
-                L'Architecte <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
+            <div className="hidden gap-6 text-sm font-semibold text-[#52635b] md:flex">
+              <Link to="/le-plan" className="transition-colors hover:text-[#17211d]">
+                Le Plan
               </Link>
-              <Link to="/formules" className="hover:text-violet-600 transition-colors">Offres</Link>
-              <Link to="/legal" className="hover:text-violet-600 transition-colors">Légal</Link>
+              <Link to="/l-architecte" className="transition-colors hover:text-[#17211d]">
+                L'Architecte
+              </Link>
+              <Link to="/formules" className="transition-colors hover:text-[#17211d]">
+                Offres
+              </Link>
+              <Link to="/legal" className="transition-colors hover:text-[#17211d]">
+                Légal
+              </Link>
             </div>
             <Link
               to="/auth"
-              className="px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-slate-900 text-white text-xs md:text-sm font-bold hover:bg-violet-600 transition-all shadow-lg hover:shadow-violet-200"
+              className="rounded-full bg-[#17211d] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#31453b]/18 transition-colors hover:bg-[#002d21] md:px-5 md:py-2.5 md:text-sm"
             >
               Accès Membre
             </Link>
           </div>
         </div>
+        <div className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-[#52635b] md:hidden">
+          <Link to="/le-plan" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
+            Le Plan
+          </Link>
+          <Link to="/l-architecte" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
+            Architecte
+          </Link>
+          <Link to="/formules" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
+            Offres
+          </Link>
+          <Link to="/legal" className="shrink-0 rounded-full bg-white/52 px-4 py-2">
+            Légal
+          </Link>
+        </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <header className="relative pt-32 pb-16 md:pt-52 md:pb-32 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-violet-50/50 rounded-full blur-3xl -z-10 opacity-60 translate-x-1/3 -translate-y-1/4" />
-        
-        <div className="max-w-4xl mx-auto px-4 md:px-6 text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-6 md:mb-8 animate-fade-in-up">
-            <MessageCircle className="w-3 h-3 md:w-3 md:h-3 text-violet-600" />
-            Coach IA proactif sur WhatsApp
-          </div>
-          
-          <h1 className="text-3xl min-[350px]:text-4xl sm:text-5xl md:text-7xl font-bold text-slate-900 mb-6 md:mb-8 leading-[1.1] tracking-tight">
-            Passe de l'intention<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-indigo-600">
-              à l'action.
-            </span>
-          </h1>
-          
-          <p className="text-base md:text-xl text-slate-600 mb-8 md:mb-12 max-w-3xl mx-auto leading-relaxed">
-            <strong>Sophia transforme un objectif flou en plan clair</strong>, puis vient vers toi sur WhatsApp pour suivre tes progrès, t'aider à tenir et ajuster le plan selon ta vraie vie.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-            <Link
-              to="/onboarding-v2"
-              onClick={startSession}
-              className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 rounded-xl bg-violet-600 text-white font-bold text-base md:text-lg hover:bg-violet-700 transition-all shadow-xl shadow-violet-200 flex items-center justify-center gap-2 group"
-            >
-              Générer mon Plan (Gratuit)
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <a
-              href="#systeme-sophia"
-              className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-base md:text-lg hover:border-violet-200 hover:bg-violet-50/50 transition-all flex items-center justify-center gap-2"
-            >
-              <Play className="w-4 h-4 md:w-5 md:h-5 fill-current text-violet-600" />
-              Comment ça marche ?
-            </a>
+      <header className="sophia-sanctuary relative min-h-[96svh] overflow-hidden">
+        <div className="sophia-landscape" />
+        <div className="sophia-light-path" />
+        <div className="pointer-events-none absolute inset-x-0 top-[24%] hidden h-[42svh] opacity-70 md:block">
+          <div className="sophia-breath-line absolute left-[-8%] top-[12%] h-16 w-[116%] rotate-[-7deg] rounded-full bg-white/22 blur-2xl" />
+          <div className="sophia-breath-line absolute left-[-6%] top-[43%] h-10 w-[112%] rotate-[4deg] rounded-full bg-[#d7f3dd]/34 blur-xl" />
+          <div className="sophia-breath-line absolute left-[-10%] top-[66%] h-12 w-[120%] rotate-[-2deg] rounded-full bg-[#ffe1c3]/30 blur-xl" />
+        </div>
+
+        <div className="relative z-10 mx-auto grid min-h-[96svh] max-w-6xl items-center gap-10 px-4 pb-16 pt-36 md:grid-cols-[1fr_0.82fr] md:px-6 md:pt-32">
+          <div className="sophia-rise">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/34 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#002d21] shadow-sm backdrop-blur-md md:mb-8">
+              <Leaf className="h-3.5 w-3.5" />
+              Coach IA personnel sur WhatsApp
+            </div>
+
+            <h1 className="max-w-4xl text-5xl font-bold leading-[0.95] tracking-tight text-[#17211d] min-[380px]:text-6xl md:text-8xl">
+              Le coach IA qui t'aide
+              <span className="block text-[#002d21]">à tenir dans la vraie vie.</span>
+            </h1>
+
+            <p className="mt-7 max-w-2xl text-lg leading-8 text-[#405148] md:mt-9 md:text-2xl md:leading-10">
+              <strong className="font-semibold text-[#17211d]">Sophia transforme ce que tu veux changer en plan clair</strong>, puis revient vers toi sur WhatsApp pour t'aider à avancer, te recentrer et ne pas abandonner quand le quotidien t'éparpille.
+            </p>
+
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row md:mt-11">
+              <Link
+                to="/onboarding-v2"
+                onClick={startSession}
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#002d21] px-6 py-4 text-base font-bold text-white shadow-2xl shadow-[#002d21]/24 transition-colors hover:bg-[#17211d] md:px-8"
+              >
+                <span className="whitespace-nowrap">Créer mon plan gratuit</span>
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+              <a
+                href="#systeme-sophia"
+                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/60 bg-white/34 px-6 py-4 text-base font-bold text-[#17211d] shadow-sm backdrop-blur-md transition-colors hover:bg-white/64 md:px-8"
+              >
+                <Play className="h-5 w-5 fill-current text-[#002d21]" />
+                <span className="whitespace-nowrap">Comment ça marche ?</span>
+              </a>
+            </div>
           </div>
 
-          <div className="mt-4 flex justify-center">
-            <Link
-              to="/installer-app"
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 transition-colors"
-            >
-              <Smartphone className="w-4 h-4 text-violet-600" />
-              Installer Sophia et enregistrer mes identifiants
-            </Link>
+          <div className="sophia-drift hidden md:block">
+            <div className="rounded-[2rem] border border-white/54 bg-white/36 p-4 shadow-2xl shadow-[#7aa889]/22 backdrop-blur-xl">
+              <div className="overflow-hidden rounded-[1.45rem] bg-[#fdf8ef]">
+                <div className="flex items-center gap-3 border-b border-[#e8ddcd] bg-white/72 px-5 py-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#cfe8d7] font-bold text-[#002d21]">
+                    S
+                  </div>
+                  <div>
+                    <div className="font-bold text-[#17211d]">Sophia</div>
+                    <div className="text-xs text-[#6f8178]">présente quand il faut</div>
+                  </div>
+                </div>
+                <div className="space-y-4 p-5 text-sm text-[#24332d]">
+                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                    Bonjour. Aujourd'hui, on garde le cap avec 3 actions simples. Tu n'as pas besoin de tout porter en même temps.
+                  </div>
+                  <div className="ml-auto max-w-[82%] rounded-2xl bg-[#d1ded4] p-4 shadow-sm">
+                    Je suis déjà fatigué, mais je veux continuer.
+                  </div>
+                  <div className="rounded-2xl bg-white p-4 shadow-sm">
+                    Alors on baisse l'intensité, pas l'engagement. Ce soir, on protège ton énergie et on garde le fil.
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-3 text-xs md:text-sm text-slate-600">
-            <div className="px-3 py-2 rounded-full bg-white border border-slate-200">Plan clair en quelques minutes</div>
-            <div className="px-3 py-2 rounded-full bg-white border border-slate-200">Relances proactives sur WhatsApp</div>
-            <div className="px-3 py-2 rounded-full bg-white border border-slate-200">Mémoire et adaptation continue</div>
+          <div className="absolute bottom-5 left-6 right-6 z-10 hidden gap-2 text-xs text-[#42544b] md:grid md:grid-cols-3">
+            {[
+              "Coach IA personnel",
+              "Plan clair en quelques minutes",
+              "Soutien sur WhatsApp",
+            ].map((item) => (
+              <div key={item} className="rounded-full border border-white/54 bg-white/34 px-4 py-2 text-center shadow-sm backdrop-blur-md">
+                {item}
+              </div>
+            ))}
           </div>
         </div>
       </header>
 
-      {/* PART 1: LE CORE PRODUCT */}
-      <section id="systeme-sophia" className="py-32 bg-slate-50 relative overflow-hidden">
-        
-        {/* --- LIVING BACKGROUND EFFECT --- */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Blob Violet (Sous Clarté) */}
-          <div className="absolute top-[20%] left-[20%] w-96 h-96 bg-violet-300/30 rounded-full blur-3xl mix-blend-multiply animate-blob"></div>
-          
-          {/* Blob Emerald (Sous WhatsApp) */}
-          <div className="absolute top-[20%] right-[20%] w-96 h-96 bg-emerald-300/30 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-2000"></div>
-          
-          {/* Blob Amber (Sous Adaptation) */}
-          <div className="absolute bottom-[10%] left-[20%] w-96 h-96 bg-amber-200/20 rounded-full blur-3xl mix-blend-multiply animate-blob-restricted animation-delay-4000"></div>
-
-          {/* Blob Indigo (Sous Grimoire) */}
-          <div className="absolute bottom-[10%] right-[20%] w-96 h-96 bg-indigo-300/30 rounded-full blur-3xl mix-blend-multiply animate-blob animation-delay-6000"></div>
-        </div>
-
-        {/* Inline Styles for Blob Animation (simpler than editing global css) */}
-        <style>{`
-          @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(150px, -100px) scale(1.4); }
-            66% { transform: translate(-100px, 100px) scale(0.6); }
-            100% { transform: translate(0px, 0px) scale(1); }
-          }
-          .animate-blob {
-            animation: blob 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
-          }
-          .animation-delay-2000 {
-            animation-delay: 2s;
-          }
-          .animation-delay-4000 {
-            animation-delay: 4s;
-          }
-          html {
-            scroll-behavior: smooth;
-          }
-        `}</style>
-
-        <div className="max-w-6xl mx-auto px-4 md:px-6 relative z-10">
-          <div className="text-center mb-12 md:mb-20">
-            <h2 className="text-2xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6 tracking-tight">
-              Comment <span className="text-violet-600">Sophia</span> t'aide à tenir
-            </h2>
-            <p className="text-sm md:text-lg text-slate-500 max-w-2xl mx-auto">
-              Ne compte plus uniquement sur ta motivation. Appuie-toi sur un système qui clarifie, relance, mémorise et s'ajuste avec toi.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6">
-            
-            {/* CARTE 1 : LE PLAN */}
-            <div className="md:col-span-7 bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-xl shadow-violet-100/50 border border-white/50 relative group overflow-hidden hover:border-violet-300/50 transition-all duration-500 hover:shadow-2xl hover:shadow-violet-200/50 flex flex-col">
-              {/* Subtle Gradient Overlay on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-50/0 via-violet-50/0 to-violet-100/0 group-hover:to-violet-100/30 transition-all duration-500"></div>
-              
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center text-violet-600 mb-4 md:mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500 ring-1 ring-violet-100">
-                  <Target className="w-6 h-6 md:w-7 md:h-7" />
+      <main>
+        <section id="systeme-sophia" className="bg-[#fbf7ef] py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <div className="grid gap-10 md:grid-cols-[0.95fr_1.05fr] md:items-end">
+              <div>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#e3f1e6] px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#002d21]">
+                  <Waves className="h-4 w-4" />
+                  Le système Sophia
                 </div>
-                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-4">Un plan clair dès le départ</h3>
-                <p className="text-slate-600 leading-relaxed mb-6 md:mb-8 text-sm md:text-lg">
-                  Fini le brouillard. Sophia transforme ce que tu veux vraiment en <span className="text-slate-900">actions concrètes, priorisées et réalistes</span>.
-                </p>
-                
-                {/* Mini UI Mockup */}
-                <div className="bg-white/50 rounded-xl p-3 md:p-4 border border-white/60 max-w-md shadow-inner">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse"></div>
-                    <div className="h-2 w-24 bg-slate-200 rounded-full"></div>
+                <h2 className="text-3xl font-bold leading-tight tracking-tight text-[#17211d] md:text-5xl">
+                  Un coach IA qui transforme ton envie de changement en accompagnement concret.
+                </h2>
+              </div>
+              <p className="text-base leading-8 text-[#52635b] md:text-lg">
+                Tu lui dis ce que tu veux changer. Sophia t'aide à clarifier le chemin, puis revient vers toi au bon moment pour garder une continuité douce.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-4 md:grid-cols-4">
+              {[
+                {
+                  icon: Sunrise,
+                  title: "Tu poses ton intention",
+                  copy: "Sophia transforme ce que tu veux changer en chemin simple, concret et soutenable.",
+                },
+                {
+                  icon: MessageCircle,
+                  title: "Elle te rejoint sur WhatsApp",
+                  copy: "Pas besoin d'ouvrir une app de plus. Sophia revient vers toi là où tu es déjà.",
+                },
+                {
+                  icon: Heart,
+                  title: "Elle t'aide à tenir sans pression",
+                  copy: "Quand l'énergie baisse, Sophia ajuste le rythme pour préserver l'élan au lieu de te culpabiliser.",
+                },
+                {
+                  icon: BookOpen,
+                  title: "Elle apprend ton rythme",
+                  copy: "Sophia retient ton contexte, tes victoires, tes blocages et ce qui t'aide vraiment à avancer.",
+                },
+              ].map(({ icon: Icon, title, copy }) => (
+                <article key={title} className="rounded-3xl border border-[#eadfce] bg-white/62 p-5 shadow-sm backdrop-blur">
+                  <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#e3f1e6] text-[#002d21]">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="h-8 w-full bg-white rounded-lg border border-slate-100 shadow-sm flex items-center px-3">
-                      <div className="w-4 h-4 rounded-full border-2 border-violet-200 mr-3"></div>
-                      <div className="h-2 w-32 bg-slate-100 rounded-full"></div>
+                  <h3 className="text-lg font-bold text-[#17211d]">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#52635b]">{copy}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#f4eee4] py-20 md:py-28">
+          <div className="mx-auto grid max-w-6xl gap-12 px-4 md:grid-cols-[0.92fr_1.08fr] md:items-center md:px-6">
+            <div className="relative mx-auto w-full max-w-[330px]">
+              <div className="sophia-drift rounded-[32px] border-[10px] border-[#17211d] bg-[#17211d] shadow-2xl shadow-[#7f917f]/30">
+                <div className="overflow-hidden rounded-[22px] bg-[#eef4ea]">
+                  <div className="flex items-center gap-3 bg-[#002d21] px-4 py-4 text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/18 font-bold">
+                      S
                     </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* CARTE 2 : WHATSAPP */}
-            <div className="md:col-span-5 bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-xl shadow-emerald-100/50 border border-white/50 relative group overflow-hidden hover:border-emerald-300/50 transition-all duration-500 hover:shadow-2xl hover:shadow-emerald-200/50 flex flex-col">
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/0 via-emerald-50/0 to-emerald-100/0 group-hover:to-emerald-100/30 transition-all duration-500"></div>
-              
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center text-emerald-600 mb-4 md:mb-6 shadow-sm group-hover:rotate-12 transition-transform duration-500 ring-1 ring-emerald-100">
-                  <MessageCircle className="w-6 h-6 md:w-7 md:h-7" />
-                </div>
-                  <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-4">Sophia vient aux nouvelles</h3>
-                <p className="text-slate-600 leading-relaxed text-sm md:text-lg">
-                  Pas besoin d'ouvrir une app pour te remotiver. Sophia te relance sur WhatsApp au bon moment pour garder le lien et éviter le décrochage silencieux.
-                </p>
-              </div>
-            </div>
-
-            {/* CARTE 3 : ADAPTATION */}
-            <div className="md:col-span-5 bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-xl shadow-amber-100/50 border border-white/50 relative group overflow-hidden hover:border-amber-300/50 transition-all duration-500 hover:shadow-2xl hover:shadow-amber-200/50 flex flex-col">
-               <div className="absolute inset-0 bg-gradient-to-br from-amber-50/0 via-amber-50/0 to-amber-100/0 group-hover:to-amber-100/30 transition-all duration-500"></div>
-
-              <div className="relative z-10 flex flex-col h-full">
-                <div className="w-12 h-12 md:w-14 md:h-14 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center text-amber-600 mb-4 md:mb-6 shadow-sm group-hover:scale-110 transition-transform duration-500 ring-1 ring-amber-100">
-                  <Zap className="w-6 h-6 md:w-7 md:h-7" />
-                </div>
-                <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-4">Le plan s'adapte à la réalité</h3>
-                <p className="text-slate-600 leading-relaxed text-sm md:text-lg">
-                  Si tu bloques, si ton énergie change ou si ta semaine déraille, Sophia ne te culpabilise pas. Elle ajuste pour t'aider à repartir intelligemment.
-                </p>
-              </div>
-            </div>
-
-            {/* CARTE 4 : MEMOIRE */}
-            <div className="md:col-span-7 bg-white/80 backdrop-blur-xl rounded-3xl p-6 md:p-10 shadow-xl shadow-indigo-100/50 border border-white/50 relative group overflow-hidden hover:border-indigo-300/50 transition-all duration-500 hover:shadow-2xl hover:shadow-indigo-200/50">
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/0 via-indigo-50/0 to-indigo-100/0 group-hover:to-indigo-100/30 transition-all duration-500"></div>
-              
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 md:gap-8">
-                <div className="flex-1">
-                  <div className="w-12 h-12 md:w-14 md:h-14 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center text-indigo-600 mb-4 md:mb-6 shadow-sm group-hover:-rotate-12 transition-transform duration-500 ring-1 ring-indigo-100">
-                    <BookOpen className="w-6 h-6 md:w-7 md:h-7" />
-                  </div>
-                  <h3 className="text-lg md:text-2xl font-bold text-slate-900 mb-2 md:mb-4">Mémoire et continuité</h3>
-                  <p className="text-slate-600 leading-relaxed text-sm md:text-lg">
-                    Rien ne se perd. Sophia retient ton contexte, tes victoires, tes blocages et ce qui marche pour toi afin de t'accompagner avec plus de justesse dans le temps.
-                  </p>
-                </div>
-                
-                {/* Decorative visual for Grimoire (STACK OF CARDS) */}
-                <div className="w-full md:w-1/3 h-32 relative flex items-center justify-center transform group-hover:scale-105 transition-transform duration-500 hidden md:flex">
-                   {/* Card 3 (Back) */}
-                   <div className="absolute w-24 h-32 bg-indigo-200/50 rounded-xl border border-indigo-300/50 transform rotate-12 translate-x-4 backdrop-blur-md"></div>
-                   {/* Card 2 (Middle) */}
-                   <div className="absolute w-24 h-32 bg-indigo-100/80 rounded-xl border border-indigo-200 transform -rotate-6 -translate-x-2 backdrop-blur-md"></div>
-                   {/* Card 1 (Front) */}
-                   <div className="absolute w-24 h-32 bg-white rounded-xl border border-indigo-100 shadow-lg transform rotate-0 flex items-center justify-center">
-                     <div className="w-12 h-1 bg-indigo-100 rounded-full mb-2"></div>
-                     <div className="w-8 h-1 bg-indigo-100 rounded-full"></div>
-                   </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-          
-          <div className="mt-12 md:mt-20 flex justify-center">
-            <Link
-              to="/le-plan"
-              className="group flex items-center gap-2 text-violet-600 font-bold text-sm md:text-base transition-colors hover:text-violet-700"
-            >
-                Voir le système en détail
-                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* PART 1.5: SOPHIA (L'ALLIÉE) */}
-      <section className="py-24 bg-slate-50 border-t border-slate-100 overflow-y-visible overflow-x-hidden">
-        <div className="max-w-6xl mx-auto px-3 min-[340px]:px-4 md:px-6">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            
-            {/* VISUAL: CHAT SIMULATION */}
-            <div className="relative order-2 lg:order-1 flex justify-center w-full overflow-visible">
-              {/* Phone Frame Mockup */}
-              <div className="relative mx-auto border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[220px] min-[300px]:w-[260px] min-[340px]:w-[300px] shadow-xl transform scale-[0.55] sm:scale-[0.75] md:scale-100 origin-top sm:origin-center lg:origin-top-left mt-4 sm:mt-0 mb-[-200px] sm:mb-0">
-                <div className="h-[32px] w-[3px] bg-gray-800 absolute -start-[17px] top-[72px] rounded-s-lg"></div>
-                <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[124px] rounded-s-lg"></div>
-                <div className="h-[46px] w-[3px] bg-gray-800 absolute -start-[17px] top-[178px] rounded-s-lg"></div>
-                <div className="h-[64px] w-[3px] bg-gray-800 absolute -end-[17px] top-[142px] rounded-e-lg"></div>
-                <div className="rounded-[2rem] overflow-hidden w-full h-full bg-white relative">
-                  
-                  {/* Chat Header */}
-                  <div className="bg-[#075E54] p-4 flex items-center gap-3 text-white shadow-sm z-10 relative">
-                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold">S</div>
                     <div>
-                      <div className="font-bold text-sm">Sophia</div>
-                      <div className="text-[10px] opacity-80">En ligne</div>
+                      <div className="font-bold">Sophia</div>
+                      <div className="text-xs text-white/75">En ligne</div>
                     </div>
                   </div>
-
-                  {/* Chat Background */}
-                  <div className="absolute inset-0 bg-[#e5ddd5] opacity-50"></div>
-
-                  {/* Messages */}
-                  <div className="p-4 space-y-4 relative z-10 text-xs">
-                    
-                    {/* Day 1: Prod */}
-                    <div className="text-center text-[10px] text-slate-400 my-4 font-bold uppercase">Mardi</div>
-                    
-                    <div className="flex justify-start">
-                      <div className="bg-white text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                        <p>Hey Alex 👋 Bilan de la journée ? As-tu validé tes 30min de Deep Work ?</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">19:30</span>
-                      </div>
+                  <div className="space-y-4 px-4 py-6 text-sm">
+                    <div className="text-center text-[10px] font-bold uppercase tracking-[0.16em] text-[#7a8f84]">
+                      Aujourd'hui
                     </div>
-
-                    <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] text-slate-800 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%]">
-                        <p>Oui c'est fait !</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">19:42</span>
-                      </div>
+                    <div className="max-w-[86%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
+                      Hey Alex. Petit point doux : qu'est-ce qui t'aiderait à garder le fil aujourd'hui ?
                     </div>
-
-                    <div className="flex justify-start">
-                      <div className="bg-white text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                        <p>Boom ! 👊 C'est noté. Tu gardes le rythme.</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">19:42</span>
-                      </div>
+                    <div className="ml-auto max-w-[78%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
+                      Oui c'est fait !
                     </div>
-
-                    {/* Day 2: Down */}
-                    <div className="text-center text-[10px] text-slate-400 my-4 font-bold uppercase">Aujourd'hui</div>
-
-                    <div className="flex justify-end">
-                      <div className="bg-[#dcf8c6] text-slate-800 p-3 rounded-lg rounded-tr-none shadow-sm max-w-[85%]">
-                        <p>J'ai envie de tout lâcher ce soir... Je suis crevé.</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">21:15</span>
-                      </div>
+                    <div className="max-w-[86%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
+                      C'est noté. On garde le rythme, sans forcer.
                     </div>
-
-                    <div className="flex justify-start">
-                      <div className="bg-white text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                        <p>Je comprends. Respire. C'est juste une vague de fatigue, ça ne remet pas tout en cause.</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">21:15</span>
-                      </div>
+                    <div className="ml-auto max-w-[86%] rounded-2xl bg-[#d1ded4] p-3 text-[#24332d] shadow-sm">
+                      J'ai envie de tout lâcher ce soir... Je suis crevé.
                     </div>
-
-                    <div className="flex justify-start">
-                      <div className="bg-white text-slate-800 p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%]">
-                        <p>Fais juste le minimum : pas d'écrans ce soir. Le reste attendra demain. On sécurise le sommeil. Ok ?</p>
-                        <span className="text-[9px] text-slate-400 block text-right mt-1">21:16</span>
-                      </div>
+                    <div className="max-w-[90%] rounded-2xl bg-white p-3 text-[#24332d] shadow-sm">
+                      Respire. Ce n'est qu'une vague de fatigue. Ce soir, on allège et on protège ton sommeil.
                     </div>
-
                   </div>
                 </div>
               </div>
-              
-              {/* Floating Elements */}
-              <div className="absolute top-1/4 -left-12 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 animate-bounce duration-[3000ms] hidden md:block">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-violet-100 rounded-full flex items-center justify-center text-violet-600">
-                    <Brain className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900 text-sm">Soutien 24/7</div>
-                    <div className="text-xs text-slate-500">Toujours dispo</div>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-            {/* TEXT CONTENT */}
-            <div className="order-1 lg:order-2 w-full min-w-0">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-wider mb-6">
-                <Sparkles className="w-3 h-3" />
+            <div>
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/62 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#002d21]">
+                <Sparkles className="h-4 w-4" />
                 Présence proactive
               </div>
-              
-              <h2 className="text-xl sm:text-3xl md:text-5xl font-bold text-slate-900 mb-6 leading-tight break-words hyphens-auto">
-                Une présence qui revient vers toi.<br/>
-                <span className="text-violet-600">Pas juste une IA qui attend.</span>
+              <h2 className="text-3xl font-bold leading-tight tracking-tight text-[#17211d] md:text-5xl">
+                Ton coach ne reste pas dans une app.
+                <span className="block text-[#002d21]">Il revient vers toi quand ça compte.</span>
               </h2>
-              
-              <p className="text-sm md:text-lg text-slate-600 mb-8 leading-relaxed break-words">
-                <strong>Sophia vit dans ton WhatsApp.</strong> Elle t'aide à ne pas te perdre dans le bruit du quotidien: elle célèbre tes avancées, détecte les décrochages et t'aide à retrouver de l'élan quand ça devient plus dur.
+              <p className="mt-6 text-base leading-8 text-[#52635b] md:text-lg">
+                <strong className="text-[#17211d]">Sophia vit dans ton WhatsApp.</strong> Elle t'aide à ne pas te perdre dans le bruit du quotidien : elle clarifie la prochaine étape, célèbre tes avancées et t'aide à retrouver de l'élan quand ça devient plus dur.
               </p>
 
-              <div className="space-y-6">
-                <div className="flex gap-3 min-[340px]:gap-4">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 text-emerald-600">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-slate-900 text-base md:text-lg break-words">Suivi proactif</h4>
-                    <p className="text-slate-500 text-xs md:text-sm break-words">Pas besoin d'y penser sans arrêt. Sophia prend l'initiative de te recontacter pour maintenir la continuité.</p>
-                  </div>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-3xl border border-[#cfe8d7] bg-[#eef8ef] p-5">
+                  <CheckCircle2 className="mb-4 h-6 w-6 text-[#002d21]" />
+                  <h3 className="font-bold text-[#17211d]">Présence proactive</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#52635b]">
+                    Sophia prend l'initiative de te recontacter pour que ton changement reste vivant.
+                  </p>
                 </div>
-
-                <div className="flex gap-3 min-[340px]:gap-4">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 text-indigo-600">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="font-bold text-slate-900 text-base md:text-lg break-words">Soutien sans culpabilisation</h4>
-                    <p className="text-slate-500 text-xs md:text-sm break-words">Un coup de mou, une semaine bancale, une perte de rythme ? Sophia t'aide à repartir sans transformer un écart en abandon.</p>
-                  </div>
+                <div className="rounded-3xl border border-[#eadfce] bg-[#fff8ec] p-5">
+                  <Shield className="mb-4 h-6 w-6 text-[#b26c3a]" />
+                  <h3 className="font-bold text-[#17211d]">Soutien sans culpabilisation</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#52635b]">
+                    Elle t'aide à repartir sans transformer une journée imparfaite en abandon.
+                  </p>
                 </div>
               </div>
-              
-              <div className="flex justify-center w-full mt-8">
-                <Link to="/le-plan" className="group flex items-center gap-2 text-violet-600 font-bold text-sm md:text-base transition-colors hover:text-violet-700">
-                    Découvrir Sophia
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-[#002d21] py-20 text-[#f6f2ea] md:py-28">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <div className="grid gap-10 md:grid-cols-[0.88fr_1.12fr] md:items-start">
+              <div>
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d1ded4]/16 bg-white/[0.06] px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#c6d7cc]">
+                  <Moon className="h-4 w-4" />
+                  Option premium
+                </div>
+                <h2 className="text-3xl font-bold leading-tight tracking-tight md:text-5xl">
+                  Pour aller plus loin
+                  <span className="block text-[#d1ded4]">Deviens l'Architecte.</span>
+                </h2>
+                <p className="mt-6 text-base leading-8 text-[#dce5df]/76 md:text-lg">
+                  Le coeur de Sophia, c'est l'accompagnement dans la vraie vie. <strong className="text-[#f6f2ea]">L'Architecte</strong> est l'extension pour celles et ceux qui veulent aussi travailler en profondeur sur leur identité.
+                </p>
+                <Link
+                  to="/l-architecte"
+                  className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#eef5ea] px-5 py-3 font-bold text-[#002d21] transition-colors hover:bg-white"
+                >
+                  Explorer l'Architecte
+                  <ArrowRight className="h-5 w-5" />
                 </Link>
               </div>
 
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  ["1", "Comprends tes blocages", "Mets des mots sur les boucles mentales qui te font revenir aux anciens automatismes."],
+                  ["2", "Clarifie la personne que tu veux devenir", "Rends ton identité cible plus concrète, plus stable et plus facile à incarner."],
+                  ["3", "Renforce la continuité intérieure", "Ajoute une couche plus introspective pour aligner tes actions avec ce qui compte vraiment."],
+                ].map(([number, title, copy]) => (
+                  <div key={title} className="rounded-3xl border border-white/10 bg-white/[0.06] p-5">
+                    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-[#dce9dc] text-lg font-bold text-[#002d21]">
+                      {number}
+                    </div>
+                    <h3 className="font-bold text-[#f6f2ea]">{title}</h3>
+                    <p className="mt-3 text-sm leading-6 text-[#dce5df]/66">{copy}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* PART 2: MODULE PREMIUM */}
-      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
-        {/* Background FX */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-        <div className="absolute top-0 left-0 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[120px] -translate-x-1/2 -translate-y-1/2"></div>
-        
-        <div className="max-w-6xl mx-auto px-6 relative z-10">
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
-            
-            {/* Text Content */}
-            <div className="flex flex-col h-full">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-xs font-bold uppercase tracking-wider mb-6 w-fit">
-                <Lock className="w-3 h-3" />
-                Option premium
+        <section className="bg-[#fbf7ef] py-20 md:py-28">
+          <div className="mx-auto max-w-6xl px-4 md:px-6">
+            <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-[#f6e4d5] px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#8a5633]">
+                  <Leaf className="h-4 w-4" />
+                  Dans la vraie vie
+                </div>
+                <h2 className="text-3xl font-bold leading-tight tracking-tight text-[#17211d] md:text-5xl">
+                  Sophia t'accompagne dans les moments où les bonnes intentions se perdent.
+                </h2>
               </div>
-              <div className="mb-6 relative">
-                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight tracking-tighter">
-                    Pour aller plus loin
-                 </h2>
-              </div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-emerald-400 -mt-4 font-serif">
-                Deviens l'Architecte.
-              </h2>
-              <p className="text-slate-300 text-lg mb-8 leading-relaxed">
-                Le coeur de Sophia, c'est l'exécution dans la vraie vie. <strong>L'Architecte</strong> est l'extension pour celles et ceux qui veulent aussi travailler en profondeur sur leur identité.
+              <p className="max-w-xl text-base leading-8 text-[#52635b]">
+                Pas une app à consulter quand tu y penses. Un coach IA qui revient quand ton changement a besoin d'un point d'appui.
               </p>
-              
-              <div className="space-y-6 mb-10">
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-700 font-bold text-emerald-400">1</div>
-                  <div>
-                    <h4 className="font-bold text-white text-lg">Comprends tes blocages</h4>
-                    <p className="text-slate-400 text-sm">Mets des mots sur les boucles mentales qui sabotent tes efforts à répétition.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-700 font-bold text-emerald-400">2</div>
-                  <div>
-                    <h4 className="font-bold text-white text-lg">Clarifie la personne que tu veux devenir</h4>
-                    <p className="text-slate-400 text-sm">Utilise l'IA pour rendre ton identité cible plus concrète, plus stable et plus actionnable.</p>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-700 font-bold text-emerald-400">3</div>
-                  <div>
-                    <h4 className="font-bold text-white text-lg">Renforce la continuité intérieure</h4>
-                    <p className="text-slate-400 text-sm">Ajoute une couche plus introspective pour aligner ton exécution avec ce qui compte vraiment pour toi.</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-auto flex justify-center w-full">
-                  <Link to="/l-architecte" className="group flex items-center gap-2 text-emerald-400 font-bold text-sm md:text-base transition-colors hover:text-emerald-300">
-                    Explorer l'Architecte
-                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              </div>
             </div>
 
-            {/* Visual Content (Flip Card) */}
-            <div className="relative h-[680px] min-[340px]:h-[600px] min-[380px]:h-[560px] min-[420px]:h-[520px] min-[480px]:h-[480px] min-[540px]:h-[440px] min-[600px]:h-[420px] w-full group perspective-1000">
-              <div 
-                className="relative w-full h-full transition-all duration-700 group-hover:rotate-y-180"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                
-                {/* FACE A (RECTO) */}
-                <div 
-                  className="absolute inset-0"
-                  style={{ backfaceVisibility: 'hidden' }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500 to-teal-500 rounded-2xl transform rotate-6 opacity-20 blur-lg"></div>
-                  <div className="bg-slate-800 border border-slate-700 rounded-2xl p-6 md:p-8 shadow-2xl relative h-full flex flex-col">
-                    <div className="flex flex-col min-[340px]:flex-row items-center justify-between mb-6 md:mb-8 border-b border-slate-700 pb-6 gap-4 min-[340px]:gap-0">
-                      <div className="text-center min-[340px]:text-left">
-                        <div className="text-[10px] md:text-xs text-slate-400 uppercase tracking-widest mb-1">Mode Actuel</div>
-                        <div className="font-bold text-white text-lg md:text-xl">Survivant</div>
-                      </div>
-                      <ArrowRight className="text-emerald-500 w-5 h-5 md:w-6 md:h-6 animate-pulse mx-2 rotate-90 min-[340px]:rotate-0 transform transition-transform" />
-                      <div className="text-center min-[340px]:text-right">
-                        <div className="text-[10px] md:text-xs text-emerald-400 uppercase tracking-widest mb-1">Mode Cible</div>
-                        <div className="font-bold text-white text-lg md:text-xl">Architecte</div>
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-3 flex-1">
-                      <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between p-3 bg-slate-700/50 rounded-lg gap-1">
-                        <span className="text-slate-300 text-sm">Vision</span>
-                        <span className="text-emerald-400 text-sm font-bold text-right">Limitée → Illimitée</span>
-                      </div>
-                      <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between p-3 bg-slate-700/50 rounded-lg gap-1">
-                        <span className="text-slate-300 text-sm">Énergie</span>
-                        <span className="text-emerald-400 text-sm font-bold text-right">Réactive → Créatrice</span>
-                      </div>
-                      <div className="flex flex-col min-[380px]:flex-row min-[380px]:items-center justify-between p-3 bg-slate-700/50 rounded-lg gap-1">
-                        <span className="text-slate-300 text-sm">Actions</span>
-                        <span className="text-emerald-400 text-sm font-bold text-right">Forcées → Naturelles</span>
-                      </div>
-                    </div>
-
-                    {/* ENCART CARPE KOI */}
-                    <div className="mt-auto pt-6 border-t border-slate-700 flex items-start gap-3 opacity-80">
-                       <Fish className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                       <p className="text-[10px] min-[340px]:text-xs text-slate-400 leading-relaxed italic">
-                         "Une carpe Koï reste petite dans un bocal, mais devient énorme dans l'océan. Ton identité est ton bocal, tu es la carpe Koï. Avec Sophia, définis ton océan."
-                       </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* FACE B (VERSO) */}
-                <div 
-                  className="absolute inset-0 h-full w-full rounded-2xl bg-slate-900 border border-emerald-900/50 shadow-2xl overflow-hidden flex items-center justify-center text-center p-8"
-                  style={{ 
-                    backfaceVisibility: 'hidden',
-                    transform: 'rotateY(180deg)'
-                  }}
-                >
-                  {/* Background effects */}
-                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-10"></div>
-                  <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-emerald-600/20 rounded-full blur-3xl"></div>
-                  <div className="absolute -top-20 -left-20 w-60 h-60 bg-violet-600/20 rounded-full blur-3xl"></div>
-                  
-                  <div className="relative z-10">
-                    <Sparkles className="w-12 h-12 text-emerald-400 mx-auto mb-6 animate-pulse" />
-                    <h3 className="text-2xl font-serif font-bold text-white leading-relaxed mb-6">
-                      "On ne grandit que jusqu'à la taille du monde qu'on s'autorise."
-                    </h3>
-                    <p className="text-emerald-400 font-serif italic text-lg">- Sophia</p>
-                  </div>
-                </div>
-
-              </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                {
+                  title: "Le matin",
+                  copy: "Commence avec une direction simple, au lieu de repartir dans le flou.",
+                  Icon: Sunrise,
+                },
+                {
+                  title: "Quand l'énergie baisse",
+                  copy: "Réduis l'exigence sans perdre le lien avec ce que tu veux changer.",
+                  Icon: Heart,
+                },
+                {
+                  title: "Quand tu décroches",
+                  copy: "Reviens avec un ajustement réaliste, pas avec de la culpabilité.",
+                  Icon: Moon,
+                },
+              ].map(({ title, copy, Icon }) => (
+                <article key={title} className="rounded-3xl border border-[#eadfce] bg-white/66 p-6 shadow-sm">
+                  <Icon className="mb-5 h-6 w-6 text-[#002d21]" />
+                  <h3 className="text-lg font-bold text-[#17211d]">{title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#52635b]">{copy}</p>
+                </article>
+              ))}
             </div>
-
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* FINAL CTA */}
-      <section className="py-32 text-center relative overflow-hidden bg-slate-50">
-        <div className="max-w-3xl mx-auto px-6 relative z-10">
-          <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-8 tracking-tight">
-            Ne laisse plus tes priorités<br/>
-            <span className="text-violet-600">se faire avaler par le quotidien.</span>
-          </h2>
-          <p className="text-slate-600 text-lg mb-10 max-w-2xl mx-auto">
-            Crée ton plan, active Sophia sur WhatsApp et commence à construire une vraie continuité autour de ce qui compte pour toi.
-          </p>
-          
+        <section className="relative overflow-hidden bg-[#fffaf1] py-20 text-center md:py-28">
+          <div className="mx-auto max-w-3xl px-4 md:px-6">
+            <h2 className="text-4xl font-bold leading-tight tracking-tight text-[#17211d] md:text-6xl">
+              Un coach IA dans ta poche,
+              <span className="block text-[#002d21]">pour continuer quand la vie déborde.</span>
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-[#52635b] md:text-lg">
+              Crée ton plan, active Sophia sur WhatsApp et commence à avancer avec plus de calme, de clarté et de continuité.
+            </p>
+
             <Link
               to="/onboarding-v2"
               onClick={startSession}
-            className="px-12 py-6 rounded-full bg-slate-900 text-white font-bold text-xl hover:bg-violet-600 hover:scale-105 transition-all shadow-2xl shadow-slate-300 flex items-center justify-center gap-3 mx-auto"
-          >
-            Générer mon Plan (Gratuit)
-            <ArrowRight className="w-6 h-6" />
-          </Link>
-          
-          <p className="mt-8 text-slate-500">
-            Une présence proactive pour t'aider à tenir dans la vraie vie.
-          </p>
-        </div>
-      </section>
+              className="mt-9 inline-flex items-center justify-center gap-3 rounded-full bg-[#17211d] px-8 py-4 text-lg font-bold text-white shadow-2xl shadow-[#7f917f]/24 transition-colors hover:bg-[#002d21]"
+            >
+              Créer mon plan gratuit
+              <ArrowRight className="h-5 w-5" />
+            </Link>
 
-      {/* FOOTER */}
+            <p className="mt-7 text-sm text-[#6f8178]">
+              Un coach IA personnel pour t'aider à tenir dans la vraie vie.
+            </p>
+          </div>
+        </section>
+      </main>
+
       <Footer />
     </div>
   );

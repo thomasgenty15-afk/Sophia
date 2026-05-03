@@ -57,7 +57,10 @@ type PhaseProgressionProps = {
    * pas par phase_order affiche (qui est decale via getDisplayPhaseOrder).
    * Source de verite: table user_level_tool_recommendations.
    */
-  levelToolRecommendationsByPhaseId?: Map<string, UserLevelToolRecommendationRow[]>;
+  levelToolRecommendationsByPhaseId?: Map<
+    string,
+    UserLevelToolRecommendationRow[]
+  >;
   onLevelToolRecommendationChanged?: () => Promise<void>;
   primaryMetricLabel?: string | null;
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
@@ -95,7 +98,9 @@ function formatDate(iso: string): string {
   });
 }
 
-function formatDurationWeeks(durationWeeks: number | null | undefined): string | null {
+function formatDurationWeeks(
+  durationWeeks: number | null | undefined,
+): string | null {
   if (!durationWeeks || durationWeeks < 1) return null;
   return `${durationWeeks} semaine${durationWeeks > 1 ? "s" : ""}`;
 }
@@ -105,8 +110,13 @@ function formatMissionDays(days: string[]): string | null {
   return days.join(", ");
 }
 
-function formatMetricValue(value: number | null | undefined, unit: string | null | undefined): string {
-  return [value ?? 0, unit].filter((part) => part != null && String(part).trim().length > 0).join(" ");
+function formatMetricValue(
+  value: number | null | undefined,
+  unit: string | null | undefined,
+): string {
+  return [value ?? 0, unit].filter((part) =>
+    part != null && String(part).trim().length > 0
+  ).join(" ");
 }
 
 function buildWeekTargetText(
@@ -153,7 +163,9 @@ function applyWeekItemAssignment(
 function normalizeWeekdays(days: string[] | null | undefined): string[] {
   return (days ?? [])
     .map((day) => day.trim().toLowerCase())
-    .filter((day, index, array) => day.length > 0 && array.indexOf(day) === index);
+    .filter((day, index, array) =>
+      day.length > 0 && array.indexOf(day) === index
+    );
 }
 
 function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
@@ -254,7 +266,10 @@ function buildWeekMissionTiming(
 ) {
   const weekItems = buildWeekItems(phase, week);
   const oneShotItems = weekItems.filter((item) => isOneShotWeekItem(item));
-  const summaryDays = normalizeWeekdays(week.mission_days).slice(0, oneShotItems.length);
+  const summaryDays = normalizeWeekdays(week.mission_days).slice(
+    0,
+    oneShotItems.length,
+  );
   const recommendedDaysByItemId = new Map<string, string[]>();
 
   oneShotItems.forEach((item, index) => {
@@ -334,24 +349,30 @@ function CompletedPhase({
               <h4 className="text-base font-bold text-emerald-950">
                 {phase.title}
               </h4>
-              {phase.duration_guidance ? (
-                <>
-                  <span className="hidden text-emerald-300 sm:inline">•</span>
-                  <span className="text-sm font-medium text-emerald-700/70">
-                    {phase.duration_guidance}
-                  </span>
-                </>
-              ) : null}
+              {phase.duration_guidance
+                ? (
+                  <>
+                    <span className="hidden text-emerald-300 sm:inline">•</span>
+                    <span className="text-sm font-medium text-emerald-700/70">
+                      {phase.duration_guidance}
+                    </span>
+                  </>
+                )
+                : null}
             </div>
-            {completedDate ? (
-              <p className="mt-1 text-xs text-emerald-700/70">
-                Le {formatDate(completedDate)}
-              </p>
-            ) : null}
+            {completedDate
+              ? (
+                <p className="mt-1 text-xs text-emerald-700/70">
+                  Le {formatDate(completedDate)}
+                </p>
+              )
+              : null}
           </div>
         </div>
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-emerald-400 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+          className={`h-5 w-5 shrink-0 text-emerald-400 transition-transform duration-300 ${
+            expanded ? "rotate-180" : ""
+          }`}
         />
       </button>
 
@@ -362,12 +383,15 @@ function CompletedPhase({
       >
         <div className="overflow-hidden">
           <div className="mt-5 space-y-4">
-            {phase.phase_metric_target ? (
-              <div className="rounded-2xl border border-emerald-100 bg-white/70 px-4 py-3 text-sm font-medium text-emerald-800">
-                Progression vers l&apos;objectif final
-                {primaryMetricLabel ? ` (${primaryMetricLabel})` : ""} : {phase.phase_metric_target}
-              </div>
-            ) : null}
+            {phase.phase_metric_target
+              ? (
+                <div className="rounded-2xl border border-emerald-100 bg-white/70 px-4 py-3 text-sm font-medium text-emerald-800">
+                  Progression vers l&apos;objectif final
+                  {primaryMetricLabel ? ` (${primaryMetricLabel})` : ""} :{" "}
+                  {phase.phase_metric_target}
+                </div>
+              )
+              : null}
             <PhaseFocusSummary phase={phase} />
             <div className="grid gap-2">
               {phase.items.map((item) => (
@@ -382,12 +406,14 @@ function CompletedPhase({
                 </div>
               ))}
             </div>
-            {levelToolRecommendations.length > 0 ? (
-              <LevelToolRecommendationsCard
-                recommendations={levelToolRecommendations}
-                onChanged={onLevelToolRecommendationChanged}
-              />
-            ) : null}
+            {levelToolRecommendations.length > 0
+              ? (
+                <LevelToolRecommendationsCard
+                  recommendations={levelToolRecommendations}
+                  onChanged={onLevelToolRecommendationChanged}
+                />
+              )
+              : null}
           </div>
         </div>
       </div>
@@ -447,8 +473,12 @@ function ActivePhase({
       durationWeeks: phase.duration_weeks ?? (phase.weeks.length || 1),
     });
   const [showLevelDetails, setShowLevelDetails] = useState(false);
-  const [weekPlanningStatusByKey, setWeekPlanningStatusByKey] = useState<Record<string, WeekPlanningStatus>>({});
-  const [planningModalWeekKey, setPlanningModalWeekKey] = useState<string | null>(null);
+  const [weekPlanningStatusByKey, setWeekPlanningStatusByKey] = useState<
+    Record<string, WeekPlanningStatus>
+  >({});
+  const [planningModalWeekKey, setPlanningModalWeekKey] = useState<
+    string | null
+  >(null);
   const weekEntries = useMemo(() =>
     phase.weeks.map((week) => {
       const weekCalendar = scheduleAnchor
@@ -472,28 +502,38 @@ function ActivePhase({
         weekMissionTiming,
       };
     }), [phase, scheduleAnchor]);
-  const highlightedWeekCalendar = weekEntries.find((entry) => entry.status === "current")?.weekCalendar ??
-    weekEntries[0]?.weekCalendar ??
-    null;
-  const planningModalEntry = weekEntries.find((entry) =>
-    entry.weekCalendar?.anchorWeekStart === planningModalWeekKey
-  ) ?? null;
+  const highlightedWeekCalendar =
+    weekEntries.find((entry) => entry.status === "current")?.weekCalendar ??
+      weekEntries[0]?.weekCalendar ??
+      null;
+  const planningModalEntry =
+    weekEntries.find((entry) =>
+      entry.weekCalendar?.anchorWeekStart === planningModalWeekKey
+    ) ?? null;
+  const currentWeekOrder =
+    weekEntries.find((entry) => entry.status === "current")
+      ?.week.week_order ?? null;
+  const canPlanWeek = (entry: (typeof weekEntries)[number]) =>
+    entry.status === "current" ||
+    (entry.status === "upcoming" &&
+      currentWeekOrder != null &&
+      entry.week.week_order === currentWeekOrder + 1);
 
   useEffect(() => {
-    const currentEntries = weekEntries.filter((entry) =>
-      entry.status === "current" &&
+    const planningEntries = weekEntries.filter((entry) =>
+      canPlanWeek(entry) &&
       entry.weekCalendar &&
       entry.weekItems.length > 0
     );
 
-    if (currentEntries.length === 0) return;
+    if (planningEntries.length === 0) return;
 
     let cancelled = false;
 
     void (async () => {
       const nextStatuses: Record<string, WeekPlanningStatus> = {};
 
-      await Promise.all(currentEntries.map(async (entry) => {
+      await Promise.all(planningEntries.map(async (entry) => {
         const weekCalendar = entry.weekCalendar;
         if (!weekCalendar) return;
 
@@ -505,7 +545,9 @@ function ActivePhase({
         const items = entry.weekItems.map((item) => {
           const preferred = item.dimension === "habits"
             ? allowedDays
-            : normalizeDayCodes(entry.weekMissionTiming.recommendedDaysByItemId.get(item.id));
+            : normalizeDayCodes(
+              entry.weekMissionTiming.recommendedDaysByItemId.get(item.id),
+            );
           return {
             plan_item_id: item.id,
             preferred_days: preferred.length > 0 ? preferred : allowedDays,
@@ -514,19 +556,27 @@ function ActivePhase({
         });
 
         try {
-          const { data, error } = await supabase.functions.invoke("habit-week-planning-v1", {
-            body: {
-              action: "get_bundle_state",
-              week_start_date: weekCalendar.anchorWeekStart,
-              items,
+          const { data, error } = await supabase.functions.invoke(
+            "habit-week-planning-v1",
+            {
+              body: {
+                action: "get_bundle_state",
+                week_start_date: weekCalendar.anchorWeekStart,
+                items,
+              },
             },
-          });
+          );
           if (error) throw error;
           const bundle = data as { bundle_status?: WeekPlanningStatus };
           nextStatuses[weekCalendar.anchorWeekStart] =
-            bundle.bundle_status === "confirmed" ? "confirmed" : "pending_confirmation";
+            bundle.bundle_status === "confirmed"
+              ? "confirmed"
+              : "pending_confirmation";
         } catch (error) {
-          console.error("[PhaseProgression] week planning hydration failed", error);
+          console.error(
+            "[PhaseProgression] week planning hydration failed",
+            error,
+          );
         }
       }));
 
@@ -541,7 +591,7 @@ function ActivePhase({
     return () => {
       cancelled = true;
     };
-  }, [weekEntries]);
+  }, [weekEntries, currentWeekOrder]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] md:p-8">
@@ -555,22 +605,26 @@ function ActivePhase({
             <h3 className="text-base font-bold text-stone-900">
               {phase.title}
             </h3>
-            {phase.duration_guidance ? (
-              <>
-                <span className="hidden text-stone-300 sm:inline">•</span>
-                <span className="text-sm font-medium text-stone-500">
-                  {phase.duration_guidance}
-                </span>
-              </>
-            ) : null}
-            {!phase.duration_guidance && phase.duration_weeks ? (
-              <>
-                <span className="hidden text-stone-300 sm:inline">•</span>
-                <span className="text-sm font-medium text-stone-500">
-                  {formatDurationWeeks(phase.duration_weeks)}
-                </span>
-              </>
-            ) : null}
+            {phase.duration_guidance
+              ? (
+                <>
+                  <span className="hidden text-stone-300 sm:inline">•</span>
+                  <span className="text-sm font-medium text-stone-500">
+                    {phase.duration_guidance}
+                  </span>
+                </>
+              )
+              : null}
+            {!phase.duration_guidance && phase.duration_weeks
+              ? (
+                <>
+                  <span className="hidden text-stone-300 sm:inline">•</span>
+                  <span className="text-sm font-medium text-stone-500">
+                    {formatDurationWeeks(phase.duration_weeks)}
+                  </span>
+                </>
+              )
+              : null}
           </div>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-stone-700">
             {phase.rationale}
@@ -598,39 +652,43 @@ function ActivePhase({
               >
                 {showLevelDetails ? "Masquer le détail" : "Voir le détail"}
                 <ChevronDown
-                  className={`h-3.5 w-3.5 transition-transform duration-300 ${showLevelDetails ? "rotate-180" : ""}`}
+                  className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                    showLevelDetails ? "rotate-180" : ""
+                  }`}
                 />
               </button>
             </div>
 
-            {showLevelDetails ? (
-              <div className="mt-5 space-y-4 border-t border-stone-200/60 pt-5">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                    Ce qu&apos;on tacle
-                  </span>
-                  <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
-                    {phase.what_this_phase_targets || phase.phase_objective}
-                  </p>
+            {showLevelDetails
+              ? (
+                <div className="mt-5 space-y-4 border-t border-stone-200/60 pt-5">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                      Ce qu&apos;on tacle
+                    </span>
+                    <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
+                      {phase.what_this_phase_targets || phase.phase_objective}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                      Comment
+                    </span>
+                    <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
+                      {phase.how_this_phase_works || phase.phase_objective}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                      Pourquoi maintenant
+                    </span>
+                    <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
+                      {phase.why_this_now || phase.rationale}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                    Comment
-                  </span>
-                  <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
-                    {phase.how_this_phase_works || phase.phase_objective}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                    Pourquoi maintenant
-                  </span>
-                  <p className="mt-1.5 text-sm leading-relaxed text-stone-700">
-                    {phase.why_this_now || phase.rationale}
-                  </p>
-                </div>
-              </div>
-            ) : null}
+              )
+              : null}
           </div>
         </div>
 
@@ -642,269 +700,367 @@ function ActivePhase({
               Lien avec l&apos;objectif global
             </span>
           </div>
-          {primaryMetricLabel ? (
-            <p className="mt-2 text-sm font-semibold text-stone-900">
-              {primaryMetricLabel}
-            </p>
-          ) : null}
+          {primaryMetricLabel
+            ? (
+              <p className="mt-2 text-sm font-semibold text-stone-900">
+                {primaryMetricLabel}
+              </p>
+            )
+            : null}
           <p className="mt-2 text-sm leading-relaxed text-stone-600">
-            {phase.phase_metric_target || "Pas de cible directe pour le moment. Ce niveau prépare le terrain."}
+            {phase.phase_metric_target ||
+              "Pas de cible directe pour le moment. Ce niveau prépare le terrain."}
           </p>
         </div>
       </div>
 
       {/* 4. Semaines */}
-      {phase.weeks.length > 0 ? (
-        <div className="mb-10 rounded-2xl border border-stone-200 bg-stone-50/70 p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                Semaine par semaine
-              </p>
-              {highlightedWeekCalendar ? (
-                <p className="mt-1 text-xs text-stone-500">
-                  {highlightedWeekCalendar.weekOrder === 1 && highlightedWeekCalendar.isPartial
-                    ? `La semaine 1 est partielle: du ${formatPlanDateRange(highlightedWeekCalendar.startDate, highlightedWeekCalendar.endDate)}.`
-                    : `Repere actuel: semaine ${highlightedWeekCalendar.weekOrder}, du ${formatPlanDateRange(highlightedWeekCalendar.startDate, highlightedWeekCalendar.endDate)}.`}
+      {phase.weeks.length > 0
+        ? (
+          <div className="mb-10 rounded-2xl border border-stone-200 bg-stone-50/70 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                  Semaine par semaine
                 </p>
-              ) : null}
+                {highlightedWeekCalendar
+                  ? (
+                    <p className="mt-1 text-xs text-stone-500">
+                      {highlightedWeekCalendar.weekOrder === 1 &&
+                          highlightedWeekCalendar.isPartial
+                        ? `La semaine 1 est partielle: du ${
+                          formatPlanDateRange(
+                            highlightedWeekCalendar.startDate,
+                            highlightedWeekCalendar.endDate,
+                          )
+                        }.`
+                        : `Repere actuel: semaine ${highlightedWeekCalendar.weekOrder}, du ${
+                          formatPlanDateRange(
+                            highlightedWeekCalendar.startDate,
+                            highlightedWeekCalendar.endDate,
+                          )
+                        }.`}
+                    </p>
+                  )
+                  : null}
+              </div>
+              {phase.duration_weeks
+                ? (
+                  <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700">
+                    {formatDurationWeeks(phase.duration_weeks)}
+                  </span>
+                )
+                : null}
             </div>
-            {phase.duration_weeks ? (
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-stone-700">
-                {formatDurationWeeks(phase.duration_weeks)}
-              </span>
-            ) : null}
-          </div>
-          {planAdjustmentRevision ? (
-            <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 px-4 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">
-                Plan ajusté le {planAdjustmentRevision.effective_start_date}
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
-                {planAdjustmentRevision.reason}
-              </p>
-              <p className="mt-2 text-xs text-stone-500">
-                La partie précédente reste figée. À partir d&apos;ici, tu vois la version ajustée.
-              </p>
-            </div>
-          ) : null}
-          <div className="mt-4 space-y-3">
-            {weekEntries.map((entry) => {
-              const { week, weekCalendar, status, weekTarget, weekSections, weekItems, weekMissionTiming } = entry;
-              const planningWeekKey = weekCalendar?.anchorWeekStart ?? `${phase.phase_id}:${week.week_order}`;
-              const planningStatus = weekCalendar
-                ? (weekPlanningStatusByKey[planningWeekKey] ?? "pending_confirmation")
-                : "pending_confirmation";
-              const planningLoading = false;
-              const borderClass = status === "completed"
-                ? "border-emerald-200 bg-emerald-50/60"
-                : status === "current"
-                ? "border-stone-300 bg-white shadow-sm"
-                : "border-stone-200 bg-white/70";
-              return (
-                <details
-                  key={`${phase.phase_id}-week-${week.week_order}`}
-                  className={`rounded-2xl border px-5 py-4 ${borderClass}`}
-                  open={status === "current"}
-                >
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <p className="text-sm font-bold text-stone-900">
-                        Semaine {week.week_order}
-                      </p>
-                      {weekCalendar ? (
-                        <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-700">
-                          {formatPlanDateRange(weekCalendar.startDate, weekCalendar.endDate)}
+            {planAdjustmentRevision
+              ? (
+                <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-blue-50/70 px-4 py-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-700">
+                    Plan ajusté le {planAdjustmentRevision.effective_start_date}
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-stone-700">
+                    {planAdjustmentRevision.reason}
+                  </p>
+                  <p className="mt-2 text-xs text-stone-500">
+                    La partie précédente reste figée. À partir d&apos;ici, tu
+                    vois la version ajustée.
+                  </p>
+                </div>
+              )
+              : null}
+            <div className="mt-4 space-y-3">
+              {weekEntries.map((entry) => {
+                const {
+                  week,
+                  weekCalendar,
+                  status,
+                  weekTarget,
+                  weekSections,
+                  weekItems,
+                  weekMissionTiming,
+                } = entry;
+                const planningWeekKey = weekCalendar?.anchorWeekStart ??
+                  `${phase.phase_id}:${week.week_order}`;
+                const planningStatus = weekCalendar
+                  ? (weekPlanningStatusByKey[planningWeekKey] ??
+                    "pending_confirmation")
+                  : "pending_confirmation";
+                const planningLoading = false;
+                const borderClass = status === "completed"
+                  ? "border-emerald-200 bg-emerald-50/60"
+                  : status === "current"
+                  ? "border-stone-300 bg-white shadow-sm"
+                  : "border-stone-200 bg-white/70";
+                return (
+                  <details
+                    key={`${phase.phase_id}-week-${week.week_order}`}
+                    className={`rounded-2xl border px-5 py-4 ${borderClass}`}
+                    open={status === "current"}
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-sm font-bold text-stone-900">
+                          Semaine {week.week_order}
+                        </p>
+                        {weekCalendar
+                          ? (
+                            <span className="rounded-full bg-white px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-700">
+                              {formatPlanDateRange(
+                                weekCalendar.startDate,
+                                weekCalendar.endDate,
+                              )}
+                            </span>
+                          )
+                          : null}
+                        <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-600">
+                          {status === "completed"
+                            ? "tenue"
+                            : status === "current"
+                            ? "maintenant"
+                            : "à venir"}
                         </span>
-                      ) : null}
-                      <span className="rounded-full bg-stone-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-stone-600">
-                        {status === "completed"
-                          ? "tenue"
-                          : status === "current"
-                          ? "maintenant"
-                          : "à venir"}
-                      </span>
-                      {weekCalendar ? (
-                        <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-800">
-                          {status === "current" && weekCalendar.daysRemaining != null
-                            ? `${weekCalendar.daysRemaining} jour${weekCalendar.daysRemaining > 1 ? "s" : ""} restant${weekCalendar.daysRemaining > 1 ? "s" : ""}`
-                            : `${weekCalendar.dayCount} jour${weekCalendar.dayCount > 1 ? "s" : ""}`}
-                        </span>
-                      ) : null}
-                      {weekTarget ? (
-                        <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-900">
-                          Cible: {weekTarget}
-                        </span>
-                      ) : null}
-                    </div>
-                    <ChevronDown className="h-4 w-4 shrink-0 text-stone-400" />
-                  </summary>
-                  <div className="mt-4 border-t border-stone-100 pt-4">
-                    <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                      <div className="flex flex-wrap gap-8">
-                        {week.reps_summary ? (
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                              Répétitions
-                            </p>
-                            <p className="mt-1 text-sm font-medium text-stone-700">
-                              {week.reps_summary}
-                            </p>
-                          </div>
-                        ) : null}
-                        {weekMissionTiming.summaryDays.length > 0 ? (
-                          <div>
-                            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
-                              Jours des missions
-                            </p>
-                            <p className="mt-1 text-sm font-medium text-stone-700">
-                              {formatMissionDays(weekMissionTiming.summaryDays)}
-                            </p>
-                          </div>
-                        ) : null}
+                        {weekCalendar
+                          ? (
+                            <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-blue-800">
+                              {status === "current" &&
+                                  weekCalendar.daysRemaining != null
+                                ? `${weekCalendar.daysRemaining} jour${
+                                  weekCalendar.daysRemaining > 1 ? "s" : ""
+                                } restant${
+                                  weekCalendar.daysRemaining > 1 ? "s" : ""
+                                }`
+                                : `${weekCalendar.dayCount} jour${
+                                  weekCalendar.dayCount > 1 ? "s" : ""
+                                }`}
+                            </span>
+                          )
+                          : null}
+                        {weekTarget
+                          ? (
+                            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-amber-900">
+                              Cible: {weekTarget}
+                            </span>
+                          )
+                          : null}
+                      </div>
+                      <ChevronDown className="h-4 w-4 shrink-0 text-stone-400" />
+                    </summary>
+                    <div className="mt-4 border-t border-stone-100 pt-4">
+                      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex flex-wrap gap-8">
+                          {week.reps_summary
+                            ? (
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                                  Répétitions
+                                </p>
+                                <p className="mt-1 text-sm font-medium text-stone-700">
+                                  {week.reps_summary}
+                                </p>
+                              </div>
+                            )
+                            : null}
+                          {weekMissionTiming.summaryDays.length > 0
+                            ? (
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-500">
+                                  Jours des missions
+                                </p>
+                                <p className="mt-1 text-sm font-medium text-stone-700">
+                                  {formatMissionDays(
+                                    weekMissionTiming.summaryDays,
+                                  )}
+                                </p>
+                              </div>
+                            )
+                            : null}
+                        </div>
+
+                        {canPlanWeek(entry) && weekCalendar &&
+                            weekItems.length > 0
+                          ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPlanningModalWeekKey(
+                                  weekCalendar.anchorWeekStart,
+                                )}
+                              disabled={planningLoading}
+                              className={`relative inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all disabled:opacity-60 ${
+                                planningStatus === "confirmed"
+                                  ? "border-stone-200 bg-white text-stone-600 shadow-sm hover:border-stone-300 hover:bg-stone-50"
+                                  : "border-amber-200/80 bg-amber-50/70 text-amber-900/80 hover:bg-amber-100/80 hover:border-amber-300/80 active:scale-[0.98]"
+                              }`}
+                            >
+                              <CalendarDays
+                                className={`h-4 w-4 ${
+                                  planningStatus === "confirmed"
+                                    ? "text-stone-500"
+                                    : "text-amber-900/60"
+                                }`}
+                              />
+                              <span
+                                className={planningStatus !== "confirmed" &&
+                                    !planningLoading
+                                  ? "animate-pulse"
+                                  : ""}
+                              >
+                                {planningLoading
+                                  ? "Chargement..."
+                                  : planningStatus === "confirmed"
+                                  ? "Modifier le planning"
+                                  : status === "upcoming"
+                                  ? "Préparer le planning"
+                                  : "Valider le planning"}
+                              </span>
+                            </button>
+                          )
+                          : null}
                       </div>
 
-                      {status === "current" && weekCalendar && weekItems.length > 0 ? (
-                        <button
-                          type="button"
-                          onClick={() => setPlanningModalWeekKey(weekCalendar.anchorWeekStart)}
-                          disabled={planningLoading}
-                          className={`relative inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition-all disabled:opacity-60 ${
-                            planningStatus === "confirmed"
-                              ? "border-stone-200 bg-white text-stone-600 shadow-sm hover:border-stone-300 hover:bg-stone-50"
-                              : "border-amber-200/80 bg-amber-50/70 text-amber-900/80 hover:bg-amber-100/80 hover:border-amber-300/80 active:scale-[0.98]"
-                          }`}
-                        >
-                          <CalendarDays className={`h-4 w-4 ${planningStatus === "confirmed" ? "text-stone-500" : "text-amber-900/60"}`} />
-                          <span className={planningStatus !== "confirmed" && !planningLoading ? "animate-pulse" : ""}>
-                            {planningLoading
-                              ? "Chargement..."
-                              : planningStatus === "confirmed"
-                              ? "Modifier le planning"
-                              : "Valider le planning"}
-                          </span>
-                        </button>
-                      ) : null}
+                      {weekSections.length > 0
+                        ? (
+                          <div className="grid gap-3 md:grid-cols-2">
+                            {weekSections.flatMap((section) =>
+                              section.items.map((item) => (
+                                <PlanItemCard
+                                  key={`${phase.phase_id}-week-${week.week_order}-${item.id}`}
+                                  item={item}
+                                  weekCalendar={weekCalendar}
+                                  weekStatus={status}
+                                  weekOrder={week.week_order}
+                                  recommendedDays={weekMissionTiming
+                                    .recommendedDaysByItemId.get(item.id) ??
+                                    null}
+                                  onOpenWeekPlanning={canPlanWeek(entry) &&
+                                      weekCalendar
+                                    ? () =>
+                                      setPlanningModalWeekKey(
+                                        weekCalendar.anchorWeekStart,
+                                      )
+                                    : null}
+                                  unlockState={unlockStateByItemId.get(
+                                    item.id,
+                                  ) ?? null}
+                                  isBusy={busyItemId === item.id}
+                                  onComplete={onComplete}
+                                  onActivate={onActivate}
+                                  onPrepareCards={onPrepareCards}
+                                  onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
+                                  onBlocker={onBlocker}
+                                  onDeactivate={onDeactivate}
+                                  onRemove={onRemove}
+                                  onAdapt={onAdapt}
+                                />
+                              ))
+                            )}
+                          </div>
+                        )
+                        : null}
                     </div>
-
-                    {weekSections.length > 0 ? (
-                      <div className="grid gap-3 md:grid-cols-2">
-                        {weekSections.flatMap((section) =>
-                          section.items.map((item) => (
-                            <PlanItemCard
-                              key={`${phase.phase_id}-week-${week.week_order}-${item.id}`}
-                              item={item}
-                              weekCalendar={weekCalendar}
-                              weekStatus={status}
-                              weekOrder={week.week_order}
-                              recommendedDays={weekMissionTiming.recommendedDaysByItemId.get(item.id) ?? null}
-                              onOpenWeekPlanning={status === "current" && weekCalendar
-                                ? () => setPlanningModalWeekKey(weekCalendar.anchorWeekStart)
-                                : null}
-                              unlockState={unlockStateByItemId.get(item.id) ?? null}
-                              isBusy={busyItemId === item.id}
-                              onComplete={onComplete}
-                              onActivate={onActivate}
-                              onPrepareCards={onPrepareCards}
-                              onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                              onBlocker={onBlocker}
-                              onDeactivate={onDeactivate}
-                              onRemove={onRemove}
-                              onAdapt={onAdapt}
-                            />
-                          ))
-                        )}
-                      </div>
-                    ) : null}
-                  </div>
-                </details>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      {planningModalEntry?.weekCalendar ? (
-        <WeekPlanningModal
-          isOpen={planningModalWeekKey === planningModalEntry.weekCalendar.anchorWeekStart}
-          weekTitle={`Semaine ${planningModalEntry.week.week_order}`}
-          weekCalendar={planningModalEntry.weekCalendar}
-          items={planningModalEntry.weekItems}
-          preferredDaysByItemId={planningModalEntry.weekMissionTiming.recommendedDaysByItemId}
-          onClose={() => setPlanningModalWeekKey(null)}
-          onSaved={(status) => {
-            setWeekPlanningStatusByKey((current) => ({
-              ...current,
-              [planningModalEntry.weekCalendar!.anchorWeekStart]: status,
-            }));
-          }}
-        />
-      ) : null}
-
-      {levelReviewUnlocked ? (
-        <div className="mb-10 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="max-w-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                Bilan de fin de niveau
-              </p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
-                {phase.transition_ready
-                  ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour dire comment il s'est passé avant de lancer la suite."
-                  : "Le questionnaire de fin de niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer le prochain niveau et ajuster la suite si nécessaire."}
-              </p>
+                  </details>
+                );
+              })}
             </div>
-            {onCompleteLevel ? (
-              <button
-                type="button"
-                onClick={onCompleteLevel}
-                disabled={completeLevelBusy}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {completeLevelBusy ? "Préparation..." : "Terminer ce niveau"}
-              </button>
-            ) : null}
           </div>
-        </div>
-      ) : null}
+        )
+        : null}
+
+      {planningModalEntry?.weekCalendar
+        ? (
+          <WeekPlanningModal
+            isOpen={planningModalWeekKey ===
+              planningModalEntry.weekCalendar.anchorWeekStart}
+            weekTitle={`Semaine ${planningModalEntry.week.week_order}`}
+            weekCalendar={planningModalEntry.weekCalendar}
+            items={planningModalEntry.weekItems}
+            preferredDaysByItemId={planningModalEntry.weekMissionTiming
+              .recommendedDaysByItemId}
+            onClose={() => setPlanningModalWeekKey(null)}
+            onSaved={(status) => {
+              setWeekPlanningStatusByKey((current) => ({
+                ...current,
+                [planningModalEntry.weekCalendar!.anchorWeekStart]: status,
+              }));
+            }}
+          />
+        )
+        : null}
+
+      {levelReviewUnlocked
+        ? (
+          <div className="mb-10 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="max-w-2xl">
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
+                  Bilan de fin de niveau
+                </p>
+                <p className="mt-2 text-sm leading-6 text-stone-700">
+                  {phase.transition_ready
+                    ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour dire comment il s'est passé avant de lancer la suite."
+                    : "Le questionnaire de fin de niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer le prochain niveau et ajuster la suite si nécessaire."}
+                </p>
+              </div>
+              {onCompleteLevel
+                ? (
+                  <button
+                    type="button"
+                    onClick={onCompleteLevel}
+                    disabled={completeLevelBusy}
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {completeLevelBusy
+                      ? "Préparation..."
+                      : "Terminer ce niveau"}
+                  </button>
+                )
+                : null}
+            </div>
+          </div>
+        )
+        : null}
 
       {/* Sections (Fallbacks if no weeks are defined) */}
-      {phase.weeks.length === 0 && sections.length > 0 ? (
-        <div className="grid gap-3 md:grid-cols-2">
-          {sections.flatMap((section) =>
-            section.items.map((item) => (
-              <PlanItemCard
-                key={item.id}
-                item={item}
-                weekCalendar={null}
-                weekStatus={null}
-                weekOrder={null}
-                recommendedDays={null}
-                onOpenWeekPlanning={null}
-                unlockState={unlockStateByItemId.get(item.id) ?? null}
-                isBusy={busyItemId === item.id}
-                onComplete={onComplete}
-                onActivate={onActivate}
-                onPrepareCards={onPrepareCards}
-                onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                onBlocker={onBlocker}
-                onDeactivate={onDeactivate}
-                onRemove={onRemove}
-                onAdapt={onAdapt}
-              />
-            ))
-          )}
-        </div>
-      ) : null}
+      {phase.weeks.length === 0 && sections.length > 0
+        ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {sections.flatMap((section) =>
+              section.items.map((item) => (
+                <PlanItemCard
+                  key={item.id}
+                  item={item}
+                  weekCalendar={null}
+                  weekStatus={null}
+                  weekOrder={null}
+                  recommendedDays={null}
+                  onOpenWeekPlanning={null}
+                  unlockState={unlockStateByItemId.get(item.id) ?? null}
+                  isBusy={busyItemId === item.id}
+                  onComplete={onComplete}
+                  onActivate={onActivate}
+                  onPrepareCards={onPrepareCards}
+                  onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
+                  onBlocker={onBlocker}
+                  onDeactivate={onDeactivate}
+                  onRemove={onRemove}
+                  onAdapt={onAdapt}
+                />
+              ))
+            )}
+          </div>
+        )
+        : null}
 
-      {levelToolRecommendations.length > 0 ? (
-        <div className="mt-8">
-          <LevelToolRecommendationsCard
-            recommendations={levelToolRecommendations}
-            onChanged={onLevelToolRecommendationChanged}
-          />
-        </div>
-      ) : null}
+      {levelToolRecommendations.length > 0
+        ? (
+          <div className="mt-8">
+            <LevelToolRecommendationsCard
+              recommendations={levelToolRecommendations}
+              onChanged={onLevelToolRecommendationChanged}
+            />
+          </div>
+        )
+        : null}
     </div>
   );
 }
@@ -916,7 +1072,8 @@ function FuturePhase({
   phase: PhaseRuntimeData;
   primaryMetricLabel?: string | null;
 }) {
-  const durationLabel = phase.duration_guidance ?? formatDurationWeeks(phase.duration_weeks);
+  const durationLabel = phase.duration_guidance ??
+    formatDurationWeeks(phase.duration_weeks);
 
   if (phase.summary_mode === "preview") {
     return (
@@ -933,23 +1090,27 @@ function FuturePhase({
               <h4 className="text-base font-bold text-stone-700">
                 {phase.title}
               </h4>
-              {durationLabel ? (
-                <>
-                  <span className="hidden text-stone-300 sm:inline">•</span>
-                  <span className="text-sm font-medium text-stone-500">
-                    {durationLabel}
-                  </span>
-                </>
-              ) : null}
+              {durationLabel
+                ? (
+                  <>
+                    <span className="hidden text-stone-300 sm:inline">•</span>
+                    <span className="text-sm font-medium text-stone-500">
+                      {durationLabel}
+                    </span>
+                  </>
+                )
+                : null}
             </div>
             <p className="mt-3 text-sm leading-relaxed text-stone-600">
               {phase.intention || phase.phase_objective}
             </p>
-            {phase.phase_objective && phase.phase_objective !== phase.intention ? (
-              <p className="mt-2 text-sm leading-relaxed text-stone-500">
-                {phase.phase_objective}
-              </p>
-            ) : null}
+            {phase.phase_objective && phase.phase_objective !== phase.intention
+              ? (
+                <p className="mt-2 text-sm leading-relaxed text-stone-500">
+                  {phase.phase_objective}
+                </p>
+              )
+              : null}
           </div>
         </div>
       </div>
@@ -970,32 +1131,42 @@ function FuturePhase({
             <h4 className="text-base font-bold text-stone-700">
               {phase.title}
             </h4>
-            {durationLabel ? (
-              <>
-                <span className="hidden text-stone-300 sm:inline">•</span>
-                <span className="text-sm font-medium text-stone-500">
-                  {durationLabel}
-                </span>
-              </>
-            ) : null}
+            {durationLabel
+              ? (
+                <>
+                  <span className="hidden text-stone-300 sm:inline">•</span>
+                  <span className="text-sm font-medium text-stone-500">
+                    {durationLabel}
+                  </span>
+                </>
+              )
+              : null}
           </div>
-          {phase.phase_metric_target ? (
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-              Progression vers l&apos;objectif final
-              {primaryMetricLabel ? ` (${primaryMetricLabel})` : ""} : {phase.phase_metric_target}
-            </p>
-          ) : null}
+          {phase.phase_metric_target
+            ? (
+              <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
+                Progression vers l&apos;objectif final
+                {primaryMetricLabel ? ` (${primaryMetricLabel})` : ""} :{" "}
+                {phase.phase_metric_target}
+              </p>
+            )
+            : null}
           <div className="mt-3 grid gap-2 md:grid-cols-3">
             <p className="text-sm leading-relaxed text-stone-600">
-              <span className="font-semibold text-stone-700">Ce qu&apos;on tacle :</span>{" "}
+              <span className="font-semibold text-stone-700">
+                Ce qu&apos;on tacle :
+              </span>{" "}
               {phase.what_this_phase_targets || phase.phase_objective}
             </p>
             <p className="text-sm leading-relaxed text-stone-600">
-              <span className="font-semibold text-stone-700">Pourquoi maintenant :</span>{" "}
+              <span className="font-semibold text-stone-700">
+                Pourquoi maintenant :
+              </span>{" "}
               {phase.why_this_now || phase.rationale}
             </p>
             <p className="text-sm leading-relaxed text-stone-600">
-              <span className="font-semibold text-stone-700">Comment :</span>{" "}
+              <span className="font-semibold text-stone-700">Comment :</span>
+              {" "}
               {phase.how_this_phase_works || phase.phase_objective}
             </p>
           </div>
@@ -1070,7 +1241,8 @@ export function PhaseProgression({
     levelToolRecommendationsByPhaseId?.get(phaseId) ?? [];
   const handleRecoChanged = onLevelToolRecommendationChanged ?? noopRefetch;
   const showTimeline = phases.length > 1 || (phases.length > 0 && !!phase1Node);
-  const allCompleted = phases.length > 0 && phases.every((p) => p.state === "completed");
+  const allCompleted = phases.length > 0 &&
+    phases.every((p) => p.state === "completed");
   const isMultiPart = journeyContext?.is_multi_part === true;
   const currentPart = journeyContext?.part_number ?? 1;
   const totalParts = journeyContext?.estimated_total_parts;
@@ -1078,127 +1250,145 @@ export function PhaseProgression({
   const [prevPhaseKey, setPrevPhaseKey] = useState("");
   const phaseKey = phases.map((p) => `${p.phase_id}:${p.state}`).join(",");
   const isTransitioning = prevPhaseKey !== "" && prevPhaseKey !== phaseKey;
-  
+
   useEffect(() => {
     setPrevPhaseKey(phaseKey);
   }, [phaseKey]);
 
   return (
     <section className="space-y-4">
-      {allCompleted ? (
-        <div className="mb-5 rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-6 py-6 text-center shadow-sm">
-          <PartyPopper className="mx-auto h-8 w-8 text-emerald-500" />
-          <h3 className="mt-3 text-xl font-semibold text-emerald-900">
-            {isMultiPart
-              ? `Niveau ${currentPart} terminé ! Prêt pour la suite ?`
-              : "Transformation achevée !"}
-          </h3>
-          <p className="mt-2 text-sm leading-relaxed text-emerald-700">
-            {completionActionHint
-              ? completionActionHint
-              : isMultiPart && totalParts
+      {allCompleted
+        ? (
+          <div className="mb-5 rounded-3xl border border-emerald-300 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 px-6 py-6 text-center shadow-sm">
+            <PartyPopper className="mx-auto h-8 w-8 text-emerald-500" />
+            <h3 className="mt-3 text-xl font-semibold text-emerald-900">
+              {isMultiPart
+                ? `Niveau ${currentPart} terminé ! Prêt pour la suite ?`
+                : "Transformation achevée !"}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-emerald-700">
+              {completionActionHint
+                ? completionActionHint
+                : isMultiPart && totalParts
                 ? `Tu as complété le niveau ${currentPart} sur ${totalParts}.`
                 : "Tu as complété tous les niveaux de ce plan."}
-          </p>
-          {onCompletionAction && completionActionLabel ? (
-            <button
-              type="button"
-              onClick={onCompletionAction}
-              className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.97]"
-            >
-              {completionActionLabel}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
+            </p>
+            {onCompletionAction && completionActionLabel
+              ? (
+                <button
+                  type="button"
+                  onClick={onCompletionAction}
+                  className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.97]"
+                >
+                  {completionActionLabel}
+                </button>
+              )
+              : null}
+          </div>
+        )
+        : null}
 
       <div className={`relative ${showTimeline ? "pl-0 lg:pl-0" : ""}`}>
-        {showTimeline ? (
-          <div className="absolute bottom-4 left-3 lg:-left-8 top-10 w-px bg-gray-200 transition-all duration-700 hidden sm:block" />
-        ) : null}
+        {showTimeline
+          ? (
+            <div className="absolute bottom-4 left-3 lg:-left-8 top-10 w-px bg-gray-200 transition-all duration-700 hidden sm:block" />
+          )
+          : null}
 
         <div className="grid gap-3 lg:pl-0 sm:pl-10">
-          {phase1Node ? (
-            <div className="relative transition-all duration-500 mb-2">
-              {showTimeline ? (
-                <div className="absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] border-emerald-400 bg-white text-emerald-500 scale-100">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                </div>
-              ) : null}
-              {phase1Node}
-            </div>
-          ) : null}
+          {phase1Node
+            ? (
+              <div className="relative transition-all duration-500 mb-2">
+                {showTimeline
+                  ? (
+                    <div className="absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] border-emerald-400 bg-white text-emerald-500 scale-100">
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </div>
+                  )
+                  : null}
+                {phase1Node}
+              </div>
+            )
+            : null}
 
           {phases.map((phase) => (
             <div
               key={phase.phase_id}
-              className={`relative transition-all duration-500 ${isTransitioning ? "animate-in fade-in slide-in-from-bottom-2" : ""}`}
+              className={`relative transition-all duration-500 ${
+                isTransitioning
+                  ? "animate-in fade-in slide-in-from-bottom-2"
+                  : ""
+              }`}
             >
-              {showTimeline ? (
-                <div
-                  className={`absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] transition-all duration-500 bg-white ${
-                    phase.state === "completed"
-                      ? "border-emerald-400 text-emerald-500 scale-100"
-                      : phase.state === "active"
+              {showTimeline
+                ? (
+                  <div
+                    className={`absolute -left-10 lg:-left-[43px] top-10 z-10 hidden sm:grid h-6 w-6 place-items-center rounded-full border-[1.5px] transition-all duration-500 bg-white ${
+                      phase.state === "completed"
+                        ? "border-emerald-400 text-emerald-500 scale-100"
+                        : phase.state === "active"
                         ? "border-blue-500 text-blue-500 scale-110 shadow-[0_0_0_3px_rgba(59,130,246,0.1)]"
                         : "border-gray-300 text-gray-400 scale-90"
-                  }`}
-                >
-                  {phase.state === "completed" ? (
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  ) : phase.state === "active" ? (
-                    <Target className="h-3.5 w-3.5" />
-                  ) : (
-                    <Lock className="h-3 w-3" />
-                  )}
-                </div>
-              ) : null}
+                    }`}
+                  >
+                    {phase.state === "completed"
+                      ? <CheckCircle2 className="h-3.5 w-3.5" />
+                      : phase.state === "active"
+                      ? <Target className="h-3.5 w-3.5" />
+                      : <Lock className="h-3 w-3" />}
+                  </div>
+                )
+                : null}
 
-              {phase.state === "completed" ? (
-                <div className="space-y-4">
-                  <CompletedPhase
-                    phase={phase}
-                    primaryMetricLabel={primaryMetricLabel}
-                    levelToolRecommendations={recosFor(phase.phase_id)}
-                    onLevelToolRecommendationChanged={handleRecoChanged}
-                  />
-                  {renderPhaseFooterNode?.(phase)}
-                </div>
-              ) : phase.state === "active" ? (
-                <div className="space-y-4">
-                  <ActivePhase
-                    phase={phase}
-                    scheduleAnchor={scheduleAnchor}
-                    planAdjustmentRevision={planAdjustmentRevision}
-                    primaryMetricLabel={primaryMetricLabel}
-                    unlockStateByItemId={unlockStateByItemId}
-                    busyItemId={busyItemId}
-                    onComplete={onComplete}
-                    onActivate={onActivate}
-                    onPrepareCards={onPrepareCards}
-                    onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                    onBlocker={onBlocker}
-                    onDeactivate={onDeactivate}
-                    onRemove={onRemove}
-                    onAdapt={onAdapt}
-                    onLogHeartbeat={onLogHeartbeat}
-                    onCompleteLevel={onCompleteLevel}
-                    completeLevelBusy={completeLevelBusy}
-                    levelToolRecommendations={recosFor(phase.phase_id)}
-                    onLevelToolRecommendationChanged={handleRecoChanged}
-                  />
-                  {renderPhaseFooterNode?.(phase)}
-                  {activePhaseFooterNode}
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <FuturePhase
-                    phase={phase}
-                    primaryMetricLabel={primaryMetricLabel}
-                  />
-                  {renderPhaseFooterNode?.(phase)}
-                </div>
-              )}
+              {phase.state === "completed"
+                ? (
+                  <div className="space-y-4">
+                    <CompletedPhase
+                      phase={phase}
+                      primaryMetricLabel={primaryMetricLabel}
+                      levelToolRecommendations={recosFor(phase.phase_id)}
+                      onLevelToolRecommendationChanged={handleRecoChanged}
+                    />
+                    {renderPhaseFooterNode?.(phase)}
+                  </div>
+                )
+                : phase.state === "active"
+                ? (
+                  <div className="space-y-4">
+                    <ActivePhase
+                      phase={phase}
+                      scheduleAnchor={scheduleAnchor}
+                      planAdjustmentRevision={planAdjustmentRevision}
+                      primaryMetricLabel={primaryMetricLabel}
+                      unlockStateByItemId={unlockStateByItemId}
+                      busyItemId={busyItemId}
+                      onComplete={onComplete}
+                      onActivate={onActivate}
+                      onPrepareCards={onPrepareCards}
+                      onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
+                      onBlocker={onBlocker}
+                      onDeactivate={onDeactivate}
+                      onRemove={onRemove}
+                      onAdapt={onAdapt}
+                      onLogHeartbeat={onLogHeartbeat}
+                      onCompleteLevel={onCompleteLevel}
+                      completeLevelBusy={completeLevelBusy}
+                      levelToolRecommendations={recosFor(phase.phase_id)}
+                      onLevelToolRecommendationChanged={handleRecoChanged}
+                    />
+                    {renderPhaseFooterNode?.(phase)}
+                    {activePhaseFooterNode}
+                  </div>
+                )
+                : (
+                  <div className="space-y-4">
+                    <FuturePhase
+                      phase={phase}
+                      primaryMetricLabel={primaryMetricLabel}
+                    />
+                    {renderPhaseFooterNode?.(phase)}
+                  </div>
+                )}
             </div>
           ))}
         </div>

@@ -1,0 +1,66 @@
+{
+  "id": "12_entity_father_aliases",
+  "description": "Father aliases should resolve to one usually-single entity.",
+  "scenario_version": 1,
+  "initial_state": {
+    "entities": [
+      {
+        "display_name": "pere",
+        "aliases": ["mon pere", "papa"],
+        "relation_to_user": "father",
+        "entity_type": "person",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Mon pere m'a appele hier.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference"],
+        "topic_decision": "create_candidate",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["mon pere", "appele hier"],
+            "domain_keys_any_of": ["relations.famille"],
+            "linked_entity_aliases_any_of": ["mon pere"],
+          },
+        ],
+      },
+    },
+    {
+      "user": "Papa m'a reparle de mes etudes.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["Papa", "mes etudes"],
+            "domain_keys_any_of": ["relations.famille"],
+            "linked_entity_aliases_any_of": ["papa"],
+          },
+        ],
+        "created_entities": [],
+        "payload_contains": [
+          {
+            "kind": "event",
+            "contains": "appele hier",
+            "entity_alias": "mon pere",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

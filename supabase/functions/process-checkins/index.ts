@@ -36,6 +36,26 @@ import {
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
+  loadMomentumSnapshotV2,
+  type MomentumSnapshotV2,
+  persistMomentumSnapshotV2,
+} from "../_shared/momentum_v2.ts";
+import {
+  buildWeeklyPlanningValidationMessage,
+  buildWeeklyProgressReviewFallbackMessage,
+  buildWeeklyProgressReviewGrounding,
+  buildWeeklyProgressReviewInstruction,
+  loadWeeklyProgressReview,
+  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+  WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
+  weeklyPlanningDashboardUrl,
+} from "../_shared/weekly_progress_review.ts";
+import {
+  buildWeeklyPlanningConfirmationMessage,
+  WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT,
+  type WeeklyPlanningConfirmationPayload,
+} from "../_shared/weekly_planning_confirmation.ts";
+import {
   getMomentumOutreachStateFromEventContext,
   isMomentumOutreachEventContext,
 } from "../sophia-brain/momentum_outreach.ts";
@@ -118,6 +138,54 @@ function functionsBaseUrl(): string {
   if (!supabaseUrl) return "http://kong:8000";
   if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
   return supabaseUrl.replace(/\/+$/, "");
+}
+
+function publicSiteUrl(): string {
+  return cleanText(
+    Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL"),
+  ) || "https://app.sophia.app";
+}
+
+function weeklyPlanningTemplateMessage(dashboardUrl: string) {
+  const name = cleanText(
+    Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_NAME"),
+  );
+  if (!name) return null;
+  return {
+    type: "template" as const,
+    name,
+    language: cleanText(
+      Deno.env.get("WHATSAPP_WEEKLY_PLANNING_TEMPLATE_LANG"),
+    ) || "fr",
+    components: [
+      {
+        type: "body",
+        parameters: [{ type: "text", text: dashboardUrl }],
+      },
+    ],
+  };
+}
+
+function weeklyProgressReviewTemplateMessage(dashboardUrl: string) {
+  const name = cleanText(
+    Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_NAME") ??
+      Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME"),
+  );
+  if (!name) return null;
+  return {
+    type: "template" as const,
+    name,
+    language: cleanText(
+      Deno.env.get("WHATSAPP_WEEKLY_PROGRESS_REVIEW_TEMPLATE_LANG") ??
+        Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG"),
+    ) || "fr",
+    components: [
+      {
+        type: "body",
+        parameters: [{ type: "text", text: dashboardUrl }],
+      },
+    ],
+  };
 }
 
 async function callWhatsappSend(payload: unknown) {
@@ -1375,6 +1443,12 @@ Deno.serve(async (req) => {
         eventContext === MORNING_LIGHT_GREETING_EVENT_CONTEXT;
       const isActionEveningReview =
         eventContext === ACTION_EVENING_REVIEW_EVENT_CONTEXT;
+      const isWeeklyPlanningValidationPrompt =
+        eventContext === WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT;
+      const isWeeklyPlanningConfirmation =
+        eventContext === WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT;
+      const isWeeklyProgressReview =
+        eventContext === WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT;
       const recurringReminderId = getRecurringReminderIdFromEventContext(
         eventContext,
       );
@@ -1908,6 +1982,7 @@ Deno.serve(async (req) => {
                 targets,
                 local_date: cleanText(payload?.local_date),
                 week_start_date: cleanText(payload?.week_start_date),
+                timezone: userTimezone,
               },
               expires_at: new Date(Date.now() + 18 * 60 * 60 * 1000)
                 .toISOString(),
@@ -1957,6 +2032,363 @@ Deno.serve(async (req) => {
             requestId,
           });
           continue;
+        }
+      }
+      if (isWeeklyPlanningValidationPrompt) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const dashboardUrl = cleanText(payload?.dashboard_url) ||
+          weeklyPlanningDashboardUrl(publicSiteUrl());
+        const nextWeekStartDate = cleanText(payload?.next_week_start_date);
+        const reviewBody = cleanText(bodyText) ||
+          buildWeeklyPlanningValidationMessage({
+            nextWeekStartDate,
+            dashboardUrl,
+          });
+        const message = in24hConversationWindow
+          ? { type: "text" as const, body: reviewBody }
+          : weeklyPlanningTemplateMessage(dashboardUrl);
+
+        if (!message) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            draftMessage: reviewBody,
+            errorMessage: "weekly_planning_template_missing_closed_window",
+            requestId,
+          });
+          continue;
+        }
+
+        try {
+          const resp = await callWhatsappSend({
+            user_id: checkin.user_id,
+            message,
+            purpose: "weekly_planning_validation",
+            require_opted_in: true,
+            force_template: !in24hConversationWindow,
+            metadata_extra: {
+              source: "scheduled_checkin",
+              event_context: checkin.event_context,
+              original_checkin_id: checkin.id,
+              purpose: "weekly_planning_validation",
+              dashboard_url: dashboardUrl,
+              next_week_start_date: nextWeekStartDate || null,
+            },
+          });
+          if (Boolean((resp as any)?.skipped)) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              draftMessage: reviewBody,
+              errorMessage: String(
+                (resp as any)?.skip_reason ??
+                  "weekly_planning_validation_skipped",
+              ),
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            continue;
+          }
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "sent",
+            attemptCount,
+            draftMessage: reviewBody,
+            errorMessage: null,
+            requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          processedCount++;
+          continue;
+        } catch (e) {
+          const status = (e as any)?.status;
+          const msg = e instanceof Error ? e.message : String(e);
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: shouldRetryScheduledCheckinDelivery(status)
+              ? "retrying"
+              : "failed",
+            attemptCount,
+            scheduledFor: shouldRetryScheduledCheckinDelivery(status)
+              ? computeNextRetryAtIso(attemptCount)
+              : null,
+            draftMessage: reviewBody,
+            errorMessage: msg,
+            requestId,
+          });
+          continue;
+        }
+      }
+      if (isWeeklyPlanningConfirmation) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const confirmationPayload = ((checkin as any)?.message_payload ??
+          {}) as WeeklyPlanningConfirmationPayload;
+        const dashboardUrl = cleanText(confirmationPayload?.dashboard_url) ||
+          weeklyPlanningDashboardUrl(publicSiteUrl());
+        const confirmationKind = cleanText(
+          confirmationPayload?.confirmation_kind,
+        );
+        const confirmationBody = cleanText(bodyText) ||
+          buildWeeklyPlanningConfirmationMessage({
+            ...confirmationPayload,
+            dashboard_url: dashboardUrl,
+          });
+        if (!in24hConversationWindow) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            draftMessage: confirmationBody,
+            errorMessage: "weekly_planning_confirmation_requires_24h_window",
+            requestId,
+          });
+          continue;
+        }
+        const message = { type: "text" as const, body: confirmationBody };
+
+        try {
+          const resp = await callWhatsappSend({
+            user_id: checkin.user_id,
+            message,
+            purpose: "weekly_planning_confirmation",
+            require_opted_in: true,
+            force_template: false,
+            metadata_extra: {
+              source: "scheduled_checkin",
+              event_context: checkin.event_context,
+              original_checkin_id: checkin.id,
+              purpose: "weekly_planning_confirmation",
+              dashboard_url: dashboardUrl,
+              week_start_date: cleanText(
+                confirmationPayload?.week_start_date,
+              ) || null,
+              confirmation_kind: confirmationKind || null,
+              changed_action_count:
+                confirmationPayload?.summary?.changed_action_count ?? null,
+            },
+          });
+          if (Boolean((resp as any)?.skipped)) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              draftMessage: confirmationBody,
+              errorMessage: String(
+                (resp as any)?.skip_reason ??
+                  "weekly_planning_confirmation_skipped",
+              ),
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            continue;
+          }
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "sent",
+            attemptCount,
+            draftMessage: confirmationBody,
+            errorMessage: null,
+            requestId: String((resp as any)?.request_id ?? requestId),
+          });
+          processedCount++;
+          continue;
+        } catch (e) {
+          const status = (e as any)?.status;
+          const msg = e instanceof Error ? e.message : String(e);
+          const retrying = shouldRetryScheduledCheckinDelivery(status);
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: retrying ? "retrying" : "failed",
+            attemptCount,
+            scheduledFor: retrying ? computeNextRetryAtIso(attemptCount) : null,
+            draftMessage: confirmationBody,
+            errorMessage: msg,
+            requestId,
+          });
+          continue;
+        }
+      }
+      if (isWeeklyProgressReview) {
+        const attemptCount = Math.max(
+          1,
+          Number((checkin as any)?.delivery_attempt_count ?? 0) + 1,
+        );
+        const weekStartDate = cleanText(payload?.week_start_date);
+        const dashboardUrl = cleanText(payload?.dashboard_url) ||
+          weeklyPlanningDashboardUrl(publicSiteUrl());
+        const review = await loadWeeklyProgressReview(supabaseAdmin as any, {
+          userId: String(checkin.user_id),
+          timezone: userTimezone,
+          weekStartDate,
+          dashboardUrl,
+        });
+        const summary = review.transformations.reduce(
+          (acc, transformation) => {
+            acc.done += transformation.summary.done_count;
+            acc.partial += transformation.summary.partial_count;
+            acc.missed += transformation.summary.missed_count;
+            acc.planned += transformation.summary.planned_count;
+            return acc;
+          },
+          { done: 0, partial: 0, missed: 0, planned: 0 },
+        );
+        if (summary.planned === 0) {
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            errorMessage: "weekly_progress_review_no_confirmed_occurrences",
+            requestId,
+          });
+          continue;
+        }
+        let momentumSnapshot: MomentumSnapshotV2 | null = null;
+        try {
+          const loadedMomentum = await loadMomentumSnapshotV2(
+            supabaseAdmin as any,
+            {
+              userId: String(checkin.user_id),
+              timezone: userTimezone,
+              now: new Date(),
+            },
+          );
+          momentumSnapshot = loadedMomentum.snapshot;
+          await persistMomentumSnapshotV2(supabaseAdmin as any, {
+            userId: String(checkin.user_id),
+            cycleId: loadedMomentum.cycleId,
+            snapshot: loadedMomentum.snapshot,
+          });
+        } catch (e) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} weekly_review_momentum_snapshot_failed checkin_id=${checkin.id}`,
+            e,
+          );
+        }
+        if (!in24hConversationWindow) {
+          const reviewBody = buildWeeklyProgressReviewFallbackMessage(summary);
+          const templateMessage = weeklyProgressReviewTemplateMessage(
+            dashboardUrl,
+          );
+          if (!templateMessage) {
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "cancelled",
+              attemptCount,
+              draftMessage: reviewBody,
+              errorMessage:
+                "weekly_progress_review_template_missing_closed_window",
+              requestId,
+            });
+            continue;
+          }
+
+          try {
+            const resp = await callWhatsappSend({
+              user_id: checkin.user_id,
+              message: templateMessage,
+              purpose: "weekly_progress_review",
+              require_opted_in: true,
+              force_template: true,
+              metadata_extra: {
+                source: "scheduled_checkin",
+                event_context: checkin.event_context,
+                original_checkin_id: checkin.id,
+                purpose: "weekly_progress_review",
+                dashboard_url: dashboardUrl,
+                week_start_date: review.week_start_date,
+                week_end_date: review.week_end_date,
+                planned_count: summary.planned,
+                done_count: summary.done,
+                partial_count: summary.partial,
+                missed_count: summary.missed,
+              },
+            });
+            if (Boolean((resp as any)?.skipped)) {
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "cancelled",
+                attemptCount,
+                draftMessage: reviewBody,
+                errorMessage: String(
+                  (resp as any)?.skip_reason ??
+                    "weekly_progress_review_skipped",
+                ),
+                requestId: String((resp as any)?.request_id ?? requestId),
+              });
+              continue;
+            }
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: "sent",
+              attemptCount,
+              draftMessage: reviewBody,
+              errorMessage: null,
+              requestId: String((resp as any)?.request_id ?? requestId),
+            });
+            processedCount++;
+            continue;
+          } catch (e) {
+            const status = (e as any)?.status;
+            const msg = e instanceof Error ? e.message : String(e);
+            const retrying = shouldRetryScheduledCheckinDelivery(status);
+            await markScheduledCheckinDeliveryState({
+              supabaseAdmin,
+              checkinId: checkin.id,
+              status: retrying ? "retrying" : "failed",
+              attemptCount,
+              scheduledFor: retrying
+                ? computeNextRetryAtIso(attemptCount)
+                : null,
+              draftMessage: reviewBody,
+              errorMessage: msg,
+              requestId,
+            });
+          }
+          continue;
+        }
+        mode = "dynamic";
+        payload = {
+          ...payload,
+          source: "process_checkins:weekly_progress_review_v2",
+          weekly_progress_review: review,
+          momentum_snapshot_v2: momentumSnapshot,
+          instruction: buildWeeklyProgressReviewInstruction(review),
+          event_grounding: momentumSnapshot
+            ? `${
+              buildWeeklyProgressReviewGrounding(review)
+            }\n\nmomentum_snapshot_v2=${JSON.stringify(momentumSnapshot)}`
+            : buildWeeklyProgressReviewGrounding(review),
+          chat_capability: "dashboard_recommendation_only",
+        };
+        bodyText = buildWeeklyProgressReviewFallbackMessage(summary);
+        try {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ message_payload: payload, draft_message: bodyText })
+            .eq("id", checkin.id);
+          (checkin as any).message_payload = payload;
+          (checkin as any).draft_message = bodyText;
+        } catch (e) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} persist_weekly_review_payload_failed checkin_id=${checkin.id}`,
+            e,
+          );
         }
       }
       if (mode === "dynamic") {

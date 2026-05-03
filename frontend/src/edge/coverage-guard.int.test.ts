@@ -86,7 +86,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "process-llm-retry-jobs",
       "process-whatsapp-optin-recovery",
       "process-whatsapp-outbound-retries",
-      "schedule-morning-active-action-checkins",
+      "schedule-whatsapp-v2-checkins",
       "send-welcome-email",
       "sophia-brain",
       "sophia-brain-internal",

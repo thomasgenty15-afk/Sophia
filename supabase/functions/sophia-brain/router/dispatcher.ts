@@ -37,8 +37,9 @@ export function resolveDispatcherModelSelection(): {
 } {
   const primaryModel = safeEnvGet("SOPHIA_DISPATCHER_MODEL") ||
     DEFAULT_DISPATCHER_MODEL;
-  const fallbackGeminiModel =
-    getGlobalAiModel(DEFAULT_DISPATCHER_GEMINI_FALLBACK_MODEL);
+  const fallbackGeminiModel = getGlobalAiModel(
+    DEFAULT_DISPATCHER_GEMINI_FALLBACK_MODEL,
+  );
   return {
     primaryModel,
     fallbackGeminiModel,
@@ -251,8 +252,17 @@ export type DispatcherResponseIntent =
   | "tooling";
 
 export type DispatcherReasoningComplexity = "low" | "medium" | "high";
-export type DispatcherContextNeed = "minimal" | "targeted" | "broad" | "dossier";
-export type DispatcherMemoryMode = "none" | "light" | "targeted" | "broad" | "dossier";
+export type DispatcherContextNeed =
+  | "minimal"
+  | "targeted"
+  | "broad"
+  | "dossier";
+export type DispatcherMemoryMode =
+  | "none"
+  | "light"
+  | "targeted"
+  | "broad"
+  | "dossier";
 export type DispatcherModelTierHint = "lite" | "standard" | "deep";
 export type DispatcherContextBudgetTier = "tiny" | "small" | "medium" | "large";
 export type DispatcherMemoryTargetType =
@@ -743,7 +753,7 @@ Le memory_plan n'exécute rien. Il donne seulement un PLAN DE CONTEXTE.
 - topic: sujet concret ou dossier vivant (projet, personne, conflit, sujet recurrent)
 - global_subtheme: dynamique durable ciblee dans la taxonomie globale
 - global_theme: vue large sur plusieurs sous-themes d'un meme theme global
-- core_identity: synthese identitaire lente et rare, JAMAIS memoire primaire
+- core_identity est desactive pour le moment: n'en demande jamais dans memory_plan
 
 3) REGLES
 - Si aucune memoire n'est utile: memory_mode=none et targets=[]
@@ -753,7 +763,6 @@ Le memory_plan n'exécute rien. Il donne seulement un PLAN DE CONTEXTE.
 - Pour global_subtheme: key DOIT etre une cle canonique complete "theme.sous_theme"
 - Pour global_theme: key DOIT etre uniquement la cle du theme parent
 - N'invente jamais une cle hors taxonomie
-- core_identity doit rester rare et de priorite basse, seulement comme overlay identitaire
 - Si le message est simple mais demande un gros inventaire memoire, mets reasoning_complexity bas/moyen mais context_need=broad ou dossier
 
 4) TAXONOMIE GLOBALE AUTORISEE
@@ -901,7 +910,9 @@ function buildContextMessagesWithSignals(
   for (let i = last5Messages.length - 1; i >= 0; i--) {
     const m = last5Messages[i];
     const msgIndex = i - last5Messages.length + 1;
-    const marker = msgIndex === 0 ? "[DERNIER - ANALYSER]" : `[Msg ${msgIndex}]`;
+    const marker = msgIndex === 0
+      ? "[DERNIER - ANALYSER]"
+      : `[Msg ${msgIndex}]`;
     let line = `${marker} ${m.role}: ${String(m.content ?? "").slice(0, 200)}`;
     if (String(m.role ?? "").toLowerCase() === "user") {
       const signalsForTurn = signalsByTurn.get(userTurnIdx) ?? [];
@@ -916,10 +927,15 @@ function buildContextMessagesWithSignals(
 function resolvePlanItemSnapshot(
   input: Pick<DispatcherInputV2, "plan_item_snapshot" | "planItemSnapshot">,
 ): DispatcherInputV2["plan_item_snapshot"] {
-  if (Array.isArray(input.plan_item_snapshot) && input.plan_item_snapshot.length > 0) {
+  if (
+    Array.isArray(input.plan_item_snapshot) &&
+    input.plan_item_snapshot.length > 0
+  ) {
     return input.plan_item_snapshot;
   }
-  if (Array.isArray(input.planItemSnapshot) && input.planItemSnapshot.length > 0) {
+  if (
+    Array.isArray(input.planItemSnapshot) && input.planItemSnapshot.length > 0
+  ) {
     return input.planItemSnapshot;
   }
   return undefined;
@@ -991,17 +1007,16 @@ function buildDispatcherSemiStableSection(opts: {
     flowContext,
   } = opts;
 
-  let prompt =
-    `DERNIER MESSAGE ASSISTANT:
+  let prompt = `DERNIER MESSAGE ASSISTANT:
 "${(lastAssistantMessage ?? "").slice(0, 220)}"
 
 ETAT ACTUEL:
 - Mode en cours: ${stateSnapshot.current_mode ?? "unknown"}
 - Bilan actif: ${stateSnapshot.investigation_active ? "OUI" : "NON"}${
-      stateSnapshot.investigation_status
-        ? ` (${stateSnapshot.investigation_status})`
-        : ""
-    }
+    stateSnapshot.investigation_status
+      ? ` (${stateSnapshot.investigation_status})`
+      : ""
+  }
 - Machine active: ${activeMachine ?? "AUCUNE"}
 `;
 
@@ -1107,7 +1122,8 @@ Item en cours: "${currentItem}"`;
       addon += `\nStreak de ratés: ${missedStreak} jours`;
     }
     if (bilanStale) {
-      addon += `\nBilan stale: OUI (age ~${bilanAgeHours}h, seuil ${staleAfterHours}h)`;
+      addon +=
+        `\nBilan stale: OUI (age ~${bilanAgeHours}h, seuil ${staleAfterHours}h)`;
       addon +=
         `\nSi le message répond à la question bilan en cours, mets "wants_to_continue_bilan": true.`;
       addon +=
@@ -1201,7 +1217,9 @@ function readEnum<T extends readonly string[]>(
   fallback: T[number],
 ): T[number] {
   const value = String(raw ?? "").trim().toLowerCase();
-  return (allowed as readonly string[]).includes(value) ? value as T[number] : fallback;
+  return (allowed as readonly string[]).includes(value)
+    ? value as T[number]
+    : fallback;
 }
 
 function readMaybeString(raw: unknown, maxLen: number): string | undefined {
@@ -1220,8 +1238,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
 }
 
-export function sanitizeDispatcherMemoryPlan(raw: unknown): DispatcherMemoryPlan {
-  const row = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+export function sanitizeDispatcherMemoryPlan(
+  raw: unknown,
+): DispatcherMemoryPlan {
+  const row = raw && typeof raw === "object"
+    ? raw as Record<string, unknown>
+    : {};
   const targetsRaw = Array.isArray(row.targets) ? row.targets : [];
   const targets: DispatcherMemoryTarget[] = [];
 
@@ -1262,14 +1284,16 @@ export function sanitizeDispatcherMemoryPlan(raw: unknown): DispatcherMemoryPlan
     } else if (type === "global_theme") {
       if (!key || !isAllowedGlobalMemoryThemeKey(key)) continue;
     } else if (type === "core_identity") {
-      if (key && key !== "core_identity") continue;
+      // Core identity is kept in storage for audit/future use, but disabled
+      // from active retrieval while V2 memory/skills stabilize.
+      continue;
     } else if (!key && !queryHint) {
       continue;
     }
 
     targets.push({
       type,
-      key: key ?? (type === "core_identity" ? "core_identity" : undefined),
+      key: key ?? undefined,
       query_hint: queryHint,
       time_scope: timeScope,
       priority,
@@ -1318,8 +1342,12 @@ export function sanitizeDispatcherMemoryPlan(raw: unknown): DispatcherMemoryPlan
   };
 }
 
-export function sanitizeDispatcherSurfacePlan(raw: unknown): DispatcherSurfacePlan {
-  const row = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+export function sanitizeDispatcherSurfacePlan(
+  raw: unknown,
+): DispatcherSurfacePlan {
+  const row = raw && typeof raw === "object"
+    ? raw as Record<string, unknown>
+    : {};
   const rawPlanConfidence = clamp01(
     row.plan_confidence,
     DEFAULT_SURFACE_PLAN.plan_confidence,
@@ -1460,8 +1488,7 @@ export async function analyzeSignalsV2(
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string },
 ): Promise<DispatcherOutputV2> {
   // Deterministic test mode
-  const mega =
-    safeEnvGet("MEGA_TEST_MODE") === "1" &&
+  const mega = safeEnvGet("MEGA_TEST_MODE") === "1" &&
     !meta?.forceRealAi;
   if (mega) {
     return {
@@ -1514,7 +1541,7 @@ export async function analyzeSignalsV2(
     "context_budget_tier": "tiny|small|medium|large",
     "targets": [
       {
-        "type": "event|topic|global_subtheme|global_theme|core_identity",
+        "type": "event|topic|global_subtheme|global_theme",
         "key": "string|null",
         "query_hint": "string|null",
         "time_scope": "recent|all_time|specific_window|null",
@@ -1626,7 +1653,10 @@ Reponds UNIQUEMENT avec le JSON:`;
       if (!shouldFallbackToGemini) throw primaryError;
       dispatcherModelUsed = fallbackGeminiModel;
       dispatcherModelUsedForFailure = fallbackGeminiModel;
-      console.warn("[Dispatcher v2 contextual] OpenAI primary failed, falling back to Gemini:", primaryError);
+      console.warn(
+        "[Dispatcher v2 contextual] OpenAI primary failed, falling back to Gemini:",
+        primaryError,
+      );
       response = await dispatcherLlmRunner(
         fullPrompt,
         "",
@@ -1651,12 +1681,11 @@ Reponds UNIQUEMENT avec le JSON:`;
     const surfacePlan = sanitizeDispatcherSurfacePlan(obj?.surface_plan);
 
     // Parse safety
-    const safetyLevel =
-      (["NONE", "SENTRY"] as SafetyLevel[]).includes(
-          signalsObj?.safety?.level,
-        )
-        ? signalsObj.safety.level as SafetyLevel
-        : "NONE";
+    const safetyLevel = (["NONE", "SENTRY"] as SafetyLevel[]).includes(
+        signalsObj?.safety?.level,
+      )
+      ? signalsObj.safety.level as SafetyLevel
+      : "NONE";
     const safetyConf = Math.max(
       0,
       Math.min(1, Number(signalsObj?.safety?.confidence ?? 0.9) || 0.9),
@@ -1737,24 +1766,27 @@ Reponds UNIQUEMENT avec le JSON:`;
         : undefined;
 
     const planItemProgressRaw = (
-      signalsObj?.track_progress_plan_item &&
+        signalsObj?.track_progress_plan_item &&
         typeof signalsObj.track_progress_plan_item === "object"
-    )
+      )
       ? signalsObj.track_progress_plan_item
       : null;
     const planItemDiscussionRaw = (
-      signalsObj?.plan_item_discussion &&
+        signalsObj?.plan_item_discussion &&
         typeof signalsObj.plan_item_discussion === "object"
-    )
+      )
       ? signalsObj.plan_item_discussion
       : null;
     const planFeedbackRaw = (
-      signalsObj?.plan_feedback && typeof signalsObj.plan_feedback === "object"
-    )
+        signalsObj?.plan_feedback &&
+        typeof signalsObj.plan_feedback === "object"
+      )
       ? signalsObj.plan_feedback
       : null;
 
-    const trackProgressPlanItemDetected = Boolean(planItemProgressRaw?.detected);
+    const trackProgressPlanItemDetected = Boolean(
+      planItemProgressRaw?.detected,
+    );
     const trackProgressPlanItemTargetItemId =
       (typeof planItemProgressRaw?.target_item_id === "string" &&
           planItemProgressRaw.target_item_id.trim())
@@ -1785,7 +1817,9 @@ Reponds UNIQUEMENT avec le JSON:`;
       planItemProgressRaw?.operation_hint ?? "",
     ).toLowerCase();
     const trackProgressPlanItemOperationHint =
-      (["add", "set"] as const).includes(trackProgressPlanItemOperationHintRaw as any)
+      (["add", "set"] as const).includes(
+          trackProgressPlanItemOperationHintRaw as any,
+        )
         ? trackProgressPlanItemOperationHintRaw as "add" | "set"
         : undefined;
     const trackProgressPlanItemValueHint =
@@ -1813,7 +1847,9 @@ Reponds UNIQUEMENT avec le JSON:`;
         : undefined;
     const trackProgressNorthStarDateHint =
       (typeof signalsObj?.track_progress_north_star?.date_hint === "string" &&
-          /^\d{4}-\d{2}-\d{2}$/.test(signalsObj.track_progress_north_star.date_hint.trim()))
+          /^\d{4}-\d{2}-\d{2}$/.test(
+            signalsObj.track_progress_north_star.date_hint.trim(),
+          ))
         ? signalsObj.track_progress_north_star.date_hint.trim()
         : undefined;
     const planItemDiscussionDetected = Boolean(
@@ -1852,19 +1888,18 @@ Reponds UNIQUEMENT avec le JSON:`;
           planFeedbackRaw.target_title.trim())
         ? planFeedbackRaw.target_title.trim().slice(0, 120)
         : undefined;
-    const planFeedbackDetail =
-      (typeof planFeedbackRaw?.detail === "string" &&
-          planFeedbackRaw.detail.trim())
-        ? planFeedbackRaw.detail.trim().slice(0, 160)
-        : undefined;
+    const planFeedbackDetail = (typeof planFeedbackRaw?.detail === "string" &&
+        planFeedbackRaw.detail.trim())
+      ? planFeedbackRaw.detail.trim().slice(0, 160)
+      : undefined;
 
     // Parse dashboard_preferences_intent signal
     const dashboardPreferencesDetected = Boolean(
       signalsObj?.dashboard_preferences_intent?.detected,
     );
     const dashboardPreferencesKeysRaw = Array.isArray(
-      signalsObj?.dashboard_preferences_intent?.preference_keys,
-    )
+        signalsObj?.dashboard_preferences_intent?.preference_keys,
+      )
       ? signalsObj.dashboard_preferences_intent.preference_keys
       : [];
     const dashboardPreferenceAllowed = new Set([
@@ -1892,8 +1927,8 @@ Reponds UNIQUEMENT avec le JSON:`;
       signalsObj?.dashboard_recurring_reminder_intent?.detected,
     );
     const dashboardReminderFieldsRaw = Array.isArray(
-      signalsObj?.dashboard_recurring_reminder_intent?.reminder_fields,
-    )
+        signalsObj?.dashboard_recurring_reminder_intent?.reminder_fields,
+      )
       ? signalsObj.dashboard_recurring_reminder_intent.reminder_fields
       : [];
     const dashboardReminderAllowed = new Set([

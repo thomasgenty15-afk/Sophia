@@ -57,3 +57,19 @@ Deno.test("buildContextString: event and global memories come before topic memor
     "global memories should be injected before topic memories",
   );
 });
+
+Deno.test("buildContextString: active memory V2 payload precedes legacy memory blocks", () => {
+  const ctx = buildContextString({
+    memoryV2Payload: "=== MEMOIRE V2 ACTIVE ===\n- item v2\n\n",
+    eventMemories: "=== MÉMOIRE ÉVÉNEMENTIELLE ACTIVE ===\nEVENT\n\n",
+    topicMemories: "=== MÉMOIRE THÉMATIQUE ===\nTOPIC\n\n",
+  });
+  const v2Index = ctx.indexOf("=== MEMOIRE V2 ACTIVE ===");
+  const eventIndex = ctx.indexOf("=== MÉMOIRE ÉVÉNEMENTIELLE ACTIVE ===");
+  assert(v2Index >= 0, "v2 block missing");
+  assert(eventIndex >= 0, "event block missing");
+  assert(
+    v2Index < eventIndex,
+    "v2 active payload should be first memory block",
+  );
+});

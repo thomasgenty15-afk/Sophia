@@ -1,257 +1,188 @@
-import { useNavigate } from 'react-router-dom';
-import SEO from '../components/SEO';
-import { useOnboardingAmbientAudio } from '../hooks/useOnboardingAmbientAudio';
-import { 
-  Check,
-  X,
-  Zap,
-  MessageCircle,
-  Brain,
-  LayoutDashboard,
-  ArrowRight,
-  Sparkles,
-  Shield,
-  Target
-} from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import SEO from "../components/SEO";
+import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
+import { ArrowRight, Check, Leaf, MessageCircle, Shield, Sparkles, X } from "lucide-react";
 
 const Formules = () => {
   const navigate = useNavigate();
   const { startSession } = useOnboardingAmbientAudio();
-  const seoDescription = "Consulte les tarifs de Sophia, le coach IA sur WhatsApp : essai gratuit, accès au Plan, suivi proactif et options premium.";
+  const seoDescription =
+    "Consulte les tarifs de Sophia, le coach IA personnel sur WhatsApp : essai gratuit, plan clair, soutien proactif et option Architecte.";
+
   const handleStartOnboarding = () => {
     startSession();
-    navigate('/onboarding-v2');
+    navigate("/onboarding-v2");
   };
 
+  const plans = [
+    {
+      name: "Le Plan",
+      price: "9,90€",
+      intro: "Pour clarifier ton changement et suivre une direction simple.",
+      featured: false,
+      items: ["Plan IA clair", "Actions prioritaires", "Suivi dans l'app"],
+      missing: ["Sophia sur WhatsApp", "Architecte"],
+    },
+    {
+      name: "L'Alliance",
+      price: "19,90€",
+      intro: "Le coeur de Sophia : ton plan + ton coach IA sur WhatsApp.",
+      featured: true,
+      items: ["Tout ce qu'il y a dans Le Plan", "Sophia sur WhatsApp", "Présence proactive", "Soutien sans culpabilisation"],
+      missing: ["Architecte"],
+    },
+    {
+      name: "L'Architecte",
+      price: "29,90€",
+      intro: "Pour ajouter un travail plus profond sur ton identité.",
+      featured: false,
+      items: ["Tout ce qu'il y a dans L'Alliance", "Messages illimités", "Travail sur l'identité", "Déconstruction des blocages"],
+      missing: [],
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
-      <SEO 
+    <div className="min-h-screen bg-[#fbf7ef] text-[#17211d] font-sans selection:bg-[#cfe8d7] selection:text-[#17211d]">
+      <SEO
         title="Tarifs du coach IA WhatsApp"
         description={seoDescription}
         canonical="https://sophia-coach.ai/formules"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          "name": "Formules Sophia Coach",
-          "url": "https://sophia-coach.ai/formules",
-          "description": seoDescription,
-          "inLanguage": "fr-FR"
+          name: "Formules Sophia Coach",
+          url: "https://sophia-coach.ai/formules",
+          description: seoDescription,
+          inLanguage: "fr-FR",
         }}
       />
-      
-      {/* NAVBAR */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
-            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-          </div>
+
+      <nav className="fixed top-0 z-50 w-full border-b border-white/30 bg-[#fffaf1]/78 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 md:h-20 md:px-6">
+          <button onClick={() => navigate("/")} className="flex items-center gap-2">
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="h-8 w-8 rounded-lg" />
+            <span className="text-lg font-bold tracking-tight md:text-xl">Sophia</span>
+          </button>
           <div className="flex items-center gap-4 md:gap-8">
-             <button
-              onClick={() => navigate('/legal')}
-              className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors"
-            >
-              Légal
-            </button>
-             <button 
-              onClick={() => navigate('/auth')}
-              className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors"
-            >
-              Connexion
-            </button>
-            <button 
+            <div className="hidden gap-6 text-sm font-semibold text-[#52635b] md:flex">
+              <button onClick={() => navigate("/le-plan")} className="hover:text-[#17211d]">Le Plan</button>
+              <button onClick={() => navigate("/l-architecte")} className="hover:text-[#17211d]">L'Architecte</button>
+              <button className="text-[#002d21]">Offres</button>
+              <button onClick={() => navigate("/legal")} className="hover:text-[#17211d]">Légal</button>
+            </div>
+            <button
               onClick={handleStartOnboarding}
-              className="px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-slate-900 text-white text-xs md:text-sm font-bold hover:bg-violet-600 transition-all shadow-lg hover:shadow-violet-200"
+              className="rounded-full bg-[#17211d] px-4 py-2 text-xs font-bold text-white shadow-lg shadow-[#31453b]/18 transition-colors hover:bg-[#002d21] md:px-5 md:py-2.5 md:text-sm"
             >
-              Essai Gratuit
+              Essai gratuit
             </button>
           </div>
+        </div>
+        <div className="flex gap-2 overflow-x-auto px-4 pb-3 text-sm font-semibold text-[#52635b] md:hidden">
+          <button onClick={() => navigate("/le-plan")} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Le Plan</button>
+          <button onClick={() => navigate("/l-architecte")} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Architecte</button>
+          <button className="shrink-0 rounded-full bg-[#e3f1e6] px-4 py-2 text-[#002d21]">Offres</button>
+          <button onClick={() => navigate("/legal")} className="shrink-0 rounded-full bg-white/52 px-4 py-2">Légal</button>
         </div>
       </nav>
 
-      {/* HEADER */}
-      <div className="pt-32 pb-12 md:pt-40 md:pb-20 px-4 text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-bold uppercase tracking-wider mb-6">
-          <Sparkles className="w-3 h-3" />
-          Offre de Lancement
-        </div>
-        <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
-          Commence gratuitement.<br/>
-          <span className="text-violet-600">Choisis ton évolution ensuite.</span>
-        </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          Pendant <strong>14 jours</strong>, tu as accès à tout : Le Plan, Sophia sur WhatsApp et les premiers modules de l'Architecte. Sans engagement.
-        </p>
-      </div>
-
-      {/* PRICING CARDS */}
-      <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-          
-          {/* OPTION 1: LE SYSTÈME (10€) */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group">
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">Le Système</h3>
-              <p className="text-sm text-slate-500 min-h-[40px]">Pour ceux qui veulent juste la structure et l'outil de pilotage.</p>
+      <main className="pt-32 md:pt-36">
+        <section className="relative overflow-hidden px-4 pb-16 pt-8 text-center md:px-6 md:pb-24">
+          <div className="absolute inset-x-0 top-0 -z-10 h-[520px] bg-[linear-gradient(130deg,#f7d8bb_0%,#e9eedc_34%,#c6e5db_66%,#c5d9f1_100%)] opacity-80" />
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/50 bg-white/36 px-3 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#002d21] shadow-sm backdrop-blur-md">
+              <Sparkles className="h-3.5 w-3.5" />
+              14 jours pour ressentir la différence
             </div>
-            <div className="mb-8">
-              <span className="text-4xl font-bold text-slate-900">9,90€</span>
-              <span className="text-slate-400">/mois</span>
-            </div>
-            
-            <button onClick={handleStartOnboarding} className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-700 font-bold hover:border-violet-600 hover:text-violet-600 transition-all mb-8">
-              Commencer
-            </button>
+            <h1 className="text-5xl font-bold leading-[0.95] tracking-tight md:text-7xl">
+              Commence gratuitement.
+              <span className="block text-[#002d21]">Choisis ensuite le bon niveau.</span>
+            </h1>
+            <p className="mx-auto mt-7 max-w-2xl text-lg leading-8 text-[#405148] md:text-2xl md:leading-10">
+              Pendant 14 jours, tu peux tester Sophia : plan clair, soutien sur WhatsApp et premières briques de l'Architecte. Sans engagement.
+            </p>
+          </div>
+        </section>
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <LayoutDashboard className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Dashboard d'Actions dynamique</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Target className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Génération de Plan IA illimitée</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Check className="w-5 h-5 text-violet-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Suivi des habitudes & tâches</span>
-              </div>
-              <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <span className="text-sm text-slate-400 line-through">Sophia sur WhatsApp</span>
-              </div>
-              <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-400 flex-shrink-0" />
-                <span className="text-sm text-slate-400 line-through">L'Architecte (Identité)</span>
-              </div>
+        <section className="px-4 pb-20 md:px-6 md:pb-28">
+          <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3 md:items-start">
+            {plans.map((plan) => (
+              <article
+                key={plan.name}
+                className={
+                  plan.featured
+                    ? "relative rounded-[2rem] bg-[#002d21] p-7 text-white shadow-2xl shadow-[#7f917f]/28 md:-translate-y-4"
+                    : "rounded-[2rem] border border-[#eadfce] bg-white/66 p-7 shadow-sm backdrop-blur"
+                }
+              >
+                {plan.featured && (
+                  <div className="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#d1ded4] px-4 py-1 text-xs font-bold uppercase tracking-wide text-[#17211d]">
+                    Le plus naturel
+                  </div>
+                )}
+                <h2 className="text-2xl font-bold">{plan.name}</h2>
+                <p className={plan.featured ? "mt-3 min-h-[72px] text-sm leading-6 text-white/66" : "mt-3 min-h-[72px] text-sm leading-6 text-[#52635b]"}>
+                  {plan.intro}
+                </p>
+                <div className="mt-7">
+                  <span className="text-5xl font-bold">{plan.price}</span>
+                  <span className={plan.featured ? "text-white/50" : "text-[#6f8178]"}>/mois</span>
+                </div>
+                <button
+                  onClick={handleStartOnboarding}
+                  className={
+                    plan.featured
+                      ? "mt-7 flex w-full items-center justify-center gap-2 rounded-full bg-[#d1ded4] px-5 py-4 font-bold text-[#17211d] transition-colors hover:bg-white"
+                      : "mt-7 flex w-full items-center justify-center gap-2 rounded-full border border-[#d7cbb9] bg-white/70 px-5 py-4 font-bold text-[#17211d] transition-colors hover:bg-[#e3f1e6]"
+                  }
+                >
+                  Commencer
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <div className="mt-7 space-y-4">
+                  {plan.items.map((item) => (
+                    <div key={item} className="flex items-start gap-3">
+                      {item.includes("WhatsApp") ? (
+                        <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#70d099]" />
+                      ) : item.includes("Soutien") ? (
+                        <Shield className="mt-0.5 h-5 w-5 shrink-0 text-[#70d099]" />
+                      ) : (
+                        <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#70d099]" />
+                      )}
+                      <span className={plan.featured ? "text-sm text-white/82" : "text-sm text-[#405148]"}>{item}</span>
+                    </div>
+                  ))}
+                  {plan.missing.map((item) => (
+                    <div key={item} className="flex items-start gap-3 opacity-45">
+                      <X className="mt-0.5 h-5 w-5 shrink-0" />
+                      <span className="text-sm line-through">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="bg-[#f4eee4] px-4 py-20 md:px-6">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="text-center text-3xl font-bold tracking-tight md:text-5xl">Questions fréquentes</h2>
+            <div className="mt-12 space-y-5">
+              {[
+                ["Comment fonctionne l'essai gratuit ?", "Tu accèdes à Sophia pendant 14 jours. À la fin, tu choisis si tu veux continuer."],
+                ["Pourquoi Sophia est différente de ChatGPT ?", "ChatGPT attend que tu viennes. Sophia garde ton plan en tête et revient vers toi sur WhatsApp quand ton changement a besoin de soutien."],
+                ["Est-ce que je peux changer d'offre ?", "Oui. Tu peux commencer simplement, puis passer à l'Alliance ou à l'Architecte quand tu veux aller plus loin."],
+              ].map(([question, answer]) => (
+                <div key={question} className="rounded-3xl bg-[#fffaf1] p-6 shadow-sm">
+                  <Leaf className="mb-4 h-5 w-5 text-[#002d21]" />
+                  <h3 className="font-bold">{question}</h3>
+                  <p className="mt-2 leading-7 text-[#52635b]">{answer}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-          {/* OPTION 2: L'ALLIANCE (20€) - HIGHLIGHTED */}
-          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl relative transform md:-translate-y-4 z-10">
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-violet-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg whitespace-nowrap">
-              Le plus populaire
-            </div>
-            
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-white mb-2">L'Alliance</h3>
-              <p className="text-sm text-slate-400 min-h-[40px]">Le combo parfait : Le système + Ton coach IA proactif.</p>
-            </div>
-            <div className="mb-8">
-              <span className="text-5xl font-bold text-white">19,90€</span>
-              <span className="text-slate-500">/mois</span>
-            </div>
-            
-            <button onClick={handleStartOnboarding} className="w-full py-4 rounded-xl bg-violet-600 text-white font-bold hover:bg-violet-500 transition-all shadow-lg shadow-violet-900/50 mb-8 flex items-center justify-center gap-2">
-              Je veux Sophia
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span className="text-sm text-slate-300">Tout ce qu'il y a dans "Le Système"</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 animate-pulse" />
-                <span className="text-sm text-emerald-400 font-bold">Sophia sur WhatsApp (24/7)</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Zap className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-300">Suivi proactif & Relances</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                <span className="text-sm text-slate-300">Soutien psychologique & Motivation</span>
-              </div>
-               <div className="flex items-start gap-3 opacity-50">
-                <X className="w-5 h-5 text-slate-600 flex-shrink-0" />
-                <span className="text-sm text-slate-600 line-through">L'Architecte (Identité)</span>
-              </div>
-            </div>
-          </div>
-
-          {/* OPTION 3: L'ÉVOLUTION (30€) */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group">
-            <div className="mb-6">
-              <h3 className="text-xl font-bold text-slate-900 mb-2">L'Architecte</h3>
-              <p className="text-sm text-slate-500 min-h-[40px]">Pour ceux qui veulent redéfinir leur identité en profondeur.</p>
-            </div>
-            <div className="mb-8">
-              <span className="text-4xl font-bold text-slate-900">29,90€</span>
-              <span className="text-slate-400">/mois</span>
-            </div>
-            
-            <button onClick={handleStartOnboarding} className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-700 font-bold hover:border-emerald-600 hover:text-emerald-600 transition-all mb-8">
-              Commencer
-            </button>
-
-            <div className="space-y-4">
-               <div className="flex items-start gap-3">
-                <div className="w-5 h-5 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 flex-shrink-0">
-                  <Check className="w-3 h-3" />
-                </div>
-                <span className="text-sm text-slate-600">Tout ce qu'il y a dans "L'Alliance"</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <MessageCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-amber-600 font-bold">Messages illimités avec Sophia</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Brain className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-900 font-bold">Module "Architecte" Complet</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Sparkles className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Travail sur l'Identité & Vision</span>
-              </div>
-              <div className="flex items-start gap-3">
-                <Target className="w-5 h-5 text-amber-500 flex-shrink-0" />
-                <span className="text-sm text-slate-600">Déconstruction des blocages</span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-       {/* FAQ / REASSURANCE */}
-       <section className="bg-white py-20 border-t border-slate-100">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-            <h2 className="text-2xl font-bold text-slate-900 mb-12">Questions Fréquentes</h2>
-            
-            <div className="space-y-8 text-left">
-                <div>
-                    <h3 className="font-bold text-slate-900 mb-2">Comment fonctionne l'essai gratuit ?</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">Tu accèdes à tout pendant 14 jours. Aucune carte bancaire n'est nécessaire pour démarrer. À la fin, tu choisis si tu veux t'abonner.</p>
-                </div>
-                <div>
-                    <h3 className="font-bold text-slate-900 mb-2">Puis-je passer en mensuel ou en annuel ?</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">Oui. Tu peux choisir mensuel ou annuel au moment de l'abonnement, puis changer ou résilier depuis ton espace "Mon Compte".</p>
-                </div>
-                <div>
-                    <h3 className="font-bold text-slate-900 mb-2">Pourquoi Sophia est différente de ChatGPT ?</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">ChatGPT est passif. Sophia est proactive. Elle te connaît, elle a accès à ton plan, et c'est elle qui vient te chercher sur WhatsApp quand tu décroches. C'est une relation, pas juste un outil.</p>
-                </div>
-            </div>
-        </div>
-       </section>
-
-      {/* FOOTER */}
-      <footer className="bg-slate-50 border-t border-slate-200 py-12">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-6 h-6 rounded-md" />
-            <span className="font-bold text-slate-900">Sophia</span>
-          </div>
-          <div className="text-sm text-slate-500">
-            © {new Date().getFullYear()} IKIZEN. All rights reserved.
-          </div>
-        </div>
-      </footer>
-
+        </section>
+      </main>
     </div>
   );
 };

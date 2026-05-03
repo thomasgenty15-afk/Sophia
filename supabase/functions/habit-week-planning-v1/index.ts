@@ -12,6 +12,16 @@ import {
   z,
 } from "../_shared/http.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
+import {
+  buildWeeklyPlanningConfirmationMessage,
+  buildWeeklyPlanningConfirmationPayload,
+  type PlanningBundleSnapshot,
+  WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT,
+} from "../_shared/weekly_planning_confirmation.ts";
+import {
+  WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
+  weeklyPlanningDashboardUrl,
+} from "../_shared/weekly_progress_review.ts";
 
 const DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayCode = typeof DAY_CODES[number];
@@ -262,6 +272,13 @@ function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
     }
   }
   return [...unique];
+}
+
+function publicSiteUrl(): string {
+  const raw = String(
+    Deno.env.get("SITE_URL") ?? Deno.env.get("PUBLIC_SITE_URL") ?? "",
+  ).trim();
+  return raw || "https://app.sophia.app";
 }
 
 function effectiveWeeklyTarget(
@@ -867,6 +884,17 @@ async function confirmBundle(args: {
     targetRepsOverride?: number;
   }>;
 }) {
+  const beforeState = await getBundleState({
+    admin: args.admin,
+    userId: args.userId,
+    weekStartDate: args.weekStartDate,
+    items: args.items.map((entry) => ({
+      item: entry.item,
+      preferredDays: entry.plannedDays,
+      targetRepsOverride: entry.targetRepsOverride,
+    })),
+  });
+
   await Promise.all(args.items.map((entry) =>
     syncWeekPlanning({
       admin: args.admin,
@@ -879,7 +907,7 @@ async function confirmBundle(args: {
     })
   ));
 
-  return getBundleState({
+  const afterState = await getBundleState({
     admin: args.admin,
     userId: args.userId,
     weekStartDate: args.weekStartDate,
@@ -889,6 +917,51 @@ async function confirmBundle(args: {
       targetRepsOverride: entry.targetRepsOverride,
     })),
   });
+
+  const dashboardUrl = weeklyPlanningDashboardUrl(publicSiteUrl());
+  const confirmationPayload = buildWeeklyPlanningConfirmationPayload({
+    userId: args.userId,
+    weekStartDate: args.weekStartDate,
+    dashboardUrl,
+    before: beforeState as PlanningBundleSnapshot,
+    after: afterState as PlanningBundleSnapshot,
+  });
+  await args.admin
+    .from("scheduled_checkins")
+    .delete()
+    .eq("user_id", args.userId)
+    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
+    .filter("message_payload->>next_week_start_date", "eq", args.weekStartDate)
+    .in("status", ["pending", "retrying", "awaiting_user"]);
+
+  if (confirmationPayload.confirmation_kind === "no_change") {
+    return afterState;
+  }
+
+  const draftMessage = buildWeeklyPlanningConfirmationMessage(
+    confirmationPayload,
+  );
+
+  const { error: checkinError } = await args.admin
+    .from("scheduled_checkins")
+    .insert({
+      user_id: args.userId,
+      origin: "weekly_planning",
+      event_context: WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT,
+      draft_message: draftMessage,
+      message_mode: "static",
+      message_payload: confirmationPayload,
+      scheduled_for: new Date().toISOString(),
+      status: "pending",
+    } as any);
+  if (checkinError) {
+    console.warn(
+      "[habit-week-planning-v1] weekly planning confirmation enqueue failed",
+      checkinError,
+    );
+  }
+
+  return afterState;
 }
 
 async function validateOccurrence(args: {

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import {
+  CheckCircle2,
+  ListChecks,
   Loader2,
   MessageSquareQuote,
   RefreshCcw,
@@ -33,6 +35,7 @@ export type PlanRevisionProposal = {
   decision: "no_change" | "minor_adjustment" | "partial_replan" | "full_replan";
   understanding: string;
   impact: string;
+  user_change_summary: string;
   proposed_changes: string[];
   control_mode: "clarify_only" | "adjust_current_level" | "adjust_future_levels" | "advance_ready";
   resistance_note: string | null;
@@ -70,6 +73,8 @@ type PlanRevisionPanelProps = {
   submitLabel?: string;
   helperText?: string | null;
   busyLabel?: string | null;
+  changeSummary?: string | null;
+  proposedChanges?: string[];
   previewNode?: ReactNode;
   actions?: PlanRevisionPanelAction[];
   onChange: (value: string) => void;
@@ -102,6 +107,8 @@ export function PlanRevisionPanel({
   submitLabel = "Analyser la demande",
   helperText,
   busyLabel,
+  changeSummary,
+  proposedChanges = [],
   previewNode,
   actions = [],
   onChange,
@@ -147,6 +154,36 @@ export function PlanRevisionPanel({
         <p className="mt-4 text-sm leading-6 text-stone-600">
           {helperText}
         </p>
+      ) : null}
+
+      {changeSummary ? (
+        <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-4">
+          <div className="flex items-center gap-2 text-emerald-800">
+            <CheckCircle2 className="h-4 w-4" />
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em]">
+              Ce qui change vraiment
+            </p>
+          </div>
+          <p className="mt-2 text-sm leading-6 text-stone-800">
+            {changeSummary}
+          </p>
+          {proposedChanges.length > 0 ? (
+            <div className="mt-3 border-t border-emerald-100 pt-3">
+              <div className="flex items-center gap-2 text-stone-700">
+                <ListChecks className="h-4 w-4" />
+                <p className="text-xs font-semibold">Ajustements proposés</p>
+              </div>
+              <ul className="mt-2 space-y-1.5 text-sm leading-6 text-stone-700">
+                {proposedChanges.slice(0, 4).map((change) => (
+                  <li key={change} className="flex gap-2">
+                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                    <span>{change}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </div>
       ) : null}
 
       {showComposer ? (

@@ -274,6 +274,7 @@ type ReviewPlanResponse = {
   decision: PlanRevisionProposal["decision"];
   understanding: string;
   impact: string;
+  user_change_summary: string;
   proposed_changes: string[];
   control_mode: PlanRevisionProposal["control_mode"];
   resistance_note: string | null;
@@ -376,6 +377,7 @@ type PlanAdjustmentRevision = {
   effective_start_date: string;
   reason: string;
   scope: "level" | "plan";
+  user_change_summary?: string | null;
   assistant_message?: string | null;
 };
 
@@ -403,6 +405,9 @@ function buildPlanAdjustmentFeedback(args: {
 }): string {
   return [
     args.proposal.regeneration_feedback?.trim() || null,
+    args.proposal.user_change_summary?.trim()
+      ? `Résumé pour le user de ce qui change: ${args.proposal.user_change_summary.trim()}`
+      : null,
     `Commentaire initial du user: ${args.initialComment.trim()}`,
     args.precisionComment?.trim()
       ? `Précision ajoutée ensuite par le user: ${args.precisionComment.trim()}`
@@ -428,6 +433,9 @@ function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | n
   const reason = typeof candidate.reason === "string"
     ? candidate.reason.trim()
     : "";
+  const userChangeSummary = typeof candidate.user_change_summary === "string"
+    ? candidate.user_change_summary.trim()
+    : "";
   const scope = candidate.scope === "level" ? "level" : candidate.scope === "plan" ? "plan" : null;
 
   if (!effectiveStartDate || !reason || !scope) return null;
@@ -436,6 +444,7 @@ function parsePlanAdjustmentRevision(value: unknown): PlanAdjustmentRevision | n
     effective_start_date: effectiveStartDate,
     reason,
     scope,
+    user_change_summary: userChangeSummary || null,
     assistant_message: typeof candidate.assistant_message === "string"
       ? candidate.assistant_message.trim()
       : null,
@@ -743,6 +752,12 @@ export default function DashboardV2() {
         decision: activeSession.decision,
         understanding: activeSession.understanding,
         impact: activeSession.impact,
+        user_change_summary: typeof activeSession.user_change_summary === "string" &&
+            activeSession.user_change_summary.trim().length > 0
+          ? activeSession.user_change_summary.trim()
+          : typeof activeSession.impact === "string"
+          ? activeSession.impact
+          : "",
         proposed_changes: Array.isArray(activeSession.proposed_changes)
           ? activeSession.proposed_changes.filter((item: unknown): item is string => typeof item === "string")
           : [],
@@ -1241,8 +1256,8 @@ export default function DashboardV2() {
           key: "lab",
           icon: Book,
           label: "Base de vie",
-          activeColor: "text-emerald-600",
-          activeBg: "bg-emerald-50",
+          activeColor: "text-[#d1ded4]",
+          activeBg: "bg-[#eef5ee]",
         },
       ]
     : [
@@ -1250,28 +1265,28 @@ export default function DashboardV2() {
           key: "plan",
           icon: MapIcon,
           label: "Plan",
-          activeColor: "text-blue-600",
-          activeBg: "bg-blue-50",
+          activeColor: "text-[#d1ded4]",
+          activeBg: "bg-[#eef5ee]",
         },
         {
           key: "lab",
           icon: Hammer,
           label: "Ressources",
-          activeColor: "text-emerald-600",
-          activeBg: "bg-emerald-50",
+          activeColor: "text-[#d1ded4]",
+          activeBg: "bg-[#eef5ee]",
         },
         {
           key: "inspiration",
           icon: Compass,
           label: "Boussole",
-          activeColor: "text-violet-600",
-          activeBg: "bg-violet-50",
+          activeColor: "text-[#d1ded4]",
+          activeBg: "bg-[#eef5ee]",
         },
         {
           key: "reminders",
           icon: Bell,
           label: "Initiatives",
-          activeColor: "text-amber-600",
+          activeColor: "text-[#d1ded4]",
           activeBg: "bg-amber-50",
         },
       ];
@@ -1440,6 +1455,7 @@ export default function DashboardV2() {
         decision: data.decision,
         understanding: data.understanding,
         impact: data.impact,
+        user_change_summary: data.user_change_summary,
         proposed_changes: data.proposed_changes,
         control_mode: data.control_mode,
         resistance_note: data.resistance_note,
@@ -1518,6 +1534,7 @@ export default function DashboardV2() {
             scope: previewScope,
             effective_start_date: effectiveStartDate,
             reason: planReviewProposal.understanding.slice(0, 280),
+            user_change_summary: planReviewProposal.user_change_summary,
             assistant_message: planReviewProposal.assistant_summary,
           },
         },
@@ -1587,6 +1604,7 @@ export default function DashboardV2() {
             scope: previewScope,
             effective_start_date: effectiveStartDate,
             reason: planReviewProposal.understanding.slice(0, 280),
+            user_change_summary: planReviewProposal.user_change_summary,
             assistant_message: planReviewProposal.assistant_summary,
           },
         },
@@ -1784,6 +1802,10 @@ export default function DashboardV2() {
 
     return actions;
   })();
+  const planReviewChangeSummary =
+    planReviewPreviewRevision?.user_change_summary?.trim() ||
+    planReviewProposal?.user_change_summary?.trim() ||
+    null;
   const planReviewPreviewNode = planReviewPreview ? (
     <div className="rounded-3xl border border-blue-100 bg-blue-50/50 p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1823,10 +1845,10 @@ export default function DashboardV2() {
 
       <div className="mt-4 rounded-2xl border border-dashed border-blue-200 bg-white px-4 py-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-700">
-          Marqueur de révision
+          Ce qui a été ajusté
         </p>
         <p className="mt-2 text-sm leading-6 text-stone-700">
-          {planReviewPreviewRevision?.reason ?? planReviewProposal?.understanding}
+          {planReviewChangeSummary ?? planReviewPreviewRevision?.reason ?? planReviewProposal?.understanding}
         </p>
       </div>
 
@@ -2523,7 +2545,7 @@ export default function DashboardV2() {
       className={`min-h-screen flex flex-col transition-colors duration-500 pb-24 ${
         isArchitectMode
           ? "bg-emerald-950 text-emerald-50"
-          : "bg-slate-50 text-slate-900"
+          : "sophia-action-skin bg-[radial-gradient(circle_at_12%_0%,rgba(0,45,33,0.12),transparent_30%),radial-gradient(circle_at_90%_10%,rgba(0,45,33,0.09),transparent_34%),linear-gradient(180deg,#fbf7ef_0%,#f3f8f1_52%,#eef8f4_100%)] text-[#17211d]"
       }`}
     >
       {/* ── HEADER ────────────────────────────────────────────────────── */}
@@ -2531,7 +2553,7 @@ export default function DashboardV2() {
         className={`${
           isArchitectMode
             ? "bg-emerald-900/50 border-emerald-800"
-            : "bg-white border-gray-100"
+            : "bg-white/86 border-[#d7e7dc]"
         } px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}
       >
         <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
@@ -2547,13 +2569,19 @@ export default function DashboardV2() {
                 />
               </div>
 
-              <div className="flex flex-row bg-gray-100/10 p-1 rounded-full border border-gray-200/20 gap-0 shrink-0">
+              <div
+                className={`flex flex-row p-1 rounded-full gap-0 shrink-0 ${
+                  isArchitectMode
+                    ? "bg-gray-100/10 border border-gray-200/20"
+                    : "bg-[#eef7f1] border border-[#b8d8cc]"
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setMode("action")}
                   className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
                     !isArchitectMode
-                      ? "bg-white text-blue-600 shadow-sm"
+                      ? "bg-[#002d21] text-white shadow-lg shadow-[#002d21]/25"
                       : "text-emerald-300 hover:text-white"
                   }`}
                 >
@@ -2566,7 +2594,7 @@ export default function DashboardV2() {
                   className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
                     isArchitectMode
                       ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/50"
-                      : "text-gray-400 hover:text-gray-600"
+                      : "text-[#52635b] hover:text-[var(--action-green)]"
                   }`}
                 >
                   <Compass className="w-3 h-3" />
@@ -2589,7 +2617,11 @@ export default function DashboardV2() {
                   setIsProfileOpen(true);
                 }
               }}
-              className="w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 border-white/10 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30"
+              className={`w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30 ${
+                isArchitectMode
+                  ? "bg-gray-200/20 border-white/10"
+                  : "bg-white text-[#002d21] border-[#b8d8cc]"
+              }`}
             >
               {isArchitectMode ? "🏛️" : userInitials}
             </div>
@@ -2617,7 +2649,7 @@ export default function DashboardV2() {
           <div className="animate-fade-in flex-1 flex flex-col">
             {/* Architect sub-tabs */}
             <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
-              <div className="flex w-full justify-start md:justify-center">
+              <div className="flex w-max min-w-full justify-center px-1">
                 <div className="flex bg-emerald-950/50 p-1.5 rounded-xl border border-emerald-800/50 shadow-lg min-w-max">
                   {(
                     [
@@ -2654,7 +2686,7 @@ export default function DashboardV2() {
               <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px] p-6 md:p-12">
                 <div className="max-w-4xl mx-auto w-full">
                   <div className="text-center mb-12">
-                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">
+                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-white mb-4">
                       Identité
                     </h1>
                     <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
@@ -2718,12 +2750,12 @@ export default function DashboardV2() {
                     </div>
                   </div>
 
-                  <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-emerald-800/50 pb-20">
+                  <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-white/10 pb-20">
                     <div className="flex items-center gap-3 mb-8 justify-center">
                       <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
                         <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
                       </div>
-                      <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
+                      <h2 className="text-xs sm:text-sm md:text-lg font-bold text-[#d1ded4] uppercase tracking-widest text-center">
                         Phase 2 : Amélioration du Temple
                       </h2>
                     </div>
@@ -2852,8 +2884,8 @@ export default function DashboardV2() {
                         onClick={() => setSelectedScopeId(item.id)}
                         className={`text-left px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors ${
                           isActiveScope
-                            ? "bg-blue-50 text-blue-700 border border-blue-100"
-                            : "text-stone-600 hover:bg-stone-50 border border-transparent"
+                            ? "bg-[#e9f8f0] text-[#002d21] border border-[#b8e9cf]"
+                            : "text-stone-600 hover:bg-emerald-50 border border-transparent"
                         }`}
                       >
                         {item.title || `Transformation ${item.priority_order}`}
@@ -2866,8 +2898,8 @@ export default function DashboardV2() {
                     onClick={() => setSelectedScopeId("out_of_plan")}
                     className={`text-left px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors mt-1 ${
                       isOutOfPlanScope
-                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                        : "text-stone-600 hover:bg-stone-50 border border-transparent"
+                        ? "bg-[#e9f8f0] text-[#002d21] border border-[#b8e9cf]"
+                        : "text-stone-600 hover:bg-emerald-50 border border-transparent"
                     }`}
                   >
                     Base de vie
@@ -2878,7 +2910,7 @@ export default function DashboardV2() {
                   <button
                     type="button"
                     onClick={handleOpenAdditionalPlanFlow}
-                    className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
+                    className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-[#002d21] hover:bg-[#e9f8f0] transition-colors border border-transparent"
                   >
                     <Plus className="h-4 w-4" />
                     Ajouter une transformation
@@ -2889,7 +2921,7 @@ export default function DashboardV2() {
                     onClick={() => setActiveTab("preferences")}
                     className={`flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors border ${
                       activeTab === "preferences"
-                        ? "bg-stone-900 text-white border-stone-900"
+                        ? "bg-[#002d21] text-white border-[#002d21]"
                         : "text-stone-600 hover:bg-stone-50 border-transparent"
                     }`}
                   >
@@ -2961,7 +2993,7 @@ export default function DashboardV2() {
               <div className="lg:col-span-9 space-y-5">
                 {/* ── TAB NAVIGATION ─────────────────────────────────── */}
                 <div className="flex w-full justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
-                  <div className="flex bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200/50 min-w-max w-full">
+                  <div className="flex bg-white/90 p-1.5 rounded-2xl border border-[#b8d8cc] min-w-max w-full shadow-sm">
                     {dashboardTabs.map((tab) => {
                       const Icon = tab.icon;
                       const isActive = activeTab === tab.key;
@@ -2972,8 +3004,8 @@ export default function DashboardV2() {
                           onClick={() => setActiveTab(tab.key)}
                           className={`flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex-1 ${
                             isActive
-                              ? `bg-white text-slate-900 shadow-sm border border-slate-200/50`
-                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                              ? `bg-[#002d21] text-white shadow-sm shadow-[#002d21]/20 border border-[#002d21]`
+                              : "text-[#52635b] hover:text-[#002d21] hover:bg-[#e9f8f0]"
                           }`}
                         >
                           <Icon
@@ -3039,7 +3071,7 @@ export default function DashboardV2() {
                           <section className="rounded-[30px] border border-emerald-200 bg-[linear-gradient(180deg,rgba(236,253,245,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
                             <div className="flex flex-wrap items-start justify-between gap-4">
                               <div>
-                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--action-green)]">
                                   Rituel de passage
                                 </p>
                                 <h3 className="mt-3 text-2xl font-semibold text-stone-950">
@@ -3054,7 +3086,7 @@ export default function DashboardV2() {
                               <button
                                 type="button"
                                 onClick={() => setIsClosureModalOpen(true)}
-                                className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                                className="inline-flex items-center gap-2 rounded-full bg-[var(--action-green)] px-5 py-3 text-sm font-semibold text-emerald-50 transition hover:bg-[var(--action-green)]"
                               >
                                 Clôturer la transformation
                                 <ArrowRight className="h-4 w-4" />
@@ -3127,6 +3159,10 @@ export default function DashboardV2() {
                                     submitLabel={planReviewSubmitLabel}
                                     helperText={planReviewHelperText}
                                     busyLabel={planReviewBusyLabel}
+                                    changeSummary={planReviewProposal?.user_change_summary ?? null}
+                                    proposedChanges={planReviewProposal?.decision === "no_change"
+                                      ? []
+                                      : planReviewProposal?.proposed_changes ?? []}
                                     previewNode={planReviewPreviewNode}
                                     actions={planReviewActions}
                                     onChange={setPlanReviewInput}
@@ -3213,6 +3249,10 @@ export default function DashboardV2() {
                                 submitLabel={planReviewSubmitLabel}
                                 helperText={planReviewHelperText}
                                 busyLabel={planReviewBusyLabel}
+                                changeSummary={planReviewProposal?.user_change_summary ?? null}
+                                proposedChanges={planReviewProposal?.decision === "no_change"
+                                  ? []
+                                  : planReviewProposal?.proposed_changes ?? []}
                                 previewNode={planReviewPreviewNode}
                                 actions={planReviewActions}
                                 onChange={setPlanReviewInput}
@@ -3362,7 +3402,7 @@ export default function DashboardV2() {
                               <button
                                 type="button"
                                 onClick={() => void handleEndSimpleTransformation()}
-                                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-[var(--action-green)] transition hover:bg-emerald-100"
                               >
                                 Mettre fin à cette transformation
                               </button>
@@ -3388,7 +3428,7 @@ export default function DashboardV2() {
                           <button
                             type="button"
                             onClick={() => setIsLabUsageOpen((value) => !value)}
-                            className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-emerald-700 transition-colors hover:text-emerald-900"
+                            className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-[var(--action-green)] transition-colors hover:text-[var(--action-green)]"
                           >
                             {isLabUsageOpen ? "Masquer les explications" : "Comment utiliser cet espace"}
                             {isLabUsageOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}

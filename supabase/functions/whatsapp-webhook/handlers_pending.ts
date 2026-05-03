@@ -20,6 +20,10 @@ import {
   ACTION_EVENING_PARTIAL_ID,
   ACTION_EVENING_REVIEW_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
+import {
+  loadMomentumSnapshotV2,
+  persistMomentumSnapshotV2,
+} from "../_shared/momentum_v2.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 
 const RENDEZ_VOUS_KINDS = new Set([
@@ -256,6 +260,24 @@ async function handleActionEveningReviewReply(params: {
     }).eq("id", pending.scheduled_checkin_id);
   }
   await markPending(params.admin, pending.id, "done");
+
+  try {
+    const { snapshot, cycleId } = await loadMomentumSnapshotV2(params.admin, {
+      userId: params.userId,
+      timezone: String(payload?.timezone ?? "").trim() || "Europe/Paris",
+      now: new Date(nowIso),
+    });
+    await persistMomentumSnapshotV2(params.admin, {
+      userId: params.userId,
+      cycleId,
+      snapshot,
+    });
+  } catch (error) {
+    console.warn(
+      "[handlers_pending] momentum_state_v2 snapshot refresh failed",
+      error,
+    );
+  }
 
   const actionCount = planItemIds.length;
   const txt = decision.entryOutcome === "completed"

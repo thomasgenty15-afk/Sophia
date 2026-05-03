@@ -58,6 +58,7 @@ export interface LoadedContext {
   northStarContext?: string;
   weeklyRecapContext?: string;
   planItemIndicators?: string;
+  memoryV2Payload?: string;
   identity?: string;
   eventMemories?: string;
   globalMemories?: string;
@@ -95,7 +96,9 @@ export interface LoadedContext {
  * - Investigator: focalisé sur le suivi guidé / bilan, sans mémoire durable large
  * - Dispatcher / watcher / sentry: contexte minimal ou nul
  */
-export const CONTEXT_PROFILES: Partial<Record<ContextProfileMode, ContextProfile>> = {
+export const CONTEXT_PROFILES: Partial<
+  Record<ContextProfileMode, ContextProfile>
+> = {
   companion: {
     temporal: true,
     identity: true,

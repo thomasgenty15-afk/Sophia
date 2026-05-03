@@ -36,6 +36,8 @@ Deno.test("normalizeReviewResult clears regeneration feedback when no change is 
     decision: "no_change",
     understanding: "Tu veux surtout comprendre la logique.",
     impact: "Le plan peut rester tel quel.",
+    user_change_summary:
+      "Rien n'est modifié dans le plan: la demande porte sur une clarification avant de décider si un ajustement est utile.",
     proposed_changes: ["Garder la structure actuelle"],
     control_mode: "clarify_only",
     resistance_note: "  ",
@@ -58,6 +60,8 @@ Deno.test("buildAssistantSummary composes the structured review", () => {
     decision: "minor_adjustment",
     understanding: "Tu veux un demarrage plus simple.",
     impact: "On garde la direction mais on allege le premier palier.",
+    user_change_summary:
+      "Sophia garde l'objectif du niveau actuel, mais rend le démarrage plus court, plus concret et plus facile à tenir.",
     proposed_changes: ["Simplifier le premier pas", "Raccourcir la phase de depart"],
     control_mode: "adjust_current_level",
     resistance_note: null,

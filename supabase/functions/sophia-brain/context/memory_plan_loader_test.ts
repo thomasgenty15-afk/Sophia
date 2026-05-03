@@ -20,10 +20,6 @@ function assert(condition: boolean, msg: string) {
 
 const COMPANION_PROFILE: ContextProfile = {
   temporal: true,
-  plan_metadata: true,
-  plan_json: false,
-  actions_summary: true,
-  actions_details: "on_demand",
   identity: true,
   topic_memories: true,
   global_memories: true,
@@ -31,7 +27,6 @@ const COMPANION_PROFILE: ContextProfile = {
   facts: true,
   short_term: true,
   history_depth: 15,
-  vitals: true,
 };
 
 Deno.test("deriveDispatcherMemoryLoadStrategy: no plan keeps historical memory behaviour", () => {
@@ -44,7 +39,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: no plan keeps historical memory b
 
   assertEquals(strategy.usePlan, false);
   assertEquals(strategy.skipAllMemory, false);
-  assertEquals(strategy.loadIdentity, true);
+  assertEquals(strategy.loadIdentity, false);
 });
 
 Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads exact theme and no noisy fallback", () => {
@@ -244,5 +239,5 @@ Deno.test("resolveContextMemoryLoadStrategy: answer_user_now keeps dispatcher pl
     strategy.budget.globalThemeMax <= 4,
     "global cap should respect V2 full budget",
   );
-  assertEquals(strategy.loadIdentity, true);
+  assertEquals(strategy.loadIdentity, false);
 });

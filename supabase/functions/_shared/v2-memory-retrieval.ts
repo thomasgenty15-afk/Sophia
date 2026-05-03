@@ -324,13 +324,13 @@ const BUDGET_BY_TIER: Record<
     global_max: 3,
     topic_max: 2,
     event_max: 2,
-    identity_max: 1,
+    identity_max: 0,
   },
   full: {
     global_max: 4,
     topic_max: 3,
     event_max: 2,
-    identity_max: 2,
+    identity_max: 0,
   },
 };
 
@@ -396,7 +396,9 @@ export function resolveV2RetrievalPlan(
     load_global_memories: needsGlobalMemories && budget.global_max > 0,
     load_topic_memories: hasExecution && budget.topic_max > 0,
     load_event_memories: hasEvent && budget.event_max > 0,
-    load_identity: hasRelational && budget.identity_max > 0,
+    // Core identity is intentionally dormant while V2 memory/skills stabilize.
+    // Relational memory should come from scoped global memories and events.
+    load_identity: false,
     load_coaching: hasCoaching,
     global_scope_filter: globalScopeFilter,
     topic_filter_transformation: hasExecution,
@@ -410,11 +412,11 @@ export function resolveV2RetrievalPlan(
 // for convenience of memory module consumers.
 
 import type {
-  MemoryRetrievalExecutedPayload,
   MemoryPersistedPayload,
+  MemoryRetrievalExecutedPayload,
 } from "./v2-events.ts";
 
-export type { MemoryRetrievalExecutedPayload, MemoryPersistedPayload };
+export type { MemoryPersistedPayload, MemoryRetrievalExecutedPayload };
 
 export function buildRetrievalExecutedPayload(args: {
   userId: string;

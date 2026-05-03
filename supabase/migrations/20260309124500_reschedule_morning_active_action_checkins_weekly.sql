@@ -10,7 +10,7 @@ declare
 begin
   select jobid into existing_jobid
   from cron.job
-  where jobname = 'schedule-morning-active-action-checkins'
+  where jobname = 'schedule-whatsapp-v2-checkins'
   limit 1;
 
   if existing_jobid is not null then
@@ -19,7 +19,7 @@ begin
 end $$;
 
 select cron.schedule(
-  'schedule-morning-active-action-checkins',
+  'schedule-whatsapp-v2-checkins',
   '0 4 * * 0',
   $$
   with cfg as (
@@ -30,7 +30,7 @@ select cron.schedule(
   )
   select
     net.http_post(
-      url := (select base_url from cfg) || '/functions/v1/schedule-morning-active-action-checkins',
+      url := (select base_url from cfg) || '/functions/v1/schedule-whatsapp-v2-checkins',
       headers := jsonb_build_object(
         'content-type', 'application/json',
         'apikey', (select anon_key from cfg),

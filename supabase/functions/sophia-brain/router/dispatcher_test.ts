@@ -3,9 +3,9 @@ import {
   DEFAULT_MEMORY_PLAN,
   DEFAULT_SURFACE_PLAN,
   resolveDispatcherModelSelection,
-  setDispatcherLlmRunnerForTest,
   sanitizeDispatcherMemoryPlan,
   sanitizeDispatcherSurfacePlan,
+  setDispatcherLlmRunnerForTest,
 } from "./dispatcher.ts";
 
 function assertEquals(actual: unknown, expected: unknown, msg?: string) {
@@ -68,11 +68,10 @@ Deno.test("sanitizeDispatcherMemoryPlan: keeps canonical global targets and norm
   assertEquals(plan.memory_mode, "dossier");
   assertEquals(plan.model_tier_hint, "deep");
   assertEquals(plan.context_budget_tier, "large");
-  assertEquals(plan.targets.length, 4);
+  assertEquals(plan.targets.length, 3);
   assertEquals(plan.targets[0]?.key, "psychologie");
   assertEquals(plan.targets[1]?.key, "travail.relations_professionnelles");
   assertEquals(plan.targets[2]?.query_hint, "Projet Sophia");
-  assertEquals(plan.targets[3]?.key, "core_identity");
 });
 
 Deno.test("sanitizeDispatcherMemoryPlan: drops invalid targets and falls back to defaults", () => {
@@ -121,7 +120,10 @@ Deno.test("sanitizeDispatcherMemoryPlan: drops invalid targets and falls back to
     DEFAULT_MEMORY_PLAN.context_budget_tier,
   );
   assertEquals(plan.plan_confidence, 1);
-  assert(Array.isArray(plan.targets) && plan.targets.length === 0, "invalid targets should be dropped");
+  assert(
+    Array.isArray(plan.targets) && plan.targets.length === 0,
+    "invalid targets should be dropped",
+  );
 });
 
 Deno.test("sanitizeDispatcherSurfacePlan: keeps canonical surfaces and normalizes levels", () => {

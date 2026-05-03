@@ -1,0 +1,65 @@
+{
+  "id": "06_dated_event_friday",
+  "description": "Dated reference should create an event with temporal hint.",
+  "scenario_version": 1,
+  "initial_state": {
+    "topics": [
+      {
+        "slug": "sommeil_energie",
+        "title": "Sommeil et energie",
+        "lifecycle_stage": "durable",
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Vendredi dernier j'ai dormi trois heures avant le travail.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference"],
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["vendredi dernier", "dormi trois heures"],
+            "domain_keys_any_of": ["sante.sommeil"],
+            "linked_topic_slug": "sommeil_energie",
+          },
+        ],
+      },
+    },
+    {
+      "user": "Le lendemain j'etais completement vide.",
+      "expect": {
+        "retrieval_mode": "topic_continuation",
+        "retrieval_hints": ["dated_reference"],
+        "topic_decision": "stay",
+        "created_items": [
+          {
+            "kind": "event",
+            "contains": ["lendemain", "vide"],
+            "domain_keys_any_of": ["sante.energie"],
+            "linked_topic_slug": "sommeil_energie",
+          },
+        ],
+        "payload_contains": [
+          {
+            "kind": "event",
+            "contains": "dormi trois heures",
+            "topic_slug": "sommeil_energie",
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

@@ -65,6 +65,7 @@ const REVIEW_RESULT_SCHEMA = z.object({
   ]),
   understanding: z.string().trim().min(1).max(600),
   impact: z.string().trim().min(1).max(600),
+  user_change_summary: z.string().trim().min(1).max(900),
   proposed_changes: z.array(z.string().trim().min(1).max(300)).max(6),
   control_mode: z.enum([
     "clarify_only",
@@ -183,6 +184,7 @@ async function handleRequest(req: Request): Promise<Response> {
       decision: result.review.decision,
       understanding: result.review.understanding,
       impact: result.review.impact,
+      user_change_summary: result.review.user_change_summary,
       proposed_changes: result.review.proposed_changes,
       control_mode: result.review.control_mode,
       resistance_note: result.review.resistance_note,
@@ -307,6 +309,7 @@ export async function reviewPlan(args: {
     decision: review.decision,
     understanding: review.understanding,
     impact: review.impact,
+    user_change_summary: review.user_change_summary,
     proposed_changes: review.proposed_changes,
     control_mode: review.control_mode,
     resistance_note: review.resistance_note,
@@ -388,7 +391,7 @@ export function buildAssistantSummary(
 
   if (conversationMode === "level_adjustment") {
     return [
-      `Oui, ça change quelque chose pour le niveau actuel. ${review.impact}`,
+      `Oui, ça change quelque chose pour le niveau actuel. ${review.user_change_summary}`,
       caution.trim(),
       principle.trim(),
       "Si tu veux, je peux te montrer une version ajustée du niveau à partir d'aujourd'hui.",
@@ -396,7 +399,7 @@ export function buildAssistantSummary(
   }
 
   return [
-    `Oui, ça change quelque chose pour la suite du plan. ${review.impact}`,
+    `Oui, ça change quelque chose pour la suite du plan. ${review.user_change_summary}`,
     caution.trim(),
     principle.trim(),
     "Si tu veux, je peux te montrer une version ajustée du plan à partir d'aujourd'hui.",
@@ -442,6 +445,8 @@ export function buildMegaTestReview(userComment: string): ReviewResult {
         "Tu demandes surtout à mieux comprendre la logique du plan avant de le changer.",
       impact:
         "Le plan peut rester identique tant qu'on n'a pas découvert de nouveau fait bloquant.",
+      user_change_summary:
+        "Rien n'est ajusté dans le plan pour l'instant: ta demande porte surtout sur la compréhension de la logique actuelle. Sophia peut clarifier pourquoi ce niveau arrive maintenant avant de proposer une vraie modification.",
       proposed_changes: [
         "Garder la structure actuelle",
         "Expliquer plus clairement pourquoi le premier niveau de plan vient avant le reste",
@@ -474,6 +479,8 @@ export function buildMegaTestReview(userComment: string): ReviewResult {
         "Tu sembles dire que ce niveau est déjà bien absorbé ou que tu avances plus vite que prévu.",
       impact:
         "La logique du plan n'est pas forcément à changer, mais on peut soit consolider un peu, soit ouvrir le passage au niveau suivant.",
+      user_change_summary:
+        "Le plan n'est pas réécrit automatiquement, mais Sophia traite ton retour comme un signal d'avance: on vérifie d'abord si le niveau actuel est vraiment consolidé, puis on peut ouvrir la suite au lieu de continuer au même rythme.",
       proposed_changes: [
         "Vérifier si l'appui du niveau est déjà assez stable pour tenir dans le réel",
         "Proposer le passage au niveau suivant si tu veux capitaliser sur l'élan",
@@ -502,6 +509,8 @@ export function buildMegaTestReview(userComment: string): ReviewResult {
         "Tu veux garder la direction générale mais démarrer avec une version plus simple et plus faisable.",
       impact:
         "Il faut alléger le premier niveau de plan sans remettre en cause l'objectif global ni la logique du plan.",
+      user_change_summary:
+        "Sophia garde le cap du plan, mais transforme le démarrage: le niveau actuel doit devenir plus court, plus concret et plus facile à exécuter cette semaine au lieu de rester trop ambitieux ou abstrait.",
       proposed_changes: [
         "Raccourcir le premier niveau de plan",
         "Remplacer les actions trop abstraites par un micro-pas visible",
@@ -524,6 +533,8 @@ export function buildMegaTestReview(userComment: string): ReviewResult {
       "Tu apportes une information nouvelle qui semble changer la cause principale du probleme.",
     impact:
       "La logique actuelle du plan doit etre recalibree sur ce nouveau diagnostic plutot que sur l'hypothese precedente.",
+    user_change_summary:
+      "Sophia traite ton message comme un fait nouveau: le plan doit être recalibré sur cette cause principale, et les actions qui répondaient à l'ancienne hypothèse doivent être remplacées.",
     proposed_changes: [
       "Reformuler ce qui se passe vraiment",
       "Regenere le plan a partir de cette nouvelle cause principale",
@@ -680,6 +691,7 @@ export function normalizeReviewResult(review: ReviewResult): ReviewResult {
 
   return {
     ...review,
+    user_change_summary: review.user_change_summary.trim(),
     proposed_changes: proposedChanges,
     resistance_note: review.resistance_note?.trim() || null,
     principle_reminder: review.principle_reminder?.trim() || null,
@@ -949,6 +961,12 @@ Règles:
 - regeneration_feedback doit etre null si decision = "no_change"
 - si decision != "no_change", regeneration_feedback doit etre un bloc clair en francais destine au generateur de plan, qui explique quoi garder, quoi changer, et pourquoi
 - dans regeneration_feedback, precise explicitement si on garde le niveau courant, si on modifie seulement les niveaux futurs, ou si on revoit aussi le niveau actuel
+- user_change_summary est le "Résumé pour le user de ce qui a été changé" par rapport a son input:
+  - 2 a 4 phrases maximum, en francais naturel
+  - compare explicitement le commentaire utilisateur avec l'effet concret sur le plan
+  - dis clairement ce qui est garde, ce qui change, et ce qui ne change pas encore
+  - ne repete pas seulement l'input; ne fais pas une phrase generique du type "le plan est ajuste"
+  - si decision = "no_change", explique pourquoi rien n'est modifie et quelle clarification ou verification est proposee a la place
 - utilise le contexte interne du plan pour eviter de casser un niveau utile sans raison, et pour expliquer ce qui peut etre accelere ou non
 - clarification_question ne doit etre renseignee que s'il manque vraiment une precision utile avant de revoir le plan
 - proposed_changes doit contenir 1 a 4 changements concrets, pas de phrases vagues
@@ -963,6 +981,7 @@ Retourne UNIQUEMENT ce JSON:
   "decision": "no_change" | "minor_adjustment" | "partial_replan" | "full_replan",
   "understanding": "ce que tu as compris du commentaire",
   "impact": "ce que cela change ou ne change pas dans le plan",
+  "user_change_summary": "résumé user-ready de ce qui change concrètement par rapport au commentaire",
   "proposed_changes": ["..."],
   "control_mode": "clarify_only" | "adjust_current_level" | "adjust_future_levels" | "advance_ready",
   "resistance_note": "..." | null,
