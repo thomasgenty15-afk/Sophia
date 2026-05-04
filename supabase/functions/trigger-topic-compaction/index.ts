@@ -48,7 +48,7 @@ async function loadCandidateTopics(args: {
   let query = args.admin
     .from("user_topic_memories")
     .select(
-      "id,user_id,title,slug,synthesis,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
+      "id,user_id,title,slug,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
     )
     .eq("status", "active")
     .order("pending_changes_count", { ascending: false })

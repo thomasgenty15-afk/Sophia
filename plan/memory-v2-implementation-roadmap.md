@@ -1,5 +1,13 @@
 # Sophia Memory V2 - Roadmap d'implementation pas-a-pas
 
+> **Status 2026-05-04 : MVP V2-only completed / roadmap historique.**
+>
+> Cette roadmap de coexistence V1/V2 est conservee comme archive de conception.
+> Le chantier final a tranche un big bang V2-only : pas de backfill legacy,
+> pas de canary runtime V1, pas de fallback V1. La source operative actuelle est
+> `docs/memory-architecture.md` et le runbook actuel est
+> `docs/memory-v2-only-runbook.md`.
+
 ## Comment utiliser ce document
 
 Ce document est l'execution du plan `plan/memory-v2-mvp-consolidated-architecture-plan.md` (le **plan d'archi**).

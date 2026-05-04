@@ -6,9 +6,9 @@ import {
 } from "./scenario_loader.ts";
 import { createMemoryScenarioRunner } from "./runner.ts";
 
-Deno.test("memory scenario loader parses all 12 golden scenarios", async () => {
+Deno.test("memory scenario loader parses all 16 golden scenarios", async () => {
   const scenarios = await loadScenarios();
-  assertEquals(scenarios.length, 12);
+  assertEquals(scenarios.length, 16);
   assertEquals(scenarios.map((s) => s.id), [...GOLDEN_SCENARIO_IDS]);
   for (const scenario of scenarios) {
     assertEquals(scenario.turns.length >= 2, true);
@@ -36,6 +36,6 @@ Deno.test("memory scenario runner executes all golden scenarios in mock mode", a
   const results = await createMemoryScenarioRunner().runAll(scenarios, {
     llm_mode: "mock",
   });
-  assertEquals(results.length, 12);
+  assertEquals(results.length, 16);
   assertEquals(results.every((result) => result.passed), true);
 });

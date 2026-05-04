@@ -18,8 +18,8 @@ const MIGRATIONS = [
   "20260501091000_extend_user_topic_memories_v2.sql",
   "20260501091100_add_fk_extraction_run_id.sql",
   "20260501091200_create_memory_v2_updated_at_triggers.sql",
-  "20260501091300_backfill_user_event_memories.sql",
   "20260501091400_schedule_memory_v2_topic_compaction.sql",
+  "20260504090000_drop_legacy_memory_v1.sql",
 ] as const;
 
 const USER_SCOPED_TABLES = [
@@ -142,13 +142,18 @@ Deno.test("Memory V2 updated_at triggers cover mutable V2 tables", async () => {
   }
 });
 
-Deno.test("Memory V2 event backfill is idempotent and keeps legacy provenance", async () => {
+Deno.test("Memory V2-only cleanup drops legacy V1 surfaces", async () => {
   const sql = await readMigration(
-    "20260501091300_backfill_user_event_memories.sql",
+    "20260504090000_drop_legacy_memory_v1.sql",
   );
-  assertStringIncludes(sql, "uniq_memory_items_legacy_event_id");
-  assertStringIncludes(sql, "metadata->>'legacy_event_id' = ev.id::text");
-  assertStringIncludes(sql, "'legacy_user_event_memories'");
-  assertStringIncludes(sql, "insert into public.memory_item_sources");
-  assertStringIncludes(sql, "where not exists");
+  assertStringIncludes(sql, "drop table if exists public.user_global_memories");
+  assertStringIncludes(sql, "drop table if exists public.user_event_memories");
+  assertStringIncludes(
+    sql,
+    "drop table if exists public.user_topic_enrichment_log",
+  );
+  assertStringIncludes(sql, "drop column if exists synthesis");
+  assertStringIncludes(sql, "drop column if exists synthesis_embedding");
+  assertStringIncludes(sql, "drop function if exists public.match_global_memories");
+  assertStringIncludes(sql, "idx_memory_items_user_status_observed_at");
 });

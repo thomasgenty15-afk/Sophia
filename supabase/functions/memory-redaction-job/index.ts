@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
       for (const topicId of topicIds) {
         const { data: topic, error: topicError } = await admin
           .from("user_topic_memories")
-          .select("id,synthesis,search_doc,pending_changes_count,metadata")
+          .select("id,search_doc,pending_changes_count,metadata")
           .eq("id", topicId)
           .single();
         if (topicError) throw topicError;
@@ -143,7 +143,6 @@ Deno.serve(async (req) => {
           const { error: updateTopicError } = await admin
             .from("user_topic_memories")
             .update({
-              synthesis: redacted.synthesis,
               search_doc: redacted.search_doc,
               search_doc_embedding: null,
               pending_changes_count: redacted.pending_changes_count,

@@ -4,11 +4,10 @@ import {
   redactTopicSurface,
 } from "./redaction.ts";
 
-Deno.test("redaction removes deleted item terms from topic synthesis and search doc", () => {
+Deno.test("redaction removes deleted item terms from topic search doc", () => {
   const redacted = redactTopicSurface(
     {
       id: "t1",
-      synthesis: "Le user parle de honte apres une rechute.",
       search_doc: "honte rechute energie",
       pending_changes_count: 1,
       metadata: {},
@@ -22,7 +21,6 @@ Deno.test("redaction removes deleted item terms from topic synthesis and search 
     },
     "2026-05-01T00:00:00.000Z",
   );
-  assertEquals(redacted.synthesis.includes("honte"), false);
   assertEquals(redacted.search_doc.includes("rechute"), false);
   assertEquals(redacted.search_doc_embedding, null);
   assertEquals(redacted.pending_changes_count, 2);

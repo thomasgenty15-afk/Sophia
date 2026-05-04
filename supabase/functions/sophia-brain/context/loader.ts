@@ -34,27 +34,6 @@ import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
 } from "../profile_facts.ts";
-import {
-  formatTopicMemoriesForPrompt,
-  retrieveTopicMemories,
-  type TopicSearchResult,
-} from "../topic_memory.ts";
-import {
-  type EventSearchResult,
-  formatEventMemoriesForPrompt,
-  retrieveEventMemories,
-} from "../event_memory.ts";
-import {
-  formatGlobalMemoriesForPrompt,
-  type GlobalMemorySearchResult,
-  retrieveGlobalMemories,
-  retrieveGlobalMemoriesByFullKeys,
-  retrieveGlobalMemoriesByThemes,
-} from "../global_memory.ts";
-import {
-  isScopeMemoryEligible,
-  loadScopeMemoryPromptContext,
-} from "../scope_memory.ts";
 import type { DispatcherMemoryPlan } from "../router/dispatcher.ts";
 import type { SurfaceRuntimeAddon } from "../surface_state.ts";
 import { getSurfaceDefinition } from "../surface_registry.ts";
@@ -200,83 +179,6 @@ function uniqueStrings(values: Array<string | undefined | null>): string[] {
     out.push(value);
   }
   return out;
-}
-
-function dedupeTopicResults(results: TopicSearchResult[]): TopicSearchResult[] {
-  const byId = new Map<string, TopicSearchResult>();
-  for (const row of results) {
-    const id = String(row?.topic_id ?? "").trim();
-    if (!id || byId.has(id)) continue;
-    byId.set(id, row);
-  }
-  return [...byId.values()];
-}
-
-function dedupeEventResults(results: EventSearchResult[]): EventSearchResult[] {
-  const byId = new Map<string, EventSearchResult>();
-  for (const row of results) {
-    const id = String(row?.event_id ?? "").trim();
-    if (!id || byId.has(id)) continue;
-    byId.set(id, row);
-  }
-  return [...byId.values()];
-}
-
-function dedupeGlobalResults(
-  results: GlobalMemorySearchResult[],
-): GlobalMemorySearchResult[] {
-  const byId = new Map<string, GlobalMemorySearchResult>();
-  for (const row of results) {
-    const id = String(row?.id ?? "").trim();
-    if (!id || byId.has(id)) continue;
-    byId.set(id, row);
-  }
-  return [...byId.values()];
-}
-
-function summarizeTopicResults(
-  results: TopicSearchResult[],
-): Array<Record<string, unknown>> {
-  return results.map((row) => ({
-    topic_id: row.topic_id,
-    slug: row.slug,
-    title: row.title,
-    keyword_matched: row.keyword_matched ?? null,
-    keyword_similarity: row.keyword_similarity ?? null,
-    synthesis_similarity: row.synthesis_similarity ?? null,
-    title_similarity: row.title_similarity ?? null,
-    mention_count: row.mention_count ?? null,
-  }));
-}
-
-function summarizeEventResults(
-  results: EventSearchResult[],
-): Array<Record<string, unknown>> {
-  return results.map((row) => ({
-    event_id: row.event_id,
-    event_key: row.event_key,
-    title: row.title,
-    event_type: row.event_type,
-    status: row.status,
-    starts_at: row.starts_at ?? null,
-    event_similarity: row.event_similarity ?? null,
-    confidence: row.confidence ?? null,
-  }));
-}
-
-function summarizeGlobalResults(
-  results: GlobalMemorySearchResult[],
-): Array<Record<string, unknown>> {
-  return results.map((row) => ({
-    id: row.id,
-    full_key: row.full_key,
-    theme: row.theme,
-    subtheme_key: row.subtheme_key,
-    match_score: row.match_score ?? null,
-    lexical_score: row.lexical_score ?? null,
-    semantic_similarity: row.semantic_similarity ?? null,
-    confidence: row.confidence ?? null,
-  }));
 }
 
 function summarizeInjectedMemoryBlock(
@@ -590,7 +492,7 @@ export async function loadContextForMode(
 ): Promise<ContextLoadResult> {
   const startTime = Date.now();
   const profile = getContextProfile(opts.mode);
-  const scopedMemoryEligible = isScopeMemoryEligible(opts.scope);
+  const scopedMemoryEligible = false;
   const memoryStrategy = resolveContextMemoryLoadStrategy({
     mode: opts.mode,
     profile,
@@ -601,14 +503,8 @@ export async function loadContextForMode(
   const v2RuntimeRefs = await resolveV2RuntimeRefs(opts);
   const context: LoadedContext = {};
   const elementsLoaded: string[] = [];
-  let observedEventResults: EventSearchResult[] = [];
-  let observedGlobalResults: GlobalMemorySearchResult[] = [];
-  let observedTopicResults: TopicSearchResult[] = [];
   const attemptedLayers = {
     identity: false,
-    event: false,
-    global: false,
-    topic: false,
   };
 
   // Parallel loading of independent elements
@@ -733,447 +629,8 @@ export async function loadContextForMode(
     }
   }
 
-  if (scopedMemoryEligible) {
-    promises.push(
-      loadScopeMemoryPromptContext({
-        supabase: opts.supabase,
-        userId: opts.userId,
-        scopeRaw: opts.scope,
-      }).then((scopeMemoryContext) => {
-        if (!scopeMemoryContext) return;
-        if (scopeMemoryContext.summaryBlock) {
-          context.shortTerm = scopeMemoryContext.summaryBlock;
-          elementsLoaded.push("scope_memory_summary");
-        }
-        if (scopeMemoryContext.recentTurnsBlock) {
-          context.recentTurns = scopeMemoryContext.recentTurnsBlock;
-          elementsLoaded.push("scope_memory_recent_turns");
-        }
-      }),
-    );
-  }
-
-  // 4b/4c/4d. Mémoire dynamique pilotée par memory_plan si disponible,
-  // sinon fallback au comportement historique sémantique.
-  if (memoryStrategy.usePlan) {
-    const nowIsoForEvents = opts.userTime?.prompt_block
-      ? String(
-        opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
-      )
-      : undefined;
-
-    if (
-      profile.event_memories && !memoryStrategy.skipAllMemory &&
-      (memoryStrategy.eventQueries.length > 0 ||
-        memoryStrategy.fallbackSemanticEventMax > 0)
-    ) {
-      attemptedLayers.event = true;
-      promises.push(
-        (async () => {
-          const eventResults: EventSearchResult[] = [];
-          const explicitQueries = memoryStrategy.eventQueries.slice(
-            0,
-            memoryStrategy.budget.explicitEventQueriesMax,
-          );
-          if (explicitQueries.length > 0) {
-            const batches = await Promise.all(
-              explicitQueries.map((query) =>
-                retrieveEventMemories({
-                  supabase: opts.supabase,
-                  userId: opts.userId,
-                  message: query,
-                  nowIso: nowIsoForEvents,
-                  maxResults:
-                    memoryStrategy.budget.explicitEventResultsPerQuery,
-                  requestId: opts.requestId,
-                })
-              ),
-            );
-            eventResults.push(...batches.flat());
-          }
-          if (
-            eventResults.length === 0 &&
-            memoryStrategy.fallbackSemanticEventMax > 0 &&
-            opts.message
-          ) {
-            eventResults.push(
-              ...await retrieveEventMemories({
-                supabase: opts.supabase,
-                userId: opts.userId,
-                message: opts.message,
-                nowIso: nowIsoForEvents,
-                maxResults: memoryStrategy.fallbackSemanticEventMax,
-                requestId: opts.requestId,
-              }),
-            );
-          }
-
-          const dedupedEvents = dedupeEventResults(eventResults);
-          observedEventResults = dedupedEvents;
-          await logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.event_completed",
-            payload: {
-              strategy: "memory_plan",
-              explicit_queries: explicitQueries,
-              fallback_semantic_max: memoryStrategy.fallbackSemanticEventMax,
-              now_iso: nowIsoForEvents ?? null,
-              results: summarizeEventResults(dedupedEvents),
-            },
-          });
-
-          const eventContext = formatEventMemoriesForPrompt(dedupedEvents);
-          if (eventContext) {
-            context.eventMemories = eventContext;
-            elementsLoaded.push("event_memories_planned");
-          }
-        })().catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load planned event_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-
-    if (
-      profile.global_memories && !memoryStrategy.skipAllMemory &&
-      (
-        memoryStrategy.globalThemeKeys.length > 0 ||
-        memoryStrategy.globalSubthemeKeys.length > 0 ||
-        memoryStrategy.fallbackSemanticGlobalMax > 0
-      )
-    ) {
-      attemptedLayers.global = true;
-      promises.push(
-        (async () => {
-          const explicitGlobal: GlobalMemorySearchResult[] = [];
-          if (memoryStrategy.globalSubthemeKeys.length > 0) {
-            explicitGlobal.push(
-              ...await retrieveGlobalMemoriesByFullKeys({
-                supabase: opts.supabase,
-                userId: opts.userId,
-                fullKeys: memoryStrategy.globalSubthemeKeys,
-              }),
-            );
-          }
-          if (memoryStrategy.globalThemeKeys.length > 0) {
-            explicitGlobal.push(
-              ...await retrieveGlobalMemoriesByThemes({
-                supabase: opts.supabase,
-                userId: opts.userId,
-                themes: memoryStrategy.globalThemeKeys,
-                maxResults: memoryStrategy.budget.globalThemeMax *
-                  Math.max(1, memoryStrategy.globalThemeKeys.length),
-              }),
-            );
-          }
-
-          let globalResults = dedupeGlobalResults(explicitGlobal);
-          if (
-            globalResults.length === 0 &&
-            memoryStrategy.fallbackSemanticGlobalMax > 0 &&
-            opts.message
-          ) {
-            globalResults = await retrieveGlobalMemories({
-              supabase: opts.supabase,
-              userId: opts.userId,
-              message: opts.message,
-              maxResults: memoryStrategy.fallbackSemanticGlobalMax,
-              requestId: opts.requestId,
-              scope: memoryStrategy.globalScopeFilter ?? undefined,
-              cycleId: v2RuntimeRefs.cycleId,
-              transformationId: v2RuntimeRefs.transformationId,
-            });
-          }
-
-          observedGlobalResults = globalResults;
-          await logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.global_completed",
-            payload: {
-              strategy: "memory_plan",
-              explicit_theme_keys: memoryStrategy.globalThemeKeys,
-              explicit_subtheme_keys: memoryStrategy.globalSubthemeKeys,
-              fallback_semantic_max: memoryStrategy.fallbackSemanticGlobalMax,
-              results: summarizeGlobalResults(globalResults),
-            },
-          });
-
-          const globalContext = formatGlobalMemoriesForPrompt(globalResults);
-          if (globalContext) {
-            context.globalMemories = globalContext;
-            elementsLoaded.push("global_memories_planned");
-          }
-        })().catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load planned global_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-
-    if (
-      profile.topic_memories && !memoryStrategy.skipAllMemory &&
-      (memoryStrategy.topicQueries.length > 0 ||
-        memoryStrategy.fallbackSemanticTopicMax > 0)
-    ) {
-      attemptedLayers.topic = true;
-      const topicDebug =
-        (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
-      promises.push(
-        (async () => {
-          const topicResults: TopicSearchResult[] = [];
-          const explicitQueries = memoryStrategy.topicQueries.slice(
-            0,
-            memoryStrategy.budget.explicitTopicQueriesMax,
-          );
-          if (explicitQueries.length > 0) {
-            const batches = await Promise.all(
-              explicitQueries.map((query) =>
-                retrieveTopicMemories({
-                  supabase: opts.supabase,
-                  userId: opts.userId,
-                  message: query,
-                  maxResults:
-                    memoryStrategy.budget.explicitTopicResultsPerQuery,
-                  meta: { requestId: opts.requestId },
-                  transformationId: memoryStrategy.topicFilterTransformation
-                    ? v2RuntimeRefs.transformationId
-                    : null,
-                })
-              ),
-            );
-            topicResults.push(...batches.flat());
-          }
-          if (
-            topicResults.length === 0 &&
-            memoryStrategy.fallbackSemanticTopicMax > 0 &&
-            opts.message
-          ) {
-            topicResults.push(
-              ...await retrieveTopicMemories({
-                supabase: opts.supabase,
-                userId: opts.userId,
-                message: opts.message,
-                maxResults: memoryStrategy.fallbackSemanticTopicMax,
-                meta: { requestId: opts.requestId },
-                transformationId: memoryStrategy.topicFilterTransformation
-                  ? v2RuntimeRefs.transformationId
-                  : null,
-              }),
-            );
-          }
-
-          const dedupedTopics = dedupeTopicResults(topicResults);
-          observedTopicResults = dedupedTopics;
-          await logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.topic_completed",
-            payload: {
-              strategy: "memory_plan",
-              explicit_queries: explicitQueries,
-              fallback_semantic_max: memoryStrategy.fallbackSemanticTopicMax,
-              results: summarizeTopicResults(dedupedTopics),
-            },
-          });
-          const topicContext = formatTopicMemoriesForPrompt(dedupedTopics);
-          if (topicContext) {
-            context.topicMemories = topicContext;
-            elementsLoaded.push("topic_memories_planned");
-          } else if (topicDebug) {
-            console.log(
-              JSON.stringify({
-                tag: "context_topic_memories_empty_planned",
-                mode: opts.mode,
-                user_id: opts.userId,
-                message_preview: String(opts.message ?? "").slice(0, 120),
-                topic_candidates: dedupedTopics.length,
-                explicit_queries: explicitQueries,
-                semantic_max: memoryStrategy.fallbackSemanticTopicMax,
-              }),
-            );
-          }
-        })().catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load planned topic_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-  } else {
-    // 4b. Event memories (historical semantic fallback)
-    if (profile.event_memories && opts.message) {
-      attemptedLayers.event = true;
-      promises.push(
-        retrieveEventMemories({
-          supabase: opts.supabase,
-          userId: opts.userId,
-          message: opts.message,
-          nowIso: opts.userTime?.prompt_block
-            ? String(
-              opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
-            )
-            : undefined,
-          maxResults: 2,
-          requestId: opts.requestId,
-        }).then((events) => {
-          observedEventResults = events;
-          return logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.event_completed",
-            payload: {
-              strategy: "fallback_semantic",
-              query: opts.message,
-              results: summarizeEventResults(events),
-            },
-          }).then(() => events);
-        }).then((events) => {
-          const eventContext = formatEventMemoriesForPrompt(events);
-          if (eventContext) {
-            context.eventMemories = eventContext;
-            elementsLoaded.push("event_memories");
-          }
-        }).catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load event_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-
-    // 4c. Global memories (historical semantic fallback)
-    if (profile.global_memories && opts.message) {
-      attemptedLayers.global = true;
-      promises.push(
-        retrieveGlobalMemories({
-          supabase: opts.supabase,
-          userId: opts.userId,
-          message: opts.message,
-          maxResults: 3,
-          requestId: opts.requestId,
-          scope: memoryStrategy.globalScopeFilter ?? undefined,
-          cycleId: v2RuntimeRefs.cycleId,
-          transformationId: v2RuntimeRefs.transformationId,
-        }).then((memories) => {
-          observedGlobalResults = memories;
-          return logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.global_completed",
-            payload: {
-              strategy: "fallback_semantic",
-              query: opts.message,
-              results: summarizeGlobalResults(memories),
-            },
-          }).then(() => memories);
-        }).then((memories) => {
-          const globalContext = formatGlobalMemoriesForPrompt(memories);
-          if (globalContext) {
-            context.globalMemories = globalContext;
-            elementsLoaded.push("global_memories");
-          }
-        }).catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load global_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-
-    // 4d. Topic memories (historical semantic fallback)
-    if (profile.topic_memories && opts.message) {
-      attemptedLayers.topic = true;
-      const topicMaxResultsRaw =
-        (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
-      const topicMaxResultsParsed = Number(topicMaxResultsRaw);
-      const topicMaxResults =
-        Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
-          ? Math.floor(topicMaxResultsParsed)
-          : 3;
-      const topicDebug =
-        (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
-      promises.push(
-        retrieveTopicMemories({
-          supabase: opts.supabase,
-          userId: opts.userId,
-          message: opts.message,
-          maxResults: topicMaxResults,
-          meta: { requestId: opts.requestId },
-          transformationId: memoryStrategy.topicFilterTransformation
-            ? v2RuntimeRefs.transformationId
-            : null,
-        }).then((topics) => {
-          observedTopicResults = topics;
-          return logMemoryObservabilityEvent({
-            supabase: opts.supabase,
-            userId: opts.userId,
-            requestId: opts.requestId,
-            channel: opts.channel,
-            scope: opts.scope,
-            sourceComponent: "context_loader",
-            eventName: "retrieval.topic_completed",
-            payload: {
-              strategy: "fallback_semantic",
-              query: opts.message,
-              max_results: topicMaxResults,
-              results: summarizeTopicResults(topics),
-            },
-          }).then(() => topics);
-        }).then((topics) => {
-          const topicContext = formatTopicMemoriesForPrompt(topics);
-          if (topicContext) {
-            context.topicMemories = topicContext;
-            elementsLoaded.push("topic_memories");
-          } else if (topicDebug) {
-            console.log(
-              JSON.stringify({
-                tag: "context_topic_memories_empty",
-                mode: opts.mode,
-                user_id: opts.userId,
-                message_preview: String(opts.message ?? "").slice(0, 120),
-                topic_candidates: Array.isArray(topics) ? topics.length : 0,
-                max_results: topicMaxResults,
-              }),
-            );
-          }
-        }).catch((e) => {
-          console.warn(
-            "[ContextLoader] failed to load topic_memories (non-blocking):",
-            e,
-          );
-        }),
-      );
-    }
-  }
+  // Durable memory is V2-only. Legacy event/global/topic/scope loaders are not
+  // called here; router/run.ts injects memoryV2Payload after the active loader.
 
   // Wait for plan metadata before loading dependent elements
   await Promise.all(promises);
@@ -1482,28 +939,6 @@ export async function loadContextForMode(
     if (attemptedLayers.identity && memoryStrategy.loadIdentity) {
       v2LayersLoaded.add("relational");
     }
-    if (attemptedLayers.event) v2LayersLoaded.add("event");
-    if (attemptedLayers.topic) v2LayersLoaded.add("execution");
-    if (attemptedLayers.global) {
-      const observedScopes = observedGlobalResults
-        .map((row) => row.scope)
-        .filter((scope): scope is "cycle" | "transformation" | "relational" =>
-          scope === "cycle" || scope === "transformation" ||
-          scope === "relational"
-        );
-      if (observedScopes.length > 0) {
-        for (const scope of observedScopes) v2LayersLoaded.add(scope);
-      } else if (memoryStrategy.globalScopeFilter) {
-        for (const scope of memoryStrategy.globalScopeFilter) {
-          if (
-            scope === "cycle" || scope === "transformation" ||
-            scope === "relational"
-          ) {
-            v2LayersLoaded.add(scope);
-          }
-        }
-      }
-    }
     if (
       context.shortTerm || context.planItemIndicators ||
       context.momentumBlockersAddon ||
@@ -1531,15 +966,12 @@ export async function loadContextForMode(
         }),
         events: summarizeInjectedMemoryBlock(context.eventMemories, {
           loaded: Boolean(context.eventMemories),
-          results: summarizeEventResults(observedEventResults),
         }),
         globals: summarizeInjectedMemoryBlock(context.globalMemories, {
           loaded: Boolean(context.globalMemories),
-          results: summarizeGlobalResults(observedGlobalResults),
         }),
         topics: summarizeInjectedMemoryBlock(context.topicMemories, {
           loaded: Boolean(context.topicMemories),
-          results: summarizeTopicResults(observedTopicResults),
         }),
       },
       surface_addon: summarizeInjectedMemoryBlock(
@@ -1561,8 +993,7 @@ export async function loadContextForMode(
     transformationId: v2RuntimeRefs.transformationId,
     strategy: memoryStrategy,
     layersLoaded: [...v2LayersLoaded],
-    hitCount: observedEventResults.length + observedGlobalResults.length +
-      observedTopicResults.length + (context.identity ? 1 : 0),
+    hitCount: context.identity ? 1 : 0,
   });
 
   return {

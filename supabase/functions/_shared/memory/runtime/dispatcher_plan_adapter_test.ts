@@ -27,6 +27,40 @@ Deno.test("dispatcher adapter disables durable memory for memory_mode none", () 
   assertEquals(out.budget.max_items, 0);
 });
 
+Deno.test("dispatcher adapter overrides memory none for runtime action and dated signals", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({ memory_mode: "none" }),
+    signals: detectMemorySignals("Je n'ai pas fait ma marche hier soir"),
+  });
+  assertEquals(out.enabled, true);
+  assertEquals(out.reason, "runtime_signal_override");
+  assertEquals(out.requested_scopes.includes("action"), true);
+  assertEquals(out.requested_scopes.includes("event"), true);
+  assertEquals(out.requires_topic_router, false);
+});
+
+Deno.test("dispatcher adapter overrides memory none for cross-topic profile queries", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({ memory_mode: "none" }),
+    signals: detectMemorySignals("Tu vois quoi dans mes schemas en general ?"),
+  });
+  assertEquals(out.enabled, true);
+  assertEquals(out.retrieval_mode, "cross_topic_lookup");
+  assertEquals(out.requested_scopes, ["global"]);
+  assertEquals(out.requires_topic_router, false);
+});
+
+Deno.test("dispatcher adapter overrides memory none for sensitive high-emotion turns", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({ memory_mode: "none" }),
+    signals: detectMemorySignals("Mon manager m'a humilie en reunion"),
+  });
+  assertEquals(out.enabled, true);
+  assertEquals(out.requested_scopes.includes("topic"), true);
+  assertEquals(out.requested_scopes.includes("event"), true);
+  assertEquals(out.requires_topic_router, true);
+});
+
 Deno.test("dispatcher adapter maps targeted topic and event scopes", () => {
   const out = buildMemoryV2LoaderPlan({
     memory_plan: plan({

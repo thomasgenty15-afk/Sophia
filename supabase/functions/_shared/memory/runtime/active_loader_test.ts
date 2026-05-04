@@ -92,7 +92,7 @@ const targetedTopicPlan = {
   plan_confidence: 0.9,
 };
 
-Deno.test("memory V2 rollout bucket is deterministic and gates users", () => {
+Deno.test("memory V2 loader is V2-only and ignores rollout canary", () => {
   assertEquals(memoryV2RolloutBucket("u1"), memoryV2RolloutBucket("u1"));
   assertEquals(
     isMemoryV2LoaderActiveForUser({
@@ -116,7 +116,7 @@ Deno.test("memory V2 rollout bucket is deterministic and gates users", () => {
       loader_enabled: true,
       rollout_percent: 0,
     }),
-    false,
+    true,
   );
 });
 
@@ -191,6 +191,7 @@ Deno.test("prompt formatter hides ids and exposes usable memory", () => {
       sensitive_excluded_count: 0,
       invalid_injection_simulated_count: 0,
       fallback_used: false,
+      cross_topic_cache_hit: false,
     },
   });
   assertEquals(block.includes("item-secret"), false);

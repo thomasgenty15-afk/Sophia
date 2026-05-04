@@ -22,15 +22,17 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--user-id") out.userId = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--scope") out.scope = String(argv[++i] ?? "").trim() || "whatsapp";
-    else if (a === "--scope-all") out.scopeAll = true;
+    else if (a === "--scope") {
+      out.scope = String(argv[++i] ?? "").trim() || "whatsapp";
+    } else if (a === "--scope-all") out.scopeAll = true;
     else if (a === "--from") out.from = String(argv[++i] ?? "").trim() || null;
     else if (a === "--to") out.to = String(argv[++i] ?? "").trim() || null;
     else if (a === "--hours") {
       const hours = Number(argv[++i] ?? "");
       out.hours = Number.isFinite(hours) && hours > 0 ? hours : 72;
-    } else if (a === "--out") out.outFile = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--help" || a === "-h") out.help = true;
+    } else if (a === "--out") {
+      out.outFile = String(argv[++i] ?? "").trim() || null;
+    } else if (a === "--help" || a === "-h") out.help = true;
   }
 
   return out;
@@ -54,7 +56,8 @@ function toIsoOrNull(value) {
 // ---------------------------------------------------------------------------
 
 function getLocalSupabaseStatus(repoRoot) {
-  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "supabase").trim();
+  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "supabase")
+    .trim();
   const raw = execSync(`${supabaseCli} status --output json`, {
     encoding: "utf8",
     cwd: repoRoot,
@@ -65,7 +68,8 @@ function getLocalSupabaseStatus(repoRoot) {
 function getSupabaseConnection(repoRoot) {
   const envUrl = String(process.env.SUPABASE_URL ?? "").trim();
   const envService = String(
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ??
+      "",
   ).trim();
 
   if (envUrl) {
@@ -95,8 +99,14 @@ function compactTs(iso) {
   const dt = new Date(iso);
   if (!Number.isFinite(dt.getTime())) return "unknown";
   return [
-    dt.getUTCFullYear(), pad2(dt.getUTCMonth() + 1), pad2(dt.getUTCDate()),
-    "T", pad2(dt.getUTCHours()), pad2(dt.getUTCMinutes()), pad2(dt.getUTCSeconds()), "Z",
+    dt.getUTCFullYear(),
+    pad2(dt.getUTCMonth() + 1),
+    pad2(dt.getUTCDate()),
+    "T",
+    pad2(dt.getUTCHours()),
+    pad2(dt.getUTCMinutes()),
+    pad2(dt.getUTCSeconds()),
+    "Z",
   ].join("");
 }
 
@@ -114,7 +124,9 @@ async function supabaseGet(baseUrl, serviceKey, tablePath) {
     },
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`GET ${tablePath} → ${res.status}: ${text.slice(0, 800)}`);
+  if (!res.ok) {
+    throw new Error(`GET ${tablePath} → ${res.status}: ${text.slice(0, 800)}`);
+  }
   return JSON.parse(text);
 }
 
@@ -122,10 +134,20 @@ async function supabaseGet(baseUrl, serviceKey, tablePath) {
 // Data loaders
 // ---------------------------------------------------------------------------
 
-async function loadMessages(baseUrl, serviceKey, userId, fromIso, toIso, scope) {
+async function loadMessages(
+  baseUrl,
+  serviceKey,
+  userId,
+  fromIso,
+  toIso,
+  scope,
+) {
   const scopeFilter = scope ? `&scope=eq.${scope}` : "";
-  return supabaseGet(baseUrl, serviceKey,
-    `chat_messages?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}${scopeFilter}&select=id,role,content,scope,created_at,metadata&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `chat_messages?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}${scopeFilter}&select=id,role,content,scope,created_at,metadata&order=created_at.asc`,
+  );
 }
 
 const MEMORY_V2_EVENT_TYPES = [
@@ -134,30 +156,51 @@ const MEMORY_V2_EVENT_TYPES = [
   "memory_handoff_v2",
 ];
 
-async function loadMemorySnapshots(baseUrl, serviceKey, userId, fromIso, toIso) {
+async function loadMemorySnapshots(
+  baseUrl,
+  serviceKey,
+  userId,
+  fromIso,
+  toIso,
+) {
   const typeFilter = MEMORY_V2_EVENT_TYPES.map((t) => `"${t}"`).join(",");
-  return supabaseGet(baseUrl, serviceKey,
-    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=in.(${typeFilter})&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,snapshot_type,payload,created_at&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=in.(${typeFilter})&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,snapshot_type,payload,created_at&order=created_at.asc`,
+  );
 }
 
 async function loadGlobalMemories(baseUrl, serviceKey, userId) {
-  return supabaseGet(baseUrl, serviceKey,
-    `user_global_memories?user_id=eq.${userId}&select=id,full_key,theme,subtheme_key,canonical_summary,status,scope,cycle_id,transformation_id,mention_count,confidence,last_observed_at,created_at,updated_at,metadata&order=updated_at.desc&limit=200`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `memory_items?user_id=eq.${userId}&status=eq.active&select=id,kind,content_text,normalized_summary,domain_keys,status,confidence,importance_score,observed_at,created_at,updated_at,metadata&order=updated_at.desc&limit=200`,
+  );
 }
 
 async function loadTopicMemories(baseUrl, serviceKey, userId) {
-  return supabaseGet(baseUrl, serviceKey,
-    `user_topic_memories?user_id=eq.${userId}&select=id,slug,title,synthesis,status,metadata,last_enriched_at,created_at,updated_at&order=updated_at.desc&limit=200`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `user_topic_memories?user_id=eq.${userId}&select=id,slug,title,search_doc,lifecycle_stage,metadata,last_compacted_at,created_at,updated_at&order=updated_at.desc&limit=200`,
+  );
 }
 
 async function loadEventMemories(baseUrl, serviceKey, userId, fromIso, toIso) {
-  return supabaseGet(baseUrl, serviceKey,
-    `user_event_memories?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,event_key,title,summary,event_type,starts_at,ends_at,relevance_until,status,confidence,metadata,created_at,updated_at&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `memory_items?user_id=eq.${userId}&kind=eq.event&observed_at=gte.${fromIso}&observed_at=lte.${toIso}&select=id,content_text,normalized_summary,domain_keys,status,confidence,event_start_at,event_end_at,observed_at,created_at,updated_at,metadata&order=observed_at.asc`,
+  );
 }
 
 async function loadCoreIdentity(baseUrl, serviceKey, userId) {
-  return supabaseGet(baseUrl, serviceKey,
-    `user_core_identity?user_id=eq.${userId}&select=*&limit=1`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `user_core_identity?user_id=eq.${userId}&select=*&limit=1`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -218,23 +261,25 @@ function buildHandoffEvents(snapshots) {
 function buildMemorySnapshot(globals, topics, events, identity) {
   const globalsByScope = {};
   for (const g of globals) {
-    const scope = g.scope ?? "transformation";
+    const scope = Array.isArray(g.domain_keys) && g.domain_keys.length > 0
+      ? g.domain_keys[0].split(".")[0]
+      : "global";
     if (!globalsByScope[scope]) globalsByScope[scope] = [];
     globalsByScope[scope].push({
       id: g.id,
-      full_key: g.full_key,
-      theme: g.theme,
-      subtheme_key: g.subtheme_key,
-      sub_theme: g.subtheme_key,
-      canonical_summary: g.canonical_summary,
-      value: g.canonical_summary,
+      full_key: Array.isArray(g.domain_keys) ? g.domain_keys.join(",") : null,
+      theme: scope,
+      subtheme_key: Array.isArray(g.domain_keys) ? g.domain_keys[0] : null,
+      sub_theme: Array.isArray(g.domain_keys) ? g.domain_keys[0] : null,
+      canonical_summary: g.normalized_summary ?? g.content_text,
+      value: g.normalized_summary ?? g.content_text,
       status: g.status ?? null,
-      scope: g.scope,
-      cycle_id: g.cycle_id,
-      transformation_id: g.transformation_id,
-      mention_count: g.mention_count ?? null,
+      scope,
+      cycle_id: g.metadata?.cycle_id ?? null,
+      transformation_id: g.metadata?.transformation_id ?? null,
+      mention_count: null,
       confidence: g.confidence ?? null,
-      last_observed_at: g.last_observed_at ?? null,
+      last_observed_at: g.observed_at ?? null,
       updated_at: g.updated_at,
     });
   }
@@ -248,23 +293,23 @@ function buildMemorySnapshot(globals, topics, events, identity) {
       slug: t.slug,
       topic: t.slug,
       title: t.title,
-      synthesis: t.synthesis,
-      summary: t.synthesis,
-      status: t.status ?? null,
-      last_enriched_at: t.last_enriched_at ?? null,
+      search_doc: t.search_doc,
+      summary: t.search_doc,
+      status: t.lifecycle_stage ?? null,
+      last_enriched_at: t.last_compacted_at ?? null,
       updated_at: t.updated_at,
     })),
     events_in_window: events.length,
     events: events.slice(0, 50).map((e) => ({
       id: e.id,
-      event_key: e.event_key,
-      title: e.title,
-      summary: e.summary,
-      event_type: e.event_type,
-      starts_at: e.starts_at ?? null,
-      ends_at: e.ends_at ?? null,
-      relevance_until: e.relevance_until ?? null,
-      event_date: e.starts_at ?? e.relevance_until ?? e.created_at,
+      event_key: e.metadata?.event_key ?? e.id,
+      title: e.normalized_summary ?? e.content_text,
+      summary: e.normalized_summary ?? e.content_text,
+      event_type: e.metadata?.event_type ?? "memory_item_event",
+      starts_at: e.event_start_at ?? null,
+      ends_at: e.event_end_at ?? null,
+      relevance_until: e.metadata?.relevance_until ?? null,
+      event_date: e.event_start_at ?? e.observed_at ?? e.created_at,
       status: e.status ?? null,
       confidence: e.confidence ?? null,
       metadata: e.metadata ?? {},
@@ -280,7 +325,13 @@ function buildMemorySnapshot(globals, topics, events, identity) {
 // Scorecard
 // ---------------------------------------------------------------------------
 
-function computeScorecard(retrievalByIntent, persistenceEvents, handoffEvents, globals, messages) {
+function computeScorecard(
+  retrievalByIntent,
+  persistenceEvents,
+  handoffEvents,
+  globals,
+  messages,
+) {
   const intentDistribution = {};
   let totalTokens = 0;
   let totalHits = 0;
@@ -309,8 +360,13 @@ function computeScorecard(retrievalByIntent, persistenceEvents, handoffEvents, g
   const scopeDistribution = {};
 
   for (const p of persistenceEvents) {
-    if (p.action) actionDistribution[p.action] = (actionDistribution[p.action] ?? 0) + 1;
-    if (p.layer) layerPersistDistribution[p.layer] = (layerPersistDistribution[p.layer] ?? 0) + 1;
+    if (p.action) {
+      actionDistribution[p.action] = (actionDistribution[p.action] ?? 0) + 1;
+    }
+    if (p.layer) {
+      layerPersistDistribution[p.layer] =
+        (layerPersistDistribution[p.layer] ?? 0) + 1;
+    }
   }
 
   for (const g of globals) {
@@ -328,28 +384,44 @@ function computeScorecard(retrievalByIntent, persistenceEvents, handoffEvents, g
 
   const handoffCount = handoffEvents.length;
   const handoffVolume = handoffEvents.reduce(
-    (acc, h) => acc + h.wins_count + h.supports_kept_count, 0,
+    (acc, h) => acc + h.wins_count + h.supports_kept_count,
+    0,
   );
 
   const alerts = [];
 
   for (const r of retrievalByIntent) {
     if (r.intent === "daily_bilan" && r.layers_loaded.length > 4) {
-      alerts.push(`budget_overrun_layers: daily_bilan loaded ${r.layers_loaded.length} layers at ${r.at}`);
+      alerts.push(
+        `budget_overrun_layers: daily_bilan loaded ${r.layers_loaded.length} layers at ${r.at}`,
+      );
     }
     if (r.intent === "nudge_decision" && r.tokens_used > 1500) {
-      alerts.push(`budget_overrun_tokens: nudge_decision used ${r.tokens_used} tokens at ${r.at}`);
+      alerts.push(
+        `budget_overrun_tokens: nudge_decision used ${r.tokens_used} tokens at ${r.at}`,
+      );
     }
   }
 
-  const layersNeverLoaded = ["cycle", "transformation", "execution", "coaching", "relational", "event"]
+  const layersNeverLoaded = [
+    "cycle",
+    "transformation",
+    "execution",
+    "coaching",
+    "relational",
+    "event",
+  ]
     .filter((l) => !layerLoadDistribution[l]);
   if (layersNeverLoaded.length > 0) {
     alerts.push(`layer_never_loaded: ${layersNeverLoaded.join(", ")}`);
   }
 
   if (noopCount > 0 && noopCount > createCount + enrichCount) {
-    alerts.push(`high_noop_rate: ${noopCount} noop vs ${createCount + enrichCount} meaningful writes`);
+    alerts.push(
+      `high_noop_rate: ${noopCount} noop vs ${
+        createCount + enrichCount
+      } meaningful writes`,
+    );
   }
 
   return {
@@ -462,26 +534,53 @@ async function main() {
 
   const connection = getSupabaseConnection(repoRoot);
   if (!connection.serviceKey) {
-    throw new Error("Missing service key. Set SUPABASE_SERVICE_ROLE_KEY or use local supabase.");
+    throw new Error(
+      "Missing service key. Set SUPABASE_SERVICE_ROLE_KEY or use local supabase.",
+    );
   }
 
   const baseUrl = connection.url.replace(/\/+$/, "");
   const now = new Date().toISOString();
-  const fromIso = toIsoOrNull(args.from) ?? new Date(Date.now() - args.hours * 3600 * 1000).toISOString();
+  const fromIso = toIsoOrNull(args.from) ??
+    new Date(Date.now() - args.hours * 3600 * 1000).toISOString();
   const toIso = toIsoOrNull(args.to) ?? now;
   const effectiveScope = args.scopeAll ? null : args.scope;
 
   console.error(`Connecting to ${baseUrl} (${connection.source})…`);
-  console.error(`Loading memory V2 audit for user=${args.userId.slice(0, 8)}… window=${args.hours}h scope=${effectiveScope ?? "all"}`);
+  console.error(
+    `Loading memory V2 audit for user=${
+      args.userId.slice(0, 8)
+    }… window=${args.hours}h scope=${effectiveScope ?? "all"}`,
+  );
 
-  const [messages, memorySnapshots, globals, topics, events, identity] = await Promise.all([
-    loadMessages(baseUrl, connection.serviceKey, args.userId, fromIso, toIso, effectiveScope),
-    loadMemorySnapshots(baseUrl, connection.serviceKey, args.userId, fromIso, toIso),
-    loadGlobalMemories(baseUrl, connection.serviceKey, args.userId),
-    loadTopicMemories(baseUrl, connection.serviceKey, args.userId),
-    loadEventMemories(baseUrl, connection.serviceKey, args.userId, fromIso, toIso),
-    loadCoreIdentity(baseUrl, connection.serviceKey, args.userId),
-  ]);
+  const [messages, memorySnapshots, globals, topics, events, identity] =
+    await Promise.all([
+      loadMessages(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+        effectiveScope,
+      ),
+      loadMemorySnapshots(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+      ),
+      loadGlobalMemories(baseUrl, connection.serviceKey, args.userId),
+      loadTopicMemories(baseUrl, connection.serviceKey, args.userId),
+      loadEventMemories(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+      ),
+      loadCoreIdentity(baseUrl, connection.serviceKey, args.userId),
+    ]);
 
   const retrievalByIntent = buildRetrievalByIntent(memorySnapshots);
   const persistenceEvents = buildPersistenceEvents(memorySnapshots);
@@ -489,7 +588,7 @@ async function main() {
   const memorySnapshot = buildMemorySnapshot(globals, topics, events, identity);
 
   const unassignedEvents = memorySnapshots.filter((s) =>
-    !MEMORY_V2_EVENT_TYPES.includes(s.snapshot_type),
+    !MEMORY_V2_EVENT_TYPES.includes(s.snapshot_type)
   ).map((s) => ({
     at: s.created_at,
     type: s.snapshot_type,
@@ -497,10 +596,16 @@ async function main() {
   }));
 
   const userMessages = messages.filter((m) => m.role === "user").length;
-  const assistantMessages = messages.filter((m) => m.role === "assistant").length;
+  const assistantMessages =
+    messages.filter((m) => m.role === "assistant").length;
 
   const trace = {
-    window: { from: fromIso, to: toIso, scope: effectiveScope, hours: args.hours },
+    window: {
+      from: fromIso,
+      to: toIso,
+      scope: effectiveScope,
+      hours: args.hours,
+    },
     summary: {
       messages_total: messages.length,
       user_messages: userMessages,
@@ -518,7 +623,11 @@ async function main() {
   };
 
   const scorecard = computeScorecard(
-    retrievalByIntent, persistenceEvents, handoffEvents, globals, messages,
+    retrievalByIntent,
+    persistenceEvents,
+    handoffEvents,
+    globals,
+    messages,
   );
 
   const bundle = {
@@ -542,9 +651,13 @@ async function main() {
   const scopeLabel = effectiveScope ?? "all";
   const defaultOutFile = path.join(
     outDir,
-    `memory_v2_audit_${args.userId.slice(0, 8)}_${scopeLabel}_${compactTs(fromIso)}_${compactTs(toIso)}.json`,
+    `memory_v2_audit_${args.userId.slice(0, 8)}_${scopeLabel}_${
+      compactTs(fromIso)
+    }_${compactTs(toIso)}.json`,
   );
-  const outFile = args.outFile ? path.resolve(repoRoot, args.outFile) : defaultOutFile;
+  const outFile = args.outFile
+    ? path.resolve(repoRoot, args.outFile)
+    : defaultOutFile;
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
   const transcriptPath = outFile.replace(/\.json$/i, ".transcript.txt");
@@ -552,26 +665,30 @@ async function main() {
   fs.writeFileSync(outFile, JSON.stringify(bundle, null, 2), "utf8");
   transcriptWrite(transcriptPath, messages);
 
-  console.log(JSON.stringify({
-    ok: true,
-    out: outFile,
-    transcript: transcriptPath,
-    window: { from: fromIso, to: toIso, scope: effectiveScope },
-    counts: {
-      messages: messages.length,
-      retrievals: retrievalByIntent.length,
-      persisted: persistenceEvents.length,
-      handoffs: handoffEvents.length,
-      globals: globals.length,
-      topics: topics.length,
-      events: events.length,
+  console.log(JSON.stringify(
+    {
+      ok: true,
+      out: outFile,
+      transcript: transcriptPath,
+      window: { from: fromIso, to: toIso, scope: effectiveScope },
+      counts: {
+        messages: messages.length,
+        retrievals: retrievalByIntent.length,
+        persisted: persistenceEvents.length,
+        handoffs: handoffEvents.length,
+        globals: globals.length,
+        topics: topics.length,
+        events: events.length,
+      },
+      scorecard_summary: {
+        retrieval: scorecard.retrieval,
+        tagging: scorecard.tagging,
+        alerts: scorecard.alerts,
+      },
     },
-    scorecard_summary: {
-      retrieval: scorecard.retrieval,
-      tagging: scorecard.tagging,
-      alerts: scorecard.alerts,
-    },
-  }, null, 2));
+    null,
+    2,
+  ));
 }
 
 main().catch((error) => {

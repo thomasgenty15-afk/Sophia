@@ -41,6 +41,25 @@ Deno.test("loader helpers map domain keys and rerank cross-topic items", () => {
   assertEquals(items[0].id, "b");
 });
 
+Deno.test("global profile prompts map to domain keys without LLM fallback", () => {
+  const cases = [
+    ["Tu vois quoi dans ma psychologie ?", "psychologie.emotions"],
+    ["Qu'est-ce que tu sais de mon rapport au travail ?", "travail.conflits"],
+    ["Comment tu vois mes relations familiales ?", "relations.famille"],
+    [
+      "Mes habitudes, ma discipline, ma procrastination : tu vois quoi ?",
+      "habitudes.procrastination",
+    ],
+    [
+      "Quel est mon probleme principal d'apres toi ?",
+      "objectifs.transformation",
+    ],
+  ] as const;
+  for (const [prompt, expected] of cases) {
+    assertEquals(mapTextToDomainKeys(prompt).includes(expected), true);
+  }
+});
+
 Deno.test("loader enforces active-only payload and sensitivity policy", () => {
   assertThrows(
     () =>

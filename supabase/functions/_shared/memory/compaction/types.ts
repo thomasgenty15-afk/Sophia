@@ -1,6 +1,7 @@
 import type { MemoryItemKind, SensitivityLevel } from "../types.v1.ts";
 
-export const TOPIC_COMPACTION_PROMPT_VERSION = "memory.compaction.topic.v1";
+export const TOPIC_COMPACTION_PROMPT_VERSION =
+  "memory.compaction.topic.v2_only";
 export const TOPIC_COMPACTION_MODEL_DEFAULT = "gemini-3-flash-preview";
 
 export interface TopicCompactionTopic {
@@ -8,7 +9,6 @@ export interface TopicCompactionTopic {
   user_id: string;
   title: string;
   slug?: string | null;
-  synthesis?: string | null;
   search_doc?: string | null;
   summary_version?: number | null;
   search_doc_version?: number | null;
@@ -40,7 +40,7 @@ export interface TopicCompactionClaim {
 }
 
 export interface TopicCompactionOutput {
-  synthesis: string;
+  synthesis?: string;
   search_doc: string;
   claims: TopicCompactionClaim[];
   supporting_item_ids: string[];

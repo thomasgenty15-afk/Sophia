@@ -46,6 +46,7 @@ Deno.test("Memory V2 ops scorecard aggregates runtime, memorizer, compaction and
         proposed_item_count: 3,
         accepted_item_count: 2,
         rejected_item_count: 1,
+        pre_filter_skip_count: 1,
         statement_as_fact_violation_count: 1,
         cost: { eur: 0.02 },
       },
@@ -66,8 +67,10 @@ Deno.test("Memory V2 ops scorecard aggregates runtime, memorizer, compaction and
   assertEquals(scorecard.runtime.cross_topic_fallback_rate, 1);
   assertEquals(scorecard.privacy.invalid_injection_count, 1);
   assertEquals(scorecard.memorizer.statement_as_fact_violation_count, 1);
+  assertEquals(scorecard.memorizer.pre_filter_skip_count, 1);
   assertEquals(scorecard.compaction.unsupported_claim_rate, 1);
   assertEquals(scorecard.cost.observed_cost_eur, 0.02);
+  assertEquals(scorecard.cost.total_cost_per_user_day_p95, 9.6);
   assertEquals(
     scorecard.alerts.map((alert) => alert.key),
     [
@@ -76,6 +79,7 @@ Deno.test("Memory V2 ops scorecard aggregates runtime, memorizer, compaction and
       "deleted_item_in_payload",
       "compaction_unsupported_claim_rate",
       "memory_none_item_count",
+      "cost_per_user_day_p95",
     ],
   );
 });

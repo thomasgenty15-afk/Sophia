@@ -38,14 +38,12 @@ type ChatMessageRow = {
 
 type EventMemoryRow = {
   id: string;
-  title: string;
-  summary: string | null;
-  event_type: string | null;
-  starts_at: string | null;
-  relevance_until: string | null;
+  content_text: string;
+  normalized_summary: string | null;
+  event_start_at: string | null;
+  event_end_at: string | null;
+  metadata: Record<string, unknown> | null;
   status: string | null;
-  confidence: number | null;
-  updated_at?: string | null;
   created_at?: string | null;
 };
 
@@ -91,7 +89,7 @@ function compactText(value: unknown, maxLen = 160): string {
 }
 
 function eventDateLabel(row: EventMemoryRow): string {
-  const startsAt = String(row.starts_at ?? "").trim();
+  const startsAt = String(row.event_start_at ?? "").trim();
   if (startsAt) {
     const ms = parseIsoMs(startsAt);
     if (ms != null) {
@@ -109,11 +107,14 @@ function summarizeEventMemoryRow(
   row: EventMemoryRow,
 ): EventMemorySummary | null {
   const id = String(row.id ?? "").trim();
-  const title = compactText(row.title, 80);
+  const title = compactText(row.content_text, 80);
   if (!id || !title) return null;
 
   const relevance = compactText(
-    row.summary || row.event_type || row.status || "Événement proche",
+    row.normalized_summary ||
+      String(row.metadata?.event_type ?? "") ||
+      row.status ||
+      "Événement proche",
     120,
   );
   return {
@@ -312,25 +313,25 @@ async function loadNearbyEventMemories(args: {
   ).toISOString();
 
   const { data, error } = await args.supabase
-    .from("user_event_memories")
+    .from("memory_items")
     .select(
-      "id, title, summary, event_type, starts_at, relevance_until, status, confidence, updated_at, created_at",
+      "id, content_text, normalized_summary, event_start_at, event_end_at, metadata, status, created_at",
     )
     .eq("user_id", args.userId)
-    .in("status", ["upcoming", "active", "recently_past"] as any)
+    .eq("status", "active")
+    .eq("kind", "event")
     .or(
-      `starts_at.is.null,starts_at.lte.${upcomingWindowIso}`,
+      `event_start_at.is.null,event_start_at.lte.${upcomingWindowIso}`,
     )
-    .order("starts_at", { ascending: true, nullsFirst: false })
-    .order("confidence", { ascending: false })
+    .order("event_start_at", { ascending: true, nullsFirst: false })
     .limit(6);
 
   if (error) throw error;
 
   return ((data as EventMemoryRow[] | null) ?? [])
     .filter((row) => {
-      const startsAtMs = parseIsoMs(row.starts_at);
-      const relevanceUntilMs = parseIsoMs(row.relevance_until);
+      const startsAtMs = parseIsoMs(row.event_start_at);
+      const relevanceUntilMs = parseIsoMs(row.event_end_at);
       const recentWindowMs = parseIsoMs(recentWindowIso) ?? 0;
       if (startsAtMs != null && startsAtMs >= recentWindowMs) return true;
       if (relevanceUntilMs != null && relevanceUntilMs >= recentWindowMs) {

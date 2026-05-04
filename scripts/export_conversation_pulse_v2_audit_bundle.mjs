@@ -22,15 +22,17 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--user-id") out.userId = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--scope") out.scope = String(argv[++i] ?? "").trim() || "whatsapp";
-    else if (a === "--scope-all") out.scopeAll = true;
+    else if (a === "--scope") {
+      out.scope = String(argv[++i] ?? "").trim() || "whatsapp";
+    } else if (a === "--scope-all") out.scopeAll = true;
     else if (a === "--from") out.from = String(argv[++i] ?? "").trim() || null;
     else if (a === "--to") out.to = String(argv[++i] ?? "").trim() || null;
     else if (a === "--hours") {
       const hours = Number(argv[++i] ?? "");
       out.hours = Number.isFinite(hours) && hours > 0 ? hours : 168;
-    } else if (a === "--out") out.outFile = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--help" || a === "-h") out.help = true;
+    } else if (a === "--out") {
+      out.outFile = String(argv[++i] ?? "").trim() || null;
+    } else if (a === "--help" || a === "-h") out.help = true;
   }
 
   return out;
@@ -54,7 +56,8 @@ function toIsoOrNull(value) {
 // ---------------------------------------------------------------------------
 
 function getLocalSupabaseStatus(repoRoot) {
-  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "supabase").trim();
+  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "supabase")
+    .trim();
   const raw = execSync(`${supabaseCli} status --output json`, {
     encoding: "utf8",
     cwd: repoRoot,
@@ -65,7 +68,8 @@ function getLocalSupabaseStatus(repoRoot) {
 function getSupabaseConnection(repoRoot) {
   const envUrl = String(process.env.SUPABASE_URL ?? "").trim();
   const envService = String(
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ?? "",
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_KEY ??
+      "",
   ).trim();
 
   if (envUrl) {
@@ -95,8 +99,14 @@ function compactTs(iso) {
   const dt = new Date(iso);
   if (!Number.isFinite(dt.getTime())) return "unknown";
   return [
-    dt.getUTCFullYear(), pad2(dt.getUTCMonth() + 1), pad2(dt.getUTCDate()),
-    "T", pad2(dt.getUTCHours()), pad2(dt.getUTCMinutes()), pad2(dt.getUTCSeconds()), "Z",
+    dt.getUTCFullYear(),
+    pad2(dt.getUTCMonth() + 1),
+    pad2(dt.getUTCDate()),
+    "T",
+    pad2(dt.getUTCHours()),
+    pad2(dt.getUTCMinutes()),
+    pad2(dt.getUTCSeconds()),
+    "Z",
   ].join("");
 }
 
@@ -114,7 +124,9 @@ async function supabaseGet(baseUrl, serviceKey, tablePath) {
     },
   });
   const text = await res.text();
-  if (!res.ok) throw new Error(`GET ${tablePath} → ${res.status}: ${text.slice(0, 800)}`);
+  if (!res.ok) {
+    throw new Error(`GET ${tablePath} → ${res.status}: ${text.slice(0, 800)}`);
+  }
   return JSON.parse(text);
 }
 
@@ -122,15 +134,28 @@ async function supabaseGet(baseUrl, serviceKey, tablePath) {
 // Data loaders
 // ---------------------------------------------------------------------------
 
-async function loadMessages(baseUrl, serviceKey, userId, fromIso, toIso, scope) {
+async function loadMessages(
+  baseUrl,
+  serviceKey,
+  userId,
+  fromIso,
+  toIso,
+  scope,
+) {
   const scopeFilter = scope ? `&scope=eq.${scope}` : "";
-  return supabaseGet(baseUrl, serviceKey,
-    `chat_messages?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}${scopeFilter}&select=id,role,content,scope,created_at,metadata&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `chat_messages?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}${scopeFilter}&select=id,role,content,scope,created_at,metadata&order=created_at.asc`,
+  );
 }
 
 async function loadPulseSnapshots(baseUrl, serviceKey, userId, fromIso, toIso) {
-  return supabaseGet(baseUrl, serviceKey,
-    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=eq.conversation_pulse&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,payload,created_at&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=eq.conversation_pulse&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,payload,created_at&order=created_at.asc`,
+  );
 }
 
 const PULSE_EVENT_TYPES = [
@@ -142,15 +167,27 @@ const PULSE_EVENT_TYPES = [
   "momentum_state_updated_v2",
 ];
 
-async function loadRelatedSnapshots(baseUrl, serviceKey, userId, fromIso, toIso) {
+async function loadRelatedSnapshots(
+  baseUrl,
+  serviceKey,
+  userId,
+  fromIso,
+  toIso,
+) {
   const typeFilter = PULSE_EVENT_TYPES.map((t) => `"${t}"`).join(",");
-  return supabaseGet(baseUrl, serviceKey,
-    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=in.(${typeFilter})&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,snapshot_type,payload,created_at&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `system_runtime_snapshots?user_id=eq.${userId}&snapshot_type=in.(${typeFilter})&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,snapshot_type,payload,created_at&order=created_at.asc`,
+  );
 }
 
 async function loadEventMemories(baseUrl, serviceKey, userId, fromIso, toIso) {
-  return supabaseGet(baseUrl, serviceKey,
-    `user_event_memories?user_id=eq.${userId}&created_at=gte.${fromIso}&created_at=lte.${toIso}&select=id,event_key,title,summary,event_type,starts_at,ends_at,relevance_until,status,confidence,metadata,created_at,updated_at&order=created_at.asc`);
+  return supabaseGet(
+    baseUrl,
+    serviceKey,
+    `memory_items?user_id=eq.${userId}&kind=eq.event&observed_at=gte.${fromIso}&observed_at=lte.${toIso}&select=id,content_text,normalized_summary,domain_keys,status,confidence,event_start_at,event_end_at,observed_at,created_at,updated_at,metadata&order=observed_at.asc`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -190,14 +227,15 @@ function flattenPulseOutput(pulse) {
 function normalizeEventMemory(eventMemory) {
   return {
     id: eventMemory.id,
-    event_key: eventMemory.event_key,
-    title: eventMemory.title,
-    summary: eventMemory.summary,
-    event_type: eventMemory.event_type,
-    starts_at: eventMemory.starts_at ?? null,
-    ends_at: eventMemory.ends_at ?? null,
-    relevance_until: eventMemory.relevance_until ?? null,
-    event_date: eventMemory.starts_at ?? eventMemory.relevance_until ?? eventMemory.created_at,
+    event_key: eventMemory.metadata?.event_key ?? eventMemory.id,
+    title: eventMemory.normalized_summary ?? eventMemory.content_text,
+    summary: eventMemory.normalized_summary ?? eventMemory.content_text,
+    event_type: eventMemory.metadata?.event_type ?? "memory_item_event",
+    starts_at: eventMemory.event_start_at ?? null,
+    ends_at: eventMemory.event_end_at ?? null,
+    relevance_until: eventMemory.metadata?.relevance_until ?? null,
+    event_date: eventMemory.event_start_at ?? eventMemory.observed_at ??
+      eventMemory.created_at,
     status: eventMemory.status ?? null,
     confidence: eventMemory.confidence ?? null,
     metadata: eventMemory.metadata ?? {},
@@ -274,7 +312,9 @@ function buildDownstreamUsage(pulseSnapshots, relatedSnapshots) {
     "proactive_window_decided_v2",
   ]);
 
-  const consumers = relatedSnapshots.filter((s) => downstreamTypes.has(s.snapshot_type));
+  const consumers = relatedSnapshots.filter((s) =>
+    downstreamTypes.has(s.snapshot_type)
+  );
 
   return consumers.map((c) => {
     const consumerTime = new Date(c.created_at).getTime();
@@ -328,7 +368,13 @@ function buildRegenerationWasted(pulseSnapshots) {
 // Scorecard
 // ---------------------------------------------------------------------------
 
-function computeScorecard(pulseGenerations, downstreamUsage, freshnessViolations, regenerationWasted, relatedSnapshots) {
+function computeScorecard(
+  pulseGenerations,
+  downstreamUsage,
+  freshnessViolations,
+  regenerationWasted,
+  relatedSnapshots,
+) {
   const toneDistribution = {};
   const trajectoryDistribution = {};
   const likelyNeedDistribution = {};
@@ -336,10 +382,22 @@ function computeScorecard(pulseGenerations, downstreamUsage, freshnessViolations
 
   for (const p of pulseGenerations) {
     const out = p.output;
-    if (out.tone_dominant) toneDistribution[out.tone_dominant] = (toneDistribution[out.tone_dominant] ?? 0) + 1;
-    if (out.direction) trajectoryDistribution[out.direction] = (trajectoryDistribution[out.direction] ?? 0) + 1;
-    if (out.likely_need) likelyNeedDistribution[out.likely_need] = (likelyNeedDistribution[out.likely_need] ?? 0) + 1;
-    if (out.confidence) confidenceDistribution[out.confidence] = (confidenceDistribution[out.confidence] ?? 0) + 1;
+    if (out.tone_dominant) {
+      toneDistribution[out.tone_dominant] =
+        (toneDistribution[out.tone_dominant] ?? 0) + 1;
+    }
+    if (out.direction) {
+      trajectoryDistribution[out.direction] =
+        (trajectoryDistribution[out.direction] ?? 0) + 1;
+    }
+    if (out.likely_need) {
+      likelyNeedDistribution[out.likely_need] =
+        (likelyNeedDistribution[out.likely_need] ?? 0) + 1;
+    }
+    if (out.confidence) {
+      confidenceDistribution[out.confidence] =
+        (confidenceDistribution[out.confidence] ?? 0) + 1;
+    }
   }
 
   const tokenCosts = pulseGenerations
@@ -353,12 +411,14 @@ function computeScorecard(pulseGenerations, downstreamUsage, freshnessViolations
     .map((u) => u.pulse_age_hours)
     .filter((a) => a != null);
   const avgFreshness = readAges.length > 0
-    ? Math.round((readAges.reduce((a, b) => a + b, 0) / readAges.length) * 10) / 10
+    ? Math.round((readAges.reduce((a, b) => a + b, 0) / readAges.length) * 10) /
+      10
     : null;
 
   const downstreamReadCount = {};
   for (const u of downstreamUsage) {
-    downstreamReadCount[u.consumer] = (downstreamReadCount[u.consumer] ?? 0) + 1;
+    downstreamReadCount[u.consumer] = (downstreamReadCount[u.consumer] ?? 0) +
+      1;
   }
 
   const momentumStates = relatedSnapshots
@@ -406,7 +466,9 @@ function computeScorecard(pulseGenerations, downstreamUsage, freshnessViolations
     alerts.push("pulse_never_read");
   }
   if (freshnessViolations.length > 0) {
-    alerts.push(`pulse_stale_at_decision: ${freshnessViolations.length} violation(s)`);
+    alerts.push(
+      `pulse_stale_at_decision: ${freshnessViolations.length} violation(s)`,
+    );
   }
   if (regenerationWasted.length > 0) {
     alerts.push(`wasted_regeneration: ${regenerationWasted.length} case(s)`);
@@ -503,30 +565,69 @@ async function main() {
 
   const connection = getSupabaseConnection(repoRoot);
   if (!connection.serviceKey) {
-    throw new Error("Missing service key. Set SUPABASE_SERVICE_ROLE_KEY or use local supabase.");
+    throw new Error(
+      "Missing service key. Set SUPABASE_SERVICE_ROLE_KEY or use local supabase.",
+    );
   }
 
   const baseUrl = connection.url.replace(/\/+$/, "");
   const now = new Date().toISOString();
-  const fromIso = toIsoOrNull(args.from) ?? new Date(Date.now() - args.hours * 3600 * 1000).toISOString();
+  const fromIso = toIsoOrNull(args.from) ??
+    new Date(Date.now() - args.hours * 3600 * 1000).toISOString();
   const toIso = toIsoOrNull(args.to) ?? now;
   const effectiveScope = args.scopeAll ? null : args.scope;
 
   console.error(`Connecting to ${baseUrl} (${connection.source})…`);
-  console.error(`Loading pulse V2 audit for user=${args.userId.slice(0, 8)}… window=${args.hours}h scope=${effectiveScope ?? "all"}`);
+  console.error(
+    `Loading pulse V2 audit for user=${
+      args.userId.slice(0, 8)
+    }… window=${args.hours}h scope=${effectiveScope ?? "all"}`,
+  );
 
-  const [messages, pulseSnapshots, relatedSnapshots, eventMemories] = await Promise.all([
-    loadMessages(baseUrl, connection.serviceKey, args.userId, fromIso, toIso, effectiveScope),
-    loadPulseSnapshots(baseUrl, connection.serviceKey, args.userId, fromIso, toIso),
-    loadRelatedSnapshots(baseUrl, connection.serviceKey, args.userId, fromIso, toIso),
-    loadEventMemories(baseUrl, connection.serviceKey, args.userId, fromIso, toIso),
-  ]);
+  const [messages, pulseSnapshots, relatedSnapshots, eventMemories] =
+    await Promise.all([
+      loadMessages(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+        effectiveScope,
+      ),
+      loadPulseSnapshots(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+      ),
+      loadRelatedSnapshots(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+      ),
+      loadEventMemories(
+        baseUrl,
+        connection.serviceKey,
+        args.userId,
+        fromIso,
+        toIso,
+      ),
+    ]);
 
   const normalizedEventMemories = eventMemories.map(normalizeEventMemory);
 
-  const pulseGenerations = buildPulseGenerations(pulseSnapshots, relatedSnapshots);
+  const pulseGenerations = buildPulseGenerations(
+    pulseSnapshots,
+    relatedSnapshots,
+  );
   const sourceMessages = buildSourceMessages(pulseSnapshots, messages);
-  const downstreamUsage = buildDownstreamUsage(pulseSnapshots, relatedSnapshots);
+  const downstreamUsage = buildDownstreamUsage(
+    pulseSnapshots,
+    relatedSnapshots,
+  );
   const freshnessViolations = buildFreshnessViolations(downstreamUsage);
   const regenerationWasted = buildRegenerationWasted(pulseSnapshots);
 
@@ -536,7 +637,7 @@ async function main() {
     !s.snapshot_type.startsWith("weekly_bilan_") &&
     !s.snapshot_type.startsWith("morning_nudge_") &&
     !s.snapshot_type.startsWith("proactive_window_") &&
-    !s.snapshot_type.startsWith("momentum_state_"),
+    !s.snapshot_type.startsWith("momentum_state_")
   ).map((s) => ({
     at: s.created_at,
     type: s.snapshot_type,
@@ -544,10 +645,16 @@ async function main() {
   }));
 
   const userMessages = messages.filter((m) => m.role === "user").length;
-  const assistantMessages = messages.filter((m) => m.role === "assistant").length;
+  const assistantMessages =
+    messages.filter((m) => m.role === "assistant").length;
 
   const trace = {
-    window: { from: fromIso, to: toIso, scope: effectiveScope, hours: args.hours },
+    window: {
+      from: fromIso,
+      to: toIso,
+      scope: effectiveScope,
+      hours: args.hours,
+    },
     summary: {
       messages_total: messages.length,
       user_messages: userMessages,
@@ -569,8 +676,11 @@ async function main() {
   };
 
   const scorecard = computeScorecard(
-    pulseGenerations, downstreamUsage, freshnessViolations,
-    regenerationWasted, relatedSnapshots,
+    pulseGenerations,
+    downstreamUsage,
+    freshnessViolations,
+    regenerationWasted,
+    relatedSnapshots,
   );
 
   const bundle = {
@@ -594,9 +704,13 @@ async function main() {
   const scopeLabel = effectiveScope ?? "all";
   const defaultOutFile = path.join(
     outDir,
-    `pulse_v2_audit_${args.userId.slice(0, 8)}_${scopeLabel}_${compactTs(fromIso)}_${compactTs(toIso)}.json`,
+    `pulse_v2_audit_${args.userId.slice(0, 8)}_${scopeLabel}_${
+      compactTs(fromIso)
+    }_${compactTs(toIso)}.json`,
   );
-  const outFile = args.outFile ? path.resolve(repoRoot, args.outFile) : defaultOutFile;
+  const outFile = args.outFile
+    ? path.resolve(repoRoot, args.outFile)
+    : defaultOutFile;
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
   const transcriptPath = outFile.replace(/\.json$/i, ".transcript.txt");
@@ -604,26 +718,30 @@ async function main() {
   fs.writeFileSync(outFile, JSON.stringify(bundle, null, 2), "utf8");
   transcriptWrite(transcriptPath, messages);
 
-  console.log(JSON.stringify({
-    ok: true,
-    out: outFile,
-    transcript: transcriptPath,
-    window: { from: fromIso, to: toIso, scope: effectiveScope },
-    counts: {
-      messages: messages.length,
-      pulses: pulseGenerations.length,
-      downstream_reads: downstreamUsage.length,
-      freshness_violations: freshnessViolations.length,
-      wasted_regenerations: regenerationWasted.length,
-      event_memories: normalizedEventMemories.length,
+  console.log(JSON.stringify(
+    {
+      ok: true,
+      out: outFile,
+      transcript: transcriptPath,
+      window: { from: fromIso, to: toIso, scope: effectiveScope },
+      counts: {
+        messages: messages.length,
+        pulses: pulseGenerations.length,
+        downstream_reads: downstreamUsage.length,
+        freshness_violations: freshnessViolations.length,
+        wasted_regenerations: regenerationWasted.length,
+        event_memories: normalizedEventMemories.length,
+      },
+      scorecard_summary: {
+        tone_distribution: scorecard.tone_distribution,
+        likely_need_distribution: scorecard.likely_need_distribution,
+        coherence_with_momentum: scorecard.coherence_with_momentum,
+        alerts: scorecard.alerts,
+      },
     },
-    scorecard_summary: {
-      tone_distribution: scorecard.tone_distribution,
-      likely_need_distribution: scorecard.likely_need_distribution,
-      coherence_with_momentum: scorecard.coherence_with_momentum,
-      alerts: scorecard.alerts,
-    },
-  }, null, 2));
+    null,
+    2,
+  ));
 }
 
 main().catch((error) => {

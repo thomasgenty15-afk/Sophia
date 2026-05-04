@@ -47,7 +47,7 @@ export class SupabaseTopicCompactionRepository
     const { data, error } = await (this.supabase as any)
       .from("user_topic_memories")
       .select(
-        "id,user_id,title,slug,synthesis,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
+        "id,user_id,title,slug,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
       )
       .eq("id", topicId)
       .maybeSingle();
@@ -123,8 +123,8 @@ export function isTopicCompactionEnabled(fallback = false): boolean {
 
 function buildSystemPrompt(): string {
   return [
-    "Tu produis une compaction de topic Sophia selon memory.compaction.topic.v1.",
-    "Retourne uniquement un JSON strict avec synthesis, search_doc, claims, supporting_item_ids, sensitivity_max, warnings.",
+    "Tu produis une compaction de topic Sophia selon memory.compaction.topic.v2_only.",
+    "Retourne uniquement un JSON strict avec search_doc, claims, supporting_item_ids, sensitivity_max, warnings.",
     "N'invente rien. Chaque claim important doit citer des supporting_item_ids actifs.",
     "Ne cite jamais litteralement un item sensitive ou safety.",
   ].join("\n");
@@ -141,7 +141,6 @@ export function buildTopicCompactionUserPayload(args: {
       id: args.topic.id,
       title: args.topic.title,
       slug: args.topic.slug ?? null,
-      previous_synthesis: args.topic.synthesis ?? "",
       previous_search_doc: args.topic.search_doc ?? "",
       sensitivity_max: args.sensitivity_max,
       pending_changes_count: args.topic.pending_changes_count ?? 0,
@@ -202,7 +201,6 @@ export function buildTopicCompactionPatch(args: {
     memory_v2_redaction_pending: false,
   };
   const patch: Record<string, unknown> = {
-    synthesis: args.output.synthesis,
     search_doc: args.output.search_doc,
     summary_version: Number(args.topic.summary_version ?? 1) + 1,
     search_doc_version: Number(args.topic.search_doc_version ?? 1) + 1,

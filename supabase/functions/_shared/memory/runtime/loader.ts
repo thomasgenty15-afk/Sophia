@@ -9,6 +9,9 @@ import type {
   MemoryV2LoaderPlan,
   MemoryV2LoaderScope,
 } from "./dispatcher_plan_adapter.ts";
+import { geminiGenerate } from "../../llm.ts";
+
+declare const Deno: any;
 
 export interface MemoryV2Item {
   id: string;
@@ -44,6 +47,7 @@ export interface MemoryV2Payload {
     sensitive_excluded_count: number;
     invalid_injection_simulated_count: number;
     fallback_used: boolean;
+    cross_topic_cache_hit: boolean;
   };
 }
 
@@ -105,20 +109,134 @@ function normalize(input: string): string {
 }
 
 const DOMAIN_KEYWORDS: Array<[string, RegExp]> = [
-  ["relations.couple", /\b(rupture|couple|ex|lina|relation|amour)\b/],
-  ["relations.famille", /\b(famille|pere|mere|frere|soeur|parents)\b/],
-  ["relations.conflit", /\b(conflit|dispute|humilie|reproche)\b/],
-  ["travail.conflits", /\b(travail|manager|reunion|collegue|humilie|chef)\b/],
-  ["travail.charge", /\b(charge|burnout|deadline|pression)\b/],
-  ["habitudes.execution", /\b(routine|habitude|fait|rate|manque|marche)\b/],
-  ["habitudes.procrastination", /\b(procrastin|repousse|evite|retarde)\b/],
-  ["sante.sommeil", /\b(dormir|dors|sommeil|insomnie|nuit)\b/],
-  ["sante.activite_physique", /\b(sport|marche|courir|entrainement)\b/],
-  ["addictions.cannabis", /\b(cannabis|joint|weed|fumer)\b/],
-  ["addictions.alcool", /\b(alcool|boire|cuite|verre)\b/],
-  ["psychologie.estime_de_soi", /\b(nul|nulle|incapable|honte|valeur)\b/],
-  ["psychologie.emotions", /\b(peur|colere|triste|angoisse|panique)\b/],
-  ["psychologie.discipline", /\b(discipline|tenir|constance|routine)\b/],
+  [
+    "psychologie.estime_de_soi",
+    /\b(estime|valeur|nul|nulle|incapable|honte|confiance en moi)\b/,
+  ],
+  [
+    "psychologie.discipline",
+    /\b(discipline|tenir|constance|routine|regularite|rigueur)\b/,
+  ],
+  [
+    "psychologie.controle_impulsions",
+    /\b(impulsion|craque|pulsion|controle|resister|compulsif)\b/,
+  ],
+  [
+    "psychologie.identite",
+    /\b(identite|qui je suis|personne que je veux devenir|image de moi)\b/,
+  ],
+  [
+    "psychologie.peur_echec",
+    /\b(echec|rater|peur de rater|peur d'echouer|echouer)\b/,
+  ],
+  [
+    "psychologie.emotions",
+    /\b(psychologie|emotion|peur|colere|triste|angoisse|panique|anxiete|stress)\b/,
+  ],
+  [
+    "psychologie.motivation",
+    /\b(motivation|envie|elan|demotive|pourquoi je bloque|drive)\b/,
+  ],
+  [
+    "relations.famille",
+    /\b(famille|familial|familiale|familiales|pere|mere|frere|soeur|parents|maman|papa)\b/,
+  ],
+  [
+    "relations.couple",
+    /\b(rupture|couple|ex|relation amoureuse|amour|copine|copain)\b/,
+  ],
+  ["relations.amitie", /\b(ami|amie|amis|amities|pote|amis proches)\b/],
+  [
+    "relations.appartenance_sociale",
+    /\b(appartenance|seul|solitude|groupe|social|integre|rejet)\b/,
+  ],
+  [
+    "relations.conflit",
+    /\b(conflit|dispute|humilie|reproche|tension|embrouille)\b/,
+  ],
+  [
+    "relations.limites",
+    /\b(limite|dire non|frontiere|respect|envahi|poser mes limites)\b/,
+  ],
+  ["addictions.cannabis", /\b(cannabis|joint|weed|beuh|fumer)\b/],
+  ["addictions.alcool", /\b(alcool|boire|cuite|verre|bourre)\b/],
+  [
+    "addictions.ecrans",
+    /\b(ecran|telephone|scroll|reseaux|tiktok|youtube|instagram)\b/,
+  ],
+  ["addictions.tabac", /\b(tabac|cigarette|clope|nicotine|vape)\b/],
+  ["addictions.autre", /\b(addiction|craving|rechute|dependance|compulsion)\b/],
+  ["sante.energie", /\b(energie|fatigue|epuise|forme|vitalite)\b/],
+  ["sante.sommeil", /\b(dormir|dors|sommeil|insomnie|nuit|reveil)\b/],
+  [
+    "sante.alimentation",
+    /\b(alimentation|manger|repas|sucre|nutrition|grignote)\b/,
+  ],
+  [
+    "sante.activite_physique",
+    /\b(sport|marche|courir|entrainement|muscu|activite physique)\b/,
+  ],
+  ["sante.douleur", /\b(douleur|mal au|migraine|dos|blessure)\b/],
+  [
+    "sante.medical",
+    /\b(medical|medecin|traitement|diagnostic|hopital|therapie)\b/,
+  ],
+  [
+    "travail.performance",
+    /\b(performance|productivite|efficace|livrer|resultat)\b/,
+  ],
+  [
+    "travail.conflits",
+    /\b(travail|manager|reunion|collegue|humilie|chef|bureau|conflit pro)\b/,
+  ],
+  [
+    "travail.sens",
+    /\b(sens au travail|metier|mission|utile|carriere qui a du sens)\b/,
+  ],
+  [
+    "travail.charge",
+    /\b(charge|burnout|deadline|pression|deborde|surcharge)\b/,
+  ],
+  [
+    "travail.carriere",
+    /\b(carriere|poste|promotion|entretien|reconversion|job)\b/,
+  ],
+  [
+    "habitudes.execution",
+    /\b(execution|routine|habitude|fait|rate|manque|marche|passer a l'action)\b/,
+  ],
+  [
+    "habitudes.environnement",
+    /\b(environnement|cadre|bureau|appartement|setup|declencheur)\b/,
+  ],
+  [
+    "habitudes.planification",
+    /\b(planification|planning|agenda|organiser|prioriser|planifier)\b/,
+  ],
+  [
+    "habitudes.procrastination",
+    /\b(procrastin\w*|repousse|evite|retarde|remets a plus tard)\b/,
+  ],
+  [
+    "habitudes.reprise_apres_echec",
+    /\b(reprendre|rechute|apres echec|repartir|remonter|reset)\b/,
+  ],
+  [
+    "objectifs.identite",
+    /\b(objectif identite|devenir quelqu'un|type de personne|identite d'objectif)\b/,
+  ],
+  [
+    "objectifs.long_terme",
+    /\b(long terme|vision|north star|etoile polaire|objectif global)\b/,
+  ],
+  [
+    "objectifs.court_terme",
+    /\b(court terme|cette semaine|aujourd'hui|demain|prochaine etape)\b/,
+  ],
+  [
+    "objectifs.transformation",
+    /\b(transformation|changer ma vie|processus|objectif principal|probleme principal)\b/,
+  ],
 ];
 
 export function mapTextToDomainKeys(text: string): string[] {
@@ -127,6 +245,105 @@ export function mapTextToDomainKeys(text: string): string[] {
     .filter(([key, re]) => DOMAIN_KEYS_V1.has(key) && re.test(normalized))
     .map(([key]) => key);
   return [...new Set(keys)];
+}
+
+function envString(name: string, fallback = ""): string {
+  try {
+    const raw = String(Deno?.env?.get?.(name) ?? "").trim();
+    return raw || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function parseDomainKeyJson(raw: string): string[] {
+  try {
+    const parsed = JSON.parse(raw);
+    const values = Array.isArray(parsed?.domain_keys) ? parsed.domain_keys : [];
+    return [
+      ...new Set<string>(
+        values
+          .map((value: unknown) => String(value ?? "").trim())
+          .filter((value: string) => DOMAIN_KEYS_V1.has(value)),
+      ),
+    ];
+  } catch {
+    return [];
+  }
+}
+
+async function mapTextToDomainKeysWithFallback(
+  text: string,
+): Promise<string[]> {
+  const regex = mapTextToDomainKeys(text);
+  if (
+    regex.length > 0 || normalize(text).split(/\W+/).filter(Boolean).length < 4
+  ) {
+    return regex;
+  }
+  try {
+    const model = envString(
+      "MEMORY_V2_DOMAIN_MAPPER_MODEL",
+      "gemini-2.5-flash",
+    );
+    const out = await geminiGenerate({
+      model,
+      jsonMode: true,
+      temperature: 0,
+      systemPrompt:
+        'Mappe la demande utilisateur vers les domain_keys V2. Retourne uniquement JSON: {"domain_keys":[...],"confidence":0-1}. N\'utilise que les cles connues.',
+      userMessage: JSON.stringify({
+        text,
+        allowed_domain_keys: [...DOMAIN_KEYS_V1],
+      }),
+    });
+    return typeof out === "string" ? parseDomainKeyJson(out) : [];
+  } catch {
+    return [];
+  }
+}
+
+const CROSS_TOPIC_CACHE_TTL_MS = 60_000;
+const CROSS_TOPIC_CACHE_MAX = 1000;
+const crossTopicCache = new Map<
+  string,
+  { expires_at: number; items: MemoryV2Item[] }
+>();
+
+function crossTopicCacheKey(args: {
+  user_id: string;
+  domain_keys: string[];
+  retrieval_mode: string;
+}): string {
+  return JSON.stringify({
+    user_id: args.user_id,
+    domain_keys: [...args.domain_keys].sort(),
+    retrieval_mode: args.retrieval_mode,
+  });
+}
+
+function readCrossTopicCache(key: string): MemoryV2Item[] | null {
+  const found = crossTopicCache.get(key);
+  if (!found) return null;
+  if (found.expires_at < Date.now()) {
+    crossTopicCache.delete(key);
+    return null;
+  }
+  crossTopicCache.delete(key);
+  crossTopicCache.set(key, found);
+  return found.items;
+}
+
+function writeCrossTopicCache(key: string, items: MemoryV2Item[]): void {
+  crossTopicCache.set(key, {
+    expires_at: Date.now() + CROSS_TOPIC_CACHE_TTL_MS,
+    items,
+  });
+  while (crossTopicCache.size > CROSS_TOPIC_CACHE_MAX) {
+    const oldest = crossTopicCache.keys().next().value;
+    if (!oldest) break;
+    crossTopicCache.delete(oldest);
+  }
 }
 
 function expandGlobalKeysToDomainKeys(keys: string[]): string[] {
@@ -273,6 +490,7 @@ export async function loadMemoryV2Payload(
   let items: MemoryV2Item[] = [];
   let entities: MemoryV2Entity[] = [];
   let fallbackUsed = false;
+  let crossTopicCacheHit = false;
 
   if (plan && !plan.enabled) {
     return {
@@ -287,6 +505,7 @@ export async function loadMemoryV2Payload(
         sensitive_excluded_count: 0,
         invalid_injection_simulated_count: 0,
         fallback_used: false,
+        cross_topic_cache_hit: false,
       },
     };
   }
@@ -313,39 +532,49 @@ export async function loadMemoryV2Payload(
 
   if (scopes.has("global") || input.retrieval_mode === "cross_topic_lookup") {
     const domainKeys = [
-      ...mapTextToDomainKeys(input.message ?? ""),
+      ...await mapTextToDomainKeysWithFallback(input.message ?? ""),
       ...expandGlobalKeysToDomainKeys(plan?.global_keys ?? []),
     ];
-    const domainItems = domainKeys.length
-      ? await runQuery<MemoryV2Item>(
+    const cacheKey = crossTopicCacheKey({
+      user_id: input.user_id,
+      domain_keys: domainKeys,
+      retrieval_mode: input.retrieval_mode,
+    });
+    const cached = readCrossTopicCache(cacheKey);
+    if (cached) {
+      crossTopicCacheHit = true;
+      items = [...items, ...cached];
+    } else {
+      const domainItems = domainKeys.length
+        ? await runQuery<MemoryV2Item>(
+          supabase
+            .from("memory_items")
+            .select("*")
+            .eq("user_id", input.user_id)
+            .eq("status", "active")
+            .overlaps("domain_keys", domainKeys)
+            .limit(Math.min(limit, plan?.budget.global_items ?? limit)),
+        )
+        : [];
+      fallbackUsed = domainItems.length === 0;
+      const semanticItems = await runQuery<MemoryV2Item>(
         supabase
           .from("memory_items")
           .select("*")
           .eq("user_id", input.user_id)
           .eq("status", "active")
-          .overlaps("domain_keys", domainKeys)
           .limit(Math.min(limit, plan?.budget.global_items ?? limit)),
-      )
-      : [];
-    fallbackUsed = domainItems.length === 0;
-    const semanticItems = await runQuery<MemoryV2Item>(
-      supabase
-        .from("memory_items")
-        .select("*")
-        .eq("user_id", input.user_id)
-        .eq("status", "active")
-        .limit(Math.min(limit, plan?.budget.global_items ?? limit)),
-    );
-    items = [
-      ...items,
-      ...mergeAndRerankCrossTopicItems({
+      );
+      const merged = mergeAndRerankCrossTopicItems({
         message: input.message ?? "",
         domain_keys: domainKeys,
         domain_items: domainItems,
         semantic_items: semanticItems,
         limit: Math.min(limit, plan?.budget.global_items ?? limit),
-      }),
-    ];
+      });
+      writeCrossTopicCache(cacheKey, merged);
+      items = [...items, ...merged];
+    }
   }
 
   if (input.retrieval_mode === "safety_first") {
@@ -431,6 +660,7 @@ export async function loadMemoryV2Payload(
       sensitive_excluded_count: filtered.excluded_count,
       invalid_injection_simulated_count: 0,
       fallback_used: fallbackUsed,
+      cross_topic_cache_hit: crossTopicCacheHit,
     },
   };
 }

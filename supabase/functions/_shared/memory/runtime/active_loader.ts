@@ -83,14 +83,6 @@ function envNumber(name: string, fallback: number): number {
   }
 }
 
-function envString(name: string): string {
-  try {
-    return String((globalThis as any)?.Deno?.env?.get?.(name) ?? "");
-  } catch {
-    return "";
-  }
-}
-
 export function memoryV2RolloutBucket(userId: string): number {
   let hash = 2166136261;
   for (const char of String(userId ?? "")) {
@@ -105,28 +97,30 @@ export function isMemoryV2LoaderActiveForUser(args: {
   loader_enabled?: boolean;
   rollout_percent?: number;
 }): boolean {
-  const enabled = args.loader_enabled ??
-    envFlag("memory_v2_loader_enabled", false);
-  if (!enabled) return false;
-  const forced = envString("memory_v2_loader_force_user_ids")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
-  if (forced.includes(args.user_id)) return true;
-  const percent = Math.max(
-    0,
-    Math.min(
-      100,
-      args.rollout_percent ??
-        envNumber(
-          "memory_v2_loader_rollout_percent",
-          envNumber("memory_v2_loader_canary_percent", 5),
-        ),
-    ),
-  );
-  if (percent >= 100) return true;
-  if (percent <= 0) return false;
-  return memoryV2RolloutBucket(args.user_id) < percent;
+  if (envFlag("memory_v2_loader_disabled", false)) return false;
+  if (args.loader_enabled === false) return false;
+  return true;
+}
+
+async function withTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  label: string,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(
+          () => reject(new Error(`${label}_timeout_${timeoutMs}ms`)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function loadTopicsForActiveLoader(
@@ -139,7 +133,7 @@ async function loadTopicsForActiveLoader(
   const { data } = await (supabase as any)
     .from("user_topic_memories")
     .select(
-      "id,topic_slug,title,lifecycle_stage,search_doc,search_doc_embedding,updated_at",
+      "id,slug,title,lifecycle_stage,search_doc,search_doc_embedding,updated_at",
     )
     .eq("user_id", userId)
     .order("updated_at", { ascending: false })
@@ -147,8 +141,8 @@ async function loadTopicsForActiveLoader(
   const rows = Array.isArray(data) ? data : [];
   const topics = rows.map((row: any): TopicRouterTopic => ({
     id: String(row.id),
-    slug: row.topic_slug ?? null,
-    title: String(row.title ?? row.topic_slug ?? "topic"),
+    slug: row.slug ?? row.topic_slug ?? null,
+    title: String(row.title ?? row.slug ?? row.topic_slug ?? "topic"),
     search_doc: row.search_doc ?? null,
     lifecycle_stage: row.lifecycle_stage ?? null,
     embedding: Array.isArray(row.search_doc_embedding)
@@ -329,17 +323,25 @@ export async function runMemoryV2ActiveLoader(
     tempMemory = writeActiveTopicStateV2(tempMemory, nextActive);
   }
 
-  const payload = await loadMemoryV2Payload({
-    supabase: input.supabase,
-    user_id: input.userId,
-    retrieval_mode: loaderPlan.retrieval_mode,
-    hints: signals.retrieval_hints,
-    active_topic_id: routed.active_topic_id,
-    message: input.userMessage,
-    temporal_window: temporal[0] ?? null,
-    limit: loaderPlan.budget.max_items,
-    loader_plan: loaderPlan,
-  });
+  const timeoutMs = Math.max(
+    250,
+    envNumber("memory_v2_loader_timeout_ms", 1500),
+  );
+  const payload = await withTimeout(
+    loadMemoryV2Payload({
+      supabase: input.supabase,
+      user_id: input.userId,
+      retrieval_mode: loaderPlan.retrieval_mode,
+      hints: signals.retrieval_hints,
+      active_topic_id: routed.active_topic_id,
+      message: input.userMessage,
+      temporal_window: temporal[0] ?? null,
+      limit: loaderPlan.budget.max_items,
+      loader_plan: loaderPlan,
+    }),
+    timeoutMs,
+    "memory_v2_loader",
+  );
   const previousPayload = readMemoryPayloadStateV2(tempMemory);
   const nextPayload = updateMemoryPayloadStateV2({
     previous: previousPayload,
@@ -397,6 +399,7 @@ export async function runMemoryV2ActiveLoader(
       invalid_injection_count:
         payload.metrics.invalid_injection_simulated_count,
       fallback_used: payload.metrics.fallback_used,
+      cross_topic_cache_hit: payload.metrics.cross_topic_cache_hit,
       loader_ms: payload.metrics.load_ms,
       total_ms: totalMs,
       v1: input.v1 ?? null,

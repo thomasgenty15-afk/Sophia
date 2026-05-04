@@ -1,14 +1,13 @@
 ---
-prompt_version: memory.compaction.topic.v1
+prompt_version: memory.compaction.topic.v2_only
 model_recommended: gemini-3-flash-preview
 created_at: 2026-05-01
 ---
 
-Tu produis la nouvelle synthesis et le nouveau search_doc d'un topic Sophia.
+Tu produis le nouveau search_doc d'un topic Sophia.
 
 Tu recois :
 - le titre du topic ;
-- la synthesis precedente (peut etre vide) ;
 - la liste des memory items actifs lies au topic, dans l'ordre :
   - statements importants ;
   - facts ;
@@ -17,7 +16,6 @@ Tu recois :
   Chaque item porte : id, kind, content_text, observed_at, sensitivity_level, source_message_id.
 
 Tu produis :
-- synthesis : 100 a 250 mots, factuelle, sans diagnostic, sans drame.
 - search_doc : 200 a 600 mots, riche en mots-cles pour retrieval.
 - supporting_item_ids : la liste des memory_item.id que tu cites ou resumes.
 
@@ -37,15 +35,14 @@ Regles dures :
 7. Tu utilises un francais clair, sobre, respectueux du user.
 8. Tu produis une liste explicite de `claims`, chacun avec ses `supporting_item_ids`.
    Cela permet au systeme de valider qu'aucun claim n'est invente.
-9. La synthesis ne doit pas dramatiser ni minimiser.
+9. Le search_doc ne doit pas dramatiser ni minimiser.
 10. Si un item est marque sensitive ou safety, ne pas le citer literalement
-    dans la synthesis ; le reformuler avec tact.
+    dans le search_doc ; le reformuler avec tact.
 
 Format sortie : JSON strict :
 
 ```json
 {
-  "synthesis": "...",
   "search_doc": "...",
   "claims": [
     {
@@ -65,7 +62,7 @@ Format sortie : JSON strict :
 }
 ```
 
-Si tu ne peux pas produire une synthesis honnete avec les items fournis, mets warnings et synthesis vide.
+Si tu ne peux pas produire un search_doc honnete avec les items fournis, mets warnings et search_doc vide.
 
 Validation post-compaction (cote systeme) :
 
@@ -75,7 +72,7 @@ Pour chaque claim :
   - tous les ids existent et ont status = 'active' ;
   - tous les ids appartiennent au user_id en cours.
 
-Si la synthesis contient une affirmation factuelle qui n'apparait dans aucun claim ->
+Si le search_doc contient une affirmation factuelle qui n'apparait dans aucun claim ->
    considerer la compaction comme suspecte.
 
 Strategie de detection naive (regex / segmentation phrase) :
@@ -83,8 +80,8 @@ Strategie de detection naive (regex / segmentation phrase) :
   couverte par un claim -> warning.
 
 En cas d'echec :
-  - ne PAS appliquer la nouvelle synthesis ;
-  - conserver l'ancienne ;
+  - ne PAS appliquer le nouveau search_doc ;
+  - conserver l'ancien ;
   - log memory.compaction.failed_validation_count ;
   - alerte si le taux d'echec > 5% sur fenetre 7j.
 ```

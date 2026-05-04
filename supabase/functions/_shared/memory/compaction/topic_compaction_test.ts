@@ -37,7 +37,6 @@ const topic: TopicCompactionTopic = {
   id: "topic-1",
   user_id: "u1",
   title: "Routine marche",
-  synthesis: "Ancienne synthese",
   search_doc: "ancienne recherche",
   summary_version: 2,
   search_doc_version: 3,
@@ -67,15 +66,13 @@ const items: TopicCompactionMemoryItem[] = [
   },
 ];
 
-Deno.test("topic compaction updates synthesis, search_doc, embedding and versions", async () => {
+Deno.test("topic compaction updates search_doc, embedding and versions", async () => {
   const repo = new InMemoryTopicCompactionRepository(topic, items);
   const result = await compactTopic(repo, {
     topic_id: "topic-1",
     now_iso: "2026-05-02T00:00:00.000Z",
     provider: async () =>
       JSON.stringify({
-        synthesis:
-          "Le user veut reprendre sa routine de marche. Le sujet sensible est reformule avec prudence.",
         search_doc:
           "routine marche soir reprise habitude contexte sensible reformule",
         claims: [
@@ -111,8 +108,6 @@ Deno.test("topic compaction rejects unsupported and sensitive literal claims", a
     items,
     expected_sensitivity_max: "sensitive",
     output: {
-      synthesis:
-        "Le user a un diagnostic invente. Le user dit avoir tres honte d'une rechute.",
       search_doc: "Le user dit avoir tres honte d'une rechute.",
       claims: [{
         claim: "Le user veut marcher.",

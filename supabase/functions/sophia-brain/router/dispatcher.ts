@@ -1,9 +1,5 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
-import {
-  GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK,
-  isAllowedGlobalMemoryFullKey,
-  isAllowedGlobalMemoryThemeKey,
-} from "../global_memory.ts";
+import { DOMAIN_KEYS_V1 } from "../../_shared/memory/domain_keys.ts";
 import {
   getSurfaceDefinition,
   isAllowedSurfaceId,
@@ -16,6 +12,18 @@ type DispatcherLlmRunner = typeof generateWithGemini;
 const DEFAULT_DISPATCHER_MODEL = "gpt-5.4-mini";
 const DEFAULT_DISPATCHER_GEMINI_FALLBACK_MODEL = "gemini-2.5-flash";
 let dispatcherLlmRunner: DispatcherLlmRunner = generateWithGemini;
+
+const DOMAIN_KEY_THEMES = [...new Set([...DOMAIN_KEYS_V1].map((key) => key.split(".")[0]))];
+const GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK =
+  `Domain keys V2 autorisees:\n${[...DOMAIN_KEYS_V1].map((key) => `- ${key}`).join("\n")}`;
+
+function isAllowedGlobalMemoryFullKey(key: string): boolean {
+  return DOMAIN_KEYS_V1.has(String(key ?? "").trim());
+}
+
+function isAllowedGlobalMemoryThemeKey(key: string): boolean {
+  return DOMAIN_KEY_THEMES.includes(String(key ?? "").trim());
+}
 
 function safeEnvGet(name: string): string {
   try {

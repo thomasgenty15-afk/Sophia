@@ -6,7 +6,6 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { runSynthesizer } from "../sophia-brain/agents/synthesizer.ts"
 import { normalizeScope } from "../sophia-brain/state-manager.ts"
-import { isScopeMemoryEligible } from "../sophia-brain/scope_memory.ts"
 
 console.log("trigger-synthesizer-batch: Function initialized")
 
@@ -92,7 +91,6 @@ Deno.serve(async (req) => {
         unprocessed_msg_count: Number(r?.unprocessed_msg_count ?? 0),
       }))
       .filter((r) => Boolean(r.user_id))
-      .filter((r) => !isScopeMemoryEligible(r.scope))
       .filter((r) => targetedUserId || r.unprocessed_msg_count >= MIN_NEW_MESSAGES)
 
     if (candidates.length === 0) {

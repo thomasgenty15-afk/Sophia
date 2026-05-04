@@ -1,4 +1,4 @@
-import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import type { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateEmbedding } from '../_shared/gemini.ts'
 
 export type AgentMode = 
@@ -27,6 +27,59 @@ export function normalizeScope(input: unknown, fallback: string): string {
   // Allowed: letters/digits/._:- (covers "module:week_1", etc)
   const cleaned = s.replace(/[^a-zA-Z0-9._:-]/g, "_").slice(0, 180)
   return cleaned || fallback
+}
+
+function envGet(name: string): string {
+  try {
+    return String((globalThis as any)?.Deno?.env?.get?.(name) ?? "").trim()
+  } catch {
+    return ""
+  }
+}
+
+async function serviceRoleInsertChatMessage(
+  row: Record<string, unknown>,
+  opts?: { selectId?: boolean },
+): Promise<{ data: any | null; error: Error | null }> {
+  const url = envGet("SUPABASE_URL")
+  const key = envGet("SUPABASE_SERVICE_ROLE_KEY")
+  if (!url || !key) return { data: null, error: new Error("missing_service_role_env") }
+  try {
+    const endpoint = `${url.replace(/\/$/, "")}/rest/v1/chat_messages${
+      opts?.selectId ? "?select=id" : ""
+    }`
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        apikey: key,
+        authorization: `Bearer ${key}`,
+        "content-type": "application/json",
+        prefer: opts?.selectId ? "return=representation" : "return=minimal",
+      },
+      body: JSON.stringify(row),
+    })
+    const text = await response.text()
+    let body: any = null
+    try {
+      body = text ? JSON.parse(text) : null
+    } catch {
+      body = { raw: text }
+    }
+    if (!response.ok) {
+      return {
+        data: null,
+        error: new Error(
+          String(body?.message ?? body?.msg ?? body?.error ?? response.statusText),
+        ),
+      }
+    }
+    return { data: Array.isArray(body) ? body[0] ?? null : body, error: null }
+  } catch (error) {
+    return {
+      data: null,
+      error: error instanceof Error ? error : new Error(String(error)),
+    }
+  }
 }
 
 export async function getUserState(
@@ -87,16 +140,55 @@ export async function logMessage(
   agentUsed?: AgentMode,
   metadata?: Record<string, unknown>
 ) {
+  await insertChatMessage(supabase, userId, scopeRaw, role, content, agentUsed, metadata)
+}
+
+export async function insertChatMessage(
+  supabase: SupabaseClient,
+  userId: string,
+  scopeRaw: unknown,
+  role: 'user' | 'assistant' | 'system',
+  content: string,
+  agentUsed?: AgentMode,
+  metadata?: Record<string, unknown>,
+  opts?: { selectId?: boolean },
+): Promise<{ id: string | null }> {
   const scope = normalizeScope(scopeRaw, "web")
-  await supabase.from('chat_messages').insert({
+  const row: Record<string, unknown> = {
     user_id: userId,
     scope,
     role,
     content,
-    agent_used: agentUsed
-    ,
-    metadata: metadata ?? {}
-  })
+    metadata: metadata ?? {},
+  }
+  if (agentUsed) row.agent_used = agentUsed
+
+  async function perform(client: SupabaseClient) {
+    const query = (client as any).from('chat_messages').insert(row)
+    return opts?.selectId
+      ? await query.select("id").single()
+      : await query
+  }
+
+  const { data, error } = await perform(supabase)
+  if (!error) return { id: data?.id ?? null }
+
+  const { data: adminData, error: adminError } =
+    await serviceRoleInsertChatMessage(row, opts)
+  if (!adminError) return { id: adminData?.id ?? null }
+  if (adminError) {
+    console.warn("[state-manager] service-role chat_messages insert failed", {
+      role,
+      scope,
+      error: String((adminError as any)?.message ?? adminError ?? "").slice(0, 280),
+    })
+    throw new Error(
+      `chat_messages_insert_failed role=${String(row.role)} scope=${scope} error=${
+        String((adminError as any)?.message ?? adminError ?? "").slice(0, 280)
+      }`,
+    )
+  }
+  throw new Error(`chat_messages_insert_failed role=${String(row.role)} scope=${scope}`)
 }
 
 export async function getCoreIdentity(

@@ -11,7 +11,7 @@ import {
 } from "../_shared/memory/compaction/topic_compaction.ts";
 import type { TopicCompactionTopic } from "../_shared/memory/compaction/types.ts";
 import { SupabaseMemorizerRepository } from "../_shared/memory/memorizer/persist.ts";
-import { runMemorizerWriteCanaryIfEnabled } from "../_shared/memory/memorizer/write_canary.ts";
+import { runMemorizerAsyncIfEnabled } from "../_shared/memory/memorizer/memorizer_async.ts";
 import type {
   KnownMemoryItem,
   KnownTopic,
@@ -221,7 +221,7 @@ async function processMemorizerPass(args: {
   }
   const knownTopics = await loadKnownTopics(args.admin, args.user_id);
   const knownItems = await loadKnownMemoryItems(args.admin, args.user_id);
-  const result = await runMemorizerWriteCanaryIfEnabled(
+  const result = await runMemorizerAsyncIfEnabled(
     new SupabaseMemorizerRepository(args.admin),
     {
       user_id: args.user_id,
@@ -250,7 +250,7 @@ async function compactPendingTopics(args: {
   const { data, error } = await args.admin
     .from("user_topic_memories")
     .select(
-      "id,user_id,title,slug,synthesis,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
+      "id,user_id,title,slug,search_doc,summary_version,search_doc_version,pending_changes_count,sensitivity_max,metadata,status,lifecycle_stage",
     )
     .eq("user_id", args.user_id)
     .eq("status", "active")
@@ -367,14 +367,6 @@ async function materializePossiblePatterns(args: {
 }
 
 async function refreshTopics(args: { admin: any; user_id: string }) {
-  const nowIso = new Date().toISOString();
-  const { error: activeError } = await args.admin
-    .from("user_topic_memories")
-    .update({ last_enriched_at: nowIso })
-    .eq("user_id", args.user_id)
-    .eq("status", "active")
-    .gt("pending_changes_count", 0);
-  if (activeError) throw activeError;
   const { data, error } = await args.admin
     .from("user_topic_memories")
     .update({

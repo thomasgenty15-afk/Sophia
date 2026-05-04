@@ -13,6 +13,10 @@ export const GOLDEN_SCENARIO_IDS = [
   "10_forget_sensitive_item",
   "11_safety_minimal_context",
   "12_entity_father_aliases",
+  "13_cross_topic_work",
+  "14_cross_topic_family",
+  "15_cross_topic_habits",
+  "16_cross_topic_main_problem",
 ] as const;
 
 export type GoldenScenarioFileId = typeof GOLDEN_SCENARIO_IDS[number];

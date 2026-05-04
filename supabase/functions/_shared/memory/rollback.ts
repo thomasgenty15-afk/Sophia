@@ -22,7 +22,7 @@ export function buildMemoryV2RollbackPlan(
   if (level === 1) {
     return {
       level,
-      flags_off: ["memory_v2_loader_enabled"],
+      flags_off: ["memory_v2_loader_disabled=1"],
       requires_data_mutation: false,
       requires_migration_rollback: false,
       expected_recovery: "minutes",
@@ -32,7 +32,7 @@ export function buildMemoryV2RollbackPlan(
     return {
       level,
       flags_off: [
-        "memory_v2_memorizer_enabled",
+        "memory_v2_memorizer_disabled=1",
         "memory_v2_topic_compaction_enabled",
       ],
       requires_data_mutation: false,
@@ -43,7 +43,7 @@ export function buildMemoryV2RollbackPlan(
   if (level === 3) {
     return {
       level,
-      flags_off: ["memory_v2_loader_enabled", "memory_v2_memorizer_enabled"],
+      flags_off: ["memory_v2_loader_disabled=1", "memory_v2_memorizer_disabled=1"],
       requires_data_mutation: true,
       requires_migration_rollback: false,
       expected_recovery: "30_minutes",
@@ -52,8 +52,8 @@ export function buildMemoryV2RollbackPlan(
   return {
     level,
     flags_off: [
-      "memory_v2_loader_enabled",
-      "memory_v2_memorizer_enabled",
+      "memory_v2_loader_disabled=1",
+      "memory_v2_memorizer_disabled=1",
       "memory_v2_topic_compaction_enabled",
       "memory_v2_redaction_job_enabled",
     ],

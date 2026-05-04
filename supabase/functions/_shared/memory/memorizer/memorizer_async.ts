@@ -4,8 +4,8 @@ import {
 } from "./batch_selector.ts";
 import {
   isMemorizerWriteEnabled,
-  isMemoryV2WriteCanaryUser,
-} from "./canary.ts";
+  memorizerCostCapUserDayEur,
+} from "./controls.ts";
 import { dedupeMemoryItems } from "./dedupe.ts";
 import {
   type ExtractionLlmProvider,
@@ -16,7 +16,7 @@ import { linkMemoryItemToAction } from "./link_action.ts";
 import { linkMemoryItemToEntities } from "./link_entity.ts";
 import { linkMemoryItemToTopic } from "./link_topic.ts";
 import {
-  completeWriteCanaryExtraction,
+  completeAsyncMemorizerExtraction,
   failExtractionRun,
   type MemorizerPersistRepository,
 } from "./persist.ts";
@@ -34,7 +34,7 @@ import { MEMORY_EXTRACTION_MODEL_DEFAULT } from "./types.ts";
 import { validateExtractionPayload } from "./validate.ts";
 import { decideInitialWriteStatuses } from "./write_policy.ts";
 
-export interface MemorizerWriteCanaryInput {
+export interface MemorizerAsyncInput {
   user_id: string;
   messages: MemorizerMessage[];
   already_processed_primary_ids?: string[];
@@ -45,11 +45,10 @@ export interface MemorizerWriteCanaryInput {
   plan_signals?: PlanSignal[];
   trigger_type?: string;
   model_name?: string;
-  canary_percentage?: number;
   llm_provider?: ExtractionLlmProvider;
 }
 
-export interface MemorizerWriteCanaryResult {
+export interface MemorizerAsyncResult {
   status: "completed" | "skipped";
   skip_reason?: string | null;
   extraction_run_id: string | null;
@@ -58,38 +57,27 @@ export interface MemorizerWriteCanaryResult {
   persisted: PersistedMemoryWrite[];
 }
 
-export async function runMemorizerWriteCanaryIfEnabled(
+export async function runMemorizerAsyncIfEnabled(
   repo: MemorizerPersistRepository,
-  input: MemorizerWriteCanaryInput,
-): Promise<MemorizerWriteCanaryResult | null> {
-  if (!isMemorizerWriteEnabled(false)) return null;
-  if (
-    !await isMemoryV2WriteCanaryUser(
-      input.user_id,
-      input.canary_percentage ?? 5,
-    )
-  ) {
-    return {
-      status: "skipped",
-      skip_reason: "outside_canary",
-      extraction_run_id: null,
-      batch_hash: null,
-      write_decisions: [],
-      persisted: [],
-    };
-  }
-  return await runMemorizerWriteCanary(repo, input);
+  input: MemorizerAsyncInput,
+): Promise<MemorizerAsyncResult | null> {
+  if (!isMemorizerWriteEnabled(true)) return null;
+  return await runMemorizerAsync(repo, input);
 }
 
-export async function runMemorizerWriteCanary(
+export async function runMemorizerAsync(
   repo: MemorizerPersistRepository,
-  input: MemorizerWriteCanaryInput,
-): Promise<MemorizerWriteCanaryResult> {
+  input: MemorizerAsyncInput,
+): Promise<MemorizerAsyncResult> {
   const started = Date.now();
   const batch = await selectMemorizerBatch({
     messages: input.messages,
     already_processed_primary_ids: input.already_processed_primary_ids,
     model_name: input.model_name ?? MEMORY_EXTRACTION_MODEL_DEFAULT,
+    known_entity_aliases: (input.known_entities ?? []).flatMap((entity) => [
+      entity.display_name,
+      ...(entity.aliases ?? []),
+    ]),
   });
   const existingRun = await repo.findExtractionRun({
     user_id: input.user_id,
@@ -106,6 +94,48 @@ export async function runMemorizerWriteCanary(
       persisted: [],
     };
   }
+  const costCap = memorizerCostCapUserDayEur();
+  if (costCap && repo.estimateMemoryCostForUserDay) {
+    const since = new Date(Date.now() - 86_400_000).toISOString();
+    const observedCost = await repo.estimateMemoryCostForUserDay(
+      input.user_id,
+      since,
+    );
+    if (observedCost >= costCap) {
+      const run = existingRun ?? await repo.createExtractionRun({
+        user_id: input.user_id,
+        batch_hash: batch.batch_hash,
+        prompt_version: batch.prompt_version,
+        model_name: batch.model_name,
+        trigger_type: input.trigger_type ?? "chat_batch",
+        input_message_ids: batch.primary_messages.map((m) => m.id),
+        metadata: {
+          memorizer_v2_async: true,
+          cost_cap_eur: costCap,
+          observed_cost_eur: observedCost,
+        },
+      });
+      await repo.updateExtractionRun(run.id, {
+        status: "skipped",
+        finished_at: new Date().toISOString(),
+        metadata: {
+          ...(run.metadata ?? {}),
+          memorizer_v2_async: true,
+          skip_reason: "cost_cap_exceeded",
+          cost_cap_eur: costCap,
+          observed_cost_eur: observedCost,
+        },
+      });
+      return {
+        status: "skipped",
+        skip_reason: "cost_cap_exceeded",
+        extraction_run_id: run.id,
+        batch_hash: batch.batch_hash,
+        write_decisions: [],
+        persisted: [],
+      };
+    }
+  }
   const run = existingRun ?? await repo.createExtractionRun({
     user_id: input.user_id,
     batch_hash: batch.batch_hash,
@@ -113,7 +143,7 @@ export async function runMemorizerWriteCanary(
     model_name: batch.model_name,
     trigger_type: input.trigger_type ?? "chat_batch",
     input_message_ids: batch.primary_messages.map((m) => m.id),
-    metadata: { write_canary: true },
+    metadata: { memorizer_v2_async: true },
   });
   try {
     await repo.insertMessageProcessing(buildMessageProcessingRows({
@@ -122,13 +152,13 @@ export async function runMemorizerWriteCanary(
       batch,
     }));
     if (batch.primary_messages.length === 0) {
-      await completeWriteCanaryExtraction(repo, {
+      await completeAsyncMemorizerExtraction(repo, {
         run_id: run.id,
         duration_ms: Date.now() - started,
         decisions: [],
         persisted: [],
         rejected_observations: batch.skipped_noise_messages.map((m) => ({
-          reason: "small_talk",
+          reason: m.metadata?.anti_noise_reason ?? "noise",
           text: m.content,
         })),
         proposed_entity_count: 0,
@@ -203,12 +233,18 @@ export async function runMemorizerWriteCanary(
         decisions,
       })
       : [];
-    await completeWriteCanaryExtraction(repo, {
+    await completeAsyncMemorizerExtraction(repo, {
       run_id: run.id,
       duration_ms: Date.now() - started,
       decisions,
       persisted,
-      rejected_observations: validation.rejected_observations,
+      rejected_observations: [
+        ...batch.skipped_noise_messages.map((m) => ({
+          reason: m.metadata?.anti_noise_reason ?? "noise",
+          text: m.content,
+        })),
+        ...validation.rejected_observations,
+      ],
       proposed_entity_count: extraction.entities.length,
       accepted_entity_count: entityDecisions.filter((d) =>
         d.decision === "reuse" || d.decision === "create_candidate"

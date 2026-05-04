@@ -11,6 +11,7 @@ export class InMemoryMemorizerRepository implements MemorizerPersistRepository {
   processing: MessageProcessingRow[] = [];
   memoryWrites: PersistedMemoryWrite[] = [];
   updates: Array<{ id: string; patch: Record<string, unknown> }> = [];
+  estimatedCostForUserDay = 0;
   nextRun = 1;
 
   async findExtractionRun(args: {
@@ -66,6 +67,10 @@ export class InMemoryMemorizerRepository implements MemorizerPersistRepository {
       );
       if (!exists) this.processing.push(row);
     }
+  }
+
+  estimateMemoryCostForUserDay(): Promise<number> {
+    return Promise.resolve(this.estimatedCostForUserDay);
   }
 
   async persistMemoryWrites(args: {

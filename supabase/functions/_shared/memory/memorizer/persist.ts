@@ -32,6 +32,10 @@ export interface MemorizerPersistRepository {
     extraction_run_id: string;
     decisions: WriteDecision[];
   }): Promise<PersistedMemoryWrite[]>;
+  estimateMemoryCostForUserDay?(
+    userId: string,
+    sinceIso: string,
+  ): Promise<number>;
 }
 
 export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
@@ -132,6 +136,28 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
       .from("memory_message_processing")
       .upsert(rows, { onConflict: "user_id,message_id,processing_role" });
     if (error) throw error;
+  }
+
+  async estimateMemoryCostForUserDay(
+    userId: string,
+    sinceIso: string,
+  ): Promise<number> {
+    const { data, error } = await (this.supabase as any)
+      .from("memory_observability_events")
+      .select("payload")
+      .eq("user_id", userId)
+      .gte("created_at", sinceIso)
+      .limit(2000);
+    if (error) throw error;
+    return (Array.isArray(data) ? data : []).reduce((sum, row: any) => {
+      const payload = row?.payload && typeof row.payload === "object"
+        ? row.payload
+        : {};
+      const cost = payload.cost && typeof payload.cost === "object"
+        ? Number(payload.cost.eur ?? 0)
+        : Number(payload.cost_eur ?? payload.llm_cost_eur ?? 0);
+      return sum + (Number.isFinite(cost) ? cost : 0);
+    }, 0);
   }
 
   async persistMemoryWrites(args: {
@@ -345,7 +371,7 @@ export async function failExtractionRun(
   });
 }
 
-export interface CompleteWriteCanaryInput {
+export interface CompleteAsyncMemorizerInput {
   run_id: string;
   duration_ms: number;
   decisions: WriteDecision[];
@@ -357,8 +383,8 @@ export interface CompleteWriteCanaryInput {
   cost?: Record<string, unknown>;
 }
 
-export function buildWriteCanaryCompletionPatch(
-  input: CompleteWriteCanaryInput,
+export function buildAsyncMemorizerCompletionPatch(
+  input: CompleteAsyncMemorizerInput,
 ): Record<string, unknown> {
   const activeCount = input.persisted.filter((p) => p.status === "active")
     .length;
@@ -366,6 +392,10 @@ export function buildWriteCanaryCompletionPatch(
     .length;
   const rejectedCount = input.decisions.filter((d) => d.status === "reject")
     .length + input.rejected_observations.length;
+  const preFilterSkipCount =
+    input.rejected_observations.filter((observation) =>
+      String((observation as any)?.reason ?? "") === "smart_pre_filter"
+    ).length;
   return {
     status: "completed",
     proposed_item_count: input.decisions.length,
@@ -377,7 +407,7 @@ export function buildWriteCanaryCompletionPatch(
     finished_at: new Date().toISOString(),
     metadata: {
       dry_run: false,
-      write_canary: true,
+      memorizer_v2_async: true,
       write_decisions: input.decisions,
       persisted_memory_items: input.persisted.map((row) => ({
         memory_item_id: row.memory_item_id,
@@ -385,6 +415,7 @@ export function buildWriteCanaryCompletionPatch(
         canonical_key: row.candidate.item.canonical_key,
       })),
       rejected_observations: input.rejected_observations,
+      pre_filter_skip_count: preFilterSkipCount,
       statement_as_fact_violation_count:
         input.statement_as_fact_violation_count,
       cost: input.cost ?? null,
@@ -397,12 +428,12 @@ export function buildWriteCanaryCompletionPatch(
   };
 }
 
-export async function completeWriteCanaryExtraction(
+export async function completeAsyncMemorizerExtraction(
   repo: MemorizerPersistRepository,
-  input: CompleteWriteCanaryInput,
+  input: CompleteAsyncMemorizerInput,
 ): Promise<void> {
   await repo.updateExtractionRun(
     input.run_id,
-    buildWriteCanaryCompletionPatch(input),
+    buildAsyncMemorizerCompletionPatch(input),
   );
 }

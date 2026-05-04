@@ -1,0 +1,63 @@
+{
+  "id": "15_cross_topic_habits",
+  "description": "Global habits lookup should retrieve discipline/procrastination memories without unrelated relationship details.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "seed_habit_procrastination",
+        "kind": "statement",
+        "content_text": "Le user dit repousser ses routines quand il vise trop grand.",
+        "status": "active",
+        "topic_slug": "habitudes_execution",
+        "domain_keys": ["habitudes.procrastination", "habitudes.execution"],
+      },
+      {
+        "id": "seed_relation_noise",
+        "kind": "fact",
+        "content_text": "Tania est l'ex du user.",
+        "status": "active",
+        "topic_slug": "relation_tania",
+        "domain_keys": ["relations.couple"],
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Mes habitudes, ma discipline, ma procrastination : tu vois quoi ?",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "topic_decision": "stay",
+        "payload_contains": [
+          { "kind": "statement", "contains": "repousser ses routines" },
+        ],
+        "payload_does_not_contain": [
+          { "kind": "fact", "contains": "Tania" },
+        ],
+      },
+    },
+    {
+      "user": "Je crois que je dois reduire la taille des actions.",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["reduire", "taille des actions"],
+            "domain_keys_any_of": ["habitudes.execution", "objectifs.court_terme"],
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

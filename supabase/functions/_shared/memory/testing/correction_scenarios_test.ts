@@ -62,7 +62,6 @@ Deno.test("scenario 10 forget redacts item, sources, topic text and payload", as
   const redactedTopic = redactTopicSurface(
     {
       id: "topic-honte",
-      synthesis: "Le user dit avoir tres honte d'une rechute.",
       search_doc: "honte rechute sensible",
       pending_changes_count: 0,
       metadata: {},
@@ -76,7 +75,6 @@ Deno.test("scenario 10 forget redacts item, sources, topic text and payload", as
     },
     "2026-05-01T00:00:00.000Z",
   );
-  assertEquals(redactedTopic.synthesis.includes("honte"), false);
   assertEquals(redactedTopic.search_doc.includes("rechute"), false);
 
   const temp = purgeMemoryPayloadItems({

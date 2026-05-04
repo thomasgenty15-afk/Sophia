@@ -15,7 +15,6 @@ type TopicRow = {
   id: string;
   user_id: string;
   title: string | null;
-  synthesis: string | null;
   search_doc: string | null;
   search_doc_version: number | null;
   metadata: Record<string, unknown> | null;
@@ -36,7 +35,7 @@ function clampLimit(value: unknown): number {
 function buildSearchDoc(row: TopicRow): string {
   const existing = String(row.search_doc ?? "").trim();
   if (existing) return existing.slice(0, 2000);
-  return [row.title, row.synthesis]
+  return [row.title]
     .map((part) => String(part ?? "").trim())
     .filter(Boolean)
     .join(" ")
@@ -87,7 +86,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("user_topic_memories")
       .select(
-        "id,user_id,title,synthesis,search_doc,search_doc_version,metadata",
+        "id,user_id,title,search_doc,search_doc_version,metadata",
       )
       .is("search_doc_embedding", null)
       .order("updated_at", { ascending: true })

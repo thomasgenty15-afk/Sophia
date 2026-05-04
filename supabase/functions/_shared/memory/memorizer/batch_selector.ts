@@ -13,6 +13,7 @@ export interface BatchSelectorInput {
   max_batch_size?: number;
   prompt_version?: string;
   model_name?: string;
+  known_entity_aliases?: string[];
 }
 
 export interface SelectedMemorizerBatch {
@@ -27,7 +28,18 @@ export interface SelectedMemorizerBatch {
 const PURE_ACK =
   /^(ok|okay|merci|oui|non|super|parfait|top|cool|grave|done|fait|ca marche|d'accord)[.!? ]*$/i;
 
-export function classifyAntiNoise(message: MemorizerMessage): {
+function mentionsKnownEntity(content: string, aliases: string[]): boolean {
+  const normalized = normalizeText(content);
+  return aliases.some((alias) => {
+    const value = normalizeText(alias);
+    return value.length >= 2 && normalized.includes(value);
+  });
+}
+
+export function classifyAntiNoise(
+  message: MemorizerMessage,
+  aliases: string[] = [],
+): {
   skip: boolean;
   reason: string | null;
 } {
@@ -35,6 +47,7 @@ export function classifyAntiNoise(message: MemorizerMessage): {
     return { skip: true, reason: "non_user_message" };
   }
   const normalized = normalizeText(message.content);
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
   const signals = detectMemorySignals(message.content);
   const important = signals.correction.detected ||
     signals.forget.detected ||
@@ -47,8 +60,12 @@ export function classifyAntiNoise(message: MemorizerMessage): {
     signals.cross_topic_profile_query.detected;
   if (!normalized) return { skip: true, reason: "empty" };
   if (PURE_ACK.test(normalized)) return { skip: true, reason: "pure_ack" };
-  if (normalized.length < 30 && !important) {
-    return { skip: true, reason: "short_without_signal" };
+  if (
+    wordCount < 15 &&
+    !important &&
+    !mentionsKnownEntity(message.content, aliases)
+  ) {
+    return { skip: true, reason: "smart_pre_filter" };
   }
   if (/^[\p{Emoji_Presentation}\s]+$/u.test(message.content.trim())) {
     return { skip: true, reason: "emoji_only" };
@@ -77,7 +94,7 @@ export async function selectMemorizerBatch(
       continue;
     }
     if (already.has(message.id)) continue;
-    const noise = classifyAntiNoise(message);
+    const noise = classifyAntiNoise(message, input.known_entity_aliases ?? []);
     if (noise.skip) {
       skipped.push({
         ...message,

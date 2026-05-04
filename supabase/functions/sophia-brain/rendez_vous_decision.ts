@@ -371,25 +371,27 @@ export async function loadUpcomingEvents(
   ).toISOString();
 
   const { data, error } = await supabase
-    .from("user_event_memories")
-    .select("title,event_type,starts_at,status")
+    .from("memory_items")
+    .select("content_text,event_start_at,metadata,status")
     .eq("user_id", userId)
-    .in("status", ["upcoming", "active"] as any)
-    .not("starts_at", "is", null)
-    .lte("starts_at", upcomingWindowIso)
-    .order("starts_at", { ascending: true })
+    .eq("status", "active")
+    .eq("kind", "event")
+    .not("event_start_at", "is", null)
+    .lte("event_start_at", upcomingWindowIso)
+    .order("event_start_at", { ascending: true })
     .limit(3);
 
   if (error) throw error;
 
   return Array.isArray(data)
     ? data.map((row) => ({
-      title: cleanText((row as Record<string, unknown>).title) ||
+      title: cleanText((row as Record<string, unknown>).content_text) ||
         "Evenement proche",
-      scheduled_at: cleanText((row as Record<string, unknown>).starts_at),
+      scheduled_at: cleanText((row as Record<string, unknown>).event_start_at),
       event_type:
-        cleanText((row as Record<string, unknown>).event_type) || "generic",
-      source: "user_event_memories",
+        cleanText(((row as Record<string, any>).metadata ?? {}).event_type) ||
+        "generic",
+      source: "memory_items",
     })).filter((row) => row.scheduled_at)
     : [];
 }

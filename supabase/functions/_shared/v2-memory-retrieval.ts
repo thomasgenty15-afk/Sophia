@@ -1,22 +1,16 @@
 /**
  * V2 Memory Retrieval — Contracts, scope classifier, and loader adapter.
  *
- * This module bridges the V2 intention-based memory system (section 13 of
- * v2-systemes-vivants-implementation.md) with the existing V1 loader
- * infrastructure (context/loader.ts).
+ * This module defines the V2-only intention-based memory retrieval contract.
  *
  * Architecture:
  * - 5 canonical MemoryRetrievalContracts (one per MemoryRetrievalIntent)
  * - Scope classifier for the memorizer (determines which layer a new fact belongs to)
- * - Adapter that maps a V2 contract to the V1 loader's DispatcherMemoryLoadStrategy
+ * - Adapter metadata that maps V2 layers to memory_items-based sources
  * - Event payload builders for memory_retrieval_executed_v2 / memory_persisted_v2
  *
- * The key insight: V2 intents don't replace the dispatcher's memory_plan.
- * - Conversational context (answer_user_now) still uses the dispatcher's plan
- *   as primary, with the V2 contract as a guardrail/budget cap.
- * - Non-conversational contexts (daily_bilan, weekly_bilan, nudge_decision,
- *   rendez_vous_or_outreach) use V2 contracts directly since they bypass
- *   the dispatcher entirely.
+ * The runtime loader is the only durable memory retrieval path. Legacy summary
+ * tables are not valid sources in this module.
  */
 
 import type {
@@ -89,16 +83,15 @@ export function getMemoryContract(
 // ---------------------------------------------------------------------------
 
 /**
- * Maps each V2 memory layer to the V1 tables and query parameters needed.
- * This is the bridge GPT uses when implementing scope-filtered queries.
+ * Maps each V2 memory layer to memory_items-based query parameters.
  */
 export type MemoryLayerSource = {
   layer: MemoryLayerScope;
   /** Concrete per-table query rules. */
   sources: Array<{
-    table: string;
-    /** Scope filter to apply (column name → expected value). */
-    scope_filter: { column: string; value: string } | null;
+    table: "memory_items" | "memory_item_topics" | "memory_item_actions";
+    /** V2 field-level filter to apply. */
+    filter: { column: string; op: "eq" | "overlaps"; value: string | string[] } | null;
     /** If true, filter by cycle_id. */
     filter_cycle: boolean;
     /** If true, filter by transformation_id. */
@@ -110,8 +103,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
   cycle: {
     layer: "cycle",
     sources: [{
-      table: "user_global_memories",
-      scope_filter: { column: "scope", value: "cycle" },
+      table: "memory_items",
+      filter: { column: "domain_keys", op: "overlaps", value: ["objectifs.long_terme", "objectifs.transformation"] },
       filter_cycle: true,
       filter_transformation: false,
     }],
@@ -119,8 +112,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
   transformation: {
     layer: "transformation",
     sources: [{
-      table: "user_global_memories",
-      scope_filter: { column: "scope", value: "transformation" },
+      table: "memory_items",
+      filter: { column: "domain_keys", op: "overlaps", value: ["objectifs.transformation", "habitudes.execution"] },
       filter_cycle: true,
       filter_transformation: true,
     }],
@@ -128,8 +121,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
   execution: {
     layer: "execution",
     sources: [{
-      table: "user_topic_memories",
-      scope_filter: null,
+      table: "memory_item_topics",
+      filter: null,
       filter_cycle: false,
       filter_transformation: true,
     }],
@@ -137,8 +130,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
   coaching: {
     layer: "coaching",
     sources: [{
-      table: "user_chat_states",
-      scope_filter: null,
+      table: "memory_items",
+      filter: { column: "kind", op: "eq", value: "statement" },
       filter_cycle: false,
       filter_transformation: false,
     }],
@@ -147,14 +140,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
     layer: "relational",
     sources: [
       {
-        table: "user_core_identity",
-        scope_filter: null,
-        filter_cycle: false,
-        filter_transformation: false,
-      },
-      {
-        table: "user_global_memories",
-        scope_filter: { column: "scope", value: "relational" },
+        table: "memory_items",
+        filter: { column: "domain_keys", op: "overlaps", value: ["relations.famille", "relations.couple", "relations.amitie", "relations.conflit", "relations.limites"] },
         filter_cycle: false,
         filter_transformation: false,
       },
@@ -163,8 +150,8 @@ export const LAYER_SOURCES: Record<MemoryLayerScope, MemoryLayerSource> = {
   event: {
     layer: "event",
     sources: [{
-      table: "user_event_memories",
-      scope_filter: null,
+      table: "memory_items",
+      filter: { column: "kind", op: "eq", value: "event" },
       filter_cycle: false,
       filter_transformation: false,
     }],
@@ -290,7 +277,7 @@ export function classifyMemoryScope(
 }
 
 // ---------------------------------------------------------------------------
-// Adapter: V2 contract → V1 loader strategy shape
+// Adapter: V2 contract → runtime retrieval plan shape
 // ---------------------------------------------------------------------------
 
 /**
@@ -354,9 +341,9 @@ export type V2RetrievalPlan = {
   load_event_memories: boolean;
   load_identity: boolean;
   load_coaching: boolean;
-  /** Scope filters to pass to global_memory queries. */
+  /** V2 profile layers to prefer when querying memory_items.domain_keys. */
   global_scope_filter: MemoryLayerScope[] | null;
-  /** If true, topic_memory queries should filter by transformation_id. */
+  /** If true, topic joins may prefer active transformation/topic links. */
   topic_filter_transformation: boolean;
 };
 

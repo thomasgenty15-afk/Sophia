@@ -183,6 +183,44 @@ function withRuntimeHints(
   return next;
 }
 
+function runtimeOverrideForMemoryNone(args: {
+  memory_mode: string;
+  context_need: string;
+  policy: MemoryV2RetrievalPolicy;
+  signals: DetectedSignals;
+}): MemoryV2LoaderPlan | null {
+  const scopes: MemoryV2LoaderScope[] = [];
+  const crossTopic = args.signals.cross_topic_profile_query.detected;
+  if (crossTopic) scopes.push("global");
+  if (args.signals.dated_reference.detected) scopes.push("event");
+  if (args.signals.action_related.detected) scopes.push("action");
+  if (args.signals.high_emotion.detected || args.signals.sensitive.detected) {
+    scopes.push("topic");
+    if (!args.signals.action_related.detected) scopes.push("event");
+  }
+  const requestedScopes = uniqScopes(scopes);
+  if (requestedScopes.length === 0) return null;
+  const budget = crossTopic || args.signals.high_emotion.detected ||
+      args.signals.sensitive.detected
+    ? BUDGETS.medium
+    : BUDGETS.small;
+  return {
+    enabled: true,
+    reason: "runtime_signal_override",
+    retrieval_mode: crossTopic ? "cross_topic_lookup" : "topic_continuation",
+    budget,
+    requested_scopes: requestedScopes,
+    topic_targets: [],
+    event_queries: [],
+    global_keys: [],
+    retrieval_policy: args.policy,
+    requires_topic_router: requestedScopes.includes("topic") && !crossTopic,
+    dispatcher_memory_plan_applied: true,
+    dispatcher_memory_mode: args.memory_mode,
+    dispatcher_context_need: args.context_need,
+  };
+}
+
 export function buildMemoryV2LoaderPlan(args: {
   memory_plan?: DispatcherPlanLike;
   signals: DetectedSignals;
@@ -238,6 +276,13 @@ export function buildMemoryV2LoaderPlan(args: {
     args.signals.cross_topic_profile_query.detected;
 
   if (memoryMode === "none") {
+    const runtimeOverride = runtimeOverrideForMemoryNone({
+      memory_mode: memoryMode,
+      context_need: contextNeed,
+      policy,
+      signals: args.signals,
+    });
+    if (runtimeOverride) return withSafetyOverride(runtimeOverride, args.signals);
     return withSafetyOverride(
       {
         enabled: false,

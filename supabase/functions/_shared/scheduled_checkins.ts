@@ -10,17 +10,9 @@ import {
 import { buildUserTimeContextFromValues } from "./user_time_context.ts";
 import { DEFAULT_TIMEZONE } from "./v2-constants.ts";
 import {
-  formatEventMemoriesForPrompt,
-  retrieveEventMemories,
-} from "../sophia-brain/event_memory.ts";
-import {
-  formatGlobalMemoriesForPrompt,
-  retrieveGlobalMemories,
-} from "../sophia-brain/global_memory.ts";
-import {
-  formatTopicMemoriesForPrompt,
-  retrieveTopicMemories,
-} from "../sophia-brain/topic_memory.ts";
+  formatMemoryV2PayloadForPrompt,
+} from "./memory/runtime/active_loader.ts";
+import { loadMemoryV2Payload } from "./memory/runtime/loader.ts";
 import {
   buildRelationPreferencesPromptBlock,
   getUserRelationPreferences,
@@ -261,33 +253,37 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   ).filter(Boolean).join("\n");
   let memoryContextBlock = "";
   try {
-    const [events, topics, globals] = await Promise.all([
-      retrieveEventMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-        requestId: params.requestId,
-      }),
-      retrieveTopicMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-        meta: params.requestId ? { requestId: params.requestId } : undefined,
-      }),
-      retrieveGlobalMemories({
-        supabase: admin as any,
-        userId,
-        message: retrievalQuery || eventContext,
-        maxResults: 2,
-      }),
-    ]);
-    memoryContextBlock = [
-      formatEventMemoriesForPrompt(events),
-      formatTopicMemoriesForPrompt(topics),
-      formatGlobalMemoriesForPrompt(globals),
-    ].filter(Boolean).join("\n");
+    const payload = await loadMemoryV2Payload({
+      supabase: admin as any,
+      user_id: userId,
+      retrieval_mode: "cross_topic_lookup",
+      hints: ["dated_reference"],
+      message: retrievalQuery || eventContext,
+      limit: 6,
+      loader_plan: {
+        enabled: true,
+        reason: "scheduled_checkin_v2",
+        retrieval_mode: "cross_topic_lookup",
+        budget: {
+          max_items: 6,
+          max_entities: 0,
+          topic_items: 0,
+          event_items: 2,
+          global_items: 4,
+          action_items: 0,
+        },
+        requested_scopes: ["global", "event"],
+        topic_targets: [],
+        event_queries: [],
+        global_keys: [],
+        retrieval_policy: "semantic_first",
+        requires_topic_router: false,
+        dispatcher_memory_plan_applied: true,
+        dispatcher_memory_mode: "broad",
+        dispatcher_context_need: "scheduled_checkin",
+      },
+    });
+    memoryContextBlock = formatMemoryV2PayloadForPrompt(payload);
   } catch (e) {
     console.warn(
       "[scheduled_checkins] semantic retrieval failed (non-blocking):",

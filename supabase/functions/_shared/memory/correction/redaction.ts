@@ -9,14 +9,12 @@ export interface RedactionMemoryItem {
 
 export interface RedactionTopic {
   id: string;
-  synthesis?: string | null;
   search_doc?: string | null;
   pending_changes_count?: number | null;
   metadata?: Record<string, unknown> | null;
 }
 
 export interface RedactedTopic extends RedactionTopic {
-  synthesis: string;
   search_doc: string;
   search_doc_embedding: null;
   pending_changes_count: number;
@@ -64,7 +62,6 @@ export function redactTopicSurface(
   const terms = extractRedactionTerms(item);
   return {
     ...topic,
-    synthesis: redactTextByTerms(topic.synthesis, terms),
     search_doc: redactTextByTerms(topic.search_doc, terms),
     search_doc_embedding: null,
     pending_changes_count: Number(topic.pending_changes_count ?? 0) + 1,

@@ -9,7 +9,7 @@ import {
 Deno.test("rollback plans keep flags scoped by severity", () => {
   assertEquals(buildMemoryV2RollbackPlan(1), {
     level: 1,
-    flags_off: ["memory_v2_loader_enabled"],
+    flags_off: ["memory_v2_loader_disabled=1"],
     requires_data_mutation: false,
     requires_migration_rollback: false,
     expected_recovery: "minutes",

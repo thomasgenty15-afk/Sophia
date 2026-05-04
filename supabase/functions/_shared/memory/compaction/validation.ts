@@ -50,7 +50,6 @@ export function parseTopicCompactionOutput(raw: string): TopicCompactionOutput {
     throw new Error("memory_v2_compaction_invalid_json");
   }
   return {
-    synthesis: String(parsed?.synthesis ?? "").trim(),
     search_doc: String(parsed?.search_doc ?? "").trim(),
     claims: Array.isArray(parsed?.claims)
       ? parsed.claims.map((claim: any) => ({
@@ -74,10 +73,10 @@ export function validateTopicCompactionOutput(args: {
   const activeItems = args.items.filter((item) => item.status === "active");
   const activeById = new Map(activeItems.map((item) => [item.id, item]));
 
-  if (!args.output.synthesis.trim() || !args.output.search_doc.trim()) {
+  if (!args.output.search_doc.trim()) {
     issues.push({
       code: "empty_output",
-      message: "Compaction output must include synthesis and search_doc.",
+      message: "Compaction output must include search_doc.",
     });
   }
 
@@ -123,20 +122,20 @@ export function validateTopicCompactionOutput(args: {
   const allClaimText = args.output.claims.map((claim) => claim.claim).join(
     " ",
   );
-  for (const sentence of sentences(args.output.synthesis)) {
+  for (const sentence of sentences(args.output.search_doc)) {
     const normalizedSentence = normalize(sentence);
     if (!/^le user\b/.test(normalizedSentence)) continue;
     if (overlapScore(sentence, allClaimText) < 0.22) {
       issues.push({
         code: "unsupported_synthesis_claim",
-        message: `Synthesis sentence is not covered by claims: ${
+        message: `Search doc sentence is not covered by claims: ${
           sentence.slice(0, 120)
         }`,
       });
     }
   }
 
-  const surfaces = `${args.output.synthesis}\n${args.output.search_doc}`;
+  const surfaces = args.output.search_doc;
   for (const item of activeItems) {
     if (
       item.sensitivity_level !== "sensitive" &&

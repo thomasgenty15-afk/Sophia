@@ -1,0 +1,63 @@
+{
+  "id": "14_cross_topic_family",
+  "description": "Global family lookup should retrieve family relationship memories without work-only facts.",
+  "scenario_version": 1,
+  "initial_state": {
+    "memory_items": [
+      {
+        "id": "seed_mother_criticism",
+        "kind": "statement",
+        "content_text": "Le user dit que les critiques de sa mere le font douter.",
+        "status": "active",
+        "topic_slug": "mere_critiques",
+        "domain_keys": ["relations.famille", "psychologie.estime_de_soi"],
+      },
+      {
+        "id": "seed_work_noise",
+        "kind": "fact",
+        "content_text": "Le user travaille souvent tard le mardi.",
+        "status": "active",
+        "topic_slug": "travail_charge",
+        "domain_keys": ["travail.charge"],
+      },
+    ],
+  },
+  "turns": [
+    {
+      "user": "Comment tu vois mes relations familiales ?",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "topic_decision": "stay",
+        "payload_contains": [
+          { "kind": "statement", "contains": "critiques de sa mere" },
+        ],
+        "payload_does_not_contain": [
+          { "kind": "fact", "contains": "mardi" },
+        ],
+      },
+    },
+    {
+      "user": "Je veux poser des limites sans exploser.",
+      "expect": {
+        "retrieval_mode": "cross_topic_lookup",
+        "created_items": [
+          {
+            "kind": "statement",
+            "contains": ["poser des limites", "exploser"],
+            "domain_keys_any_of": ["relations.famille", "relations.limites"],
+          },
+        ],
+      },
+    },
+  ],
+  "global_assertions": [
+    {
+      "no_invalid_injection": true,
+      "no_deleted_in_payload": true,
+      "no_statement_as_fact": true,
+      "no_cross_user_data": true,
+      "no_duplicate_extraction_on_retry": true,
+      "no_message_double_processing": true,
+    },
+  ],
+}

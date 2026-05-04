@@ -7,7 +7,6 @@ import {
   type MemoryProvenanceRef,
   sanitizeMemoryProvenance,
 } from "./memory_provenance.ts";
-import { processTopicsFromWatcher } from "./topic_memory.ts";
 
 type ArchitectSourceKind = "module";
 type ArchitectUpdateKind =
@@ -516,17 +515,25 @@ export async function ingestArchitectMemorySource(params: {
     newText,
   });
 
-  const result = await processTopicsFromWatcher({
-    supabase: params.supabase,
-    userId,
-    transcript,
-    currentContext,
-    sourceType: "module",
-    provenance: provenance ?? undefined,
-    meta: {
-      requestId: params.requestId,
-    },
-  });
+  void transcript;
+  void currentContext;
+  const result: ArchitectIngestionResult = {
+    processed: false,
+    skipped: true,
+    reason: "memory_v2_only_module_ingestion_pending",
+    topicsCreated: 0,
+    topicsEnriched: 0,
+    topicsNoop: 0,
+    eventsCreated: 0,
+    eventsUpdated: 0,
+    eventsNoop: 0,
+    globalMemoriesCreated: 0,
+    globalMemoriesUpdated: 0,
+    globalMemoriesNoop: 0,
+    globalMemoriesPendingCompaction: 0,
+    identityUpdated: false,
+    provenance,
+  };
 
   let identityUpdated = false;
   let identityReason = "not_checked";

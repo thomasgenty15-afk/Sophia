@@ -79,7 +79,7 @@ Deno.test("nudge_decision does not load cycle or transformation", () => {
 // Layer sources
 // ═══════════════════════════════════════════════════════════════════════════════
 
-Deno.test("getLayerSources returns correct tables for daily_bilan", () => {
+Deno.test("getLayerSources returns V2-only memory_items sources for daily_bilan", () => {
   const c = V2_MEMORY_CONTRACTS.daily_bilan;
   const sources = getLayerSources(c);
   assertEquals(sources.length, 3);
@@ -87,33 +87,25 @@ Deno.test("getLayerSources returns correct tables for daily_bilan", () => {
   const executionSource = sources.find((s) => s.layer === "execution");
   assertExists(executionSource);
   assertEquals(executionSource.sources.length, 1);
-  assertEquals(executionSource.sources[0].table, "user_topic_memories");
+  assertEquals(executionSource.sources[0].table, "memory_item_topics");
   assertEquals(executionSource.sources[0].filter_transformation, true);
 });
 
-Deno.test("cycle layer source filters by scope=cycle and cycle_id", () => {
+Deno.test("cycle layer source uses domain-keyed memory_items", () => {
   const src = LAYER_SOURCES.cycle;
   assertEquals(src.sources.length, 1);
-  assertEquals(src.sources[0].scope_filter?.value, "cycle");
+  assertEquals(src.sources[0].table, "memory_items");
+  assertEquals(src.sources[0].filter?.column, "domain_keys");
+  assertEquals(src.sources[0].filter?.op, "overlaps");
   assertEquals(src.sources[0].filter_cycle, true);
   assertEquals(src.sources[0].filter_transformation, false);
 });
 
-Deno.test("relational layer maps core_identity and scoped global_memories separately", () => {
+Deno.test("relational layer maps to domain-keyed memory_items only", () => {
   const src = LAYER_SOURCES.relational;
-  assertEquals(src.sources.length, 2);
-
-  const identitySource = src.sources.find((s) =>
-    s.table === "user_core_identity"
-  );
-  assertExists(identitySource);
-  assertEquals(identitySource.scope_filter, null);
-
-  const globalSource = src.sources.find((s) =>
-    s.table === "user_global_memories"
-  );
-  assertExists(globalSource);
-  assertEquals(globalSource.scope_filter?.value, "relational");
+  assertEquals(src.sources.length, 1);
+  assertEquals(src.sources[0].table, "memory_items");
+  assertEquals(src.sources[0].filter?.column, "domain_keys");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

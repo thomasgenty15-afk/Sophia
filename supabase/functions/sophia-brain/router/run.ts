@@ -5,6 +5,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
   type AgentMode,
   getUserState,
+  insertChatMessage,
   logMessage,
   normalizeScope,
   updateUserState,
@@ -55,15 +56,13 @@ import {
 } from "../../_shared/brain-trace.ts";
 import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import { runMemoryV2ActiveLoader } from "../../_shared/memory/runtime/active_loader.ts";
-import { runMemoryV2Shadow } from "../../_shared/memory/runtime/shadow.ts";
 import { SupabaseMemorizerRepository } from "../../_shared/memory/memorizer/persist.ts";
-import { runMemorizerWriteCanaryIfEnabled } from "../../_shared/memory/memorizer/write_canary.ts";
+import { runMemorizerAsyncIfEnabled } from "../../_shared/memory/memorizer/memorizer_async.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { buildConversationPulse } from "../conversation_pulse_builder.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 import { isLikelyOneShotReminderRequest } from "../lib/one_shot_reminder_tool.ts";
-import { maybeCompactScopeMemory } from "../scope_memory.ts";
 import {
   buildCoachingInterventionRuntimeAddon,
   buildKnownCoachingBlockersFromTempMemory,
@@ -1865,13 +1864,16 @@ export async function processMessage(
 
   let loggedMessageId: string | null = null;
   if (logMessages) {
-    const { data: inserted } = await supabase.from("chat_messages").insert({
-      user_id: userId,
+    const inserted = await insertChatMessage(
+      supabase,
+      userId,
       scope,
-      role: "user",
-      content: userMessage,
-      metadata: opts?.messageMetadata ?? {},
-    }).select("id").single();
+      "user",
+      userMessage,
+      undefined,
+      opts?.messageMetadata ?? {},
+      { selectId: true },
+    );
     loggedMessageId = inserted?.id ?? null;
   }
 
@@ -2246,14 +2248,6 @@ export async function processMessage(
               },
             },
           );
-          await maybeCompactScopeMemory({
-            supabase,
-            userId,
-            scopeRaw: scope,
-            requestId: meta?.requestId ?? null,
-            model: meta?.model ?? null,
-            forceRealAi: meta?.forceRealAi,
-          });
         }
         return {
           content: responseContent,
@@ -2548,20 +2542,7 @@ export async function processMessage(
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
-  const activeTopicStateV1 = (tempMemory as any)?.__active_topic_state_v1 ??
-    null;
-  const v1MemoryRuntimeSnapshot = {
-    context_load_ms: contextLoadResult?.metrics?.load_ms ?? contextLatencyMs,
-    retrieval_mode: targetMode === "sentry"
-      ? "safety_first"
-      : "topic_continuation",
-    active_topic_id: typeof activeTopicStateV1?.active_topic_id === "string"
-      ? activeTopicStateV1.active_topic_id
-      : null,
-    payload_item_ids: [],
-  };
   let memoryV2RuntimeTempMemory: Record<string, unknown> | null = null;
-  let memoryV2ActiveApplied = false;
   try {
     const active = await runMemoryV2ActiveLoader({
       supabase,
@@ -2575,10 +2556,8 @@ export async function processMessage(
       tempMemory,
       memoryPlan: contextual.dispatcherResult?.memory_plan ?? null,
       userTime: userTime as any,
-      v1: v1MemoryRuntimeSnapshot,
     });
     if (active) {
-      memoryV2ActiveApplied = true;
       memoryV2RuntimeTempMemory = active.tempMemory;
       contextLoadResult.context.eventMemories = undefined;
       contextLoadResult.context.globalMemories = undefined;
@@ -2610,43 +2589,10 @@ export async function processMessage(
         error: error instanceof Error ? error.message : String(error),
       },
     });
-    console.warn("[Router] Memory V2 active loader failed; using V1:", error);
+    console.warn("[Router] Memory V2 active loader failed; continuing without durable memory:", error);
   }
 
   context = buildContextString(contextLoadResult.context);
-  if (!memoryV2ActiveApplied) {
-    try {
-      const shadow = await runMemoryV2Shadow({
-        supabase,
-        userId,
-        scope,
-        channel,
-        requestId: meta?.requestId,
-        turnId: loggedMessageId,
-        userMessage,
-        history,
-        tempMemory,
-        userTime: userTime as any,
-        v1: v1MemoryRuntimeSnapshot,
-      });
-      memoryV2RuntimeTempMemory = shadow?.tempMemory ?? null;
-    } catch (error) {
-      await logMemoryObservabilityEvent({
-        supabase,
-        userId,
-        requestId: meta?.requestId,
-        turnId: loggedMessageId,
-        channel,
-        scope,
-        sourceComponent: "memory_v2_runtime_shadow",
-        eventName: "memory.runtime.shadow.error",
-        payload: {
-          error: error instanceof Error ? error.message : String(error),
-        },
-      });
-      console.warn("[Router] Memory V2 shadow failed (non-blocking):", error);
-    }
-  }
   if (researchRequested && researchQuery.length > 0) {
     const researchStartMs = Date.now();
     try {
@@ -3122,14 +3068,6 @@ export async function processMessage(
         },
       },
     );
-    await maybeCompactScopeMemory({
-      supabase,
-      userId,
-      scopeRaw: scope,
-      requestId: meta?.requestId ?? null,
-      model: meta?.model ?? null,
-      forceRealAi: meta?.forceRealAi,
-    });
   }
 
   await trace("routing_decision_summary", "routing", {
@@ -3268,7 +3206,7 @@ export async function processMessage(
   if (loggedMessageId) {
     const activeTopicStateV2 =
       (mergedTempMemory as any)?.__active_topic_state_v2 ?? null;
-    runMemorizerWriteCanaryIfEnabled(
+    runMemorizerAsyncIfEnabled(
       new SupabaseMemorizerRepository(supabase),
       {
         user_id: userId,
@@ -3301,14 +3239,14 @@ export async function processMessage(
             lifecycle_stage: activeTopicStateV2.lifecycle_stage ?? null,
           }]
           : [],
-        trigger_type: "chat_turn_canary",
+        trigger_type: "chat_turn_async",
         model_name: envString(
           "MEMORY_V2_EXTRACTION_MODEL",
           "gemini-3-flash-preview",
         ),
       },
     ).catch((e) => {
-      console.warn("[Router] Memory V2 write canary failed (non-blocking):", e);
+      console.warn("[Router] Memory V2 async memorizer failed (non-blocking):", e);
     });
   }
 

@@ -1052,9 +1052,44 @@ Ordre cible :
 ```text
 1. safety
 2. operation_router sur pending confirmation
-3. dispatcher.operation_intent
-4. operation_router sur operation_intent fort
-5. skill_router si aucune operation prioritaire
+3. always-on tools directs
+4. dispatcher.operation_intent
+5. operation_router sur operation_intent fort
+6. skill_router si aucune operation prioritaire
+```
+
+Always-on tools directs MVP :
+
+```text
+create_one_shot_reminder
+track_progress_plan_item
+```
+
+Ces tools ne sont pas des operation skills.
+
+Ils peuvent s'executer sans flow d'intake, mais seulement avec des garde-fous
+stricts :
+
+```text
+safety active -> bloque
+pending confirmation active -> traiter Oui/Non avant
+target ambigu -> no write
+source_message_id deja traite -> no write
+```
+
+Pour `track_progress_plan_item`, le runtime peut logger en parallele d'un skill
+conversationnel non-safety, puis injecter un addon court au skill actif :
+
+```text
+tool execute -> addon tracking -> skill continue la reponse humaine
+```
+
+Exemple :
+
+```text
+"j'ai rate ma marche, je suis nul"
+-> track_progress_plan_item log missed si cible claire
+-> emotional_repair reste proprietaire de la reponse
 ```
 
 ### Relation avec skill_router
@@ -1163,6 +1198,146 @@ export type ActiveConversationSkillState = {
   summary: string;
   previous_skill_id?: string | null;
 };
+```
+
+### Active skill working state
+
+`__active_conversation_skill_v1` n'est pas seulement un marqueur de routing.
+C'est d'abord la memoire de travail du skill actif.
+
+Le consommateur principal est :
+
+```text
+skill.run()
+```
+
+Pas le dispatcher.
+
+Le dispatcher peut recevoir une vue courte pour decider `continue`, `exit` ou
+`handoff`, mais l'appel IA qui produit la reponse du skill doit recevoir la vue
+complete.
+
+Separation :
+
+```text
+dispatcher view
+  skill_id
+  turn_count
+  phase
+  summary court
+
+skill view
+  summary vivant
+  phase
+  slots
+  missing_slots
+  derniere question posee
+  derniere intention de reponse
+  resume de la derniere reponse user
+```
+
+Format cible :
+
+```ts
+export type ActiveConversationSkillWorkingState = {
+  version: 1;
+  skill_id:
+    | "safety_crisis"
+    | "emotional_repair"
+    | "demotivation_repair"
+    | "execution_breakdown"
+    | "product_help";
+  status: "active";
+  started_at: string;
+  updated_at: string;
+  turn_count: number;
+  max_turns: number;
+
+  primary_signal: string;
+  phase?: string;
+  summary: string;
+  slots?: Record<string, unknown>;
+  missing_slots?: string[];
+
+  last_response_intent?: string | null;
+  last_question_asked?: string | null;
+  last_user_answer_summary?: string | null;
+
+  previous_skill_id?: string | null;
+  handoff_from?: string | null;
+};
+```
+
+Chaque run de skill doit produire un `state_patch`.
+
+Exemple `execution_breakdown` :
+
+```json
+{
+  "state_patch": {
+    "summary": "User bloque sur la marche du soir. Cible identifiee. Frein probable: fatigue le soir. Pas de honte dominante.",
+    "phase": "diagnosis",
+    "slots": {
+      "target": {
+        "status": "identified",
+        "kind": "plan_item",
+        "label": "marche du soir"
+      },
+      "blocker_hypothesis": {
+        "primary": "fatigue_overload",
+        "confidence": 0.78
+      }
+    },
+    "missing_slots": [],
+    "last_question_asked": null,
+    "turn_count_increment": 1
+  }
+}
+```
+
+Exemple si le skill pose une question :
+
+```json
+{
+  "state_patch": {
+    "summary": "User dit qu'il n'arrive pas a faire une action, mais la cible n'est pas encore claire.",
+    "phase": "target_resolution",
+    "slots": {
+      "target": {
+        "status": "missing"
+      }
+    },
+    "missing_slots": ["target"],
+    "last_question_asked": "Tu parles de quelle action precisement ?",
+    "turn_count_increment": 1
+  }
+}
+```
+
+Au tour suivant, le skill recoit ce working state et comprend :
+
+```text
+- quelle question a deja ete posee ;
+- quels trous restent a remplir ;
+- quelle cible ou hypothese a deja ete stabilisee ;
+- quelle phase continuer ;
+- quand eviter de reposer la meme question.
+```
+
+Lifecycle :
+
+```text
+skill.run()
+-> output JSON + state_patch
+-> runtime merge state_patch dans __active_conversation_skill_v1
+-> prochain tour: skill_context_loader reinjecte la vue complete au skill
+```
+
+A l'exit :
+
+```text
+- clear __active_conversation_skill_v1 ;
+- optionnel : produire un skill_run_summary pour observability / memorizer async.
 ```
 
 ### Pending operation confirmation
@@ -1283,7 +1458,7 @@ Role :
 
 ```text
 skill_id
-+ active_skill_state
++ active_skill_working_state complet pour le skill
 + skill_signals
 + dispatcher memory hints
 + recent_messages
@@ -1298,6 +1473,17 @@ Le dispatcher reste responsable de la perception :
 - signaux de lifecycle du skill actif ;
 - operation_intent ;
 - memory hints / topic hints.
+```
+
+Le skill doit recevoir en priorite :
+
+```text
+- active_skill_working_state.summary ;
+- active_skill_working_state.phase ;
+- active_skill_working_state.slots ;
+- active_skill_working_state.missing_slots ;
+- active_skill_working_state.last_question_asked ;
+- active_skill_working_state.last_response_intent.
 ```
 
 Le loader est responsable du contexte :
@@ -1377,7 +1563,8 @@ Regles :
 
 - une fois le sujet/action identifie, ne pas continuer a injecter les candidats ;
 - une fois l'etat emotionnel identifie, ne pas injecter des hypotheses concurrentes sauf nouveau signal ;
-- garder le `active_skill_state.summary` comme fil conducteur ;
+- garder le `active_skill_working_state.summary` comme fil conducteur ;
+- utiliser `slots` et `missing_slots` pour eviter les boucles de questions ;
 - laisser le memorizer async decider des ecritures durables ;
 - ne pas rouvrir une analyse si le user a deja confirme ou corrige le cadrage.
 
@@ -2257,6 +2444,78 @@ create_recurring_reminder sans timezone -> refuse
 update_coach_preferences sans preference keys -> refuse
 ```
 
+## Invariant potion
+
+Une potion n'est pas seulement une surface explicative ni seulement une session
+ouverte.
+
+Invariant produit :
+
+```text
+Potion activee = message immediat rassurant + recurring reminder 7 jours.
+```
+
+### Depuis le chat
+
+Quand `select_state_potion_operation_skill` est confirme par Oui :
+
+```text
+select_state_potion_operation_skill
+-> potion_session_selector
+-> pending_confirmation Oui/Non
+-> activate_state_potion_executor
+-> creer/activer user_potion_session
+-> envoyer le message immediat rassurant
+-> creer user_recurring_reminder potion_follow_up
+-> creer scheduled_checkins x 7
+```
+
+Le user ne choisit pas l'horaire dans le chat MVP.
+
+```text
+L'IA choisit le meilleur horaire d'envoi a partir du contexte disponible.
+Si rien n'est fiable, utiliser un default calme, par exemple 09:00 ou 18:30
+selon le type de potion et le moment du probleme.
+```
+
+L'ack apres execution doit contenir :
+
+```text
+C'est fait. J'ai lance une potion [type].
+
+[message immediat rassurant]
+
+Je t'ai aussi programme un rappel quotidien pendant 7 jours.
+Tu peux modifier dans ton espace sur sophia-coach.ai.
+```
+
+### Depuis la plateforme
+
+Comportement cible :
+
+```text
+questionnaire potion
+-> generation du message immediat
+-> creation systematique d'un recurring reminder de suivi
+```
+
+La plateforme doit donc rester alignee avec le chat :
+
+```text
+message immediat visible
+recurring reminder cree systematiquement
+duree cible MVP = 7 jours
+source = potion_generated / potion_follow_up
+```
+
+Point de vigilance implementation :
+
+```text
+Si l'UI plateforme laisse encore le user cliquer sur "Programmer" ou choisir
+3 / 5 / 10 / 14 jours, ce comportement est a revalider.
+Le comportement cible de ce plan est : suivi potion systematique, 7 jours.
+```
+
 ## Product Surface Registry v2
 
 Le registry actuel doit etre enrichi.
@@ -2447,6 +2706,10 @@ Contenu minimal :
   "turn_count": 1,
   "primary_signal": "self_criticism",
   "summary": "...",
+  "phase": "repair",
+  "slots": {},
+  "missing_slots": [],
+  "last_question_asked": null,
   "max_turns": 3
 }
 ```
@@ -2454,6 +2717,9 @@ Contenu minimal :
 DoD :
 
 - creation, continuation, exit ;
+- `state_patch` merge apres chaque run de skill ;
+- le skill recoit la vue complete du working state au tour suivant ;
+- le dispatcher ne recoit qu'une vue courte pour routing/lifecycle ;
 - safety override ;
 - aucune ecriture durable.
 
