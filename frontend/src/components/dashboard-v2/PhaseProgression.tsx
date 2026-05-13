@@ -66,13 +66,8 @@ type PhaseProgressionProps = {
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onActivate: (item: DashboardV2PlanItemRuntime) => void;
   onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
-  onBlocker: (item: DashboardV2PlanItemRuntime) => void;
-  onDeactivate: (item: DashboardV2PlanItemRuntime) => void;
-  onRemove: (item: DashboardV2PlanItemRuntime) => void;
-  onAdapt: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
   completeLevelBusy?: boolean;
@@ -429,13 +424,8 @@ function ActivePhase({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onActivate,
   onPrepareCards,
   onOpenDefenseResourceEditor,
-  onBlocker,
-  onDeactivate,
-  onRemove,
-  onAdapt,
   onCompleteLevel,
   completeLevelBusy = false,
   levelToolRecommendations,
@@ -453,13 +443,8 @@ function ActivePhase({
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onActivate: (item: DashboardV2PlanItemRuntime) => void;
   onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
-  onBlocker: (item: DashboardV2PlanItemRuntime) => void;
-  onDeactivate: (item: DashboardV2PlanItemRuntime) => void;
-  onRemove: (item: DashboardV2PlanItemRuntime) => void;
-  onAdapt: (item: DashboardV2PlanItemRuntime) => void;
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
   completeLevelBusy?: boolean;
@@ -944,13 +929,8 @@ function ActivePhase({
                                   ) ?? null}
                                   isBusy={busyItemId === item.id}
                                   onComplete={onComplete}
-                                  onActivate={onActivate}
                                   onPrepareCards={onPrepareCards}
                                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                                  onBlocker={onBlocker}
-                                  onDeactivate={onDeactivate}
-                                  onRemove={onRemove}
-                                  onAdapt={onAdapt}
                                 />
                               ))
                             )}
@@ -993,12 +973,12 @@ function ActivePhase({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-2xl">
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-emerald-700">
-                  Bilan de fin de niveau
+                  Validation du prochain niveau
                 </p>
                 <p className="mt-2 text-sm leading-6 text-stone-700">
                   {phase.transition_ready
-                    ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour dire comment il s'est passé avant de lancer la suite."
-                    : "Le questionnaire de fin de niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer le prochain niveau et ajuster la suite si nécessaire."}
+                    ? "Tu as bouclé les actions de ce niveau. Prends 2 minutes pour calibrer le prochain niveau avant de lancer la suite."
+                    : "La validation du prochain niveau est disponible deux jours avant la fin. Sophia utilisera tes réponses pour préparer la suite et l'ajuster si nécessaire."}
                 </p>
               </div>
               {onCompleteLevel
@@ -1011,7 +991,7 @@ function ActivePhase({
                   >
                     {completeLevelBusy
                       ? "Préparation..."
-                      : "Terminer ce niveau"}
+                      : "Valider le prochain niveau"}
                   </button>
                 )
                 : null}
@@ -1037,13 +1017,8 @@ function ActivePhase({
                   unlockState={unlockStateByItemId.get(item.id) ?? null}
                   isBusy={busyItemId === item.id}
                   onComplete={onComplete}
-                  onActivate={onActivate}
                   onPrepareCards={onPrepareCards}
                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                  onBlocker={onBlocker}
-                  onDeactivate={onDeactivate}
-                  onRemove={onRemove}
-                  onAdapt={onAdapt}
                 />
               ))
             )}
@@ -1221,13 +1196,8 @@ export function PhaseProgression({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onActivate,
   onPrepareCards,
   onOpenDefenseResourceEditor,
-  onBlocker,
-  onDeactivate,
-  onRemove,
-  onAdapt,
   onLogHeartbeat,
   onCompleteLevel,
   completeLevelBusy,
@@ -1363,13 +1333,8 @@ export function PhaseProgression({
                       unlockStateByItemId={unlockStateByItemId}
                       busyItemId={busyItemId}
                       onComplete={onComplete}
-                      onActivate={onActivate}
                       onPrepareCards={onPrepareCards}
                       onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                      onBlocker={onBlocker}
-                      onDeactivate={onDeactivate}
-                      onRemove={onRemove}
-                      onAdapt={onAdapt}
                       onLogHeartbeat={onLogHeartbeat}
                       onCompleteLevel={onCompleteLevel}
                       completeLevelBusy={completeLevelBusy}

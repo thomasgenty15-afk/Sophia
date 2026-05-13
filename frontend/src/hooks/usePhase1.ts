@@ -81,6 +81,7 @@ export function usePhase1(
   transformation: UserTransformationRow | null,
   refetch: () => Promise<void>,
 ): UsePhase1Result {
+  const [localPhase1, setLocalPhase1] = useState<Phase1Payload | null>(null);
   const [preparingStart, setPreparingStart] = useState(false);
   const [phase1PrewarmCooldownUntil, setPhase1PrewarmCooldownUntil] = useState<number | null>(null);
   const [preparingDeepWhy, setPreparingDeepWhy] = useState(false);
@@ -88,7 +89,8 @@ export function usePhase1(
   const [savingDeepWhy, setSavingDeepWhy] = useState(false);
   const [updatingRuntime, setUpdatingRuntime] = useState(false);
 
-  const phase1 = extractPhase1Payload(transformation?.handoff_payload ?? null);
+  const serverPhase1 = extractPhase1Payload(transformation?.handoff_payload ?? null);
+  const phase1 = serverPhase1 ?? localPhase1;
   const transformationId = transformation?.id ?? null;
   const phase1StartCooldownActive = Boolean(
     phase1PrewarmCooldownUntil && phase1PrewarmCooldownUntil > Date.now(),
@@ -98,7 +100,12 @@ export function usePhase1(
     setPhase1PrewarmCooldownUntil(
       readPhase1PrewarmCooldownUntil(transformationId),
     );
+    setLocalPhase1(null);
   }, [transformationId]);
+
+  useEffect(() => {
+    if (serverPhase1) setLocalPhase1(serverPhase1);
+  }, [serverPhase1]);
 
   useEffect(() => {
     if (!phase1PrewarmCooldownUntil) return;
@@ -129,10 +136,13 @@ export function usePhase1(
     setPhase1PrewarmCooldownUntil(markPhase1PrewarmStarted(transformationId));
     setPreparingStart(true);
     try {
-      const { error } = await supabase.functions.invoke("prepare-phase-1-deep-why-v1", {
+      const { data, error } = await supabase.functions.invoke<{
+        phase_1?: Phase1Payload | null;
+      }>("prepare-phase-1-deep-why-v1", {
         body: { transformation_id: transformationId },
       });
       if (error) throw error;
+      if (data?.phase_1) setLocalPhase1(data.phase_1);
       await refetch();
     } catch (error) {
       console.error("[usePhase1] prepareStart failed:", error);
@@ -145,10 +155,13 @@ export function usePhase1(
     if (!transformationId || preparingDeepWhy) return;
     setPreparingDeepWhy(true);
     try {
-      const { error } = await supabase.functions.invoke("prepare-phase-1-deep-why-v1", {
+      const { data, error } = await supabase.functions.invoke<{
+        phase_1?: Phase1Payload | null;
+      }>("prepare-phase-1-deep-why-v1", {
         body: { transformation_id: transformationId },
       });
       if (error) throw error;
+      if (data?.phase_1) setLocalPhase1(data.phase_1);
       await refetch();
     } catch (error) {
       console.error("[usePhase1] prepareDeepWhy failed:", error);

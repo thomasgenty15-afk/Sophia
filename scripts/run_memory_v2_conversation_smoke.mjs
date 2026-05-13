@@ -229,7 +229,10 @@ async function seedMemory(userId) {
     lifecycle_stage: "durable",
     search_doc: "sommeil dormi fatigue energie vide hier mal dormi",
     pending_changes_count: 0,
-    metadata: { smoke_run_id: runId },
+    metadata: {
+      smoke_run_id: runId,
+      domain_keys: ["sante.sommeil", "sante.energie", "psychologie.emotions"],
+    },
   });
   const travail = await insertRow("user_topic_memories", {
     user_id: userId,
@@ -239,7 +242,10 @@ async function seedMemory(userId) {
     lifecycle_stage: "durable",
     search_doc: "travail manager reunion collegue humilie pression deadline",
     pending_changes_count: 0,
-    metadata: { smoke_run_id: runId },
+    metadata: {
+      smoke_run_id: runId,
+      domain_keys: ["travail.conflits", "travail.charge", "psychologie.emotions"],
+    },
   });
   const event = await insertRow("memory_items", {
     user_id: userId,

@@ -5,6 +5,7 @@ import {
   mondayWeekStartForLocalDate,
   weekdayKeyForLocalDate,
 } from "./action_occurrences.ts";
+import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
 
 export const WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT = "weekly_progress_review_v2";
@@ -79,9 +80,23 @@ type EntryRow = {
   plan_item_id: string;
   entry_kind: string;
   outcome: "completed" | "partial" | "missed" | string;
+  value_text?: string | null;
   effective_at: string;
   created_at: string;
   metadata?: Record<string, unknown> | null;
+};
+
+export type WeeklyProgressDailyEvidence = {
+  source: typeof DAILY_ACTION_REVIEW_SOURCE;
+  reason_category: string | null;
+  reason_text: string | null;
+  matched_user_text: string | null;
+  still_relevant: boolean | null;
+  occurrence_status: string | null;
+  reschedule_decision: string | null;
+  rescheduled_to: string | null;
+  confidence: "high" | "medium" | "low";
+  outcome_source: string | null;
 };
 
 export type WeeklyProgressActionDeviation =
@@ -123,6 +138,7 @@ export type WeeklyProgressReviewV2 = {
       had_entry: boolean;
       entry_outcome: "completed" | "partial" | "missed" | null;
       deviation: WeeklyProgressActionDeviation;
+      daily_evidence?: WeeklyProgressDailyEvidence | null;
     }>;
     observation: {
       what_worked: string[];
@@ -284,6 +300,54 @@ function entryOutcomeForOccurrence(
     : null;
 }
 
+function asEntryMetadata(entry: EntryRow): Record<string, unknown> {
+  return entry.metadata && typeof entry.metadata === "object" &&
+      !Array.isArray(entry.metadata)
+    ? entry.metadata
+    : {};
+}
+
+function booleanOrNull(value: unknown): boolean | null {
+  return typeof value === "boolean" ? value : null;
+}
+
+function confidenceOrLow(value: unknown): "high" | "medium" | "low" {
+  const raw = cleanText(value);
+  return raw === "high" || raw === "medium" ? raw : "low";
+}
+
+function dailyEvidenceForOccurrence(
+  occurrence: OccurrenceRow,
+  entries: EntryRow[],
+): WeeklyProgressDailyEvidence | null {
+  const dailyEntries = entries
+    .filter((entry) => {
+      const metadata = asEntryMetadata(entry);
+      if (metadata.source !== DAILY_ACTION_REVIEW_SOURCE) return false;
+      const metadataOccurrenceId = cleanText(metadata.occurrence_id);
+      if (metadataOccurrenceId) return metadataOccurrenceId === occurrence.id;
+      return entry.plan_item_id === occurrence.plan_item_id;
+    })
+    .sort((left, right) =>
+      String(right.created_at ?? "").localeCompare(String(left.created_at ?? ""))
+    );
+  const match = dailyEntries[0];
+  if (!match) return null;
+  const metadata = asEntryMetadata(match);
+  return {
+    source: DAILY_ACTION_REVIEW_SOURCE,
+    reason_category: cleanText(metadata.reason_category) || null,
+    reason_text: cleanText(metadata.reason_text ?? match.value_text) || null,
+    matched_user_text: cleanText(metadata.matched_user_text) || null,
+    still_relevant: booleanOrNull(metadata.still_relevant),
+    occurrence_status: cleanText(metadata.occurrence_status) || null,
+    reschedule_decision: cleanText(metadata.reschedule_decision) || null,
+    rescheduled_to: cleanText(metadata.rescheduled_to) || null,
+    confidence: confidenceOrLow(metadata.confidence),
+    outcome_source: cleanText(metadata.outcome_source) || null,
+  };
+}
+
 function deviationFor(
   occurrence: OccurrenceRow,
   entryOutcome: "completed" | "partial" | "missed" | null,
@@ -426,6 +490,10 @@ export function buildWeeklyProgressReviewFromRows(params: {
             params.entries,
           );
           const deviation = deviationFor(occurrence, entryOutcome);
+          const dailyEvidence = dailyEvidenceForOccurrence(
+            occurrence,
+            params.entries,
+          );
           return [{
             occurrence_id: occurrence.id,
             plan_item_id: occurrence.plan_item_id,
@@ -437,6 +505,7 @@ export function buildWeeklyProgressReviewFromRows(params: {
             had_entry: Boolean(entryOutcome),
             entry_outcome: entryOutcome,
             deviation,
+            daily_evidence: dailyEvidence,
           }];
         });
 
@@ -671,7 +740,7 @@ export async function loadWeeklyProgressReview(
       supabase
         .from("user_plan_item_entries")
         .select(
-          "id,cycle_id,transformation_id,plan_id,plan_item_id,entry_kind,outcome,effective_at,created_at,metadata",
+          "id,cycle_id,transformation_id,plan_id,plan_item_id,entry_kind,outcome,value_text,effective_at,created_at,metadata",
         )
         .eq("user_id", params.userId)
         .gte(

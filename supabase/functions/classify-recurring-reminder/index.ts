@@ -439,7 +439,7 @@ function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown
       include_creation_rationale: true,
       include_plan_why: false,
       include_plan_blockers: false,
-      include_north_star: false,
+      include_cycle_context: false,
       include_topic_memories_last_week: false,
       include_topic_metadata: false,
     };
@@ -450,7 +450,7 @@ function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown
       include_creation_rationale: true,
       include_plan_why: true,
       include_plan_blockers: true,
-      include_north_star: true,
+      include_cycle_context: false,
       include_topic_memories_last_week: false,
       include_topic_metadata: false,
     };
@@ -460,7 +460,7 @@ function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown
     include_creation_rationale: true,
     include_plan_why: true,
     include_plan_blockers: true,
-    include_north_star: true,
+    include_cycle_context: false,
     include_topic_memories_last_week: true,
     include_topic_metadata: true,
   };
@@ -531,72 +531,6 @@ Rendez-vous:
   const reason = str((parsed as any)?.reason).slice(0, 180);
   const level: PersonalizationLevel = levelRaw === 3 ? 3 : levelRaw === 2 ? 2 : 1;
   return { level, reason: reason || "Classification automatique par intention utilisateur." };
-}
-
-function internalSecret(): string {
-  return str(Deno.env.get("INTERNAL_FUNCTION_SECRET")) || str(Deno.env.get("SECRET_KEY"));
-}
-
-function functionsBaseUrl(): string {
-  const supabaseUrl = str(Deno.env.get("SUPABASE_URL"));
-  if (!supabaseUrl) return "http://kong:8000";
-  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
-  return supabaseUrl.replace(/\/+$/, "");
-}
-
-function looksLikeJwtToken(value: string): boolean {
-  const token = str(value);
-  if (!token) return false;
-  const parts = token.split(".");
-  return parts.length === 3 && parts.every((p) => p.length > 0);
-}
-
-async function triggerRecurringSchedulingForReminder(params: {
-  reminderId: string;
-  userId: string;
-  userAuthHeader?: string;
-  fullReset?: boolean;
-  includeTodayIfFuture?: boolean;
-}): Promise<number> {
-  const secret = internalSecret();
-  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
-  const anonKey = str(Deno.env.get("SUPABASE_ANON_KEY"));
-  const serviceRoleKey = str(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
-  const url = `${functionsBaseUrl()}/functions/v1/schedule-recurring-checkins`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    "X-Internal-Secret": secret,
-  };
-  // Some runtimes/gateways enforce JWT verification before the function-level internal secret check.
-  if (anonKey) headers.apikey = anonKey;
-  const incomingAuth = str(params.userAuthHeader);
-  const incomingBearer = incomingAuth.toLowerCase().startsWith("bearer ")
-    ? incomingAuth.slice(7).trim()
-    : "";
-  // Prefer the caller's JWT when available; if absent, fallback to service-role only if JWT-shaped.
-  if (looksLikeJwtToken(incomingBearer)) {
-    headers.Authorization = `Bearer ${incomingBearer}`;
-  } else if (looksLikeJwtToken(serviceRoleKey)) {
-    headers.Authorization = `Bearer ${serviceRoleKey}`;
-  }
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      reminder_id: params.reminderId,
-      user_id: params.userId,
-      full_reset: Boolean(params.fullReset),
-      include_today_if_future: params.includeTodayIfFuture === true,
-    }),
-  });
-  const data = await res.json().catch(() => ({} as any));
-  if (!res.ok) {
-    throw new Error(
-      `schedule-recurring-checkins failed (${res.status}): ${JSON.stringify(data)}`,
-    );
-  }
-  const scheduled = Number((data as any)?.scheduled ?? 0);
-  return Number.isFinite(scheduled) ? scheduled : 0;
 }
 
 Deno.serve(async (req) => {
@@ -706,15 +640,11 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (profileErr) throw profileErr;
 
-    // Source-of-truth scheduling: delegate slot generation to schedule-recurring-checkins.
-    // This avoids concurrent dual writers (classify + scheduler) creating duplicate rows.
     const seededCheckins = isWhatsappSchedulingTierEligible((profile as any)?.access_tier)
-      ? await triggerRecurringSchedulingForReminder({
-        reminderId,
-        userId,
-        userAuthHeader: authHeader,
-        fullReset,
-        includeTodayIfFuture: true,
+      ? await seedReminderUntilNextSunday({
+        admin,
+        reminder: reminder as any,
+        level,
       })
       : 0;
 

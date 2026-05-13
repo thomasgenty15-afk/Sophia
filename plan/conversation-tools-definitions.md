@@ -12,9 +12,26 @@ Objectif :
 
 ```text
 Clarifier quels outils peuvent agir directement,
-quels outils passent par les operation skills,
+quels outils passent par les tool skills,
 et quelles operations sont interdites depuis le chat au MVP.
 ```
+
+## Revision 2026-05 - alignements integres
+
+Cette revision integre :
+
+```text
+1. Renommage `operation_skill` -> `tool_skill` (vocabulaire).
+2. DirectEffectGate strict pour les always-on tools (cf. section dediee).
+3. Confirmation token mechanism cote executors (verification cryptographique
+   du draft execute, pas seulement convention).
+4. Bandes interpretables (`explicit | implied | weak`,
+   `low | medium | high`) en plus des seuils numeriques bruts.
+5. Idempotence renforcee : double garde runtime + DB pour tous les writes.
+6. Hook safety_pregate avant tout tool, even always-on.
+```
+
+Toutes les sections ci-dessous integrent ces invariants.
 
 ## Principes
 
@@ -29,7 +46,7 @@ et quelles operations sont interdites depuis le chat au MVP.
    Moteur de decision produit. Il ne vit pas dans le dispatcher et n'execute pas.
 
 3. Operation tools
-   Generators / builders / executors adosses aux operation skills.
+   Generators / builders / executors adosses aux tool skills.
    Ils passent par readiness_gate + confirmation Oui/Non avant tout write.
 ```
 
@@ -48,7 +65,7 @@ conversation skill
 recommendation_tool
   decide si une opportunite produit vaut une proposition
 
-operation skill
+tool skill
   remplit les slots operationnels si besoin
 
 generator / builder
@@ -61,12 +78,184 @@ executor
 ### Invariants
 
 - aucun write produit complexe sans confirmation Oui ;
+- aucun executor n'accepte un draft sans `confirmation_token` valide ;
+- `safety_pregate` s'execute avant tout tool, always-on ou pas ;
 - safety bloque tous les outils non-safety ;
-- le dispatcher ne remplit pas les slots detailles des operation skills ;
+- le dispatcher ne remplit pas les slots detailles des tool skills ;
 - `recommendation_tool` ne doit pas executer ;
 - un generator ne doit jamais ecrire en DB ;
-- un executor ne doit recevoir qu'un draft confirme ;
-- le planning fin des actions n'est pas modifiable depuis le chat au MVP.
+- un executor ne doit recevoir qu'un draft confirme ET un token valide ;
+- tout write durable est idempotent par `source_message_id` ;
+- le planning fin ne doit pas devenir une surface separee: une demande de
+  timing reste une demande d'ajustement du plan, avec confirmation avant write.
+
+## DirectEffectGate
+
+### Role
+
+Le `DirectEffectGate` est le garde-fou commun a tous les always-on tools.
+Il est execute APRES `safety_pregate` mais AVANT le tool lui-meme.
+
+Son role : refuser strictement tout write durable qui ne satisfait pas la
+totalite des conditions ci-dessous.
+
+### Conditions cumulatives
+
+Toutes les conditions doivent etre vraies pour autoriser le write :
+
+```text
+1. safety_pregate.risk_band in {none, low}
+   Pas de write si medium / high / critical.
+
+2. pending_tool_skill_confirmation absent
+   Si une confirmation est en attente, traiter Oui/Non avant.
+
+3. explicit_intent_band in {explicit, implied_strong}
+   "rappelle-moi a 18h" -> explicit OK.
+   "j'ai fait ma marche" -> explicit OK.
+   "je devrais peut-etre marcher ce soir" -> implied weak, refuse.
+   "j'ai un truc a faire" -> weak, refuse.
+
+4. target_status = identified
+   Action / sujet / heure resolu sans ambiguite a partir du contexte
+   (plan_snapshot, recent_messages, message courant).
+
+5. ambiguity = none
+   Pas d'ambiguity sur la cible OU l'intent.
+
+6. autonomous_intent = true
+   L'action vient du user, pas d'une suggestion de Sophia que le user
+   aurait acceptee implicitement.
+
+7. idempotence runtime
+   `source_message_id` non deja consomme dans le tour courant.
+
+8. idempotence DB
+   Pas d'entry equivalent existant pour ce `source_message_id`.
+
+9. user_consent reel
+   Pas de cas ou Sophia "interprete" un acquiescement.
+```
+
+### Output
+
+```ts
+type DirectEffectGateOutcome =
+  | {
+      decision: "allow";
+      tool_id: string;
+      effect_payload: Record<string, unknown>;
+      idempotency_key: string;
+    }
+  | {
+      decision: "needs_clarify";
+      tool_id: string;
+      reason_code:
+        | "target_ambiguous"
+        | "intent_implied_weak"
+        | "ambiguity_present"
+        | "missing_time"
+        | "past_time"
+        | "non_autonomous_intent";
+      suggested_clarification: string;
+    }
+  | {
+      decision: "blocked";
+      tool_id: string;
+      reason_code:
+        | "safety_high"
+        | "pending_confirmation_active"
+        | "duplicate_source_message"
+        | "duplicate_db";
+      message: string;
+    };
+```
+
+### Trace
+
+```text
+direct_effect_gate_run_id
+tool_id
+conditions_evaluated (booleens par condition)
+decision
+reason_code si refuse
+idempotency_key si autorise
+```
+
+### Invariant
+
+```text
+Si une condition echoue, le tool ne write PAS.
+Le runtime peut decider d'injecter un addon needs_clarify a la reponse,
+mais c'est le skill / companion qui pose la question, pas le tool.
+```
+
+## Confirmation token mechanism
+
+### Role
+
+Le `confirmation_token` garantit qu'un executor ne peut ecrire que ce que
+le user a effectivement confirme, exactement.
+
+C'est une protection cryptographique contre :
+
+```text
+- une regression qui appellerait un executor sans pending confirmation ;
+- un bug qui executerait un draft different de celui confirme ;
+- un retry qui appliquerait l'effet deux fois ;
+- un test qui contournerait la confirmation.
+```
+
+### Schema
+
+```ts
+type ConfirmationToken = {
+  token_id: string;                  // UUID stable
+  user_id: string;
+  operation_id: string;
+  operation_type: string;
+  draft_hash: string;                // sha256(canonical(draft))
+  source_message_id: string;         // message qui a confirme
+  pending_confirmation_id: string;
+  confirmed_at: string;              // ISO timestamp
+  expires_at: string;                // typiquement now + 10 min
+  signature: string;                 // HMAC interne
+};
+```
+
+### Cycle de vie
+
+```text
+1. tool skill cree pending_tool_skill_confirmation avec draft.
+2. user dit Oui.
+3. runtime cree confirmation_token signe.
+4. runtime appelle executor avec (draft, token).
+5. executor verifie :
+   - signature valide ;
+   - expires_at > now ;
+   - sha256(canonical(draft)) == token.draft_hash ;
+   - user_id match ;
+   - pending_confirmation_id correspond a une pending non consommee ;
+   - token_id non deja consomme.
+6. executor write + marque token consomme + marque pending consommee.
+```
+
+Si une verification echoue : refus, log, no write.
+
+### Single-use
+
+Le token est marque consomme apres write. Un retry doit produire un
+NOUVEAU token, ce qui exige un NOUVEAU Oui utilisateur (impossible
+sans re-confirmation).
+
+### Always-on tools
+
+Les always-on tools n'utilisent PAS de confirmation_token (pas de pending
+confirmation). Ils sont protegees par le `DirectEffectGate` ci-dessus.
+
+Les tools avec write destructeur (modification produit irreversible)
+DOIVENT passer par le pipeline tool skill + confirmation_token, jamais
+par DirectEffect direct.
 
 ## Outils always-on MVP
 
@@ -144,19 +333,39 @@ Ne pas utiliser pour les rappels recurrents :
 Ces cas vont vers :
 
 ```text
-create_recurring_reminder_operation_skill
+create_recurring_reminder_tool_skill
 ```
 
 Ne pas utiliser si :
 
 ```text
+- safety_pregate.risk_band >= medium ;
 - safety_crisis actif ;
 - pending confirmation active ;
 - horaire impossible a resoudre ;
 - demande produit explicative seulement ;
 - user demande une habitude / un planning recurrent ;
-- message ne contient pas une demande explicite de rappel.
+- message ne contient pas une demande explicite de rappel ;
+- DirectEffectGate refuse (cf. invariants gates ci-dessous).
 ```
+
+### Gates obligatoires
+
+Avant tout `upsert scheduled_checkins`, le tool doit etre passe par :
+
+```text
+1. safety_pregate (risk_band in {none, low})
+2. DirectEffectGate avec :
+   - explicit_intent_band in {explicit, implied_strong}
+   - target_status = identified (l'objet du rappel et le moment sont resolus)
+   - ambiguity = none
+   - autonomous_intent = true
+   - source_message_id non deja consomme (runtime + DB)
+   - safety_pregate clear
+```
+
+Si une condition echoue : pas de write, retourner `needs_clarify` ou
+`blocked` selon le cas.
 
 ### Detection
 
@@ -175,7 +384,7 @@ Regles actuelles :
 - peut utiliser un fallback IA pour extraire une demande ponctuelle.
 
 Le dispatcher peut detecter des signaux autour des outils, mais ce tool ne doit
-pas devenir un operation skill.
+pas devenir un tool skill.
 
 ### Input minimal
 
@@ -300,19 +509,19 @@ failed -> executedTools: ["create_one_shot_reminder"], toolExecution: "failed"
 none -> executedTools: [], toolExecution: "none"
 ```
 
-### Relation avec operation skills
+### Relation avec tool skills
 
 `create_one_shot_reminder` reste distinct de :
 
 ```text
-create_recurring_reminder_operation_skill
+create_recurring_reminder_tool_skill
 ```
 
 Regle :
 
 ```text
 one-shot clair -> tool direct
-recurring reminder -> operation skill + confirmation Oui/Non
+recurring reminder -> tool skill + confirmation Oui/Non
 ```
 
 Integration runtime cible :
@@ -321,7 +530,7 @@ Integration runtime cible :
 safety gate
 -> pending confirmation gate
 -> always-on tools directs
--> operation_intent
+-> tool_skill_intent
 -> skill_router
 ```
 
@@ -330,7 +539,7 @@ Donc :
 ```text
 si pending confirmation active, le Oui/Non est traite avant le one-shot.
 si safety_crisis actif, le one-shot est bloque.
-si le message contient une recurrence, route recurring operation skill.
+si le message contient une recurrence, route recurring tool skill.
 ```
 
 Cas skill actif :
@@ -359,7 +568,7 @@ mais le one-shot peut etre programme en parallele si la demande est claire.
 
 "rappelle-moi tous les matins de marcher"
 -> pas one-shot
--> create_recurring_reminder_operation_skill
+-> create_recurring_reminder_tool_skill
 
 "rappelle-moi de faire une pause"
 -> needs_clarify si horaire manquant
@@ -384,7 +593,7 @@ message retraite avec meme event_context + scheduled_for
 `track_progress_plan_item` logge le progres d'une action du plan quand le user
 dit clairement qu'il l'a faite, ratee, ou partiellement faite.
 
-Ce n'est pas un operation skill. Il ne cree rien, ne modifie pas le plan, ne
+Ce n'est pas un tool skill. Il ne cree rien, ne modifie pas le plan, ne
 propose pas de changement. Il ajoute seulement une entree de suivi.
 
 Objectif :
@@ -438,15 +647,48 @@ Exemples :
 Ne pas utiliser si :
 
 ```text
+- safety_pregate.risk_band >= medium ;
 - la cible est ambigue ;
 - aucune action du plan n'est identifiee ;
 - le user parle d'une action hors plan ;
 - le user demande de modifier une action ;
-- le user demande de deplacer / changer le jour ;
 - le user demande une carte / potion / rappel ;
 - safety_crisis actif ;
 - le message est seulement une intention future : "je vais faire ma marche".
 ```
+
+### Gates obligatoires
+
+Avant tout write `logPlanItemProgressV2`, le tool doit passer par :
+
+```text
+1. safety_pregate (risk_band in {none, low})
+2. DirectEffectGate avec :
+   - explicit_intent_band in {explicit, implied_strong}
+     "j'ai fait ma marche" -> explicit
+     "j'ai pas fait" -> explicit
+     "je crois j'ai fait ma marche ?" -> implied weak -> needs_clarify
+     "je vais faire ma marche" -> intention future -> blocked
+   - target_status = identified (target_item_id resolu depuis plan_snapshot)
+   - ambiguity = none (un seul item plausible)
+   - autonomous_intent = true (le user logge lui-meme, pas une suggestion
+     que Sophia aurait poussee)
+   - idempotence runtime : source_message_id non deja consomme dans le tour
+   - idempotence DB : pas d'entry existant pour ce source_message_id
+```
+
+Cas borderline `needs_clarify` :
+
+```text
+"j'ai fait" sans precision -> needs_clarify "tu parles de quelle action ?"
+"j'ai fait ma marche du soir et celle du matin" -> needs_clarify ou
+  multi-write si explicit + non ambigu
+"j'ai presque fini" -> needs_clarify "completed ou partial ?"
+```
+
+Si un skill emotionnel non-safety est actif, le DirectEffectGate peut
+quand meme autoriser le write en parallele : le tool ecrit, le skill
+garde la response_owner. Cf. cas exemple plus bas.
 
 ### Signal dispatcher attendu
 
@@ -574,7 +816,7 @@ Ordre d'execution dans le systeme cible :
 safety gate
 -> pending confirmation gate
 -> always-on tools directs
--> operation_intent
+-> tool_skill_intent
 -> skill_router
 ```
 
@@ -715,7 +957,7 @@ Ou quand un signal produit fort existe deja, mais hors safety.
 ```text
 safety_crisis actif
 user demande juste une explication produit -> product_help
-operation_intent explicite deja detectee -> operation_router
+tool_skill_intent explicite deja detectee -> tool_skill_router
 diagnostic trop flou
 moment emotionnel trop intense pour pousser une operation
 ```
@@ -920,14 +1162,14 @@ besoin de rappel recurrent clair -> create_recurring_reminder possible
 preference coach explicite -> update_coach_preferences possible
 ```
 
-### Relation avec operation skills
+### Relation avec tool skills
 
 Si `decision = recommend_operation` :
 
 ```text
 recommendation_tool
--> operation_router
--> operation_skill
+-> tool_skill_router
+-> tool_skill
 ```
 
 Regle importante :
@@ -948,7 +1190,7 @@ Donc :
 recommendation_tool path = pas d'intake conversationnel
 ```
 
-L'operation skill garde quand meme un `readiness_gate`, mais seulement pour
+L'tool skill garde quand meme un `readiness_gate`, mais seulement pour
 valider.
 
 ### Ce que le tool ne fait pas
@@ -998,7 +1240,7 @@ product_help simple question
 
 ### Role
 
-Les `operation tools` sont les outils utilises par les operation skills pour
+Les `operation tools` sont les outils utilises par les tool skills pour
 transformer une intention validee en action produit confirmee.
 
 Ils ne sont pas always-on. Ils ne sont jamais appeles directement par le
@@ -1007,7 +1249,7 @@ dispatcher.
 Flow commun :
 
 ```text
-operation_skill
+tool_skill
 -> readiness_gate
 -> generator / builder
 -> pending_confirmation Oui/Non
@@ -1060,10 +1302,12 @@ Un generator/builder :
 
 Un executor :
 
-- recoit uniquement un draft confirme ;
-- valide les preconditions ;
+- recoit un draft confirme ET un `confirmation_token` valide ;
+- valide la signature du token ET le draft_hash ;
+- valide les preconditions metier ;
 - ecrit en DB ou appelle l'API produit ;
 - log `executed_tools` / event ;
+- marque le token comme consomme (single-use) ;
 - clear pending confirmation ;
 - produit un ack utilisateur ;
 - peut declencher memorizer async si utile.
@@ -1072,8 +1316,11 @@ Un executor :
 
 ```text
 generator sans readiness_gate -> interdit
-executor sans pending_confirmation Oui -> interdit
-executor pendant safety -> interdit
+executor sans confirmation_token valide -> interdit
+executor avec draft_hash mismatch -> interdit
+executor avec token expired -> interdit
+executor avec token deja consomme -> interdit
+executor pendant safety_pregate.risk_band >= medium -> interdit
 generator avec contexte brut complet -> interdit
 ```
 
@@ -1098,12 +1345,39 @@ type OperationExecutorInput = {
   operation_type: string;
   confirmed_at: string;
   draft: Record<string, unknown>;
+  confirmation_token: ConfirmationToken;
   source: {
     trigger_message_id: string;
     operation_source: "direct_user_request" | "recommendation_tool";
     previous_skill_id?: string | null;
   };
 };
+```
+
+### Verification du confirmation_token
+
+Avant TOUTE ecriture :
+
+```text
+1. Verifier signature HMAC du token.
+2. Verifier token.expires_at > now.
+3. Verifier token.confirmed_at != null.
+4. Verifier token.user_id == draft.user_id.
+5. Calculer hash = sha256(canonical(draft))
+   et verifier hash == token.draft_hash.
+6. Verifier que token.pending_confirmation_id correspond a une pending
+   non consommee.
+7. Verifier que token.token_id n'est pas deja consomme (single-use).
+8. Verifier safety_pregate.risk_band in {none, low}.
+```
+
+Si une seule verification echoue :
+
+```text
+- log verification_outcome avec reason ;
+- pas de write ;
+- retourner status = "refused" ;
+- ne pas envoyer un ack de succes au user.
 ```
 
 ### Ack commun
@@ -1119,10 +1393,13 @@ Tu peux modifier dans ton espace sur sophia-coach.ai.
 
 ```text
 generator called without ready payload -> refuse
-executor called without confirmation -> refuse
-executor during safety -> refuse
+executor called without confirmation_token -> refuse
+executor with expired token -> refuse
+executor with mismatched draft_hash -> refuse
+executor with already-consumed token -> refuse
+executor with safety_pregate medium -> refuse
 Non confirmation -> no write
-Oui confirmation -> write + ack
+Oui confirmation -> token cree + write + ack + token consomme
 ```
 
 ## Operation Tool: attack_card_generator
@@ -1477,7 +1754,7 @@ Non -> no write
 
 `plan_adjustment_generator` prepare un draft de modification du plan a partir
 d'un scope et d'un besoin d'ajustement deja valides par
-`adjust_plan_item_operation_skill`.
+`adjust_plan_item_tool_skill`.
 
 Il ne decide pas s'il faut modifier le plan. Il ne modifie rien. Il produit un
 patch minimal confirmable.
@@ -1553,9 +1830,16 @@ type PlanAdjustmentDraftV1 = {
       | "pause"
       | "replace"
       | "rebalance";
+    execution_strategy?: "patch_existing" | "bridge_action";
     proposed_change: string;
     why_it_helps: string;
     patch: Record<string, unknown>;
+    bridge_action?: {
+      title: string;
+      description: string;
+      source_relation: "bridge_to_original_action";
+      resume_original_after_completion: boolean;
+    };
   };
 
   confirmation_message: string;
@@ -1580,44 +1864,47 @@ Le generator doit :
 
 - proposer le plus petit changement utile ;
 - preserver l'intention initiale du plan ;
+- pour `adjustment_type=reduce`, creer une action pont plus petite et repousser
+  l'action initiale juste apres cette action pont ;
 - ne modifier que les champs autorises ;
 - rendre le changement comprehensible pour le user ;
 - eviter de transformer tout le plan pour un signal faible.
 
 Il ne doit pas :
 
-- changer le jour d'une action ;
-- deplacer une action a une date precise ;
-- reconfigurer le planning fin ;
 - reecrire tout le plan ;
 - creer une nouvelle carte ;
 - ecrire en DB ;
 - demander une clarification.
 
-### Cas `schedule_change`
+### Timing et plan
 
-Si le payload demande :
+Le timing n'est plus une surface separee. Si le user parle de jour/horaire,
+le systeme doit rester dans l'ajustement du plan et clarifier la cible ou le
+perimetre, sans proposer une ancienne mecanique de changement de jour.
+
+Si un payload tente d'ecrire directement un champ de planning fin :
 
 ```text
-changer le jour
-deplacer a mardi
-mettre demain
-reprogrammer une action
+scheduled_day
+scheduled_date
+schedule
+day/date/time
 ```
 
 Alors :
 
 ```text
-generator refuse
--> fallback_dashboard
+generator refuse le patch interdit
+-> invalid
 ```
 
 ### Tests MVP
 
 ```text
-specific_plan_item + reduce -> draft patch minimal
+specific_plan_item + reduce -> draft action pont + deferral de l'action source
 current_phase + too_heavy -> draft rebalance leger
-schedule_change -> refuse
+timing language -> reste un ajustement du plan / clarification
 patch touches forbidden field -> invalid
 generator writes DB -> invalid
 ```
@@ -1689,7 +1976,7 @@ Non -> no write
 ### Role
 
 `potion_session_selector` prepare une session de potion adaptee a l'etat du user,
-a partir d'un payload deja valide par `select_state_potion_operation_skill`.
+a partir d'un payload deja valide par `select_state_potion_tool_skill`.
 
 Il ne decide pas si une potion est la meilleure intervention. Il ne remplace pas
 `recommendation_tool`. Il selectionne le bon type de potion et prepare un
@@ -1925,7 +2212,7 @@ Non -> no write
 ### Role
 
 `recurring_reminder_builder` prepare un draft de rappel recurrent a partir d'un
-payload valide par `create_recurring_reminder_operation_skill`.
+payload valide par `create_recurring_reminder_tool_skill`.
 
 Il ne traite pas les rappels ponctuels. Il ne cree rien directement.
 
@@ -2089,7 +2376,7 @@ Non -> no write
 ### Role
 
 `coach_preferences_patch_builder` prepare un patch de preferences coach a partir
-d'une demande validee par `update_coach_preferences_operation_skill`.
+d'une demande validee par `update_coach_preferences_tool_skill`.
 
 Il ne decide pas seul d'une preference. Il ne modifie rien. Il transforme une
 intention claire en patch confirmable.
@@ -2242,17 +2529,17 @@ Non -> no write
 Les operations suivantes ne doivent pas etre executees depuis le chat au MVP :
 
 ```text
-- changer le jour d'une action ;
-- deplacer une action a une date precise ;
-- reconfigurer le planning fin d'une action ;
+- ecrire directement un champ de planning fin sans flow d'ajustement confirme ;
+- presenter le changement de jour/horaire comme une surface produit separee ;
 - modifier le plan sans confirmation Oui ;
 - creer / modifier une operation produit pendant safety ;
 - traiter un rappel recurrent comme un one-shot reminder ;
 - traiter une demande one-shot comme un rappel recurrent.
 ```
 
-Fallback :
+Comportement :
 
 ```text
-rediriger vers l'espace Sophia / dashboard quand le planning fin est demande.
+si le user parle de jour/date/horaire, rester dans l'ajustement du plan et
+clarifier la cible ou le perimetre au lieu de proposer une ancienne mecanique.
 ```

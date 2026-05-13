@@ -456,8 +456,7 @@ Notes:
 
 ## 3.5 `user_plans_v2`
 
-Nouvelle table pour les plans V2. L'ancienne `user_plans` reste en place pour
-les flows legacy.
+Table canonique pour les plans generes.
 
 ```ts
 type UserPlanV2Row = {
@@ -483,7 +482,8 @@ Notes:
 
 - `content` est le snapshot JSON du plan (read-only apres distribution).
 - La source relationnelle principale pour l'execution reste `user_plan_items`.
-- Cette table est distincte de l'ancienne `user_plans` qui reste pour le legacy.
+- La migration finale supprime l'ancien modele de plans et garde cette table
+  comme surface canonique.
 
 ## 3.6 `user_plan_items`
 
@@ -1432,9 +1432,8 @@ Contient:
 ## 9.2 Ce qui doit cesser d'etre canonique
 
 - `current_phase`
-- `user_goals` comme coeur metier des transformations
-- `user_actions / user_framework_tracking / user_vital_signs` comme grille
-  principale de runtime
+- les anciennes tables de goals/actions/frameworks/vitals comme coeur metier
+  ou grille principale de runtime
 
 ## 9.3 Position recommandee
 
@@ -1509,4 +1508,4 @@ Le second dira:
 
 - dans quel ordre on refond les fichiers et les tables
 - comment on verifie chaque couche
-- quand on supprime le legacy
+- comment on garde le schema final V2-only

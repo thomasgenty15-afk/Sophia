@@ -18,7 +18,16 @@ export const DOMAIN_KEYS_V1_DEFINITIONS: readonly DomainKeyDefinition[] =
 export const DOMAIN_KEYS_V1: ReadonlySet<string> = new Set(
   DOMAIN_KEYS_V1_DATA.keys.map((k) => k.key),
 );
+export const DOMAIN_PREFIXES_V1: ReadonlySet<string> = new Set(
+  DOMAIN_KEYS_V1_DATA.keys
+    .map((k) => k.key.split(".")[0])
+    .filter(Boolean),
+);
 
 export function isValidDomainKey(key: string): boolean {
   return DOMAIN_KEYS_V1.has(key);
+}
+
+export function isValidDomainPrefix(prefix: string): boolean {
+  return DOMAIN_PREFIXES_V1.has(prefix);
 }

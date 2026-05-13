@@ -39,6 +39,7 @@ type CustomQuestionnaireProps = {
   onChange?: (answers: Record<string, QuestionnaireAnswerValue>) => void;
   onBack?: () => void;
   isSubmitting: boolean;
+  submittingLabel?: string;
   allowBackwardNavigation?: boolean;
 };
 
@@ -283,6 +284,7 @@ export function CustomQuestionnaire({
   onChange,
   onBack,
   isSubmitting,
+  submittingLabel = "Chargement…",
   allowBackwardNavigation = true,
 }: CustomQuestionnaireProps) {
   const [index, setIndex] = useState(0);
@@ -696,7 +698,7 @@ export function CustomQuestionnaire({
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Chargement…
+                {submittingLabel}
               </>
             ) : (
               <>

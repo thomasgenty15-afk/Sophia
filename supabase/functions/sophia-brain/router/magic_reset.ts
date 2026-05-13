@@ -33,6 +33,16 @@ export function clearMachineStateTempMemory(opts: {
     "__flow_just_closed_aborted",
     "__abandon_message",
     "__track_progress_parallel",
+    // Conversation skill / operation runtime
+    "__active_skill_state",
+    "active_skill_state",
+    "__active_tool_skill_intake",
+    "active_tool_skill_intake",
+    "__pending_tool_skill_confirmation",
+    "pending_tool_skill_confirmation",
+    "__pending_recommendation_operation",
+    "__pending_adjust_plan_draft_review",
+    "__last_resolved_plan_item",
     // Onboarding runtime
     "__onboarding_flow",
     "__onboarding_active",

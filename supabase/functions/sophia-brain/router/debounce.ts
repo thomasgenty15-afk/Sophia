@@ -9,7 +9,13 @@ export async function debounceAndBurstMerge(opts: {
   loggedMessageId: string
   userMessage: string
   debounceWaitMs?: number
-}): Promise<{ aborted: boolean; userMessage: string }> {
+}): Promise<{
+  aborted: boolean
+  userMessage: string
+  abortReason?: "debounce_latest_message_changed"
+  loggedMessageId?: string
+  latestMessageId?: string
+}> {
   const { supabase, userId, scope, loggedMessageId } = opts
   let userMessage = opts.userMessage
   const waitMs = opts.debounceWaitMs ?? DEFAULT_DEBOUNCE_WAIT_MS
@@ -31,7 +37,13 @@ export async function debounceAndBurstMerge(opts: {
     console.log(
       `[Router] 🛑 Race condition avoided. Current msg ${loggedMessageId} is older than latest ${latestMsg.id}. Aborting.`,
     )
-    return { aborted: true, userMessage }
+    return {
+      aborted: true,
+      userMessage,
+      abortReason: "debounce_latest_message_changed",
+      loggedMessageId,
+      latestMessageId: String(latestMsg.id),
+    }
   }
 
   const now = new Date()
@@ -52,9 +64,8 @@ export async function debounceAndBurstMerge(opts: {
     userMessage = combinedContent
   }
 
-  return { aborted: false, userMessage }
+  return { aborted: false, userMessage, loggedMessageId }
 }
-
 
 
 

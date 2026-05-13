@@ -116,7 +116,7 @@ export function extractHiddenFilRougeNote(
   const raw = String(text ?? "");
   for (const marker of FIL_ROUGE_MARKERS) {
     const pattern = new RegExp(
-      `(?:\\n|\\r\\n)?<!--\\s*${marker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*$`,
+      `(?:\\n|\\r\\n)?<!--\\s*${marker}\\s*:\\s*([\\s\\S]*?)\\s*-->\\s*(?:</final>\\s*)?$`,
       "i",
     );
     const match = raw.match(pattern);
@@ -138,6 +138,3 @@ export function extractHiddenFilRougeNote(
     marker: null,
   };
 }
-
-
-

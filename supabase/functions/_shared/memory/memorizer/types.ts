@@ -28,6 +28,7 @@ export interface KnownTopic {
   lifecycle_stage?: "candidate" | "durable" | "dormant" | "archived" | null;
   search_doc?: string | null;
   domain_keys?: string[] | null;
+  metadata?: Record<string, unknown> | null;
 }
 
 export interface KnownEntity {

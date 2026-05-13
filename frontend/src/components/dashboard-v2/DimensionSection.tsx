@@ -18,13 +18,8 @@ type DimensionSectionProps = {
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onActivate: (item: DashboardV2PlanItemRuntime) => void;
   onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
-  onBlocker: (item: DashboardV2PlanItemRuntime) => void;
-  onDeactivate: (item: DashboardV2PlanItemRuntime) => void;
-  onRemove: (item: DashboardV2PlanItemRuntime) => void;
-  onAdapt: (item: DashboardV2PlanItemRuntime) => void;
 };
 
 function emptyCopyForDimension(dimension: PlanDimension) {
@@ -46,17 +41,9 @@ export function DimensionSection({
   unlockStateByItemId,
   busyItemId,
   onComplete,
-  onActivate,
   onPrepareCards,
   onOpenDefenseResourceEditor,
-  onBlocker,
-  onDeactivate,
-  onRemove,
-  onAdapt,
 }: DimensionSectionProps) {
-  const visibleActive = dimension === "habits"
-    ? [...groups.active, ...groups.stalled]
-    : groups.active;
   const hasContent = groups.all.length > 0;
 
   return (
@@ -82,22 +69,17 @@ export function DimensionSection({
         </div>
       ) : null}
 
-      {visibleActive.length > 0 ? (
+      {groups.active.length > 0 ? (
         <div className="mt-5 grid gap-4">
-          {visibleActive.map((item) => (
+          {groups.active.map((item) => (
             <div key={item.id}>
               <PlanItemCard
                 item={item}
                 unlockState={unlockStateByItemId.get(item.id) ?? null}
                 isBusy={busyItemId === item.id}
                 onComplete={onComplete}
-                onActivate={onActivate}
                 onPrepareCards={onPrepareCards}
                 onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                onBlocker={onBlocker}
-                onDeactivate={onDeactivate}
-                onRemove={onRemove}
-                onAdapt={onAdapt}
               />
             </div>
           ))}
@@ -117,13 +99,8 @@ export function DimensionSection({
                   unlockState={unlockStateByItemId.get(item.id) ?? null}
                   isBusy={busyItemId === item.id}
                   onComplete={onComplete}
-                  onActivate={onActivate}
                   onPrepareCards={onPrepareCards}
                   onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-                  onBlocker={onBlocker}
-                  onDeactivate={onDeactivate}
-                  onRemove={onRemove}
-                  onAdapt={onAdapt}
                 />
               </div>
             ))}

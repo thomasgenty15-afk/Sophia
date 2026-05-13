@@ -1,4 +1,6 @@
 import type { RetrievalMode } from "../types.v1.ts";
+import { DOMAIN_KEYS_V1, DOMAIN_PREFIXES_V1 } from "../domain_keys.ts";
+import { ENTITY_TYPES } from "../types.v1.ts";
 import type { DetectedSignals } from "./signal_detection.ts";
 
 export type MemoryV2LoaderScope =
@@ -29,7 +31,9 @@ export interface MemoryV2LoaderPlan {
   requested_scopes: MemoryV2LoaderScope[];
   topic_targets: string[];
   event_queries: string[];
-  global_keys: string[];
+  domain_keys: string[];
+  domain_prefixes: string[];
+  global_keys?: string[];
   retrieval_policy: MemoryV2RetrievalPolicy;
   requires_topic_router: boolean;
   dispatcher_memory_plan_applied: true;
@@ -43,6 +47,7 @@ type DispatcherPlanLike =
     memory_mode?: string | null;
     context_budget_tier?: string | null;
     response_intent?: string | null;
+    retrieval_policy?: string | null;
     targets?:
       | Array<{
         type?: string | null;
@@ -118,6 +123,22 @@ function normalizePolicy(raw: unknown): MemoryV2RetrievalPolicy {
     return value;
   }
   return "semantic_first";
+}
+
+function expandDomainPrefixes(prefixes: string[]): string[] {
+  const out: string[] = [];
+  for (const raw of prefixes) {
+    const prefix = String(raw ?? "").trim();
+    if (!prefix) continue;
+    if (!DOMAIN_PREFIXES_V1.has(prefix) && !DOMAIN_KEYS_V1.has(prefix)) {
+      continue;
+    }
+    if (DOMAIN_KEYS_V1.has(prefix)) out.push(prefix);
+    for (const key of DOMAIN_KEYS_V1) {
+      if (key.startsWith(`${prefix}.`)) out.push(key);
+    }
+  }
+  return uniq(out);
 }
 
 function budgetFor(plan: DispatcherPlanLike): MemoryV2LoaderPlan["budget"] {
@@ -213,6 +234,8 @@ function runtimeOverrideForMemoryNone(args: {
     topic_targets: [],
     event_queries: [],
     global_keys: [],
+    domain_keys: [],
+    domain_prefixes: [],
     retrieval_policy: args.policy,
     requires_topic_router: requestedScopes.includes("topic") && !crossTopic,
     dispatcher_memory_plan_applied: true,
@@ -241,17 +264,42 @@ export function buildMemoryV2LoaderPlan(args: {
       .filter((target) => target.type === "event")
       .map((target) => target.query_hint ?? target.key),
   );
-  const globalKeys = uniq(
+  const explicitDomainKeys = uniq(
+    targets
+      .filter((target) => target.type === "domain_key")
+      .map((target) => target.key ?? target.query_hint),
+  ).filter((key) => DOMAIN_KEYS_V1.has(key));
+  const domainPrefixes = uniq(
+    targets
+      .filter((target) => target.type === "domain_prefix")
+      .map((target) => target.key ?? target.query_hint),
+  ).filter((prefix) => DOMAIN_PREFIXES_V1.has(prefix));
+  const validEntityTargets = targets.filter((target) => {
+    if (target.type !== "entity") return false;
+    const key = String(target.key ?? "").trim();
+    return !key || ENTITY_TYPES.includes(key as any);
+  });
+  const legacyGlobalKeys = uniq(
     targets
       .filter((target) =>
         target.type === "global_subtheme" || target.type === "global_theme"
       )
       .map((target) => target.key ?? target.query_hint),
   );
+  const domainKeys = uniq([
+    ...explicitDomainKeys,
+    ...expandDomainPrefixes(domainPrefixes),
+    ...expandDomainPrefixes(
+      legacyGlobalKeys.filter((key) => !DOMAIN_KEYS_V1.has(key)),
+    ),
+    ...legacyGlobalKeys.filter((key) => DOMAIN_KEYS_V1.has(key)),
+  ]);
 
   if (topicTargets.length > 0) scopes.push("topic");
   if (eventQueries.length > 0) scopes.push("event");
-  if (globalKeys.length > 0) scopes.push("global");
+  if (domainKeys.length > 0 || domainPrefixes.length > 0) scopes.push("global");
+  if (targets.some((target) => target.type === "action")) scopes.push("action");
+  if (validEntityTargets.length > 0) scopes.push("entity");
   if (
     targets.some((target) =>
       target.expansion_policy === "add_supporting_topics" ||
@@ -269,9 +317,11 @@ export function buildMemoryV2LoaderPlan(args: {
   }
 
   const baseBudget = budgetFor(plan);
-  const policy = normalizePolicy(targets[0]?.retrieval_policy);
+  const policy = normalizePolicy(
+    targets[0]?.retrieval_policy ?? plan?.retrieval_policy,
+  );
   const responseIntent = String(plan?.response_intent ?? "").trim();
-  const crossTopic = globalKeys.length > 0 ||
+  const crossTopic = domainKeys.length > 0 || domainPrefixes.length > 0 ||
     responseIntent === "inventory" ||
     args.signals.cross_topic_profile_query.detected;
 
@@ -292,6 +342,8 @@ export function buildMemoryV2LoaderPlan(args: {
         requested_scopes: [],
         topic_targets: [],
         event_queries: [],
+        domain_keys: [],
+        domain_prefixes: [],
         global_keys: [],
         retrieval_policy: policy,
         requires_topic_router: false,
@@ -325,7 +377,9 @@ export function buildMemoryV2LoaderPlan(args: {
     requested_scopes: requestedScopes,
     topic_targets: topicTargets,
     event_queries: eventQueries,
-    global_keys: globalKeys,
+    domain_keys: domainKeys,
+    domain_prefixes: domainPrefixes,
+    global_keys: domainKeys,
     retrieval_policy: policy,
     requires_topic_router: requestedScopes.includes("topic") && !crossTopic,
     dispatcher_memory_plan_applied: true,

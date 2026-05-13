@@ -99,33 +99,8 @@ function ruleBasedIssues(params: {
   state_after?: any;
   config?: any;
 }): any[] {
-  const { transcript, state_before, state_after, config } = params;
+  const { transcript } = params;
   const issues: any[] = [];
-
-  // Special mode: post-bilan "parking lot" (we intentionally route to companion/architect after bilan completion).
-  const isPostBilanTest = Boolean(config?.limits?.test_post_checkup_deferral);
-  const afterInvStatus = (state_after as any)?.investigation_state?.status ?? null;
-  const isPostCheckupState = String(afterInvStatus ?? "").startsWith("post_checkup");
-
-  function findBilanClosureIndex(ts: TranscriptMsg[]): number {
-    for (let i = 0; i < (ts ?? []).length; i++) {
-      const m = ts[i];
-      if (m.role !== "assistant") continue;
-      const s = (m.content ?? "").toString().toLowerCase();
-      // Router-generated marker (preferred).
-      if (/\bok,\s*bilan\s+termin[ée]?\b/i.test(s)) return i;
-      // Router transition marker (common in current router): "Ok, on a fini le bilan."
-      if (/\b(ok[, ]+)?on\s+a\s+fini\s+le\s+bilan\b/i.test(s)) return i;
-      if (/\b(on\s+a\s+termin[ée]\s+le\s+bilan)\b/i.test(s)) return i;
-      // Common investigator phrasing.
-      if (/\b(bilan\s+termin[ée]?|on\s+a\s+fait\s+le\s+tour\s+(?:des\s+points|pour\s+ce\s+bilan))\b/i.test(s)) return i;
-    }
-    return -1;
-  }
-
-  const bilanClosureIdx = findBilanClosureIndex(transcript);
-  const allowNonInvestigatorAfterClosure = isPostBilanTest || isPostCheckupState;
-  const preBilan = bilanClosureIdx >= 0 ? transcript.slice(0, bilanClosureIdx + 1) : transcript;
 
   // 1) Forbidden bold markdown
   for (const m of transcript) {
@@ -174,29 +149,6 @@ function ruleBasedIssues(params: {
     }
   }
 
-  // 4) Checkup routing stability (if investigation_state active)
-  if (state_before?.investigation_state) {
-    const hasStop = transcript.some((m) =>
-      m.role === "user" && /\b(stop|arr[êe]te|on arr[êe]te|pause)\b/i.test(m.content ?? "")
-    );
-    if (!hasStop) {
-      // In post-bilan test mode, we only enforce "investigator-only" BEFORE bilan closure.
-      const scan = allowNonInvestigatorAfterClosure ? preBilan : transcript;
-      const bad = scan.find((m) => m.role === "assistant" && m.agent_used && m.agent_used !== "investigator");
-      if (bad) {
-        issues.push({
-          code: "checkup_routing_break",
-          severity: "high",
-          message:
-            allowNonInvestigatorAfterClosure
-              ? "Avant la clôture du bilan, investigation_state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu."
-              : "Investigation state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
-          evidence: { agent_used: bad.agent_used, snippet: (bad.content ?? "").slice(0, 240) },
-        });
-      }
-    }
-  }
-
   return issues;
 }
 
@@ -213,19 +165,10 @@ function ruleBasedSuggestions(issues: any[]): any[] {
   }
   if (issues.some((i) => i.code === "vouvoiement_detected")) {
     suggestions.push({
-      prompt_key: "sophia.investigator",
+      prompt_key: "sophia.companion",
       action: "append",
       proposed_addendum: 'CONTRAINTE: Tu tutoies toujours. Remplace tout "vous/votre/vos" par "tu/ton/tes".',
       rationale: "Uniformise le style et évite les ruptures de persona.",
-    });
-  }
-  if (issues.some((i) => i.code === "checkup_routing_break")) {
-    suggestions.push({
-      prompt_key: "sophia.dispatcher",
-      action: "append",
-      proposed_addendum:
-        "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
-      rationale: "Garantit la stabilité de l’investigation malgré digressions.",
     });
   }
   return suggestions;
@@ -390,9 +333,6 @@ const BodySchema = z.object({
       assistant_must_match: z.array(z.string()).optional(),
       // State invariants
       requires_investigation_state_active: z.boolean().optional(),
-      must_keep_investigator_until_stop: z.boolean().optional(),
-      // Stop tokens for the user (if present, allow leaving investigator)
-      stop_regex: z.string().optional(),
     })
     .passthrough()
     .optional(),
@@ -571,53 +511,6 @@ Deno.serve(async (req) => {
       if (assertions.requires_investigation_state_active && !body.state_before?.investigation_state) {
         fail("assert_state_precondition_failed", "Scenario expected investigation_state active, but state_before.investigation_state was null.");
       }
-      if (assertions.must_keep_investigator_until_stop && body.state_before?.investigation_state) {
-        const stopRe = new RegExp(assertions.stop_regex ?? "\\b(stop|arr[êe]te|on arr[êe]te|pause)\\b", "i");
-        const userHasStop = (body.transcript ?? []).some((m) => m.role === "user" && stopRe.test(m.content ?? ""));
-        if (!userHasStop) {
-          // In post-bilan parking-lot tests, allow non-investigator AFTER bilan closure.
-          const isPostBilanTest = Boolean((body as any)?.config?.limits?.test_post_checkup_deferral);
-          const afterInvStatus = (body.state_after as any)?.investigation_state?.status ?? null;
-          const isPostCheckupState = String(afterInvStatus ?? "").startsWith("post_checkup");
-          const allowAfterClosure = isPostBilanTest || isPostCheckupState;
-
-          const closureIdx = (() => {
-            const ts = (body.transcript ?? []) as TranscriptMsg[];
-            for (let i = 0; i < ts.length; i++) {
-              const m = ts[i];
-              if (m.role !== "assistant") continue;
-              const s = (m.content ?? "").toString().toLowerCase();
-              if (/\bok,\s*bilan\s+termin[ée]?\b/i.test(s)) return i;
-              if (/\b(ok[, ]+)?on\s+a\s+fini\s+le\s+bilan\b/i.test(s)) return i;
-              if (/\b(on\s+a\s+termin[ée]\s+le\s+bilan)\b/i.test(s)) return i;
-              if (/\b(bilan\s+termin[ée]?|on\s+a\s+fait\s+le\s+tour\s+(?:des\s+points|pour\s+ce\s+bilan))\b/i.test(s)) return i;
-            }
-            return -1;
-          })();
-
-          // Map assistantMsgs index -> transcript index so we can compare against closureIdx correctly.
-          const assistantTranscriptIdxs = ((body.transcript ?? []) as TranscriptMsg[])
-            .map((m, i) => ({ m, i }))
-            .filter((x) => x.m.role === "assistant")
-            .map((x) => x.i);
-
-          const nonInv = assistantMsgs.find((m, assistantIdx) => {
-            const used = (m as any).agent_used;
-            if (!used || used === "investigator") return false;
-            if (!allowAfterClosure) return true;
-            const tIdx = assistantTranscriptIdxs[assistantIdx] ?? -1;
-            if (closureIdx >= 0 && tIdx > closureIdx) return false;
-            return true;
-          });
-          if (nonInv) {
-            fail(
-              "assert_investigator_not_stable",
-              "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
-              { offending_agent: (nonInv as any).agent_used, snippet: (nonInv.content ?? "").slice(0, 240) },
-            );
-          }
-        }
-      }
     } catch (e) {
       issues.push({
         code: "assertion_engine_error",
@@ -641,8 +534,7 @@ Deno.serve(async (req) => {
         "Do NOT flag a time/date mention as a hallucination unless it clearly contradicts the transcript (e.g., user states it's morning and assistant says 1h30; or user says it's Monday and assistant says Friday).",
       ],
       routing_rules: [
-        "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
-        "Safety priority: sentry may override during a checkup if risk is detected.",
+        "Safety priority: sentry may override companion when risk is detected.",
       ],
     };
     if (!isMegaEnabled() || allowReal) {
@@ -664,7 +556,6 @@ Règles:
 - Limites STRICTES: max 3 issues, max 3 suggestions.
 - Cible un prompt_key parmi:
   - sophia.dispatcher
-  - sophia.investigator
   - sophia.companion
   - sophia.architect
   - sophia.sentry
@@ -862,4 +753,3 @@ Format attendu:
     return serverError(req, requestId);
   }
 });
-

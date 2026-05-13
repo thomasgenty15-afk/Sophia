@@ -352,10 +352,15 @@ WHATSAPP_ACCESS_TOKEN = "env(WHATSAPP_ACCESS_TOKEN)"
 WHATSAPP_PHONE_NUMBER_ID = "env(WHATSAPP_PHONE_NUMBER_ID)"
 WHATSAPP_APP_SECRET = "env(WHATSAPP_APP_SECRET)"
 WHATSAPP_WEBHOOK_VERIFY_TOKEN = "env(WHATSAPP_WEBHOOK_VERIFY_TOKEN)"
+WHATSAPP_WEB_SIMULATION_ENABLED = "env(WHATSAPP_WEB_SIMULATION_ENABLED)"
+SOPHIA_DISPATCHER_LLM_ENABLED = "env(SOPHIA_DISPATCHER_LLM_ENABLED)"
+SOPHIA_DISPATCHER_LLM_MODEL = "env(SOPHIA_DISPATCHER_LLM_MODEL)"
 WHATSAPP_OPTIN_TEMPLATE_NAME = "env(WHATSAPP_OPTIN_TEMPLATE_NAME)"
 WHATSAPP_OPTIN_TEMPLATE_LANG = "env(WHATSAPP_OPTIN_TEMPLATE_LANG)"
 WHATSAPP_CHECKIN_TEMPLATE_NAME = "env(WHATSAPP_CHECKIN_TEMPLATE_NAME)"
 WHATSAPP_CHECKIN_TEMPLATE_LANG = "env(WHATSAPP_CHECKIN_TEMPLATE_LANG)"
+WHATSAPP_LEVEL_REVIEW_TEMPLATE_NAME = "env(WHATSAPP_LEVEL_REVIEW_TEMPLATE_NAME)"
+WHATSAPP_LEVEL_REVIEW_TEMPLATE_LANG = "env(WHATSAPP_LEVEL_REVIEW_TEMPLATE_LANG)"
 STRIPE_SECRET_KEY = "env(STRIPE_SECRET_KEY)"
 STRIPE_WEBHOOK_SECRET = "env(STRIPE_WEBHOOK_SECRET)"
 APP_BASE_URL = "env(APP_BASE_URL)"
@@ -365,6 +370,13 @@ STRIPE_PRICE_ID_ALLIANCE_MONTHLY = "env(STRIPE_PRICE_ID_ALLIANCE_MONTHLY)"
 STRIPE_PRICE_ID_ALLIANCE_YEARLY = "env(STRIPE_PRICE_ID_ALLIANCE_YEARLY)"
 STRIPE_PRICE_ID_ARCHITECTE_MONTHLY = "env(STRIPE_PRICE_ID_ARCHITECTE_MONTHLY)"
 STRIPE_PRICE_ID_ARCHITECTE_YEARLY = "env(STRIPE_PRICE_ID_ARCHITECTE_YEARLY)"
+MEMORY_OBSERVABILITY_ON = "env(MEMORY_OBSERVABILITY_ON)"
+memory_v2_loader_enabled = "env(memory_v2_loader_enabled)"
+memory_v2_memorizer_enabled = "env(memory_v2_memorizer_enabled)"
+memory_v2_memorizer_disabled = "env(memory_v2_memorizer_disabled)"
+memory_v2_topic_compaction_enabled = "env(memory_v2_topic_compaction_enabled)"
+memory_v2_weekly_review_enabled = "env(memory_v2_weekly_review_enabled)"
+memory_v2_alerts_enabled = "env(memory_v2_alerts_enabled)"
 
 # Edge Functions invoked by DB triggers/cron/internal jobs do NOT have a JWT.
 # They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
@@ -378,6 +390,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.trigger-watcher-batch]
 verify_jwt = false
+[functions.trigger-level-review-transitions-v1]
+verify_jwt = false
 
 [functions.send-welcome-email]
 verify_jwt = false
@@ -386,6 +400,10 @@ verify_jwt = false
 [functions.whatsapp-webhook]
 verify_jwt = false
 [functions.whatsapp-send]
+verify_jwt = false
+[functions.whatsapp-sim-inbound]
+verify_jwt = false
+[functions.whatsapp-sim-trigger]
 verify_jwt = false
 [functions.sophia-brain-internal]
 verify_jwt = false

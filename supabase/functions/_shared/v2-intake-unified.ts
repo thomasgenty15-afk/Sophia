@@ -645,34 +645,7 @@ async function loadOrCreateCycle(params: {
   now: string;
 }): Promise<{ cycle: UserCycleRow; createdCycle: boolean }> {
   if (!params.cycleId) {
-    const cycleRow = {
-      user_id: params.userId,
-      status: "draft",
-      raw_intake_text: params.rawIntakeText,
-      intake_language: null,
-      validated_structure: null,
-      duration_months: null,
-      birth_date_snapshot: null,
-      gender_snapshot: null,
-      requested_pace: null,
-      active_transformation_id: null,
-      version: 1,
-      completed_at: null,
-      archived_at: null,
-      created_at: params.now,
-      updated_at: params.now,
-    } satisfies Partial<UserCycleRow>;
-
-    const { data, error } = await params.admin
-      .from("user_cycles")
-      .insert(cycleRow as any)
-      .select("*")
-      .single();
-    if (error) {
-      throw new UnifiedIntakeError(500, "Failed to create cycle", { cause: error });
-    }
-
-    return { cycle: data as UserCycleRow, createdCycle: true };
+    return await createDraftCycle(params);
   }
 
   const { data, error } = await params.admin
@@ -685,13 +658,49 @@ async function loadOrCreateCycle(params: {
     throw new UnifiedIntakeError(500, "Failed to load cycle", { cause: error });
   }
   if (!data) {
-    throw new UnifiedIntakeError(404, "Cycle not found for this user");
+    return await createDraftCycle(params);
   }
   const cycle = data as UserCycleRow;
   if (!["draft", "clarification_needed", "structured", "prioritized"].includes(cycle.status)) {
     throw new UnifiedIntakeError(409, `Cycle status ${cycle.status} cannot be rebuilt`);
   }
   return { cycle, createdCycle: false };
+}
+
+async function createDraftCycle(params: {
+  admin: SupabaseClient;
+  userId: string;
+  rawIntakeText: string;
+  now: string;
+}): Promise<{ cycle: UserCycleRow; createdCycle: boolean }> {
+  const cycleRow = {
+    user_id: params.userId,
+    status: "draft",
+    raw_intake_text: params.rawIntakeText,
+    intake_language: null,
+    validated_structure: null,
+    duration_months: null,
+    birth_date_snapshot: null,
+    gender_snapshot: null,
+    requested_pace: null,
+    active_transformation_id: null,
+    version: 1,
+    completed_at: null,
+    archived_at: null,
+    created_at: params.now,
+    updated_at: params.now,
+  } satisfies Partial<UserCycleRow>;
+
+  const { data, error } = await params.admin
+    .from("user_cycles")
+    .insert(cycleRow as any)
+    .select("*")
+    .single();
+  if (error) {
+    throw new UnifiedIntakeError(500, "Failed to create cycle", { cause: error });
+  }
+
+  return { cycle: data as UserCycleRow, createdCycle: true };
 }
 
 async function assertCycleCanBeRebuilt(

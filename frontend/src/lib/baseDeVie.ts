@@ -67,6 +67,14 @@ function normalizeLineEntry(value: unknown): BaseDeVieLineEntry | null {
   };
 }
 
+function normalizeLineEntries(value: unknown): BaseDeVieLineEntry[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => normalizeLineEntry(entry))
+    .filter((entry): entry is BaseDeVieLineEntry => Boolean(entry))
+    .slice(0, 3);
+}
+
 const IMPROVEMENT_REASONS = new Set<TransformationClosureImprovementReason>([
   "plan_unclear",
   "pace_too_intense",
@@ -124,11 +132,28 @@ export function getBaseDeViePayload(
   value: unknown,
 ): UserTransformationBaseDeViePayload | null {
   if (!isRecord(value)) return null;
+  const legacyGreen = normalizeLineEntry(value.line_green_entry);
+  const legacyRed = normalizeLineEntry(value.line_red_entry);
+  const lineGreenEntries = normalizeLineEntries(value.line_green_entries);
+  const lineRedEntryDetails = normalizeLineEntries(value.line_red_entry_details);
+  const fallbackRedActions = normalizeLineRedEntries(value.line_red_entries);
+  const normalizedGreenEntries = lineGreenEntries.length > 0
+    ? lineGreenEntries
+    : legacyGreen
+    ? [legacyGreen]
+    : [];
+  const normalizedRedDetails = lineRedEntryDetails.length > 0
+    ? lineRedEntryDetails
+    : legacyRed
+    ? [legacyRed]
+    : fallbackRedActions.map((action) => ({ action, why: "" })).slice(0, 3);
 
   return {
-    line_red_entries: normalizeLineRedEntries(value.line_red_entries),
-    line_green_entry: normalizeLineEntry(value.line_green_entry),
-    line_red_entry: normalizeLineEntry(value.line_red_entry),
+    line_red_entries: normalizedRedDetails.map((entry) => entry.action),
+    line_green_entries: normalizedGreenEntries,
+    line_red_entry_details: normalizedRedDetails,
+    line_green_entry: normalizedGreenEntries[0] ?? null,
+    line_red_entry: normalizedRedDetails[0] ?? null,
     declics_draft: normalizeDeclics(value.declics_draft),
     declics_user: normalizeDeclics(value.declics_user),
     closure_feedback: normalizeClosureFeedback(value.closure_feedback),

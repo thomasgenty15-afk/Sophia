@@ -48,7 +48,7 @@ export const useArchitectLogic = (
 
         // 2. Sauvegarde Meta (Week State) -> Progression
         // La table `user_week_states` est surtout un planning de déblocage:
-        // - `status`: 'available' / 'completed' (et legacy 'active' dans certains envs)
+        // - `status`: 'available' / 'completed' (older envs may still expose 'active')
         // - `first_updated_at`: première fois que l’utilisateur écrit dans la semaine
         // - `updated_at`: dernière modification
         //
@@ -180,4 +180,3 @@ export const useArchitectLogic = (
     handleAskSophia
   };
 };
-

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Plus, Trash2, X } from "lucide-react";
 
 import {
   getTransformationClosureHelpfulnessAreaLabel,
@@ -21,15 +21,22 @@ type TransformationClosureModalProps = {
   transformationTitle: string;
   initialLineGreenEntry: BaseDeVieLineEntry | null;
   initialLineRedEntry: BaseDeVieLineEntry | null;
+  initialLineGreenEntries?: BaseDeVieLineEntry[] | null;
+  initialLineRedEntries?: BaseDeVieLineEntry[] | null;
   initialFeedback: TransformationClosureFeedback | null;
   busy: boolean;
   onClose: () => void;
   onSubmit: (payload: {
     lineGreenEntry: BaseDeVieLineEntry;
     lineRedEntry: BaseDeVieLineEntry;
+    lineGreenEntries: BaseDeVieLineEntry[];
+    lineRedEntries: BaseDeVieLineEntry[];
     feedback: TransformationClosureFeedback;
   }) => Promise<void> | void;
 };
+
+const MAX_LINE_SLOTS = 3;
+const EMPTY_LINE_ENTRY: BaseDeVieLineEntry = { action: "", why: "" };
 
 const STEP_TITLES = [
   "Retour de fin",
@@ -43,6 +50,15 @@ function normalizeLineEntry(value: BaseDeVieLineEntry): BaseDeVieLineEntry {
     action: value.action.trim(),
     why: value.why.trim(),
   };
+}
+
+function normalizeLineEntries(values: BaseDeVieLineEntry[]): BaseDeVieLineEntry[] {
+  return values.map(normalizeLineEntry).filter((entry) => entry.action || entry.why);
+}
+
+function areLineEntriesValid(entries: BaseDeVieLineEntry[]): boolean {
+  const normalized = normalizeLineEntries(entries);
+  return normalized.length > 0 && normalized.every((entry) => entry.action && entry.why);
 }
 
 function normalizeFeedback(value: {
@@ -74,6 +90,8 @@ export function TransformationClosureModal({
   transformationTitle,
   initialLineGreenEntry,
   initialLineRedEntry,
+  initialLineGreenEntries,
+  initialLineRedEntries,
   initialFeedback,
   busy,
   onClose,
@@ -84,14 +102,12 @@ export function TransformationClosureModal({
   const [improvementReasons, setImprovementReasons] = useState<TransformationClosureImprovementReason[]>([]);
   const [improvementDetail, setImprovementDetail] = useState("");
   const [mostHelpfulArea, setMostHelpfulArea] = useState<TransformationClosureHelpfulnessArea | null>(null);
-  const [lineGreenEntry, setLineGreenEntry] = useState<BaseDeVieLineEntry>({
-    action: "",
-    why: "",
-  });
-  const [lineRedEntry, setLineRedEntry] = useState<BaseDeVieLineEntry>({
-    action: "",
-    why: "",
-  });
+  const [lineGreenEntries, setLineGreenEntries] = useState<BaseDeVieLineEntry[]>([
+    EMPTY_LINE_ENTRY,
+  ]);
+  const [lineRedEntries, setLineRedEntries] = useState<BaseDeVieLineEntry[]>([
+    EMPTY_LINE_ENTRY,
+  ]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -100,12 +116,37 @@ export function TransformationClosureModal({
     setImprovementReasons(initialFeedback?.improvement_reasons ?? []);
     setImprovementDetail(initialFeedback?.improvement_detail ?? "");
     setMostHelpfulArea(initialFeedback?.most_helpful_area ?? null);
-    setLineGreenEntry(initialLineGreenEntry ?? { action: "", why: "" });
-    setLineRedEntry(initialLineRedEntry ?? { action: "", why: "" });
-  }, [initialFeedback, initialLineGreenEntry, initialLineRedEntry, isOpen]);
+    const greenEntries = initialLineGreenEntries?.length
+      ? initialLineGreenEntries
+      : initialLineGreenEntry
+      ? [initialLineGreenEntry]
+      : [EMPTY_LINE_ENTRY];
+    const redEntries = initialLineRedEntries?.length
+      ? initialLineRedEntries
+      : initialLineRedEntry
+      ? [initialLineRedEntry]
+      : [EMPTY_LINE_ENTRY];
+    setLineGreenEntries(greenEntries.slice(0, MAX_LINE_SLOTS));
+    setLineRedEntries(redEntries.slice(0, MAX_LINE_SLOTS));
+  }, [
+    initialFeedback,
+    initialLineGreenEntries,
+    initialLineGreenEntry,
+    initialLineRedEntries,
+    initialLineRedEntry,
+    isOpen,
+  ]);
 
-  const normalizedLineGreenEntry = useMemo(() => normalizeLineEntry(lineGreenEntry), [lineGreenEntry]);
-  const normalizedLineRedEntry = useMemo(() => normalizeLineEntry(lineRedEntry), [lineRedEntry]);
+  const normalizedLineGreenEntries = useMemo(
+    () => normalizeLineEntries(lineGreenEntries),
+    [lineGreenEntries],
+  );
+  const normalizedLineRedEntries = useMemo(
+    () => normalizeLineEntries(lineRedEntries),
+    [lineRedEntries],
+  );
+  const normalizedLineGreenEntry = normalizedLineGreenEntries[0] ?? EMPTY_LINE_ENTRY;
+  const normalizedLineRedEntry = normalizedLineRedEntries[0] ?? EMPTY_LINE_ENTRY;
   const normalizedFeedback = useMemo(
     () =>
       normalizeFeedback({
@@ -126,12 +167,8 @@ export function TransformationClosureModal({
         normalizedFeedback.improvement_reasons.length > 0) &&
       (!selectedOtherReason || normalizedFeedback.improvement_detail),
   );
-  const isLineGreenStepValid = Boolean(
-    normalizedLineGreenEntry.action && normalizedLineGreenEntry.why,
-  );
-  const isLineRedStepValid = Boolean(
-    normalizedLineRedEntry.action && normalizedLineRedEntry.why,
-  );
+  const isLineGreenStepValid = areLineEntriesValid(lineGreenEntries);
+  const isLineRedStepValid = areLineEntriesValid(lineRedEntries);
   const canSubmit = Boolean(normalizedFeedback && isLineGreenStepValid && isLineRedStepValid);
 
   const toggleImprovementReason = (value: TransformationClosureImprovementReason) => {
@@ -143,6 +180,30 @@ export function TransformationClosureModal({
   };
 
   const stepTitle = STEP_TITLES[step] ?? STEP_TITLES[0];
+  const updateLineEntry = (
+    kind: "green" | "red",
+    index: number,
+    patch: Partial<BaseDeVieLineEntry>,
+  ) => {
+    const setter = kind === "green" ? setLineGreenEntries : setLineRedEntries;
+    setter((current) =>
+      current.map((entry, entryIndex) =>
+        entryIndex === index ? { ...entry, ...patch } : entry
+      )
+    );
+  };
+  const addLineEntry = (kind: "green" | "red") => {
+    const setter = kind === "green" ? setLineGreenEntries : setLineRedEntries;
+    setter((current) =>
+      current.length >= MAX_LINE_SLOTS ? current : [...current, EMPTY_LINE_ENTRY]
+    );
+  };
+  const removeLineEntry = (kind: "green" | "red", index: number) => {
+    const setter = kind === "green" ? setLineGreenEntries : setLineRedEntries;
+    setter((current) =>
+      current.length <= 1 ? current : current.filter((_, entryIndex) => entryIndex !== index)
+    );
+  };
 
   return createPortal(
     <div className="fixed inset-0 z-[95] flex items-center justify-center bg-stone-950/55 p-4 backdrop-blur-sm">
@@ -306,33 +367,69 @@ export function TransformationClosureModal({
                 </p>
               </div>
 
-              <label className="block space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Quoi ?
-                </span>
-                <textarea
-                  rows={3}
-                  value={lineGreenEntry.action}
-                  onChange={(event) =>
-                    setLineGreenEntry((current) => ({ ...current, action: event.target.value }))}
-                  placeholder="Ex: marcher 20 minutes chaque matin avant de regarder mon téléphone."
-                  className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
-                />
-              </label>
+              <div className="space-y-4">
+                {lineGreenEntries.map((entry, index) => (
+                  <div
+                    key={index}
+                    className="rounded-[24px] border border-emerald-100 bg-white/80 p-4"
+                  >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                        Ligne verte {index + 1}
+                      </p>
+                      {lineGreenEntries.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLineEntry("green", index)}
+                          className="inline-flex items-center gap-1 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 transition hover:border-rose-200 hover:text-rose-700"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Retirer
+                        </button>
+                      ) : null}
+                    </div>
 
-              <label className="block space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Pourquoi ?
-                </span>
-                <textarea
-                  rows={4}
-                  value={lineGreenEntry.why}
-                  onChange={(event) =>
-                    setLineGreenEntry((current) => ({ ...current, why: event.target.value }))}
-                  placeholder="Ex: parce que ça m'apaise, me remet dans mon axe et améliore le reste de ma journée."
-                  className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
-                />
-              </label>
+                    <label className="block space-y-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        Quoi ?
+                      </span>
+                      <textarea
+                        rows={3}
+                        value={entry.action}
+                        onChange={(event) =>
+                          updateLineEntry("green", index, { action: event.target.value })}
+                        placeholder="Ex: marcher 20 minutes chaque matin avant de regarder mon téléphone."
+                        className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                      />
+                    </label>
+
+                    <label className="mt-4 block space-y-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        Pourquoi ?
+                      </span>
+                      <textarea
+                        rows={4}
+                        value={entry.why}
+                        onChange={(event) =>
+                          updateLineEntry("green", index, { why: event.target.value })}
+                        placeholder="Ex: parce que ça m'apaise, me remet dans mon axe et améliore le reste de ma journée."
+                        className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              {lineGreenEntries.length < MAX_LINE_SLOTS ? (
+                <button
+                  type="button"
+                  onClick={() => addLineEntry("green")}
+                  className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter une ligne verte
+                </button>
+              ) : null}
             </section>
           ) : null}
 
@@ -344,33 +441,69 @@ export function TransformationClosureModal({
                 </p>
               </div>
 
-              <label className="block space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Quoi ?
-                </span>
-                <textarea
-                  rows={3}
-                  value={lineRedEntry.action}
-                  onChange={(event) =>
-                    setLineRedEntry((current) => ({ ...current, action: event.target.value }))}
-                  placeholder="Ex: accepter encore des journées où je m'abandonne complètement."
-                  className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
-                />
-              </label>
+              <div className="space-y-4">
+                {lineRedEntries.map((entry, index) => (
+                  <div
+                    key={index}
+                    className="rounded-[24px] border border-rose-100 bg-white/85 p-4"
+                  >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
+                        Ligne rouge {index + 1}
+                      </p>
+                      {lineRedEntries.length > 1 ? (
+                        <button
+                          type="button"
+                          onClick={() => removeLineEntry("red", index)}
+                          className="inline-flex items-center gap-1 rounded-full border border-stone-200 px-3 py-1.5 text-xs font-semibold text-stone-600 transition hover:border-rose-200 hover:text-rose-700"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Retirer
+                        </button>
+                      ) : null}
+                    </div>
 
-              <label className="block space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
-                  Pourquoi ?
-                </span>
-                <textarea
-                  rows={4}
-                  value={lineRedEntry.why}
-                  onChange={(event) =>
-                    setLineRedEntry((current) => ({ ...current, why: event.target.value }))}
-                  placeholder="Ex: parce que je sais maintenant ce que ça déclenche en cascade chez moi."
-                  className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
-                />
-              </label>
+                    <label className="block space-y-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        Quoi ?
+                      </span>
+                      <textarea
+                        rows={3}
+                        value={entry.action}
+                        onChange={(event) =>
+                          updateLineEntry("red", index, { action: event.target.value })}
+                        placeholder="Ex: accepter encore des journées où je m'abandonne complètement."
+                        className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                      />
+                    </label>
+
+                    <label className="mt-4 block space-y-2">
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-500">
+                        Pourquoi ?
+                      </span>
+                      <textarea
+                        rows={4}
+                        value={entry.why}
+                        onChange={(event) =>
+                          updateLineEntry("red", index, { why: event.target.value })}
+                        placeholder="Ex: parce que je sais maintenant ce que ça déclenche en cascade chez moi."
+                        className="w-full rounded-[24px] border border-stone-200 bg-white px-4 py-3 text-sm leading-6 text-stone-800 outline-none transition focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100"
+                      />
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              {lineRedEntries.length < MAX_LINE_SLOTS ? (
+                <button
+                  type="button"
+                  onClick={() => addLineEntry("red")}
+                  className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter une ligne rouge
+                </button>
+              ) : null}
             </section>
           ) : null}
 
@@ -417,15 +550,25 @@ export function TransformationClosureModal({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
                     Ligne Verte
                   </p>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-stone-700">
-                    <div>
-                      <p className="font-semibold text-stone-950">Quoi</p>
-                      <p>{normalizedLineGreenEntry.action}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-stone-950">Pourquoi</p>
-                      <p>{normalizedLineGreenEntry.why}</p>
-                    </div>
+                  <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
+                    {normalizedLineGreenEntries.map((entry, index) => (
+                      <div
+                        key={`${entry.action}-${index}`}
+                        className="rounded-2xl border border-emerald-100 bg-emerald-50/60 px-4 py-3"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                          Ligne {index + 1}
+                        </p>
+                        <div className="mt-3">
+                          <p className="font-semibold text-stone-950">Quoi</p>
+                          <p>{entry.action}</p>
+                        </div>
+                        <div className="mt-3">
+                          <p className="font-semibold text-stone-950">Pourquoi</p>
+                          <p>{entry.why}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -433,15 +576,25 @@ export function TransformationClosureModal({
                   <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-700">
                     Ligne Rouge
                   </p>
-                  <div className="mt-4 space-y-3 text-sm leading-6 text-stone-700">
-                    <div>
-                      <p className="font-semibold text-stone-950">Quoi</p>
-                      <p>{normalizedLineRedEntry.action}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-stone-950">Pourquoi</p>
-                      <p>{normalizedLineRedEntry.why}</p>
-                    </div>
+                  <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
+                    {normalizedLineRedEntries.map((entry, index) => (
+                      <div
+                        key={`${entry.action}-${index}`}
+                        className="rounded-2xl border border-rose-100 bg-rose-50/60 px-4 py-3"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
+                          Ligne {index + 1}
+                        </p>
+                        <div className="mt-3">
+                          <p className="font-semibold text-stone-950">Quoi</p>
+                          <p>{entry.action}</p>
+                        </div>
+                        <div className="mt-3">
+                          <p className="font-semibold text-stone-950">Pourquoi</p>
+                          <p>{entry.why}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -483,6 +636,8 @@ export function TransformationClosureModal({
                 void onSubmit({
                   lineGreenEntry: normalizedLineGreenEntry,
                   lineRedEntry: normalizedLineRedEntry,
+                  lineGreenEntries: normalizedLineGreenEntries,
+                  lineRedEntries: normalizedLineRedEntries,
                   feedback: normalizedFeedback,
                 })}
               disabled={!canSubmit || busy}

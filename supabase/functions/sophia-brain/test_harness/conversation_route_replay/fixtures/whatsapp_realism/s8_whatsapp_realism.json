@@ -1,0 +1,171 @@
+[
+  {
+    "fixture_id": "W1",
+    "description": "pending confirmation accepts ok",
+    "input": {
+      "user_message": "ok",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "execute_confirmed"
+    }
+  },
+  {
+    "fixture_id": "W2",
+    "description": "pending confirmation accepts ouais",
+    "input": {
+      "user_message": "ouais",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "execute_confirmed"
+    }
+  },
+  {
+    "fixture_id": "W3",
+    "description": "pending confirmation accepts vas-y",
+    "input": {
+      "user_message": "vas-y",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "execute_confirmed"
+    }
+  },
+  {
+    "fixture_id": "W4",
+    "description": "pending confirmation cancels on non merci",
+    "input": {
+      "user_message": "non merci",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "cancel"
+    }
+  },
+  {
+    "fixture_id": "W5",
+    "description": "pending confirmation treats bof as cancellation",
+    "input": {
+      "user_message": "bof",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "cancel"
+    }
+  },
+  {
+    "fixture_id": "W6",
+    "description": "short fais confirms pending operation",
+    "input": {
+      "user_message": "fais",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "execute_confirmed"
+    }
+  },
+  {
+    "fixture_id": "W7",
+    "description": "emoji-only thumbs up confirms pending operation",
+    "input": {
+      "user_message": "👍",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "execute_confirmed"
+    }
+  },
+  {
+    "fixture_id": "W8",
+    "description": "punctuation-free attack card request still starts operation",
+    "input": {
+      "user_message": "fais moi une carte d attaque pour ma marche",
+      "recent_messages": [],
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "operation_type_started": "prepare_attack_card"
+    }
+  },
+  {
+    "fixture_id": "W9",
+    "description": "correction after confirmation continues tool skill",
+    "input": {
+      "user_message": "oui mais plus court",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "reason_code": "confirmation_correction_to_pending"
+    }
+  },
+  {
+    "fixture_id": "W10",
+    "description": "late annulment cancels pending operation",
+    "input": {
+      "user_message": "annule",
+      "recent_messages": [],
+      "pending_tool_skill_confirmation": {
+        "operation_type": "prepare_attack_card"
+      },
+      "memory_payload_fixture": {}
+    },
+    "expected": {
+      "safety_pregate_risk_band": "none",
+      "response_owner": "pending_confirmation",
+      "selected_handler": "cancel"
+    }
+  }
+]

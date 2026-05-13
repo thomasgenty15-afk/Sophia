@@ -105,7 +105,7 @@ const PATTERNS: Record<
     ),
     p(
       "weekday",
-      "\\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)( dernier| soir| matin)?\\b",
+      "\\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)( dernier| soir| matin| apres[- ]midi)?\\b",
       0.8,
     ),
     p(
@@ -129,7 +129,7 @@ const PATTERNS: Record<
   sensitive: [
     p(
       "addiction",
-      "\\b(cannabis|alcool|drogue|porno|rechute|addiction|craving)\\b",
+      "\\b(cannabis|alcool|whisky|apero|aperitif|anesthesier|drogue|porno|rechute|addiction|craving|envie de couper|couper la pression|pression le soir)\\b",
       0.88,
     ),
     p(
@@ -146,7 +146,7 @@ const PATTERNS: Record<
   cross_topic_profile_query: [
     p(
       "profile_query",
-      "\\b(tu te souviens|qu'est-ce que tu sais|qu'est ce que tu sais|dans tous mes sujets|globalement|en general|ma psychologie|mes sujets)\\b",
+      "\\b(tu te souviens|qu'est-ce que tu sais|qu'est ce que tu sais|ce que tu as retenu|qui est|quel est le lien|dans tous mes sujets|globalement|en general|ma psychologie|mes sujets)\\b",
       0.86,
     ),
     p(

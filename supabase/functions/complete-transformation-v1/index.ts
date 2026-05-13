@@ -69,6 +69,8 @@ const REQUEST_SCHEMA = z.object({
   transformation_id: z.string().uuid(),
   line_green_entry: LINE_ENTRY_SCHEMA,
   line_red_entry: LINE_ENTRY_SCHEMA,
+  line_green_entries: z.array(LINE_ENTRY_SCHEMA).min(1).max(3).optional(),
+  line_red_entry_details: z.array(LINE_ENTRY_SCHEMA).min(1).max(3).optional(),
   feedback: FEEDBACK_SCHEMA,
   declics_draft: DECLICS_SCHEMA.nullable().optional(),
   declics_user: DECLICS_SCHEMA.nullable().optional(),
@@ -127,6 +129,14 @@ function sanitizeLineEntry(input: BaseDeVieLineEntry | null | undefined): BaseDe
     action,
     why,
   };
+}
+
+function sanitizeLineEntries(entries: BaseDeVieLineEntry[] | null | undefined): BaseDeVieLineEntry[] {
+  if (!Array.isArray(entries)) return [];
+  return entries
+    .map((entry) => sanitizeLineEntry(entry))
+    .filter((entry): entry is BaseDeVieLineEntry => Boolean(entry))
+    .slice(0, 3);
 }
 
 function sanitizeDeclics(input: BaseDeVieDeclics | null | undefined): BaseDeVieDeclics | null {
@@ -319,15 +329,33 @@ function buildBaseDeViePayload(args: {
   nowIso: string;
   lineGreenEntry: BaseDeVieLineEntry;
   lineRedEntry: BaseDeVieLineEntry;
+  lineGreenEntries?: BaseDeVieLineEntry[] | null;
+  lineRedEntries?: BaseDeVieLineEntry[] | null;
   declicsDraft: BaseDeVieDeclics | null;
   declicsUser: BaseDeVieDeclics | null;
   feedback: TransformationClosureFeedback;
 }): UserTransformationBaseDeViePayload {
-  const lineGreenEntry = sanitizeLineEntry(args.lineGreenEntry);
-  const lineRedEntry = sanitizeLineEntry(args.lineRedEntry);
+  const lineGreenEntries = sanitizeLineEntries(args.lineGreenEntries);
+  const lineRedEntries = sanitizeLineEntries(args.lineRedEntries);
+  const fallbackGreenEntry = sanitizeLineEntry(args.lineGreenEntry);
+  const fallbackRedEntry = sanitizeLineEntry(args.lineRedEntry);
+  const normalizedGreenEntries = lineGreenEntries.length > 0
+    ? lineGreenEntries
+    : fallbackGreenEntry
+    ? [fallbackGreenEntry]
+    : [];
+  const normalizedRedEntries = lineRedEntries.length > 0
+    ? lineRedEntries
+    : fallbackRedEntry
+    ? [fallbackRedEntry]
+    : [];
+  const lineGreenEntry = normalizedGreenEntries[0] ?? null;
+  const lineRedEntry = normalizedRedEntries[0] ?? null;
 
   return {
-    line_red_entries: sanitizeLineRedEntries(lineRedEntry ? [lineRedEntry.action] : []),
+    line_red_entries: sanitizeLineRedEntries(normalizedRedEntries.map((entry) => entry.action)),
+    line_green_entries: normalizedGreenEntries,
+    line_red_entry_details: normalizedRedEntries,
     line_green_entry: lineGreenEntry,
     line_red_entry: lineRedEntry,
     declics_draft: sanitizeDeclics(args.declicsDraft),
@@ -345,6 +373,8 @@ export async function completeTransformationV1(args: {
   transformationId: string;
   lineGreenEntry: BaseDeVieLineEntry;
   lineRedEntry: BaseDeVieLineEntry;
+  lineGreenEntries?: BaseDeVieLineEntry[] | null;
+  lineRedEntries?: BaseDeVieLineEntry[] | null;
   feedback: TransformationClosureFeedback;
   declicsDraft: BaseDeVieDeclics | null;
   declicsUser: BaseDeVieDeclics | null;
@@ -371,6 +401,8 @@ export async function completeTransformationV1(args: {
     nowIso,
     lineGreenEntry: args.lineGreenEntry,
     lineRedEntry: args.lineRedEntry,
+    lineGreenEntries: args.lineGreenEntries,
+    lineRedEntries: args.lineRedEntries,
     declicsDraft: args.declicsDraft,
     declicsUser: args.declicsUser,
     feedback: args.feedback,
@@ -499,6 +531,7 @@ export async function completeTransformationV1(args: {
       reason: "base_de_vie_closure",
       metadata: {
         line_red_count: baseDeViePayload.line_red_entries.length,
+        line_green_count: baseDeViePayload.line_green_entries.length,
         has_line_green_entry: Boolean(baseDeViePayload.line_green_entry),
         has_declics_draft: Boolean(baseDeViePayload.declics_draft),
         helpfulness_rating: baseDeViePayload.closure_feedback?.helpfulness_rating ?? null,
@@ -591,6 +624,8 @@ async function handleRequest(req: Request): Promise<Response> {
       transformationId: parsed.data.transformation_id,
       lineGreenEntry: parsed.data.line_green_entry,
       lineRedEntry: parsed.data.line_red_entry,
+      lineGreenEntries: parsed.data.line_green_entries ?? null,
+      lineRedEntries: parsed.data.line_red_entry_details ?? null,
       feedback: {
         helpfulness_rating: parsed.data.feedback.helpfulness_rating,
         improvement_reasons: parsed.data.feedback.improvement_reasons,

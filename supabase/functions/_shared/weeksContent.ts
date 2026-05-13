@@ -50,7 +50,7 @@ export const WEEKS_CONTENT: Record<string, WeekData> = {
     subQuestions: [
       { id: "a3_c1_m1", question: "La Météo Par Défaut", placeholder: "Quand il ne se passe rien (pas de crise, pas de grosse excitation, pas de distraction) : comment te sens-tu le plus souvent ?\n\nListe toutes tes météos par défaut :\n\n• ex : calme, tendu, anxieux, vidé, agité, blasé, inquiet, neutre…\n\nTu peux aussi décrire ce que tu ressens dans ton corps (poitrine, ventre, respiration…).", helperText: "Tu es en train d’observer ton fond d’écran intérieur.\n\nCe n’est pas un jugement, juste l’état dans lequel ton système nerveux revient tout seul." },
       { id: "a3_c2_m1", question: "La Réaction au Chaos", placeholder: "Pense aux derniers moments de chaos que tu as vécus (conflits, urgence, imprévu, gros stress, mauvaise nouvelle) :\n\n• Comment réagis-tu le plus souvent ?\n• Qui deviens-tu intérieurement : le Paniqué, le Sauveur, le Fantôme, le Contrôlant, le Général, autre ?\n\nDécris toutes tes réactions typiques (pensées, émotions, gestes, comportements).", helperText: "Le chaos a tendance à faire remonter ta version automatique.\n\nTu n’es pas en train de te juger, tu observes ton mode “pilote automatique” sous pression." },
-      { id: "a3_c3_m1", question: "Les Qualités Socles", placeholder: "Quels sont les traits de caractère que tu veux vraiment graver en toi pour les prochaines années ?\n\nListe toutes les qualités qui t’inspirent (ex : calme, courageux, fiable, généreux, discipliné, joueur, posé, honnête, ambitieux…).\n\nPuis choisis 3 qualités socles : celles qui, si tu les incarnais vraiment, changeraient ta vie intérieure.", helperText: "Tu es en train de choisir les piliers de ton identité future.\n\nCe que tu choisis ici devient la boussole de ton état d’être." }
+      { id: "a3_c3_m1", question: "Les Qualités Socles", placeholder: "Quels sont les traits de caractère que tu veux vraiment graver en toi pour les prochaines années ?\n\nListe toutes les qualités qui t’inspirent (ex : calme, courageux, fiable, généreux, discipliné, joueur, posé, honnête, ambitieux…).\n\nPuis choisis 3 qualités socles : celles qui, si tu les incarnais vraiment, changeraient ta vie intérieure.", helperText: "Tu es en train de choisir les piliers de ton identité future.\n\nCe que tu choisis ici devient un repère pour ton état d’être." }
     ],
     aiNuggets: ["Le calme est un super-pouvoir.", "Tu ne contrôles pas les événements, tu contrôles ta réaction."]
   },
@@ -68,7 +68,7 @@ export const WEEKS_CONTENT: Record<string, WeekData> = {
   },
   "5": {
     id: 5,
-    title: "La Boussole (Mission)",
+    title: "La Mission",
     subtitle: "Partie 1 • Les Fondations du Temple",
     description: "À quoi je veux consacrer ma vie ? Sans but, l'énergie se disperse.",
     subQuestions: [
@@ -165,4 +165,3 @@ export const WEEKS_CONTENT: Record<string, WeekData> = {
     aiNuggets: ["Tu es prêt.", "Le papillon ne regarde pas la chenille avec nostalgie."]
   }
 };
-

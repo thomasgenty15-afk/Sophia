@@ -23,6 +23,25 @@ Definir chaque skill avant implementation :
 - tests.
 ```
 
+## Revision 2026-05 - alignements integres
+
+Cette revision integre :
+
+```text
+1. Renommage `operation_skill` -> `tool_skill` (vocabulaire).
+2. Schema strict des `MemoryWriteCandidate` (anti-identity-freeze, sensitivity,
+   should_persist_default, evidence_source_ids).
+3. Invalidation immediate du payload memoire sur correction utilisateur
+   (protocole ecrit dans chaque skill humain).
+4. Bandes interpretables (`explicit | implied | weak`,
+   `low | medium | high`) en plus des seuils numeriques bruts.
+5. Hook safety_pregate avant tout skill (les skills ne sont jamais le seul
+   rempart safety).
+6. Trace memory_used_for_route obligatoire dans chaque output skill.
+```
+
+Toutes les fiches ci-dessous integrent ces invariants.
+
 ## Liste cible MVP
 
 Skills humains :
@@ -49,6 +68,7 @@ operation_payload_builder
 generators
 tool_executors
 memorizer async
+safety_pregate (deterministe, hors LLM)
 ```
 
 ## Contrat commun d'un skill
@@ -96,10 +116,92 @@ type ConversationSkillOutput = {
   handoff_request?: {
     target_skill_id: string;
     reason: string;
-    confidence: number;
+    confidence_band: "low" | "medium" | "high";
   };
-  memory_write_candidates?: Array<Record<string, unknown>>;
+  memory_write_candidates?: MemoryWriteCandidate[];
+  memory_trace: {
+    memory_used_for_response: boolean;
+    memory_item_ids_used: string[];
+    correction_detected: boolean;
+    correction_target_item_ids: string[];
+  };
 };
+```
+
+### MemoryWriteCandidate - schema strict
+
+Tout candidate produit par un skill doit respecter :
+
+```ts
+type MemoryWriteCandidate = {
+  kind:
+    | "statement"           // affirmation ponctuelle, generalement non durable
+    | "event"               // fait date dans le temps
+    | "preference"          // choix exprime (durable)
+    | "fact"                // donnee structurelle (durable)
+    | "action_observation"  // observation d'action plan/personnelle
+    | "correction_note"     // user a corrige une info anterieure
+    | "risk_signal";        // signal sensible / safety (handled by memorizer)
+
+  content_text: string;
+  evidence_source_ids: string[];      // ids des messages qui supportent
+
+  confidence_band: "low" | "medium" | "high";
+
+  sensitivity_level: 0 | 1 | 2 | 3 | 4;
+  // 0 = normal
+  // 1 = personnel (preferences, habitudes)
+  // 2 = sensitive (relations, sante, finance)
+  // 3 = high-sensitive (addiction, mental_health, trauma)
+  // 4 = safety (crisis, self-harm)
+
+  persistence_rationale: string;
+  should_persist_default: boolean;
+  // false par defaut si :
+  //  - emotion haute (auto-attaque, honte aigue)
+  //  - statement ponctuel non corrobore
+  //  - sensitivity_level >= 3 sans pattern repetitif
+  //  - safety actif
+
+  anti_identity_freeze_checked: boolean;
+  // true SEULEMENT si :
+  //  - le candidate ne transforme PAS un statement aigu en fact identitaire
+  //  - "je suis nul" -> JAMAIS un fact "user se voit comme nul"
+  //  - "je suis depresse" en moment aigu -> JAMAIS fact "user est depresse"
+
+  topic_hint?: string | null;
+  entity_hints?: string[];
+  scope_hint?: "moment" | "session" | "topic" | "global";
+};
+```
+
+### Regles d'application
+
+```text
+- emotion haute (skill emotional_repair en phase aigue)
+  -> should_persist_default = false pour TOUS les candidates
+  -> seuls correction_note et risk_signal peuvent etre persistes
+
+- safety_pregate.risk_band >= medium
+  -> aucun candidate de kind != risk_signal ne doit etre emis
+
+- candidate avec anti_identity_freeze_checked = false
+  -> rejete par le memorizer
+
+- candidate sans evidence_source_ids
+  -> rejete par le memorizer
+```
+
+### Trace correction
+
+Si le skill detecte une correction utilisateur :
+
+```text
+- emettre un candidate kind="correction_note"
+- remplir state_patch.correction = { target_item_ids, new_content }
+- runtime invalide immediatement les items concernes dans le payload memoire
+- runtime cree un memory_operation type="correction" en async
+- au tour suivant, l'ancien item ne doit plus apparaitre
 ```
 
 ## Skill: product_help
@@ -177,7 +279,7 @@ Conditions :
 - pas de signal `safety` actif ;
 - pas de skill humain prioritaire avec urgence forte ;
 - demande produit suffisamment explicite ;
-- si une `__pending_operation_confirmation` existe, traiter d'abord Oui/Non.
+- si une `__pending_tool_skill_confirmation` existe, traiter d'abord Oui/Non.
 
 Exemples entry :
 
@@ -265,7 +367,7 @@ product_help
 -> recommendation_gate
 -> operation_payload_builder
 -> generator
--> pending_operation_confirmation Oui/Non
+-> pending_tool_skill_confirmation Oui/Non
 ```
 
 Cas :
@@ -911,23 +1013,41 @@ type SafetyCrisisSignal = {
 Entrer dans `safety_crisis` si :
 
 ```text
-safety_crisis.detected = true
-confidence >= 0.60
+safety_pregate.risk_band in {medium, high, critical}
+OU dispatcher safety_crisis.detected = true avec confidence_band >= medium
 ```
 
-Pourquoi seuil plus bas :
+Pourquoi seuil bas :
 
 ```text
 En safety, faux negatif > faux positif.
+On prefere entrer dans safety_crisis a tort plutot que de rater un signal.
+La couche safety_pregate (lexical + heuristique) est INDEPENDANTE du
+dispatcher LLM et permet d'attraper les cas ou le dispatcher rate.
 ```
 
-Override :
+### Source de detection redondante
 
 ```text
-- annuler ou suspendre operation pending
-- ignorer recommendation_tool
-- ignorer product_help
-- ne pas lancer dashboard push
+1. safety_pregate (lexical + heuristique) -> deterministe, hors LLM
+2. dispatcher LLM safety signal -> peut elever, jamais abaisser
+3. recent_messages safety hints -> contexte 3-5 derniers tours
+```
+
+Le skill recoit `risk_band = max(des trois sources)`.
+
+### Override
+
+Quand `safety_crisis` est actif, le runtime :
+
+```text
+- annule ou suspend toute operation pending ;
+- ignore recommendation_tool ;
+- ignore product_help ;
+- ne lance pas dashboard push ;
+- bloque tous les always-on tools (DirectEffectGate refuse) ;
+- bloque tout write durable memorizer (sauf risk_signal candidate) ;
+- bloque toute modification produit.
 ```
 
 ### Methodologie
@@ -1119,7 +1239,7 @@ Pas de handoff direct vers :
 execution_breakdown
 demotivation_repair
 product_help
-operation_router
+tool_skill_router
 ```
 
 Il faut passer par une sortie safety propre d'abord.
@@ -1250,11 +1370,16 @@ Entrer dans `emotional_repair` si :
 
 ```text
 emotional_repair.detected = true
-confidence >= 0.70
-pas de safety_crisis
-pas d'operation_intent forte
-pas de pending_operation_confirmation
+confidence_band in {high, critical}
+explicitness in {explicit, implied}
+pas de safety_crisis (safety_pregate.risk_band in {none, low})
+pas d'tool_skill_intent forte (explicit + high)
+pas de pending_tool_skill_confirmation
 ```
+
+Le signal principal doit venir du message courant. La memoire seule ne
+peut pas declencher `emotional_repair` (cf. Memory Influence Policy dans
+`conversation-skills-tools-dispatcher-alignment-plan.md`).
 
 Override :
 
@@ -1639,20 +1764,28 @@ Entrer dans `demotivation_repair` si :
 
 ```text
 demotivation_repair.detected = true
-confidence >= 0.70
-pas de safety_crisis
+confidence_band in {high, critical}
+explicitness in {explicit, implied}
+pas de safety_crisis (safety_pregate.risk_band in {none, low})
 pas de emotional_repair prioritaire
 pas de execution_breakdown prioritaire avec action concrete
-pas d'operation_intent forte
-pas de pending_operation_confirmation
+pas d'tool_skill_intent forte
+pas de pending_tool_skill_confirmation
 ```
 
 Cas limite :
 
 ```text
-confidence 0.50 - 0.69
+confidence_band = medium
 -> ne pas entrer automatiquement
 -> laisser le mode general ou poser une clarification courte
+```
+
+Repere pedagogique non-normatif :
+
+```text
+confidence_band high   ~ 0.7 <= confidence < 0.9
+confidence_band medium ~ 0.4 <= confidence < 0.7
 ```
 
 ### Methodologie
@@ -1930,7 +2063,7 @@ Ensuite :
 
 ```text
 recommendation_tool decide : potion / ajustement plan / reduction / rien.
-operation_router prend le relais si une action est acceptee.
+tool_skill_router prend le relais si une action est acceptee.
 ```
 
 ### Handoffs
@@ -1945,8 +2078,8 @@ demotivation_repair -> emotional_repair
 demotivation_repair -> execution_breakdown
   si le user revient vers une action concrete bloquee
 
-demotivation_repair -> operation_router
-  si operation_intent forte detectee par le dispatcher
+demotivation_repair -> tool_skill_router
+  si tool_skill_intent forte detectee par le dispatcher
 ```
 
 ### Exit rules
@@ -1958,7 +2091,7 @@ Sortir si :
 - user se sent suffisamment compris ;
 - recommendation_need transmise ;
 - handoff demande ;
-- operation_intent prend le relais ;
+- tool_skill_intent prend le relais ;
 - user change de sujet ;
 - max_turns atteint.
 ```
@@ -1995,8 +2128,8 @@ Max turns MVP :
 -> recommendation_need possible plan_adjustment
 
 "je veux ajuster mon plan"
--> operation_intent adjust_plan_item
--> operation_router prioritaire
+-> tool_skill_intent adjust_plan_item
+-> tool_skill_router prioritaire
 ```
 
 ## Skill: execution_breakdown
@@ -2142,17 +2275,18 @@ Entrer dans `execution_breakdown` si :
 
 ```text
 execution_breakdown.detected = true
-confidence >= 0.70
-pas de safety_crisis
+confidence_band in {high, critical}
+explicitness in {explicit, implied}
+pas de safety_crisis (safety_pregate.risk_band in {none, low})
 pas de emotional_repair prioritaire
-pas d'operation_intent forte
-pas de pending_operation_confirmation
+pas d'tool_skill_intent forte
+pas de pending_tool_skill_confirmation
 ```
 
 Cas limite :
 
 ```text
-confidence 0.50 - 0.69
+confidence_band = medium
 -> ne pas entrer automatiquement
 -> laisser le mode general ou poser une clarification courte
 ```
@@ -2298,7 +2432,7 @@ Le skill ne doit pas :
 - pousser le dashboard sans diagnostic ;
 - creer une operation lui-meme ;
 - rester actif si la honte ou la crise devient dominante ;
-- resoudre une demande explicite d'operation a la place de l'operation_router ;
+- resoudre une demande explicite de tool skill a la place du tool_skill_router ;
 - multiplier les signaux dispatcher necessaires a son activation.
 
 ### Sortie structuree
@@ -2415,7 +2549,7 @@ Ensuite :
 
 ```text
 recommendation_tool decide : potion / reduction / reminder / carte / rien.
-operation_router prend le relais si action acceptee.
+tool_skill_router prend le relais si action acceptee.
 ```
 
 ### Handoffs
@@ -2430,8 +2564,8 @@ execution_breakdown -> emotional_repair
 execution_breakdown -> demotivation_repair
   si le probleme n'est pas l'action mais la perte de sens ou d'elan
 
-execution_breakdown -> operation_router
-  si operation_intent forte detectee par le dispatcher
+execution_breakdown -> tool_skill_router
+  si tool_skill_intent forte detectee par le dispatcher
 ```
 
 ### Exit rules
@@ -2442,7 +2576,7 @@ Sortir si :
 - cible + frein dominant identifies ;
 - recommendation_need transmise ;
 - handoff demande ;
-- operation_intent prend le relais ;
+- tool_skill_intent prend le relais ;
 - user change de sujet ;
 - max_turns atteint.
 ```
@@ -2473,8 +2607,8 @@ Max turns MVP :
 -> recommendation_needed execution_repair possible
 
 "cree-moi une carte d'attaque pour ma marche"
--> operation_intent prepare_attack_card
--> operation_router prioritaire
+-> tool_skill_intent prepare_attack_card
+-> tool_skill_router prioritaire
 -> execution_breakdown ne prend pas la main
 
 "ca sert a rien mon plan"
@@ -2483,14 +2617,14 @@ Max turns MVP :
 
 # Operation skills definitions
 
-Les operation skills ne sont pas des conversation skills humains.
+Les tool skills ne sont pas des conversation skills humains.
 
 Ils gerent un flow produit concret :
 
 ```text
-operation_intent / recommendation_operation
--> operation_router
--> operation skill
+tool_skill_intent / recommendation_operation
+-> tool_skill_router
+-> tool skill
 -> readiness_gate
 -> generator
 -> pending_confirmation Oui/Non
@@ -2508,11 +2642,11 @@ Regles communes :
 - le chemin `direct_user_request` peut poser une question courte si une info
   obligatoire manque.
 
-## Operation Skill: prepare_attack_card_operation_skill
+## Tool Skill: prepare_attack_card_tool_skill
 
 ### Role
 
-`prepare_attack_card_operation_skill` prepare une carte d'attaque a partir d'une
+`prepare_attack_card_tool_skill` prepare une carte d'attaque a partir d'une
 demande directe du user ou d'une recommandation deja structuree.
 
 Il ne decide pas si une carte d'attaque est la meilleure intervention. Il ne
@@ -2539,9 +2673,9 @@ Le user demande explicitement une carte d'attaque.
 
 ```text
 user
--> dispatcher.operation_intent
--> operation_router
--> prepare_attack_card_operation_skill
+-> dispatcher.tool_skill_intent
+-> tool_skill_router
+-> prepare_attack_card_tool_skill
 -> intake si infos manquantes
 -> readiness_gate
 -> generator
@@ -2569,7 +2703,7 @@ recommande l'operation.
 conversation_skill
 -> recommendation_tool
 -> recommend_operation prepare_attack_card avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> generator
 -> pending_confirmation Oui/Non
@@ -2595,11 +2729,11 @@ ne pas demander au user dans ce flow
 
 ### Declencheurs
 
-#### Direct operation_intent
+#### Direct tool_skill_intent
 
 ```json
 {
-  "operation_intent": {
+  "tool_skill_intent": {
     "detected": true,
     "operation_type": "prepare_attack_card",
     "user_intent": "create",
@@ -2638,10 +2772,12 @@ ne pas demander au user dans ce flow
 Entrer via demande directe si :
 
 ```text
-operation_intent.operation_type = prepare_attack_card
-operation_intent.confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+tool_skill_intent.operation_type = prepare_attack_card
+tool_skill_intent.confidence_band in {high, critical}
+tool_skill_intent.explicitness in {explicit, implied_strong}
+tool_skill_intent.ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Entrer via recommendation si :
@@ -2651,7 +2787,7 @@ recommendation.decision = recommend_operation
 recommendation.operation_type = prepare_attack_card
 recommendation.operation_input satisfait le minimum viable payload
 pas de safety_crisis
-pas de pending_operation_confirmation
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
@@ -2700,7 +2836,7 @@ type PrepareAttackCardOperationState = {
 Stockage :
 
 ```text
-__active_operation_intake_v1
+__active_tool_skill_intake_v1
 ```
 
 ### Slots
@@ -3085,8 +3221,8 @@ Apres generator :
 ```text
 envoyer confirmation_message
 afficher [Oui] [Non]
-stocker __pending_operation_confirmation
-clear/suspend __active_operation_intake_v1
+stocker __pending_tool_skill_confirmation
+clear/suspend __active_tool_skill_intake_v1
 ```
 
 Etat :
@@ -3261,11 +3397,11 @@ safety pendant intake
 -> clear operation state
 ```
 
-## Operation Skill: prepare_defense_card_operation_skill
+## Tool Skill: prepare_defense_card_tool_skill
 
 ### Role
 
-`prepare_defense_card_operation_skill` prepare une carte de defense quand le
+`prepare_defense_card_tool_skill` prepare une carte de defense quand le
 user veut se proteger d'un moment a risque : tentation, rechute, impulsion,
 evitement previsible, contexte recurrent qui le fait derailer.
 
@@ -3290,9 +3426,9 @@ operation
 
 ```text
 user
--> dispatcher.operation_intent prepare_defense_card
--> operation_router
--> prepare_defense_card_operation_skill
+-> dispatcher.tool_skill_intent prepare_defense_card
+-> tool_skill_router
+-> prepare_defense_card_tool_skill
 -> intake si infos manquantes
 -> readiness_gate
 -> generator
@@ -3314,7 +3450,7 @@ Exemples :
 conversation_skill
 -> recommendation_tool
 -> recommend_operation prepare_defense_card avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> generator
 -> pending_confirmation Oui/Non
@@ -3341,10 +3477,12 @@ invalid_recommendation_payload
 Entrer via demande directe si :
 
 ```text
-operation_intent.operation_type = prepare_defense_card
-operation_intent.confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+tool_skill_intent.operation_type = prepare_defense_card
+tool_skill_intent.confidence_band in {high, critical}
+tool_skill_intent.explicitness in {explicit, implied_strong}
+tool_skill_intent.ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Entrer via recommendation si :
@@ -3353,7 +3491,7 @@ Entrer via recommendation si :
 recommendation.operation_type = prepare_defense_card
 recommendation.operation_input satisfait le minimum viable payload
 pas de safety_crisis
-pas de pending_operation_confirmation
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
@@ -3721,7 +3859,7 @@ type DefenseCardDraftV1 = {
 generator
 -> confirmation_message
 -> [Oui] [Non]
--> __pending_operation_confirmation
+-> __pending_tool_skill_confirmation
 ```
 
 Apres Oui :
@@ -3814,11 +3952,11 @@ pending confirmation + Non
 -> no DB write
 ```
 
-## Operation Skill: update_coach_preferences_operation_skill
+## Tool Skill: update_coach_preferences_tool_skill
 
 ### Role
 
-`update_coach_preferences_operation_skill` prepare une modification des
+`update_coach_preferences_tool_skill` prepare une modification des
 preferences coach quand le user demande explicitement a Sophia de changer sa
 maniere de repondre, de challenger, de poser des questions ou d'accompagner.
 
@@ -3843,9 +3981,9 @@ operation
 
 ```text
 user
--> dispatcher.operation_intent update_coach_preferences
--> operation_router
--> update_coach_preferences_operation_skill
+-> dispatcher.tool_skill_intent update_coach_preferences
+-> tool_skill_router
+-> update_coach_preferences_tool_skill
 -> intake si preference/valeur manquante
 -> readiness_gate
 -> coach_preferences_patch_builder
@@ -3869,7 +4007,7 @@ Exemples :
 conversation_skill
 -> recommendation_tool
 -> recommend_operation update_coach_preferences avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> coach_preferences_patch_builder
 -> pending_confirmation Oui/Non
@@ -3908,9 +4046,11 @@ Entrer si :
 
 ```text
 operation_type = update_coach_preferences
-confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+confidence_band in {high, critical}
+explicitness in {explicit, implied_strong}
+ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
@@ -4101,7 +4241,7 @@ Exemple :
 builder
 -> confirmation_message
 -> [Oui] [Non]
--> __pending_operation_confirmation
+-> __pending_tool_skill_confirmation
 ```
 
 Apres Oui :
@@ -4193,11 +4333,11 @@ pending confirmation + Non
 -> no DB write
 ```
 
-## Operation Skill: create_recurring_reminder_operation_skill
+## Tool Skill: create_recurring_reminder_tool_skill
 
 ### Role
 
-`create_recurring_reminder_operation_skill` prepare la creation d'un rappel
+`create_recurring_reminder_tool_skill` prepare la creation d'un rappel
 recurrent quand le user demande a Sophia de revenir regulierement sur un sujet,
 une action, un etat ou un moment.
 
@@ -4232,9 +4372,9 @@ operation
 
 ```text
 user
--> dispatcher.operation_intent create_recurring_reminder
--> operation_router
--> create_recurring_reminder_operation_skill
+-> dispatcher.tool_skill_intent create_recurring_reminder
+-> tool_skill_router
+-> create_recurring_reminder_tool_skill
 -> intake si infos manquantes
 -> readiness_gate
 -> recurring_reminder_builder
@@ -4257,7 +4397,7 @@ Exemples :
 conversation_skill
 -> recommendation_tool
 -> recommend_operation create_recurring_reminder avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> recurring_reminder_builder
 -> pending_confirmation Oui/Non
@@ -4277,9 +4417,11 @@ Entrer si :
 
 ```text
 operation_type = create_recurring_reminder
-confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+confidence_band in {high, critical}
+explicitness in {explicit, implied_strong}
+ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
@@ -4411,7 +4553,7 @@ constraints incluent requires_confirmation
 Regles :
 
 ```text
-one-shot clair -> route one_shot_reminder, pas operation skill
+one-shot clair -> route one_shot_reminder, pas tool skill
 direct request + recurrence/time missing + question non posee -> ask_question
 direct request + toujours incomplet apres 1 question -> fallback_dashboard
 recommendation path + missing required slot -> invalid_recommendation_payload
@@ -4509,7 +4651,7 @@ type CreateRecurringReminderOperationOutput = {
 
 "rappelle-moi demain a 9h"
 -> one_shot_reminder
--> pas operation skill
+-> pas tool skill
 
 "rappelle-moi tous les jours"
 -> content missing
@@ -4533,11 +4675,11 @@ pending confirmation + Non
 -> no DB write
 ```
 
-## Operation Skill: select_state_potion_operation_skill
+## Tool Skill: select_state_potion_tool_skill
 
 ### Role
 
-`select_state_potion_operation_skill` prepare l'activation d'une potion d'etat
+`select_state_potion_tool_skill` prepare l'activation d'une potion d'etat
 quand le user demande explicitement une potion, ou quand une recommandation
 structuree indique qu'une potion est la meilleure reponse.
 
@@ -4574,7 +4716,7 @@ Ils ne sont pas une sortie du dispatcher.
 
 ```text
 dispatcher = detecte l'intention d'operation
-operation skill = remplit les slots
+tool skill = remplit les slots
 readiness_gate = decide si assez d'infos
 generator / selector = prepare le draft
 ```
@@ -4583,7 +4725,7 @@ Le dispatcher doit rester leger :
 
 ```json
 {
-  "operation_intent": {
+  "tool_skill_intent": {
     "detected": true,
     "operation_type": "select_state_potion",
     "user_intent": "select",
@@ -4600,9 +4742,9 @@ Le dispatcher doit rester leger :
 
 ```text
 user
--> dispatcher.operation_intent select_state_potion
--> operation_router
--> select_state_potion_operation_skill
+-> dispatcher.tool_skill_intent select_state_potion
+-> tool_skill_router
+-> select_state_potion_tool_skill
 -> intake leger si etat/type manquant
 -> readiness_gate
 -> potion_session_selector
@@ -4625,7 +4767,7 @@ Exemples :
 conversation_skill
 -> recommendation_tool
 -> recommend_operation select_state_potion avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> potion_session_selector
 -> pending_confirmation Oui/Non
@@ -4664,9 +4806,11 @@ Entrer si :
 
 ```text
 operation_type = select_state_potion
-confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+confidence_band in {high, critical}
+explicitness in {explicit, implied_strong}
+ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
@@ -4866,7 +5010,7 @@ Exemple :
 selector
 -> confirmation_message
 -> [Oui] [Non]
--> __pending_operation_confirmation
+-> __pending_tool_skill_confirmation
 ```
 
 Apres Oui :
@@ -4967,11 +5111,11 @@ pending confirmation + Non
 -> no DB write
 ```
 
-## Operation Skill: adjust_plan_item_operation_skill
+## Tool Skill: adjust_plan_item_tool_skill
 
 ### Role
 
-`adjust_plan_item_operation_skill` prepare une modification du plan quand le user
+`adjust_plan_item_tool_skill` prepare une modification du plan quand le user
 demande explicitement d'ajuster une action, une partie du plan, une phase, ou
 quand une recommandation structuree propose un ajustement.
 
@@ -4996,9 +5140,9 @@ operation
 
 ```text
 user
--> dispatcher.operation_intent adjust_plan_item
--> operation_router
--> adjust_plan_item_operation_skill
+-> dispatcher.tool_skill_intent adjust_plan_item
+-> tool_skill_router
+-> adjust_plan_item_tool_skill
 -> intake si infos manquantes
 -> readiness_gate
 -> generator
@@ -5021,7 +5165,7 @@ Exemples :
 conversation_skill
 -> recommendation_tool
 -> recommend_operation adjust_plan_item avec payload suffisant
--> operation_router
+-> tool_skill_router
 -> readiness_gate
 -> generator
 -> pending_confirmation Oui/Non
@@ -5048,16 +5192,18 @@ Entrer si :
 
 ```text
 operation_type = adjust_plan_item
-confidence >= 0.75
-pas de safety_crisis
-pas de pending_operation_confirmation
+confidence_band in {high, critical}
+explicitness in {explicit, implied_strong}
+ambiguity = none
+safety_pregate.risk_band in {none, low}
+pas de pending_tool_skill_confirmation
 ```
 
 Ne pas entrer si :
 
 ```text
 user demande juste "comment ajuster mon plan ?" -> product_help
-user veut changer le jour precis d'une action -> fallback_dashboard
+user parle de timing/jour/horaire -> adjust_plan_item clarifie la cible, sans surface separee
 honte forte / crise emotionnelle -> emotional_repair avant modification
 payload recommendation incomplet -> invalid_recommendation_payload
 ```
@@ -5075,7 +5221,6 @@ type PlanAdjustmentScopeResolution = {
       | "current_phase"
       | "future_phase"
       | "whole_plan"
-      | "schedule_change"
       | "unknown";
     plan_item_id?: string | null;
     phase_id?: string | null;
@@ -5099,15 +5244,16 @@ type PlanAdjustmentScopeResolution = {
 Regle importante :
 
 ```text
-schedule_change -> fallback_dashboard
+Le timing n'est plus une surface separee. Si le user parle de jour/horaire,
+le skill reste dans l'ajustement du plan et clarifie l'action ou le perimetre.
 ```
 
 Donc :
 
 ```text
-"mets ma marche mardi" -> dashboard
-"change le jour de cette action" -> dashboard
-"deplace ca a vendredi" -> dashboard
+"mets ma marche mardi" -> clarifier l'ajustement du plan
+"change le jour de cette action" -> clarifier l'action ou le perimetre du plan
+"deplace ca a vendredi" -> clarifier l'ajustement attendu
 ```
 
 ### Slots
@@ -5122,7 +5268,6 @@ type AdjustPlanItemSlots = {
       | "current_phase"
       | "future_phase"
       | "whole_plan"
-      | "schedule_change"
       | "unknown";
     plan_item_id?: string | null;
     phase_id?: string | null;
@@ -5186,7 +5331,6 @@ specific_plan_item -> uniquement cet item + contexte lie
 current_phase -> resume phase actuelle + items concernes
 future_phase -> future phase en grandes lignes
 whole_plan -> trajectoire + feedbacks globaux
-schedule_change -> fallback dashboard
 ```
 
 #### Generation
@@ -5245,7 +5389,6 @@ Minimum viable payload :
 
 ```text
 scope.status = identified
-scope.kind != schedule_change
 adjustment_type != unknown OU fallback safe adjustment possible
 reason.type != unknown
 constraints incluent requires_confirmation
@@ -5255,7 +5398,6 @@ Regles :
 
 ```text
 safety -> blocked_by_safety
-schedule_change -> fallback_dashboard
 direct request + scope missing + question non posee -> ask_question
 direct request + scope missing apres 1 question -> fallback_dashboard
 recommendation path + missing required slot -> invalid_recommendation_payload
@@ -5297,13 +5439,23 @@ ask_confirmation_before_write
 no_schedule_day_change
 ```
 
+Regle `reduce` :
+
+```text
+Si le user demande de reduire une action specifique, le flow ne remplace pas
+simplement l'action source par un patch invisible. Il cree une action pont plus
+petite, liee a l'action source, puis repousse l'action source juste apres cette
+action pont. La confirmation visible doit dire que la version mini est un pont
+vers l'action initiale, pas une suppression de l'intention de depart.
+```
+
 ### Pending confirmation
 
 ```text
 generator
 -> confirmation_message
 -> [Oui] [Non]
--> __pending_operation_confirmation
+-> __pending_tool_skill_confirmation
 ```
 
 Apres Oui :
@@ -5365,7 +5517,7 @@ type AdjustPlanItemOperationOutput = {
 "reduis ma marche du soir"
 -> scope specific_plan_item
 -> adjustment_type reduce
--> generator
+-> generator action pont
 -> pending confirmation
 
 "mon plan est trop lourd"
@@ -5373,8 +5525,8 @@ type AdjustPlanItemOperationOutput = {
 -> ask one question
 
 "change ma marche a mardi"
--> schedule_change
--> fallback_dashboard
+-> timing language
+-> adjust_plan_item clarifie l'ajustement attendu
 
 recommendation_tool returns full payload
 -> skip intake

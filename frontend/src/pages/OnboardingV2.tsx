@@ -9,7 +9,6 @@ import { PlanGenerationScreen } from "../components/onboarding-v2/PlanGeneration
 import { PlanReviewScreen } from "../components/onboarding-v2/PlanReviewScreen";
 import { CustomQuestionnaire } from "../components/onboarding-v2/CustomQuestionnaire";
 import { MinimalProfile } from "../components/onboarding-v2/MinimalProfile";
-import { ProgressiveLoader } from "../components/onboarding-v2/ProgressiveLoader";
 import { useAuth } from "../context/AuthContext";
 import {
   clearOnboardingV2Draft,
@@ -22,6 +21,7 @@ import {
   type JourneyContextTransition,
   loadDraftFromServer,
   loadOnboardingV2Draft,
+  type OnboardingLoadingRequest,
   type OnboardingV2Draft,
   type PlanReviewDraft,
   persistOnboardingV2DraftLocally,
@@ -500,6 +500,45 @@ function wait(ms: number) {
   });
 }
 
+type RecoveredPlanPreview = {
+  plan: PlanContentV3;
+  planId: string;
+  updatedAt: string | null;
+};
+
+async function loadLatestDraftPlanPreview(args: {
+  transformationId: string;
+  cycleId?: string | null;
+  updatedAfter?: string | null;
+}): Promise<RecoveredPlanPreview | null> {
+  let query = supabase
+    .from("user_plans_v2")
+    .select("id,status,content,updated_at")
+    .eq("transformation_id", args.transformationId)
+    .eq("status", "draft");
+
+  if (args.cycleId) {
+    query = query.eq("cycle_id", args.cycleId);
+  }
+  if (args.updatedAfter) {
+    query = query.gte("updated_at", args.updatedAfter);
+  }
+
+  const { data, error } = await query
+    .order("updated_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data || !isPlanContentV3Candidate(data.content)) return null;
+
+  return {
+    plan: data.content,
+    planId: data.id,
+    updatedAt: data.updated_at ?? null,
+  };
+}
+
 function isAuthFunctionError(error: unknown): boolean {
   const status = getErrorStatus(error);
   if (status === 401 || status === 403) return true;
@@ -697,7 +736,20 @@ const AUTH_REDIRECT = `/auth?${
   new URLSearchParams({ redirect: "/onboarding-v2" }).toString()
 }`;
 
+const PLAN_LOADING_REQUEST_STALE_MS = 8 * 60 * 1000;
+const SHORT_LOADING_REQUEST_STALE_MS = 90 * 1000;
+
 type OnboardingAuthMode = "checking" | "authenticated" | "guest";
+
+function isFreshLoadingRequest(request: OnboardingLoadingRequest | null) {
+  if (!request) return false;
+  const startedAt = Date.parse(request.started_at);
+  if (Number.isNaN(startedAt)) return false;
+  const maxAge = request.id === "plan"
+    ? PLAN_LOADING_REQUEST_STALE_MS
+    : SHORT_LOADING_REQUEST_STALE_MS;
+  return Date.now() - startedAt < maxAge;
+}
 
 function clearTransformationQuestionnaires(
   transformations: TransformationPreviewV2[],
@@ -769,10 +821,12 @@ export default function OnboardingV2() {
     loadOnboardingV2Draft() ?? createEmptyOnboardingV2Draft()
   );
   const [error, setError] = useState<string | null>(null);
-  const [loadingState, setLoadingState] = useState<{
-    id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate" | null;
-    label?: string;
-  }>({ id: null });
+  const [loadingState, setLoadingState] = useState<OnboardingLoadingRequest | null>(
+    () => {
+      const request = loadOnboardingV2Draft()?.loading_request ?? null;
+      return isFreshLoadingRequest(request) ? request : null;
+    },
+  );
   const [postAuthHydrating, setPostAuthHydrating] = useState(false);
   const [hydrationRetryKey, setHydrationRetryKey] = useState(0);
   const [storedProfileFields, setStoredProfileFields] = useState({
@@ -816,11 +870,21 @@ export default function OnboardingV2() {
   );
   const onboardingAuthLoading = authLoading || onboardingAuthMode === "checking";
   const beginOnboardingAction = useCallback((
-    state: { id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate"; label: string },
+    state: Pick<OnboardingLoadingRequest, "id" | "label">,
   ) => {
     const token = activeOnboardingActionTokenRef.current + 1;
     activeOnboardingActionTokenRef.current = token;
-    setLoadingState(state);
+    const loadingRequest = {
+      ...state,
+      started_at: new Date().toISOString(),
+    };
+    setLoadingState(loadingRequest);
+    setDraft((current) =>
+      saveOnboardingV2Draft({
+        ...current,
+        loading_request: loadingRequest,
+      }, { sync: false })
+    );
     return token;
   }, []);
   const isOnboardingActionCurrent = useCallback(
@@ -829,11 +893,25 @@ export default function OnboardingV2() {
   );
   const finishOnboardingAction = useCallback((token: number) => {
     if (!isOnboardingActionCurrent(token)) return;
-    setLoadingState({ id: null });
+    setLoadingState(null);
+    setDraft((current) => {
+      if (!current.loading_request) return current;
+      return saveOnboardingV2Draft({
+        ...current,
+        loading_request: null,
+      }, { sync: false });
+    });
   }, [isOnboardingActionCurrent]);
   const cancelOnboardingActions = useCallback(() => {
     activeOnboardingActionTokenRef.current += 1;
-    setLoadingState({ id: null });
+    setLoadingState(null);
+    setDraft((current) => {
+      if (!current.loading_request) return current;
+      return saveOnboardingV2Draft({
+        ...current,
+        loading_request: null,
+      }, { sync: false });
+    });
   }, []);
   const recoverPlanPreviewAfterTimeout = useCallback(async (args: {
     actionToken: number;
@@ -849,36 +927,33 @@ export default function OnboardingV2() {
     setLoadingState({
       id: "plan",
       label: "Le plan prend plus de temps que prévu, Sophia finalise le brouillon…",
+      started_at: args.requestStartedAt,
     });
 
     while (Date.now() <= deadline) {
       if (!isOnboardingActionCurrent(args.actionToken)) return null;
 
-      const { data, error } = await supabase
-        .from("user_plans_v2")
-        .select("id,status,content,updated_at")
-        .eq("transformation_id", args.transformationId)
-        .eq("status", "draft")
-        .gte("updated_at", args.requestStartedAt)
-        .order("updated_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      try {
+        const recovered = await loadLatestDraftPlanPreview({
+          transformationId: args.transformationId,
+          updatedAfter: args.requestStartedAt,
+        });
+        if (!isOnboardingActionCurrent(args.actionToken)) return null;
 
-      if (!isOnboardingActionCurrent(args.actionToken)) return null;
-
-      if (error) {
+        if (recovered) {
+          console.info("[onboarding][plan_preview_recovery][draft_found]", {
+            transformation_id: args.transformationId,
+            plan_id: recovered.planId,
+            updated_at: recovered.updatedAt,
+          });
+          return recovered.plan;
+        }
+      } catch (error) {
         console.warn("[onboarding][plan_preview_recovery][query_failed]", {
           transformation_id: args.transformationId,
           request_started_at: args.requestStartedAt,
           error_message: getErrorMessage(error, "unknown_error"),
         });
-      } else if (data && isPlanContentV3Candidate(data.content)) {
-        console.info("[onboarding][plan_preview_recovery][draft_found]", {
-          transformation_id: args.transformationId,
-          plan_id: data.id,
-          updated_at: data.updated_at ?? null,
-        });
-        return data.content;
       }
 
       if (Date.now() + pollIntervalMs > deadline) break;
@@ -912,6 +987,102 @@ export default function OnboardingV2() {
     },
     [],
   );
+
+  useEffect(() => {
+    const request = draft.loading_request;
+    if (!request) {
+      if (loadingState) setLoadingState(null);
+      return;
+    }
+
+    if (!isFreshLoadingRequest(request)) {
+      setLoadingState(null);
+      persistDraft(setDraft, { loading_request: null }, { sync: false });
+      return;
+    }
+
+    if (!loadingState || loadingState.started_at !== request.started_at) {
+      setLoadingState(request);
+    }
+  }, [draft.loading_request, loadingState]);
+
+  useEffect(() => {
+    if (!effectiveUser || draft.stage !== "generating_plan" || !currentTransformation) {
+      return;
+    }
+
+    let cancelled = false;
+    const updatedAfter = draft.loading_request?.id === "plan"
+      ? draft.loading_request.started_at
+      : null;
+
+    const recoverPersistedPlan = async () => {
+      try {
+        const recovered = await loadLatestDraftPlanPreview({
+          transformationId: currentTransformation.id,
+          cycleId: draft.cycle_id,
+          updatedAfter,
+        });
+        if (cancelled || !recovered) return;
+
+        console.info("[onboarding][plan_generation_resume][draft_found]", {
+          transformation_id: currentTransformation.id,
+          cycle_id: draft.cycle_id,
+          plan_id: recovered.planId,
+          updated_at: recovered.updatedAt,
+        });
+
+        persistDraft(setDraft, {
+          cycle_status: "ready_for_plan",
+          stage: "plan_review",
+          plan_review: {
+            plan_preview: recovered.plan,
+            feedback: draft.plan_review?.feedback ?? "",
+          },
+          loading_request: null,
+        }, { sync: false });
+        setLoadingState(null);
+        setError(null);
+      } catch (error) {
+        if (cancelled) return;
+        console.warn("[onboarding][plan_generation_resume][query_failed]", {
+          transformation_id: currentTransformation.id,
+          cycle_id: draft.cycle_id,
+          error_message: getErrorMessage(error, "unknown_error"),
+        });
+      }
+    };
+
+    void recoverPersistedPlan();
+    const interval = window.setInterval(() => {
+      void recoverPersistedPlan();
+    }, 3_000);
+    const timeout = window.setTimeout(() => {
+      if (cancelled) return;
+      persistDraft(setDraft, {
+        stage: "profile",
+        loading_request: null,
+      }, { sync: false });
+      setLoadingState(null);
+      setError(
+        "La génération n'a pas pu être récupérée côté serveur. Tes réponses sont sauvegardées, tu peux relancer la génération.",
+      );
+    }, PLAN_LOADING_REQUEST_STALE_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.clearTimeout(timeout);
+    };
+  }, [
+    currentTransformation?.id,
+    draft.cycle_id,
+    draft.loading_request?.id,
+    draft.loading_request?.started_at,
+    draft.plan_review?.feedback,
+    draft.stage,
+    effectiveUser,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2757,7 +2928,7 @@ export default function OnboardingV2() {
         stage: "plan_review",
         plan_review: {
           plan_preview: response.plan_preview,
-          feedback,
+          feedback: "",
         },
       });
     } catch (submitError) {
@@ -2773,7 +2944,7 @@ export default function OnboardingV2() {
             stage: "plan_review",
             plan_review: {
               plan_preview: recoveredPreview,
-              feedback,
+              feedback: "",
             },
           });
           return;
@@ -3137,61 +3308,6 @@ export default function OnboardingV2() {
         </section>
       )}
 
-      {!isPostAuthTransition && loadingState.id && (
-        <ProgressiveLoader
-          durationPerStep={
-            loadingState.id === "analyze" ? 4300 :
-            loadingState.id === "plan" ? 6000 :
-            loadingState.id === "save" ? 5000 :
-            2500
-          }
-          steps={
-            loadingState.id === "analyze"
-              ? [
-                  "Analyse de ton texte...",
-                  "Extraction des concepts clés...",
-                  "Identification des priorités...",
-                  "Structuration des idées...",
-                  "Catégorisation des sujets...",
-                  "Enrichissement du contexte...",
-                  "Préparation des choix...",
-                ]
-              : loadingState.id === "questionnaire"
-              ? [
-                  "Analyse du focus...",
-                  "Définition des axes...",
-                  "Génération des questions...",
-                  "Finalisation du questionnaire...",
-                ]
-              : loadingState.id === "plan"
-              ? [
-                  "Analyse de ton profil...",
-                  "Étude de tes réponses au questionnaire...",
-                  "Définition de la stratégie globale...",
-                  "Création de la structure du plan...",
-                  "Découpage en étapes actionnables...",
-                  "Ajustement du rythme et de la durée...",
-                  "Intégration des bonnes pratiques...",
-                  "Vérification de la cohérence...",
-                  "Personnalisation des conseils...",
-                  "Finalisation de ton plan sur mesure...",
-                ]
-              : loadingState.id === "focus"
-              ? [
-                  "Analyse des priorités...",
-                  "Préparation du point de départ...",
-                ]
-              : loadingState.id === "save"
-              ? [
-                  "Enregistrement des réponses...",
-                  "Classification de la transformation...",
-                  "Étude de la faisabilité one shot...",
-                ]
-              : [loadingState.label || "Chargement..."]
-          }
-        />
-      )}
-
       {!isPostAuthTransition && error && (
         <div className="mx-auto mb-6 max-w-3xl rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-900">
           {error}
@@ -3204,7 +3320,8 @@ export default function OnboardingV2() {
           onChange={(value) =>
             persistDraft(setDraft, { raw_intake_text: value })}
           onSubmit={handleAnalyze}
-          isSubmitting={Boolean(loadingState.id !== null)}
+          isSubmitting={Boolean(loadingState)}
+          submittingLabel={loadingState?.id === "analyze" ? loadingState.label : undefined}
           clarificationPrompt={draft.clarification_prompt}
           introTitle={
             isCycleReprioritizationCapture
@@ -3246,23 +3363,26 @@ export default function OnboardingV2() {
               : draft.transformations.find(isPendingCycleTransformation)?.id ?? null
           }
           onConfirm={handleTransformationFocusConfirm}
-          isSubmitting={Boolean(loadingState.id !== null)}
+          isSubmitting={Boolean(loadingState)}
+          submittingLabel={loadingState?.id === "focus" ? loadingState.label : undefined}
         />
       )}
 
-      {draft.stage === "questionnaire_setup" && !loadingState.id && (
+      {draft.stage === "questionnaire_setup" && (
         <section className="mx-auto w-full max-w-3xl rounded-2xl border border-blue-100 bg-white p-6 shadow-sm md:p-8">
           <h2 className="mb-3 text-2xl font-semibold text-gray-900">
             Préparation du questionnaire…
           </h2>
           <p className="mb-6 text-base leading-relaxed text-gray-600">
-            {error
+            {loadingState?.id === "questionnaire"
+              ? "Sophia prépare les bonnes questions à partir du focus choisi."
+              : error
               ? "Une erreur est survenue lors de la génération du questionnaire."
               : "Le questionnaire sur mesure se prépare. Si rien ne se passe, utilise le bouton ci-dessous."}
           </p>
           <button
             type="button"
-            disabled={Boolean(loadingState.id !== null)}
+            disabled={Boolean(loadingState)}
             onClick={() => {
               if (draft.active_transformation_id) {
                 void handleGenerateQuestionnaire(draft.active_transformation_id);
@@ -3270,8 +3390,12 @@ export default function OnboardingV2() {
             }}
             className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:opacity-60"
           >
-            <RefreshCcw className="h-4 w-4" />
-            Réessayer
+            {loadingState?.id === "questionnaire" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCcw className="h-4 w-4" />
+            )}
+            {loadingState?.id === "questionnaire" ? loadingState.label : "Réessayer"}
           </button>
         </section>
       )}
@@ -3291,7 +3415,12 @@ export default function OnboardingV2() {
             }
             void handleStageBack("priorities");
           }}
-          isSubmitting={Boolean(loadingState.id !== null)}
+          isSubmitting={Boolean(loadingState)}
+          submittingLabel={
+            loadingState?.id === "save" || loadingState?.id === "plan"
+              ? loadingState.label
+              : undefined
+          }
         />
       )}
 
@@ -3300,7 +3429,8 @@ export default function OnboardingV2() {
           value={draft.profile}
           onChange={(profile) => persistDraft(setDraft, { profile })}
           onSubmit={handleProfileSubmit}
-          isSubmitting={Boolean(loadingState.id !== null)}
+          isSubmitting={Boolean(loadingState)}
+          submittingLabel={loadingState?.id === "plan" ? loadingState.label : undefined}
           currentTransformationTitle={currentTransformation?.title ?? null}
           planTypeClassification={currentTransformation?.plan_type_classification ?? null}
           questionnaireSchema={currentTransformation?.questionnaire_schema ?? null}
@@ -3310,14 +3440,16 @@ export default function OnboardingV2() {
         />
       )}
 
-      {draft.stage === "generating_plan" && <PlanGenerationScreen />}
+      {draft.stage === "generating_plan" && (
+        <PlanGenerationScreen startedAt={loadingState?.started_at ?? draft.loading_request?.started_at ?? null} />
+      )}
 
       {draft.stage === "plan_review" && draft.plan_review && (
         <PlanReviewScreen
           plan={draft.plan_review.plan_preview}
           professionalSupport={currentTransformation?.professional_support ?? null}
           feedback={draft.plan_review.feedback}
-          isBusy={Boolean(loadingState.id !== null)}
+          isBusy={Boolean(loadingState)}
           onFeedbackChange={(feedback) =>
             persistDraft(setDraft, {
               plan_review: draft.plan_review

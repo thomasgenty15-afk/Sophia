@@ -26,13 +26,12 @@ export function getThemeById(themeId: string): Theme | undefined {
 
 /**
  * Returns a display label for a theme id (ex: "SLP" -> "Sommeil").
- * If it's not a known theme id (ex: mock/legacy values), we return the input as-is.
+ * If it's not a known theme id (for example mock values), we return the input as-is.
  */
 export function getThemeLabelById(themeIdOrLabel: string): string {
   const t = getThemeById(themeIdOrLabel);
   return t?.shortTitle ?? t?.title ?? themeIdOrLabel;
 }
-
 
 
 

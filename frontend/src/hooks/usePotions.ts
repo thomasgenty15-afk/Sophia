@@ -130,14 +130,11 @@ export function usePotions(scope: LabScopeInput): UsePotionsResult {
   }, [refresh, schedulingSessionId]);
 
   const reactivatePotion = useCallback(async (
-    definition: PotionDefinition,
+    _definition: PotionDefinition,
     session: UserPotionSessionRow,
   ) => {
     const localTimeHHMM = session.follow_up_strategy?.scheduled_local_time_hhmm ?? "09:00";
-    const durationDays = session.follow_up_strategy?.scheduled_duration_days ??
-      session.follow_up_strategy?.suggested_duration_days ??
-      definition.default_follow_up_strategy.suggested_duration_days ??
-      7;
+    const durationDays = 7;
 
     await schedulePotionFollowUp(session.id, localTimeHHMM, durationDays);
   }, [schedulePotionFollowUp]);

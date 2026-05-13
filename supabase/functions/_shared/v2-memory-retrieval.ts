@@ -173,7 +173,7 @@ export function getLayerSources(
  *
  * Rules (section 13.5):
  * - Default: "transformation" (most frequent case)
- * - Facts about the whole cycle (North Star, broad priorities): "cycle"
+ * - Facts about the whole cycle or broad priorities: "cycle"
  * - Facts about user preferences/relation: "relational"
  * - In case of doubt: "transformation" is the safest choice
  */
@@ -196,9 +196,6 @@ export type MemoryScopeClassifierOutput = {
 };
 
 const CYCLE_KEYWORDS = [
-  "north star",
-  "etoile polaire",
-  "étoile polaire",
   "objectif global",
   "enjeu principal",
   "priorit",
@@ -249,11 +246,7 @@ export function classifyMemoryScope(
     return { scope: "relational", reason: "category_hint_relational" };
   }
 
-  if (
-    categoryLower.includes("cycle") ||
-    categoryLower.includes("north_star") ||
-    categoryLower.includes("north star")
-  ) {
+  if (categoryLower.includes("cycle")) {
     return { scope: "cycle", reason: "category_hint_cycle" };
   }
 

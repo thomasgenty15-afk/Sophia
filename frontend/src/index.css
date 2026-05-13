@@ -236,6 +236,46 @@
   --tw-shadow-color: rgb(0 45 33 / 0.2);
 }
 
+.sophia-action-skin .sophia-violet-surface .bg-violet-50 {
+  background-color: rgb(245 243 255);
+}
+
+.sophia-action-skin .sophia-violet-surface .text-violet-600 {
+  color: rgb(124 58 237);
+}
+
+.sophia-action-skin .sophia-violet-surface .text-violet-700 {
+  color: rgb(109 40 217);
+}
+
+.sophia-action-skin .sophia-violet-surface .text-violet-800 {
+  color: rgb(91 33 182);
+}
+
+.sophia-action-skin .sophia-violet-surface .text-violet-950 {
+  color: rgb(46 16 101);
+}
+
+.sophia-action-skin .sophia-violet-surface .border-violet-100 {
+  border-color: rgb(237 233 254);
+}
+
+.sophia-action-skin .sophia-violet-surface .border-violet-200 {
+  border-color: rgb(221 214 254);
+}
+
+.sophia-action-skin .sophia-violet-surface .bg-violet-600 {
+  background-color: rgb(124 58 237);
+}
+
+.sophia-action-skin .sophia-violet-surface .hover\:bg-violet-700:hover {
+  background-color: rgb(109 40 217);
+}
+
+.sophia-action-skin .sophia-violet-surface .shadow-violet-200 {
+  --tw-shadow-color: rgb(221 214 254);
+}
+
 /* SNAKE BORDER ANIMATION */
 @keyframes spin-gradient {
   0% {

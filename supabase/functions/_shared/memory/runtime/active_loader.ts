@@ -56,6 +56,13 @@ export interface MemoryV2ActiveLoaderResult {
     fallback_used: boolean;
     dispatcher_memory_plan_applied: boolean;
     loader_plan_reason: string;
+    loaded_scope_counts: {
+      topic: number;
+      event: number;
+      global: number;
+      action: number;
+      entity: number;
+    };
   };
 }
 
@@ -163,6 +170,79 @@ function trimLine(input: unknown, max = 240): string {
   return String(input ?? "").replace(/\s+/g, " ").trim().slice(0, max);
 }
 
+function normalizePromptText(input: unknown): string {
+  return String(input ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function classifyPromptMemoryItem(item: MemoryV2Payload["items"][number]): {
+  label: string;
+  instruction: string | null;
+} {
+  const text = normalizePromptText(item.content_text);
+  const domainKeys = Array.isArray(item.domain_keys) ? item.domain_keys : [];
+  if (
+    /\b(ne (ressors|mentionne|parle)|ne pas mentionner|ne ressors pas|conversation neutre|sauf si|uniquement si|que si)\b/
+      .test(text)
+  ) {
+    return {
+      label: "PRIVACY_BOUNDARY",
+      instruction:
+        "respecte cette limite: ne mentionne pas le sujet dans un contexte neutre; si le user demande directement ce contexte autorise, reponds sobrement",
+    };
+  }
+  if (
+    /\b(evite|eviter|ne propose pas|ne pas proposer|je ne veux pas|dois eviter|a eviter)\b/
+      .test(text)
+  ) {
+    return {
+      label: "CONTRAINTE UTILISATEUR",
+      instruction:
+        "a citer en priorite si la question porte sur quoi proposer, eviter ou recommander",
+    };
+  }
+  if (
+    /\b(minuscule|concret|concrete|prochaine action|action suivante|flou|floue|sept minutes|observable|reduction de pression|réduction de pression|plutot qu'un challenge|plutot que.*challenge|surcharge|fatigue|fermer une boucle|boucle ouverte|recuperation|récupération|performance|deux fois par semaine|sans chercher la performance)\b/
+      .test(text)
+  ) {
+    return {
+      label: "EXECUTION_RULE",
+      instruction:
+        "applique cette regle operationnelle dans la reponse et reprends explicitement ses mots importants si la question demande quoi faire maintenant ou demande le bon cadre",
+    };
+  }
+  if (/\b([a-z0-9_-]{2,40}) est (ma|mon|le|la|un|une|l')\b/.test(text)) {
+    return {
+      label: "IDENTITY_FACT",
+      instruction:
+        "si la question demande qui est cette personne ou ce nom, reponds directement avec ce fait au lieu de demander une precision",
+    };
+  }
+  if (
+    domainKeys.some((key) =>
+      key === "sante.alimentation" || key === "sante.medical" ||
+      key === "sante.douleur"
+    ) ||
+    item.sensitivity_level === "sensitive" || item.sensitivity_level === "safety"
+  ) {
+    return {
+      label: "SENSITIVE_DIRECT",
+      instruction:
+        "a utiliser seulement si la question le demande clairement; dans ce cas, nomme le souvenir sobrement au lieu de rester vague",
+    };
+  }
+  if (String(item.kind) === "preference" || /\b(prefere|preference|j aime|je veux)\b/.test(text)) {
+    return {
+      label: "PREFERENCE",
+      instruction:
+        "a utiliser pour personnaliser la reponse quand la question concerne ce choix",
+    };
+  }
+  return { label: "SOUVENIR", instruction: null };
+}
+
 export function formatMemoryV2PayloadForPrompt(
   payload: MemoryV2Payload,
 ): string {
@@ -173,18 +253,32 @@ export function formatMemoryV2PayloadForPrompt(
     }; hints=${payload.hints.length ? payload.hints.join(",") : "none"}`,
     "Consignes:",
     "- Utilise uniquement ces souvenirs comme contexte memoire durable V2 pour cette reponse.",
+    "- Si un souvenir est liste ci-dessous, tu y as acces pour ce tour: ne reponds pas que tu n'as pas acces a l'historique.",
+    "- Quand la question demande ce qu'il faut eviter, proposer ou recommander, priorise les lignes marquees CONTRAINTE UTILISATEUR avant les souvenirs generaux.",
+    "- Quand une ligne EXECUTION_RULE est chargee, applique-la concretement dans la reponse, avec ses mots importants.",
+    "- Pour une demande 'adaptee a moi', 'bon cadre', 'que garder en tete' ou similaire, cite les formulations specifiques des souvenirs charges plutot que de generaliser.",
+    "- Quand une ligne IDENTITY_FACT repond a une question 'qui est X' ou 'quel lien avec Y', reponds directement avec ce fait.",
+    "- Ne deduis jamais le prenom du user depuis un souvenir du type 'X est mon/ma ...'; X est une personne tierce sauf souvenir contraire explicite.",
+    "- Quand une ligne SENSITIVE_DIRECT est chargee parce que le user demande explicitement le sujet, nomme le sujet sobrement et rappelle qu'il est sensible si le souvenir le dit.",
+    "- Quand une ligne PRIVACY_BOUNDARY est chargee, elle sert a eviter une divulgation hors contexte; ne l'utilise pas comme raison de refuser une demande directe autorisee.",
+    "- N'invente pas de duree, frequence, quantite, nom ou objectif absent des souvenirs charges ou du message courant.",
     "- Ne revele jamais les ids internes ni les details de provenance.",
     "- Si le contexte est insuffisant ou ambigu, demande une precision au user.",
   ];
   if (payload.items.length > 0) {
     lines.push("Souvenirs:");
     for (const item of payload.items) {
+      const classified = classifyPromptMemoryItem(item);
       const tags = [
+        classified.label,
         item.kind,
         item.sensitivity_level ?? "normal",
         item.observed_at ? `observe=${item.observed_at}` : null,
       ].filter(Boolean).join(" | ");
       lines.push(`- [${tags}] ${trimLine(item.content_text)}`);
+      if (classified.instruction) {
+        lines.push(`  Priorite: ${classified.instruction}.`);
+      }
     }
   }
   if (payload.entities.length > 0) {
@@ -239,6 +333,9 @@ export async function runMemoryV2ActiveLoader(
         dispatcher_memory_mode: loaderPlan.dispatcher_memory_mode,
         dispatcher_context_need: loaderPlan.dispatcher_context_need,
         loader_plan_requested_scopes: loaderPlan.requested_scopes,
+        loader_plan_budget: loaderPlan.budget,
+        loader_plan_domain_keys: loaderPlan.domain_keys,
+        loader_plan_domain_prefixes: loaderPlan.domain_prefixes,
         loader_plan_reason: loaderPlan.reason,
         retrieval_mode: loaderPlan.retrieval_mode,
         retrieval_hints: signals.retrieval_hints,
@@ -270,6 +367,13 @@ export async function runMemoryV2ActiveLoader(
         fallback_used: false,
         dispatcher_memory_plan_applied: true,
         loader_plan_reason: loaderPlan.reason,
+        loaded_scope_counts: {
+          topic: 0,
+          event: 0,
+          global: 0,
+          action: 0,
+          entity: 0,
+        },
       },
     };
   }
@@ -385,6 +489,9 @@ export async function runMemoryV2ActiveLoader(
       dispatcher_memory_mode: loaderPlan.dispatcher_memory_mode,
       dispatcher_context_need: loaderPlan.dispatcher_context_need,
       loader_plan_requested_scopes: loaderPlan.requested_scopes,
+      loader_plan_budget: loaderPlan.budget,
+      loader_plan_domain_keys: loaderPlan.domain_keys,
+      loader_plan_domain_prefixes: loaderPlan.domain_prefixes,
       loader_plan_reason: loaderPlan.reason,
       retrieval_policy: loaderPlan.retrieval_policy,
       topic_router_skipped: !loaderPlan.requires_topic_router,
@@ -395,6 +502,7 @@ export async function runMemoryV2ActiveLoader(
       topic_confidence: routed.confidence,
       payload_item_ids: payloadIds,
       payload_item_count: payloadIds.length,
+      loaded_scope_counts: payload.metrics.loaded_scope_counts,
       sensitive_excluded_count: payload.metrics.sensitive_excluded_count,
       invalid_injection_count:
         payload.metrics.invalid_injection_simulated_count,
@@ -422,6 +530,7 @@ export async function runMemoryV2ActiveLoader(
       fallback_used: payload.metrics.fallback_used,
       dispatcher_memory_plan_applied: true,
       loader_plan_reason: loaderPlan.reason,
+      loaded_scope_counts: payload.metrics.loaded_scope_counts,
     },
   };
 }

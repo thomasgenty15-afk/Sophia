@@ -85,7 +85,7 @@ L'export proactive V2 assemble:
 
 - `get-momentum-trace`
 - `get-momentum-scorecard`
-- les `scheduled_checkins` morning (`morning_nudge_v2` et legacy
+- les `scheduled_checkins` morning (`morning_nudge_v2`,
   `morning_active_actions_nudge`)
 
 Le script ne depend pas de snapshots V2 dedies pour les nudges. Il s'appuie
@@ -102,7 +102,7 @@ Le bundle contient:
 - `request`
 - `trace`
 - `scorecard`
-- `legacy_momentum_scorecard`
+- `base_momentum_scorecard`
 - `annotations`
 
 ### `source`
@@ -214,7 +214,7 @@ Copie brute des decisions proactives venant de `get-momentum-trace`.
 ## 5. Scorecard
 
 `scorecard` est la vue audit specifique morning nudge.
-`legacy_momentum_scorecard` conserve la scorecard momentum canonique.
+`base_momentum_scorecard` conserve la scorecard momentum canonique.
 
 ### `scorecard.total_decisions`
 
@@ -308,7 +308,7 @@ assez de contexte structure:
   n'ont pas ete logguees.
 - `scheduled_checkins` ne fournit pas un `sent_at` canonique; le bundle derive
   un `at` a partir des colonnes disponibles.
-- Le script inclut encore le context legacy `morning_active_actions_nudge` pour
+- Le script inclut encore le context `morning_active_actions_nudge` pour
   garder les fenetres mixtes lisibles.
 - Le scorecard morning nudge complete la scorecard momentum globale; il ne la
   remplace pas.

@@ -104,7 +104,6 @@ const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
   active: [],
   pending: [],
   maintenance: [],
-  stalled: [],
   completed: [],
 };
 
@@ -1278,7 +1277,7 @@ export default function DashboardV2() {
         {
           key: "inspiration",
           icon: Compass,
-          label: "Boussole",
+          label: "Inspirations",
           activeColor: "text-[#d1ded4]",
           activeBg: "bg-[#eef5ee]",
         },
@@ -1394,15 +1393,6 @@ export default function DashboardV2() {
       </div>
     );
   }
-
-  const handleItemAdapt = (itemId: string) => {
-    navigate("/chat", {
-      state: {
-        source: "dashboard_v2_item_adjustment",
-        plan_item_id: itemId,
-      },
-    });
-  };
 
   const handlePlanReviewSubmit = async (overrideComment?: string) => {
     const rawComment = typeof overrideComment === "string"
@@ -1763,7 +1753,7 @@ export default function DashboardV2() {
     if (planReviewProposal.offer_complete_level) {
       actions.push({
         key: "complete-level",
-        label: "Valider ce niveau et passer au suivant",
+        label: "Valider le prochain niveau",
         onClick: () => {
           setLevelCompletionError(null);
           setIsLevelCompletionModalOpen(true);
@@ -1919,6 +1909,8 @@ export default function DashboardV2() {
   const handleCompleteTransformation = async (payload: {
     lineGreenEntry: { action: string; why: string };
     lineRedEntry: { action: string; why: string };
+    lineGreenEntries: Array<{ action: string; why: string }>;
+    lineRedEntries: Array<{ action: string; why: string }>;
     feedback: {
       helpfulness_rating: number;
       improvement_reasons: string[];
@@ -1937,6 +1929,8 @@ export default function DashboardV2() {
           transformation_id: transformation.id,
           line_green_entry: payload.lineGreenEntry,
           line_red_entry: payload.lineRedEntry,
+          line_green_entries: payload.lineGreenEntries,
+          line_red_entry_details: payload.lineRedEntries,
           feedback: payload.feedback,
           declics_draft: closureDraft,
           declics_user: closureDraft,
@@ -3176,13 +3170,8 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onActivate={logic.activateItem}
                               onPrepareCards={logic.prepareItemCards}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                              onBlocker={logic.markItemBlocked}
-                              onDeactivate={logic.deactivateItem}
-                              onRemove={logic.removeItem}
-                              onAdapt={(item) => handleItemAdapt(item.id)}
                               onLogHeartbeat={() =>
                                 navigate("/chat", {
                                   state: {
@@ -3274,13 +3263,8 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onActivate={logic.activateItem}
                               onPrepareCards={logic.prepareItemCards}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                              onBlocker={logic.markItemBlocked}
-                              onDeactivate={logic.deactivateItem}
-                              onRemove={logic.removeItem}
-                              onAdapt={(item) => handleItemAdapt(item.id)}
                             />
 
                             <DimensionSection
@@ -3295,13 +3279,8 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onActivate={logic.activateItem}
                               onPrepareCards={logic.prepareItemCards}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                              onBlocker={logic.markItemBlocked}
-                              onDeactivate={logic.deactivateItem}
-                              onRemove={logic.removeItem}
-                              onAdapt={(item) => handleItemAdapt(item.id)}
                             />
 
                             <DimensionSection
@@ -3316,13 +3295,8 @@ export default function DashboardV2() {
                               unlockStateByItemId={logic.unlockStateByItemId}
                               busyItemId={logic.mutatingItemId}
                               onComplete={logic.completeItem}
-                              onActivate={logic.activateItem}
                               onPrepareCards={logic.prepareItemCards}
                               onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                              onBlocker={logic.markItemBlocked}
-                              onDeactivate={logic.deactivateItem}
-                              onRemove={logic.removeItem}
-                              onAdapt={(item) => handleItemAdapt(item.id)}
                             />
 
                             <UnlockPreview
@@ -3583,7 +3557,7 @@ export default function DashboardV2() {
                       <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-8 text-center shadow-sm">
                         <Sparkles className="mx-auto h-10 w-10 text-stone-300" />
                         <p className="mt-4 text-sm text-stone-500">
-                          L'espace Boussole est disponible avec les plans V3.
+                          L'espace Inspirations est disponible avec les plans V3.
                         </p>
                       </section>
                     )}
@@ -3735,6 +3709,8 @@ export default function DashboardV2() {
         }
         initialLineGreenEntry={currentBaseDeViePayload?.line_green_entry ?? null}
         initialLineRedEntry={currentBaseDeViePayload?.line_red_entry ?? null}
+        initialLineGreenEntries={currentBaseDeViePayload?.line_green_entries ?? null}
+        initialLineRedEntries={currentBaseDeViePayload?.line_red_entry_details ?? null}
         initialFeedback={currentBaseDeViePayload?.closure_feedback ?? null}
         busy={completingTransformation}
         onClose={handleCloseClosureModal}

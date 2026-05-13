@@ -5,8 +5,8 @@
   "nodeModulesDir": "auto",
   "lock": false,
   "imports": {
+    "sophia-brain/": "./sophia-brain/",
     "std/": "https://deno.land/std@0.168.0/",
     "serve": "https://deno.land/std@0.168.0/http/server.ts"
   }
 }
-

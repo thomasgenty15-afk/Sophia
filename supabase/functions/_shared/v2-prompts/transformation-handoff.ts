@@ -204,7 +204,7 @@ La transformation terminée : titre, résumé interne, résumé utilisateur, dé
 
 ### plan_items[]
 Tous les items du plan de cette transformation, avec pour chacun :
-- id, title, dimension (clarifications | missions | habits, avec legacy support possible), kind, status
+- id, title, dimension (clarifications | missions | habits), kind, status
 - current_habit_state : état de l'habitude (null si pas une habitude)
 - total_entries, positive_entries, blocker_entries, skip_entries
 - last_entry_at
@@ -230,7 +230,7 @@ Victoires significatives de cette transformation. Chacune doit être :
 - Maximum 100 caractères par victoire
 
 ### supports_to_keep (0-N)
-Champ legacy conservé pour compatibilité. Il doit contenir en priorité les IDs de plan_items de dimension \`clarifications\` encore utiles pour la transformation suivante. Si des anciens items \`support\` existent encore dans les données historiques, ils peuvent aussi être gardés.
+IDs de plan_items de dimension \`clarifications\` encore utiles pour la transformation suivante.
 
 ### habits_in_maintenance (0-N)
 IDs de plan_items de type habit qui ont atteint l'ancrage (current_habit_state === "anchored" ou bonne progression régulière) et passent en maintenance. Ne lister que des IDs réels de plan_items dont kind === "habit".
@@ -256,7 +256,7 @@ Un paragraphe de synthèse (maximum 200 tokens) de ce que le coaching a appris s
 1. **Résumer, pas copier** : le handoff RÉSUME. Il ne copie pas les données brutes. Chaque champ apporte une interprétation utile.
 2. **IDs réels** :
    - supports_to_keep et habits_in_maintenance doivent contenir uniquement des IDs présents dans plan_items[]
-   - supports_to_keep ne doit contenir que des IDs d'items dont dimension === "clarifications" (ou "support" legacy si présent)
+   - supports_to_keep ne doit contenir que des IDs d'items dont dimension === "clarifications"
    - habits_in_maintenance ne doit contenir que des IDs d'items dont kind === "habit"
    - techniques_that_failed peut contenir soit des IDs de plan_items présents dans plan_items[], soit des technique_keys présents dans coaching_snapshots[]
 3. **Wins ancrés** : chaque win doit correspondre à un progrès réel observable dans les entries/victoires. Pas de compliments génériques.

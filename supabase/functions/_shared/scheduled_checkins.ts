@@ -184,6 +184,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   eventGrounding?: string;
   source?: string;
   requestId?: string;
+  fallbackMessage?: string | null;
 }): Promise<string> {
   const { admin, userId } = params;
   const source = safeTrim(params.source);
@@ -275,7 +276,8 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
         requested_scopes: ["global", "event"],
         topic_targets: [],
         event_queries: [],
-        global_keys: [],
+        domain_keys: [],
+        domain_prefixes: [],
         retrieval_policy: "semantic_first",
         requires_topic_router: false,
         dispatcher_memory_plan_applied: true,
@@ -370,7 +372,10 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     return buildWatcherScopedFallbackMessage();
   }
 
-  return cleaned || "Comment ça va depuis tout à l'heure ?";
+  if (cleaned) return cleaned;
+  if (params.fallbackMessage === null) return "";
+  return safeTrim(params.fallbackMessage) ||
+    "Comment ça va depuis tout à l'heure ?";
 }
 
 // Convert a target local time in an IANA timezone to an ISO UTC timestamp.

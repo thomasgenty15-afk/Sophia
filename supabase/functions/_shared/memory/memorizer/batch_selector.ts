@@ -49,6 +49,11 @@ export function classifyAntiNoise(
   const normalized = normalizeText(message.content);
   const wordCount = normalized.split(/\s+/).filter(Boolean).length;
   const signals = detectMemorySignals(message.content);
+  const selfBlame = /\b(nul|nulle|tout gacher|rate une action|je me sens)\b/
+    .test(normalized);
+  const durableShortStatement =
+    /\b(mon objectif|j'apprends|j apprends|je veux|je prefere|je préfère|je ne veux pas|ne memorise pas|limite claire|doit etre|doit être|a payer|à payer|avant le \d{1,2}|sujet professionnel|projet personnel|ma cousine|mon cousin|ma soeur|ma sœur|mon frere|mon frère|ma collegue|mon collegue|ma collègue|mon collègue|ma comptable|mon comptable|ma assistante|mon assistant|assistante administrative|assistant administratif|coach de natation|client|client de consulting|contrat|contrats signes|contrats signés|facture|factures impayees|factures impayées|compatible avec mon allergie|compatibles avec mon allergie)\b/
+      .test(normalized);
   const important = signals.correction.detected ||
     signals.forget.detected ||
     signals.safety.detected ||
@@ -57,7 +62,9 @@ export function classifyAntiNoise(
     signals.explicit_topic_switch.detected ||
     signals.sensitive.detected ||
     signals.high_emotion.detected ||
-    signals.cross_topic_profile_query.detected;
+    signals.cross_topic_profile_query.detected ||
+    durableShortStatement ||
+    selfBlame;
   if (!normalized) return { skip: true, reason: "empty" };
   if (PURE_ACK.test(normalized)) return { skip: true, reason: "pure_ack" };
   if (
@@ -83,7 +90,9 @@ export async function selectMemorizerBatch(
     MEMORY_EXTRACTION_PROMPT_VERSION;
   const modelName = input.model_name ?? MEMORY_EXTRACTION_MODEL_DEFAULT;
   const already = new Set(input.already_processed_primary_ids ?? []);
-  const max = Math.max(1, Math.min(20, input.max_batch_size ?? 8));
+  const max = input.max_batch_size == null
+    ? Number.POSITIVE_INFINITY
+    : Math.max(1, Math.floor(input.max_batch_size));
   const primary: MemorizerMessage[] = [];
   const skipped: MemorizerMessage[] = [];
   const context: MemorizerMessage[] = [];
@@ -116,7 +125,7 @@ export async function selectMemorizerBatch(
   return {
     primary_messages: primary,
     skipped_noise_messages: skipped,
-    context_messages: context.slice(-8),
+    context_messages: context,
     batch_hash: batchHash,
     prompt_version: promptVersion,
     model_name: modelName,

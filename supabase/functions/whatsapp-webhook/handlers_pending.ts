@@ -25,6 +25,20 @@ import {
   persistMomentumSnapshotV2,
 } from "../_shared/momentum_v2.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
+import {
+  DAILY_ACTION_REVIEW_SOURCE,
+  dayLabel,
+  isHabitDimension,
+  isAppliedDailyOutcome,
+  nextDayAfter,
+  occurrenceStatusForDailyOutcome,
+  runDailyActionReviewSkill,
+  stateFromUnknown,
+  type DailyActionAppliedOutcome,
+  type DailyActionOutcome,
+  type DailyActionReviewSkillResult,
+  type DailyActionReviewTarget,
+} from "../_shared/daily_action_review.ts";
 
 const RENDEZ_VOUS_KINDS = new Set([
   "pre_event_grounding",
@@ -127,15 +141,263 @@ async function fetchLatestActionEveningReviewPending(
   return data ?? null;
 }
 
+function normalizeDailyTargets(value: unknown): DailyActionReviewTarget[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((target: any) => {
+    const occurrenceId = String(target?.occurrence_id ?? "").trim();
+    const planItemId = String(target?.plan_item_id ?? "").trim();
+    const title = String(target?.title ?? "").trim();
+    if (!occurrenceId || !planItemId || !title) return [];
+    return [{
+      occurrence_id: occurrenceId,
+      cycle_id: String(target?.cycle_id ?? "").trim(),
+      transformation_id: String(target?.transformation_id ?? "").trim(),
+      plan_id: String(target?.plan_id ?? "").trim(),
+      plan_label: String(target?.plan_label ?? target?.plan_title ?? "").trim() ||
+        null,
+      plan_item_id: planItemId,
+      title,
+      dimension: String(target?.dimension ?? "").trim() || null,
+      kind: String(target?.kind ?? "").trim() || null,
+      tracking_type: String(target?.tracking_type ?? "").trim() || null,
+      planned_day: String(target?.planned_day ?? "").trim() || null,
+      original_planned_day: String(target?.original_planned_day ?? "").trim() || null,
+      week_start_date: String(target?.week_start_date ?? "").trim() || null,
+      reviewed_local_date: String(target?.reviewed_local_date ?? "").trim() || null,
+    }];
+  });
+}
+
+async function sendDailyActionReviewAssistantMessage(params: {
+  admin: any;
+  requestId: string;
+  userId: string;
+  fromE164: string;
+  body: string;
+  source: string;
+}) {
+  const sendResp = await sendWhatsAppTextTracked({
+    admin: params.admin,
+    requestId: params.requestId,
+    userId: params.userId,
+    toE164: params.fromE164,
+    body: params.body,
+    purpose: "action_evening_review",
+    isProactive: false,
+  });
+  const outId = sendResp?.messages?.[0]?.id ?? null;
+  const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
+  await params.admin.from("chat_messages").insert({
+    user_id: params.userId,
+    scope: "whatsapp",
+    role: "assistant",
+    content: params.body,
+    agent_used: "companion",
+    metadata: {
+      channel: "whatsapp",
+      wa_outbound_message_id: outId,
+      outbound_tracking_id: outboundTrackingId,
+      is_proactive: false,
+      source: params.source,
+      purpose: "action_evening_review",
+      event_context: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
+    },
+  });
+}
+
+async function findTomorrowRescheduleDay(params: {
+  admin: any;
+  userId: string;
+  target: DailyActionReviewTarget;
+}): Promise<string | null> {
+  const currentDay = dayCodeForLocalDate(params.target.reviewed_local_date) ??
+    String(params.target.planned_day ?? "").trim();
+  const nextDay = nextDayAfter(currentDay);
+  const weekStartDate = String(params.target.week_start_date ?? "").trim();
+  if (!nextDay || !weekStartDate) return null;
+
+  const { data: occurrences, error: occurrenceErr } = await params.admin
+    .from("user_habit_week_occurrences")
+    .select("id,plan_item_id,planned_day,status")
+    .eq("user_id", params.userId)
+    .eq("week_start_date", weekStartDate)
+    .eq("planned_day", nextDay)
+    .neq("id", params.target.occurrence_id)
+    .in("status", ["planned", "rescheduled", "done", "partial"]);
+  if (occurrenceErr) throw occurrenceErr;
+
+  const rows = (occurrences ?? []) as Array<Record<string, unknown>>;
+  const planItemIds = [
+    ...new Set(rows.map((row) => String(row.plan_item_id ?? "").trim()).filter(Boolean)),
+  ];
+  if (planItemIds.length === 0) return nextDay;
+
+  const { data: items, error: itemsErr } = await params.admin
+    .from("user_plan_items")
+    .select("id,dimension")
+    .eq("user_id", params.userId)
+    .in("id", planItemIds);
+  if (itemsErr) throw itemsErr;
+
+  const dimensionById = new Map(
+    ((items ?? []) as Array<Record<string, unknown>>).map((item) => [
+      String(item.id ?? "").trim(),
+      String(item.dimension ?? "").trim(),
+    ]),
+  );
+  const movingHabit = isHabitDimension(params.target.dimension);
+  for (const row of rows) {
+    const dimension = dimensionById.get(String(row.plan_item_id ?? "").trim());
+    const rowIsHabit = isHabitDimension(dimension);
+    if (movingHabit && rowIsHabit) return null;
+    if (!movingHabit && !rowIsHabit) return null;
+  }
+  return nextDay;
+}
+
+function dayCodeForLocalDate(localDateRaw: unknown): string | null {
+  const localDate = String(localDateRaw ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(localDate)) return null;
+  const date = new Date(`${localDate}T12:00:00.000Z`);
+  const day = date.getUTCDay();
+  if (day === 0) return "sun";
+  return ["mon", "tue", "wed", "thu", "fri", "sat"][day - 1] ?? null;
+}
+
+async function applyDailyOccurrenceOutcome(params: {
+  admin: any;
+  userId: string;
+  target: DailyActionReviewTarget;
+  outcome: DailyActionAppliedOutcome;
+  stillRelevant: boolean | null;
+  nowIso: string;
+}): Promise<{
+  status: string;
+  rescheduledTo: string | null;
+  rescheduleDecision: string | null;
+}> {
+  if (params.outcome !== "missed") {
+    const status = occurrenceStatusForDailyOutcome(params.outcome);
+    await params.admin
+      .from("user_habit_week_occurrences")
+      .update({
+        status,
+        validated_at: params.nowIso,
+        updated_at: params.nowIso,
+      })
+      .eq("user_id", params.userId)
+      .eq("id", params.target.occurrence_id)
+      .in("status", ["planned", "rescheduled"]);
+    return { status, rescheduledTo: null, rescheduleDecision: null };
+  }
+
+  if (params.stillRelevant !== true) {
+    await params.admin
+      .from("user_habit_week_occurrences")
+      .update({
+        status: "missed",
+        validated_at: params.nowIso,
+        updated_at: params.nowIso,
+      })
+      .eq("user_id", params.userId)
+      .eq("id", params.target.occurrence_id)
+      .in("status", ["planned", "rescheduled"]);
+    return {
+      status: "missed",
+      rescheduledTo: null,
+      rescheduleDecision: params.stillRelevant === false
+        ? "not_rescheduled_not_relevant"
+        : "not_rescheduled_unconfirmed",
+    };
+  }
+
+  const rescheduledTo = await findTomorrowRescheduleDay({
+    admin: params.admin,
+    userId: params.userId,
+    target: params.target,
+  });
+  if (rescheduledTo) {
+    await params.admin
+      .from("user_habit_week_occurrences")
+      .update({
+        status: "rescheduled",
+        planned_day: rescheduledTo,
+        original_planned_day: String(
+          params.target.original_planned_day ?? params.target.planned_day ?? "",
+        ).trim() || null,
+        actual_day: null,
+        source: "auto_rescheduled",
+        validated_at: null,
+        updated_at: params.nowIso,
+      })
+      .eq("user_id", params.userId)
+      .eq("id", params.target.occurrence_id)
+      .in("status", ["planned", "rescheduled"]);
+    return {
+      status: "rescheduled",
+      rescheduledTo,
+      rescheduleDecision: "rescheduled_tomorrow",
+    };
+  }
+
+  await params.admin
+    .from("user_habit_week_occurrences")
+    .update({
+      status: "missed",
+      validated_at: params.nowIso,
+      updated_at: params.nowIso,
+    })
+    .eq("user_id", params.userId)
+    .eq("id", params.target.occurrence_id)
+    .in("status", ["planned", "rescheduled"]);
+  return {
+    status: "missed",
+    rescheduledTo: null,
+    rescheduleDecision: "not_rescheduled_no_slot",
+  };
+}
+
+function buildDailyActionReviewClarificationQuestion(
+  parsed: DailyActionReviewSkillResult,
+  targets: DailyActionReviewTarget[],
+): string | null {
+  const targetById = new Map(targets.map((target) => [
+    target.occurrence_id,
+    target,
+  ]));
+  const missingStillRelevantTargets = parsed.missingOccurrenceIds
+    .map((id) => targetById.get(id))
+    .filter((target): target is DailyActionReviewTarget => Boolean(target))
+    .filter((target) => {
+      const item = parsed.state.items[target.occurrence_id];
+      return item?.outcome === "missed" &&
+        item.missing_slots.includes("still_relevant");
+    });
+  if (missingStillRelevantTargets.length === 1) {
+    return `Tu veux qu'on reporte "${
+      missingStillRelevantTargets[0].title
+    }" à demain ?`;
+  }
+  if (missingStillRelevantTargets.length > 1) {
+    const titles = missingStillRelevantTargets.map((target) =>
+      `"${target.title}"`
+    ).join(" et ");
+    return `Tu veux qu'on reporte ${titles} à demain ?`;
+  }
+  return null;
+}
+
 async function handleActionEveningReviewReply(params: {
   admin: any;
   userId: string;
   fromE164: string;
   requestId: string;
   actionId?: string | null;
+  inboundText?: string | null;
 }) {
   const decision = eveningReviewDecisionFromActionId(params.actionId);
-  if (!decision) return false;
+  const inboundText = String(params.inboundText ?? "").trim();
+  if (!decision && !inboundText) return false;
 
   const pending = await fetchLatestActionEveningReviewPending(
     params.admin,
@@ -144,13 +406,14 @@ async function handleActionEveningReviewReply(params: {
   if (!pending) return false;
 
   const payload = pending?.payload ?? {};
-  const targets = Array.isArray(payload?.targets) ? payload.targets : [];
+  const targets = normalizeDailyTargets(payload?.targets);
   const occurrenceIds = Array.isArray(payload?.occurrence_ids)
     ? payload.occurrence_ids.map((id: unknown) => String(id ?? "").trim())
       .filter(Boolean)
     : targets.map((target: any) => String(target?.occurrence_id ?? "").trim())
       .filter(Boolean);
-  if (occurrenceIds.length === 0 || targets.length === 0) {
+  const effectiveTargets = targets;
+  if (occurrenceIds.length === 0 || effectiveTargets.length === 0) {
     await markPending(params.admin, pending.id, "cancelled");
     return false;
   }
@@ -162,25 +425,120 @@ async function handleActionEveningReviewReply(params: {
   const dayStartIso = `${localDate}T00:00:00.000Z`;
   const dayEndIso = `${nextDateYmd(localDate)}T00:00:00.000Z`;
 
-  await params.admin
-    .from("user_habit_week_occurrences")
-    .update({
-      status: decision.occurrenceStatus,
-      validated_at: nowIso,
-      updated_at: nowIso,
-    })
-    .eq("user_id", params.userId)
-    .in("id", occurrenceIds)
-    .in("status", ["planned", "rescheduled"]);
+  const parsed: DailyActionReviewSkillResult = decision
+    ? (() => {
+      const state = stateFromUnknown(payload?.review_state, effectiveTargets);
+      for (const target of effectiveTargets) {
+        const item = state.items[target.occurrence_id];
+        if (!item) continue;
+        item.outcome = decision.entryOutcome as DailyActionOutcome;
+        item.reason_category = decision.entryOutcome === "completed"
+          ? "none"
+          : "unclear";
+        item.reason_text = null;
+        item.still_relevant = "unknown";
+        item.evidence_text = String(params.actionId ?? "").trim();
+        item.matched_user_text = String(params.actionId ?? "").trim();
+        item.confidence = "high";
+        item.missing_slots = decision.entryOutcome === "missed"
+          ? ["still_relevant"]
+          : [];
+      }
+      const missingOccurrenceIds = effectiveTargets
+        .filter((target) =>
+          (state.items[target.occurrence_id]?.missing_slots ?? []).length > 0
+        )
+        .map((target) => target.occurrence_id);
+      state.status = missingOccurrenceIds.length > 0
+        ? "needs_clarification"
+        : "complete";
+      state.should_apply_effects = missingOccurrenceIds.length === 0;
+      state.stop_reason = missingOccurrenceIds.length === 0
+        ? "all_required_slots_filled"
+        : null;
+      state.next_question = null;
+      state.next_question_targets = missingOccurrenceIds.slice(0, 2);
+      state.remaining_occurrence_ids = missingOccurrenceIds;
+      return {
+        state,
+        missingOccurrenceIds,
+        stillRelevantByOccurrenceId: Object.fromEntries(
+          effectiveTargets.map((target) => [target.occurrence_id, null]),
+        ) as Record<string, boolean | null>,
+        nextQuestion: null,
+        shouldApplyEffects: missingOccurrenceIds.length === 0,
+      };
+    })()
+    : await runDailyActionReviewSkill({
+      text: inboundText,
+      targets: effectiveTargets,
+      previousState: payload?.review_state,
+      requestId: params.requestId,
+      userId: params.userId,
+    });
+
+  if (!decision && !parsed.shouldApplyEffects) {
+    const updatedPayload = {
+      ...payload,
+      message_mode: "conversation",
+      chat_capability: "daily_action_review",
+      review_state: parsed.state,
+      missing_occurrence_ids: parsed.missingOccurrenceIds,
+      last_user_text: inboundText,
+    };
+    await params.admin
+      .from("whatsapp_pending_actions")
+      .update({ payload: updatedPayload })
+      .eq("id", pending.id);
+    const txt = parsed.nextQuestion ||
+      buildDailyActionReviewClarificationQuestion(parsed, effectiveTargets) ||
+      "Il me manque juste une info pour noter correctement le check. Tu peux me dire ce qui s'est passe ?";
+    await sendDailyActionReviewAssistantMessage({
+      admin: params.admin,
+      requestId: params.requestId,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      body: txt,
+      source: "daily_action_review_clarification",
+    });
+    return true;
+  }
+
+  const rescheduleByOccurrenceId = new Map<string, string | null>();
+  const rescheduleDecisionByOccurrenceId = new Map<string, string | null>();
+  const statusByOccurrenceId = new Map<string, string>();
+  for (const target of effectiveTargets) {
+    const itemState = parsed.state.items[target.occurrence_id];
+    if (!isAppliedDailyOutcome(itemState?.outcome)) continue;
+    const result = await applyDailyOccurrenceOutcome({
+      admin: params.admin,
+      userId: params.userId,
+      target,
+      outcome: itemState.outcome,
+      stillRelevant: parsed.stillRelevantByOccurrenceId[target.occurrence_id] ??
+        null,
+      nowIso,
+    });
+    statusByOccurrenceId.set(target.occurrence_id, result.status);
+    rescheduleByOccurrenceId.set(target.occurrence_id, result.rescheduledTo);
+    rescheduleDecisionByOccurrenceId.set(
+      target.occurrence_id,
+      result.rescheduleDecision,
+    );
+  }
 
   const uniqueTargetsByItem = new Map<string, any>();
-  for (const target of targets) {
+  for (const target of effectiveTargets) {
     const planItemId = String(target?.plan_item_id ?? "").trim();
     if (planItemId && !uniqueTargetsByItem.has(planItemId)) {
       uniqueTargetsByItem.set(planItemId, target);
     }
   }
   const planItemIds = [...uniqueTargetsByItem.keys()];
+  if (planItemIds.length === 0) {
+    await markPending(params.admin, pending.id, "cancelled");
+    return false;
+  }
   const { data: existingEntries, error: existingEntriesErr } = await params
     .admin
     .from("user_plan_item_entries")
@@ -200,30 +558,58 @@ async function handleActionEveningReviewReply(params: {
     .filter((target) =>
       !alreadyLogged.has(String(target?.plan_item_id ?? "").trim())
     )
-    .map((target) => ({
-      id: crypto.randomUUID(),
-      user_id: params.userId,
-      cycle_id: String(target?.cycle_id ?? "").trim(),
-      transformation_id: String(target?.transformation_id ?? "").trim(),
-      plan_id: String(target?.plan_id ?? "").trim(),
-      plan_item_id: String(target?.plan_item_id ?? "").trim(),
-      entry_kind: entryKindForEveningReview(target, decision.entryOutcome),
-      outcome: decision.entryOutcome,
-      value_numeric: null,
-      value_text: null,
-      difficulty_level: null,
-      blocker_hint: null,
-      created_at: nowIso,
-      effective_at: effectiveAt,
-      metadata: {
-        source: "action_evening_review_v2",
-        channel: "whatsapp",
-        action_id: String(params.actionId ?? "").trim(),
-        pending_action_id: pending.id,
-        scheduled_checkin_id: pending.scheduled_checkin_id ?? null,
-        local_date: localDate,
-      },
-    }));
+    .flatMap((target) => {
+      const itemState = parsed.state.items[String(target?.occurrence_id ?? "").trim()];
+      const outcome = itemState?.outcome;
+      if (!isAppliedDailyOutcome(outcome)) return [];
+      return [{
+        id: crypto.randomUUID(),
+        user_id: params.userId,
+        cycle_id: String(target?.cycle_id ?? "").trim(),
+        transformation_id: String(target?.transformation_id ?? "").trim(),
+        plan_id: String(target?.plan_id ?? "").trim(),
+        plan_item_id: String(target?.plan_item_id ?? "").trim(),
+        entry_kind: entryKindForEveningReview(target, outcome),
+        outcome,
+        value_numeric: null,
+        value_text: itemState?.reason_text ?? null,
+        difficulty_level: itemState?.reason_category === "too_hard" ? "high" : null,
+        blocker_hint: itemState?.reason_category &&
+            itemState.reason_category !== "none"
+          ? itemState.reason_category
+          : null,
+        created_at: nowIso,
+        effective_at: effectiveAt,
+        metadata: {
+          source: DAILY_ACTION_REVIEW_SOURCE,
+          legacy_source: "action_evening_review_v2",
+          channel: "whatsapp",
+          action_id: String(params.actionId ?? "").trim() || null,
+          outcome_source: decision ? "interactive_button" : "free_text",
+          pending_action_id: pending.id,
+          scheduled_checkin_id: pending.scheduled_checkin_id ?? null,
+          local_date: localDate,
+          occurrence_id: String(target?.occurrence_id ?? "").trim(),
+          dimension: String(target?.dimension ?? "").trim() || null,
+          reason_category: itemState?.reason_category ?? null,
+          reason_text: itemState?.reason_text ?? null,
+          matched_user_text: itemState?.matched_user_text ?? null,
+          still_relevant: parsed.stillRelevantByOccurrenceId[
+            String(target?.occurrence_id ?? "").trim()
+          ] ?? null,
+          confidence: itemState?.confidence ?? "low",
+          occurrence_status: statusByOccurrenceId.get(
+            String(target?.occurrence_id ?? "").trim(),
+          ) ?? null,
+          reschedule_decision: rescheduleDecisionByOccurrenceId.get(
+            String(target?.occurrence_id ?? "").trim(),
+          ) ?? null,
+          rescheduled_to: rescheduleByOccurrenceId.get(
+            String(target?.occurrence_id ?? "").trim(),
+          ) ?? null,
+        },
+      }];
+    });
 
   if (entries.length > 0) {
     const { error: insertErr } = await params.admin
@@ -249,6 +635,19 @@ async function handleActionEveningReviewReply(params: {
       });
     }
   }
+
+  await params.admin
+    .from("whatsapp_pending_actions")
+    .update({
+      payload: {
+        ...payload,
+        message_mode: "conversation",
+        chat_capability: "daily_action_review",
+        review_state: parsed.state,
+        completed_at: nowIso,
+      },
+    })
+    .eq("id", pending.id);
 
   if (pending.scheduled_checkin_id) {
     await params.admin.from("scheduled_checkins").update({
@@ -280,43 +679,30 @@ async function handleActionEveningReviewReply(params: {
   }
 
   const actionCount = planItemIds.length;
-  const txt = decision.entryOutcome === "completed"
-    ? `C'est noté: ${
-      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
-    } comme faite.`
-    : decision.entryOutcome === "partial"
-    ? `C'est noté: ${
-      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
-    } en partiel.`
-    : `C'est noté: ${
-      actionCount > 1 ? "tes actions sont marquées" : "l'action est marquée"
-    } comme non faite.`;
-  const sendResp = await sendWhatsAppTextTracked({
+  const lines = effectiveTargets.flatMap((target) => {
+    const state = parsed.state.items[target.occurrence_id];
+    if (!isAppliedDailyOutcome(state?.outcome)) return [];
+    const label = state?.outcome === "completed"
+      ? "faite"
+      : state?.outcome === "partial"
+      ? "commencee, pas terminee"
+      : "non faite";
+    const rescheduledTo = rescheduleByOccurrenceId.get(target.occurrence_id);
+    const suffix = rescheduledTo
+      ? `, reportee a ${dayLabel(rescheduledTo)}`
+      : "";
+    return [`- ${target.title}: ${label}${suffix}`];
+  });
+  const txt = actionCount > 1
+    ? ["C'est note pour ce soir :", ...lines].join("\n")
+    : `C'est note : ${lines[0]?.replace(/^- /, "") ?? "action enregistree"}.`;
+  await sendDailyActionReviewAssistantMessage({
     admin: params.admin,
     requestId: params.requestId,
     userId: params.userId,
-    toE164: params.fromE164,
+    fromE164: params.fromE164,
     body: txt,
-    purpose: "action_evening_review",
-    isProactive: false,
-  });
-  const outId = sendResp?.messages?.[0]?.id ?? null;
-  const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
-  await params.admin.from("chat_messages").insert({
-    user_id: params.userId,
-    scope: "whatsapp",
-    role: "assistant",
-    content: txt,
-    agent_used: "companion",
-    metadata: {
-      channel: "whatsapp",
-      wa_outbound_message_id: outId,
-      outbound_tracking_id: outboundTrackingId,
-      is_proactive: false,
-      source: "action_evening_review",
-      purpose: "action_evening_review",
-      event_context: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
-    },
+    source: "daily_action_review",
   });
   return true;
 }
@@ -382,6 +768,7 @@ export async function handlePendingActions(params: {
     fromE164,
     requestId,
     actionId: params.actionId,
+    inboundText: params.inboundText,
   });
   if (handledActionEveningReview) return true;
 

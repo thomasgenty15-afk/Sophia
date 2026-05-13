@@ -8,8 +8,8 @@ import {
 import { buildAdaptiveOnboardingContext } from "./onboarding_context.ts";
 
 declare const Deno: any;
-export async function computeOptInAndBilanContext(params) {
-  async function hasRecentOptInPrompt(admin, userId) {
+export async function computeOptInAndBilanContext(params: any) {
+  async function hasRecentOptInPrompt(admin: any, userId: string) {
     const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
     ;
     const { data, error } = await admin.from("chat_messages").select(
@@ -29,7 +29,7 @@ export async function computeOptInAndBilanContext(params) {
     (params.isOptInYesText
       ? await hasRecentOptInPrompt(params.admin, params.userId)
       : false);
-  async function getRecentBilanPromptPurpose(admin, userId) {
+  async function getRecentBilanPromptPurpose(admin: any, userId: string) {
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
     ;
     const { data, error } = await admin
@@ -60,7 +60,7 @@ export async function computeOptInAndBilanContext(params) {
     recentBilanPurpose,
   };
 }
-async function analyzeSignalsForWhatsApp(text, requestId) {
+async function analyzeSignalsForWhatsApp(text: string, requestId: string) {
   const raw = (text ?? "").trim();
   const result = await analyzeSignalsV2({
     userMessage: raw,
@@ -81,7 +81,7 @@ async function analyzeSignalsForWhatsApp(text, requestId) {
   });
   return result.signals;
 }
-async function detectAdaptiveFlow(inboundText, requestId) {
+async function detectAdaptiveFlow(inboundText: string, requestId: string) {
   // Default: normal flow with all steps
   const defaultResult = {
     flow: "normal",
@@ -133,7 +133,7 @@ async function detectAdaptiveFlow(inboundText, requestId) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // MAIN HANDLER
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function handleOptInAndDailyBilanActions(params) {
+export async function handleOptInAndDailyBilanActions(params: any) {
   const actionId = String(params.actionId ?? "").trim().toLowerCase();
   const textLower = String(params.textLower ?? params.inboundText ?? "").trim()
     .toLowerCase();
@@ -340,14 +340,19 @@ export async function handleOptInAndDailyBilanActions(params) {
       isReturning: onboardingCtx.isReturning,
       detectedTopic: adaptiveFlow.detectedTopic,
     });
-    // Determine next state based on flow and plan
-    // IMPORTANT: set BEFORE replyWithBrain so that processMessage sees onboarding_q1
-    // and the dispatcher Q1_ask add-on generates the first Q1 question.
+    // Determine next state based on flow and plan.
+    // For a user who already has a plan, do not prime onboarding_q1 before the
+    // first welcome message: otherwise the brain may jump straight into plan
+    // execution. We want the first opt-in reply to be an intro to Sophia.
     const nextState = determineNextState(adaptiveFlow.flow, Boolean(planTitle));
-    await params.admin.from("profiles").update({
-      whatsapp_state: nextState,
-      whatsapp_state_updated_at: new Date().toISOString(),
-    }).eq("id", params.userId);
+    const deferPlanOnboardingState = adaptiveFlow.flow === "normal" &&
+      Boolean(planTitle);
+    if (!deferPlanOnboardingState) {
+      await params.admin.from("profiles").update({
+        whatsapp_state: nextState,
+        whatsapp_state_updated_at: new Date().toISOString(),
+      }).eq("id", params.userId);
+    }
     await params.replyWithBrain({
       admin: params.admin,
       userId: params.userId,
@@ -356,10 +361,16 @@ export async function handleOptInAndDailyBilanActions(params) {
       requestId: params.requestId,
       replyToWaMessageId: params.waMessageId,
       purpose: `optin_yes_welcome_ai_${adaptiveFlow.flow}`,
-      whatsappMode: adaptiveFlow.flow === "normal" ? "onboarding" : "normal",
+      whatsappMode: "normal",
       forceMode: adaptiveFlow.forceMode ?? "companion",
       contextOverride: `${contextBase}\n\n${turnInstructions}`,
     });
+    if (deferPlanOnboardingState) {
+      await params.admin.from("profiles").update({
+        whatsapp_state: nextState,
+        whatsapp_state_updated_at: new Date().toISOString(),
+      }).eq("id", params.userId);
+    }
     return true;
   }
   return false;
@@ -367,7 +378,7 @@ export async function handleOptInAndDailyBilanActions(params) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // TURN INSTRUCTIONS BUILDER
 // ═══════════════════════════════════════════════════════════════════════════════
-function buildOptInTurnInstructions(opts) {
+function buildOptInTurnInstructions(opts: any) {
   const { flow, prenom, planTitle, siteUrl, isReturning, detectedTopic } = opts;
   const welcomeStyle = isReturning
     ? `- Welcome court: "Content de te retrouver ici${
@@ -405,8 +416,15 @@ function buildOptInTurnInstructions(opts) {
       "CONSIGNE DE TOUR (NORMAL + PLAN):",
       welcomeStyle,
       `- Prénom: "${prenom}".`,
-      `- Plan actif: "${planTitle}".`,
-      "- Message court, chaleureux, pro (WhatsApp).",
+      "- C'est le PREMIER vrai message après l'opt-in WhatsApp.",
+      "- Objectif de ce tour: présenter Sophia et créer une petite expérience d'entrée, pas coacher.",
+      "- Ne mentionne pas le contenu du plan actif dans ce message.",
+      "- Interdiction de lancer une action du plan maintenant.",
+      "- Interdiction de dire: plan, décharger, sas, fais-le maintenant, petit pas maintenant, prépare, note, tu le fais là, action, exercice.",
+      "- Montre la personnalité de Sophia: chaleureuse, un peu maligne, légère, pas solennelle.",
+      "- Message court WhatsApp: 3-5 phrases max, pas de markdown.",
+      "- Explique en une phrase que tu vas d'abord régler ta façon de l'accompagner.",
+      "- Termine exactement sur l'idée suivante, reformulée naturellement: préfère-t-il une Sophia plutôt douce, plutôt directe, ou un mix des deux ?",
     ].join("\n");
   }
   return [
@@ -426,11 +444,11 @@ function buildOptInTurnInstructions(opts) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // STATE DETERMINATION
 // ═══════════════════════════════════════════════════════════════════════════════
-function determineNextState(flow, hasPlan) {
+function determineNextState(flow: string | null | undefined, hasPlan: boolean) {
   // Urgent or serious: go to normal mode (no onboarding gating)
   if (flow === "urgent" || flow === "serious_topic") {
     return null;
   }
-  // Normal flow: warm onboarding (Q1 experience) or plan finalization
-  return hasPlan ? "onboarding_q1" : "awaiting_plan_finalization";
+  // Normal flow: first calibrate Sophia's coaching preferences, then continue.
+  return hasPlan ? "onboarding_pref_tone" : "awaiting_plan_finalization";
 }

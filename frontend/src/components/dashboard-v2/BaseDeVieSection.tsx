@@ -57,15 +57,19 @@ function buildFallbackDeclics(transformation: UserTransformationRow): BaseDeVieD
 
 function buildPayloadForSave(args: {
   existingPayload: UserTransformationBaseDeViePayload | null;
-  lineGreenEntry: BaseDeVieLineEntry;
-  lineRedEntry: BaseDeVieLineEntry;
+  lineGreenEntries: BaseDeVieLineEntry[];
+  lineRedEntries: BaseDeVieLineEntry[];
   feedback: TransformationClosureFeedback;
 }): UserTransformationBaseDeViePayload {
   const now = new Date().toISOString();
+  const lineGreenEntries = args.lineGreenEntries.slice(0, 3);
+  const lineRedEntries = args.lineRedEntries.slice(0, 3);
   return {
-    line_red_entries: [args.lineRedEntry.action],
-    line_green_entry: args.lineGreenEntry,
-    line_red_entry: args.lineRedEntry,
+    line_red_entries: lineRedEntries.map((entry) => entry.action),
+    line_green_entries: lineGreenEntries,
+    line_red_entry_details: lineRedEntries,
+    line_green_entry: lineGreenEntries[0] ?? null,
+    line_red_entry: lineRedEntries[0] ?? null,
     declics_draft: args.existingPayload?.declics_draft ?? null,
     declics_user: args.existingPayload?.declics_user ?? args.existingPayload?.declics_draft ?? null,
     closure_feedback: args.feedback,
@@ -78,6 +82,11 @@ function getLineGreenEntry(payload: UserTransformationBaseDeViePayload | null): 
   return payload?.line_green_entry ?? null;
 }
 
+function getLineGreenEntries(payload: UserTransformationBaseDeViePayload | null): BaseDeVieLineEntry[] {
+  if (payload?.line_green_entries?.length) return payload.line_green_entries;
+  return payload?.line_green_entry ? [payload.line_green_entry] : [];
+}
+
 function getLineRedEntry(payload: UserTransformationBaseDeViePayload | null): BaseDeVieLineEntry | null {
   if (payload?.line_red_entry) return payload.line_red_entry;
   const fallbackAction = payload?.line_red_entries[0]?.trim() ?? "";
@@ -87,6 +96,12 @@ function getLineRedEntry(payload: UserTransformationBaseDeViePayload | null): Ba
         why: "",
       }
     : null;
+}
+
+function getLineRedEntries(payload: UserTransformationBaseDeViePayload | null): BaseDeVieLineEntry[] {
+  if (payload?.line_red_entry_details?.length) return payload.line_red_entry_details;
+  const legacy = getLineRedEntry(payload);
+  return legacy ? [legacy] : [];
 }
 
 function arsenalIcon(kind: BaseDeVieArsenalItem["kind"]) {
@@ -195,6 +210,8 @@ export function BaseDeVieSection({
   const handleEditSubmit = async (payload: {
     lineGreenEntry: BaseDeVieLineEntry;
     lineRedEntry: BaseDeVieLineEntry;
+    lineGreenEntries: BaseDeVieLineEntry[];
+    lineRedEntries: BaseDeVieLineEntry[];
     feedback: TransformationClosureFeedback;
   }) => {
     if (!editingTransformation || !userId) return;
@@ -204,8 +221,8 @@ export function BaseDeVieSection({
       const existingPayload = getBaseDeViePayload(editingTransformation.base_de_vie_payload);
       const nextPayload = buildPayloadForSave({
         existingPayload,
-        lineGreenEntry: payload.lineGreenEntry,
-        lineRedEntry: payload.lineRedEntry,
+        lineGreenEntries: payload.lineGreenEntries,
+        lineRedEntries: payload.lineRedEntries,
         feedback: payload.feedback,
       });
 
@@ -288,8 +305,8 @@ export function BaseDeVieSection({
         ) : lineGreenRecords.length > 0 ? (
           <div className="mt-5 grid gap-4 xl:grid-cols-2">
             {lineGreenRecords.map((record) => {
-              const lineGreenEntry = getLineGreenEntry(record.payload);
-              if (!lineGreenEntry) return null;
+              const lineGreenEntries = getLineGreenEntries(record.payload);
+              if (lineGreenEntries.length === 0) return null;
 
               return (
                 <article
@@ -314,15 +331,27 @@ export function BaseDeVieSection({
                       Modifier
                     </button>
                   </div>
-                  <div className="mt-4 space-y-3 rounded-[22px] border border-emerald-100 bg-white px-4 py-4 text-sm leading-6 text-stone-700">
-                    <div>
-                      <p className="font-semibold text-stone-950">Quoi</p>
-                      <p>{lineGreenEntry.action}</p>
-                    </div>
-                    <div>
-                      <p className="font-semibold text-stone-950">Pourquoi</p>
-                      <p>{lineGreenEntry.why}</p>
-                    </div>
+                  <div className="mt-4 space-y-3 text-sm leading-6 text-stone-700">
+                    {lineGreenEntries.map((entry, index) => (
+                      <div
+                        key={`${record.transformation.id}-green-${index}`}
+                        className="rounded-[22px] border border-emerald-100 bg-white px-4 py-4"
+                      >
+                        {lineGreenEntries.length > 1 ? (
+                          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                            Ligne {index + 1}
+                          </p>
+                        ) : null}
+                        <div>
+                          <p className="font-semibold text-stone-950">Quoi</p>
+                          <p>{entry.action}</p>
+                        </div>
+                        <div className="mt-3">
+                          <p className="font-semibold text-stone-950">Pourquoi</p>
+                          <p>{entry.why}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </article>
               );
@@ -355,8 +384,8 @@ export function BaseDeVieSection({
         ) : lineRedRecords.length > 0 ? (
           <div className="mt-5 grid gap-4 xl:grid-cols-2">
             {lineRedRecords.map((record) => {
-              const lineRedEntry = getLineRedEntry(record.payload);
-              if (!lineRedEntry) return null;
+              const lineRedEntries = getLineRedEntries(record.payload);
+              if (lineRedEntries.length === 0) return null;
 
               return (
                 <article
@@ -381,17 +410,29 @@ export function BaseDeVieSection({
                       Modifier
                     </button>
                   </div>
-                  <div className="mt-4 space-y-3 rounded-[22px] border border-rose-100 bg-white px-4 py-4 text-sm leading-6 text-stone-700">
-                    <div>
-                      <p className="font-semibold text-stone-950">Quoi</p>
-                      <p>{lineRedEntry.action}</p>
-                    </div>
-                    {lineRedEntry.why ? (
-                      <div>
-                        <p className="font-semibold text-stone-950">Pourquoi</p>
-                        <p>{lineRedEntry.why}</p>
+                  <div className="mt-4 space-y-3 text-sm leading-6 text-stone-700">
+                    {lineRedEntries.map((entry, index) => (
+                      <div
+                        key={`${record.transformation.id}-red-${index}`}
+                        className="rounded-[22px] border border-rose-100 bg-white px-4 py-4"
+                      >
+                        {lineRedEntries.length > 1 ? (
+                          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
+                            Ligne {index + 1}
+                          </p>
+                        ) : null}
+                        <div>
+                          <p className="font-semibold text-stone-950">Quoi</p>
+                          <p>{entry.action}</p>
+                        </div>
+                        {entry.why ? (
+                          <div className="mt-3">
+                            <p className="font-semibold text-stone-950">Pourquoi</p>
+                            <p>{entry.why}</p>
+                          </div>
+                        ) : null}
                       </div>
-                    ) : null}
+                    ))}
                   </div>
                 </article>
               );
@@ -429,6 +470,8 @@ export function BaseDeVieSection({
               const declics = payload?.declics_user ?? payload?.declics_draft ?? buildFallbackDeclics(record.transformation);
               const lineGreenEntry = getLineGreenEntry(payload);
               const lineRedEntry = getLineRedEntry(payload);
+              const lineGreenEntries = getLineGreenEntries(payload);
+              const lineRedEntries = getLineRedEntries(payload);
               const closureFeedback = payload?.closure_feedback ?? null;
 
               return (
@@ -483,16 +526,25 @@ export function BaseDeVieSection({
                           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-700">
                             Ligne Verte
                           </p>
-                          {lineGreenEntry ? (
+                          {lineGreenEntries.length > 0 ? (
                             <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
-                              <div>
-                                <p className="font-semibold text-stone-950">Quoi</p>
-                                <p>{lineGreenEntry.action}</p>
-                              </div>
-                              <div>
-                                <p className="font-semibold text-stone-950">Pourquoi</p>
-                                <p>{lineGreenEntry.why}</p>
-                              </div>
+                              {lineGreenEntries.map((entry, index) => (
+                                <div key={`expanded-green-${index}`} className="rounded-2xl bg-white/70 px-4 py-3">
+                                  {lineGreenEntries.length > 1 ? (
+                                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+                                      Ligne {index + 1}
+                                    </p>
+                                  ) : null}
+                                  <div>
+                                    <p className="font-semibold text-stone-950">Quoi</p>
+                                    <p>{entry.action}</p>
+                                  </div>
+                                  <div className="mt-3">
+                                    <p className="font-semibold text-stone-950">Pourquoi</p>
+                                    <p>{entry.why}</p>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <p className="mt-4 text-sm leading-6 text-stone-500">
@@ -505,18 +557,27 @@ export function BaseDeVieSection({
                           <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-700">
                             Ligne Rouge
                           </p>
-                          {lineRedEntry ? (
+                          {lineRedEntries.length > 0 ? (
                             <div className="mt-4 space-y-4 text-sm leading-6 text-stone-700">
-                              <div>
-                                <p className="font-semibold text-stone-950">Quoi</p>
-                                <p>{lineRedEntry.action}</p>
-                              </div>
-                              {lineRedEntry.why ? (
-                                <div>
-                                  <p className="font-semibold text-stone-950">Pourquoi</p>
-                                  <p>{lineRedEntry.why}</p>
+                              {lineRedEntries.map((entry, index) => (
+                                <div key={`expanded-red-${index}`} className="rounded-2xl bg-white/70 px-4 py-3">
+                                  {lineRedEntries.length > 1 ? (
+                                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
+                                      Ligne {index + 1}
+                                    </p>
+                                  ) : null}
+                                  <div>
+                                    <p className="font-semibold text-stone-950">Quoi</p>
+                                    <p>{entry.action}</p>
+                                  </div>
+                                  {entry.why ? (
+                                    <div className="mt-3">
+                                      <p className="font-semibold text-stone-950">Pourquoi</p>
+                                      <p>{entry.why}</p>
+                                    </div>
+                                  ) : null}
                                 </div>
-                              ) : null}
+                              ))}
                             </div>
                           ) : (
                             <p className="mt-4 text-sm leading-6 text-stone-500">
@@ -695,6 +756,12 @@ export function BaseDeVieSection({
           getBaseDeViePayload(editingTransformation?.base_de_vie_payload)?.line_green_entry ?? null
         }
         initialLineRedEntry={getLineRedEntry(
+          getBaseDeViePayload(editingTransformation?.base_de_vie_payload) ?? null,
+        )}
+        initialLineGreenEntries={getLineGreenEntries(
+          getBaseDeViePayload(editingTransformation?.base_de_vie_payload) ?? null,
+        )}
+        initialLineRedEntries={getLineRedEntries(
           getBaseDeViePayload(editingTransformation?.base_de_vie_payload) ?? null,
         )}
         initialFeedback={

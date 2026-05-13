@@ -126,7 +126,6 @@ create trigger on_auth_user_email_confirmed_send_onboarding
   for each row
   execute function public.handle_user_email_confirmed_onboarding();
 
--- Disable legacy "welcome on profile insert" trigger: onboarding comms are now sent
+-- Disable old "welcome on profile insert" trigger: onboarding comms are now sent
 -- only once email is confirmed on auth.users.
 drop trigger if exists on_profile_created_send_welcome on public.profiles;
-

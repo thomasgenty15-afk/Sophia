@@ -1,4 +1,4 @@
--- Migration: Clean up legacy topic_session → topic_exploration
+-- Migration: Clean up old topic_session -> topic_exploration
 -- This migration transforms all existing topic_session references in temp_memory
 -- to the new topic_exploration type.
 
@@ -53,7 +53,6 @@ WHERE temp_memory->'global_machine'->'stack' IS NOT NULL
     SELECT 1 FROM jsonb_array_elements(temp_memory->'global_machine'->'stack') AS elem
     WHERE elem->>'type' = 'topic_session'
   );
-
 
 
 

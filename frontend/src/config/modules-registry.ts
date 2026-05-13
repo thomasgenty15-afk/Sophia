@@ -47,7 +47,7 @@ export const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
   },
   'week_5': {
     id: 'week_5',
-    title: 'Semaine 5 : La Boussole (Mission)',
+    title: 'Semaine 5 : La Mission',
     type: 'week',
     nextModuleIds: ['week_6'],
     unlockCondition: 'fixed_delay',

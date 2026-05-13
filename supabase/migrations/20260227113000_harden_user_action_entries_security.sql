@@ -40,7 +40,7 @@ begin
     end if;
   end if;
 
-  -- Replace legacy/permissive policies with strict, deterministic ones.
+  -- Replace old/permissive policies with strict, deterministic ones.
   execute 'drop policy if exists "Users can view their own entries" on public.user_action_entries';
   execute 'drop policy if exists "Users can insert their own entries" on public.user_action_entries';
   execute 'drop policy if exists "Users can update their own entries" on public.user_action_entries';

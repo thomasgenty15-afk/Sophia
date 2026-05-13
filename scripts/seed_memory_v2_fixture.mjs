@@ -165,10 +165,53 @@ function chatMessages(userId) {
 }
 
 const topicSeeds = [
-  ["routine", "Routine et discipline", "routine discipline marche sommeil procrastination"],
-  ["travail", "Rapport au travail", "travail projet flou clarte pression execution"],
-  ["famille", "Relations familiales", "mere critique frere Samir soutien limites"],
-  ["psychologie", "Psychologie et estime", "doute estime de soi emotion blocage confiance"],
+  ["routine", "Routine et discipline", "routine discipline marche sommeil procrastination", [
+    "habitudes.execution",
+    "habitudes.procrastination",
+    "habitudes.environnement",
+    "habitudes.planification",
+    "psychologie.motivation",
+    "psychologie.discipline",
+    "psychologie.emotions",
+    "sante.activite_physique",
+    "sante.energie",
+    "sante.sommeil",
+    "addictions.ecrans",
+    "objectifs.court_terme",
+  ]],
+  ["travail", "Rapport au travail", "travail projet flou clarte pression execution", [
+    "travail.performance",
+    "travail.charge",
+    "travail.carriere",
+    "habitudes.execution",
+    "habitudes.planification",
+  ]],
+  ["famille", "Relations familiales", "mere critique frere Samir soutien limites", [
+    "relations.famille",
+    "relations.couple",
+    "relations.conflit",
+    "relations.limites",
+    "psychologie.emotions",
+    "psychologie.estime_de_soi",
+    "psychologie.discipline",
+    "habitudes.reprise_apres_echec",
+  ]],
+  ["psychologie", "Psychologie et estime", "doute estime de soi emotion blocage confiance", [
+    "psychologie.identite",
+    "psychologie.estime_de_soi",
+    "psychologie.peur_echec",
+    "psychologie.emotions",
+    "psychologie.discipline",
+    "psychologie.motivation",
+  ]],
+  ["coaching_preferences", "Preferences de coaching", "ton direct fatigue reponses courtes reduction pression plan concret", [
+    "relations.limites",
+    "sante.energie",
+    "psychologie.motivation",
+    "habitudes.execution",
+    "habitudes.planification",
+    "travail.charge",
+  ]],
 ];
 
 const entitySeeds = [
@@ -227,7 +270,7 @@ async function main() {
 
   await insertRows("chat_messages", chatMessages(userId));
   const topics = await insertRows("user_topic_memories", topicSeeds.map((
-    [slug, title, search_doc],
+    [slug, title, search_doc, domain_keys],
   ) => ({
     user_id: userId,
     slug,
@@ -237,7 +280,7 @@ async function main() {
     search_doc,
     search_doc_version: 1,
     pending_changes_count: 0,
-    metadata: { fixture: "memory_v2_only" },
+    metadata: { fixture: "memory_v2_only", domain_keys },
   })));
   const topicBySlug = Object.fromEntries(topics.map((topic) => [topic.slug, topic]));
 

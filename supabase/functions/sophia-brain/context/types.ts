@@ -45,7 +45,7 @@ export interface ContextProfile {
  */
 export interface OnDemandTriggers {
   plan_item_discussion_detected?: boolean;
-  plan_item_discussion_hint?: string;
+  plan_item_discussion_hint?: string | null;
   plan_feedback_detected?: boolean;
 }
 
@@ -55,7 +55,6 @@ export interface OnDemandTriggers {
 export interface LoadedContext {
   temporal?: string;
   rendezVousSummary?: string;
-  northStarContext?: string;
   weeklyRecapContext?: string;
   planItemIndicators?: string;
   memoryV2Payload?: string;
@@ -93,7 +92,6 @@ export interface LoadedContext {
  *
  * Principes:
  * - Companion: contexte conversationnel le plus riche
- * - Investigator: focalisé sur le suivi guidé / bilan, sans mémoire durable large
  * - Dispatcher / watcher / sentry: contexte minimal ou nul
  */
 export const CONTEXT_PROFILES: Partial<
@@ -107,17 +105,6 @@ export const CONTEXT_PROFILES: Partial<
     topic_memories: true,
     facts: true,
     short_term: true,
-    history_depth: 15,
-  },
-
-  investigator: {
-    temporal: true,
-    identity: false,
-    event_memories: false,
-    global_memories: false,
-    topic_memories: false,
-    facts: false,
-    short_term: false,
     history_depth: 15,
   },
 

@@ -317,7 +317,7 @@ function enrichWeeklySurface(entry) {
   };
 }
 
-function computeEnrichedScorecard(trace, legacyScorecard) {
+function computeEnrichedScorecard(trace, baseScorecard) {
   const selectorRuns = toArray(trace.selector_runs);
   const interventions = toArray(trace.interventions);
   const followUps = toArray(trace.follow_ups);
@@ -397,7 +397,7 @@ function computeEnrichedScorecard(trace, legacyScorecard) {
     }
   }
 
-  const legacyAlerts = legacyScorecard?.alerts ?? {};
+  const baseAlerts = baseScorecard?.alerts ?? {};
   const alertList = [];
   if (dimensionMismatch > 0) {
     alertList.push(`dimension_mismatch: ${dimensionMismatch} case(s)`);
@@ -412,19 +412,19 @@ function computeEnrichedScorecard(trace, legacyScorecard) {
       `structural_needed_but_micro_given: ${structuralNeededButMicroGiven} case(s)`,
     );
   }
-  if (Number(legacyAlerts.low_confidence_selector_runs ?? 0) > 0) {
+  if (Number(baseAlerts.low_confidence_selector_runs ?? 0) > 0) {
     alertList.push(
-      `low_confidence_selector_runs: ${legacyAlerts.low_confidence_selector_runs}`,
+      `low_confidence_selector_runs: ${baseAlerts.low_confidence_selector_runs}`,
     );
   }
-  if (Number(legacyAlerts.repeated_failed_technique_signals ?? 0) > 0) {
+  if (Number(baseAlerts.repeated_failed_technique_signals ?? 0) > 0) {
     alertList.push(
-      `repeated_failed_technique_signals: ${legacyAlerts.repeated_failed_technique_signals}`,
+      `repeated_failed_technique_signals: ${baseAlerts.repeated_failed_technique_signals}`,
     );
   }
 
   return {
-    coverage: legacyScorecard?.coverage ?? {
+    coverage: baseScorecard?.coverage ?? {
       turns_total: trace.summary?.turns_total ?? null,
       user_messages: trace.summary?.user_messages ?? null,
       assistant_messages: trace.summary?.assistant_messages ?? null,
@@ -435,9 +435,9 @@ function computeEnrichedScorecard(trace, legacyScorecard) {
       observability_events_total: trace.summary?.observability_events_total ??
         null,
     },
-    triggers: legacyScorecard?.triggers ?? { distribution: {} },
-    gating: legacyScorecard?.gating ?? null,
-    blockers: legacyScorecard?.blockers ?? null,
+    triggers: baseScorecard?.triggers ?? { distribution: {} },
+    gating: baseScorecard?.gating ?? null,
+    blockers: baseScorecard?.blockers ?? null,
     dimension_distribution: dimensionDistribution,
     coaching_scope_distribution: coachingScopeDistribution,
     simplify_conclusions: {
@@ -447,21 +447,21 @@ function computeEnrichedScorecard(trace, legacyScorecard) {
       ignored_despite_overload: simplifyIgnoredDespiteOverload,
     },
     techniques: {
-      ...(legacyScorecard?.techniques ?? {}),
+      ...(baseScorecard?.techniques ?? {}),
       proposed_by_dimension: techniquesByDimension,
     },
-    effectiveness: legacyScorecard?.effectiveness ?? null,
-    weekly: legacyScorecard?.weekly ?? null,
+    effectiveness: baseScorecard?.effectiveness ?? null,
+    weekly: baseScorecard?.weekly ?? null,
     alerts: {
       list: alertList,
       dimension_mismatch: dimensionMismatch,
       simplify_ignored_despite_overload: simplifyIgnoredDespiteOverload,
       structural_needed_but_micro_given: structuralNeededButMicroGiven,
       low_confidence_selector_runs: Number(
-        legacyAlerts.low_confidence_selector_runs ?? 0,
+        baseAlerts.low_confidence_selector_runs ?? 0,
       ),
       repeated_failed_technique_signals: Number(
-        legacyAlerts.repeated_failed_technique_signals ?? 0,
+        baseAlerts.repeated_failed_technique_signals ?? 0,
       ),
     },
   };
@@ -592,7 +592,7 @@ async function main() {
     ]);
 
   const baseTrace = traceRes?.trace ?? {};
-  const legacyScorecard = scorecardRes?.scorecard ?? null;
+  const baseScorecard = scorecardRes?.scorecard ?? null;
   const enrichedSelectorRuns = toArray(baseTrace.selector_runs).map(
     enrichSelectorRun,
   );
@@ -635,7 +635,7 @@ async function main() {
     })),
   };
 
-  const scorecard = computeEnrichedScorecard(trace, legacyScorecard);
+  const scorecard = computeEnrichedScorecard(trace, baseScorecard);
 
   const bundle = {
     ok: true,
@@ -655,7 +655,7 @@ async function main() {
     },
     trace,
     scorecard,
-    legacy_scorecard: legacyScorecard,
+    base_scorecard: baseScorecard,
     annotations: [],
   };
 

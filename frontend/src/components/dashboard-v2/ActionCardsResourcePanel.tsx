@@ -1,15 +1,14 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { ChevronDown, ChevronUp, Compass, Map as MapIcon, Shield, Sword } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Compass, Map as MapIcon, Pencil, Sword, X } from "lucide-react";
 
 import type { DashboardV2PlanItemRuntime } from "../../hooks/useDashboardV2Data";
 import { supabase } from "../../lib/supabase";
 import { exportDefenseCardAsPdf } from "../../lib/exportDefenseCard";
 import {
   resolveAttackPreview,
-  resolveDefensePreview,
 } from "../../lib/actionCardsPreview";
 import { DefenseTriggerResourceCard, type DefenseTriggerResourceCardData } from "./DefenseCard";
-import type { PlanContentV3 } from "../../types/v2";
+import type { AttackCardContent, PlanContentV3, UserAttackCardRow } from "../../types/v2";
 
 type ActionCardsResourcePanelProps = {
   planContentV3: PlanContentV3 | null;
@@ -49,7 +48,8 @@ function AccordionSection({
 
   useEffect(() => {
     if (!forceOpenToken) return;
-    setIsOpen(true);
+    const timeoutId = window.setTimeout(() => setIsOpen(true), 0);
+    return () => window.clearTimeout(timeoutId);
   }, [forceOpenToken]);
 
   return (
@@ -102,6 +102,68 @@ function resolvePhaseOrder(
   return planContentV3?.phases.find((phase) => phase.phase_id === phaseId)?.phase_order ?? 999;
 }
 
+function normalizeAttackKeyword(input: string): string {
+  return String(input ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function replaceKeywordInText(value: string | null | undefined, previousKeyword: string, nextKeyword: string): string {
+  const text = String(value ?? "");
+  if (!previousKeyword.trim()) return text;
+  return text.replace(new RegExp(escapeRegExp(previousKeyword), "gi"), nextKeyword);
+}
+
+function getAttackKeywordTrigger(card: UserAttackCardRow | null | undefined) {
+  return card?.content.techniques.find((technique) =>
+    technique.technique_key === "pre_engagement" && technique.generated_result?.keyword_trigger
+  )?.generated_result?.keyword_trigger ?? null;
+}
+
+function updateAttackCardKeywordContent(
+  content: AttackCardContent,
+  nextKeyword: string,
+): AttackCardContent {
+  return {
+    ...content,
+    techniques: content.techniques.map((technique) => {
+      if (technique.technique_key !== "pre_engagement") {
+        return technique;
+      }
+
+      const generatedResult = technique.generated_result;
+      const keywordTrigger = generatedResult?.keyword_trigger;
+      if (!generatedResult || !keywordTrigger) return technique;
+
+      const previousKeyword = keywordTrigger.activation_keyword;
+      return {
+        ...technique,
+        generated_result: {
+          ...generatedResult,
+          generated_asset: replaceKeywordInText(generatedResult.generated_asset, previousKeyword, nextKeyword),
+          mode_emploi: replaceKeywordInText(generatedResult.mode_emploi, previousKeyword, nextKeyword),
+          keyword_trigger: {
+            activation_keyword: nextKeyword,
+            activation_keyword_normalized: normalizeAttackKeyword(nextKeyword),
+            risk_situation: keywordTrigger.risk_situation,
+            strength_anchor: keywordTrigger.strength_anchor,
+            first_response_intent: keywordTrigger.first_response_intent,
+            assistant_prompt: keywordTrigger.assistant_prompt,
+          },
+        },
+      };
+    }),
+  };
+}
+
 export function ActionCardsResourcePanel({
   planContentV3,
   planItems,
@@ -150,6 +212,25 @@ export function PlanActionCardsByLevel({
     item.cards_required &&
     (kind === "defense" ? item.linked_defense_card : item.linked_attack_card)
   );
+  const [openDefenseTriggerIds, setOpenDefenseTriggerIds] = useState<Record<string, boolean>>({});
+  const [updatingDefenseKey, setUpdatingDefenseKey] = useState<string | null>(null);
+  const [removingDefenseKey, setRemovingDefenseKey] = useState<string | null>(null);
+  const [editingAttackKeywordCardId, setEditingAttackKeywordCardId] = useState<string | null>(null);
+  const [attackKeywordDraft, setAttackKeywordDraft] = useState("");
+  const [confirmingAttackKeywordCardId, setConfirmingAttackKeywordCardId] = useState<string | null>(null);
+  const [updatingAttackKeywordCardId, setUpdatingAttackKeywordCardId] = useState<string | null>(null);
+  const [attackKeywordError, setAttackKeywordError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (kind !== "defense" || !focusDefenseTriggerKey || !focusDefenseToken) return;
+    const timeoutId = window.setTimeout(() => {
+      setOpenDefenseTriggerIds((current) => ({
+        ...current,
+        [focusDefenseTriggerKey]: true,
+      }));
+    }, 0);
+    return () => window.clearTimeout(timeoutId);
+  }, [kind, focusDefenseTriggerKey, focusDefenseToken]);
 
   if (resourceItems.length === 0) {
     return null;
@@ -181,9 +262,6 @@ export function PlanActionCardsByLevel({
   const wrapperClassName = embedded
     ? "rounded-2xl border border-stone-200 bg-white/80"
     : "rounded-[30px] border border-stone-200 bg-white shadow-sm";
-  const [openDefenseTriggerIds, setOpenDefenseTriggerIds] = useState<Record<string, boolean>>({});
-  const [updatingDefenseKey, setUpdatingDefenseKey] = useState<string | null>(null);
-  const [removingDefenseKey, setRemovingDefenseKey] = useState<string | null>(null);
 
   const toggleDefenseTrigger = (key: string) => {
     setOpenDefenseTriggerIds((current) => ({
@@ -191,14 +269,6 @@ export function PlanActionCardsByLevel({
       [key]: !current[key],
     }));
   };
-
-  useEffect(() => {
-    if (kind !== "defense" || !focusDefenseTriggerKey || !focusDefenseToken) return;
-    setOpenDefenseTriggerIds((current) => ({
-      ...current,
-      [focusDefenseTriggerKey]: true,
-    }));
-  }, [kind, focusDefenseTriggerKey, focusDefenseToken]);
 
   const flattenPlanDefenseCards = (item: DashboardV2PlanItemRuntime) => {
     const card = item.linked_defense_card;
@@ -311,6 +381,90 @@ export function PlanActionCardsByLevel({
     }
   };
 
+  const beginAttackKeywordEdit = (card: UserAttackCardRow) => {
+    const trigger = getAttackKeywordTrigger(card);
+    if (!trigger) return;
+    setEditingAttackKeywordCardId(card.id);
+    setAttackKeywordDraft(trigger.activation_keyword);
+    setConfirmingAttackKeywordCardId(null);
+    setAttackKeywordError(null);
+  };
+
+  const cancelAttackKeywordEdit = () => {
+    setEditingAttackKeywordCardId(null);
+    setAttackKeywordDraft("");
+    setConfirmingAttackKeywordCardId(null);
+    setAttackKeywordError(null);
+  };
+
+  const handlePrepareAttackKeywordUpdate = (card: UserAttackCardRow) => {
+    const nextKeyword = attackKeywordDraft.trim();
+    const currentKeyword = getAttackKeywordTrigger(card)?.activation_keyword ?? "";
+    setAttackKeywordError(null);
+    if (!nextKeyword) {
+      setAttackKeywordError("Choisis un mot de bascule avant de confirmer.");
+      return;
+    }
+    if (nextKeyword.length > 28) {
+      setAttackKeywordError("Choisis un mot court, plus facile a envoyer dans le moment fragile.");
+      return;
+    }
+    if (normalizeAttackKeyword(nextKeyword) === normalizeAttackKeyword(currentKeyword)) {
+      cancelAttackKeywordEdit();
+      return;
+    }
+    setConfirmingAttackKeywordCardId(card.id);
+  };
+
+  const handleConfirmAttackKeywordUpdate = async (card: UserAttackCardRow) => {
+    const currentTrigger = getAttackKeywordTrigger(card);
+    const nextKeyword = attackKeywordDraft.trim();
+    const normalizedNextKeyword = normalizeAttackKeyword(nextKeyword);
+    if (!currentTrigger || !normalizedNextKeyword) return false;
+
+    setUpdatingAttackKeywordCardId(card.id);
+    setAttackKeywordError(null);
+    try {
+      const { data: activeCards, error: activeCardsError } = await supabase
+        .from("user_attack_cards")
+        .select("id, content")
+        .eq("status", "active")
+        .neq("id", card.id);
+      if (activeCardsError) throw activeCardsError;
+
+      const keywordAlreadyUsed = ((activeCards ?? []) as Array<{ id: string; content: AttackCardContent }>).some((row) =>
+        row.content?.techniques?.some((technique) =>
+          technique.generated_result?.keyword_trigger?.activation_keyword_normalized === normalizedNextKeyword
+        )
+      );
+      if (keywordAlreadyUsed) {
+        setAttackKeywordError("Ce mot est deja utilise par une autre carte active. Choisis-en un autre.");
+        setConfirmingAttackKeywordCardId(null);
+        return false;
+      }
+
+      const nextContent = updateAttackCardKeywordContent(card.content, nextKeyword);
+      const { error } = await supabase
+        .from("user_attack_cards")
+        .update({
+          content: nextContent,
+          last_updated_at: new Date().toISOString(),
+        })
+        .eq("id", card.id);
+      if (error) throw error;
+
+      await onCardsChanged?.();
+      cancelAttackKeywordEdit();
+      return true;
+    } catch (error) {
+      console.error("[PlanActionCardsByLevel] update attack keyword failed:", error);
+      setAttackKeywordError("Le mot n'a pas pu etre remplace. Reessaie dans un instant.");
+      return false;
+    } finally {
+      setUpdatingAttackKeywordCardId(null);
+    }
+  };
+
   const content = (
     <div className="space-y-4">
       {[...grouped.entries()].map(([phaseId, items]) => (
@@ -361,7 +515,12 @@ export function PlanActionCardsByLevel({
           ) : (
             <div className="space-y-3">
               {items.map((item) => {
-                const attackPreview = resolveAttackPreview(item.linked_attack_card);
+                const attackCard = item.linked_attack_card;
+                const attackPreview = resolveAttackPreview(attackCard);
+                const keywordTrigger = getAttackKeywordTrigger(attackCard);
+                const isEditingKeyword = Boolean(attackCard && editingAttackKeywordCardId === attackCard.id);
+                const isConfirmingKeyword = Boolean(attackCard && confirmingAttackKeywordCardId === attackCard.id);
+                const isUpdatingKeyword = Boolean(attackCard && updatingAttackKeywordCardId === attackCard.id);
 
                 return (
                   <AccordionSection
@@ -381,6 +540,103 @@ export function PlanActionCardsByLevel({
                           <p><span className="font-semibold">Technique:</span> {attackPreview.techniqueTitle}</p>
                           <p>{attackPreview.generatedAsset ?? attackPreview.summary}</p>
                           <p><span className="font-semibold">Mode d'emploi:</span> {attackPreview.modeEmploi}</p>
+                          {attackCard && keywordTrigger ? (
+                            <div className="mt-4 rounded-xl border border-amber-200 bg-white px-3 py-3">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
+                                    Mot de bascule
+                                  </p>
+                                  <p className="mt-1 text-sm text-stone-800">{keywordTrigger.activation_keyword}</p>
+                                </div>
+                                {!isEditingKeyword ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => beginAttackKeywordEdit(attackCard)}
+                                    className="inline-flex items-center gap-2 rounded-full border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-800 hover:bg-amber-50"
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                    Modifier le mot
+                                  </button>
+                                ) : null}
+                              </div>
+
+                              {isEditingKeyword ? (
+                                <div className="mt-3 space-y-3 border-t border-amber-100 pt-3">
+                                  <p className="text-xs leading-5 text-stone-600">
+                                    Seul le mot de bascule est modifiable ici. Pour changer le contexte, le protocole ou la technique, cree une nouvelle carte d'attaque.
+                                  </p>
+                                  <div className="flex flex-col gap-2 sm:flex-row">
+                                    <input
+                                      value={attackKeywordDraft}
+                                      onChange={(event) => {
+                                        setAttackKeywordDraft(event.target.value);
+                                        setConfirmingAttackKeywordCardId(null);
+                                        setAttackKeywordError(null);
+                                      }}
+                                      className="min-h-10 flex-1 rounded-xl border border-stone-300 bg-white px-3 text-sm text-stone-900 outline-none focus:border-amber-500"
+                                      placeholder="Nouveau mot court"
+                                      disabled={isUpdatingKeyword}
+                                    />
+                                    <div className="flex gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => handlePrepareAttackKeywordUpdate(attackCard)}
+                                        disabled={isUpdatingKeyword}
+                                        className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-stone-950 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                                      >
+                                        <Check className="h-4 w-4" />
+                                        Valider
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={cancelAttackKeywordEdit}
+                                        disabled={isUpdatingKeyword}
+                                        className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-stone-300 px-3 text-sm font-semibold text-stone-700 disabled:opacity-60"
+                                      >
+                                        <X className="h-4 w-4" />
+                                        Annuler
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {isConfirmingKeyword ? (
+                                    <div className="rounded-xl border border-stone-200 bg-stone-50 px-3 py-3">
+                                      <p className="text-sm leading-6 text-stone-700">
+                                        Confirmer le remplacement de "{keywordTrigger.activation_keyword}" par "{attackKeywordDraft.trim()}" dans le systeme ?
+                                      </p>
+                                      <div className="mt-3 flex flex-wrap gap-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            void handleConfirmAttackKeywordUpdate(attackCard);
+                                          }}
+                                          disabled={isUpdatingKeyword}
+                                          className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-amber-700 px-3 text-sm font-semibold text-white disabled:opacity-60"
+                                        >
+                                          <Check className="h-4 w-4" />
+                                          Confirmer
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => setConfirmingAttackKeywordCardId(null)}
+                                          disabled={isUpdatingKeyword}
+                                          className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-stone-300 px-3 text-sm font-semibold text-stone-700 disabled:opacity-60"
+                                        >
+                                          <X className="h-4 w-4" />
+                                          Retour
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : null}
+
+                                  {attackKeywordError ? (
+                                    <p className="text-xs font-medium text-red-700">{attackKeywordError}</p>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
                         </div>
                       ) : (
                         <p className="mt-2 text-sm text-stone-500">Carte non disponible.</p>

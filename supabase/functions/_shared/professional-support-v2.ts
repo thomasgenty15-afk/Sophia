@@ -258,8 +258,20 @@ export async function classifyAndPersistProfessionalSupport(args: {
     );
   }
 
+  parsed = normalizeProfessionalSupportCandidate(parsed, args.plan);
+
   const validation = ENRICHED_SUPPORT_SCHEMA.safeParse(parsed);
   if (!validation.success) {
+    console.warn("[professional-support-v2][validation_failed]", {
+      request_id: args.requestId,
+      user_id: args.userId,
+      transformation_id: args.transformation.id,
+      plan_id: args.planRow.id,
+      issues: validation.error.issues.map((issue) => ({
+        path: issue.path.join(".") || "root",
+        message: issue.message,
+      })),
+    });
     throw new ProfessionalSupportV2Error(
       500,
       "LLM returned a professional support classification that failed schema validation",
@@ -509,6 +521,124 @@ function resolveTargetPhaseIdForRecommendation(
     entry.level_order === targetLevelOrder
   );
   return blueprintPhase?.phase_id ?? null;
+}
+
+function normalizeProfessionalSupportCandidate(
+  value: unknown,
+  plan: PlanContentV3,
+): unknown {
+  if (!isRecord(value)) return value;
+
+  const shouldRecommend = value.should_recommend === true;
+  if (!shouldRecommend) {
+    return {
+      ...value,
+      should_recommend: false,
+      recommendation_level: "optional",
+      summary: null,
+      recommendations: [],
+    };
+  }
+
+  const availableLevelOrders = resolveAvailableLevelOrders(plan);
+  const fallbackLevelOrder = availableLevelOrders[0] ?? 2;
+  const recommendations = Array.isArray(value.recommendations)
+    ? value.recommendations
+    : [];
+
+  const normalizedRecommendations = recommendations
+    .flatMap((entry): Record<string, unknown>[] => {
+      if (!isRecord(entry)) return [];
+
+      const key = normalizeProfessionalSupportKey(
+        typeof entry.key === "string"
+          ? entry.key
+          : typeof entry.professional_key === "string"
+          ? entry.professional_key
+          : "",
+      );
+      if (!key) return [];
+
+      const reason = typeof entry.reason === "string" && entry.reason.trim()
+        ? entry.reason.trim()
+        : "";
+      if (!reason) return [];
+
+      const rawTargetLevel = Number(entry.target_level_order);
+      const targetLevelOrder = availableLevelOrders.includes(rawTargetLevel)
+        ? rawTargetLevel
+        : fallbackLevelOrder;
+
+      return [{
+        ...entry,
+        key,
+        reason,
+        timing_kind: "during_target_level",
+        target_level_order: targetLevelOrder,
+        timing_reason:
+          typeof entry.timing_reason === "string" && entry.timing_reason.trim()
+            ? entry.timing_reason.trim()
+            : reason,
+      }];
+    })
+    .slice(0, 3)
+    .map((entry, index) => ({
+      ...entry,
+      priority_rank: index + 1,
+    }));
+
+  if (normalizedRecommendations.length === 0) {
+    return {
+      ...value,
+      should_recommend: false,
+      recommendation_level: "optional",
+      summary: null,
+      recommendations: [],
+    };
+  }
+
+  return {
+    ...value,
+    should_recommend: true,
+    recommendation_level:
+      value.recommendation_level === "recommended" ? "recommended" : "optional",
+    summary: typeof value.summary === "string" && value.summary.trim()
+      ? value.summary.trim()
+      : "Un appui professionnel ciblé peut aider à sécuriser cette transformation.",
+    recommendations: normalizedRecommendations,
+  };
+}
+
+function resolveAvailableLevelOrders(plan: PlanContentV3): number[] {
+  const orders = new Set<number>();
+  for (const phase of plan.phases ?? []) {
+    if (Number.isInteger(phase.phase_order) && phase.phase_order >= 2) {
+      orders.add(phase.phase_order);
+    }
+  }
+  for (const level of plan.plan_blueprint?.levels ?? []) {
+    if (Number.isInteger(level.level_order) && level.level_order >= 2) {
+      orders.add(level.level_order);
+    }
+  }
+  return [...orders].sort((a, b) => a - b);
+}
+
+function normalizeProfessionalSupportKey(value: string): ProfessionalSupportKey | null {
+  const normalized = value.trim().toLowerCase();
+  if ((PROFESSIONAL_SUPPORT_KEYS as string[]).includes(normalized)) {
+    return normalized as ProfessionalSupportKey;
+  }
+
+  const aliases: Record<string, ProfessionalSupportKey> = {
+    business_coach: "career_coach",
+    startup_coach: "career_coach",
+    entrepreneur_coach: "career_coach",
+    entrepreneurship_coach: "career_coach",
+    productivity_coach: "adhd_coach",
+    executive_function_coach: "adhd_coach",
+  };
+  return aliases[normalized] ?? null;
 }
 
 async function loadLatestTransformationHandoffPayload(args: {

@@ -107,7 +107,7 @@ const IdentityArchitect = () => {
                 const uiId = entry.module_id;
 
                 // Le contenu est stocké sous forme { answer: "..." } ou directement la string ?
-                // On va standardiser sur { answer: "..." } pour être propre, mais gérons le legacy string au cas où.
+                // Standard shape is { answer: "..." }; older rows may still be a raw string.
                 const val = entry.content?.answer || entry.content; // Compatibilité
                 if (typeof val === 'string') {
                     newAnswers[uiId] = val;

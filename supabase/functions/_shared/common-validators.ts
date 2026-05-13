@@ -3,7 +3,7 @@ import { z } from "npm:zod@3.22.4";
 // --- 1. ROUTER (DISPATCHER) ---
 
 export const DispatcherSchema = z.object({
-  targetMode: z.enum(['sentry', 'investigator', 'architect', 'assistant', 'companion']),
+  targetMode: z.enum(['sentry', 'architect', 'assistant', 'companion']),
   riskScore: z.number().min(0).max(10)
 });
 
@@ -46,4 +46,3 @@ export const SortedAxesSchema = z.object({
 export function validateDispatcher(data: any) { return DispatcherSchema.parse(data); }
 export function validateMiniAction(data: any) { return MiniActionSchema.parse(data); }
 export function validateSortedAxes(data: any) { return SortedAxesSchema.parse(data); }
-

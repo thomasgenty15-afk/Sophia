@@ -6,6 +6,7 @@ import {
 
 export type CheckinExclusionSnapshot = {
   planActionTitles: string[];
+  planActionDetails: string[];
   personalActionTitles: string[];
   frameworkTitles: string[];
   vitalSignTitles: string[];
@@ -103,13 +104,18 @@ export async function fetchCheckinExclusionSnapshot(params: {
   admin: SupabaseClient;
   userId: string;
 }): Promise<CheckinExclusionSnapshot> {
-  const runtime = await getActiveTransformationRuntime(params.admin, params.userId);
+  const runtime = await getActiveTransformationRuntime(
+    params.admin,
+    params.userId,
+  );
   const [
     planItems,
     remindersRes,
   ] = await Promise.all([
     runtime.plan
-      ? getPlanItemRuntime(params.admin, runtime.plan.id, { maxEntriesPerItem: 1 })
+      ? getPlanItemRuntime(params.admin, runtime.plan.id, {
+        maxEntriesPerItem: 1,
+      })
       : Promise.resolve([]),
     params.admin
       .from("user_recurring_reminders")
@@ -124,8 +130,30 @@ export async function fetchCheckinExclusionSnapshot(params: {
 
   const planActionTitles = dedupeStrings(
     planItems
-      .filter((row) => row.dimension === "missions" || row.dimension === "habits")
+      .filter((row) =>
+        row.dimension === "missions" || row.dimension === "habits"
+      )
       .map((row) => cleanText(row.title)),
+  );
+  const planActionDetails = dedupeStrings(
+    planItems
+      .filter((row) =>
+        row.dimension === "missions" || row.dimension === "habits"
+      )
+      .map((row) => {
+        const parts = [
+          cleanText(row.title),
+          `dimension=${cleanText(row.dimension)}`,
+          `kind=${cleanText(row.kind)}`,
+          `status=${cleanText(row.status)}`,
+          row.time_of_day ? `time_of_day=${cleanText(row.time_of_day)}` : "",
+          row.cadence_label ? `cadence=${cleanText(row.cadence_label)}` : "",
+          row.description
+            ? `description=${cleanText(row.description, 120)}`
+            : "",
+        ].filter(Boolean);
+        return parts.join(" | ");
+      }),
   );
   const personalActionTitles: string[] = [];
   const frameworkTitles = dedupeStrings(
@@ -136,10 +164,7 @@ export async function fetchCheckinExclusionSnapshot(params: {
       .map((row) => cleanText(row.title)),
   );
   const vitalSignTitles = dedupeStrings(
-    [
-      cleanText(runtime.north_star?.title),
-      ...((runtime.progress_markers ?? []).map((row) => cleanText(row.title))),
-    ],
+    (runtime.progress_markers ?? []).map((row) => cleanText(row.title)),
   );
   const recurringReminderLabels = dedupeStrings(
     ((remindersRes.data ?? []) as Array<Record<string, unknown>>).map((row) =>
@@ -156,6 +181,7 @@ export async function fetchCheckinExclusionSnapshot(params: {
 
   return {
     planActionTitles,
+    planActionDetails,
     personalActionTitles,
     frameworkTitles,
     vitalSignTitles,
@@ -169,7 +195,12 @@ export function formatWatcherExclusionSnapshot(
 ): string {
   return [
     "Actions du plan (hors-scope):",
-    formatPromptList(snapshot.planActionTitles, "(aucune)"),
+    formatPromptList(
+      snapshot.planActionDetails.length > 0
+        ? snapshot.planActionDetails
+        : snapshot.planActionTitles,
+      "(aucune)",
+    ),
     "Actions perso (hors-scope):",
     formatPromptList(snapshot.personalActionTitles, "(aucune)"),
     "Frameworks (hors-scope, jamais a simplifier):",

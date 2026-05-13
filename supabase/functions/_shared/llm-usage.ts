@@ -97,7 +97,6 @@ export function inferOperationFromSource(source: string | null | undefined): { o
   // Sophia-brain conversational generators.
   if (
     src.includes("companion") ||
-    src.includes("investigator") ||
     src.includes("firefighter") ||
     src.includes("sentry")
   ) {

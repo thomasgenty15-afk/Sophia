@@ -641,7 +641,7 @@ async function main() {
     },
     trace,
     scorecard,
-    legacy_momentum_scorecard: momentumScorecardRes?.scorecard ?? null,
+    base_momentum_scorecard: momentumScorecardRes?.scorecard ?? null,
     annotations: [],
   };
 

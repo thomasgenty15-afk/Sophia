@@ -8,7 +8,7 @@ do $$
 declare
   existing_jobid int;
 begin
-  -- Unschedule legacy jobs if they exist (safe no-op if not present).
+  -- Unschedule V1 jobs if they exist (safe no-op if not present).
   select jobid into existing_jobid from cron.job where jobname = 'trigger-daily-bilan' limit 1;
   if existing_jobid is not null then
     perform cron.unschedule(existing_jobid);
@@ -47,6 +47,5 @@ select cron.schedule(
     ) as request_id;
   $$
 );
-
 
 

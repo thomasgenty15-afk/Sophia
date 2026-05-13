@@ -196,6 +196,26 @@ function logWebhookTrace(args) {
   };
   console.log(`[whatsapp-webhook] trace ${JSON.stringify(payload)}`);
 }
+
+function buildDefaultWhatsAppConversationContext() {
+  return [
+    "=== CONTEXTE WHATSAPP NORMAL ===",
+    "Surface: conversation WhatsApp/SMS courte, pas interface de coaching longue.",
+    "",
+    "HORS-SUJETS:",
+    "- Si le dernier message part sur un sujet hors plan (sport, fun, faim, culture, etc.), reponds utilement mais court: 1-2 phrases max sur ce sujet.",
+    "- Ensuite, si c'est naturel, propose un retour leger vers moi/le plan. Ne reste pas aspire dans le hors-sujet pendant plusieurs tours.",
+    "- Ne recycle pas les emojis, metaphores ou vocabulaire du hors-sujet dans les tours suivants s'ils n'ont plus de rapport.",
+    "- Si l'utilisateur demande explicitement de parler d'autre chose, respecte-le, mais garde un style bref et present.",
+    "",
+    "SUPPRESSION DE MESSAGES:",
+    "- Si l'utilisateur demande ce que change la suppression de messages dans l'interface: explique precisement que cela retire les lignes visibles de chat_messages/historique chat.",
+    "- Precise que cela ne reinitialise pas automatiquement les autres traces: preferences/facts, plan, memoires, etats de workflow, traces modules, rappels ou autres tables.",
+    "- Reponds toujours a la premiere personne: dis 'pour moi', jamais 'pour Sophia'.",
+    "- Pour retester proprement un onboarding, il faut utiliser la commande/reset de test, pas seulement supprimer les bulles.",
+    "=== FIN CONTEXTE WHATSAPP NORMAL ===",
+  ].join("\n");
+}
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   const requestStartedAtMs = Date.now();
@@ -252,7 +272,7 @@ Deno.serve(async (req) => {
       startedAtMs: requestStartedAtMs,
     });
     const rawBuf = await req.arrayBuffer();
-    const ok = await verifyXHubSignature(req, rawBuf);
+    const ok = loopback || await verifyXHubSignature(req, rawBuf);
     logWebhookTrace({
       requestId,
       phase: "after_signature_verification",
@@ -497,23 +517,28 @@ Deno.serve(async (req) => {
           phase: "before_profile_lookup",
           startedAtMs: processStartedAtMs,
         });
-        const { data: candidates, error: profErr } = await admin.from(
-          "profiles",
-        ).select(
-          "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed",
-        ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." (legacy/manual input).
-          // We try a small set of safe variants to avoid false "unknown number" prompts.
-          .in(
-            "phone_number",
-            [
-              fromE164,
-              fromDigits,
-              frLocal,
-            ].filter(Boolean),
-          ).order("phone_verified_at", {
-            ascending: false,
-            nullsFirst: false,
-          }).limit(2);
+        const simUserId = loopback ? String(msg.sim_user_id ?? "").trim() : "";
+        const { data: candidates, error: profErr } = simUserId
+          ? await admin.from("profiles").select(
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed",
+          ).eq("id", simUserId).limit(1)
+          : await admin.from(
+            "profiles",
+          ).select(
+            "id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed",
+          ) // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." from manual input.
+            // We try a small set of safe variants to avoid false "unknown number" prompts.
+            .in(
+              "phone_number",
+              [
+                fromE164,
+                fromDigits,
+                frLocal,
+              ].filter(Boolean),
+            ).order("phone_verified_at", {
+              ascending: false,
+              nullsFirst: false,
+            }).limit(2);
         if (profErr) throw profErr;
         logWebhookTrace({
           requestId,
@@ -979,8 +1004,17 @@ Deno.serve(async (req) => {
             // Fall through to normal brain pipeline
           }
         }
-        if (profile.whatsapp_state && !profile.onboarding_completed) {
-          const waState = String(profile.whatsapp_state || "");
+        const waState = String(profile.whatsapp_state || "");
+        const isActiveWhatsAppSimulationOnboarding =
+          /^onboarding_pref_(tone|challenge|questions)$/.test(waState) ||
+          /^(onboarding_plan_creation_feedback|onboarding_topic_choice)$/.test(
+            waState,
+          );
+        if (
+          profile.whatsapp_state &&
+          (!profile.onboarding_completed ||
+            isActiveWhatsAppSimulationOnboarding)
+        ) {
           logWebhookTrace({
             requestId,
             processId,
@@ -1031,7 +1065,7 @@ Deno.serve(async (req) => {
           requestId: processId,
           replyToWaMessageId: msg.wa_message_id,
           purpose: "whatsapp_default_brain_reply",
-          contextOverride: "",
+          contextOverride: buildDefaultWhatsAppConversationContext(),
         });
         logWebhookTrace({
           requestId,

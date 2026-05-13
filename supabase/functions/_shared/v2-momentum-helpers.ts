@@ -27,7 +27,7 @@ export function detectReplyQuality(userMessage: string): ReplyQuality {
 // deno-lint-ignore no-explicit-any
 type AnyMomentumState = Record<string, any>;
 
-function legacyDisabledGetTopMomentumBlocker(
+function getDisabledV1TopMomentumBlocker(
   momentum: AnyMomentumState,
 ): { action_title?: string; current_category?: string; stage?: string } | null {
   const memory = momentum?.blocker_memory;
@@ -62,7 +62,7 @@ export function summarizeMomentumStateForLog(
       updated_at: momentum.updated_at ?? null,
     };
   }
-  const topBlocker = legacyDisabledGetTopMomentumBlocker(momentum);
+  const topBlocker = getDisabledV1TopMomentumBlocker(momentum);
   return {
     state: momentum.current_state ?? null,
     state_reason: momentum.state_reason ?? null,

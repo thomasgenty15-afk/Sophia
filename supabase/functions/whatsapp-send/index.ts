@@ -13,6 +13,7 @@ import {
   markWhatsAppOutboundSent,
   markWhatsAppOutboundSkipped,
 } from "../_shared/whatsapp_outbound_tracking.ts";
+import { renderWhatsAppTemplate } from "../_shared/whatsapp_templates.ts";
 
 function isMegaTestMode(): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
@@ -22,6 +23,12 @@ function isMegaTestMode(): boolean {
     url.includes("http://kong:8000") ||
     url.includes(":54321");
   return megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
+}
+
+function isWhatsAppWebSimulationEnabled(): boolean {
+  const raw = (Deno.env.get("WHATSAPP_WEB_SIMULATION_ENABLED") ?? "").trim()
+    .toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes";
 }
 
 type SendText = { type: "text"; body: string };
@@ -243,6 +250,7 @@ Deno.serve(async (req) => {
     }
     userIdForLog = body.user_id;
     const purpose = String(body.purpose ?? "").trim();
+    const webSimulationEnabled = isWhatsAppWebSimulationEnabled();
     const metadataExtra =
       body.metadata_extra && typeof body.metadata_extra === "object"
         ? body.metadata_extra
@@ -286,6 +294,7 @@ Deno.serve(async (req) => {
     }
     const requireOptedIn = body.require_opted_in !== false;
     if (
+      !webSimulationEnabled &&
       requireOptedIn &&
       (!profile.whatsapp_opted_in || profile.whatsapp_opted_out_at)
     ) {
@@ -313,7 +322,10 @@ Deno.serve(async (req) => {
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
     // In MEGA test mode we keep behavior permissive to avoid flakiness.
-    if (!isMegaTestMode() && !inTrial && !isLifecycleAccessMessage) {
+    if (
+      !webSimulationEnabled && !isMegaTestMode() && !inTrial &&
+      !isLifecycleAccessMessage
+    ) {
       const tier = await getEffectiveTierForUser(admin, body.user_id);
       if (tier !== "alliance" && tier !== "architecte") {
         return await preflightErrorResponse({
@@ -329,7 +341,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    const toE164 = normalizeToE164(body.to ?? profile.phone_number ?? "");
+    const toE164 = normalizeToE164(body.to ?? profile.phone_number ?? "") ||
+      (webSimulationEnabled ? "+10000000000" : "");
     if (!toE164) {
       return await preflightErrorResponse({
         req,
@@ -352,7 +365,7 @@ Deno.serve(async (req) => {
     const templatePolicyPriority = proactiveTemplatePriorityForPurpose(purpose);
 
     // Throttle only when proactive (per spec)
-    if (isProactive) {
+    if (!webSimulationEnabled && isProactive) {
       const sent = await countProactiveLast10h(admin, body.user_id);
       if (sent >= 2) {
         return await preflightErrorResponse({
@@ -385,7 +398,10 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (isProactive && mustUseTemplate && templatePolicyPriority > 0) {
+    if (
+      !webSimulationEnabled && isProactive && mustUseTemplate &&
+      templatePolicyPriority > 0
+    ) {
       const timezone = String((profile as any)?.timezone ?? "").trim() ||
         "Europe/Paris";
       const existingTemplate = await findSentProactiveTemplateToday({
@@ -496,10 +512,21 @@ Deno.serve(async (req) => {
     }
 
     // Always create an outbound tracking row (authoritative for retry/status).
+    const graphTemplateName = String(
+      graphPayload?.template?.name ??
+        (body.message.type === "template" ? body.message.name : ""),
+    ).trim();
+    const renderedTemplate = graphPayload?.type === "template"
+      ? renderWhatsAppTemplate({
+        name: graphTemplateName,
+        components: graphPayload?.template?.components,
+        fallbackParams: [String((profile as any)?.full_name ?? "").trim()],
+      })
+      : null;
     const contentForLog = body.message.type === "text" ||
         body.message.type === "interactive_buttons"
       ? body.message.body
-      : `[TEMPLATE:${body.message.name}]`;
+      : renderedTemplate?.content ?? `[TEMPLATE:${body.message.name}]`;
 
     const outboundId = await createWhatsAppOutboundRow(admin as any, {
       request_id: requestId,
@@ -523,9 +550,87 @@ Deno.serve(async (req) => {
         template_name: templateName,
         template_language: templateLanguage,
         unit_cost_eur: graphPayload?.type === "template" ? 0.0712 : null,
+        simulated_whatsapp: webSimulationEnabled ? true : null,
         ...(metadataExtra ?? {}),
       },
     });
+
+    if (webSimulationEnabled) {
+      const waOutboundId = `wamid_WEB_SIM_${requestId}`;
+      const attemptCount = 1;
+      await markWhatsAppOutboundSent(admin as any, outboundId, {
+        provider_message_id: waOutboundId,
+        attempt_count: attemptCount,
+        transport: "web_simulation",
+        raw_response: {
+          simulated_whatsapp: true,
+          template: renderedTemplate,
+          graph_payload: graphPayload,
+        },
+      });
+
+      const { error: logErr } = await admin.from("chat_messages").insert({
+        user_id: body.user_id,
+        scope: "whatsapp",
+        role: "assistant",
+        content: contentForLog,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          is_proactive: isProactive,
+          purpose: body.purpose ?? null,
+          require_opted_in: requireOptedIn,
+          wa_outbound_message_id: waOutboundId,
+          to: toE164,
+          request_id: requestId,
+          outbound_tracking_id: outboundId,
+          simulated_whatsapp: true,
+          simulation_bypassed_opt_in: requireOptedIn &&
+            (!profile.whatsapp_opted_in || profile.whatsapp_opted_out_at),
+          simulation_bypassed_phone: !normalizeToE164(
+            body.to ?? profile.phone_number ?? "",
+          ),
+          whatsapp_template: renderedTemplate
+            ? {
+              name: renderedTemplate.name,
+              known: renderedTemplate.known,
+              buttons: renderedTemplate.buttons,
+              params: renderedTemplate.params,
+            }
+            : null,
+          whatsapp_buttons: body.message.type === "interactive_buttons"
+            ? body.message.buttons.map((button) => button.title)
+            : (renderedTemplate?.buttons ?? []),
+          ...(body.metadata_extra && typeof body.metadata_extra === "object"
+            ? body.metadata_extra
+            : {}),
+        },
+      });
+      if (logErr) throw logErr;
+
+      await admin
+        .from("profiles")
+        .update({ whatsapp_last_outbound_at: new Date().toISOString() })
+        .eq("id", body.user_id);
+
+      return jsonResponse(
+        req,
+        {
+          success: true,
+          wa_outbound_message_id: waOutboundId,
+          skipped: false,
+          skip_reason: null,
+          simulated_whatsapp: true,
+          in_trial: inTrial,
+          proactive: isProactive,
+          used_template: Boolean(mustUseTemplate),
+          in_24h_window: Boolean(isIn24h),
+          rendered_template: renderedTemplate,
+          request_id: requestId,
+        },
+        { includeCors: false },
+      );
+    }
 
     const sendRes = await sendWhatsAppGraph(graphPayload);
     const attemptCount = 1;

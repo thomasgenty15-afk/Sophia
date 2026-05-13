@@ -179,18 +179,21 @@ async function loadKnownTopics(
 ): Promise<KnownTopic[]> {
   const { data, error } = await admin
     .from("user_topic_memories")
-    .select("id,slug,title,lifecycle_stage,search_doc,status")
+    .select("id,slug,title,lifecycle_stage,search_doc,status,metadata")
     .eq("user_id", userId)
     .eq("status", "active")
     .limit(100);
   if (error) throw error;
   return (data ?? []).map((row: any) => ({
+    metadata: row.metadata ?? {},
     id: String(row.id),
     slug: row.slug ?? null,
     title: String(row.title ?? ""),
     lifecycle_stage: row.lifecycle_stage ?? null,
     search_doc: row.search_doc ?? null,
-    domain_keys: [],
+    domain_keys: Array.isArray(row.metadata?.domain_keys)
+      ? row.metadata.domain_keys.map(String)
+      : [],
   }));
 }
 

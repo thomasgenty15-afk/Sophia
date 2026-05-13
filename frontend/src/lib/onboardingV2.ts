@@ -146,6 +146,12 @@ export type PlanReviewDraft = {
   feedback: string;
 };
 
+export type OnboardingLoadingRequest = {
+  id: "analyze" | "questionnaire" | "plan" | "focus" | "save" | "activate";
+  label: string;
+  started_at: string;
+};
+
 export type OnboardingV2Draft = {
   version: 1;
   anonymous_session_id: string;
@@ -179,6 +185,7 @@ export type OnboardingV2Draft = {
   profile: MinimalProfileDraft;
   plan_review: PlanReviewDraft | null;
   roadmap_transition: RoadmapTransitionDraft | null;
+  loading_request: OnboardingLoadingRequest | null;
   updated_at: string;
 };
 
@@ -294,6 +301,7 @@ export function normalizeOnboardingV2Draft(
     },
     plan_review: null,
     roadmap_transition: null,
+    loading_request: null,
     updated_at: new Date().toISOString(),
   };
 

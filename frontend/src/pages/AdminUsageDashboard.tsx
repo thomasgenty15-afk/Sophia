@@ -64,8 +64,8 @@ type UserOperationRow = {
   total_tokens: number;
 };
 
-type LegacySourceRow = { source: string | null };
-type LegacyModelRow = { model: string | null };
+type UsageSourceRow = { source: string | null };
+type UsageModelRow = { model: string | null };
 
 const PRESETS: Record<Preset, number> = {
   "24h": 1,
@@ -79,16 +79,15 @@ function toCsv(headers: string[], rows: Array<Record<string, unknown>>): string 
   return [headers.map(esc).join(","), ...rows.map((r) => headers.map((h) => esc(r[h])).join(","))].join("\n");
 }
 
-function normalizeLegacyFamily(source: string): string {
+function normalizeUsageFamily(source: string): string {
   const s = String(source || "").trim().toLowerCase();
   if (!s) return "other";
   if (s.includes("embed")) return "embedding";
   if (s.includes("generate-plan") || s.includes("plan")) return "plan_generation";
   if (s.includes("dispatcher")) return "dispatcher";
-  if (s.includes("sort-priorities")) return "sort_priorities";
-  if (s.includes("summarize-context") || s.includes("summary")) return "summarize_context";
+  if (s.includes("summary")) return "summarize_context";
   if (s.includes("ethical")) return "ethics_check";
-  if (s.includes("companion") || s.includes("investigator") || s.includes("firefighter") || s.includes("sentry")) return "message_generation";
+  if (s.includes("companion") || s.includes("firefighter") || s.includes("sentry")) return "message_generation";
   if (s.includes("memorizer") || s.includes("topic_memory") || s.includes("topic_") || s.includes("synthesizer")) return "memorizer";
   if (s.includes("watcher")) return "watcher";
   if (s.includes("schedule") || s.includes("checkin") || s.includes("reminder")) return "scheduling";
@@ -96,7 +95,7 @@ function normalizeLegacyFamily(source: string): string {
   return "other";
 }
 
-function normalizeLegacyOperation(source: string): string {
+function normalizeUsageOperation(source: string): string {
   const s = String(source || "").trim().toLowerCase();
   if (!s) return "unknown";
   if (s.startsWith("sophia-brain:")) return s;
@@ -126,8 +125,8 @@ export default function AdminUsageDashboard() {
   const [operations, setOperations] = useState<OperationRow[]>([]);
   const [compare, setCompare] = useState<any>(null);
   const [daily, setDaily] = useState<any>(null);
-  const [legacySources, setLegacySources] = useState<string[]>([]);
-  const [legacyModels, setLegacyModels] = useState<string[]>([]);
+  const [usageSources, setUsageSources] = useState<string[]>([]);
+  const [usageModels, setUsageModels] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userOperationRows, setUserOperationRows] = useState<UserOperationRow[]>([]);
@@ -181,18 +180,18 @@ export default function AdminUsageDashboard() {
         setCompare((compareRes.data as any)?.[0] ?? null);
         setDaily((dailyRes.data as any)?.[0] ?? null);
         setLoadError(null);
-        // Fallback pools for filters: old RPCs provide model/source even if operation rows are sparse.
-        const [legacySourceRes, legacyModelRes] = await Promise.all([
+        // Extra filter pools: usage RPCs provide model/source even if operation rows are sparse.
+        const [usageSourceRes, usageModelRes] = await Promise.all([
           supabase.rpc("get_usage_by_source", { period_start: startAt }),
           supabase.rpc("get_usage_by_model", { period_start: startAt }),
         ]);
-        setLegacySources(
-          ((legacySourceRes.data as LegacySourceRow[] | null) ?? [])
+        setUsageSources(
+          ((usageSourceRes.data as UsageSourceRow[] | null) ?? [])
             .map((x) => String(x.source ?? "").trim())
             .filter(Boolean),
         );
-        setLegacyModels(
-          ((legacyModelRes.data as LegacyModelRow[] | null) ?? [])
+        setUsageModels(
+          ((usageModelRes.data as UsageModelRow[] | null) ?? [])
             .map((x) => String(x.model ?? "").trim())
             .filter(Boolean),
         );
@@ -243,8 +242,8 @@ export default function AdminUsageDashboard() {
 
   const providerOptions = useMemo(() => ["all", ...Array.from(new Set(operations.map((o) => o.provider).filter(Boolean)))], [operations]);
   const modelOptions = useMemo(
-    () => ["all", ...Array.from(new Set([...operations.map((o) => o.model).filter(Boolean), ...legacyModels]))],
-    [operations, legacyModels],
+    () => ["all", ...Array.from(new Set([...operations.map((o) => o.model).filter(Boolean), ...usageModels]))],
+    [operations, usageModels],
   );
   const familyOptions = useMemo(
     () =>
@@ -252,12 +251,12 @@ export default function AdminUsageDashboard() {
         "all",
         ...Array.from(
           new Set([
-            ...operations.map((o) => (o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family)).filter(Boolean),
-            ...legacySources.map((s) => normalizeLegacyFamily(s)),
+            ...operations.map((o) => (o.operation_family === "other" ? normalizeUsageFamily(o.source) : o.operation_family)).filter(Boolean),
+            ...usageSources.map((s) => normalizeUsageFamily(s)),
           ]),
         ),
       ],
-    [operations, legacySources],
+    [operations, usageSources],
   );
   const operationOptions = useMemo(
     () =>
@@ -265,12 +264,12 @@ export default function AdminUsageDashboard() {
         "all",
         ...Array.from(
           new Set([
-            ...operations.map((o) => normalizeLegacyOperation(o.operation_name || o.source)).filter(Boolean),
-            ...legacySources.map((s) => normalizeLegacyOperation(s)),
+            ...operations.map((o) => normalizeUsageOperation(o.operation_name || o.source)).filter(Boolean),
+            ...usageSources.map((s) => normalizeUsageOperation(s)),
           ]),
         ),
       ],
-    [operations, legacySources],
+    [operations, usageSources],
   );
 
   useEffect(() => {
@@ -650,8 +649,8 @@ export default function AdminUsageDashboard() {
                       </tr>
                     ) : (
                       filteredUserOps.map((o, idx) => {
-                        const family = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
-                        const operation = normalizeLegacyOperation(o.operation_name || o.source);
+                        const family = o.operation_family === "other" ? normalizeUsageFamily(o.source) : o.operation_family;
+                        const operation = normalizeUsageOperation(o.operation_name || o.source);
                         return (
                           <tr key={`${operation}-${o.model}-${idx}`}>
                             <td className="px-3 py-2">
@@ -696,8 +695,8 @@ export default function AdminUsageDashboard() {
                       </td>
                     </tr>
                   ) : filteredOps.map((o, idx) => {
-                    const family = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
-                    const operation = normalizeLegacyOperation(o.operation_name || o.source);
+                    const family = o.operation_family === "other" ? normalizeUsageFamily(o.source) : o.operation_family;
+                    const operation = normalizeUsageOperation(o.operation_name || o.source);
                     return (
                       <tr key={`${operation}-${o.model}-${idx}`}>
                         <td className="px-4 py-2">

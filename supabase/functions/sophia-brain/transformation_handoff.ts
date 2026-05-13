@@ -418,7 +418,6 @@ async function loadTransformationHandoffContext(args: {
   const [
     planResult,
     victoriesResult,
-    cycleMetricsResult,
     transformationMetricsResult,
     pulseResult,
     nextTransformationResult,
@@ -441,16 +440,6 @@ async function loadTransformationHandoffContext(args: {
       .eq("transformation_id", transformation.id)
       .order("created_at", { ascending: true })
       .limit(20),
-    args.supabase
-      .from("user_metrics")
-      .select("*")
-      .eq("user_id", args.userId)
-      .eq("cycle_id", transformation.cycle_id)
-      .eq("scope", "cycle")
-      .eq("kind", "north_star")
-      .in("status", ["active", "paused", "completed"] as never)
-      .order("updated_at", { ascending: false })
-      .limit(1),
     args.supabase
       .from("user_metrics")
       .select("*")
@@ -490,7 +479,6 @@ async function loadTransformationHandoffContext(args: {
 
   if (planResult.error) throw planResult.error;
   if (victoriesResult.error) throw victoriesResult.error;
-  if (cycleMetricsResult.error) throw cycleMetricsResult.error;
   if (transformationMetricsResult.error) throw transformationMetricsResult.error;
   if (pulseResult.error) throw pulseResult.error;
   if (nextTransformationResult.error) throw nextTransformationResult.error;
@@ -513,7 +501,6 @@ async function loadTransformationHandoffContext(args: {
       created_at: row.created_at,
     }));
   const metrics = buildMetricSnapshots([
-    ...((cycleMetricsResult.data as UserMetricRow[] | null) ?? []),
     ...((transformationMetricsResult.data as UserMetricRow[] | null) ?? []),
   ]);
   const pulse = asRecord((pulseResult.data as { payload?: unknown } | null)?.payload) as

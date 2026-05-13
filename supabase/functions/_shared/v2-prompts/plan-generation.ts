@@ -1019,7 +1019,7 @@ Tu reçois principalement 9 champs de calibrage :
 - \`perceived_difficulty\` : niveau de difficulté ressenti aujourd'hui
 - \`probable_drivers\` : facteur probable dominant qui alimente le sujet
 
-Des champs legacy peuvent parfois aussi être présents :
+Des champs optionnels peuvent parfois aussi être présents :
 - \`prior_attempts\`
 - \`self_confidence\`
 - \`success_indicator\`
@@ -1039,7 +1039,7 @@ Des champs legacy peuvent parfois aussi être présents :
 
 5. **Utilise main_blocker pour éviter les faux premiers pas** : le plan doit traiter le verrou principal tôt, soit directement, soit en préparant la condition qui permet de le contourner.
 
-6. **Si des champs legacy sont présents** (\`prior_attempts\`, \`self_confidence\`) : utilise-les comme signaux secondaires pour raffiner la progressivité.
+6. **Si des champs optionnels sont présents** (\`prior_attempts\`, \`self_confidence\`) : utilise-les comme signaux secondaires pour raffiner la progressivité.
 
 Plus le parcours est difficile (ancienneté longue, difficulté perçue haute, blocage lourd, facteur dominant structurel), plus il y a de niveaux de plan progressifs.
 

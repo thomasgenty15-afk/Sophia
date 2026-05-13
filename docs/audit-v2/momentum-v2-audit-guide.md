@@ -62,7 +62,7 @@ Le transcript permet une lecture humaine rapide de la dynamique conversationnell
 | Aspect | V1 | V2 |
 |--------|----|----|
 | Dimensions | 4 (engagement, progression, emotional, consent) | 6 (+plan_fit, +load_balance; progression → execution_traction) |
-| Source traction | `user_actions` / `user_vital_signs` | `user_plan_items` / `user_plan_item_entries` |
+| Source traction | anciennes tables actions/vitals | `user_plan_items` / `user_plan_item_entries` |
 | Active load | Non | Oui (score, slots, needs_reduce, needs_consolidate) |
 | Posture | Non | Oui (7 postures recommandees) |
 | Assessment | Partiel (blockers) | Complet (top_blocker, top_risk, confidence) |

@@ -96,6 +96,17 @@ const STOP = new Set([
   "une",
 ]);
 
+const GENERIC_TOPIC_WORDS = new Set([
+  "allergie",
+  "allergies",
+  "client",
+  "famille",
+  "sante",
+  "soutien",
+  "travail",
+  "voyage",
+]);
+
 function tokens(text: string): Set<string> {
   return new Set(
     normalize(text).split(" ").filter((t) => t.length > 2 && !STOP.has(t)),
@@ -135,6 +146,12 @@ function lexicalSimilarity(
   const m = normalize(message);
   const slug = normalize(topic.slug ?? topic.title);
   let bonus = 0;
+  const messageTokens = tokens(message);
+  const identityTokens = [...tokens(`${topic.slug ?? ""} ${topic.title}`)]
+    .filter((token) => token.length >= 4 && !GENERIC_TOPIC_WORDS.has(token));
+  if (identityTokens.some((token) => messageTokens.has(token))) {
+    bonus += 0.62;
+  }
   if (
     slug.includes("rupture") &&
     /(rupture|lina|couple|reecrire|messages?|dedans)/.test(m)
@@ -271,6 +288,21 @@ export async function routeTopic(
       best,
       Math.max(0.72, best.similarity),
       "explicit_switch_best_candidate",
+      shortlist,
+      activeSimilarity,
+    );
+  }
+  if (
+    active && best && best.id !== active.id &&
+    ((best.similarity >= 0.58 &&
+      best.similarity >= activeSimilarity + 0.08) ||
+      (best.similarity >= 0.7 && best.similarity > activeSimilarity))
+  ) {
+    return result(
+      "switch",
+      best,
+      best.similarity,
+      "candidate_clearly_beats_active_topic",
       shortlist,
       activeSimilarity,
     );

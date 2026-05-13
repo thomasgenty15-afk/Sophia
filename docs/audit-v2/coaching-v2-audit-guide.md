@@ -64,7 +64,7 @@ Le bundle contient:
 - `request`
 - `trace`
 - `scorecard`
-- `legacy_scorecard`
+- `base_scorecard`
 - `annotations`
 
 ### `source`
@@ -186,7 +186,7 @@ Events coaching non rattaches a un turn.
 
 ## 4. Scorecard
 
-`scorecard` est la vue V2 enrichie pour audit. `legacy_scorecard` conserve la
+`scorecard` est la vue V2 enrichie pour audit. `base_scorecard` conserve la
 sortie brute de `get-coaching-intervention-scorecard`.
 
 ### `scorecard.coverage`
@@ -334,5 +334,5 @@ Cas d'alerte:
   `simplify_instead` peuvent etre `null`.
 - `follow_ups` heritent du contexte V2 via `intervention_id`; si la jointure ne
   matche pas, les champs enrichis restent `null`.
-- Le scorecard V2 enrichi complete le scorecard legacy; il ne le remplace pas
+- Le scorecard V2 enrichi complete la scorecard canonique; il ne la remplace pas
   comme source historique.

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
+  Loader2,
   X,
   Plus,
   Sparkles,
@@ -28,6 +29,7 @@ type TransformationFocusStepProps = {
   title?: string;
   description?: string;
   primaryActionLabel?: string;
+  submittingLabel?: string;
   allowManualAdd?: boolean;
   alternateActionLabel?: string | null;
   alternateActionDescription?: string | null;
@@ -92,6 +94,7 @@ export function TransformationFocusStep({
   title = "Par quoi veux-tu commencer ?",
   description = "Sophia te propose le sujet le plus pertinent pour démarrer. Tu peux garder cette proposition, en choisir un autre, ou ajouter un sujet si quelque chose manque.",
   primaryActionLabel = "Continuer avec cette transformation",
+  submittingLabel = "Préparation en cours…",
   allowManualAdd = true,
   alternateActionLabel = null,
   alternateActionDescription = null,
@@ -405,8 +408,17 @@ export function TransformationFocusStep({
           disabled={isSubmitting || !selectedTransformation}
           className="group flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-base font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 md:py-4"
         >
-          {primaryActionLabel}
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {submittingLabel}
+            </>
+          ) : (
+            <>
+              {primaryActionLabel}
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </>
+          )}
         </button>
       </div>
     </section>

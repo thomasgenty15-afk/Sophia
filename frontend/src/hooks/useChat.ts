@@ -8,18 +8,25 @@ export type Message = {
   content: string;
   agent?: string;
   created_at: string;
+  metadata?: Record<string, unknown> | null;
 };
 
-export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }) {
+export function useChat(opts?: {
+  scope?: string;
+  channel?: 'web' | 'whatsapp';
+  whatsappSim?: boolean;
+  forceOnboardingFlow?: boolean;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isTriggeringSim, setIsTriggeringSim] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scope = opts?.scope ?? "web";
+  const channel = opts?.channel ?? "web";
+  const whatsappSim = opts?.whatsappSim === true;
   const forceOnboardingFlow = opts?.forceOnboardingFlow === true;
 
-  // Charger l'historique au montage
-  useEffect(() => {
-    async function loadHistory() {
+  const loadHistory = useCallback(async (): Promise<Message[]> => {
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
@@ -29,6 +36,7 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
 
       if (error) {
         console.error("Error loading chat history:", error);
+        return [];
       } else if (data) {
         // On inverse le tableau pour remettre dans l'ordre chronologique (Vieux -> Récents)
         const history: Message[] = data.reverse().map(m => ({
@@ -36,13 +44,28 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
           role: m.role,
           content: m.content,
           agent: m.agent_used, 
-          created_at: m.created_at
+          created_at: m.created_at,
+          metadata: m.metadata ?? null,
         }));
         setMessages(history);
+        return history;
       }
-    }
-    loadHistory();
+      return [];
   }, [scope]);
+
+  const waitForAssistantDelivery = useCallback(async (previousAssistantCount: number) => {
+    for (let attempt = 0; attempt < 18; attempt += 1) {
+      const history = await loadHistory();
+      const assistantCount = history.filter((message) => message.role === 'assistant').length;
+      if (assistantCount > previousAssistantCount) return;
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+  }, [loadHistory]);
+
+  // Charger l'historique au montage
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
 
   const sendMessage = useCallback(async (content: string) => {
     try {
@@ -62,12 +85,23 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
       };
       setMessages(prev => [...prev, userMsg]);
 
+      if (whatsappSim && channel === "whatsapp") {
+        const previousAssistantCount = messages.filter((message) => message.role === 'assistant').length;
+        const { error: fnError } = await supabase.functions.invoke('whatsapp-sim-inbound', {
+          body: { text: content },
+          headers: requestHeaders(clientRequestId)
+        });
+        if (fnError) throw fnError;
+        await waitForAssistantDelivery(previousAssistantCount);
+        return;
+      }
+
       // 2. Appel à la Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('sophia-brain', {
         body: {
           message: content,
           history: messages.slice(-10),
-          channel: "web",
+          channel,
           scope,
           client_request_id: clientRequestId,
           force_onboarding_flow: forceOnboardingFlow,
@@ -83,7 +117,8 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
         role: 'assistant',
         content: data.content,
         agent: data.mode,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        metadata: data.metadata ?? null,
       };
       setMessages(prev => [...prev, botMsg]);
       
@@ -105,7 +140,60 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
     } finally {
       setIsLoading(false);
     }
-  }, [messages, scope, forceOnboardingFlow]);
+  }, [messages, scope, channel, whatsappSim, forceOnboardingFlow, loadHistory, waitForAssistantDelivery]);
+
+  const sendWhatsAppSimButton = useCallback(async (title: string) => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle || isLoading) return;
+    try {
+      setIsLoading(true);
+      setError(null);
+      const clientRequestId = newRequestId();
+      const tempId = crypto.randomUUID();
+      setMessages(prev => [...prev, {
+        id: tempId,
+        role: 'user',
+        content: cleanTitle,
+        created_at: new Date().toISOString(),
+        metadata: { simulated_whatsapp: true },
+      }]);
+      const previousAssistantCount = messages.filter((message) => message.role === 'assistant').length;
+      const { error: fnError } = await supabase.functions.invoke('whatsapp-sim-inbound', {
+        body: {
+          text: cleanTitle,
+          interactive_id: cleanTitle,
+          interactive_title: cleanTitle,
+        },
+        headers: requestHeaders(clientRequestId),
+      });
+      if (fnError) throw fnError;
+      await waitForAssistantDelivery(previousAssistantCount);
+    } catch (err: any) {
+      console.error('WhatsApp Sim Button Error:', err);
+      setError(err.message || "Impossible d'envoyer la réponse WhatsApp simulée");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, loadHistory, messages, waitForAssistantDelivery]);
+
+  const triggerWhatsAppSimEvent = useCallback(async (event: string) => {
+    try {
+      setIsTriggeringSim(true);
+      setError(null);
+      const clientRequestId = newRequestId();
+      const { error: fnError } = await supabase.functions.invoke('whatsapp-sim-trigger', {
+        body: { event },
+        headers: requestHeaders(clientRequestId),
+      });
+      if (fnError) throw fnError;
+      await loadHistory();
+    } catch (err: any) {
+      console.error('WhatsApp Sim Trigger Error:', err);
+      setError(err.message || "Impossible de lancer l'événement WhatsApp simulé");
+    } finally {
+      setIsTriggeringSim(false);
+    }
+  }, [loadHistory]);
 
   const deleteMessage = useCallback(async (id: string) => {
     try {
@@ -127,5 +215,15 @@ export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }
     }
   }, []);
 
-  return { messages, sendMessage, deleteMessage, isLoading, error };
+  return {
+    messages,
+    sendMessage,
+    sendWhatsAppSimButton,
+    deleteMessage,
+    triggerWhatsAppSimEvent,
+    refreshMessages: loadHistory,
+    isLoading,
+    isTriggeringSim,
+    error,
+  };
 }

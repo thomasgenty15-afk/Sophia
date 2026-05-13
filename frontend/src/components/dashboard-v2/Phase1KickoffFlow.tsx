@@ -112,7 +112,7 @@ export function Phase1KickoffFlow({
   if (currentStep === "done") return null;
 
   return (
-    <section className="rounded-[32px] border border-emerald-100 bg-white/94 p-6 shadow-[0_24px_80px_-52px_rgba(0,45,33,0.34)] md:p-8">
+    <section className="sophia-violet-surface rounded-[32px] border border-violet-100 bg-white/94 p-6 shadow-[0_24px_80px_-52px_rgba(76,29,149,0.3)] md:p-8">
       <div className="max-w-3xl">
         <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
           Niveau 1
@@ -126,25 +126,25 @@ export function Phase1KickoffFlow({
       </div>
 
       {currentStep === "prepare" ? (
-        <div className="mt-8 rounded-3xl border border-emerald-100 bg-[linear-gradient(135deg,rgba(236,253,245,0.9),rgba(255,251,235,0.78))] p-6">
+        <div className="mt-8 rounded-3xl border border-violet-100 bg-[linear-gradient(135deg,rgba(245,243,255,0.92),rgba(255,251,235,0.78))] p-6">
           {isPreparingDeepWhy ? (
-            <div className="rounded-[28px] border border-emerald-100 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.98),rgba(236,253,245,0.96)_48%,rgba(209,250,229,0.82)_100%)] p-6 shadow-[0_18px_48px_-30px_rgba(0,45,33,0.3)]">
+            <div className="rounded-[28px] border border-violet-100 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.98),rgba(245,243,255,0.96)_48%,rgba(221,214,254,0.82)_100%)] p-6 shadow-[0_18px_48px_-30px_rgba(76,29,149,0.32)]">
               <div className="flex items-start gap-4">
-                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/90 shadow-[0_12px_30px_-18px_rgba(0,45,33,0.36)]">
-                  <span className="absolute inset-0 rounded-full border-2 border-emerald-100" />
-                  <span className="absolute inset-[5px] rounded-full border-2 border-dashed border-[var(--action-green)] animate-spin" />
-                  <Sparkles className="h-5 w-5 text-[var(--action-green)]" />
+                <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-white/90 shadow-[0_12px_30px_-18px_rgba(76,29,149,0.36)]">
+                  <span className="absolute inset-0 rounded-full border-2 border-violet-100" />
+                  <span className="absolute inset-[5px] rounded-full border-2 border-dashed border-violet-400/80 animate-spin" />
+                  <Sparkles className="h-5 w-5 text-violet-700" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--action-green)]">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-violet-700">
                     Pourquoi profond en preparation
                   </p>
-                  <p className="mt-2 text-sm leading-6 text-[color-mix(in_oklab,var(--action-green)_80%,transparent)]">
+                  <p className="mt-2 text-sm leading-6 text-violet-950/80">
                     Sophia prépare quelques questions courtes pour faire ressortir ce qui compte
                     vraiment pour toi. Des qu'elles sont pretes, tu pourras les remplir ici.
                   </p>
-                  <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-white/90 px-4 py-2 text-xs font-semibold text-[var(--action-green)]">
-                    <Loader2 className="h-4 w-4 animate-spin text-[var(--action-green)]" />
+                  <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-violet-100 bg-white/90 px-4 py-2 text-xs font-semibold text-violet-900">
+                    <Loader2 className="h-4 w-4 animate-spin text-violet-700" />
                     Generation en cours...
                   </div>
                 </div>
@@ -152,14 +152,14 @@ export function Phase1KickoffFlow({
             </div>
           ) : (
             <>
-              <p className="text-sm leading-6 text-[color-mix(in_oklab,var(--action-green)_80%,transparent)]">
+              <p className="text-sm leading-6 text-violet-950/80">
                 Sophia prépare d'abord les questions de ton pourquoi profond. Ton histoire viendra juste après, avec ce que tu auras formulé dedans.
               </p>
               <button
                 type="button"
                 onClick={onPrepareStart}
                 disabled={isPreparingDeepWhy}
-                className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--action-green)] px-5 py-3 text-sm font-semibold text-emerald-50 shadow-md shadow-emerald-950/20 transition-all hover:bg-[var(--action-green)] disabled:opacity-60"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-md shadow-violet-200 transition-all hover:bg-violet-700 disabled:opacity-60"
               >
                 {isPreparingDeepWhy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                 {isPreparingDeepWhy ? "Preparation..." : "Preparer mon pourquoi profond"}
@@ -259,12 +259,12 @@ export function Phase1KickoffFlow({
       {currentStep === "deep_why" && deepWhy ? (
         <div className="mt-8 space-y-6">
           {deepWhyQuestions.map((question, index) => (
-            <div key={question.id} className="rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm shadow-emerald-950/8 transition-all hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md hover:shadow-emerald-950/12">
+            <div key={question.id} className="rounded-3xl border border-violet-100 bg-white p-6 shadow-sm shadow-violet-950/8 transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md hover:shadow-violet-950/12">
               <div className="flex items-start gap-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--action-green)] text-xs font-bold text-emerald-50">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-100 text-xs font-bold text-violet-700">
                   {index + 1}
                 </span>
-                <p className="mt-0.5 text-base font-semibold leading-relaxed text-[var(--action-green)]">
+                <p className="mt-0.5 text-base font-semibold leading-relaxed text-stone-900">
                   {question.question}
                 </p>
               </div>
@@ -279,7 +279,7 @@ export function Phase1KickoffFlow({
                     }));
                   }}
                   rows={3}
-                  className="w-full rounded-2xl border border-emerald-100 bg-emerald-50/45 px-5 py-4 text-sm text-stone-800 outline-none transition-all placeholder:text-[color-mix(in_oklab,var(--action-green)_35%,transparent)] focus:border-[var(--action-green)] focus:bg-white focus:ring-4 focus:ring-emerald-100/70"
+                  className="w-full rounded-2xl border border-violet-100 bg-violet-50/45 px-5 py-4 text-sm text-stone-800 outline-none transition-all placeholder:text-violet-900/35 focus:border-violet-300 focus:bg-white focus:ring-4 focus:ring-violet-100/70"
                   placeholder="Ta réponse..."
                 />
               </div>
@@ -299,9 +299,9 @@ export function Phase1KickoffFlow({
                         ),
                       }));
                     }}
-                    className="rounded-2xl border border-emerald-100 bg-emerald-50/75 px-4 py-2.5 text-left text-xs font-medium text-[var(--action-green)] shadow-sm transition-all hover:border-emerald-200 hover:bg-emerald-100"
+                    className="rounded-2xl border border-violet-100 bg-violet-50/75 px-4 py-2.5 text-left text-xs font-medium text-violet-900 shadow-sm transition-all hover:border-violet-200 hover:bg-violet-100"
                   >
-                    <span className="mr-1.5 font-bold text-[var(--action-green)]">+</span>
+                    <span className="mr-1.5 font-bold text-violet-700">+</span>
                     {suggestion}
                   </button>
                 ))}
@@ -320,7 +320,7 @@ export function Phase1KickoffFlow({
                   })),
                 )}
               disabled={savingDeepWhy || !allDeepWhyQuestionsAnswered}
-              className="inline-flex items-center gap-2 rounded-full bg-[var(--action-green)] px-6 py-3.5 text-sm font-semibold text-emerald-50 shadow-md shadow-emerald-950/20 transition-all hover:bg-[var(--action-green)] disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-full bg-violet-600 px-6 py-3.5 text-sm font-semibold text-white shadow-md shadow-violet-200 transition-all hover:bg-violet-700 disabled:opacity-50"
             >
               {savingDeepWhy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               Enregistrer et continuer

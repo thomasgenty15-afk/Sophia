@@ -55,7 +55,7 @@ export function LevelCompletionModal({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-blue-200">
-                Fin de niveau
+                Prochain niveau
               </p>
               <h3 className="mt-2 text-2xl font-semibold">
                 {levelOrder ? `Niveau de plan ${getDisplayPhaseOrder(levelOrder)}` : "Niveau actuel"}
@@ -81,8 +81,8 @@ export function LevelCompletionModal({
             <div className="flex items-start gap-3">
               <Sparkles className="mt-0.5 h-5 w-5 text-blue-600" />
               <p className="text-sm leading-6 text-stone-700">
-                Ce bilan sert à générer la suite sans relancer toute la roadmap. Sophia garde le
-                cap, mais ajuste le prochain niveau selon ce que tu viens de vivre.
+                Ce bilan sert à valider le prochain niveau sans relancer toute la roadmap.
+                Sophia garde le cap, mais ajuste la suite selon ce que tu viens de vivre.
               </p>
             </div>
           </div>
@@ -171,7 +171,7 @@ export function LevelCompletionModal({
               </>
             ) : (
               <>
-                Valider ce niveau
+                Valider le prochain niveau
                 <ArrowRight className="h-4 w-4" />
               </>
             )}

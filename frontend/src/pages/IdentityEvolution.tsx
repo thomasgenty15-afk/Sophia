@@ -123,7 +123,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
             if (typeof moduleInfo.content === 'object' && 'content' in moduleInfo.content) {
                 return (moduleInfo.content.content as string)?.trim().length > 0;
             }
-            // Si c'est une string directe (legacy ou autre format)
+            // Si c'est une string directe ou un autre format ancien.
             if (typeof moduleInfo.content === 'string') {
                 return moduleInfo.content.trim().length > 0;
             }
@@ -1406,7 +1406,7 @@ const IdentityEvolution = () => {
           // Merge Entries (Content)
           // On s'assure de récupérer le contenu peu importe son format
           entriesData?.forEach(entry => {
-              // Extraction du contenu : soit entry.content est une string (legacy), soit un objet { content: "..." }
+              // Extraction du contenu : soit entry.content est une string, soit un objet { content: "..." }.
               let actualContent = "";
               
               if (typeof entry.content === 'string') {

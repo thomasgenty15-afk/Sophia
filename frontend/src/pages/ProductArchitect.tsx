@@ -348,7 +348,7 @@ const ProductArchitect = () => {
                   icon: Map,
                   title: "Envies",
                   subtitle: "Ta Life Wishlist",
-                  copy: "Tu poses ce qui t'attire vraiment : expériences, accomplissements, croissance, contribution. Ce n'est pas une todo list, c'est une boussole.",
+                  copy: "Tu poses ce qui t'attire vraiment : expériences, accomplissements, croissance, contribution. Ce n'est pas une todo list, c'est un repère personnel.",
                 },
                 {
                   icon: BookOpen,

@@ -12,6 +12,7 @@ import {
   serverError,
   z,
 } from "../_shared/http.ts";
+import { schedulePotionFollowUpForSession } from "../_shared/potion-follow-up.ts";
 import {
   buildPotionActivationPrompt,
   getPotionDefinition,
@@ -60,7 +61,7 @@ async function activatePotion(args: {
   answers: Record<string, string>;
   freeText: string | null;
   requestId?: string;
-}): Promise<UserPotionSessionRow> {
+}): Promise<{ session: UserPotionSessionRow; scheduledCount: number }> {
   const env = getSupabaseEnv();
   const admin = createClient(env.url, env.serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
@@ -75,7 +76,10 @@ async function activatePotion(args: {
   const definition = getPotionDefinition(args.potionType);
   const issues = validatePotionAnswers(definition, args.answers, args.freeText);
   if (issues.length > 0) {
-    throw new ActivatePotionError(400, `Invalid potion activation: ${issues.join(", ")}`);
+    throw new ActivatePotionError(
+      400,
+      `Invalid potion activation: ${issues.join(", ")}`,
+    );
   }
 
   const raw = await generateWithGemini(
@@ -101,14 +105,21 @@ async function activatePotion(args: {
   );
 
   if (typeof raw !== "string") {
-    throw new ActivatePotionError(500, "LLM returned tool call instead of JSON");
+    throw new ActivatePotionError(
+      500,
+      "LLM returned tool call instead of JSON",
+    );
   }
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim());
+    parsed = JSON.parse(
+      raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim(),
+    );
   } catch (error) {
-    throw new ActivatePotionError(500, "LLM returned invalid JSON", { cause: error });
+    throw new ActivatePotionError(500, "LLM returned invalid JSON", {
+      cause: error,
+    });
   }
 
   const validation = validatePotionActivationOutput(parsed);
@@ -149,10 +160,20 @@ async function activatePotion(args: {
     .single();
 
   if (error) {
-    throw new ActivatePotionError(500, `Insert failed: ${error.message}`, { cause: error });
+    throw new ActivatePotionError(500, `Insert failed: ${error.message}`, {
+      cause: error,
+    });
   }
 
-  return data as UserPotionSessionRow;
+  const scheduled = await schedulePotionFollowUpForSession({
+    admin,
+    userId: args.userId,
+    sessionId: String((data as UserPotionSessionRow).id),
+    localTimeHHMM: "09:00",
+    durationDays: 7,
+  });
+
+  return scheduled;
 }
 
 async function handleRequest(req: Request): Promise<Response> {
@@ -189,12 +210,17 @@ async function handleRequest(req: Request): Promise<Response> {
       global: { headers: { Authorization: authHeader } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: authData, error: authError } = await userClient.auth.getUser();
+    const { data: authData, error: authError } = await userClient.auth
+      .getUser();
     if (authError || !authData?.user) {
-      return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+      return jsonResponse(
+        req,
+        { error: "Unauthorized", request_id: requestId },
+        { status: 401 },
+      );
     }
 
-    const session = await activatePotion({
+    const result = await activatePotion({
       userId: authData.user.id,
       transformationId: parsed.data.transformation_id ?? null,
       scopeKind: parsed.data.scope_kind ?? "transformation",
@@ -208,7 +234,8 @@ async function handleRequest(req: Request): Promise<Response> {
       request_id: requestId,
       transformation_id: parsed.data.transformation_id,
       potion_type: parsed.data.potion_type,
-      session,
+      session: result.session,
+      scheduled_count: result.scheduledCount,
     });
   } catch (error) {
     const ctx = getRequestContext(req);
@@ -222,8 +249,14 @@ async function handleRequest(req: Request): Promise<Response> {
     });
 
     if (error instanceof ActivatePotionError) {
-      if (error.status === 400) return badRequest(req, requestId, error.message);
-      return jsonResponse(req, { error: error.message, request_id: requestId }, { status: error.status });
+      if (error.status === 400) {
+        return badRequest(req, requestId, error.message);
+      }
+      return jsonResponse(
+        req,
+        { error: error.message, request_id: requestId },
+        { status: error.status },
+      );
     }
 
     return serverError(req, requestId, "Failed to activate potion");
@@ -241,9 +274,13 @@ function getSupabaseEnv(): {
 } {
   const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
   const anonKey = String(Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
-  const serviceRoleKey = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  const serviceRoleKey = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "")
+    .trim();
   if (!url || !anonKey || !serviceRoleKey) {
-    throw new ActivatePotionError(500, "Supabase environment variables are not configured");
+    throw new ActivatePotionError(
+      500,
+      "Supabase environment variables are not configured",
+    );
   }
   return { url, anonKey, serviceRoleKey };
 }

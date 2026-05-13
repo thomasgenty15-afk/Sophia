@@ -377,19 +377,23 @@ const Auth = () => {
 
         // If the phone is already validated by another account, block signup with a friendly message.
         // Note: Uses an RPC to avoid exposing broad profiles read access to anon users.
+        let phoneAlreadyInUse = false;
         try {
           const { data: inUse, error: inUseErr } = await supabase.rpc('is_verified_phone_in_use', {
             p_phone: phoneNorm,
           });
           if (inUseErr) throw inUseErr;
           if (inUse) {
-            throw new Error(
-              "Ce numéro de téléphone est déjà utilisé. Contactez sophia@sophia-coach.ai pour plus d'information."
-            );
+            phoneAlreadyInUse = true;
           }
         } catch (precheckErr) {
           // Best-effort: if the precheck fails, don't block signup (DB constraint will still protect verified numbers).
           console.warn("Phone in-use precheck failed (non-blocking):", precheckErr);
+        }
+        if (phoneAlreadyInUse) {
+          throw new Error(
+            "Ce numéro de téléphone est déjà associé à un compte Sophia. Si c'est bien ton numéro, contacte l'assistance à sophia@sophia-coach.ai pour récupérer ou transférer ton accès."
+          );
         }
 
         const { data, error } = await supabase.auth.signUp({

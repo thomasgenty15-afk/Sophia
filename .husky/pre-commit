@@ -1,0 +1,3 @@
+#!/bin/sh
+
+AGENT_GATE_STAGED_ONLY=1 bash scripts/agent-gate.sh

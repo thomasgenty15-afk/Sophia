@@ -11,6 +11,7 @@ type FreeTextCaptureProps = {
   title?: string;
   description?: string;
   submitLabel?: string;
+  submittingLabel?: string;
 };
 
 export function FreeTextCapture({
@@ -24,6 +25,7 @@ export function FreeTextCapture({
   title = "Qu'aimerais-tu changer ou améliorer en ce moment ?",
   description = "Plus ton texte est concret, plus la suite sera utile. Tu peux parler de ce qui bloque, de ce que tu voudrais retrouver, ou de ce que tu n'arrives plus à tenir.",
   submitLabel,
+  submittingLabel = "Analyse en cours…",
 }: FreeTextCaptureProps) {
   const isDisabled = value.trim().length < 8 || isSubmitting;
 
@@ -86,7 +88,9 @@ export function FreeTextCapture({
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-4 text-base font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {submitLabel ?? (clarificationPrompt ? "Réessayer" : "Continuer")}
+          {isSubmitting
+            ? submittingLabel
+            : submitLabel ?? (clarificationPrompt ? "Réessayer" : "Continuer")}
         </button>
       </div>
     </section>

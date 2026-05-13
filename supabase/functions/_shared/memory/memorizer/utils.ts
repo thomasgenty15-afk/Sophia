@@ -52,7 +52,15 @@ export function cosineSimilarity(
 }
 
 export function tokenize(input: string): Set<string> {
-  return new Set(normalizeText(input).split(/\s+/).filter((t) => t.length > 2));
+  const out = new Set<string>();
+  for (const token of normalizeText(input).split(/\s+/)) {
+    if (token.length <= 2) continue;
+    out.add(token);
+    if (token.length > 4 && token.endsWith("s")) {
+      out.add(token.slice(0, -1));
+    }
+  }
+  return out;
 }
 
 export function lexicalSimilarity(left: string, right: string): number {

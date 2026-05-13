@@ -23,11 +23,10 @@ to keep admin cost analytics stable over time.
 The logger infers family from `source` if callsites do not provide explicit values:
 
 - sources containing `dispatcher` -> `dispatcher`
-- containing `sort-priorities` -> `sort_priorities`
-- containing `summarize-context` or `summary` -> `summarize_context`
+- containing `summary` -> `summarize_context`
 - containing `ethical` -> `ethics_check`
 - containing `memorizer`, `topic_memory`, `topic_`, or `synthesizer` -> `memorizer`
-- containing `companion`, `investigator`, `firefighter`, or `sentry` -> `message_generation`
+- containing `companion`, `firefighter`, or `sentry` -> `message_generation`
 - containing `watcher` -> `watcher`
 - containing `schedule`, `checkin`, or `reminder` -> `scheduling`
 - containing `duplicate` -> `duplicate_check`

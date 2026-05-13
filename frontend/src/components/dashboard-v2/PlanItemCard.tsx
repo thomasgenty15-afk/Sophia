@@ -8,7 +8,6 @@ import {
   Lock,
   PenLine,
   Repeat,
-  ShieldAlert,
   Target,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -35,13 +34,8 @@ type PlanItemCardProps = {
   unlockState?: DashboardV2UnlockState | null;
   isBusy: boolean;
   onComplete: (item: DashboardV2PlanItemRuntime) => void;
-  onActivate: (item: DashboardV2PlanItemRuntime) => void;
   onPrepareCards: (item: DashboardV2PlanItemRuntime) => void;
   onOpenDefenseResourceEditor: (item: DashboardV2PlanItemRuntime) => void;
-  onBlocker: (item: DashboardV2PlanItemRuntime) => void;
-  onDeactivate: (item: DashboardV2PlanItemRuntime) => void;
-  onRemove: (item: DashboardV2PlanItemRuntime) => void;
-  onAdapt: (item: DashboardV2PlanItemRuntime) => void;
 };
 
 function labelFromKind(item: DashboardV2PlanItemRuntime) {
@@ -60,7 +54,6 @@ function renderIcon(item: DashboardV2PlanItemRuntime, className: string) {
   }
   if (item.kind === "milestone") return <Flag className={className} />;
   if (item.dimension === "missions") return <Target className={className} />;
-  if (item.status === "stalled") return <ShieldAlert className={className} />;
   return <Repeat className={className} />;
 }
 
@@ -103,7 +96,6 @@ export function PlanItemCard({
 
   const isPending = item.status === "pending";
   const isCompleted = item.status === "completed" || item.status === "in_maintenance";
-  const isStalled = item.status === "stalled";
   const isHabit = item.dimension === "habits";
   const isMission = item.dimension === "missions";
   const isClarification =
@@ -161,11 +153,6 @@ export function PlanItemCard({
       {/* Top row: Status */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex flex-wrap items-center gap-2">
-          {isStalled && (
-            <span className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold bg-rose-50 text-rose-700">
-              <ShieldAlert className="w-3 h-3" /> Besoin d'aide
-            </span>
-          )}
           {isPending ? (
             <span className="flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-bold bg-stone-100 text-stone-600">
               <Lock className="w-3 h-3" />

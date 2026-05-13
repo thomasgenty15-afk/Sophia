@@ -1,4 +1,4 @@
--- Remove legacy candidate staging table and its cleanup cron.
+-- Remove V1 candidate staging table and its cleanup cron.
 
 do $$
 declare
@@ -16,4 +16,3 @@ begin
 end $$;
 
 drop table if exists public.user_profile_fact_candidates cascade;
-

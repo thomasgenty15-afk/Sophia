@@ -138,7 +138,7 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
       mode: "suggested_series",
       rationale: "Un petit appui pendant quelques jours peut aider a ne pas re-rentrer dans l'evitement.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 5,
+      suggested_duration_days: 7,
     },
   },
   guerison: {
@@ -239,7 +239,7 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
       mode: "suggested_series",
       rationale: "Un point de recentrage sur quelques jours peut aider a ne pas te re-disperser.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 5,
+      suggested_duration_days: 7,
     },
   },
   amour: {
@@ -339,7 +339,7 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
       mode: "suggested_series",
       rationale: "Un point d'apaisement quotidien sur quelques jours peut aider a casser la montee en charge.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 3,
+      suggested_duration_days: 7,
     },
   },
 };

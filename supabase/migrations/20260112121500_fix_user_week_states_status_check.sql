@@ -4,7 +4,7 @@
 
 do $$
 begin
-  -- Drop the legacy/misconfigured check constraint if present.
+  -- Drop the old/misconfigured check constraint if present.
   execute 'alter table public.user_week_states drop constraint if exists user_module_states_status_check';
 
   -- Drop a newer name too, if it exists from a previous manual fix.
@@ -19,5 +19,4 @@ begin
       check (status in ('available', 'active', 'completed'))
   $sql$;
 end $$;
-
 

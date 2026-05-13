@@ -25,8 +25,22 @@ export type Phase1PromptContext = {
   previous_completed_transformation?: string | null;
 };
 
-function containsVouvoiement(value: string): boolean {
-  return /\b(vous|votre|vos)\b/i.test(value);
+function containsDirectVouvoiement(value: string): boolean {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+
+  if (/\b(votre|vos)\b/.test(normalized)) return true;
+  if (!/\bvous\b/.test(normalized)) return false;
+
+  const hasCollectiveCoupleContext =
+    /\b(ensemble|a deux|tous les deux|toutes les deux|entre vous)\b/.test(normalized) ||
+    /\b(couple|relation|partenaire|conjoint|conjointe|tensions|disputes|desaccords|complicite)\b/
+      .test(normalized);
+  if (hasCollectiveCoupleContext) return false;
+
+  return true;
 }
 
 export const PHASE1_DEEP_WHY_SYSTEM_PROMPT = `Tu écris les questions de "pourquoi profond" pour Sophia.
@@ -149,13 +163,13 @@ export function validatePhase1DeepWhyOutput(
       issues.push(`question[${index}] id must be ${expectedIds[index]}`);
     }
     if (!question) issues.push(`question[${index}] missing question`);
-    if (question && containsVouvoiement(question)) {
+    if (question && containsDirectVouvoiement(question)) {
       issues.push(`question[${index}] must use tutoiement only`);
     }
     if (suggestedAnswers.length !== 2) {
       issues.push(`question[${index}] must have exactly 2 suggested_answers`);
     }
-    if (suggestedAnswers.some((entry) => containsVouvoiement(entry))) {
+    if (suggestedAnswers.some((entry) => containsDirectVouvoiement(entry))) {
       issues.push(`question[${index}] suggested_answers must use tutoiement only`);
     }
     return id && question && suggestedAnswers.length === 2 && id === expectedIds[index]

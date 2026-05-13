@@ -11,7 +11,7 @@ Ce document remplace le cadre precedent fonde sur :
 - une formalisation trop precoce
 - un plan organise en phases / semaines comme structure principale
 
-La V2 repart d'une page blanche. Il n'y a pas de contrainte de compatibilite legacy a preserver.
+La V2 repart d'une page blanche. Il n'y a pas de contrainte de compatibilite ancienne a preserver.
 
 ## Documents compagnons
 
@@ -61,7 +61,7 @@ Construire un systeme d'onboarding et de planification plus naturel, plus intell
 - La formalisation trop precoce en transformations
 - Le plan en `phases` comme structure canonique
 - La logique de progression basee d'abord sur les semaines
-- Toute contrainte de compatibilite legacy
+- Toute contrainte de compatibilite ancienne
 
 ### Ce qui est conserve
 
@@ -254,7 +254,7 @@ Choisir l'ordre des transformations.
 
 ### Implementation
 
-L'ecran de priorisation existant (`PlanPriorities.tsx`) avec drag-and-drop fonctionne bien. Il est conserve et adapte pour recevoir les transformations V2 au lieu des axes legacy.
+L'ecran de priorisation existant (`PlanPriorities.tsx`) avec drag-and-drop fonctionne bien. Il est conserve et adapte pour recevoir les transformations V2.
 
 ### Cas simple
 
@@ -681,7 +681,7 @@ La formulation produit V1 peut rester simple, mais le modele metier doit rester 
 
 ## Regle
 
-La V2 ne doit pas garder `user_actions` et `user_framework_tracking` comme primitives produit centrales.
+La V2 ne doit garder que les primitives produit centrales du modele V2.
 
 La V2 repose sur une entite unifiee : `plan item`.
 
@@ -965,7 +965,7 @@ Valeurs proposees :
 
 ## Regle generale
 
-Comme il n'y a pas de legacy a conserver, on peut construire un modele propre.
+Comme il n'y a pas de compatibilite ancienne a conserver, on peut construire un modele propre.
 
 ## Tables canoniques proposees
 
@@ -1032,7 +1032,7 @@ Champs conceptuels :
 
 ### `user_plans_v2`
 
-Nouvelle table pour les plans V2. L'ancienne `user_plans` reste pour le legacy.
+Table canonique pour les plans V2.
 
 Champs clefs a conserver ou reintroduire :
 
@@ -1230,7 +1230,7 @@ Le dashboard action ne doit plus afficher le plan comme une colonne de phases.
 
 ## Regle
 
-Le daily bilan doit raisonner sur les items du plan, pas sur un modele legacy centré sur phases.
+Le daily bilan doit raisonner sur les items du plan, pas sur un modele centre sur phases.
 
 ## Ce qu'il doit savoir faire
 
@@ -1365,7 +1365,7 @@ A adapter (pas remplacer) :
 A supprimer ou remplacer dans leur forme actuelle :
 
 - la logique de recommandation d'axes catalogue
-- la logique de summarize-context liee a un currentAxis legacy
+- la logique de synthese liee a un ancien currentAxis
 - la logique de generation phase-based
 
 ## Data model

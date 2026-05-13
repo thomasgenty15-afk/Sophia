@@ -1,6 +1,4 @@
-import type {
-  LabTransformationContext,
-} from "./v2-lab-context.ts";
+import type { LabTransformationContext } from "./v2-lab-context.ts";
 import type {
   PotionActivationContent,
   PotionDefinition,
@@ -91,7 +89,8 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un petit message quotidien peut aider a raccrocher avant que le glissement s'installe.",
+      rationale:
+        "Un petit message quotidien peut aider a raccrocher avant que le glissement s'installe.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -133,18 +132,23 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
         [
           { value: "premier_pas", label: "D'un premier pas concret" },
           { value: "force", label: "D'un regain de force" },
-          { value: "permission", label: "D'une permission d'y aller doucement" },
+          {
+            value: "permission",
+            label: "D'une permission d'y aller doucement",
+          },
         ],
       ),
     ],
     free_text_label: "Si tu veux, precise ce qui te fait le plus hesiter.",
-    free_text_placeholder: "Exemple: je sais quoi faire, mais mon corps se ferme des que j'y pense.",
+    free_text_placeholder:
+      "Exemple: je sais quoi faire, mais mon corps se ferme des que j'y pense.",
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un petit appui pendant quelques jours peut aider a ne pas re-rentrer dans l'evitement.",
+      rationale:
+        "Un petit appui pendant quelques jours peut aider a ne pas re-rentrer dans l'evitement.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 5,
+      suggested_duration_days: 7,
     },
   },
   guerison: {
@@ -188,12 +192,15 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
         ],
       ),
     ],
-    free_text_label: "Si tu veux, ajoute ce que cet episode t'a fait ressentir.",
-    free_text_placeholder: "Le but n'est pas de tout raconter. Juste d'ancrer la reparation dans le reel.",
+    free_text_label:
+      "Si tu veux, ajoute ce que cet episode t'a fait ressentir.",
+    free_text_placeholder:
+      "Le but n'est pas de tout raconter. Juste d'ancrer la reparation dans le reel.",
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un message doux sur quelques jours aide a reparer sans replonger dans l'auto-attaque.",
+      rationale:
+        "Un message doux sur quelques jours aide a reparer sans replonger dans l'auto-attaque.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -243,9 +250,10 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un point de recentrage sur quelques jours peut aider a ne pas te re-disperser.",
+      rationale:
+        "Un point de recentrage sur quelques jours peut aider a ne pas te re-disperser.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 5,
+      suggested_duration_days: 7,
     },
   },
   amour: {
@@ -293,7 +301,8 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Une parole douce pendant quelques jours peut aider a changer le climat interieur.",
+      rationale:
+        "Une parole douce pendant quelques jours peut aider a changer le climat interieur.",
       suggested_delay_hours: 24,
       suggested_duration_days: 7,
     },
@@ -343,9 +352,10 @@ export const POTION_DEFINITIONS: Record<PotionType, PotionDefinition> = {
     free_text_required: false,
     default_follow_up_strategy: {
       mode: "suggested_series",
-      rationale: "Un point d'apaisement quotidien sur quelques jours peut aider a casser la montee en charge.",
+      rationale:
+        "Un point d'apaisement quotidien sur quelques jours peut aider a casser la montee en charge.",
       suggested_delay_hours: 24,
-      suggested_duration_days: 3,
+      suggested_duration_days: 7,
     },
   },
 };
@@ -400,7 +410,9 @@ export function buildPotionActivationPrompt(args: {
     if (question.input_type === "free_text") {
       return `- ${question.label}: ${rawAnswer?.trim() || "Non renseigne"}`;
     }
-    const answerLabel = question.options.find((option) => option.value === rawAnswer)?.label ??
+    const answerLabel = question.options.find((option) =>
+      option.value === rawAnswer
+    )?.label ??
       rawAnswer ?? "Non renseigne";
     return `- ${question.label}: ${answerLabel || "Non renseigne"}`;
   }).join("\n");
@@ -411,7 +423,9 @@ export function buildPotionActivationPrompt(args: {
 
 - type_key: ${args.context.classification.type_key}
 - plan_style: ${args.context.classification.plan_style.join(", ")}
-- recommended_metrics: ${args.context.classification.recommended_metrics.join(", ")}`
+- recommended_metrics: ${
+      args.context.classification.recommended_metrics.join(", ")
+    }`
     : "";
 
   return `## Potion
@@ -440,7 +454,9 @@ ${args.freeText?.trim() || "Non renseigne"}
 - identity_shift: ${args.context.plan_strategy.identity_shift ?? "null"}
 - core_principle: ${args.context.plan_strategy.core_principle ?? "null"}
 - success_definition: ${args.context.plan_strategy.success_definition ?? "null"}
-- main_constraint: ${args.context.plan_strategy.main_constraint ?? "null"}${classificationBlock}
+- main_constraint: ${
+    args.context.plan_strategy.main_constraint ?? "null"
+  }${classificationBlock}
 
 ## Questionnaire global
 
@@ -466,13 +482,16 @@ export function validatePotionActivationOutput(raw: unknown): {
   if (typeof raw.potion_name !== "string" || !raw.potion_name.trim()) {
     issues.push("potion_name is required");
   }
-  if (typeof raw.instant_response !== "string" || !raw.instant_response.trim()) {
+  if (
+    typeof raw.instant_response !== "string" || !raw.instant_response.trim()
+  ) {
     issues.push("instant_response is required");
   }
   if (
     raw.suggested_next_step !== null &&
     raw.suggested_next_step !== undefined &&
-    (typeof raw.suggested_next_step !== "string" || !raw.suggested_next_step.trim())
+    (typeof raw.suggested_next_step !== "string" ||
+      !raw.suggested_next_step.trim())
   ) {
     issues.push("suggested_next_step must be a non-empty string or null");
   }
@@ -488,17 +507,23 @@ export function validatePotionActivationOutput(raw: unknown): {
       const description = typeof raw.follow_up_proposal.description === "string"
         ? raw.follow_up_proposal.description.trim()
         : "";
-      const messageText = typeof raw.follow_up_proposal.message_text === "string"
-        ? raw.follow_up_proposal.message_text.trim()
-        : "";
-      const cadenceHint = typeof raw.follow_up_proposal.cadence_hint === "string" &&
+      const messageText =
+        typeof raw.follow_up_proposal.message_text === "string"
+          ? raw.follow_up_proposal.message_text.trim()
+          : "";
+      const cadenceHint =
+        typeof raw.follow_up_proposal.cadence_hint === "string" &&
           raw.follow_up_proposal.cadence_hint.trim()
-        ? raw.follow_up_proposal.cadence_hint.trim()
-        : null;
+          ? raw.follow_up_proposal.cadence_hint.trim()
+          : null;
 
       if (!title) issues.push("follow_up_proposal.title is required");
-      if (!description) issues.push("follow_up_proposal.description is required");
-      if (!messageText) issues.push("follow_up_proposal.message_text is required");
+      if (!description) {
+        issues.push("follow_up_proposal.description is required");
+      }
+      if (!messageText) {
+        issues.push("follow_up_proposal.message_text is required");
+      }
 
       if (title && description && messageText) {
         followUpProposal = {

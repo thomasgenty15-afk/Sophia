@@ -25,7 +25,6 @@ import type {
   MemoryLayerScope,
   MemoryRetrievalIntent,
   SystemRuntimeSnapshotRow,
-  UserMetricRow,
   UserPlanItemEntryRow,
 } from "../../_shared/v2-types.ts";
 import type { AgentMode } from "../state-manager.ts";
@@ -55,7 +54,7 @@ const IDENTITY_MAX_BLOCK_TOKENS = 280;
 const CORE_IDENTITY_RETRIEVAL_ENABLED = false;
 
 type DispatcherMemoryBudget = {
-  globalThemeMax: number;
+  domainMax: number;
   explicitTopicQueriesMax: number;
   explicitEventQueriesMax: number;
   explicitTopicResultsPerQuery: number;
@@ -70,8 +69,8 @@ type DispatcherMemoryLoadStrategy = {
   usePlan: boolean;
   skipAllMemory: boolean;
   loadIdentity: boolean;
-  globalThemeKeys: string[];
-  globalSubthemeKeys: string[];
+  domainPrefixKeys: string[];
+  domainKeys: string[];
   topicQueries: string[];
   eventQueries: string[];
   fallbackSemanticGlobalMax: number;
@@ -88,7 +87,7 @@ const DISPATCHER_MEMORY_BUDGETS: Record<
   DispatcherMemoryBudget
 > = {
   tiny: {
-    globalThemeMax: 2,
+    domainMax: 2,
     explicitTopicQueriesMax: 1,
     explicitEventQueriesMax: 1,
     explicitTopicResultsPerQuery: 1,
@@ -98,7 +97,7 @@ const DISPATCHER_MEMORY_BUDGETS: Record<
     semanticEventMax: 1,
   },
   small: {
-    globalThemeMax: 3,
+    domainMax: 3,
     explicitTopicQueriesMax: 1,
     explicitEventQueriesMax: 1,
     explicitTopicResultsPerQuery: 1,
@@ -108,7 +107,7 @@ const DISPATCHER_MEMORY_BUDGETS: Record<
     semanticEventMax: 1,
   },
   medium: {
-    globalThemeMax: 4,
+    domainMax: 4,
     explicitTopicQueriesMax: 2,
     explicitEventQueriesMax: 2,
     explicitTopicResultsPerQuery: 2,
@@ -118,7 +117,7 @@ const DISPATCHER_MEMORY_BUDGETS: Record<
     semanticEventMax: 2,
   },
   large: {
-    globalThemeMax: 6,
+    domainMax: 6,
     explicitTopicQueriesMax: 3,
     explicitEventQueriesMax: 2,
     explicitTopicResultsPerQuery: 2,
@@ -208,8 +207,8 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
       usePlan: false,
       skipAllMemory: false,
       loadIdentity: params.profile.identity && CORE_IDENTITY_RETRIEVAL_ENABLED,
-      globalThemeKeys: [],
-      globalSubthemeKeys: [],
+      domainPrefixKeys: [],
+      domainKeys: [],
       topicQueries: [],
       eventQueries: [],
       fallbackSemanticGlobalMax: 0,
@@ -225,14 +224,14 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
     fallbackBudget;
   const skipAllMemory = plan.memory_mode === "none";
   const targets = Array.isArray(plan.targets) ? plan.targets : [];
-  const globalThemeKeys = uniqueStrings(
+  const domainPrefixKeys = uniqueStrings(
     targets
-      .filter((target) => target.type === "global_theme")
+      .filter((target) => target.type === "domain_prefix")
       .map((target) => target.key),
   );
-  const globalSubthemeKeys = uniqueStrings(
+  const domainKeys = uniqueStrings(
     targets
-      .filter((target) => target.type === "global_subtheme")
+      .filter((target) => target.type === "domain_key")
       .map((target) => target.key),
   );
   const topicQueries = uniqueStrings(
@@ -245,10 +244,9 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
       .filter((target) => target.type === "event")
       .map((target) => target.query_hint ?? target.key),
   );
-  const loadIdentity = CORE_IDENTITY_RETRIEVAL_ENABLED && !skipAllMemory &&
-    targets.some((target) => target.type === "core_identity");
-  const hasExplicitGlobalTargets = globalThemeKeys.length > 0 ||
-    globalSubthemeKeys.length > 0;
+  const loadIdentity = CORE_IDENTITY_RETRIEVAL_ENABLED && !skipAllMemory;
+  const hasExplicitDomainTargets = domainPrefixKeys.length > 0 ||
+    domainKeys.length > 0;
   const wantsTopicSupport = targets.some((target) =>
     target.expansion_policy === "add_supporting_topics" ||
     target.expansion_policy === "add_topics_and_events"
@@ -265,28 +263,28 @@ export function deriveDispatcherMemoryLoadStrategy(params: {
     usePlan: true,
     skipAllMemory,
     loadIdentity,
-    globalThemeKeys,
-    globalSubthemeKeys,
+    domainPrefixKeys,
+    domainKeys,
     topicQueries,
     eventQueries,
     fallbackSemanticGlobalMax:
-      semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+      semanticFallbackAllowed && !hasExplicitDomainTargets &&
         params.profile.global_memories
         ? budget.semanticGlobalMax
         : 0,
     fallbackSemanticTopicMax: params.profile.topic_memories &&
         (
-          (semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+          (semanticFallbackAllowed && !hasExplicitDomainTargets &&
             nonInventoryIntent) ||
-          (hasExplicitGlobalTargets && wantsTopicSupport)
+          (hasExplicitDomainTargets && wantsTopicSupport)
         )
       ? budget.semanticTopicMax
       : 0,
     fallbackSemanticEventMax: params.profile.event_memories &&
         (
-          (semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+          (semanticFallbackAllowed && !hasExplicitDomainTargets &&
             plan.context_need === "targeted" && nonInventoryIntent) ||
-          (hasExplicitGlobalTargets && wantsEventSupport)
+          (hasExplicitDomainTargets && wantsEventSupport)
         )
       ? budget.semanticEventMax
       : 0,
@@ -301,8 +299,8 @@ function capDispatcherBudgetWithV2(
   v2Budget: { global_max: number; topic_max: number; event_max: number },
 ): DispatcherMemoryBudget {
   return {
-    globalThemeMax: Math.min(
-      dispatcherBudget.globalThemeMax,
+    domainMax: Math.min(
+      dispatcherBudget.domainMax,
       v2Budget.global_max,
     ),
     explicitTopicQueriesMax: dispatcherBudget.explicitTopicQueriesMax,
@@ -376,8 +374,8 @@ export function resolveContextMemoryLoadStrategy(params: {
     skipAllMemory: false,
     loadIdentity: CORE_IDENTITY_RETRIEVAL_ENABLED &&
       params.profile.identity && v2Plan.load_identity,
-    globalThemeKeys: [],
-    globalSubthemeKeys: [],
+    domainPrefixKeys: [],
+    domainKeys: [],
     topicQueries: [],
     eventQueries: [],
     fallbackSemanticGlobalMax: v2Plan.load_global_memories
@@ -510,25 +508,6 @@ export async function loadContextForMode(
   // Parallel loading of independent elements
   const promises: Promise<void>[] = [];
 
-  // 1b. North Star context (on-demand to keep prompt lean)
-  const shouldInjectNorthStar = shouldInjectNorthStarContext({
-    mode: opts.mode,
-    message: opts.message,
-    tempMemory: opts.tempMemory,
-  });
-  if (shouldInjectNorthStar) {
-    promises.push(
-      loadNorthStarContext(opts.supabase, opts.userId, opts.v2Runtime).then(
-        (block) => {
-          if (block) {
-            context.northStarContext = block;
-            elementsLoaded.push("north_star_context");
-          }
-        },
-      ),
-    );
-  }
-
   const shouldInjectWeeklyRecap = shouldInjectWeeklyRecapContext({
     mode: opts.mode,
     state: opts.state,
@@ -637,9 +616,7 @@ export async function loadContextForMode(
 
   const activePlanId = opts.v2Runtime?.plan?.id ?? null;
 
-  if (
-    activePlanId && (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (activePlanId && opts.mode === "companion") {
     const indicators = await loadPlanItemIndicators(
       opts.supabase,
       opts.userId,
@@ -731,10 +708,7 @@ export async function loadContextForMode(
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon");
   }
 
-  if (
-    opts.tempMemory &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (opts.tempMemory && opts.mode === "companion") {
     context.momentumBlockersAddon = formatMomentumBlockersAddon(
       opts.tempMemory,
     );
@@ -781,10 +755,7 @@ export async function loadContextForMode(
   );
 
   // 13. Dashboard redirect addon (CRUD intent detected by dispatcher)
-  if (
-    dashboardRedirectAddon &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (dashboardRedirectAddon && opts.mode === "companion") {
     context.dashboardRedirectAddon = formatDashboardRedirectAddon(
       dashboardRedirectAddon,
     );
@@ -801,10 +772,7 @@ export async function loadContextForMode(
       dashboardCapabilitiesAddon ||
       hasSurfaceOpportunityAddon,
   );
-  if (
-    (opts.mode === "companion" || opts.mode === "investigator") &&
-    !hasSpecificDashboardAddon
-  ) {
+  if (opts.mode === "companion" && !hasSpecificDashboardAddon) {
     context.dashboardCapabilitiesLiteAddon =
       formatDashboardCapabilitiesLiteAddon();
     if (context.dashboardCapabilitiesLiteAddon) {
@@ -843,19 +811,13 @@ export async function loadContextForMode(
 
   // 14. Safety active addon (dynamic tone/protocol guidance)
   const safetyActiveAddon = (opts.tempMemory as any)?.__safety_active_addon;
-  if (
-    safetyActiveAddon &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (safetyActiveAddon && opts.mode === "companion") {
     context.safetyActiveAddon = formatSafetyActiveAddon(safetyActiveAddon);
     if (context.safetyActiveAddon) elementsLoaded.push("safety_active_addon");
   }
 
   // 14b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
-  if (
-    dashboardPreferencesIntentAddon &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (dashboardPreferencesIntentAddon && opts.mode === "companion") {
     context.dashboardPreferencesIntentAddon =
       formatDashboardPreferencesIntentAddon(
         dashboardPreferencesIntentAddon,
@@ -866,10 +828,7 @@ export async function loadContextForMode(
   }
 
   // 14c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
-  if (
-    dashboardRecurringReminderIntentAddon &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (dashboardRecurringReminderIntentAddon && opts.mode === "companion") {
     context.dashboardRecurringReminderIntentAddon =
       formatDashboardRecurringReminderIntentAddon(
         dashboardRecurringReminderIntentAddon,
@@ -886,10 +845,7 @@ export async function loadContextForMode(
       !dashboardPreferencesIntentAddon &&
       !dashboardRecurringReminderIntentAddon,
   );
-  if (
-    shouldIncludeDashboardCapabilitiesAddon &&
-    (opts.mode === "companion" || opts.mode === "investigator")
-  ) {
+  if (shouldIncludeDashboardCapabilitiesAddon && opts.mode === "companion") {
     context.dashboardCapabilitiesAddon = formatDashboardCapabilitiesAddon(
       dashboardCapabilitiesAddon,
     );
@@ -1022,7 +978,6 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
-  if (loaded.northStarContext) ctx += loaded.northStarContext + "\n\n";
   if (loaded.weeklyRecapContext) ctx += loaded.weeklyRecapContext + "\n\n";
   if (loaded.planItemIndicators) ctx += loaded.planItemIndicators + "\n\n";
   if (loaded.memoryV2Payload) ctx += loaded.memoryV2Payload;
@@ -1312,16 +1267,6 @@ async function loadSurfaceSupportingContent(args: {
   switch (definition.contentSource) {
     case "none":
       return "";
-    case "north_star": {
-      const block = await loadNorthStarContext(
-        args.supabase,
-        args.userId,
-        args.runtime,
-      );
-      return block
-        ? `${block.trim()}\n`
-        : "- Aucune étoile polaire active connue.\n";
-    }
     case "reminders": {
       const block = await loadRendezVousSummary(args.supabase, args.userId);
       return block ? `${block.trim()}\n` : "";
@@ -1497,7 +1442,7 @@ function formatMomentumBlockersAddon(tempMemory: any): string {
     lines.map((line) => `  - ${line}\n`).join("") +
     `- Si un blocker est déjà connu, ne repose pas la question depuis zéro.\n` +
     `- Utilise ce contexte pour confirmer, nuancer ou préparer une redirection dashboard si un ajustement d'action devient nécessaire.\n` +
-    `- Rappel produit: dans le chat, Sophia peut seulement comprendre, clarifier et tracker le progrès. Elle ne crée pas, ne modifie pas et ne breakdown pas une action dans le chat.\n`
+    `- Rappel produit: dans le chat, Sophia peut comprendre, clarifier et aider l'exécution. Elle ne crée pas, ne modifie pas et ne reconfigure pas une action dans le chat.\n`
   );
 }
 
@@ -1512,10 +1457,10 @@ export function formatDashboardRedirectAddon(addon: any): string {
     `- Intention détectée: ${intentText}.\n` +
     `- Cet add-on sert à orienter vers le dashboard V2 réel, sans exécution dans le chat.\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
-    `- Règle produit forte: dans le chat, Sophia peut seulement tracker le progrès et clarifier le besoin. Les changements de plan se font dans le dashboard.\n` +
+    `- Règle produit forte: dans le chat, Sophia peut clarifier le besoin et aider l'exécution. Les changements de plan se font dans le dashboard.\n` +
     `- Anti-répétition: ne répète jamais la même redirection dashboard sur 2 tours consécutifs.\n` +
     `- Si la redirection vient d'être donnée, continue sur le contenu (paramètres, clarifications) sans renvoyer encore vers l'UI.\n` +
-    `- Guide dashboard V2: pense en cartes North Star, sections Soutien / Missions / Habitudes, cartes de plan item, habitudes ancrées et aperçus de déblocage.\n` +
+    `- Guide dashboard: parle seulement des surfaces produit explicitement connues. Ne mentionne pas d'ancienne surface supprimée.\n` +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection dashboard puis reprends l'item du bilan.\n`
       : "") +
@@ -1528,18 +1473,16 @@ export function formatDashboardCapabilitiesLiteAddon(): string {
   return (
     `\n\n=== ADDON TABLEAU DE BORD (LITE / ALWAYS-ON) ===\n` +
     `- Support de connaissance global: utilise ces infos seulement si c'est pertinent pour la question du user.\n` +
-    `- Cartographie dashboard V2:\n` +
+    `- Cartographie dashboard:\n` +
     `  - Header & stratégie: focus actuel, intention identitaire, mantra.\n` +
-    `  - Carte North Star: objectif du cycle + progression actuelle.\n` +
     `  - Sections dimensions: Soutien, Missions, Habitudes.\n` +
     `  - Cartes plan item: statut, progression, accès au détail.\n` +
     `  - Habit maintenance strip: habitudes déjà ancrées, repliées par défaut.\n` +
     `  - Unlock preview: aperçu discret de ce qui se débloquera ensuite.\n` +
     `- Règles d'usage:\n` +
     `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
-    `  - Si la demande concerne l'objectif global, parle de la carte North Star.\n` +
     `  - Si la demande concerne un item du plan, oriente vers la bonne section dimensionnelle (Soutien, Missions, Habitudes).\n` +
-    `  - Dans le chat, seul le tracking de progression peut être exécuté. Toute reconfiguration du plan doit être faite dans le dashboard.\n` +
+    `  - Toute reconfiguration du plan doit être faite dans le dashboard.\n` +
     `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE surface dashboard complémentaire.\n` +
     `- Interdiction: aucune modification réelle du plan n'est exécutée dans le chat.\n`
   );
@@ -1588,16 +1531,14 @@ export function formatDashboardCapabilitiesAddon(addon: any): string {
     `- Signal synthétique détecté: la demande peut relever du tableau de bord (${intentsText}).\n` +
     `- Objectif: réponse CONSISTANTE, fidèle à l'UI réelle, sans exécution dans le chat.\n` +
     `\n` +
-    `- CARTOGRAPHIE DASHBOARD V2 (SOURCE DE VÉRITÉ):\n` +
+    `- CARTOGRAPHIE DASHBOARD:\n` +
     `  1) Header & stratégie: titre de transformation, user summary, intention identitaire, mantra.\n` +
-    `  2) North Star & Progress: carte cycle-level + indicateurs secondaires.\n` +
-    `  3) Soutien: boîte à outils, avec cartes useful now / always available / unlockable.\n` +
-    `  4) Missions: cartes de missions actives et jalons clés.\n` +
-    `  5) Habitudes: en construction, à adapter, habitudes ancrées.\n` +
-    `  6) Anticipation & suite: aperçus de déblocage / prochain focus.\n` +
+    `  2) Soutien: boîte à outils, avec cartes useful now / always available / unlockable.\n` +
+    `  3) Missions: cartes de missions actives et jalons clés.\n` +
+    `  4) Habitudes: en construction, à adapter, habitudes ancrées.\n` +
+    `  5) Anticipation & suite: aperçus de déblocage / prochain focus.\n` +
     `\n` +
     `- DÉTAILS PAR SURFACE:\n` +
-    `  - North Star card: explique l'objectif du cycle, la valeur actuelle, la cible et l'historique récent.\n` +
     `  - Support section: pour les outils utiles maintenant, les ressources toujours disponibles et les supports déblocables.\n` +
     `  - Mission cards: pour les tâches/jalons actifs et leur progression.\n` +
     `  - Habit cards: pour suivre l'ancrage, voir ce qui est à adapter, ou ouvrir le strip de maintenance.\n` +
@@ -1615,7 +1556,7 @@ export function formatDashboardCapabilitiesAddon(addon: any): string {
     `  D) Propose ensuite le bon chemin dashboard (section/fonction) en restant concret.\n` +
     `  E) Si pertinent, ajoute UNE suggestion produit complémentaire à forte valeur (pas plus d'une).\n` +
     `- Interdictions:\n` +
-    `  - Dans le chat, seule la progression peut être enregistrée.\n` +
+    `  - Dans le chat, n'affirme pas qu'une progression ou un bilan a été enregistré sans confirmation runtime explicite.\n` +
     `  - N'affirme jamais qu'une modification du plan est déjà appliquée depuis le chat.\n` +
     `  - N'invente pas de features non supportées.\n` +
     (fromBilan
@@ -1806,33 +1747,6 @@ export function formatWeeklyRecapSnapshot(
   return block;
 }
 
-export function formatNorthStarMetricContext(
-  metric: Pick<
-    UserMetricRow,
-    "title" | "unit" | "current_value" | "target_value" | "status" | "payload"
-  >,
-): string {
-  const title = String(metric.title ?? "North Star").trim() || "North Star";
-  const unit = String(metric.unit ?? "").trim() || null;
-  const status = String(metric.status ?? "unknown").trim() || "unknown";
-  const currentValue = metric.current_value == null
-    ? "?"
-    : String(metric.current_value);
-  const targetValue = metric.target_value == null
-    ? "?"
-    : String(metric.target_value);
-
-  return (
-    `=== NORTH STAR ACTIVE (V2) ===\n` +
-    `- Titre: ${title}\n` +
-    `- Valeur actuelle: ${currentValue}${unit ? ` ${unit}` : ""}\n` +
-    `- Cible: ${targetValue}${unit ? ` ${unit}` : ""}\n` +
-    `- Statut: ${status}\n` +
-    formatRecentMetricHistory(metric.payload, unit) +
-    `- Consigne: relie les conseils et les ajustements de plan à cette North Star.\n`
-  );
-}
-
 export function formatPlanItemIndicatorsBlock(
   planItems: PlanItemRuntimeRow[],
 ): string {
@@ -1865,10 +1779,7 @@ function shouldInjectWeeklyRecapContext(args: {
   mode: AgentMode;
   state: any;
 }): boolean {
-  if (args.mode === "companion") return true;
-  if (args.mode !== "investigator") return false;
-  const inv = args.state?.investigation_state;
-  return String(inv?.mode ?? "") === "weekly_bilan";
+  return args.mode === "companion";
 }
 
 async function loadWeeklyRecapContext(
@@ -1913,53 +1824,6 @@ async function loadWeeklyRecapContext(
   }
 }
 
-function shouldInjectNorthStarContext(args: {
-  mode: AgentMode;
-  message: string;
-  tempMemory?: any;
-}): boolean {
-  const isEligibleMode = args.mode === "companion" ||
-    args.mode === "investigator";
-  if (!isEligibleMode) return false;
-
-  const hasDashboardCapabilitiesSignal = Boolean(
-    (args.tempMemory as any)?.__dashboard_capabilities_addon,
-  );
-  if (hasDashboardCapabilitiesSignal) return true;
-
-  const msg = String(args.message ?? "").toLowerCase();
-  return /north\s*star|etoile|étoile|cap|vision|priorit/.test(msg);
-}
-
-async function loadNorthStarContext(
-  supabase: SupabaseClient,
-  userId: string,
-  runtime?: ActiveTransformationRuntime | null,
-): Promise<string | null> {
-  try {
-    const resolvedRuntime = runtime ??
-      await getActiveTransformationRuntime(supabase, userId);
-    if (!resolvedRuntime.cycle) return null;
-
-    const { data, error } = await supabase
-      .from("user_metrics")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("cycle_id", resolvedRuntime.cycle.id)
-      .eq("scope", "cycle")
-      .eq("kind", "north_star")
-      .in("status", ["active", "completed"])
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (error || !data) return null;
-    return formatNorthStarMetricContext(data as UserMetricRow);
-  } catch {
-    return null;
-  }
-}
-
 function formatDashboardRecurringReminderIntentAddon(addon: any): string {
   const confidence = Number(addon?.confidence ?? 0);
   const confidenceText = Number.isFinite(confidence)
@@ -1996,7 +1860,7 @@ function shouldInjectRendezVousSummary(
   mode: AgentMode,
   message: string,
 ): boolean {
-  if (mode !== "companion" && mode !== "investigator") return false;
+  if (mode !== "companion") return false;
   const normalized = String(message ?? "").trim();
   if (!normalized) return false;
   return /\brappels?\b|\brendez[\s-]?vous\b/i.test(normalized);

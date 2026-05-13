@@ -17,11 +17,27 @@ import type {
 import { normalizeText } from "./utils.ts";
 
 const SUBJECTIVE_RE =
-  /\b(peur|honte|angoisse|triste|colere|nul|nulle|incapable|mal|deteste|j'en peux plus|vide|humilie)\b/i;
+  /\b(peur|honte|angoisse|triste|colere|nul|nulle|incapable|mal|deteste|j en peux plus|vide|humilie|humiliation|faiblesse|doute)\b/i;
+const SUBJECTIVE_FACT_RE =
+  /\b(se sent|sentiment|ressent|eprouve|a peur|j ai peur|craint|impression|dort mal|dors mal|sommeil degrade|active des doutes|provoque\b.{0,30}\bsentiment|met\b.{0,30}\bpression)\b/i;
 const DIAGNOSTIC_RE =
   /\b(le user est|tu es|il est|elle est)\b.{0,40}\b(depressif|depressive|narcissique|bipolaire|trouble|malade|incapable|toxique)\b/i;
 const SENSITIVE_RE =
-  /\b(cannabis|alcool|drogue|suicide|me tuer|trauma|honte|rupture|famille|pere|mere|sexe|argent|dette|psy|therapie|humilie)\b/i;
+  /\b(cannabis|alcool|drogue|suicide|me tuer|trauma|honte|rupture|famille|pere|mere|sexe|argent|dette|budget|depense|depenses|facture|euro|euros|psy|therapie|humilie)\b/i;
+const SENSITIVE_CATEGORIES_REQUIRING_TAG = new Set([
+  "addiction",
+  "mental_health",
+  "family",
+  "relationship",
+  "work",
+  "financial",
+  "health",
+  "sexuality",
+  "self_harm",
+  "shame",
+  "trauma",
+  "other_sensitive",
+]);
 
 function issue(
   code: ValidationIssue["code"],
@@ -62,35 +78,69 @@ export function validateExtractedItem(
   sourceMessageIds: Set<string>,
   index = 0,
 ): { accepted?: ValidatedMemoryItem; issues: ValidationIssue[] } {
+  const contentForDemotion = normalizeText(item.content_text ?? "");
+  let normalizedItem: ExtractedMemoryItem = item.kind === "fact" &&
+      SUBJECTIVE_FACT_RE.test(contentForDemotion)
+    ? {
+      ...item,
+      kind: "statement",
+      metadata: {
+        ...(item.metadata ?? {}),
+        demoted_from_kind: "fact",
+        demotion_reason: "subjective_fact_language",
+      },
+    }
+    : item;
   const issues: ValidationIssue[] = [];
-  const content = String(item.content_text ?? "").trim();
+  const content = String(normalizedItem.content_text ?? "").trim();
+  const ruleContent = normalizeText(content);
+  const shouldBeSensitive = SENSITIVE_RE.test(ruleContent) ||
+    (normalizedItem.sensitivity_categories ?? []).some((category) =>
+      SENSITIVE_CATEGORIES_REQUIRING_TAG.has(String(category))
+    );
+  if (shouldBeSensitive && normalizedItem.sensitivity_level === "normal") {
+    normalizedItem = {
+      ...normalizedItem,
+      sensitivity_level: "sensitive",
+      metadata: {
+        ...(normalizedItem.metadata ?? {}),
+        sensitivity_promoted_from: "normal",
+        sensitivity_promotion_reason: "sensitive_content_or_category",
+      },
+    };
+  }
   if (!content) {
     issues.push(issue("empty_content", "content_text is required", index));
   }
-  if (!MEMORY_ITEM_KINDS.includes(item.kind)) {
-    issues.push(issue("invalid_kind", `invalid kind: ${item.kind}`, index));
+  if (!MEMORY_ITEM_KINDS.includes(normalizedItem.kind)) {
+    issues.push(
+      issue("invalid_kind", `invalid kind: ${normalizedItem.kind}`, index),
+    );
   }
   if (
-    !Array.isArray(item.source_message_ids) ||
-    item.source_message_ids.length === 0
+    !Array.isArray(normalizedItem.source_message_ids) ||
+    normalizedItem.source_message_ids.length === 0
   ) {
     issues.push(issue("no_source", "source_message_ids is required", index));
   }
-  for (const id of item.source_message_ids ?? []) {
+  for (const id of normalizedItem.source_message_ids ?? []) {
     if (!sourceMessageIds.has(id)) {
       issues.push(
         issue("source_not_found", `unknown source_message_id: ${id}`, index),
       );
     }
   }
-  for (const key of item.domain_keys ?? []) {
+  for (const key of normalizedItem.domain_keys ?? []) {
     if (!DOMAIN_KEYS_V1.has(key)) {
       issues.push(
         issue("invalid_domain_key", `invalid domain_key: ${key}`, index),
       );
     }
   }
-  if (item.kind === "event" && (!item.event_start_at || !item.time_precision)) {
+  if (
+    normalizedItem.kind === "event" &&
+    (!normalizedItem.event_start_at || !normalizedItem.time_precision)
+  ) {
     issues.push(
       issue(
         "event_missing_date",
@@ -99,34 +149,28 @@ export function validateExtractedItem(
       ),
     );
   }
-  if (item.kind === "fact" && SUBJECTIVE_RE.test(content)) {
+  if (
+    normalizedItem.kind === "fact" &&
+    SUBJECTIVE_RE.test(ruleContent)
+  ) {
     issues.push(
       issue("statement_as_fact", "subjective content cannot be fact", index),
     );
   }
-  if (DIAGNOSTIC_RE.test(content)) {
+  if (DIAGNOSTIC_RE.test(ruleContent)) {
     issues.push(
       issue("diagnostic_attempt", "diagnostic language is forbidden", index),
     );
   }
-  if (Number(item.confidence ?? 0) < 0.55) {
+  if (Number(normalizedItem.confidence ?? 0) < 0.55) {
     issues.push(issue("low_confidence", "confidence must be >= 0.55", index));
   }
-  if (!SENSITIVITY_LEVELS.includes(item.sensitivity_level)) {
+  if (!SENSITIVITY_LEVELS.includes(normalizedItem.sensitivity_level)) {
     issues.push(
       issue("missing_sensitive_tag", "invalid sensitivity_level", index),
     );
   }
-  if (SENSITIVE_RE.test(content) && item.sensitivity_level === "normal") {
-    issues.push(
-      issue(
-        "missing_sensitive_tag",
-        "sensitive content must not be tagged normal",
-        index,
-      ),
-    );
-  }
-  for (const cat of item.sensitivity_categories ?? []) {
+  for (const cat of normalizedItem.sensitivity_categories ?? []) {
     if (!SENSITIVITY_CATEGORIES.includes(cat)) {
       issues.push(
         issue(
@@ -144,19 +188,21 @@ export function validateExtractedItem(
   return {
     accepted: {
       ...item,
-      normalized_summary: item.normalized_summary || content.slice(0, 220),
-      domain_keys: item.domain_keys ?? [],
-      confidence: Math.max(0.55, Math.min(1, Number(item.confidence))),
+      ...normalizedItem,
+      normalized_summary: normalizedItem.normalized_summary ||
+        content.slice(0, 220),
+      domain_keys: normalizedItem.domain_keys ?? [],
+      confidence: Math.max(0.55, Math.min(1, Number(normalizedItem.confidence))),
       importance_score: Math.max(
         0,
-        Math.min(1, Number(item.importance_score ?? 0)),
+        Math.min(1, Number(normalizedItem.importance_score ?? 0)),
       ),
-      sensitivity_categories: item.sensitivity_categories ?? [],
-      requires_user_initiated: Boolean(item.requires_user_initiated),
-      source_message_ids: item.source_message_ids,
-      entity_mentions: item.entity_mentions ?? [],
-      metadata: item.metadata ?? {},
-      canonical_key: generateCanonicalKey(item),
+      sensitivity_categories: normalizedItem.sensitivity_categories ?? [],
+      requires_user_initiated: Boolean(normalizedItem.requires_user_initiated),
+      source_message_ids: normalizedItem.source_message_ids,
+      entity_mentions: normalizedItem.entity_mentions ?? [],
+      metadata: normalizedItem.metadata ?? {},
+      canonical_key: generateCanonicalKey(normalizedItem),
     },
     issues: [],
   };

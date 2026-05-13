@@ -105,7 +105,6 @@ export type MetricScope =
   | "transformation";
 
 export type MetricKind =
-  | "north_star"
   | "progress_marker"
   | "support_metric"
   | "custom";
@@ -313,6 +312,8 @@ export type TransformationClosureFeedback = {
 
 export type UserTransformationBaseDeViePayload = {
   line_red_entries: string[];
+  line_green_entries: BaseDeVieLineEntry[];
+  line_red_entry_details: BaseDeVieLineEntry[];
   line_green_entry: BaseDeVieLineEntry | null;
   line_red_entry: BaseDeVieLineEntry | null;
   declics_draft: BaseDeVieDeclics | null;

@@ -5,6 +5,8 @@ import { computeScheduledForFromLocal } from "./scheduled_checkins.ts";
 export const ACTION_MORNING_EVENT_CONTEXT = "action_morning_encouragement_v2";
 export const MORNING_LIGHT_GREETING_EVENT_CONTEXT = "morning_light_greeting_v2";
 export const ACTION_EVENING_REVIEW_EVENT_CONTEXT = "action_evening_review_v2";
+export const ACTION_MORNING_FOLLOWUP_EVENT_CONTEXT =
+  "action_morning_followup_v2";
 
 export const ACTION_EVENING_DONE_ID = "ACTION_DONE";
 export const ACTION_EVENING_PARTIAL_ID = "ACTION_PARTIAL";
@@ -12,7 +14,6 @@ export const ACTION_EVENING_MISSED_ID = "ACTION_MISSED";
 
 export const ACTION_EVENING_REVIEW_BUTTONS = [
   { id: ACTION_EVENING_DONE_ID, title: "Fait" },
-  { id: ACTION_EVENING_PARTIAL_ID, title: "Partiel" },
   { id: ACTION_EVENING_MISSED_ID, title: "Pas fait" },
 ] as const;
 
@@ -79,6 +80,7 @@ export type TodayActionOccurrence = {
   title: string;
   dimension: string;
   kind: string;
+  time_of_day: string | null;
   planned_day: DayCode;
   status: string;
   source: string;
@@ -396,6 +398,7 @@ export async function loadTodayActionOccurrences(
       title: cleanText(item.title, "Action"),
       dimension: cleanText(item.dimension),
       kind: cleanText(item.kind),
+      time_of_day: cleanText(item.time_of_day) || null,
       planned_day: weekday,
       status: cleanText(occurrence.status),
       source: cleanText(occurrence.source),
@@ -508,6 +511,49 @@ export function buildActionMorningGrounding(
   return lines.join("\n");
 }
 
+export function buildActionMorningFollowupFallbackMessage(
+  schedule: TodayActionOccurrenceSchedule,
+): string {
+  const titles = listTitles(schedule);
+  if (titles.length === 0) {
+    return "Je voulais juste prendre la temperature de ce que tu avais prévu hier. Rien à justifier.";
+  }
+  if (titles.length === 1) {
+    return `Pour "${
+      titles[0]
+    }" hier, ça s'est passé comment ? Pas besoin que ce soit parfait.`;
+  }
+  const visible = titles.slice(0, 3).map((title) => `"${title}"`).join(", ");
+  const suffix = titles.length > 3 ? ` + ${titles.length - 3} autre(s)` : "";
+  return `Pour tes actions d'hier (${visible}${suffix}), ça s'est passé comment ? Pas besoin que ce soit parfait.`;
+}
+
+export function buildActionMorningFollowupInstruction(
+  schedule: TodayActionOccurrenceSchedule,
+): string {
+  const count = listTitles(schedule).length;
+  return [
+    "Message WhatsApp du matin, le lendemain d'une ou plusieurs actions prévues.",
+    "Objectif: demander doucement comment ça s'est passé, pour récupérer du feedback utile au plan.",
+    "Ton: non culpabilisant, sans surveillance, sans pression de performance.",
+    "Ne dis pas 'tu aurais dû'. Ne demande pas de justification.",
+    "Si l'action touche au sommeil ou au coucher, demande comment le sas/le coucher s'est passé avec douceur.",
+    `Nombre d'actions concernées: ${count}.`,
+    "1 question maximum, 1 à 3 phrases maximum.",
+  ].join("\n");
+}
+
+export function buildActionMorningFollowupGrounding(
+  schedule: TodayActionOccurrenceSchedule,
+): string {
+  return [
+    "event=action_morning_followup",
+    `local_date_reviewed=${schedule.local_date}`,
+    `weekday_reviewed=${schedule.weekday}`,
+    buildActionMorningGrounding(schedule),
+  ].join("\n");
+}
+
 export function buildLightMorningFallbackMessage(): string {
   return "Je te souhaite une bonne journée. Garde juste un petit point d'appui simple, et on avance.";
 }
@@ -519,24 +565,4 @@ export function buildLightMorningInstruction(): string {
     "Ne propose pas de nouvelle action. Ne demande pas un bilan.",
     "1 à 2 phrases maximum.",
   ].join("\n");
-}
-
-export function buildActionEveningReviewMessage(
-  schedule: TodayActionOccurrenceSchedule,
-): string {
-  return buildActionEveningReviewMessageFromTitles(listTitles(schedule));
-}
-
-export function buildActionEveningReviewMessageFromTitles(
-  titles: string[],
-): string {
-  if (titles.length === 0) {
-    return "Petit check du soir: tu as quelque chose à valider aujourd'hui ?";
-  }
-  if (titles.length === 1) {
-    return `Petit check du soir: pour "${titles[0]}", tu en es où ?`;
-  }
-  const visible = titles.slice(0, 3).map((title) => `"${title}"`).join(", ");
-  const suffix = titles.length > 3 ? ` + ${titles.length - 3} autre(s)` : "";
-  return `Petit check du soir: pour tes actions du jour (${visible}${suffix}), tu en es où ?`;
 }

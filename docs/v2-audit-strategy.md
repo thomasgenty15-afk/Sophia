@@ -145,7 +145,7 @@ Les bundles V2 suivent le meme format (JSON + transcript) mais avec ces
 differences:
 
 - les traces lisent `plan_items` au lieu de
-  `user_actions / user_framework_tracking`
+  anciennes tables actions/frameworks
 - les dimensions momentum sont les 6 dimensions V2 (engagement,
   execution_traction, emotional_load, consent, plan_fit, load_balance)
 - les decisions weekly sont `hold / expand / consolidate / reduce` au lieu de

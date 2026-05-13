@@ -9,7 +9,10 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { classifyPlanTypeForTransformation } from "../classify-plan-type-v1/index.ts";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { distributePlanItemsV3 } from "../_shared/v2-plan-distribution.ts";
-import { buildPhase1Context, mergePhase1Payload } from "../_shared/v2-phase1.ts";
+import {
+  buildPhase1Context,
+  mergePhase1Payload,
+} from "../_shared/v2-phase1.ts";
 import { classifyAndPersistProfessionalSupport } from "../_shared/professional-support-v2.ts";
 import { classifyAndPersistLevelToolRecommendations } from "../_shared/level-tool-recommendations-v1.ts";
 import {
@@ -166,12 +169,13 @@ type PlanScheduleAnchor = {
   week_starts_on: "monday";
 };
 
-const LOCKED_TRANSFORMATION_STATUSES: ReadonlySet<TransformationStatus> = new Set([
-  "active",
-  "completed",
-  "abandoned",
-  "archived",
-]);
+const LOCKED_TRANSFORMATION_STATUSES: ReadonlySet<TransformationStatus> =
+  new Set([
+    "active",
+    "completed",
+    "abandoned",
+    "archived",
+  ]);
 
 function parseYmdParts(ymd: string): [number, number, number] {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
@@ -285,7 +289,9 @@ function buildDefaultDays(args: {
 }): DayCode[] {
   const fromPreferred = normalizeDayCodes(args.preferredDays);
   const fromPlan = normalizeDayCodes(args.item.scheduled_days);
-  const availableDays = fromPreferred.length > 0 ? fromPreferred : [...DAY_CODES];
+  const availableDays = fromPreferred.length > 0
+    ? fromPreferred
+    : [...DAY_CODES];
   const target = Math.min(
     effectiveWeeklyTarget(args.item, args.targetRepsOverride),
     availableDays.length,
@@ -293,10 +299,10 @@ function buildDefaultDays(args: {
   if (target === 0) return [];
 
   if (args.item.dimension !== "habits") {
-    const candidate = availableDays.find((day) => fromPlan.includes(day))
-      ?? availableDays[0]
-      ?? fromPlan[0]
-      ?? DAY_CODES[0];
+    const candidate = availableDays.find((day) => fromPlan.includes(day)) ??
+      availableDays[0] ??
+      fromPlan[0] ??
+      DAY_CODES[0];
     return candidate ? [candidate] : [];
   }
 
@@ -311,10 +317,18 @@ function buildDefaultDays(args: {
   return completed.slice(0, target);
 }
 
-function getVisibleWeekDays(anchor: PlanScheduleAnchor, weekOrder: number): DayCode[] {
-  const fullWeekStart = addDaysYmd(anchor.anchor_week_start, (weekOrder - 1) * 7);
+function getVisibleWeekDays(
+  anchor: PlanScheduleAnchor,
+  weekOrder: number,
+): DayCode[] {
+  const fullWeekStart = addDaysYmd(
+    anchor.anchor_week_start,
+    (weekOrder - 1) * 7,
+  );
   const fullWeekEnd = addDaysYmd(anchor.anchor_week_end, (weekOrder - 1) * 7);
-  const visibleStart = weekOrder === 1 ? anchor.anchor_display_start : fullWeekStart;
+  const visibleStart = weekOrder === 1
+    ? anchor.anchor_display_start
+    : fullWeekStart;
   const days: DayCode[] = [];
   let cursor = dateFromYmdUtc(visibleStart);
   const end = dateFromYmdUtc(fullWeekEnd);
@@ -326,7 +340,10 @@ function getVisibleWeekDays(anchor: PlanScheduleAnchor, weekOrder: number): DayC
   return days;
 }
 
-function getWeekStartDate(anchor: PlanScheduleAnchor, weekOrder: number): string {
+function getWeekStartDate(
+  anchor: PlanScheduleAnchor,
+  weekOrder: number,
+): string {
   return addDaysYmd(anchor.anchor_week_start, (weekOrder - 1) * 7);
 }
 
@@ -347,18 +364,30 @@ function buildRuntimeWeekItems(args: {
         if (!item) return null;
         return {
           item,
-          weeklyReps: typeof assignment.weekly_reps === "number" ? assignment.weekly_reps : null,
+          weeklyReps: typeof assignment.weekly_reps === "number"
+            ? assignment.weekly_reps
+            : null,
         };
       })
-      .filter((entry): entry is { item: UserPlanItemRow; weeklyReps: number | null } => Boolean(entry));
+      .filter((
+        entry,
+      ): entry is { item: UserPlanItemRow; weeklyReps: number | null } =>
+        Boolean(entry)
+      );
   }
 
-  const currentPhase = args.plan.phases.find((phase) => phase.phase_id === args.runtime.phase_id);
+  const currentPhase = args.plan.phases.find((phase) =>
+    phase.phase_id === args.runtime.phase_id
+  );
   if (!currentPhase) return [];
 
-  const fallbackItems: Array<{ item: UserPlanItemRow; weeklyReps: number | null } | null> = currentPhase.items
+  const fallbackItems: Array<
+    { item: UserPlanItemRow; weeklyReps: number | null } | null
+  > = currentPhase.items
     .map((planItem) => {
-      const tempId = typeof planItem.temp_id === "string" ? planItem.temp_id : null;
+      const tempId = typeof planItem.temp_id === "string"
+        ? planItem.temp_id
+        : null;
       if (!tempId) return null;
       const item = args.itemsByTempId.get(tempId);
       if (!item) return null;
@@ -368,7 +397,9 @@ function buildRuntimeWeekItems(args: {
       };
     });
 
-  return fallbackItems.filter((entry): entry is { item: UserPlanItemRow; weeklyReps: number | null } =>
+  return fallbackItems.filter((
+    entry,
+  ): entry is { item: UserPlanItemRow; weeklyReps: number | null } =>
     Boolean(entry)
   );
 }
@@ -384,9 +415,13 @@ async function materializeCurrentLevelWeekPlanning(args: {
   now: string;
 }): Promise<void> {
   const runtime = args.plan.current_level_runtime;
-  if (!runtime || !Array.isArray(runtime.weeks) || runtime.weeks.length === 0) return;
+  if (!runtime || !Array.isArray(runtime.weeks) || runtime.weeks.length === 0) {
+    return;
+  }
 
-  const itemsById = new Map(args.distributedItems.map((item) => [item.id, item]));
+  const itemsById = new Map(
+    args.distributedItems.map((item) => [item.id, item]),
+  );
   const itemsByTempId = new Map<string, UserPlanItemRow>();
   for (const [tempId, itemId] of Object.entries(args.tempIdMap)) {
     const item = itemsById.get(itemId);
@@ -405,14 +440,18 @@ async function materializeCurrentLevelWeekPlanning(args: {
       week,
       itemsByTempId,
     });
-    const oneShotItems = weekItems.filter((entry) => entry.item.dimension !== "habits");
+    const oneShotItems = weekItems.filter((entry) =>
+      entry.item.dimension !== "habits"
+    );
     const missionDays = normalizeDayCodes(week.mission_days);
 
     for (const [index, entry] of weekItems.entries()) {
       const preferredDays = entry.item.dimension === "habits"
         ? visibleDays
         : (() => {
-          const oneShotIndex = oneShotItems.findIndex((candidate) => candidate.item.id === entry.item.id);
+          const oneShotIndex = oneShotItems.findIndex((candidate) =>
+            candidate.item.id === entry.item.id
+          );
           const mapped = oneShotIndex >= 0 ? missionDays[oneShotIndex] : null;
           if (mapped && visibleDays.includes(mapped)) return [mapped];
           return visibleDays;
@@ -430,7 +469,8 @@ async function materializeCurrentLevelWeekPlanning(args: {
         targetRepsOverride,
       });
 
-      const { data: existingPlanData, error: existingPlanError } = await args.admin
+      const { data: existingPlanData, error: existingPlanError } = await args
+        .admin
         .from("user_habit_week_plans")
         .select("id,status")
         .eq("user_id", args.userId)
@@ -443,17 +483,22 @@ async function materializeCurrentLevelWeekPlanning(args: {
         });
       }
 
-      const { data: existingOccurrences, error: existingOccurrencesError } = await args.admin
-        .from("user_habit_week_occurrences")
-        .select("id")
-        .eq("user_id", args.userId)
-        .eq("plan_item_id", entry.item.id)
-        .eq("week_start_date", weekStartDate)
-        .limit(1);
+      const { data: existingOccurrences, error: existingOccurrencesError } =
+        await args.admin
+          .from("user_habit_week_occurrences")
+          .select("id")
+          .eq("user_id", args.userId)
+          .eq("plan_item_id", entry.item.id)
+          .eq("week_start_date", weekStartDate)
+          .limit(1);
       if (existingOccurrencesError) {
-        throw new GeneratePlanV2Error(500, "Failed to inspect week occurrences", {
-          cause: existingOccurrencesError,
-        });
+        throw new GeneratePlanV2Error(
+          500,
+          "Failed to inspect week occurrences",
+          {
+            cause: existingOccurrencesError,
+          },
+        );
       }
 
       if (!existingPlanData) {
@@ -470,9 +515,13 @@ async function materializeCurrentLevelWeekPlanning(args: {
             updated_at: args.now,
           });
         if (insertPlanError) {
-          throw new GeneratePlanV2Error(500, "Failed to materialize week planning", {
-            cause: insertPlanError,
-          });
+          throw new GeneratePlanV2Error(
+            500,
+            "Failed to materialize week planning",
+            {
+              cause: insertPlanError,
+            },
+          );
         }
       }
 
@@ -494,9 +543,13 @@ async function materializeCurrentLevelWeekPlanning(args: {
             updated_at: args.now,
           })));
         if (insertOccurrencesError) {
-          throw new GeneratePlanV2Error(500, "Failed to materialize week occurrences", {
-            cause: insertOccurrencesError,
-          });
+          throw new GeneratePlanV2Error(
+            500,
+            "Failed to materialize week occurrences",
+            {
+              cause: insertOccurrencesError,
+            },
+          );
         }
       }
     }
@@ -582,10 +635,13 @@ async function handleRequest(req: Request): Promise<Response> {
         ? {
           reviewId: parsedBody.data.adjustment_context.review_id ?? null,
           scope: parsedBody.data.adjustment_context.scope,
-          effectiveStartDate: parsedBody.data.adjustment_context.effective_start_date,
+          effectiveStartDate:
+            parsedBody.data.adjustment_context.effective_start_date,
           reason: parsedBody.data.adjustment_context.reason,
-          userChangeSummary: parsedBody.data.adjustment_context.user_change_summary ?? null,
-          assistantMessage: parsedBody.data.adjustment_context.assistant_message ?? null,
+          userChangeSummary:
+            parsedBody.data.adjustment_context.user_change_summary ?? null,
+          assistantMessage:
+            parsedBody.data.adjustment_context.assistant_message ?? null,
         }
         : null,
     });
@@ -780,8 +836,8 @@ export async function generatePlanV2ForTransformation(params: {
       planId: lockedPlan.id,
     })
     : null;
-  const activeAdjustmentBasePlan =
-    activeAdjustmentBasePlanRow?.content as unknown as PlanContentV3 | null;
+  const activeAdjustmentBasePlan = activeAdjustmentBasePlanRow
+    ?.content as unknown as PlanContentV3 | null;
   if (lockedPlan && !isActivePlanAdjustment) {
     if (params.mode === "confirm") {
       console.info("[generate-plan-v2][confirm][activate_locked_plan]", {
@@ -811,9 +867,12 @@ export async function generatePlanV2ForTransformation(params: {
         admin: params.admin,
         planId: lockedPlan.id,
       });
-      const lockedPreview = persistedLockedPlan.content as unknown as PlanContentV3;
-      if (!lockedPreview || lockedPreview.version !== 3 ||
-        !Array.isArray(lockedPreview.phases)) {
+      const lockedPreview = persistedLockedPlan
+        .content as unknown as PlanContentV3;
+      if (
+        !lockedPreview || lockedPreview.version !== 3 ||
+        !Array.isArray(lockedPreview.phases)
+      ) {
         throw new GeneratePlanV2Error(500, "Persisted active plan is invalid");
       }
 
@@ -918,13 +977,16 @@ export async function generatePlanV2ForTransformation(params: {
   }
 
   if (params.mode === "confirm") {
-    console.warn("[generate-plan-v2][confirm][falling_back_to_full_generation]", {
-      request_id: params.requestId,
-      user_id: params.userId,
-      cycle_id: context.cycle.id,
-      transformation_id: context.transformation.id,
-      transformation_title: context.transformation.title ?? null,
-    });
+    console.warn(
+      "[generate-plan-v2][confirm][falling_back_to_full_generation]",
+      {
+        request_id: params.requestId,
+        user_id: params.userId,
+        cycle_id: context.cycle.id,
+        transformation_id: context.transformation.id,
+        transformation_title: context.transformation.title ?? null,
+      },
+    );
   }
 
   const attemptNumber = computeNextGenerationAttempt(context.existingPlans);
@@ -973,7 +1035,9 @@ export async function generatePlanV2ForTransformation(params: {
     calibrationFields,
     planTypeClassification,
   });
-  const currentJourney = extractMultiPartJourneyPayload(context.transformation.handoff_payload);
+  const currentJourney = extractMultiPartJourneyPayload(
+    context.transformation.handoff_payload,
+  );
   const userTimeContext = await getUserTimeContext({
     supabase: params.admin,
     userId: params.userId,
@@ -1020,8 +1084,10 @@ export async function generatePlanV2ForTransformation(params: {
     metric_target_value: calibrationFields.metric_target_value,
     metric_baseline_text: calibrationFields.metric_baseline_text,
     metric_target_text: transformationScopedGuidance.metricTargetText,
-    previous_transformation_title: context.previousTransformation?.title ?? null,
-    previous_transformation_summary: context.previousTransformation?.user_summary ?? null,
+    previous_transformation_title: context.previousTransformation?.title ??
+      null,
+    previous_transformation_summary:
+      context.previousTransformation?.user_summary ?? null,
     previous_transformation_success_definition:
       context.previousTransformation?.success_definition ?? null,
     previous_transformation_completion_summary:
@@ -1227,9 +1293,14 @@ function buildGenerationInputSnapshot(args: {
       main_constraint: args.transformation.main_constraint,
       questionnaire_schema: args.transformation.questionnaire_schema,
       questionnaire_answers: args.transformation.questionnaire_answers,
-      onboarding_v2: extractOnboardingV2Payload(args.transformation.handoff_payload),
+      onboarding_v2: extractOnboardingV2Payload(
+        args.transformation.handoff_payload,
+      ),
     },
-    calibration_fields: args.calibrationFields as unknown as Record<string, unknown>,
+    calibration_fields: args.calibrationFields as unknown as Record<
+      string,
+      unknown
+    >,
     plan_type_classification: args.planTypeClassification,
     llm_input: args.llmInput,
   };
@@ -1253,9 +1324,13 @@ async function resolveCycleActiveTransformationId(args: {
     .eq("cycle_id", args.cycle.id)
     .maybeSingle();
   if (error) {
-    throw new GeneratePlanV2Error(500, "Failed to resolve preserved active transformation", {
-      cause: error,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to resolve preserved active transformation",
+      {
+        cause: error,
+      },
+    );
   }
 
   if (!data || data.status !== "active") {
@@ -1270,7 +1345,10 @@ function extractPlanTypeClassification(
 ): PlanTypeClassificationV1 | null {
   const onboardingV2 = extractOnboardingV2Payload(handoffPayload);
   const classification = onboardingV2.plan_type_classification;
-  if (!classification || typeof classification !== "object" || Array.isArray(classification)) {
+  if (
+    !classification || typeof classification !== "object" ||
+    Array.isArray(classification)
+  ) {
     return null;
   }
 
@@ -1292,13 +1370,17 @@ function shouldRefreshPlanTypeClassification(
   classification: PlanTypeClassificationV1 | null,
 ): boolean {
   if (!classification) return true;
-  if (classification.journey_strategy?.mode !== "two_transformations") return false;
+  if (classification.journey_strategy?.mode !== "two_transformations") {
+    return false;
+  }
   return !classification.split_metric_guidance?.transformation_1 ||
     !classification.split_metric_guidance?.transformation_2;
 }
 
 function cleanOptionalText(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+  return typeof value === "string" && value.trim().length > 0
+    ? value.trim()
+    : null;
 }
 
 function parsePositiveInteger(value: unknown): number | null {
@@ -1359,8 +1441,12 @@ function extractMultiPartJourneyPayload(
     part_number: parsePositiveInteger(raw.part_number),
     estimated_total_parts: parsePositiveInteger(raw.estimated_total_parts),
     continuation_hint: cleanOptionalText(raw.continuation_hint),
-    estimated_total_duration_months: parsePositiveNumber(raw.estimated_total_duration_months),
-    previous_transformation_id: cleanOptionalText(raw.previous_transformation_id),
+    estimated_total_duration_months: parsePositiveNumber(
+      raw.estimated_total_duration_months,
+    ),
+    previous_transformation_id: cleanOptionalText(
+      raw.previous_transformation_id,
+    ),
     next_transformation_id: cleanOptionalText(raw.next_transformation_id),
   };
 }
@@ -1393,11 +1479,19 @@ function deriveTransformationScopedGuidance(args: {
   successIndicator: string | null;
   metricTargetText: string | null;
 } {
-  const baseSuccessDefinition = cleanOptionalText(args.transformation.success_definition);
-  const baseSuccessIndicator = cleanOptionalText(args.calibrationFields.success_indicator);
-  const baseMetricTargetText = cleanOptionalText(args.calibrationFields.metric_target_text);
+  const baseSuccessDefinition = cleanOptionalText(
+    args.transformation.success_definition,
+  );
+  const baseSuccessIndicator = cleanOptionalText(
+    args.calibrationFields.success_indicator,
+  );
+  const baseMetricTargetText = cleanOptionalText(
+    args.calibrationFields.metric_target_text,
+  );
   const classification = args.planTypeClassification;
-  const journey = extractMultiPartJourneyPayload(args.transformation.handoff_payload);
+  const journey = extractMultiPartJourneyPayload(
+    args.transformation.handoff_payload,
+  );
   const partNumber = journey?.part_number === 2 ? 2 : 1;
   const splitGuidance = partNumber === 2
     ? classification?.split_metric_guidance?.transformation_2 ?? null
@@ -1413,14 +1507,13 @@ function deriveTransformationScopedGuidance(args: {
 
   const splitSuccessDefinition =
     cleanOptionalText(splitGuidance?.success_definition) ??
-    cleanOptionalText(
-      partNumber === 2
-        ? classification.journey_strategy.transformation_2_goal
-        : classification.journey_strategy.transformation_1_goal,
-    ) ??
-    baseSuccessDefinition;
-  const splitTargetText =
-    cleanOptionalText(splitGuidance?.target_text) ??
+      cleanOptionalText(
+        partNumber === 2
+          ? classification.journey_strategy.transformation_2_goal
+          : classification.journey_strategy.transformation_1_goal,
+      ) ??
+      baseSuccessDefinition;
+  const splitTargetText = cleanOptionalText(splitGuidance?.target_text) ??
     cleanOptionalText(
       partNumber === 2
         ? classification.journey_strategy.transformation_2_goal
@@ -1430,7 +1523,8 @@ function deriveTransformationScopedGuidance(args: {
 
   return {
     successDefinition: splitSuccessDefinition,
-    successIndicator: splitTargetText ?? splitSuccessDefinition ?? baseSuccessIndicator,
+    successIndicator: splitTargetText ?? splitSuccessDefinition ??
+      baseSuccessIndicator,
     metricTargetText: splitTargetText,
   };
 }
@@ -1445,7 +1539,8 @@ function deriveSplitTransformationTitle(args: {
     return hint.length <= 200 ? hint : `${hint.slice(0, 197).trimEnd()}...`;
   }
 
-  const baseTitle = String(args.currentTitle ?? "").trim() || "Suite du parcours";
+  const baseTitle = String(args.currentTitle ?? "").trim() ||
+    "Suite du parcours";
   const title = `${baseTitle} — Partie ${args.nextPartNumber}`;
   return title.length <= 200 ? title : title.slice(0, 200).trimEnd();
 }
@@ -1499,38 +1594,48 @@ async function ensureSplitTransformation(args: {
   plan: PlanContentV3;
   now: string;
 }): Promise<string | null> {
-  const classification = extractPlanTypeClassification(args.transformation.handoff_payload);
+  const classification = extractPlanTypeClassification(
+    args.transformation.handoff_payload,
+  );
   if (classification?.journey_strategy?.mode !== "two_transformations") {
     return null;
   }
 
-  const currentJourney = extractMultiPartJourneyPayload(args.transformation.handoff_payload);
+  const currentJourney = extractMultiPartJourneyPayload(
+    args.transformation.handoff_payload,
+  );
   if (currentJourney?.part_number != null && currentJourney.part_number >= 2) {
     return null;
   }
 
   const continuationHint =
     cleanOptionalText(classification.journey_strategy.transformation_2_title) ??
-    cleanOptionalText(classification.journey_strategy.transformation_2_goal) ??
-    currentJourney?.continuation_hint ??
-    null;
-  const estimatedTotalDurationMonths =
-    parsePositiveNumber(classification.journey_strategy.total_estimated_duration_months) ??
+      cleanOptionalText(
+        classification.journey_strategy.transformation_2_goal,
+      ) ??
+      currentJourney?.continuation_hint ??
+      null;
+  const estimatedTotalDurationMonths = parsePositiveNumber(
+    classification.journey_strategy.total_estimated_duration_months,
+  ) ??
     currentJourney?.estimated_total_duration_months ??
     null;
 
   const nextPartNumber = 2;
   const nextTransformationTitle =
     cleanOptionalText(classification.journey_strategy.transformation_2_title) ??
-    deriveSplitTransformationTitle({
-      currentTitle: args.transformation.title,
-      continuationHint,
-      nextPartNumber,
-    });
-  const nextTransformationGoal =
-    cleanOptionalText(classification.journey_strategy.transformation_2_goal);
-  const nextSuccessDefinition =
-    cleanOptionalText(classification.split_metric_guidance?.transformation_2?.success_definition) ??
+      deriveSplitTransformationTitle({
+        currentTitle: args.transformation.title,
+        continuationHint,
+        nextPartNumber,
+      });
+  const nextTransformationGoal = cleanOptionalText(
+    classification.journey_strategy.transformation_2_goal,
+  );
+  const nextSuccessDefinition = cleanOptionalText(
+    classification.split_metric_guidance?.transformation_2
+      ?.success_definition,
+  ) ??
     nextTransformationGoal;
   const seed = buildSplitTransformationSeed({
     currentTitle: args.transformation.title,
@@ -1544,15 +1649,23 @@ async function ensureSplitTransformation(args: {
     .eq("cycle_id", args.cycle.id)
     .order("priority_order", { ascending: true });
   if (error) {
-    throw new GeneratePlanV2Error(500, "Failed to load transformations for split generation", {
-      cause: error,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to load transformations for split generation",
+      {
+        cause: error,
+      },
+    );
   }
 
-  const rows = (data as Array<Pick<
-    UserTransformationRow,
-    "id" | "priority_order" | "status" | "title" | "handoff_payload"
-  >> | null) ?? [];
+  const rows = (data as
+    | Array<
+      Pick<
+        UserTransformationRow,
+        "id" | "priority_order" | "status" | "title" | "handoff_payload"
+      >
+    >
+    | null) ?? [];
   const rowsById = new Map(rows.map((row) => [row.id, row]));
   let nextTransformation = currentJourney?.next_transformation_id
     ? rowsById.get(currentJourney.next_transformation_id) ?? null
@@ -1614,9 +1727,13 @@ async function ensureSplitTransformation(args: {
       } as any);
 
     if (insertError) {
-      throw new GeneratePlanV2Error(500, "Failed to create split transformation", {
-        cause: insertError,
-      });
+      throw new GeneratePlanV2Error(
+        500,
+        "Failed to create split transformation",
+        {
+          cause: insertError,
+        },
+      );
     }
 
     nextTransformation = {
@@ -1634,10 +1751,15 @@ async function ensureSplitTransformation(args: {
     .map((row) => row.id)
     .filter((id) => id !== nextTransformation.id);
   const currentIndex = orderedIds.indexOf(args.transformation.id);
-  orderedIds.splice(currentIndex >= 0 ? currentIndex + 1 : orderedIds.length, 0, nextTransformation.id);
+  orderedIds.splice(
+    currentIndex >= 0 ? currentIndex + 1 : orderedIds.length,
+    0,
+    nextTransformation.id,
+  );
 
   const alreadyNormalized = orderedIds.every((id, index) => {
-    const row = rowsById.get(id) ?? (id === nextTransformation.id ? nextTransformation : null);
+    const row = rowsById.get(id) ??
+      (id === nextTransformation.id ? nextTransformation : null);
     return row?.priority_order === index + 1;
   });
 
@@ -1657,9 +1779,13 @@ async function ensureSplitTransformation(args: {
         .eq("cycle_id", args.cycle.id);
 
       if (stageError) {
-        throw new GeneratePlanV2Error(500, "Failed to stage split transformation ordering", {
-          cause: stageError,
-        });
+        throw new GeneratePlanV2Error(
+          500,
+          "Failed to stage split transformation ordering",
+          {
+            cause: stageError,
+          },
+        );
       }
     }
 
@@ -1674,75 +1800,94 @@ async function ensureSplitTransformation(args: {
         .eq("cycle_id", args.cycle.id);
 
       if (normalizeError) {
-        throw new GeneratePlanV2Error(500, "Failed to normalize split transformation ordering", {
-          cause: normalizeError,
-        });
+        throw new GeneratePlanV2Error(
+          500,
+          "Failed to normalize split transformation ordering",
+          {
+            cause: normalizeError,
+          },
+        );
       }
     }
   }
 
-  const currentPayload = mergeOnboardingV2Payload(args.transformation.handoff_payload, {
-    plan_type_classification: classification,
-    multi_part_journey: buildStoredMultiPartJourney({
-      partNumber: 1,
-      estimatedTotalParts: 2,
-      continuationHint,
-      estimatedTotalDurationMonths,
-      previousTransformationId: null,
-      nextTransformationId: nextTransformation.id,
-    }),
-  });
-  const nextPayload = mergeOnboardingV2Payload(nextTransformation.handoff_payload ?? null, {
-    plan_type_classification: classification,
-    ordering_rationale: seed.orderingRationale,
-    questionnaire_context: seed.questionnaireContext,
-    multi_part_journey: buildStoredMultiPartJourney({
-      partNumber: 2,
-      estimatedTotalParts: 2,
-      continuationHint,
-      estimatedTotalDurationMonths,
-      previousTransformationId: args.transformation.id,
-      nextTransformationId: null,
-    }),
-    source: "generate_plan_split",
-  });
+  const currentPayload = mergeOnboardingV2Payload(
+    args.transformation.handoff_payload,
+    {
+      plan_type_classification: classification,
+      multi_part_journey: buildStoredMultiPartJourney({
+        partNumber: 1,
+        estimatedTotalParts: 2,
+        continuationHint,
+        estimatedTotalDurationMonths,
+        previousTransformationId: null,
+        nextTransformationId: nextTransformation.id,
+      }),
+    },
+  );
+  const nextPayload = mergeOnboardingV2Payload(
+    nextTransformation.handoff_payload ?? null,
+    {
+      plan_type_classification: classification,
+      ordering_rationale: seed.orderingRationale,
+      questionnaire_context: seed.questionnaireContext,
+      multi_part_journey: buildStoredMultiPartJourney({
+        partNumber: 2,
+        estimatedTotalParts: 2,
+        continuationHint,
+        estimatedTotalDurationMonths,
+        previousTransformationId: args.transformation.id,
+        nextTransformationId: null,
+      }),
+      source: "generate_plan_split",
+    },
+  );
 
-  const [{ error: currentUpdateError }, { error: nextUpdateError }] = await Promise.all([
-    args.admin
-      .from("user_transformations")
-      .update({
-        handoff_payload: currentPayload,
-        updated_at: args.now,
-      })
-      .eq("id", args.transformation.id)
-      .eq("cycle_id", args.cycle.id),
-    args.admin
-      .from("user_transformations")
-      .update({
-        title: nextTransformationTitle,
-        user_summary: nextTransformationGoal
-          ? `Cette deuxième transformation vise ${nextTransformationGoal}.`
-          : seed.userSummary,
-        internal_summary: nextTransformationGoal
-          ? `Transformation 2 du parcours en 2 parties. Objectif: ${nextTransformationGoal}.`
-          : seed.internalSummary,
-        success_definition: nextSuccessDefinition,
-        handoff_payload: nextPayload,
-        updated_at: args.now,
-      })
-      .eq("id", nextTransformation.id)
-      .eq("cycle_id", args.cycle.id),
-  ]);
+  const [{ error: currentUpdateError }, { error: nextUpdateError }] =
+    await Promise.all([
+      args.admin
+        .from("user_transformations")
+        .update({
+          handoff_payload: currentPayload,
+          updated_at: args.now,
+        })
+        .eq("id", args.transformation.id)
+        .eq("cycle_id", args.cycle.id),
+      args.admin
+        .from("user_transformations")
+        .update({
+          title: nextTransformationTitle,
+          user_summary: nextTransformationGoal
+            ? `Cette deuxième transformation vise ${nextTransformationGoal}.`
+            : seed.userSummary,
+          internal_summary: nextTransformationGoal
+            ? `Transformation 2 du parcours en 2 parties. Objectif: ${nextTransformationGoal}.`
+            : seed.internalSummary,
+          success_definition: nextSuccessDefinition,
+          handoff_payload: nextPayload,
+          updated_at: args.now,
+        })
+        .eq("id", nextTransformation.id)
+        .eq("cycle_id", args.cycle.id),
+    ]);
 
   if (currentUpdateError) {
-    throw new GeneratePlanV2Error(500, "Failed to persist current split journey metadata", {
-      cause: currentUpdateError,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to persist current split journey metadata",
+      {
+        cause: currentUpdateError,
+      },
+    );
   }
   if (nextUpdateError) {
-    throw new GeneratePlanV2Error(500, "Failed to persist next split transformation metadata", {
-      cause: nextUpdateError,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to persist next split transformation metadata",
+      {
+        cause: nextUpdateError,
+      },
+    );
   }
 
   return nextTransformation.id;
@@ -1865,6 +2010,101 @@ async function archiveLockedPlansForTransformation(args: {
   }
 }
 
+function scheduleActivationEnrichment(args: {
+  admin: SupabaseClient;
+  requestId: string;
+  userId: string;
+  cycle: UserCycleRow;
+  transformation: UserTransformationRow;
+  planRow: UserPlanV2Row;
+  plan: PlanContentV3;
+}): void {
+  const task = (async () => {
+    console.info("[generate-plan-v2][activation_enrichment][start]", {
+      request_id: args.requestId,
+      user_id: args.userId,
+      transformation_id: args.transformation.id,
+      plan_id: args.planRow.id,
+    });
+
+    const [supportResult, toolsResult] = await Promise.allSettled([
+      classifyAndPersistProfessionalSupport({
+        admin: args.admin,
+        requestId: `generate-plan-v2:${args.planRow.id}`,
+        userId: args.userId,
+        cycle: args.cycle,
+        transformation: args.transformation,
+        planRow: args.planRow,
+        plan: args.plan,
+      }),
+      classifyAndPersistLevelToolRecommendations({
+        admin: args.admin,
+        requestId: `generate-plan-v2:${args.planRow.id}`,
+        userId: args.userId,
+        cycle: args.cycle,
+        transformation: args.transformation,
+        planRow: args.planRow,
+        plan: args.plan,
+      }),
+    ]);
+
+    if (supportResult.status === "rejected") {
+      console.warn(
+        "[generate-plan-v2][activation_enrichment][support_failed]",
+        {
+          request_id: args.requestId,
+          user_id: args.userId,
+          transformation_id: args.transformation.id,
+          plan_id: args.planRow.id,
+          error: supportResult.reason instanceof Error
+            ? supportResult.reason.message
+            : String(supportResult.reason),
+        },
+      );
+    }
+    if (toolsResult.status === "rejected") {
+      console.warn("[generate-plan-v2][activation_enrichment][tools_failed]", {
+        request_id: args.requestId,
+        user_id: args.userId,
+        transformation_id: args.transformation.id,
+        plan_id: args.planRow.id,
+        error: toolsResult.reason instanceof Error
+          ? toolsResult.reason.message
+          : String(toolsResult.reason),
+      });
+    }
+    console.info("[generate-plan-v2][activation_enrichment][done]", {
+      request_id: args.requestId,
+      user_id: args.userId,
+      transformation_id: args.transformation.id,
+      plan_id: args.planRow.id,
+      support_status: supportResult.status,
+      tools_status: toolsResult.status,
+    });
+  })().catch((error) => {
+    console.warn("[generate-plan-v2][activation_enrichment][failed]", {
+      request_id: args.requestId,
+      user_id: args.userId,
+      transformation_id: args.transformation.id,
+      plan_id: args.planRow.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  });
+
+  const edgeRuntime = (
+    globalThis as typeof globalThis & {
+      EdgeRuntime?: { waitUntil?: (promise: Promise<unknown>) => void };
+    }
+  ).EdgeRuntime;
+
+  if (typeof edgeRuntime?.waitUntil === "function") {
+    edgeRuntime.waitUntil(task);
+    return;
+  }
+
+  void task;
+}
+
 async function activatePersistedPlan(args: {
   admin: SupabaseClient;
   userId: string;
@@ -1883,7 +2123,10 @@ async function activatePersistedPlan(args: {
   journeyContext: JourneyContextResponse | null;
 }> {
   const persistedPlan = args.planRow.content as unknown as PlanContentV3;
-  if (!persistedPlan || persistedPlan.version !== 3 || !Array.isArray(persistedPlan.phases)) {
+  if (
+    !persistedPlan || persistedPlan.version !== 3 ||
+    !Array.isArray(persistedPlan.phases)
+  ) {
     throw new GeneratePlanV2Error(500, "Persisted plan preview is invalid");
   }
   const userTimeContext = await getUserTimeContext({
@@ -1891,9 +2134,13 @@ async function activatePersistedPlan(args: {
     userId: args.userId,
     now: new Date(args.now),
   });
-  const adjustmentRevision = isPlainObject(persistedPlan.metadata?.plan_adjustment_revision)
-    ? persistedPlan.metadata?.plan_adjustment_revision as Record<string, unknown>
-    : null;
+  const adjustmentRevision =
+    isPlainObject(persistedPlan.metadata?.plan_adjustment_revision)
+      ? persistedPlan.metadata?.plan_adjustment_revision as Record<
+        string,
+        unknown
+      >
+      : null;
   const effectiveStartDate =
     typeof adjustmentRevision?.effective_start_date === "string"
       ? adjustmentRevision.effective_start_date
@@ -1902,7 +2149,10 @@ async function activatePersistedPlan(args: {
     userTimeContext,
     effectiveStartDate,
   });
-  const plan = applyScheduleAnchorToPlan(persistedPlan, refreshedScheduleAnchor);
+  const plan = applyScheduleAnchorToPlan(
+    persistedPlan,
+    refreshedScheduleAnchor,
+  );
 
   const distribution = args.distributeIfMissing
     ? await distributePlanItemsV3({
@@ -2020,10 +2270,12 @@ async function activatePersistedPlan(args: {
 
   if (phase1Context) {
     try {
-      const latestHandoffPayload = await loadLatestTransformationHandoffPayload({
-        admin: args.admin,
-        transformationId: args.context.transformation.id,
-      });
+      const latestHandoffPayload = await loadLatestTransformationHandoffPayload(
+        {
+          admin: args.admin,
+          transformationId: args.context.transformation.id,
+        },
+      );
       const nextHandoffPayload = mergePhase1Payload({
         handoffPayload: latestHandoffPayload,
         context: phase1Context,
@@ -2038,7 +2290,9 @@ async function activatePersistedPlan(args: {
         .eq("id", args.context.transformation.id);
 
       if (phase1ContextError) {
-        eventWarnings.push(`Failed to persist phase 1 context: ${phase1ContextError.message}`);
+        eventWarnings.push(
+          `Failed to persist phase 1 context: ${phase1ContextError.message}`,
+        );
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -2046,47 +2300,21 @@ async function activatePersistedPlan(args: {
     }
   }
 
-  try {
-    await classifyAndPersistProfessionalSupport({
-      admin: args.admin,
-      requestId: `generate-plan-v2:${args.planRow.id}`,
-      userId: args.userId,
-      cycle: args.context.cycle,
-      transformation: {
-        ...args.context.transformation,
-        ...transformationPatch,
-      },
-      planRow: {
-        ...args.planRow,
-        ...planPatch,
-      },
-      plan,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    eventWarnings.push(`Failed to classify professional support: ${message}`);
-  }
-
-  try {
-    await classifyAndPersistLevelToolRecommendations({
-      admin: args.admin,
-      requestId: `generate-plan-v2:${args.planRow.id}`,
-      userId: args.userId,
-      cycle: args.context.cycle,
-      transformation: {
-        ...args.context.transformation,
-        ...transformationPatch,
-      },
-      planRow: {
-        ...args.planRow,
-        ...planPatch,
-      },
-      plan,
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    eventWarnings.push(`Failed to classify level tools: ${message}`);
-  }
+  scheduleActivationEnrichment({
+    admin: args.admin,
+    requestId: args.planRow.id,
+    userId: args.userId,
+    cycle: args.context.cycle,
+    transformation: {
+      ...args.context.transformation,
+      ...transformationPatch,
+    },
+    planRow: {
+      ...args.planRow,
+      ...planPatch,
+    },
+    plan,
+  });
 
   for (
     const [eventType, reason] of [
@@ -2124,7 +2352,8 @@ async function activatePersistedPlan(args: {
         part_number: journeyContext.part_number,
         estimated_total_parts: journeyContext.estimated_total_parts,
         continuation_hint: journeyContext.continuation_hint,
-        estimated_total_duration_months: journeyContext.estimated_total_duration_months,
+        estimated_total_duration_months:
+          journeyContext.estimated_total_duration_months,
       },
     }
     : plan;
@@ -2139,9 +2368,13 @@ async function activatePersistedPlan(args: {
       .eq("id", args.planRow.id);
 
     if (planJourneyContextError) {
-      throw new GeneratePlanV2Error(500, "Failed to persist journey context on active plan", {
-        cause: planJourneyContextError,
-      });
+      throw new GeneratePlanV2Error(
+        500,
+        "Failed to persist journey context on active plan",
+        {
+          cause: planJourneyContextError,
+        },
+      );
     }
   }
 
@@ -2173,15 +2406,17 @@ async function tryRecoverPartialGeneration(params: {
   context: TransformationContext;
   now: string;
   preserveActiveTransformationId: string | null;
-}): Promise<{
-  cycle: UserCycleRow;
-  transformation: UserTransformationRow;
-  plan: PlanContentV3;
-  planRow: UserPlanV2Row;
-  distribution: Awaited<ReturnType<typeof distributePlanItemsV3>>;
-  roadmapChanged: boolean;
-  journeyContext: JourneyContextResponse | null;
-} | null> {
+}): Promise<
+  {
+    cycle: UserCycleRow;
+    transformation: UserTransformationRow;
+    plan: PlanContentV3;
+    planRow: UserPlanV2Row;
+    distribution: Awaited<ReturnType<typeof distributePlanItemsV3>>;
+    roadmapChanged: boolean;
+    journeyContext: JourneyContextResponse | null;
+  } | null
+> {
   const { admin, userId, planId, context, now } = params;
 
   const [planResult, itemsResult] = await Promise.all([
@@ -2270,26 +2505,36 @@ async function loadTransformationContext(
   let previousTransformation: UserTransformationRow | null = null;
   let previousTransformationPlan: PlanContentV3 | null = null;
 
-  const journey = extractMultiPartJourneyPayload(transformation.handoff_payload);
+  const journey = extractMultiPartJourneyPayload(
+    transformation.handoff_payload,
+  );
   const previousTransformationId =
     journey?.part_number === 2 && journey.previous_transformation_id
       ? journey.previous_transformation_id
       : null;
 
   if (previousTransformationId) {
-    const { data: previousTransformationData, error: previousTransformationError } = await admin
+    const {
+      data: previousTransformationData,
+      error: previousTransformationError,
+    } = await admin
       .from("user_transformations")
       .select("*")
       .eq("id", previousTransformationId)
       .eq("cycle_id", transformation.cycle_id)
       .maybeSingle();
     if (previousTransformationError) {
-      throw new GeneratePlanV2Error(500, "Failed to load previous transformation", {
-        cause: previousTransformationError,
-      });
+      throw new GeneratePlanV2Error(
+        500,
+        "Failed to load previous transformation",
+        {
+          cause: previousTransformationError,
+        },
+      );
     }
 
-    previousTransformation = (previousTransformationData as UserTransformationRow | null) ?? null;
+    previousTransformation =
+      (previousTransformationData as UserTransformationRow | null) ?? null;
 
     if (previousTransformation) {
       const { data: previousPlanData, error: previousPlanError } = await admin
@@ -2301,12 +2546,17 @@ async function loadTransformationContext(
         .limit(1)
         .maybeSingle();
       if (previousPlanError) {
-        throw new GeneratePlanV2Error(500, "Failed to load previous transformation plan", {
-          cause: previousPlanError,
-        });
+        throw new GeneratePlanV2Error(
+          500,
+          "Failed to load previous transformation plan",
+          {
+            cause: previousPlanError,
+          },
+        );
       }
 
-      const previousPlanContent = (previousPlanData as { content?: unknown } | null)?.content;
+      const previousPlanContent =
+        (previousPlanData as { content?: unknown } | null)?.content;
       if (isPlanContentV3(previousPlanContent)) {
         previousTransformationPlan = previousPlanContent;
       }
@@ -2333,9 +2583,13 @@ async function loadLatestTransformationHandoffPayload(args: {
     .eq("id", args.transformationId)
     .maybeSingle();
   if (error) {
-    throw new GeneratePlanV2Error(500, "Failed to reload transformation handoff payload", {
-      cause: error,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to reload transformation handoff payload",
+      {
+        cause: error,
+      },
+    );
   }
   return (data as { handoff_payload?: Record<string, unknown> | null } | null)
     ?.handoff_payload ?? null;
@@ -2355,55 +2609,73 @@ async function buildJourneyContextResponse(args: {
     .eq("cycle_id", args.cycleId)
     .order("priority_order", { ascending: true });
   if (error) {
-    throw new GeneratePlanV2Error(500, "Failed to load transformations for journey context", {
-      cause: error,
-    });
+    throw new GeneratePlanV2Error(
+      500,
+      "Failed to load transformations for journey context",
+      {
+        cause: error,
+      },
+    );
   }
 
-  const rows = (data as Array<Pick<
-    UserTransformationRow,
-    "id" | "title" | "status" | "priority_order" | "handoff_payload"
-  >> | null) ?? [];
-  const currentTransformation = rows.find((row) => row.id === args.currentTransformationId) ?? null;
+  const rows = (data as
+    | Array<
+      Pick<
+        UserTransformationRow,
+        "id" | "title" | "status" | "priority_order" | "handoff_payload"
+      >
+    >
+    | null) ?? [];
+  const currentTransformation =
+    rows.find((row) => row.id === args.currentTransformationId) ?? null;
   if (!currentTransformation) return null;
 
-  const currentJourney = extractMultiPartJourneyPayload(currentTransformation.handoff_payload);
-  const classification = extractPlanTypeClassification(currentTransformation.handoff_payload);
-  const isMultiPart =
-    currentJourney?.is_multi_part === true ||
+  const currentJourney = extractMultiPartJourneyPayload(
+    currentTransformation.handoff_payload,
+  );
+  const classification = extractPlanTypeClassification(
+    currentTransformation.handoff_payload,
+  );
+  const isMultiPart = currentJourney?.is_multi_part === true ||
     classification?.journey_strategy?.mode === "two_transformations";
   if (!isMultiPart) return null;
 
   const currentPartNumber = currentJourney?.part_number ?? 1;
   const estimatedTotalParts = currentJourney?.estimated_total_parts ?? 2;
-  const continuationHint =
-    currentJourney?.continuation_hint ??
-    cleanOptionalText(classification?.journey_strategy?.transformation_2_title) ??
-    cleanOptionalText(classification?.journey_strategy?.transformation_2_goal) ??
+  const continuationHint = currentJourney?.continuation_hint ??
+    cleanOptionalText(
+      classification?.journey_strategy?.transformation_2_title,
+    ) ??
+    cleanOptionalText(
+      classification?.journey_strategy?.transformation_2_goal,
+    ) ??
     null;
   const estimatedTotalDurationMonths =
     currentJourney?.estimated_total_duration_months ??
-    parsePositiveNumber(classification?.journey_strategy?.total_estimated_duration_months) ??
-    null;
+      parsePositiveNumber(
+        classification?.journey_strategy?.total_estimated_duration_months,
+      ) ??
+      null;
 
   const byId = new Map(rows.map((row) => [row.id, row]));
-  const previousTransformation =
-    currentJourney?.previous_transformation_id
-      ? byId.get(currentJourney.previous_transformation_id) ?? null
-      : currentPartNumber === 2
-        ? rows.find((row) => row.priority_order === currentTransformation.priority_order - 1) ?? null
-        : null;
-  const nextTransformation =
-    currentJourney?.next_transformation_id
-      ? byId.get(currentJourney.next_transformation_id) ?? null
-      : currentPartNumber === 1
-        ? rows.find((row) => row.priority_order === currentTransformation.priority_order + 1) ?? null
-        : null;
+  const previousTransformation = currentJourney?.previous_transformation_id
+    ? byId.get(currentJourney.previous_transformation_id) ?? null
+    : currentPartNumber === 2
+    ? rows.find((row) =>
+      row.priority_order === currentTransformation.priority_order - 1
+    ) ?? null
+    : null;
+  const nextTransformation = currentJourney?.next_transformation_id
+    ? byId.get(currentJourney.next_transformation_id) ?? null
+    : currentPartNumber === 1
+    ? rows.find((row) =>
+      row.priority_order === currentTransformation.priority_order + 1
+    ) ?? null
+    : null;
 
-  const remainingDuration =
-    estimatedTotalDurationMonths != null
-      ? Math.max(estimatedTotalDurationMonths - args.currentPlanDurationMonths, 1)
-      : null;
+  const remainingDuration = estimatedTotalDurationMonths != null
+    ? Math.max(estimatedTotalDurationMonths - args.currentPlanDurationMonths, 1)
+    : null;
 
   const parts: JourneyPartResponse[] = [];
   if (currentPartNumber === 2 && previousTransformation) {
@@ -2503,8 +2775,13 @@ function normalizePrimaryMetricMeasurementMode(
     return normalized;
   }
 
-  const fallbackNormalized = typeof fallback === "string" ? fallback.trim() : "";
-  if (fallbackNormalized && VALID_PRIMARY_METRIC_MEASUREMENT_MODES.has(fallbackNormalized)) {
+  const fallbackNormalized = typeof fallback === "string"
+    ? fallback.trim()
+    : "";
+  if (
+    fallbackNormalized &&
+    VALID_PRIMARY_METRIC_MEASUREMENT_MODES.has(fallbackNormalized)
+  ) {
     return fallbackNormalized;
   }
 
@@ -2631,14 +2908,20 @@ async function generateValidatedPlanWithLlm(params: {
       }
 
       validationFeedback = extractPlanValidationIssues(error);
-      console.warn("[generate-plan-v2] retrying after invalid structured output", {
-        request_id: params.requestId,
-        issues: validationFeedback,
-      });
+      console.warn(
+        "[generate-plan-v2] retrying after invalid structured output",
+        {
+          request_id: params.requestId,
+          issues: validationFeedback,
+        },
+      );
     }
   }
 
-  throw new GeneratePlanV2Error(500, "Plan generation retry loop ended unexpectedly");
+  throw new GeneratePlanV2Error(
+    500,
+    "Plan generation retry loop ended unexpectedly",
+  );
 }
 
 export function parseGeneratedPlan(raw: string): unknown {
@@ -2656,17 +2939,22 @@ function buildFallbackPhaseDurationGuidance(
   phaseCount: number,
 ): string {
   const safePhaseCount = Math.max(1, phaseCount);
-  const months = typeof durationMonths === "number" && Number.isFinite(durationMonths)
-    ? Math.min(4, Math.max(1, durationMonths))
-    : safePhaseCount;
+  const months =
+    typeof durationMonths === "number" && Number.isFinite(durationMonths)
+      ? Math.min(4, Math.max(1, durationMonths))
+      : safePhaseCount;
   const weeksPerPhase = Math.max(1, Math.round((months * 4) / safePhaseCount));
 
   if (weeksPerPhase >= 8) {
     const monthsPerPhase = Math.max(1, Math.round(weeksPerPhase / 4));
-    return monthsPerPhase <= 1 ? "Environ 1 mois" : `Environ ${monthsPerPhase} mois`;
+    return monthsPerPhase <= 1
+      ? "Environ 1 mois"
+      : `Environ ${monthsPerPhase} mois`;
   }
 
-  return weeksPerPhase <= 1 ? "Environ 1 semaine" : `Environ ${weeksPerPhase} semaines`;
+  return weeksPerPhase <= 1
+    ? "Environ 1 semaine"
+    : `Environ ${weeksPerPhase} semaines`;
 }
 
 const CANONICAL_FINAL_HABIT_WEEKLY_REPS = 6;
@@ -2706,11 +2994,11 @@ export function validateGeneratedPlanAgainstContext(
   return {
     ...canonicalizedPlan,
     duration_months: Math.min(4, Math.max(1, Math.trunc(plan.duration_months))),
-    global_objective:
-      typeof canonicalizedPlan.global_objective === "string" &&
+    global_objective: typeof canonicalizedPlan.global_objective === "string" &&
         canonicalizedPlan.global_objective.trim().length > 0
-        ? canonicalizedPlan.global_objective
-        : canonicalizedPlan.strategy?.success_definition?.trim() || canonicalizedPlan.title,
+      ? canonicalizedPlan.global_objective
+      : canonicalizedPlan.strategy?.success_definition?.trim() ||
+        canonicalizedPlan.title,
     situation_context:
       typeof canonicalizedPlan.situation_context === "string" &&
         canonicalizedPlan.situation_context.trim().length > 0
@@ -2725,74 +3013,85 @@ export function validateGeneratedPlanAgainstContext(
       typeof canonicalizedPlan.key_understanding === "string" &&
         canonicalizedPlan.key_understanding.trim().length > 0
         ? canonicalizedPlan.key_understanding
-        : canonicalizedPlan.strategy?.success_definition?.trim() || canonicalizedPlan.title,
+        : canonicalizedPlan.strategy?.success_definition?.trim() ||
+          canonicalizedPlan.title,
     progression_logic:
       typeof canonicalizedPlan.progression_logic === "string" &&
         canonicalizedPlan.progression_logic.trim().length > 0
         ? canonicalizedPlan.progression_logic
         : canonicalizedPlan.timeline_summary,
-    primary_metric:
-      canonicalizedPlan.primary_metric &&
+    primary_metric: canonicalizedPlan.primary_metric &&
         typeof canonicalizedPlan.primary_metric === "object"
-        ? canonicalizedPlan.primary_metric
+      ? canonicalizedPlan.primary_metric
       : {
         label: "Indicateur de réussite",
         unit: null,
-        success_target: canonicalizedPlan.strategy?.success_definition?.trim() ||
+        success_target:
+          canonicalizedPlan.strategy?.success_definition?.trim() ||
           canonicalizedPlan.title,
         measurement_mode: "qualitative" as const,
       },
     phases: Array.isArray(canonicalizedPlan.phases)
       ? canonicalizedPlan.phases.map((phase) => ({
         ...phase,
-        duration_guidance:
-          typeof phase.duration_guidance === "string" && phase.duration_guidance.trim().length > 0
-            ? phase.duration_guidance.trim()
-            : buildFallbackPhaseDurationGuidance(
-              canonicalizedPlan.duration_months,
-              canonicalizedPlan.phases.length,
-            ),
+        duration_guidance: typeof phase.duration_guidance === "string" &&
+            phase.duration_guidance.trim().length > 0
+          ? phase.duration_guidance.trim()
+          : buildFallbackPhaseDurationGuidance(
+            canonicalizedPlan.duration_months,
+            canonicalizedPlan.phases.length,
+          ),
         what_this_phase_targets:
-          typeof phase.what_this_phase_targets === "string" && phase.what_this_phase_targets.trim().length > 0
+          typeof phase.what_this_phase_targets === "string" &&
+            phase.what_this_phase_targets.trim().length > 0
             ? phase.what_this_phase_targets
             : phase.phase_objective,
-        why_this_now:
-          typeof phase.why_this_now === "string" && phase.why_this_now.trim().length > 0
-            ? phase.why_this_now
-            : phase.rationale,
-        how_this_phase_works:
-          typeof phase.how_this_phase_works === "string" && phase.how_this_phase_works.trim().length > 0
-            ? phase.how_this_phase_works
-            : phase.phase_objective,
-        phase_metric_target:
-          typeof phase.phase_metric_target === "string" && phase.phase_metric_target.trim().length > 0
-            ? phase.phase_metric_target.trim()
-            : canonicalizedPlan.primary_metric?.success_target?.trim() || phase.phase_objective,
+        why_this_now: typeof phase.why_this_now === "string" &&
+            phase.why_this_now.trim().length > 0
+          ? phase.why_this_now
+          : phase.rationale,
+        how_this_phase_works: typeof phase.how_this_phase_works === "string" &&
+            phase.how_this_phase_works.trim().length > 0
+          ? phase.how_this_phase_works
+          : phase.phase_objective,
+        phase_metric_target: typeof phase.phase_metric_target === "string" &&
+            phase.phase_metric_target.trim().length > 0
+          ? phase.phase_metric_target.trim()
+          : canonicalizedPlan.primary_metric?.success_target?.trim() ||
+            phase.phase_objective,
       }))
       : [],
     strategy: {
       ...canonicalizedPlan.strategy,
-      identity_shift: typeof canonicalizedPlan.strategy?.identity_shift === "string"
-        ? canonicalizedPlan.strategy.identity_shift
-        : null,
-      core_principle: typeof canonicalizedPlan.strategy?.core_principle === "string"
-        ? canonicalizedPlan.strategy.core_principle
-        : null,
+      identity_shift:
+        typeof canonicalizedPlan.strategy?.identity_shift === "string"
+          ? canonicalizedPlan.strategy.identity_shift
+          : null,
+      core_principle:
+        typeof canonicalizedPlan.strategy?.core_principle === "string"
+          ? canonicalizedPlan.strategy.core_principle
+          : null,
     },
     journey_context: null,
   };
 }
 
-function enforceCanonicalFinalHabitWeeklyReps(plan: PlanContentV3): PlanContentV3 {
+function enforceCanonicalFinalHabitWeeklyReps(
+  plan: PlanContentV3,
+): PlanContentV3 {
   const canonicalMainHabitByPhaseId = new Map<string, string>();
 
   const normalizedPhases = plan.phases.map((phase) => {
     if (!Array.isArray(phase.weeks) || phase.weeks.length === 0) return phase;
 
-    const itemsByTempId = new Map(phase.items.map((item) => [item.temp_id, item]));
+    const itemsByTempId = new Map(
+      phase.items.map((item) => [item.temp_id, item]),
+    );
     const lastWeekIndex = phase.weeks.length - 1;
     const lastWeek = phase.weeks[lastWeekIndex];
-    const assignments = Array.isArray(lastWeek.item_assignments) ? lastWeek.item_assignments : [];
+    const assignments = Array.isArray(lastWeek.item_assignments)
+      ? lastWeek.item_assignments
+      : [];
     const mainHabitAssignment = assignments.find((assignment) => {
       const item = itemsByTempId.get(assignment.temp_id);
       return item?.dimension === "habits";
@@ -2897,10 +3196,11 @@ function enforceCanonicalFinalHabitWeeklyReps(plan: PlanContentV3): PlanContentV
                         assignment.weekly_cadence_label,
                         CANONICAL_FINAL_HABIT_WEEKLY_REPS,
                       ) ?? assignment.weekly_cadence_label ?? null,
-                      weekly_description_override: replaceFirstStandaloneInteger(
-                        assignment.weekly_description_override,
-                        CANONICAL_FINAL_HABIT_WEEKLY_REPS,
-                      ) ?? assignment.weekly_description_override ?? null,
+                      weekly_description_override:
+                        replaceFirstStandaloneInteger(
+                          assignment.weekly_description_override,
+                          CANONICAL_FINAL_HABIT_WEEKLY_REPS,
+                        ) ?? assignment.weekly_description_override ?? null,
                     }
                     : assignment
                 )
@@ -2934,21 +3234,25 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
     candidate.duration_months,
     phaseCount,
   );
-  const primaryMetric = candidate.primary_metric && typeof candidate.primary_metric === "object" &&
+  const primaryMetric =
+    candidate.primary_metric && typeof candidate.primary_metric === "object" &&
       !Array.isArray(candidate.primary_metric)
-    ? candidate.primary_metric as Record<string, unknown>
-    : null;
-  const primaryMetricLabel = typeof primaryMetric?.label === "string" && primaryMetric.label.trim().length > 0
+      ? candidate.primary_metric as Record<string, unknown>
+      : null;
+  const primaryMetricLabel = typeof primaryMetric?.label === "string" &&
+      primaryMetric.label.trim().length > 0
     ? primaryMetric.label.trim()
     : "l'indicateur global";
   const primaryMetricSuccessTarget =
-    typeof primaryMetric?.success_target === "string" && primaryMetric.success_target.trim().length > 0
+    typeof primaryMetric?.success_target === "string" &&
+      primaryMetric.success_target.trim().length > 0
       ? primaryMetric.success_target.trim()
       : null;
-  const blueprint = candidate.plan_blueprint && typeof candidate.plan_blueprint === "object" &&
+  const blueprint =
+    candidate.plan_blueprint && typeof candidate.plan_blueprint === "object" &&
       !Array.isArray(candidate.plan_blueprint)
-    ? candidate.plan_blueprint as Record<string, unknown>
-    : null;
+      ? candidate.plan_blueprint as Record<string, unknown>
+      : null;
   const normalizedBlueprint = blueprint && Array.isArray(blueprint.levels)
     ? {
       ...blueprint,
@@ -2975,39 +3279,43 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
   const currentLevelPhaseItemsByTempId = buildPhaseItemsByTempId(
     isPlainObject(currentLevelPhase) ? currentLevelPhase : null,
   );
-  const normalizedCurrentLevelRuntime = currentLevelRuntime && Array.isArray(currentLevelRuntime.weeks)
-    ? {
-      ...currentLevelRuntime,
-      weeks: currentLevelRuntime.weeks.map((week) => {
-        if (!week || typeof week !== "object" || Array.isArray(week)) {
-          return week;
-        }
+  const normalizedCurrentLevelRuntime =
+    currentLevelRuntime && Array.isArray(currentLevelRuntime.weeks)
+      ? {
+        ...currentLevelRuntime,
+        weeks: currentLevelRuntime.weeks.map((week) => {
+          if (!week || typeof week !== "object" || Array.isArray(week)) {
+            return week;
+          }
 
-        const weekRecord = week as Record<string, unknown>;
-        const missionDays = Array.isArray(weekRecord.mission_days)
-          ? weekRecord.mission_days
-            .filter((day): day is string => typeof day === "string")
-            .map((day) => day.trim())
-            .filter((day, index, array) => day.length > 0 && array.indexOf(day) === index)
-          : [];
-        const oneShotAssignmentCount = countOneShotAssignments({
-          week: weekRecord,
-          phaseItemsByTempId: currentLevelPhaseItemsByTempId,
-        });
+          const weekRecord = week as Record<string, unknown>;
+          const missionDays = Array.isArray(weekRecord.mission_days)
+            ? weekRecord.mission_days
+              .filter((day): day is string => typeof day === "string")
+              .map((day) => day.trim())
+              .filter((day, index, array) =>
+                day.length > 0 && array.indexOf(day) === index
+              )
+            : [];
+          const oneShotAssignmentCount = countOneShotAssignments({
+            week: weekRecord,
+            phaseItemsByTempId: currentLevelPhaseItemsByTempId,
+          });
 
-        return {
-          ...weekRecord,
-          mission_days: oneShotAssignmentCount > 0
-            ? missionDays.slice(0, oneShotAssignmentCount)
-            : [],
-        };
-      }),
-    }
-    : currentLevelRuntime;
-  const metadata = candidate.metadata && typeof candidate.metadata === "object" &&
+          return {
+            ...weekRecord,
+            mission_days: oneShotAssignmentCount > 0
+              ? missionDays.slice(0, oneShotAssignmentCount)
+              : [],
+          };
+        }),
+      }
+      : currentLevelRuntime;
+  const metadata =
+    candidate.metadata && typeof candidate.metadata === "object" &&
       !Array.isArray(candidate.metadata)
-    ? candidate.metadata as Record<string, unknown>
-    : candidate.metadata;
+      ? candidate.metadata as Record<string, unknown>
+      : candidate.metadata;
   const normalizedMetadata = isPlainObject(metadata)
     ? normalizePlanMetadata(metadata)
     : metadata;
@@ -3025,19 +3333,22 @@ function normalizeGeneratedPlanForValidation(raw: unknown): unknown {
       }
 
       const phaseRecord = phase as Record<string, unknown>;
-      const maintainedFoundation = Array.isArray(phaseRecord.maintained_foundation)
-        ? phaseRecord.maintained_foundation
-          .filter((value): value is string => typeof value === "string")
-          .map((value) => value.trim())
-          .filter((value) => value.length > 0)
-          .slice(0, 3)
-        : phaseRecord.maintained_foundation;
+      const maintainedFoundation =
+        Array.isArray(phaseRecord.maintained_foundation)
+          ? phaseRecord.maintained_foundation
+            .filter((value): value is string => typeof value === "string")
+            .map((value) => value.trim())
+            .filter((value) => value.length > 0)
+            .slice(0, 3)
+          : phaseRecord.maintained_foundation;
       const durationGuidance =
-        typeof phaseRecord.duration_guidance === "string" && phaseRecord.duration_guidance.trim().length > 0
+        typeof phaseRecord.duration_guidance === "string" &&
+          phaseRecord.duration_guidance.trim().length > 0
           ? phaseRecord.duration_guidance.trim()
           : fallbackDurationGuidance;
       const phaseMetricTarget =
-        typeof phaseRecord.phase_metric_target === "string" && phaseRecord.phase_metric_target.trim().length > 0
+        typeof phaseRecord.phase_metric_target === "string" &&
+          phaseRecord.phase_metric_target.trim().length > 0
           ? phaseRecord.phase_metric_target.trim()
           : primaryMetricSuccessTarget
           ? `Cible du niveau de plan sur ${primaryMetricLabel} : ${primaryMetricSuccessTarget}`
@@ -3057,7 +3368,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function trimNonEmptyStringArray(value: unknown, max?: number): string[] | unknown {
+function trimNonEmptyStringArray(
+  value: unknown,
+  max?: number,
+): string[] | unknown {
   if (!Array.isArray(value)) return value;
   const normalized = value
     .filter((entry): entry is string => typeof entry === "string")
@@ -3107,7 +3421,9 @@ function countOneShotAssignments(args: {
 
   for (const assignment of assignments) {
     if (!isPlainObject(assignment)) continue;
-    const tempId = typeof assignment.temp_id === "string" ? assignment.temp_id.trim() : "";
+    const tempId = typeof assignment.temp_id === "string"
+      ? assignment.temp_id.trim()
+      : "";
     if (!tempId) continue;
     const phaseItem = args.phaseItemsByTempId.get(tempId);
     if (!phaseItem) continue;
@@ -3129,9 +3445,10 @@ function normalizePlanMetadata(
       rationale: typeof metadata.phase_1_preview.rationale === "string"
         ? metadata.phase_1_preview.rationale.trim()
         : metadata.phase_1_preview.rationale,
-      phase_objective: typeof metadata.phase_1_preview.phase_objective === "string"
-        ? metadata.phase_1_preview.phase_objective.trim()
-        : metadata.phase_1_preview.phase_objective,
+      phase_objective:
+        typeof metadata.phase_1_preview.phase_objective === "string"
+          ? metadata.phase_1_preview.phase_objective.trim()
+          : metadata.phase_1_preview.phase_objective,
       heartbeat: typeof metadata.phase_1_preview.heartbeat === "string"
         ? metadata.phase_1_preview.heartbeat.trim()
         : metadata.phase_1_preview.heartbeat,
@@ -3148,17 +3465,20 @@ function normalizePlanMetadata(
         ? {
           ...adjustmentContext.global_reasoning,
           main_problem_model:
-            typeof adjustmentContext.global_reasoning.main_problem_model === "string"
+            typeof adjustmentContext.global_reasoning.main_problem_model ===
+                "string"
               ? adjustmentContext.global_reasoning.main_problem_model.trim()
               : adjustmentContext.global_reasoning.main_problem_model,
           sequencing_logic:
-            typeof adjustmentContext.global_reasoning.sequencing_logic === "string"
+            typeof adjustmentContext.global_reasoning.sequencing_logic ===
+                "string"
               ? adjustmentContext.global_reasoning.sequencing_logic.trim()
               : adjustmentContext.global_reasoning.sequencing_logic,
-          why_not_faster_initially:
-            typeof adjustmentContext.global_reasoning.why_not_faster_initially === "string"
-              ? adjustmentContext.global_reasoning.why_not_faster_initially.trim()
-              : adjustmentContext.global_reasoning.why_not_faster_initially,
+          why_not_faster_initially: typeof adjustmentContext.global_reasoning
+              .why_not_faster_initially === "string"
+            ? adjustmentContext.global_reasoning.why_not_faster_initially
+              .trim()
+            : adjustmentContext.global_reasoning.why_not_faster_initially,
           acceleration_signals: trimNonEmptyStringArray(
             adjustmentContext.global_reasoning.acceleration_signals,
             5,
@@ -3174,19 +3494,31 @@ function normalizePlanMetadata(
           isPlainObject(entry)
             ? {
               ...entry,
-              phase_id: typeof entry.phase_id === "string" ? entry.phase_id.trim() : entry.phase_id,
+              phase_id: typeof entry.phase_id === "string"
+                ? entry.phase_id.trim()
+                : entry.phase_id,
               role_in_plan: typeof entry.role_in_plan === "string"
                 ? entry.role_in_plan.trim()
                 : entry.role_in_plan,
               why_before_next: typeof entry.why_before_next === "string"
                 ? entry.why_before_next.trim()
                 : entry.why_before_next,
-              prerequisite_for_next_phase: typeof entry.prerequisite_for_next_phase === "string"
-                ? entry.prerequisite_for_next_phase.trim()
-                : entry.prerequisite_for_next_phase,
-              user_signals_used: trimNonEmptyStringArray(entry.user_signals_used, 6),
-              acceleration_signals: trimNonEmptyStringArray(entry.acceleration_signals, 4),
-              slowdown_signals: trimNonEmptyStringArray(entry.slowdown_signals, 4),
+              prerequisite_for_next_phase:
+                typeof entry.prerequisite_for_next_phase === "string"
+                  ? entry.prerequisite_for_next_phase.trim()
+                  : entry.prerequisite_for_next_phase,
+              user_signals_used: trimNonEmptyStringArray(
+                entry.user_signals_used,
+                6,
+              ),
+              acceleration_signals: trimNonEmptyStringArray(
+                entry.acceleration_signals,
+                4,
+              ),
+              slowdown_signals: trimNonEmptyStringArray(
+                entry.slowdown_signals,
+                4,
+              ),
             }
             : entry
         )
@@ -3263,9 +3595,7 @@ function buildPlanRow(params: {
     content: params.plan as unknown as Record<string, unknown>,
     generation_attempts: params.attemptNumber,
     last_generation_reason: params.generationReason ?? (
-      params.attemptNumber === 1
-        ? "initial_generation"
-        : "regeneration"
+      params.attemptNumber === 1 ? "initial_generation" : "regeneration"
     ),
     generation_feedback: params.generationFeedback,
     generation_input_snapshot: params.generationInputSnapshot,

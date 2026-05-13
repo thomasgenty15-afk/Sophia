@@ -265,7 +265,7 @@ Limiter la casse pendant la transition.
 1. supporter temporairement ancien + nouveau format en lecture
 2. basculer la creation sur le nouveau format
 3. migrer ou regrouper l'existant si necessaire
-4. retirer le support legacy ensuite
+4. retirer les compatibilites temporaires ensuite
 
 ### Point Important
 
@@ -289,7 +289,7 @@ Recommendation:
 3. refondre la defense
 4. refondre l'attaque
 5. aligner prompts / validateurs / types
-6. nettoyer le legacy
+6. nettoyer les compatibilites temporaires
 
 ---
 

@@ -879,7 +879,7 @@ export const THEME_SENSE: Theme = {
               options: [
                 { label: 'Clarifier 3–5 choses qui comptent vraiment pour toi' },
                 { label: 'Voir comment ta vie actuelle respecte (ou pas) ces choses-là' },
-                { label: 'Avoir une sorte de “boussole perso” simple pour décider' }
+                { label: 'Avoir une sorte de repère personnel simple pour décider' }
               ]
             }
           ]

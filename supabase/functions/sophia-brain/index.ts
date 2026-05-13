@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
       { requestId, channel, scope },
       {
         logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
-        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'investigator' || forceMode === 'companion' || forceMode === 'roadmap_review')
+        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'companion' || forceMode === 'roadmap_review')
           ? forceMode
           : scope === "roadmap_review"
             ? "roadmap_review"

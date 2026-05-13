@@ -168,7 +168,31 @@ export function resolveTemporalReferences(
     if (!out.some((r) => r.raw === res.raw)) out.push(res);
   };
 
-  if (/\bhier soir\b/.test(text)) {
+  if (/\bavant hier matin\b/.test(text)) {
+    push(
+      localRange(
+        timeZone,
+        addDaysLocal(today, -2),
+        5,
+        12,
+        "part_of_day",
+        "avant hier matin",
+        0.9,
+      ),
+    );
+  } else if (/\bavant hier\b/.test(text)) {
+    push(
+      localRange(
+        timeZone,
+        addDaysLocal(today, -2),
+        0,
+        24,
+        "day",
+        "avant hier",
+        0.88,
+      ),
+    );
+  } else if (/\bhier soir\b/.test(text)) {
     push(
       localRange(
         timeZone,
@@ -187,6 +211,11 @@ export function resolveTemporalReferences(
   }
   if (/\bce matin\b/.test(text)) {
     push(localRange(timeZone, today, 5, 12, "part_of_day", "ce matin", 0.9));
+  }
+  if (/\baujourd'hui\b/.test(text)) {
+    push(
+      localRange(timeZone, today, 0, 24, "day", "aujourd'hui", 0.9),
+    );
   }
   if (/\bdans deux jours\b/.test(text)) {
     push(
@@ -256,6 +285,8 @@ export function resolveTemporalReferences(
   for (const [rawDay, weekday] of Object.entries(WEEKDAYS)) {
     const day = normalize(rawDay);
     const lastRe = new RegExp(`\\b${day} dernier\\b`);
+    const morningRe = new RegExp(`\\b${day} matin\\b`);
+    const afternoonRe = new RegExp(`\\b${day} apres[- ]midi\\b`);
     const eveningRe = new RegExp(`\\b${day} soir\\b`);
     if (lastRe.test(text)) {
       const local = addDaysLocal(
@@ -263,6 +294,30 @@ export function resolveTemporalReferences(
         -previousWeekday(localNow.weekday, weekday),
       );
       push(localRange(timeZone, local, 0, 24, "day", `${day} dernier`, 0.88));
+    } else if (morningRe.test(text)) {
+      const local = addDaysLocal(
+        today,
+        -previousWeekday(localNow.weekday, weekday),
+      );
+      push(
+        localRange(timeZone, local, 5, 12, "part_of_day", `${day} matin`, 0.84),
+      );
+    } else if (afternoonRe.test(text)) {
+      const local = addDaysLocal(
+        today,
+        -previousWeekday(localNow.weekday, weekday),
+      );
+      push(
+        localRange(
+          timeZone,
+          local,
+          12,
+          18,
+          "part_of_day",
+          `${day} apres-midi`,
+          0.84,
+        ),
+      );
     } else if (eveningRe.test(text)) {
       const local = addDaysLocal(
         today,

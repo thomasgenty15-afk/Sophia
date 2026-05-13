@@ -1,4 +1,7 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "jsr:@supabase/supabase-js@2";
 
 import {
   detectReplyQuality,
@@ -47,6 +50,19 @@ function truncateDeep(
   return rec(input, 0);
 }
 
+function serviceRoleClient(): SupabaseClient | null {
+  try {
+    const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
+    const key = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    if (!url || !key) return null;
+    return createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+  } catch {
+    return null;
+  }
+}
+
 export function isMomentumObservabilityEnabled(): boolean {
   const denoEnv = (globalThis as any)?.Deno?.env;
   const momentumRaw = denoEnv?.get?.("MOMENTUM_OBSERVABILITY_ON");
@@ -73,24 +89,45 @@ export async function logMomentumObservabilityEvent(opts: {
     if (!userId || !sourceComponent || !eventName) return;
 
     const payload = truncateDeep(opts.payload ?? {});
+    const row = {
+      request_id: opts.requestId ? String(opts.requestId).trim() : null,
+      turn_id: opts.turnId ? String(opts.turnId).trim() : null,
+      user_id: userId,
+      channel: opts.channel ?? null,
+      scope: opts.scope ? String(opts.scope).trim() : null,
+      source_component: sourceComponent,
+      event_name: eventName,
+      payload,
+    };
     const { error } = await (opts.supabase as any)
       .from("memory_observability_events")
-      .insert({
-        request_id: opts.requestId ? String(opts.requestId).trim() : null,
-        turn_id: opts.turnId ? String(opts.turnId).trim() : null,
-        user_id: userId,
-        channel: opts.channel ?? null,
-        scope: opts.scope ? String(opts.scope).trim() : null,
-        source_component: sourceComponent,
-        event_name: eventName,
-        payload,
-      });
+      .insert(row);
     if (error) {
-      console.warn("[MomentumObservability] insert failed", {
-        event_name: eventName,
-        source_component: sourceComponent,
-        error: String((error as any)?.message ?? error ?? "").slice(0, 280),
-      });
+      const admin = serviceRoleClient();
+      if (admin) {
+        const { error: adminError } = await (admin as any)
+          .from("memory_observability_events")
+          .insert(row);
+        if (!adminError) return;
+        console.warn("[MomentumObservability] service-role insert failed", {
+          event_name: eventName,
+          source_component: sourceComponent,
+          original_error: String((error as any)?.message ?? error ?? "").slice(
+            0,
+            280,
+          ),
+          error: String((adminError as any)?.message ?? adminError ?? "").slice(
+            0,
+            280,
+          ),
+        });
+      } else {
+        console.warn("[MomentumObservability] insert failed; service-role unavailable", {
+          event_name: eventName,
+          source_component: sourceComponent,
+          error: String((error as any)?.message ?? error ?? "").slice(0, 280),
+        });
+      }
     }
   } catch (error) {
     console.warn("[MomentumObservability] unexpected error", {

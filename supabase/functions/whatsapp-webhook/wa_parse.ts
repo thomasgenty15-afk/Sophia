@@ -36,7 +36,8 @@ export function extractMessages(payload) {
           text,
           interactive_id,
           interactive_title,
-          profile_name: profileName
+          profile_name: profileName,
+          sim_user_id: m.sophia_user_id ?? m.metadata?.sophia_user_id ?? undefined
         });
       }
     }

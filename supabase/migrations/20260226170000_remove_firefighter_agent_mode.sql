@@ -1,6 +1,6 @@
 -- Remove firefighter mode from runtime data + enum definition.
 -- 1) Remap historical rows using firefighter -> companion.
--- 2) Cleanup legacy firefighter temp-memory state.
+-- 2) Cleanup old firefighter temp-memory state.
 -- 3) Recreate enum without firefighter and migrate dependent columns.
 
 BEGIN;

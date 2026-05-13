@@ -18,6 +18,7 @@ import {
   materializeCycleTransformationsFromIntake,
   previewTransformationsFromIntake,
 } from "../_shared/v2-intake-core.ts";
+import { UnifiedIntakeError } from "../_shared/v2-intake-unified.ts";
 import { IntakeStructuringError } from "../_shared/v2-intake-structuring.ts";
 import { TransformationMaterializationError } from "../_shared/v2-transformation-materialization.ts";
 
@@ -185,6 +186,7 @@ async function handleRequest(req: Request): Promise<Response> {
     });
 
     if (
+      error instanceof UnifiedIntakeError ||
       error instanceof IntakeStructuringError ||
       error instanceof TransformationMaterializationError
     ) {

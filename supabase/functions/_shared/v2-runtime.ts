@@ -55,7 +55,6 @@ export type ActiveTransformationRuntime = {
   cycle: UserCycleRow | null;
   transformation: UserTransformationRow | null;
   plan: UserPlanV2Row | null;
-  north_star: UserMetricRow | null;
   progress_markers: UserMetricRow[];
   plan_item_counts: PlanItemCountsByDimensionStatus;
 };
@@ -423,35 +422,18 @@ export async function getActiveTransformationRuntime(
       cycle: null,
       transformation: null,
       plan: null,
-      north_star: null,
       progress_markers: [],
       plan_item_counts: emptyPlanItemCounts(),
     };
   }
 
-  const [transformation, northStarResult] = await Promise.all([
-    getCycleActiveTransformation(supabase, cycle),
-    supabase
-      .from("user_metrics")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("cycle_id", cycle.id)
-      .eq("scope", "cycle")
-      .eq("kind", "north_star")
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
-  if (northStarResult.error) throw northStarResult.error;
+  const transformation = await getCycleActiveTransformation(supabase, cycle);
 
   if (!transformation) {
     return {
       cycle,
       transformation: null,
       plan: null,
-      north_star: (northStarResult.data as UserMetricRow | null) ?? null,
       progress_markers: [],
       plan_item_counts: emptyPlanItemCounts(),
     };
@@ -490,7 +472,6 @@ export async function getActiveTransformationRuntime(
     cycle,
     transformation,
     plan,
-    north_star: (northStarResult.data as UserMetricRow | null) ?? null,
     progress_markers: (progressMarkersResult.data as UserMetricRow[] | null) ??
       [],
     plan_item_counts: planItemCounts,

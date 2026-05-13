@@ -80,6 +80,10 @@ export async function runMemorizerDryRun(
     messages: input.messages,
     already_processed_primary_ids: input.already_processed_primary_ids,
     model_name: input.model_name ?? MEMORY_EXTRACTION_MODEL_DEFAULT,
+    known_entity_aliases: (input.known_entities ?? []).flatMap((entity) => [
+      entity.display_name,
+      ...(entity.aliases ?? []),
+    ]),
   });
   const existingRun = await repo.findExtractionRun({
     user_id: input.user_id,

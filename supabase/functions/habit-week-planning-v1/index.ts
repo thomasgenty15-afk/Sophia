@@ -131,16 +131,16 @@ async function upsertOccurrences(
     });
   if (!error) return;
   if (errorMentions(error, "default_day")) {
-    const legacyRows = rows.map(({ default_day: _defaultDay, ...rest }) =>
+    const compactRows = rows.map(({ default_day: _defaultDay, ...rest }) =>
       rest
     );
-    const { error: legacyError } = await admin
+    const { error: compactError } = await admin
       .from("user_habit_week_occurrences")
-      .upsert(legacyRows, {
+      .upsert(compactRows, {
         onConflict: "user_id,plan_item_id,week_start_date,ordinal",
       });
-    if (!legacyError) return;
-    throw legacyError;
+    if (!compactError) return;
+    throw compactError;
   }
   throw error;
 }

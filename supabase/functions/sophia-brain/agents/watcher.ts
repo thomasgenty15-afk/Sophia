@@ -447,10 +447,11 @@ export async function runWatcher(
     userId,
   });
   const activeActionTitles = exclusionSnapshot.planActionTitles;
-  const activeActionsBlock = exclusionSnapshot.planActionTitles.length > 0
-    ? exclusionSnapshot.planActionTitles.map((t, i) => `${i + 1}. ${t}`).join(
-      "\n",
-    )
+  const activeActionPromptRows = exclusionSnapshot.planActionDetails.length > 0
+    ? exclusionSnapshot.planActionDetails
+    : exclusionSnapshot.planActionTitles;
+  const activeActionsBlock = activeActionPromptRows.length > 0
+    ? activeActionPromptRows.map((t, i) => `${i + 1}. ${t}`).join("\n")
     : "(aucune action active)";
   const exclusionSnapshotBlock = formatWatcherExclusionSnapshot(
     exclusionSnapshot,

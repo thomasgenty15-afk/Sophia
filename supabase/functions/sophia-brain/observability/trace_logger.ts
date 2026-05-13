@@ -1,0 +1,149 @@
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import type {
+  ResponseOwner,
+  RouteDecision,
+} from "../contracts/route_decision.v1.ts";
+import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
+import type { SafetyPregateOutput } from "../safety/safety_pregate.ts";
+import type { DispatcherMemoryPlan } from "../contracts/turn_frame.v1.ts";
+
+declare const Deno: any;
+
+export type ConversationTurnTrace = {
+  turn_id: string;
+  user_id: string;
+  source_message_id: string;
+  ts: string;
+  safety_pregate: SafetyPregateOutput;
+  dispatcher_run: {
+    latency_ms: number;
+    tokens_in: number;
+    tokens_out: number;
+    prompt_version: string;
+    model_used?: string | null;
+    memory_plan: DispatcherMemoryPlan | null;
+  };
+  turn_frame: TurnFrame;
+  route_decision: RouteDecision;
+  direct_effects: Array<{ tool_id: string; outcome: unknown }>;
+  skill_run?: unknown;
+  tool_skill_run?: unknown;
+  recommendation_tool_run?: unknown;
+  confirmation_token_outcomes: Array<{ token_id: string; outcome: string }>;
+  memory_write_candidates_emitted: number;
+  response_owner: ResponseOwner;
+  total_latency_ms: number;
+};
+
+let traceSinkForTest:
+  | ((trace: ConversationTurnTrace) => Promise<void> | void)
+  | null = null;
+
+export function setConversationTraceSinkForTest(
+  sink: ((trace: ConversationTurnTrace) => Promise<void> | void) | null,
+): void {
+  traceSinkForTest = sink;
+}
+
+let traceWriteClient: SupabaseClient | null = null;
+
+function isLocalSupabaseUrl(url: string): boolean {
+  try {
+    const host = new URL(String(url ?? "")).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
+function isJwtLike(value: string): boolean {
+  return String(value ?? "").split(".").length === 3;
+}
+
+function base64Url(bytes: Uint8Array): string {
+  const raw = btoa(String.fromCharCode(...bytes));
+  return raw.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function signLocalServiceRoleJwt(secret: string): Promise<string> {
+  const encode = (value: unknown) =>
+    base64Url(new TextEncoder().encode(JSON.stringify(value)));
+  const header = encode({ alg: "HS256", typ: "JWT" });
+  const payload = encode({
+    iss: "supabase-demo",
+    role: "service_role",
+    exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365 * 10,
+  });
+  const toSign = `${header}.${payload}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = new Uint8Array(
+    await crypto.subtle.sign(
+      "HMAC",
+      key,
+      new TextEncoder().encode(toSign),
+    ),
+  );
+  return `${toSign}.${base64Url(signature)}`;
+}
+
+async function getTraceWriteClient(
+  fallback: unknown,
+): Promise<unknown> {
+  const url = Deno.env.get("SUPABASE_URL") ?? "";
+  let serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  if (url && isLocalSupabaseUrl(url) && !isJwtLike(serviceRoleKey)) {
+    const jwtSecret = Deno.env.get("JWT_SECRET") ??
+      "super-secret-jwt-token-with-at-least-32-characters-long";
+    serviceRoleKey = await signLocalServiceRoleJwt(jwtSecret);
+  }
+  if (!url || !serviceRoleKey) return fallback;
+
+  traceWriteClient ??= createClient(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+  return traceWriteClient;
+}
+
+export async function logConversationTurn(
+  trace: ConversationTurnTrace,
+  opts: { supabase?: unknown } = {},
+): Promise<void> {
+  if (traceSinkForTest) {
+    await traceSinkForTest(trace);
+    return;
+  }
+  if (opts.supabase) {
+    const writeClient = await getTraceWriteClient(opts.supabase);
+    const { error } = await (writeClient as any)
+      .from("conversation_turn_traces")
+      .insert({
+        turn_id: trace.turn_id,
+        user_id: trace.user_id,
+        source_message_id: trace.source_message_id,
+        ts: trace.ts,
+        safety_pregate: trace.safety_pregate,
+        dispatcher_run: trace.dispatcher_run,
+        turn_frame: trace.turn_frame,
+        route_decision: trace.route_decision,
+        direct_effects: trace.direct_effects,
+        skill_run: trace.skill_run ?? null,
+        tool_skill_run: trace.tool_skill_run ?? null,
+        recommendation_tool_run: trace.recommendation_tool_run ?? null,
+        confirmation_token_outcomes: trace.confirmation_token_outcomes,
+        memory_write_candidates_emitted: trace.memory_write_candidates_emitted,
+        response_owner: trace.response_owner,
+        total_latency_ms: trace.total_latency_ms,
+      });
+    if (error) throw error;
+  }
+}

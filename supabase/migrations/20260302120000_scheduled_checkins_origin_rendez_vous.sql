@@ -3,14 +3,14 @@ alter table public.scheduled_checkins
 
 do $$
 declare
-  legacy_origin text := concat(
+  old_origin text := concat(
     chr(105), chr(110), chr(105), chr(116), chr(105),
     chr(97), chr(116), chr(105), chr(118), chr(101)
   );
 begin
   update public.scheduled_checkins
   set origin = 'rendez_vous'
-  where origin = legacy_origin;
+  where origin = old_origin;
 end $$;
 
 alter table public.scheduled_checkins

@@ -4,7 +4,6 @@ import { generateEmbedding } from '../_shared/gemini.ts'
 export type AgentMode = 
   | 'dispatcher'
   | 'sentry' 
-  | 'investigator' 
   | 'companion'
   | 'roadmap_review'
 

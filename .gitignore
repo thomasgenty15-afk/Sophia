@@ -35,6 +35,9 @@ playwright-report/**
 frontend/playwright-report
 frontend/playwright-report/**
 **/supabase_status.json
+tests/real-personas/*/connection.json
+tests/real-personas/*/connections/*.json
+tests/real-personas/*/connections/**/*.json
 
 # --- BUILD OUTPUTS ---
 dist

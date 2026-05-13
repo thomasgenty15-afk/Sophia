@@ -1,5 +1,5 @@
 -- Watcher now handles future-event detection every 10 minutes.
--- Unschedule legacy detect-future-events cron to avoid duplicate scheduling.
+-- Unschedule old detect-future-events cron to avoid duplicate scheduling.
 
 create extension if not exists "pg_cron" with schema "extensions";
 
@@ -12,4 +12,3 @@ begin
     perform cron.unschedule(existing_jobid);
   end if;
 end $$;
-

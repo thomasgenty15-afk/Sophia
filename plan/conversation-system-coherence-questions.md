@@ -15,6 +15,23 @@ qui peuvent creer :
 - des incoherences entre chat et plateforme ;
 - des context loaders trop lourds ou mal scopes.
 
+## Revision 2026-05 - alignements integres
+
+Cette revision integre :
+
+```text
+1. Renommage `operation_skill` -> `tool_skill`.
+2. Toutes les regles "safety active -> pas de write" sont reformulees en
+   "safety_pregate.risk_band >= medium -> pas de write" pour rappeler que
+   la detection ne depend plus du seul prompt dispatcher LLM.
+3. Toutes les regles "explicit X.Y" passent par les bandes interpretables
+   (`explicit | implied | weak`, `low | medium | high`).
+4. DirectEffectGate et confirmation_token sont mentionnes la ou ils
+   s'appliquent.
+5. La frontiere entre memoire et routing est rappelee (cf. Memory
+   Influence Policy dans le doc dispatcher-alignment-plan).
+```
+
 ## Questions posees au depart
 
 ### 1. Tracking tool
@@ -35,9 +52,14 @@ Questions a trancher :
 Regle cible :
 
 ```text
-pas de target_item_id clair -> pas de write.
-source_message_id deja traite -> pas de write.
-safety active -> pas de write.
+DirectEffectGate refuse -> pas de write. Conditions cumulatives :
+- safety_pregate.risk_band in {none, low}
+- explicit_intent_band in {explicit, implied_strong}
+- target_status = identified (target_item_id resolu sans ambiguite)
+- ambiguity = none
+- autonomous_intent = true
+- source_message_id non deja consomme (runtime + DB)
+- pas de pending_tool_skill_confirmation active
 ```
 
 ### Reponse cible - tracking tool
@@ -66,7 +88,7 @@ Dans `conversation-skills-tools-dispatcher-alignment-plan.md` :
 ```text
 dispatcher = perception / signaux.
 skill_router = arbitration conversationnelle.
-operation_router = lifecycle operationnel.
+tool_skill_router = lifecycle operationnel.
 pending confirmation bloque les nouveaux flows produit.
 safety override tout.
 ```
@@ -75,10 +97,11 @@ Point a expliciter dans ce plan :
 
 ```text
 ordre runtime cible avec always-on tools :
-1. safety override
-2. pending confirmation Oui/Non
-3. always-on tools directs
-4. operation_intent
+0. safety_pregate (lexical + heuristique + recent context, hors LLM)
+1. dispatcher LLM (peut elever, jamais abaisser, le risk_band)
+2. tool_skill_router sur pending confirmation Oui/Non
+3. always-on tools directs (sous DirectEffectGate)
+4. tool_skill_intent
 5. skill_router
 6. recommendation_tool si demande par skill
 7. memory write candidates async
@@ -121,7 +144,7 @@ Dans notre systeme cible :
 
 ```text
 Le dispatcher doit produire ce signal dans sa sortie de perception.
-Ce n'est pas une operation_intent.
+Ce n'est pas une tool_skill_intent.
 Ce n'est pas un skill.
 Ce n'est pas un recommendation_tool.
 ```
@@ -130,7 +153,7 @@ Pourquoi :
 
 ```text
 Logger "j'ai fait / rate X" est une action courte et objective.
-La faire passer par operation skill serait trop lourd.
+La faire passer par tool skill serait trop lourd.
 La faire passer par recommendation_tool serait conceptuellement faux.
 ```
 
@@ -139,7 +162,7 @@ Ce qu'il faut faire :
 ```text
 1. Garder track_progress_plan_item dans les always-on tools.
 2. Le traiter apres safety et pending confirmation.
-3. Ne jamais le transformer en operation skill.
+3. Ne jamais le transformer en tool skill.
 4. Supprimer / ignorer track_progress_north_star du systeme cible.
 ```
 
@@ -291,21 +314,27 @@ skill_router
   -> execution_breakdown si blocage domine
 ```
 
-Blocages obligatoires :
+Blocages obligatoires (DirectEffectGate) :
 
 ```text
+safety_pregate.risk_band >= medium -> no write
 safety_crisis actif -> no write
 pending confirmation Oui/Non -> traiter la confirmation avant tout
 target ambigu -> no write
+explicit_intent_band weak -> no write (needs_clarify)
+ambiguity != none -> no write (needs_clarify)
+non-autonomous intent -> no write
 ```
 
 Ce qu'il faut faire :
 
 ```text
-1. Placer always-on tools apres safety et pending confirmation.
-2. Autoriser tracking en parallele de emotional_repair / execution_breakdown / demotivation_repair.
+1. Placer always-on tools apres safety_pregate et pending confirmation.
+2. Autoriser tracking en parallele de emotional_repair / execution_breakdown
+   / demotivation_repair (skill garde la response_owner).
 3. Injecter le resultat du tracking au skill actif sous forme d'addon court.
 4. Le skill ne doit pas relancer le tool.
+5. Tout write porte une cle d'idempotence sur source_message_id (runtime + DB).
 ```
 
 ### 6. Est-ce qu'un tracking tool peut coexister avec `emotional_repair` ?
@@ -366,21 +395,24 @@ Le systeme cible doit donc etre :
 dispatcher
   -> detecte track_progress_plan_item
   -> cible uniquement depuis plan_item_snapshot
+  -> recopie les ID, n'invente jamais
 
 runtime
-  -> safety gate
+  -> safety_pregate (step 0)
+  -> dispatcher LLM
   -> pending confirmation gate
-  -> idempotence gate
-  -> execute logPlanItemProgress si cible claire
-  -> sinon produit needs_clarify
+  -> DirectEffectGate (idempotence runtime + DB, target identified,
+      explicit/implied_strong, ambiguity none, autonomous_intent)
+  -> execute logPlanItemProgress si toutes les conditions OK
+  -> sinon produit needs_clarify (transmis au skill / companion)
 
 skill_router
   -> arbitre emotional_repair / execution_breakdown / demotivation_repair
 
 skill actif
-  -> recoit l'addon tracking
+  -> recoit l'addon tracking en parallele
   -> ne relance pas le tool
-  -> garde la bonne posture conversationnelle
+  -> garde la response_owner conversationnelle
 ```
 
 Statut documentaire :
@@ -412,7 +444,7 @@ Regle cible :
 
 ```text
 one-shot clair -> create_one_shot_reminder.
-recurring clair -> create_recurring_reminder_operation_skill.
+recurring clair -> create_recurring_reminder_tool_skill.
 horaire ambigu -> clarification courte, pas de write.
 ```
 
@@ -439,14 +471,15 @@ Il ne gere pas les rappels recurrents.
 Dans `conversation-skills-tools-dispatcher-alignment-plan.md` :
 
 ```text
-always-on tools directs passent apres safety et pending confirmation.
-create_one_shot_reminder n'est pas une operation skill.
+always-on tools directs passent apres safety_pregate et pending confirmation,
+sous DirectEffectGate strict.
+create_one_shot_reminder n'est pas une tool skill.
 ```
 
 Dans `conversation-skills-definitions.md` :
 
 ```text
-create_recurring_reminder_operation_skill gere les rappels recurrents.
+create_recurring_reminder_tool_skill gere les rappels recurrents.
 product_help explique les reminders si le user demande comment ca marche.
 safety_crisis bloque les tools non-safety.
 ```
@@ -469,7 +502,7 @@ one-shot clair
   -> create_one_shot_reminder
 
 recurring clair
-  -> create_recurring_reminder_operation_skill
+  -> create_recurring_reminder_tool_skill
   -> pending confirmation Oui/Non
 ```
 
@@ -483,10 +516,10 @@ Exemples :
 -> one-shot
 
 "rappelle-moi tous les matins de marcher"
--> recurring reminder operation skill
+-> recurring reminder tool skill
 
 "chaque lundi, rappelle-moi de regarder mon plan"
--> recurring reminder operation skill
+-> recurring reminder tool skill
 ```
 
 Pourquoi :
@@ -494,14 +527,14 @@ Pourquoi :
 ```text
 Un one-shot est une action courte, reversible, ponctuelle.
 Un recurring reminder cree une initiative durable, donc il doit passer par
-operation skill + confirmation.
+tool skill + confirmation.
 ```
 
 Ce qu'il faut faire :
 
 ```text
 1. Garder create_one_shot_reminder comme always-on tool.
-2. Router les recurrents vers create_recurring_reminder_operation_skill.
+2. Router les recurrents vers create_recurring_reminder_tool_skill.
 3. Ne jamais utiliser le one-shot comme fallback pour une recurrence.
 4. Ne pas demander Oui/Non pour un one-shot clair au MVP.
 5. Demander Oui/Non pour un recurring reminder.
@@ -788,7 +821,7 @@ Statut documentaire :
 ```text
 conversation-tools-definitions.md contient deja la fiche one-shot.
 conversation-skills-tools-dispatcher-alignment-plan.md contient l'ordre runtime avec always-on tools.
-conversation-skills-definitions.md distingue one-shot reminder et recurring reminder operation skill.
+conversation-skills-definitions.md distingue one-shot reminder et recurring reminder tool skill.
 ```
 
 ### 3. Superposition des skills
@@ -799,10 +832,10 @@ Comment s'assurer qu'un skill ne va pas se superposer a un autre ?
 
 Questions a trancher :
 
-- Quel est l'ordre de priorite exact entre safety, pending confirmation, tools always-on, operation intent et skill router ?
+- Quel est l'ordre de priorite exact entre safety, pending confirmation, tools always-on, tool skill intent et skill router ?
 - Est-ce qu'un seul skill conversationnel peut etre actif a la fois ?
 - Quels signaux peuvent interrompre un skill actif ?
-- Est-ce qu'une operation intent directe peut interrompre un skill conversationnel ?
+- Est-ce qu'une tool skill intent directe peut interrompre un skill conversationnel ?
 - Quand est-ce qu'on continue le skill actif au lieu d'en lancer un nouveau ?
 - Comment eviter que le systeme switch trop vite sur une simple tournure ?
 - Comment eviter l'inverse : rester bloque dans un skill alors que le user a change de sujet ?
@@ -813,7 +846,7 @@ Regle cible :
 safety override tout.
 pending confirmation Oui/Non bloque les nouveaux flows produit.
 un seul skill conversationnel actif.
-operation intent explicite peut prendre la priorite, sauf safety.
+tool skill intent explicite peut prendre la priorite, sauf safety.
 ```
 
 ### 4. Potions d'etat
@@ -874,25 +907,37 @@ Dans quel ordre le systeme traite-t-il un message ?
 Questions a trancher :
 
 - Est-ce que safety est toujours la premiere verification ?
-- Est-ce que pending confirmation est traite avant operation intent ?
+- safety_pregate (couches deterministes) precede-t-elle le dispatcher LLM ?
+- Est-ce que pending confirmation est traite avant tool skill intent ?
 - Les always-on tools passent-ils avant ou apres skill router ?
 - Est-ce qu'un always-on tool peut s'executer en parallele d'une reponse skill ?
 - Quand est-ce que le recommendation_tool peut etre appele ?
 - Quand est-ce que les memory writes sont proposes ?
 
-Ordre cible a confirmer :
+Ordre cible :
 
 ```text
-1. safety override
-2. pending confirmation Oui/Non
-3. always-on tools directs
-4. operation_intent
-5. skill_router
-6. recommendation_tool si demande par skill
-7. memory write candidates async
+0. safety_pregate (lexical + heuristique + recent context, hors LLM)
+1. dispatcher LLM (peut elever, jamais abaisser, le risk_band)
+2. tool_skill_router sur pending confirmation Oui/Non
+3. always-on tools directs (sous DirectEffectGate)
+4. dispatcher.tool_skill_intent
+5. tool_skill_router sur tool_skill_intent fort
+6. skill_router si aucune operation prioritaire
+7. recommendation_tool si demande par skill
+8. memorizer async (memory write candidates)
 ```
 
-### 7. Pending confirmation
+Invariants :
+
+```text
+- risk_band final = max(safety_pregate.risk_band, dispatcher_llm.risk_band)
+- risk_band >= medium bloque les writes durables
+- risk_band >= high bloque aussi recommendation_tool
+- risk_band = critical force safety_crisis
+```
+
+### 7. Pending confirmation et confirmation token
 
 ```text
 Que se passe-t-il quand une operation attend Oui/Non ?
@@ -907,20 +952,31 @@ Questions a trancher :
 - Est-ce qu'une confirmation expire ?
 - Que faire si safety arrive pendant une pending confirmation ?
 - Est-ce que le skill precedent reprend apres Non ?
+- Est-ce que l'executor verifie cryptographiquement la confirmation ?
 
 Regle cible :
 
 ```text
-Oui -> executor.
+Oui -> creation confirmation_token signe -> executor verifie token + draft_hash
+   -> write si OK, refus si verification echoue.
 Non -> cancel, no write.
 autre reponse -> clarifier ou sortir selon contexte.
-safety -> override et annule/suspend.
+safety_pregate.risk_band >= medium -> override et annule/suspend.
+expiration token (typiquement 10 min) -> cancel.
 ```
 
-### 8. Operation skills
+Invariant cryptographique :
 
 ```text
-Comment garantir qu'une operation skill ne cree rien sans infos suffisantes ?
+Le draft execute doit avoir le meme draft_hash que celui signe dans le token.
+Le token est single-use (consomme apres write).
+Un retry ne peut PAS reutiliser le token : il faut un nouveau Oui user.
+```
+
+### 8. Tool skills
+
+```text
+Comment garantir qu'une tool skill ne cree rien sans infos suffisantes ?
 ```
 
 Questions a trancher :
@@ -932,14 +988,15 @@ Questions a trancher :
 - Que fait-on si la cible reste ambigue apres une question ?
 - Quand fallback dashboard ?
 - Est-ce que le generator peut ecrire en DB ?
+- Est-ce que l'executor exige un confirmation_token ?
 
 Regle cible :
 
 ```text
-recommendation_tool path = pas d'intake.
+recommendation_tool path = pas d'intake (payload suffisant ou refus).
 direct_user_request path = intake possible, max 1 question.
-generator = draft seulement.
-executor = write seulement apres Oui.
+generator = draft seulement, jamais d'ecriture.
+executor = write seulement apres Oui ET confirmation_token verifie.
 ```
 
 ### 9. Recommendation tool
@@ -990,10 +1047,11 @@ skill view = working state complet.
 dispatcher view = resume court.
 ```
 
-### 11. Memoire
+### 11. Memoire et Memory Influence Policy
 
 ```text
 La memoire reste-t-elle operationnelle quand un skill est actif ?
+Et : peut-elle decider seule de la posture conversationnelle ?
 ```
 
 Questions a trancher :
@@ -1004,14 +1062,45 @@ Questions a trancher :
 - Est-ce que core identity reste desactive ?
 - Les memory write candidates sont-ils valides async ?
 - Comment eviter qu'une emotion momentanee devienne une memoire durable trop vite ?
+- La memoire peut-elle, a elle seule, ouvrir un skill humain ?
+- Comment empecher la memoire de pousser Sophia a sur-interpreter un message neutre ?
 
 Regle cible :
 
 ```text
-dispatcher = memory hints courts.
-skill = retrieval cible si besoin.
-memorizer = seul responsable des writes durables.
-core identity desactive.
+- La memoire ne peut JAMAIS, seule, declencher un skill humain.
+- Le message courant doit fournir le signal principal.
+- La memoire peut aider a resoudre une reference ou identifier une cible.
+- La memoire peut enrichir un skill deja ouvert mais pas en ouvrir un nouveau.
+- Toute memoire utilisee pour router est tracee par item_id.
+- Une memoire avec sensitivity_level >= sensitive ne peut pas etre signal
+  d'entree de routing.
+- Une memoire avec status != active ne peut pas etre utilisee.
+- Une correction utilisateur invalide immediatement le payload memoire en
+  cours.
+```
+
+Hierarchie de signal pour routing (cf. Memory Influence Policy dans
+`conversation-skills-tools-dispatcher-alignment-plan.md`) :
+
+```text
+1. message courant
+2. correction utilisateur
+3. etat actif
+4. donnees produit fraiches
+5. memoire atomique recente
+6. vues globales
+7. patterns inferes
+```
+
+Schema strict des memory_write_candidates :
+
+```text
+- evidence_source_ids obligatoires
+- sensitivity_level explicite
+- should_persist_default (false par defaut en emotion haute)
+- anti_identity_freeze_checked = true requis
+- "je suis nul" -> JAMAIS un fact identitaire
 ```
 
 ### 12. Direct tools toujours actifs
@@ -1025,8 +1114,9 @@ Questions a trancher :
 - `create_one_shot_reminder` est-il actif hors safety ?
 - `track_progress_plan_item` est-il actif hors safety ?
 - Y a-t-il d'autres tools directs a garder ?
-- Les tools directs doivent-ils etre annules si une operation intent forte est detectee ?
+- Les tools directs doivent-ils etre annules si une tool skill intent forte est detectee ?
 - Comment tracer `executed_tools` ?
+- Tous les writes always-on passent-ils par DirectEffectGate ?
 
 Regle cible :
 
@@ -1034,6 +1124,8 @@ Regle cible :
 always-on tools = tres limites.
 one-shot reminder et track_progress_plan_item seulement.
 pas de North Star tracking.
+DirectEffectGate strict obligatoire (cf. doc tools-definitions).
+Idempotence runtime + DB obligatoire.
 ```
 
 ### 13. Planning depuis le chat
@@ -1042,19 +1134,18 @@ pas de North Star tracking.
 Quelles modifications de planning sont interdites depuis le chat MVP ?
 ```
 
-Questions a trancher :
+Decision 2026-05 :
 
-- Peut-on changer le jour d'une action ?
-- Peut-on changer une heure precise ?
-- Peut-on deplacer une action dans la semaine ?
-- Peut-on modifier une recurrence ?
-- Quand rediriger vers dashboard ?
+- Le changement de jour/horaire n'est plus une surface produit separee.
+- Si le user parle de jour/date/horaire, rester dans `adjust_plan_item`.
+- Le chat clarifie la cible ou le perimetre du plan et respecte les gates de
+  confirmation avant tout write.
+- Ne pas rediriger vers une ancienne mecanique de planning fin.
 
 Regle cible :
 
 ```text
-changement jour/date/horaire fin -> dashboard.
-chat MVP = pas de planning fin.
+timing -> ajustement du plan existant + clarification/confirmation.
 ```
 
 ### 14. Non, opposition et corrections user
@@ -1070,13 +1161,29 @@ Questions a trancher :
 - Est-ce qu'une opposition doit etre memorisee ?
 - Comment eviter d'insister apres un refus ?
 - Quand reprendre le skill precedent ?
+- Une correction sur un fact memoire doit-elle invalider le payload immediat ?
 
 Regle cible :
 
 ```text
-Non = cancel operation, no write.
+Non = cancel operation, no write, token revoque.
 correction = update slots/state_patch.
 opposition explicite = ne pas repusher la meme chose dans le meme contexte.
+
+correction d'un item memoire :
+  - skill emet correction_note candidate
+  - runtime invalide immediatement l'item dans __memory_payload_state_v1
+  - runtime cree un memory_operation type="correction" en async
+  - context cache bust pour ce tour
+  - au tour suivant, l'ancien item ne doit PAS reapparaitre
+```
+
+Refus / cooldown produit :
+
+```text
+Un refus de recommandation ne va PAS dans Memory V2 durable par defaut.
+Il alimente product_interaction_history / recommendation_cooldowns.
+Memory V2 durable recoit seulement les preferences explicites repetitives.
 ```
 
 ### 15. Observability
@@ -1088,35 +1195,56 @@ Comment debugger une reponse incoherente ?
 Questions a trancher :
 
 - Trace-t-on le signal dispatcher choisi ?
-- Trace-t-on l'operation_intent ?
+- Trace-t-on safety_pregate ?
+- Trace-t-on l'tool_skill_intent ?
 - Trace-t-on le skill actif ?
 - Trace-t-on les exits / handoffs ?
 - Trace-t-on les tools executes ?
 - Trace-t-on les writes confirmes vs refuses ?
 - Trace-t-on le context loader utilise ?
+- Trace-t-on les confirmation_token et leur outcome de verification ?
+- Trace-t-on memory_used_for_route et memory_item_ids_used_for_route ?
 
 Regle cible :
 
 ```text
-chaque tour doit laisser une trace minimale :
-dispatcher_decision, active_skill, operation_state, tools_executed, memory_hints.
+Chaque tour doit laisser une trace minimale et structuree :
+
+- safety_pregate_run_id, risk_band, layer_contributions
+- dispatcher LLM signal et risk_band (max'd avec pregate)
+- TurnFrame (tool_skill_intent, skill_signals, product_signal, memory_cues)
+- RouteDecision (response_owner, blocked_paths, reason_code)
+- memory_used_for_route, memory_item_ids_used_for_route
+- direct_effects_run, tool_skill_run, skill_run, recommendation_tool_run
+- confirmation_token verifications (ok | expired | mismatch | refused)
+- writes_confirmed / writes_refused
+- context_loader_profile par appel
+- memory_write_candidates emis (rejetes ou acceptes par memorizer)
+- response_owner final
 ```
+
+Les reason_codes sont des chaines stables et versionnees pour faciliter
+le replay et le debug.
 
 ## Checklist courte avant implementation
 
 Avant de coder un nouveau flow, verifier :
 
 ```text
-1. Est-ce que safety peut l'interrompre ?
+1. Est-ce que safety_pregate peut l'interrompre (risk_band >= medium) ?
 2. Est-ce que le flow peut ecrire en DB ?
-3. Si oui, y a-t-il confirmation Oui/Non ?
-4. Comment evite-t-on les doublons ?
-5. Quel skill ou tool en est proprietaire ?
-6. Quel contexte est charge au debut ?
-7. Quel contexte est retire apres identification ?
-8. Que fait-on si la cible est ambigue ?
-9. Que fait-on si le user dit Non ?
-10. Que fait-on si le user change de sujet ?
-11. Est-ce que le flow marche avec deux plans ?
-12. Est-ce que le comportement chat est aligne avec la plateforme ?
+3. Si oui : confirmation Oui/Non + confirmation_token verifie cote executor ?
+4. Si write direct (always-on) : DirectEffectGate strict applique ?
+5. Comment evite-t-on les doublons ? (idempotence runtime + DB)
+6. Quel skill ou tool en est proprietaire (response_owner unique) ?
+7. Quel contexte est charge au debut ?
+8. Quel contexte est retire apres identification ?
+9. Que fait-on si la cible est ambigue ?
+10. Que fait-on si le user dit Non ?
+11. Que fait-on si le user change de sujet ?
+12. Est-ce que le flow marche avec deux plans ? (plan_id + transformation_id)
+13. Est-ce que le comportement chat est aligne avec la plateforme ?
+14. Est-ce que la memoire peut, seule, declencher ce flow ? (Si oui : bug)
+15. Quels memory_write_candidates ce flow peut emettre ? Schema strict ?
+16. Quels reason_codes versionnes pour observability / replay ?
 ```

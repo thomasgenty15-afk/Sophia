@@ -40,13 +40,8 @@ export type DashboardV2DimensionGroup = {
   active: DashboardV2PlanItemRuntime[];
   pending: DashboardV2PlanItemRuntime[];
   maintenance: DashboardV2PlanItemRuntime[];
-  stalled: DashboardV2PlanItemRuntime[];
   completed: DashboardV2PlanItemRuntime[];
 };
-
-function isHiddenItemStatus(item: DashboardV2PlanItemRuntime) {
-  return item.status === "deactivated" || item.status === "cancelled";
-}
 
 export type PhaseRuntimeData = {
   phase_id: string;
@@ -85,7 +80,6 @@ type LogItemEntryParams = {
   entryKind?: EntryKind;
   outcome?: string;
   difficultyLevel?: UserPlanItemEntryRow["difficulty_level"];
-  blockerHint?: string | null;
   valueNumeric?: number | null;
   valueText?: string | null;
   incrementRepsBy?: number;
@@ -143,10 +137,6 @@ function sortItems(items: DashboardV2PlanItemRuntime[]) {
 function isMaintenanceItem(item: DashboardV2PlanItemRuntime) {
   return item.status === "in_maintenance" ||
     item.current_habit_state === "in_maintenance";
-}
-
-function isStalledItem(item: DashboardV2PlanItemRuntime) {
-  return item.status === "stalled" || item.current_habit_state === "stalled";
 }
 
 function formatWeeksLabel(weeks: number | null | undefined): string | undefined {
@@ -287,7 +277,6 @@ function buildPhaseRuntime(
 
   const itemsByPhase = new Map<string, DashboardV2PlanItemRuntime[]>();
   for (const item of planItems) {
-    if (isHiddenItemStatus(item)) continue;
     if (!item.phase_id) continue;
     const existing = itemsByPhase.get(item.phase_id) ?? [];
     existing.push(item);
@@ -336,9 +325,7 @@ function buildPhaseRuntime(
         items.every(
           (i) =>
             i.status === "completed" ||
-            i.status === "in_maintenance" ||
-            i.status === "deactivated" ||
-            i.status === "cancelled",
+            i.status === "in_maintenance",
         );
 
       const blueprintLevel =
@@ -430,10 +417,9 @@ function buildPhaseRuntime(
 
 function buildDimensionGroups(planItems: DashboardV2PlanItemRuntime[]) {
   const byDimension = new Map<PlanDimension, DashboardV2DimensionGroup>();
-  const visibleItems = planItems.filter((item) => !isHiddenItemStatus(item));
 
   for (const dimension of DIMENSION_ORDER) {
-    const scoped = visibleItems.filter((item) =>
+    const scoped = planItems.filter((item) =>
       canonicalPlanDimension(item.dimension) === dimension
     );
     const ordered = sortItems(scoped);
@@ -443,7 +429,6 @@ function buildDimensionGroups(planItems: DashboardV2PlanItemRuntime[]) {
       active: ordered.filter((item) => item.status === "active"),
       pending: ordered.filter((item) => item.status === "pending"),
       maintenance: ordered.filter(isMaintenanceItem),
-      stalled: ordered.filter(isStalledItem),
       completed: ordered.filter((item) => item.status === "completed"),
     });
   }
@@ -460,14 +445,6 @@ function nextStatusForEntry(
   const now = new Date().toISOString();
 
   if (item.dimension === "habits") {
-    if (entryKind === "skip" || entryKind === "blocker") {
-      return {
-        status: "stalled",
-        habitState: "stalled",
-        completedAt: null,
-      };
-    }
-
     const target = item.target_reps ?? 5;
     if ((nextReps ?? 0) >= target || markComplete) {
       return {
@@ -610,7 +587,7 @@ export function useDashboardV2Logic({
       item.dimension === "habits" ? "checkin" : "progress"
     );
     const incrementRepsBy = params?.incrementRepsBy ?? (
-      entryKind === "skip" || entryKind === "blocker" ? 0 : 1
+      entryKind === "skip" ? 0 : 1
     );
     const nextReps = item.target_reps == null && item.dimension !== "habits"
       ? item.current_reps
@@ -641,7 +618,6 @@ export function useDashboardV2Logic({
           value_numeric: params?.valueNumeric ?? nextReps ?? null,
           value_text: params?.valueText ?? null,
           difficulty_level: params?.difficultyLevel ?? null,
-          blocker_hint: params?.blockerHint ?? null,
           effective_at: now,
           metadata: {
             source: "dashboard_v2",
@@ -687,30 +663,6 @@ export function useDashboardV2Logic({
       markComplete: item.dimension !== "habits" &&
         ((item.target_reps ?? 1) <= ((item.current_reps ?? 0) + 1)),
     });
-  };
-
-  const activateItem = async (item: DashboardV2PlanItemRuntime) => {
-    if (item.status !== "pending") return;
-
-    setMutatingItemId(item.id);
-    setActionError(null);
-
-    try {
-      const { error } = await supabase.functions.invoke("activate-plan-item-v2", {
-        body: { plan_item_id: item.id },
-      });
-      if (error) throw error;
-      await refetch();
-    } catch (error) {
-      console.error("[useDashboardV2Logic] activate item failed", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de débloquer cet élément.",
-      );
-    } finally {
-      setMutatingItemId(null);
-    }
   };
 
   useEffect(() => {
@@ -765,11 +717,7 @@ export function useDashboardV2Logic({
     ) {
       return;
     }
-    if (
-      item.status === "pending" ||
-      item.status === "deactivated" ||
-      item.status === "cancelled"
-    ) {
+    if (item.status === "pending") {
       return;
     }
 
@@ -794,50 +742,6 @@ export function useDashboardV2Logic({
     }
   };
 
-  const markItemBlocked = async (item: DashboardV2PlanItemRuntime) => {
-    await logItemEntry(item, {
-      entryKind: "blocker",
-      outcome: "blocked",
-      blockerHint: "Signalé depuis le dashboard",
-    });
-  };
-
-  const setItemStatus = async (
-    item: DashboardV2PlanItemRuntime,
-    status: PlanItemStatus,
-  ) => {
-    setMutatingItemId(item.id);
-    setActionError(null);
-
-    try {
-      await patchPlanItem(item, {
-        status,
-        current_habit_state: status === "deactivated" || status === "cancelled"
-          ? null
-          : item.current_habit_state,
-        completed_at: status === "cancelled" ? new Date().toISOString() : item.completed_at,
-      });
-      await refetch();
-    } catch (error) {
-      console.error("[useDashboardV2Logic] set item status failed", error);
-      setActionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible de mettre à jour cet élément.",
-      );
-    } finally {
-      setMutatingItemId(null);
-    }
-  };
-
-  const deactivateItem = async (item: DashboardV2PlanItemRuntime) => {
-    await setItemStatus(item, "deactivated");
-  };
-
-  const removeItem = async (item: DashboardV2PlanItemRuntime) => {
-    await setItemStatus(item, "cancelled");
-  };
-
   return {
     dimensionGroups,
     phases,
@@ -846,10 +750,6 @@ export function useDashboardV2Logic({
     mutatingItemId,
     actionError,
     completeItem,
-    activateItem,
     prepareItemCards,
-    markItemBlocked,
-    deactivateItem,
-    removeItem,
   };
 }

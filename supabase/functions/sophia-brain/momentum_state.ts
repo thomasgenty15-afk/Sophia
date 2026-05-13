@@ -16,7 +16,7 @@ import {
 
 export type { MomentumStateLabel };
 
-const LEGACY_DISABLED_MOMENTUM_KEY = "__legacy_disabled_momentum_state";
+const DISABLED_V1_MOMENTUM_KEY = "__disabled_v1_momentum_state";
 
 export type EngagementLevel = "high" | "medium" | "low";
 export type ProgressionLevel = "up" | "flat" | "down" | "unknown";
@@ -558,7 +558,7 @@ function mergeWatcherBlockers(args: {
   };
 }
 
-function legacyDisabledGetTopMomentumBlocker(
+function getDisabledV1TopMomentumBlocker(
   momentum: MomentumStateMemory,
 ): MomentumActionBlockerMemory | null {
   const actions = refreshBlockerMemory(
@@ -620,8 +620,8 @@ function defaultMomentumState(): MomentumStateMemory {
   };
 }
 
-function legacyDisabledReadMomentumState(tempMemory: any): MomentumStateMemory {
-  const raw = tempMemory?.[LEGACY_DISABLED_MOMENTUM_KEY];
+function readDisabledV1MomentumState(tempMemory: any): MomentumStateMemory {
+  const raw = tempMemory?.[DISABLED_V1_MOMENTUM_KEY];
   const base = defaultMomentumState();
   if (!raw || typeof raw !== "object") return base;
 
@@ -973,14 +973,14 @@ function legacyDisabledReadMomentumState(tempMemory: any): MomentumStateMemory {
   };
 }
 
-function legacyDisabledWriteMomentumState(
+function writeDisabledV1MomentumState(
   tempMemory: any,
   momentum: MomentumStateMemory,
 ): any {
   const next = tempMemory && typeof tempMemory === "object"
     ? { ...tempMemory }
     : {};
-  next[LEGACY_DISABLED_MOMENTUM_KEY] = momentum;
+  next[DISABLED_V1_MOMENTUM_KEY] = momentum;
   return next;
 }
 
@@ -1379,7 +1379,7 @@ function stabilizeClassifiedState(args: {
   };
 }
 
-function legacyDisabledApplyRouterMomentumSignals(args: {
+function applyDisabledV1RouterMomentumSignals(args: {
   tempMemory: any;
   userMessage: string;
   dispatcherSignals: DispatcherSignals;
@@ -1387,7 +1387,7 @@ function legacyDisabledApplyRouterMomentumSignals(args: {
 }): MomentumStateMemory {
   const nowIso = nowIsoFrom(args.nowIso);
   const nowMs = parseIsoMs(nowIso);
-  const current = legacyDisabledReadMomentumState(args.tempMemory);
+  const current = readDisabledV1MomentumState(args.tempMemory);
 
   const responseQuality = detectReplyQuality(args.userMessage);
   const emotional = detectQuickEmotionalLoad(
@@ -1519,11 +1519,6 @@ function legacyDisabledApplyRouterMomentumSignals(args: {
       ? "flat"
       : progressionLevel;
     progressionReason = "current_turn_missed_action";
-  } else if (args.dispatcherSignals.track_progress_north_star?.detected) {
-    progressionLevel = progressionLevel === "unknown"
-      ? "flat"
-      : progressionLevel;
-    progressionReason = "current_turn_metric_logged";
   }
 
   let blockerMemory = refreshBlockerMemory(
@@ -2074,7 +2069,7 @@ async function fetchMomentumSnapshot(args: {
       .from("user_metrics")
       .select("id, target_value, current_value")
       .eq("user_id", args.userId)
-      .in("kind", ["north_star", "progress_marker"]),
+      .eq("kind", "progress_marker"),
   ]);
 
   const activeVitalIds = Array.isArray(activeVitals)
@@ -2156,14 +2151,14 @@ async function fetchMomentumSnapshot(args: {
   };
 }
 
-async function legacyDisabledConsolidateMomentumState(args: {
+async function consolidateDisabledV1MomentumState(args: {
   supabase: SupabaseClient;
   userId: string;
   scope: string;
   tempMemory: any;
   nowIso?: string;
 }): Promise<MomentumStateMemory> {
-  const current = legacyDisabledReadMomentumState(args.tempMemory);
+  const current = readDisabledV1MomentumState(args.tempMemory);
   const snapshot = await fetchMomentumSnapshot({
     supabase: args.supabase,
     userId: args.userId,
@@ -2203,7 +2198,7 @@ export function summarizeMomentumStateForLog(
       updated_at: momentum.updated_at ?? null,
     };
   }
-  const topBlocker = legacyDisabledGetTopMomentumBlocker(momentum);
+  const topBlocker = getDisabledV1TopMomentumBlocker(momentum);
   return {
     state: momentum.current_state ?? null,
     state_reason: momentum.state_reason ?? null,

@@ -119,11 +119,21 @@ export async function preparePhase1DeepWhy(args: {
 
   const validation = validatePhase1DeepWhyOutput(parsed);
   if (!validation.valid) {
+    console.warn("[prepare-phase-1-deep-why-v1][validation_failed]", {
+      request_id: args.requestId ?? null,
+      transformation_id: args.transformationId,
+      issues: validation.issues,
+    });
     throw new PreparePhase1DeepWhyError(
       500,
       `Validation failed: ${validation.issues.join(", ")}`,
     );
   }
+  console.info("[prepare-phase-1-deep-why-v1][validated]", {
+    request_id: args.requestId ?? null,
+    transformation_id: args.transformationId,
+    questions_count: validation.questions.length,
+  });
 
   const now = new Date().toISOString();
   const phase1Context = context.phase1?.context ?? buildPhase1Context({
@@ -162,10 +172,24 @@ export async function preparePhase1DeepWhy(args: {
     .single();
 
   if (error) {
+    console.error("[prepare-phase-1-deep-why-v1][persist_failed]", {
+      request_id: args.requestId ?? null,
+      transformation_id: args.transformationId,
+      message: error.message,
+      details: error.details ?? null,
+      hint: error.hint ?? null,
+      code: error.code ?? null,
+    });
     throw new PreparePhase1DeepWhyError(500, `Failed to persist phase 1 deep why: ${error.message}`, {
       cause: error,
     });
   }
+
+  console.info("[prepare-phase-1-deep-why-v1][persisted]", {
+    request_id: args.requestId ?? null,
+    transformation_id: args.transformationId,
+    questions_count: validation.questions.length,
+  });
 
   return {
     phase1: (data as { handoff_payload: Record<string, unknown> }).handoff_payload.phase_1,

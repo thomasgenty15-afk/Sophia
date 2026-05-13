@@ -94,7 +94,7 @@ que dirais-tu en 3–5 phrases ?
 
 c’est ce que tu refuses de laisser gagner.
 
-Ce serment est le début de ta boussole.`
+Ce serment est le début de ton repère intérieur.`
       }
     ]
   },
@@ -275,7 +275,7 @@ Tu passes de “rêve flou” à “projet de vie”.`
       },
       {
         levelId: 5,
-        title: "Niveau 5 – La Souveraineté (Formuler ta Boussole)",
+        title: "Niveau 5 – La Souveraineté (Formuler ta Mission)",
         cardName: "La Phrase de Mission",
         question: `Avec tout ce que tu as clarifié sur ton ennemi, ton super-pouvoir et ta grande cause :
 
@@ -287,11 +287,10 @@ Tu passes de “rêve flou” à “projet de vie”.`
 • Formule une version que toi tu trouves puissante, même si elle évoluera.`,
         advice: `Cette phrase n’est pas un slogan marketing.
 
-C’est ta boussole interne.
+C’est ton repère interne.
 
 Même si le chemin change, elle te rappellera toujours pourquoi tu avances.`
       }
     ]
   }
 };
-

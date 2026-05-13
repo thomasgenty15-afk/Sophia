@@ -23,6 +23,7 @@ export interface MemoryV2Item {
   observed_at?: string | null;
   domain_keys?: string[] | null;
   sensitivity_level?: SensitivityLevel | null;
+  requires_user_initiated?: boolean | null;
   topic_ids?: string[];
   search_doc?: string | null;
 }
@@ -44,6 +45,13 @@ export interface MemoryV2Payload {
   modules: Record<string, unknown>;
   metrics: {
     load_ms: number;
+    loaded_scope_counts: {
+      topic: number;
+      event: number;
+      global: number;
+      action: number;
+      entity: number;
+    };
     sensitive_excluded_count: number;
     invalid_injection_simulated_count: number;
     fallback_used: boolean;
@@ -87,14 +95,19 @@ export function applySensitivityFilter(args: {
   let excluded = 0;
   for (const item of args.items) {
     const level = item.sensitivity_level ?? "normal";
+    const userInitiatedOnly = Boolean(item.requires_user_initiated);
     const inActiveTopic = Boolean(
       args.active_topic_id && item.topic_ids?.includes(args.active_topic_id),
     );
-    const allowed = level === "normal" ||
+    const userInitiatedAllowed = !userInitiatedOnly ||
+      args.requested_sensitive || args.retrieval_mode === "safety_first";
+    const sensitivityAllowed = level === "normal" ||
       (level === "sensitive" &&
         (inActiveTopic || args.requested_sensitive ||
           args.retrieval_mode === "safety_first")) ||
-      (level === "safety" && args.retrieval_mode === "safety_first");
+      (level === "safety" &&
+        (args.requested_sensitive || args.retrieval_mode === "safety_first"));
+    const allowed = userInitiatedAllowed && sensitivityAllowed;
     if (allowed) out.push(item);
     else excluded++;
   }
@@ -158,8 +171,14 @@ const DOMAIN_KEYWORDS: Array<[string, RegExp]> = [
     "relations.limites",
     /\b(limite|dire non|frontiere|respect|envahi|poser mes limites)\b/,
   ],
-  ["addictions.cannabis", /\b(cannabis|joint|weed|beuh|fumer)\b/],
-  ["addictions.alcool", /\b(alcool|boire|cuite|verre|bourre)\b/],
+  [
+    "addictions.cannabis",
+    /\b(cannabis|joint|weed|beuh|fumer|envie de couper|couper la pression|pression le soir)\b/,
+  ],
+  [
+    "addictions.alcool",
+    /\b(alcool|boire|cuite|verre|bourre|whisky|apero|aperitif|anesthesier|pression le soir)\b/,
+  ],
   [
     "addictions.ecrans",
     /\b(ecran|telephone|scroll|reseaux|tiktok|youtube|instagram)\b/,
@@ -170,11 +189,11 @@ const DOMAIN_KEYWORDS: Array<[string, RegExp]> = [
   ["sante.sommeil", /\b(dormir|dors|sommeil|insomnie|nuit|reveil)\b/],
   [
     "sante.alimentation",
-    /\b(alimentation|manger|repas|sucre|nutrition|grignote)\b/,
+    /\b(alimentation|manger|repas|plat|ingredient|sucre|nutrition|grignote|allergie|allergique|intolerance|sesame|tahini|gomasio)\b/,
   ],
   [
     "sante.activite_physique",
-    /\b(sport|marche|courir|entrainement|muscu|activite physique)\b/,
+    /\b(sport|marche|courir|course|sortie course|entrainement|muscu|activite physique|natation|nager|nage)\b/,
   ],
   ["sante.douleur", /\b(douleur|mal au|migraine|dos|blessure)\b/],
   [
@@ -227,7 +246,7 @@ const DOMAIN_KEYWORDS: Array<[string, RegExp]> = [
   ],
   [
     "objectifs.long_terme",
-    /\b(long terme|vision|north star|etoile polaire|objectif global)\b/,
+    /\b(long terme|vision|objectif global)\b/,
   ],
   [
     "objectifs.court_terme",
@@ -253,6 +272,34 @@ function envString(name: string, fallback = ""): string {
     return raw || fallback;
   } catch {
     return fallback;
+  }
+}
+
+function envNumber(name: string, fallback: number): number {
+  try {
+    const raw = String(Deno?.env?.get?.(name) ?? "").trim();
+    if (!raw) return fallback;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+async function withSoftTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+): Promise<T | null> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
   }
 }
 
@@ -286,17 +333,20 @@ async function mapTextToDomainKeysWithFallback(
       "MEMORY_V2_DOMAIN_MAPPER_MODEL",
       "gemini-2.5-flash",
     );
-    const out = await geminiGenerate({
-      model,
-      jsonMode: true,
-      temperature: 0,
-      systemPrompt:
-        'Mappe la demande utilisateur vers les domain_keys V2. Retourne uniquement JSON: {"domain_keys":[...],"confidence":0-1}. N\'utilise que les cles connues.',
-      userMessage: JSON.stringify({
-        text,
-        allowed_domain_keys: [...DOMAIN_KEYS_V1],
+    const out = await withSoftTimeout(
+      geminiGenerate({
+        model,
+        jsonMode: true,
+        temperature: 0,
+        systemPrompt:
+          'Mappe la demande utilisateur vers les domain_keys V2. Retourne uniquement JSON: {"domain_keys":[...],"confidence":0-1}. N\'utilise que les cles connues.',
+        userMessage: JSON.stringify({
+          text,
+          allowed_domain_keys: [...DOMAIN_KEYS_V1],
+        }),
       }),
-    });
+      Math.max(50, envNumber("MEMORY_V2_DOMAIN_MAPPER_TIMEOUT_MS", 350)),
+    );
     return typeof out === "string" ? parseDomainKeyJson(out) : [];
   } catch {
     return [];
@@ -314,11 +364,14 @@ function crossTopicCacheKey(args: {
   user_id: string;
   domain_keys: string[];
   retrieval_mode: string;
+  message?: string;
 }): string {
   return JSON.stringify({
+    version: 2,
     user_id: args.user_id,
     domain_keys: [...args.domain_keys].sort(),
     retrieval_mode: args.retrieval_mode,
+    query: normalize(args.message ?? "").slice(0, 160),
   });
 }
 
@@ -346,7 +399,7 @@ function writeCrossTopicCache(key: string, items: MemoryV2Item[]): void {
   }
 }
 
-function expandGlobalKeysToDomainKeys(keys: string[]): string[] {
+function expandDomainTargetsToDomainKeys(keys: string[]): string[] {
   const out: string[] = [];
   for (const raw of keys) {
     const key = String(raw ?? "").trim();
@@ -357,6 +410,26 @@ function expandGlobalKeysToDomainKeys(keys: string[]): string[] {
     }
   }
   return [...new Set(out)];
+}
+
+function isSensitiveDomainKey(key: string): boolean {
+  return key === "sante.alimentation" || key === "sante.medical" ||
+    key === "sante.douleur" || key.startsWith("addictions.");
+}
+
+function messageRequestsSensitiveMemory(message: string): boolean {
+  return /\b(allerg\w*|ingredient\w*|restaurant\w*|repas|manger|eviter|evite|intoleran\w*|sante|medical|traitement|diagnostic|douleur|addiction|cannabis|consommation|alcool|whisky|apero|aperitif|anesthesier|envie de couper|couper la pression|pression le soir)\b/
+    .test(normalize(message));
+}
+
+function messageRequestsKnownMemory(message: string): boolean {
+  return /\b(tu peux me rappeler|rappelle moi|rappelle-moi|ce que tu as retenu|qu'est-ce que tu sais|qu'est ce que tu sais|qui est|quel est le lien|d'apres ce que je t'ai deja dit|d'après ce que je t'ai déjà dit)\b/
+    .test(normalize(message));
+}
+
+function messageAsksToSuppressSensitiveMemory(message: string): boolean {
+  return /\b(sans sortir|sans mentionner|ne ressors pas|ne pas ressortir|conversation neutre|sujets sensibles inutiles|sujet sensible inutile)\b/
+    .test(normalize(message));
 }
 
 function overlapScore(a: string[] = [], b: string[] = []): number {
@@ -381,6 +454,78 @@ function semanticScore(message: string, item: MemoryV2Item): number {
   return overlap / (left.size + right.size - overlap);
 }
 
+const SCORE_STOPWORDS = new Set([
+  "avec",
+  "dans",
+  "donc",
+  "elle",
+  "entre",
+  "est",
+  "etre",
+  "faire",
+  "faut",
+  "garde",
+  "lien",
+  "pour",
+  "quoi",
+  "quand",
+  "quel",
+  "quelle",
+  "qui",
+  "sais",
+  "sont",
+  "sur",
+  "tenir",
+  "tete",
+  "voir",
+]);
+
+function lexicalAnchorScore(message: string, item: MemoryV2Item): number {
+  const normalizedMessage = normalize(message);
+  const messageTokens = normalizedMessage.split(/\W+/)
+    .filter((token) => token.length >= 4 && !SCORE_STOPWORDS.has(token));
+  const expandedTokens = new Set(messageTokens);
+  if (/\bnatation|session\b/.test(normalizedMessage)) {
+    for (const token of ["nager", "nage", "recuperation", "performance", "semaine"]) {
+      expandedTokens.add(token);
+    }
+  }
+  if (/\bprochaine action|adaptee|adaptée|bloque|fatigue\b/.test(normalizedMessage)) {
+    for (const token of ["sept", "observable", "concrete", "boucle", "micro-livraison"]) {
+      expandedTokens.add(token);
+    }
+  }
+  if (/\bplat|repas|eviter|evite|ingredient\b/.test(normalizedMessage)) {
+    for (const token of ["allergie", "sesame", "tahini", "gomasio"]) {
+      expandedTokens.add(token);
+    }
+  }
+  if (/\banesthesier|pression le soir|apero|alcool|whisky\b/.test(normalizedMessage)) {
+    for (const token of ["whisky", "alcool", "sensible"]) {
+      expandedTokens.add(token);
+    }
+  }
+  if (!expandedTokens.size) return 0;
+  const text = normalize(`${item.content_text} ${item.search_doc ?? ""}`);
+  let hits = 0;
+  for (const token of expandedTokens) {
+    if (text.includes(token)) hits++;
+  }
+  return Math.min(0.75, hits * 0.22);
+}
+
+function directAvoidanceScore(message: string, item: MemoryV2Item): number {
+  const msg = normalize(message);
+  if (!/\b(ingredient\w*|restaurant\w*|repas|plat|manger|eviter|evite)\b/.test(msg)) {
+    return 0;
+  }
+  const text = normalize(item.content_text);
+  return /\b(evite|eviter|allerg\w*|sesame|tahini|gomasio|noisette\w*|amande\w*|snack\w*|ingredient\w*)\b/
+      .test(text)
+    ? 0.4
+    : 0;
+}
+
 export function mergeAndRerankCrossTopicItems(args: {
   message: string;
   domain_keys: string[];
@@ -399,6 +544,8 @@ export function mergeAndRerankCrossTopicItems(args: {
       item,
       score: overlapScore(args.domain_keys, item.domain_keys ?? []) * 0.45 +
         semanticScore(args.message, item) * 0.4 +
+        lexicalAnchorScore(args.message, item) +
+        directAvoidanceScore(args.message, item) +
         (topicBoost.size && item.topic_ids?.some((id) => topicBoost.has(id))
           ? 0.15
           : 0) +
@@ -442,25 +589,37 @@ async function loadTopicEntities(
   topicId: string,
   limit: number,
 ): Promise<MemoryV2Entity[]> {
-  const rows = await runQuery<any>(
+  const topicLinks = await runQuery<any>(
     supabase
       .from("memory_item_topics")
-      .select("memory_item_entities(user_entities(*))")
+      .select("memory_item_id")
       .eq("topic_id", topicId)
+      .limit(limit * 3),
+  );
+  const itemIds = [
+    ...new Set(
+      topicLinks
+        .map((row) => String(row.memory_item_id ?? "").trim())
+        .filter(Boolean),
+    ),
+  ];
+  if (itemIds.length === 0) return [];
+
+  const rows = await runQuery<any>(
+    supabase
+      .from("memory_item_entities")
+      .select("user_entities(*)")
+      .eq("user_id", userId)
+      .in("memory_item_id", itemIds)
       .limit(limit * 3),
   );
   const byId = new Map<string, MemoryV2Entity>();
   for (const row of rows) {
-    const links = Array.isArray(row.memory_item_entities)
-      ? row.memory_item_entities
-      : [];
-    for (const link of links) {
-      const entity = link.user_entities;
-      if (
-        entity?.id && entity.user_id === userId && entity.status === "active"
-      ) {
-        byId.set(entity.id, entity);
-      }
+    const entity = row.user_entities;
+    if (
+      entity?.id && entity.user_id === userId && entity.status === "active"
+    ) {
+      byId.set(entity.id, entity);
     }
   }
   return [...byId.values()].slice(0, limit);
@@ -489,8 +648,17 @@ export async function loadMemoryV2Payload(
   );
   let items: MemoryV2Item[] = [];
   let entities: MemoryV2Entity[] = [];
+  const loadedScopeCounts = {
+    topic: 0,
+    event: 0,
+    global: 0,
+    action: 0,
+    entity: 0,
+  };
   let fallbackUsed = false;
   let crossTopicCacheHit = false;
+  let effectiveDomainKeys: string[] = [];
+  let directSensitiveRequest = false;
 
   if (plan && !plan.enabled) {
     return {
@@ -502,6 +670,7 @@ export async function loadMemoryV2Payload(
       modules: { loader_plan: { reason: plan.reason } },
       metrics: {
         load_ms: Date.now() - started,
+        loaded_scope_counts: loadedScopeCounts,
         sensitive_excluded_count: 0,
         invalid_injection_simulated_count: 0,
         fallback_used: false,
@@ -514,12 +683,14 @@ export async function loadMemoryV2Payload(
     scopes.has("topic") && input.retrieval_mode === "topic_continuation" &&
     input.active_topic_id
   ) {
-    items = await loadTopicItems(
+    const topicItems = await loadTopicItems(
       supabase,
       input.user_id,
       input.active_topic_id,
       Math.min(limit, plan?.budget.topic_items ?? limit),
     );
+    loadedScopeCounts.topic += topicItems.length;
+    items = [...items, ...topicItems];
     if (scopes.has("entity") || scopes.has("topic")) {
       entities = await loadTopicEntities(
         supabase,
@@ -527,22 +698,42 @@ export async function loadMemoryV2Payload(
         input.active_topic_id,
         plan?.budget.max_entities ?? 5,
       );
+      loadedScopeCounts.entity += entities.length;
     }
   }
 
   if (scopes.has("global") || input.retrieval_mode === "cross_topic_lookup") {
     const domainKeys = [
       ...await mapTextToDomainKeysWithFallback(input.message ?? ""),
-      ...expandGlobalKeysToDomainKeys(plan?.global_keys ?? []),
+      ...expandDomainTargetsToDomainKeys([
+        ...(plan?.domain_keys ?? []),
+        ...(plan?.domain_prefixes ?? []),
+        ...(plan?.global_keys ?? []),
+      ]),
     ];
+    const suppressSensitiveTargets =
+      messageAsksToSuppressSensitiveMemory(input.message ?? "") &&
+      !messageRequestsSensitiveMemory(input.message ?? "");
+    effectiveDomainKeys = [...new Set(domainKeys)].filter((key) =>
+      !(suppressSensitiveTargets && isSensitiveDomainKey(key))
+    );
+    directSensitiveRequest = messageRequestsSensitiveMemory(input.message ?? "") &&
+      effectiveDomainKeys.some(isSensitiveDomainKey);
+    const baseGlobalLimit = Math.min(limit, plan?.budget.global_items ?? limit);
+    const globalRerankLimit = Math.max(
+      Math.min(12, Math.max(limit, baseGlobalLimit * 4)),
+      directSensitiveRequest ? Math.min(limit, 4) : 0,
+    );
     const cacheKey = crossTopicCacheKey({
       user_id: input.user_id,
-      domain_keys: domainKeys,
+      domain_keys: effectiveDomainKeys,
       retrieval_mode: input.retrieval_mode,
+      message: input.message ?? "",
     });
     const cached = readCrossTopicCache(cacheKey);
     if (cached) {
       crossTopicCacheHit = true;
+      loadedScopeCounts.global += cached.length;
       items = [...items, ...cached];
     } else {
       const domainItems = domainKeys.length
@@ -552,8 +743,8 @@ export async function loadMemoryV2Payload(
             .select("*")
             .eq("user_id", input.user_id)
             .eq("status", "active")
-            .overlaps("domain_keys", domainKeys)
-            .limit(Math.min(limit, plan?.budget.global_items ?? limit)),
+            .overlaps("domain_keys", effectiveDomainKeys)
+            .limit(Math.min(50, Math.max(12, limit * 6))),
         )
         : [];
       fallbackUsed = domainItems.length === 0;
@@ -563,35 +754,35 @@ export async function loadMemoryV2Payload(
           .select("*")
           .eq("user_id", input.user_id)
           .eq("status", "active")
-          .limit(Math.min(limit, plan?.budget.global_items ?? limit)),
+          .limit(Math.min(50, Math.max(12, limit * 6))),
       );
       const merged = mergeAndRerankCrossTopicItems({
         message: input.message ?? "",
-        domain_keys: domainKeys,
+        domain_keys: effectiveDomainKeys,
         domain_items: domainItems,
         semantic_items: semanticItems,
-        limit: Math.min(limit, plan?.budget.global_items ?? limit),
+        limit: globalRerankLimit,
       });
       writeCrossTopicCache(cacheKey, merged);
+      loadedScopeCounts.global += merged.length;
       items = [...items, ...merged];
     }
   }
 
   if (input.retrieval_mode === "safety_first") {
-    items = [
-      ...items,
-      ...await runQuery<MemoryV2Item>(
-        supabase
-          .from("memory_items")
-          .select("*")
-          .eq("user_id", input.user_id)
-          .eq("status", "active")
-          .in("sensitivity_level", ["safety", "sensitive"])
-          .limit(
-            Math.min(limit || 4, plan?.budget.topic_items ?? (limit || 4)),
-          ),
-      ),
-    ];
+    const safetyItems = await runQuery<MemoryV2Item>(
+      supabase
+        .from("memory_items")
+        .select("*")
+        .eq("user_id", input.user_id)
+        .eq("status", "active")
+        .in("sensitivity_level", ["safety", "sensitive"])
+        .limit(
+          Math.min(limit || 4, plan?.budget.topic_items ?? (limit || 4)),
+        ),
+    );
+    loadedScopeCounts.topic += safetyItems.length;
+    items = [...items, ...safetyItems];
   }
 
   if (scopes.has("event") && input.temporal_window) {
@@ -606,6 +797,7 @@ export async function loadMemoryV2Payload(
         .lt("observed_at", input.temporal_window.resolved_end_at)
         .limit(Math.min(4, plan?.budget.event_items ?? 4)),
     );
+    loadedScopeCounts.event += dated.length;
     items = [...items, ...dated];
   } else if (scopes.has("event")) {
     const events = await runQuery<MemoryV2Item>(
@@ -617,6 +809,7 @@ export async function loadMemoryV2Payload(
         .eq("kind", "event")
         .limit(Math.min(3, plan?.budget.event_items ?? 3)),
     );
+    loadedScopeCounts.event += events.length;
     items = [...items, ...events];
   }
   if (scopes.has("action")) {
@@ -629,16 +822,21 @@ export async function loadMemoryV2Payload(
         .eq("kind", "action_observation")
         .limit(Math.min(4, plan?.budget.action_items ?? 4)),
     );
+    loadedScopeCounts.action += actionItems.length;
     items = [...items, ...actionItems];
   }
 
   const deduped = [...new Map(items.map((item) => [item.id, item])).values()];
   assertOnlyActiveMemoryItems(deduped);
+  const requestedSensitive = input.retrieval_mode === "safety_first" ||
+    directSensitiveRequest ||
+    (messageRequestsKnownMemory(input.message ?? "") &&
+      input.retrieval_mode === "cross_topic_lookup");
   const filtered = applySensitivityFilter({
     items: deduped,
     retrieval_mode: input.retrieval_mode,
     active_topic_id: input.active_topic_id,
-    requested_sensitive: input.retrieval_mode === "safety_first",
+    requested_sensitive: requestedSensitive,
   });
   return {
     retrieval_mode: input.retrieval_mode,
@@ -657,6 +855,7 @@ export async function loadMemoryV2Payload(
       : {},
     metrics: {
       load_ms: Date.now() - started,
+      loaded_scope_counts: loadedScopeCounts,
       sensitive_excluded_count: filtered.excluded_count,
       invalid_injection_simulated_count: 0,
       fallback_used: fallbackUsed,

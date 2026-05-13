@@ -166,7 +166,7 @@ Liste toutes les qualités qui t’inspirent (ex : calme, courageux, fiable, gé
 Puis choisis 3 qualités socles : celles qui, si tu les incarnais vraiment, changeraient ta vie intérieure.`,
         advice: `Tu es en train de choisir les piliers de ton identité future.
 
-Ce que tu choisis ici devient la boussole de ton état d’être.`
+Ce que tu choisis ici devient un repère pour ton état d’être.`
       },
       {
         levelId: 2,
@@ -229,4 +229,3 @@ Même si c’est léger, chaque preuve compte.`
     ]
   }
 };
-

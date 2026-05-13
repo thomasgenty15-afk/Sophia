@@ -22,6 +22,13 @@ Tu es un extracteur de souvenirs pour Sophia.
 Retourne uniquement un JSON strict avec memory_items, entities, corrections et rejected_observations.
 Contraintes: source_message_ids obligatoire, pas de diagnostic, pas d'emotion subjective en fact,
 kind dans la liste fermee, domain_keys dans la taxonomie fournie, event_start_at obligatoire pour les events.
+Sophia est l'assistant/l'application: ne remplace jamais "l'utilisateur" par "Sophia" dans content_text ou normalized_summary, sauf si le message dit explicitement que le nom de la personne est Sophia.
+Schema obligatoire pour chaque memory_items[]:
+{ "kind": "fact|statement|event|action_observation", "content_text": "...", "normalized_summary": "...", "domain_keys": [], "confidence": 0.75, "importance_score": 0.5, "sensitivity_level": "normal|sensitive|safety", "sensitivity_categories": [], "requires_user_initiated": false, "source_message_ids": ["message_id"], "evidence_quote": "..." }
+N'utilise jamais kind="preference" ou kind="goal" : encode les preferences/boundaries/goals en kind="statement" avec metadata.statement_role.
+Pour une action ponctuelle deja realisee avec une date claire ("hier", "dimanche soir", "aujourd'hui"), utilise kind="event" plutot que action_observation.
+Pour sensitivity_categories, utilise uniquement: addiction, mental_health, family, relationship, work, financial, health, sexuality, self_harm, shame, trauma, other_sensitive.
+Si une correction contient la nouvelle verite correcte ("X est mon ex, pas ma soeur"), cree aussi un memory_item positif pour la nouvelle verite.
 `.trim();
 
 export interface ExtractionContext {
@@ -75,6 +82,48 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function firstText(...values: unknown[]): string {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function normalizeItemKind(value: unknown): ExtractedMemoryItem["kind"] {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (
+    raw === "preference" || raw === "goal" || raw === "boundary" ||
+    raw === "habit_preference"
+  ) return "statement";
+  return raw as ExtractedMemoryItem["kind"];
+}
+
+function coerceConfidence(value: unknown): number {
+  if (typeof value === "string") {
+    const raw = value.trim().toLowerCase();
+    if (raw === "high") return 0.82;
+    if (raw === "medium") return 0.68;
+    if (raw === "low") return 0.35;
+  }
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function normalizeSensitivityCategory(value: unknown): string {
+  const raw = String(value ?? "").trim().toLowerCase();
+  if (!raw) return "";
+  if (raw.startsWith("addictions.") || raw === "cannabis" || raw === "alcool" || raw === "drogue") {
+    return "addiction";
+  }
+  if (raw.startsWith("relations.") || raw === "couple") return "relationship";
+  if (raw === "famille" || raw === "relations.famille") return "family";
+  if (raw.startsWith("travail.")) return "work";
+  if (raw.startsWith("sante.") || raw === "medical") return "health";
+  if (raw.startsWith("psychologie.") || raw === "psy") return "mental_health";
+  return raw;
+}
+
 export function parseExtractionJson(raw: string): ExtractionPayload {
   let parsed: any;
   try {
@@ -91,21 +140,43 @@ export function parseExtractionJson(raw: string): ExtractionPayload {
     memory_items: asArray(parsed.memory_items).map((
       item: any,
     ): ExtractedMemoryItem => ({
-      kind: item.kind as ExtractedMemoryItem["kind"],
-      content_text: String(item.content_text ?? ""),
-      normalized_summary: item.normalized_summary == null
+      kind: normalizeItemKind(item.kind),
+      content_text: firstText(
+        item.content_text,
+        item.text,
+        item.memory,
+        item.preference,
+        item.statement,
+        item.summary,
+        item.normalized_summary,
+      ),
+      normalized_summary: firstText(
+          item.normalized_summary,
+          item.summary,
+          item.content_text,
+          item.text,
+          item.preference,
+          item.statement,
+        ) === ""
         ? null
-        : String(item.normalized_summary),
+        : firstText(
+          item.normalized_summary,
+          item.summary,
+          item.content_text,
+          item.text,
+          item.preference,
+          item.statement,
+        ),
       domain_keys: asArray(item.domain_keys).map(String),
-      confidence: Number(item.confidence ?? 0),
+      confidence: coerceConfidence(item.confidence),
       importance_score: Number(item.importance_score ?? 0),
       sensitivity_level:
         (item.sensitivity_level ?? "normal") as ExtractedMemoryItem[
           "sensitivity_level"
         ],
       sensitivity_categories: asArray(item.sensitivity_categories).map(
-        String,
-      ) as ExtractedMemoryItem["sensitivity_categories"],
+        normalizeSensitivityCategory,
+      ).filter(Boolean) as ExtractedMemoryItem["sensitivity_categories"],
       requires_user_initiated: Boolean(item.requires_user_initiated),
       source_message_ids: asArray(item.source_message_ids).map(String),
       evidence_quote: item.evidence_quote == null
@@ -163,6 +234,73 @@ export function parseExtractionJson(raw: string): ExtractionPayload {
   };
 }
 
+function enrichEventDatesFromSources(
+  payload: ExtractionPayload,
+  ctx: ExtractionContext,
+): ExtractionPayload {
+  const messagesById = new Map(ctx.messages.map((message) => [message.id, message]));
+  const contextById = new Map(
+    (ctx.context_messages ?? []).map((message) => [message.id, message]),
+  );
+  const hintsByMessage = new Map<string, TemporalHint[]>();
+  const getHints = (id: string): TemporalHint[] => {
+    if (hintsByMessage.has(id)) return hintsByMessage.get(id) ?? [];
+    const message = messagesById.get(id) ?? contextById.get(id);
+    const hints = message
+      ? resolveTemporalReferences(message.content, {
+        timezone: ctx.timezone ?? "Europe/Paris",
+      })
+      : [];
+    hintsByMessage.set(id, hints);
+    return hints;
+  };
+  const isCompletedTemporalObservation = (item: ExtractedMemoryItem): boolean =>
+    item.kind === "action_observation" &&
+    /\b(a|ai|annule|annulé|reporte|reporté|marche|marché|fait|teste|testé|clarifie|clarifié)\b/i
+      .test(item.content_text);
+  return {
+    ...payload,
+    memory_items: payload.memory_items.map((item) => {
+      if (
+        item.kind !== "event" &&
+        !isCompletedTemporalObservation(item)
+      ) {
+        return item;
+      }
+      if (
+        item.kind === "event" &&
+        item.event_start_at &&
+        item.time_precision
+      ) {
+        return item;
+      }
+      const hint = item.source_message_ids.flatMap(getHints)
+        .sort((a, b) => b.confidence - a.confidence)[0];
+      if (!hint) return item;
+      const kind = item.kind === "action_observation" ? "event" : item.kind;
+      return {
+        ...item,
+        kind,
+        event_start_at: item.event_start_at ?? hint.resolved_start_at,
+        event_end_at: item.event_end_at ?? hint.resolved_end_at,
+        time_precision: item.time_precision ?? hint.precision,
+        metadata: {
+          ...(item.metadata ?? {}),
+          ...(item.kind === "action_observation"
+            ? {
+              promoted_from_kind: "action_observation",
+              promotion_reason: "temporal_completed_observation",
+            }
+            : {}),
+          temporal_resolution_raw: hint.raw,
+          temporal_resolution_confidence: hint.confidence,
+          temporal_resolution_timezone: hint.timezone,
+        },
+      };
+    }),
+  };
+}
+
 export async function extractMemoryCandidates(
   ctx: ExtractionContext,
   opts: {
@@ -197,5 +335,6 @@ export async function extractMemoryCandidates(
         forceInitialModel: true,
       },
     );
-  return parseExtractionJson(String(raw));
+  const parsed = parseExtractionJson(String(raw));
+  return enrichEventDatesFromSources(parsed, ctx);
 }

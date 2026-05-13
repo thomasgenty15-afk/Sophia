@@ -9,7 +9,7 @@
 -- Replace permissive policies with stricter ones that additionally validate parent ownership.
 --
 -- Notes:
--- - Policies are additive, so we MUST drop old permissive policies (both legacy names and rls_* names).
+-- - Policies are additive, so we MUST drop old permissive policies (both original names and rls_* names).
 -- - Service role bypasses RLS; internal jobs remain unaffected.
 
 do $$
@@ -451,5 +451,4 @@ begin
   execute 'drop policy if exists rls_scheduled_checkins_insert_own on public.scheduled_checkins';
   execute 'drop policy if exists rls_scheduled_checkins_delete_own on public.scheduled_checkins';
 end $$;
-
 

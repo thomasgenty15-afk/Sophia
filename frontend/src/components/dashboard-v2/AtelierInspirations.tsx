@@ -282,7 +282,7 @@ export function AtelierInspirations({
   });
 
   return (
-    <div className="space-y-5">
+    <div className="sophia-violet-surface space-y-5">
       <section className="rounded-[30px] border border-violet-200 bg-white px-5 py-5 shadow-sm">
         <button
           type="button"

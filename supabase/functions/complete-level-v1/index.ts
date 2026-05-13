@@ -13,6 +13,9 @@ import {
   isLevelTransitionReady,
   normalizeLevelReviewAnswers,
 } from "../_shared/v2-level-completion.ts";
+import {
+  LEVEL_REVIEW_REMINDER_EVENT_CONTEXT_PREFIX,
+} from "../_shared/level_review_checkins.ts";
 import { generatePlanV2ForTransformation } from "../generate-plan-v2/index.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { getUserTimeContext } from "../_shared/user_time_context.ts";
@@ -183,9 +186,9 @@ async function loadRecentWeeklySignals(
     .limit(3);
 
   if (error) return [];
-  return (data ?? [])
-    .map((row) => row.payload)
-    .filter((value): value is Record<string, unknown> =>
+  return ((data ?? []) as Array<{ payload: unknown }>)
+    .map((row: { payload: unknown }) => row.payload)
+    .filter((value: unknown): value is Record<string, unknown> =>
       Boolean(value) && typeof value === "object" && !Array.isArray(value)
     );
 }
@@ -279,6 +282,70 @@ Contraintes de génération:
 - si une difficulté bloquante apparaît, simplifie la charge du prochain niveau avant d'ajouter de nouvelles exigences`;
 }
 
+const AUTO_CLOSABLE_ITEM_STATUSES = new Set(["pending", "active", "stalled"]);
+
+async function autoCloseUnfinishedLevelItems(args: {
+  admin: SupabaseClient;
+  planItems: UserPlanItemRow[];
+  now: string;
+  reason: string;
+}): Promise<void> {
+  const items = args.planItems.filter((item) =>
+    AUTO_CLOSABLE_ITEM_STATUSES.has(item.status)
+  );
+  await Promise.all(items.map(async (item) => {
+    const payload = item.payload && typeof item.payload === "object"
+      ? item.payload
+      : {};
+    const { error } = await args.admin
+      .from("user_plan_items")
+      .update({
+        status: "cancelled",
+        payload: {
+          ...payload,
+          level_auto_closed: {
+            reason: args.reason,
+            closed_at: args.now,
+            previous_status: item.status,
+          },
+        },
+        updated_at: args.now,
+      } as never)
+      .eq("id", item.id);
+    if (error) {
+      throw new CompleteLevelV1Error(500, "Failed to auto-close level item", {
+        cause: error,
+      });
+    }
+  }));
+}
+
+async function cancelPendingLevelReviewReminders(args: {
+  admin: SupabaseClient;
+  userId: string;
+  planId: string;
+  phaseId: string;
+  now: string;
+}): Promise<void> {
+  const { error } = await args.admin
+    .from("scheduled_checkins")
+    .update({
+      status: "cancelled",
+      processed_at: args.now,
+    } as never)
+    .eq("user_id", args.userId)
+    .like(
+      "event_context",
+      `${LEVEL_REVIEW_REMINDER_EVENT_CONTEXT_PREFIX}:${args.planId}:${args.phaseId}%`,
+    )
+    .in("status", ["pending", "retrying", "awaiting_user"]);
+  if (error) {
+    throw new CompleteLevelV1Error(500, "Failed to cancel level review reminders", {
+      cause: error,
+    });
+  }
+}
+
 export async function completeLevelV1(args: {
   admin: SupabaseClient;
   requestId: string;
@@ -286,6 +353,8 @@ export async function completeLevelV1(args: {
   transformationId: string;
   planId: string | null;
   answers: Record<string, unknown>;
+  reviewMode?: "user_review" | "auto_timeout";
+  autoReason?: string | null;
 }): Promise<{
   reviewId: string;
   generationEventId: string;
@@ -360,7 +429,22 @@ export async function completeLevelV1(args: {
     weeks: currentLevelRuntime.weeks,
     primaryMetricLabel: planContent.primary_metric?.label ?? null,
   });
-  const answers = normalizeLevelReviewAnswers(schema, args.answers);
+  const reviewMode = args.reviewMode ?? "user_review";
+  const rawAnswers = reviewMode === "auto_timeout"
+    ? {
+      global_metric_state: "unclear",
+      next_plan_coherence: "not_sure",
+      coherence_reason:
+        "Validation automatique: l'utilisateur n'a pas repondu au bilan avant la fin du niveau.",
+      difficulty_signal: "minor",
+      difficulty_details:
+        "Aucun signal utilisateur direct. Generer la suite prudemment, sans augmenter brutalement la charge.",
+      pride:
+        "Aucun bilan utilisateur disponible. Conserver ce qui etait structurellement pertinent dans le niveau precedent.",
+      ...args.answers,
+    }
+    : args.answers;
+  const answers = normalizeLevelReviewAnswers(schema, rawAnswers);
   const summary = buildLevelReviewSummary({
     items: planItems.filter((item) => item.phase_id === currentPhase.phase_id),
     answers,
@@ -396,6 +480,8 @@ export async function completeLevelV1(args: {
       answers,
       review_summary: summary as unknown as Record<string, unknown>,
       notes: summary.free_text,
+      review_mode: reviewMode,
+      auto_reason: args.autoReason ?? null,
       created_at: now,
     } as never);
 
@@ -438,7 +524,12 @@ export async function completeLevelV1(args: {
         reviewId,
         scope: "plan",
         effectiveStartDate: userTimeContext.user_local_date,
-        reason: `Bilan de fin du niveau ${currentPhase.phase_order}`,
+        reason: reviewMode === "auto_timeout"
+          ? `Passage automatique apres le niveau ${currentPhase.phase_order}`
+          : `Bilan de fin du niveau ${currentPhase.phase_order}`,
+        userChangeSummary: reviewMode === "auto_timeout"
+          ? "Validation automatique sans bilan utilisateur."
+          : null,
         assistantMessage: transition.preview.reason,
       },
     });
@@ -504,6 +595,23 @@ export async function completeLevelV1(args: {
       cause: generationInsertError,
     });
   }
+
+  if (reviewMode === "auto_timeout") {
+    await autoCloseUnfinishedLevelItems({
+      admin: args.admin,
+      planItems: planItems.filter((item) => item.phase_id === currentPhase.phase_id),
+      now,
+      reason: args.autoReason ?? "level_auto_closed",
+    });
+  }
+
+  await cancelPendingLevelReviewReminders({
+    admin: args.admin,
+    userId: args.userId,
+    planId: plan.id,
+    phaseId: currentPhase.phase_id,
+    now,
+  });
 
   try {
     await logV2Event(args.admin, V2_EVENT_TYPES.PHASE_TRANSITION, {

@@ -590,12 +590,14 @@ export function PlanReviewScreen({
           <h2 className="text-lg font-semibold text-gray-900">Ajuster avant de commencer</h2>
         </div>
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          Exemple: “l&apos;étape 1 est trop abstraite”, “commence plutôt par éteindre la lampe à 23h”,
-          “ce plan est trop long”, “je veux un premier pas plus simple”.
+          Prends vraiment le temps de vérifier que ce plan te correspond. Si Sophia a mal compris
+          un objectif, une contrainte, ton rythme, ou si une étape ne te paraît pas réaliste, corrige-le
+          avant de commencer.
         </p>
         <p className="mt-2 text-xs leading-5 text-gray-500">
-          Tu peux régénérer directement le plan, ou laisser un feedback précis pour orienter la
-          prochaine version.
+          Plus ton retour est précis, plus la prochaine version sera utile. Exemple: “l&apos;étape 1 est
+          trop abstraite”, “commence plutôt par éteindre la lampe à 23h”, “ce plan est trop long”,
+          “je veux un premier pas plus simple”.
         </p>
 
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -623,7 +625,7 @@ export function PlanReviewScreen({
           value={feedback}
           onChange={(event) => onFeedbackChange(event.target.value)}
           rows={5}
-          placeholder="Dis ce que tu veux corriger avant validation finale."
+          placeholder="Note ici ce qui doit changer pour que le plan soit vraiment juste pour toi."
           className="mt-4 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
         />
 

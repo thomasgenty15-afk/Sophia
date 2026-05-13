@@ -11,6 +11,7 @@ type MinimalProfileProps = {
   onChange: (value: MinimalProfileDraft) => void;
   onSubmit: () => void;
   isSubmitting: boolean;
+  submittingLabel?: string;
   currentTransformationTitle?: string | null;
   planTypeClassification?: PlanTypeClassificationV1 | null;
   questionnaireSchema?: QuestionnaireSchemaV2 | null;
@@ -52,6 +53,7 @@ export function MinimalProfile({
   onChange,
   onSubmit,
   isSubmitting,
+  submittingLabel = "Génération du plan…",
   currentTransformationTitle,
   planTypeClassification = null,
   questionnaireSchema = null,
@@ -351,7 +353,7 @@ export function MinimalProfile({
           {isSubmitting ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Génération du plan…
+              {submittingLabel}
             </>
           ) : (
             "Générer mon plan"

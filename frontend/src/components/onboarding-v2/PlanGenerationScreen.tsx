@@ -1,3 +1,6 @@
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
 const STARS = [
   { top: "10%",  left: "7%",  delay: "0s",    dur: "3.2s" },
   { top: "18%",  left: "91%", delay: "0.7s",  dur: "4.0s" },
@@ -13,7 +16,45 @@ const STARS = [
   { top: "40%",  left: "98%", delay: "0.6s",  dur: "3.3s" },
 ];
 
-export function PlanGenerationScreen() {
+const DEFAULT_STEPS = [
+  "Analyse du profil",
+  "Lecture des réponses",
+  "Choix de la stratégie",
+  "Construction du niveau de départ",
+  "Organisation des actions",
+  "Ajustement du rythme",
+  "Vérification de cohérence",
+  "Préparation de la prévisualisation",
+];
+
+type PlanGenerationScreenProps = {
+  startedAt?: string | null;
+  steps?: string[];
+  durationPerStepMs?: number;
+};
+
+export function PlanGenerationScreen({
+  startedAt = null,
+  steps = DEFAULT_STEPS,
+  durationPerStepMs = 14_000,
+}: PlanGenerationScreenProps) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const currentStepIndex = useMemo(() => {
+    const startedAtMs = startedAt ? Date.parse(startedAt) : Number.NaN;
+    if (Number.isNaN(startedAtMs)) return 0;
+    const elapsed = Math.max(0, now - startedAtMs);
+    return Math.min(
+      Math.floor(elapsed / durationPerStepMs),
+      Math.max(steps.length - 1, 0),
+    );
+  }, [durationPerStepMs, now, startedAt, steps.length]);
+
   return (
     <div className="relative mx-auto flex min-h-[60vh] w-full max-w-2xl items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-sm">
 
@@ -37,7 +78,7 @@ export function PlanGenerationScreen() {
       ))}
 
       {/* Content */}
-      <div className="relative flex flex-col items-center gap-14 px-8 py-12">
+      <div className="relative flex flex-col items-center gap-10 px-6 py-10 md:px-8 md:py-12">
 
         {/* ── Orbital system ───────────────────────────────────────── */}
         <div className="relative flex h-[300px] w-[300px] items-center justify-center">
@@ -103,6 +144,34 @@ export function PlanGenerationScreen() {
           <h2 className="font-serif text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">
             Sophia assemble ton plan.
           </h2>
+        </div>
+
+        <div className="w-full max-w-md space-y-2">
+          {steps.map((step, index) => {
+            const isDone = index < currentStepIndex;
+            const isCurrent = index === currentStepIndex;
+            return (
+              <div
+                key={step}
+                className={`flex min-h-9 items-center gap-3 rounded-lg px-3 text-sm transition-colors ${
+                  isCurrent
+                    ? "bg-blue-50 font-semibold text-blue-800"
+                    : isDone
+                    ? "text-gray-500"
+                    : "text-gray-300"
+                }`}
+              >
+                {isDone ? (
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                ) : isCurrent ? (
+                  <Loader2 className="h-4 w-4 shrink-0 animate-spin text-blue-600" />
+                ) : (
+                  <span className="h-4 w-4 shrink-0 rounded-full border border-gray-200" />
+                )}
+                <span>{step}</span>
+              </div>
+            );
+          })}
         </div>
 
       </div>

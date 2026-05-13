@@ -17,6 +17,12 @@ function bestLinkConfidence(candidate: DryRunCandidate): number {
   );
 }
 
+function isHighConfidenceDurable(candidate: DryRunCandidate): boolean {
+  return candidate.item.kind !== "action_observation" &&
+    candidate.item.confidence >= 0.75 &&
+    Number(candidate.item.importance_score ?? 0) >= 0.6;
+}
+
 export function decideInitialWriteStatus(
   candidate: DryRunCandidate,
 ): WriteDecision {
@@ -31,6 +37,13 @@ export function decideInitialWriteStatus(
   }
   const linkConfidence = bestLinkConfidence(candidate);
   if (candidate.item.requires_user_initiated) {
+    if (isHighConfidenceDurable(candidate)) {
+      return {
+        candidate,
+        status: "active",
+        reason: "high_confidence_user_initiated_guarded",
+      };
+    }
     return {
       candidate,
       status: "candidate",
@@ -46,6 +59,13 @@ export function decideInitialWriteStatus(
   }
   if (candidate.item.confidence >= 0.75 && linkConfidence >= 0.70) {
     return { candidate, status: "active", reason: "high_confidence_linked" };
+  }
+  if (linkConfidence < 0.70 && isHighConfidenceDurable(candidate)) {
+    return {
+      candidate,
+      status: "active",
+      reason: "high_confidence_unlinked",
+    };
   }
   return {
     candidate,
