@@ -1,0 +1,185 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Nettoyer tous mes placards, c'est trop gros, je veux rendre cette action beaucoup plus petite.",
+    "assistant": "Je peux l'ajuster, mais il me manque la cible exacte. Donne-moi le nom de l'action du plan à clarifier.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "missing_slots": [
+        "scope"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "L'action exacte, c'est Nettoyer ton environnement direct. Je veux la réduire, pas l'abandonner : juste une version beaucoup plus petite.",
+    "assistant": "Je te propose d'ajuster Nettoyer ton environnement direct: reduire l'action a une version minimale. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "low",
+            "duration_minutes": 5
+          },
+          "title": "Ajustement - Nettoyer ton environnement direct",
+          "scope_label": "Nettoyer ton environnement direct",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire l'action a une version minimale",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster Nettoyer ton environnement direct: reduire l'action a une version minimale. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "oui allege-la, mais pas en mode ridicule",
+    "assistant": "C'est fait : j'ai réduit \"Nettoyer ton environnement direct\" pour ce soir. Version légère : 5 minutes, difficulté basse. On vise juste de rester dans le mouvement.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "cancel",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+      "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+    "trace_error": null
+  }
+]

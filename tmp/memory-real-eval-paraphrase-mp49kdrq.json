@@ -1,0 +1,1960 @@
+{
+  "ok": true,
+  "run_id": "memory-real-eval-paraphrase-mp49kdrq",
+  "scenario": "paraphrase",
+  "user": {
+    "id": "3e880be6-0ae2-447c-94c7-4a5725bd2776",
+    "email": "memory-real-eval-paraphrase-mp49kdrq@example.com"
+  },
+  "trigger_summary": {
+    "processed_count": 1,
+    "message_count": 20,
+    "memorizer": {
+      "status": "completed",
+      "reason": null,
+      "processed_message_count": 20,
+      "persisted_count": 14,
+      "extraction_run_id": "99a0f0e9-6136-47f7-bc39-f202df6afe11",
+      "batch_hash": "20ba9f1db1baaa0190515ff5aa0a5570276c88efba8e357727e7d1583cb75275",
+      "write_decision_count": 14,
+      "extraction_run": {
+        "id": "99a0f0e9-6136-47f7-bc39-f202df6afe11",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 14,
+        "accepted_item_count": 14,
+        "rejected_item_count": 10,
+        "proposed_entity_count": 5,
+        "accepted_entity_count": 0,
+        "duration_ms": 38924,
+        "error_message": null,
+        "durable_writes": {
+          "active_items": 13,
+          "memory_items": 14,
+          "candidate_items": 1
+        },
+        "pre_filter_skip_count": 2,
+        "statement_as_fact_violation_count": 0,
+        "rejection_reasons": {
+          "smart_pre_filter": 2,
+          "L'utilisateur a précisé que cette affirmation était une expression de stress et non un fait stable.": 1,
+          "L'utilisateur a explicitement demandé de ne pas mémoriser ce trait comme stable, mais plutôt comme une réaction ponctuelle au stress.": 1,
+          "missing_sensitive_tag": 6
+        },
+        "write_decision_statuses": {
+          "active": 13,
+          "candidate": 1
+        }
+      }
+    }
+  },
+  "extraction_run": {
+    "id": "99a0f0e9-6136-47f7-bc39-f202df6afe11",
+    "status": "completed",
+    "proposed_item_count": 14,
+    "accepted_item_count": 14,
+    "rejected_item_count": 10,
+    "proposed_entity_count": 5,
+    "accepted_entity_count": 0,
+    "duration_ms": 38924,
+    "error_message": null,
+    "rejected_observations": [
+      {
+        "text": "Le dossier Orion est un sujet professionnel, pas un projet personnel.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "Ma cousine Lina m'aide a choisir des restaurants compatibles avec mon allergie.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "",
+        "reason": "L'utilisateur a précisé que cette affirmation était une expression de stress et non un fait stable.",
+        "metadata": {},
+        "source_message_ids": [],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "",
+        "reason": "L'utilisateur a explicitement demandé de ne pas mémoriser ce trait comme stable, mais plutôt comme une réaction ponctuelle au stress.",
+        "metadata": {},
+        "source_message_ids": [],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "Le budget maximum pour le voyage à Lisbonne est de 600 euros, hors billets d'avion.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 3
+            }
+          ]
+        },
+        "source_message_ids": [
+          "fd5363df-1af1-4118-83c2-59fc8c763af7"
+        ]
+      },
+      {
+        "text": "Le médecin de l'utilisateur s'appelle Dr Morel.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 7
+            }
+          ]
+        },
+        "source_message_ids": [
+          "c4f0564c-4208-4b57-9c78-49fc2c76f4ec"
+        ]
+      },
+      {
+        "text": "L'utilisateur ne souhaite pas recevoir de conseils médicaux non sollicités.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 8
+            }
+          ]
+        },
+        "source_message_ids": [
+          "c4f0564c-4208-4b57-9c78-49fc2c76f4ec"
+        ]
+      },
+      {
+        "text": "Le client Orion stresse l'utilisateur en changeant les briefs au dernier moment.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 12
+            }
+          ]
+        },
+        "source_message_ids": [
+          "99f53284-b599-4f9d-b9c6-e094bcd2df44"
+        ]
+      },
+      {
+        "text": "Lina est la cousine de l'utilisateur.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 13
+            }
+          ]
+        },
+        "source_message_ids": [
+          "53169802-ce9b-4f25-9789-682038840f41"
+        ]
+      },
+      {
+        "text": "L'utilisateur perd ses moyens lorsque plusieurs réservations s'accumulent.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "sensitive content must not be tagged normal",
+              "item_index": 15
+            }
+          ]
+        },
+        "source_message_ids": [
+          "9bc1b077-7567-47c4-878d-d4181ff1f9f0"
+        ]
+      }
+    ],
+    "write_decisions": [
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification",
+              "objectifs.court_terme"
+            ],
+            "content_text": "L'utilisateur prépare un voyage à Lisbonne pour juin 2026.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.planification.fact.preparation_voyage_lisbonne_juin_2026.",
+            "event_start_at": null,
+            "evidence_quote": "je prepare un voyage a Lisbonne en juin",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préparation d'un voyage à Lisbonne en juin 2026.",
+            "source_message_ids": [
+              "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification",
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur prépare un voyage à Lisbonne pour juin 2026.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.fact.preparation_voyage_lisbonne_juin_2026.",
+              "event_start_at": null,
+              "evidence_quote": "je prepare un voyage a Lisbonne en juin",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation d'un voyage à Lisbonne en juin 2026.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification",
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur prépare un voyage à Lisbonne pour juin 2026.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.fact.preparation_voyage_lisbonne_juin_2026.",
+              "event_start_at": null,
+              "evidence_quote": "je prepare un voyage a Lisbonne en juin",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation d'un voyage à Lisbonne en juin 2026.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "29bfc408-8e5e-4406-b11f-351312f193a6",
+            "confidence": 0.7,
+            "topic_slug": "voyage_lisbonne",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.alimentation",
+              "sante.medical"
+            ],
+            "content_text": "L'utilisateur a une allergie aux noix, noisettes et amandes.",
+            "event_end_at": null,
+            "canonical_key": "sante.alimentation.fact.allergie_alimentaire_aux_noix_noisettes_amandes.",
+            "event_start_at": null,
+            "evidence_quote": "je surveille mon allergie aux noix... evite de me proposer des snacks avec noix, noisettes ou amandes.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Allergie alimentaire aux noix, noisettes et amandes.",
+            "source_message_ids": [
+              "8694877a-d79b-47f5-8e20-ac994f6cf18f",
+              "51a04fa6-d9d7-4316-955b-9643cf81dd14"
+            ],
+            "sensitivity_categories": [
+              "health"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.alimentation",
+                "sante.medical"
+              ],
+              "content_text": "L'utilisateur a une allergie aux noix, noisettes et amandes.",
+              "event_end_at": null,
+              "canonical_key": "sante.alimentation.fact.allergie_alimentaire_aux_noix_noisettes_amandes.",
+              "event_start_at": null,
+              "evidence_quote": "je surveille mon allergie aux noix... evite de me proposer des snacks avec noix, noisettes ou amandes.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Allergie alimentaire aux noix, noisettes et amandes.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f",
+                "51a04fa6-d9d7-4316-955b-9643cf81dd14"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.alimentation",
+                "sante.medical"
+              ],
+              "content_text": "L'utilisateur a une allergie aux noix, noisettes et amandes.",
+              "event_end_at": null,
+              "canonical_key": "sante.alimentation.fact.allergie_alimentaire_aux_noix_noisettes_amandes.",
+              "event_start_at": null,
+              "evidence_quote": "je surveille mon allergie aux noix... evite de me proposer des snacks avec noix, noisettes ou amandes.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Allergie alimentaire aux noix, noisettes et amandes.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f",
+                "51a04fa6-d9d7-4316-955b-9643cf81dd14"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "aad7e8ce-cc71-4476-9b35-d8c7bcb4eea4",
+            "confidence": 0.92,
+            "topic_slug": "sante_allergies",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "ambiguous_link",
+        "status": "candidate",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme"
+            ],
+            "content_text": "L'utilisateur apprend la guitare.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.fact.apprentissage_guitare.",
+            "event_start_at": null,
+            "evidence_quote": "j'apprends la guitare.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Apprentissage de la guitare.",
+            "source_message_ids": [
+              "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur apprend la guitare.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.fact.apprentissage_guitare.",
+              "event_start_at": null,
+              "evidence_quote": "j'apprends la guitare.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Apprentissage de la guitare.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'utilisateur apprend la guitare.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.fact.apprentissage_guitare.",
+              "event_start_at": null,
+              "evidence_quote": "j'apprends la guitare.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Apprentissage de la guitare.",
+              "source_message_ids": [
+                "8694877a-d79b-47f5-8e20-ac994f6cf18f"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_topic_link",
+            "topic_id": null,
+            "confidence": 0,
+            "topic_slug": null,
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement"
+            ],
+            "content_text": "L'utilisateur préfère les hébergements calmes, loin des quartiers festifs.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.statement.preference_pour_des_hebergements_calmes_voyage.",
+            "event_start_at": null,
+            "evidence_quote": "Je prefere des hebergements calmes, loin des quartiers trop festifs.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préférence pour des hébergements calmes en voyage.",
+            "source_message_ids": [
+              "d434c2bd-1690-4269-8245-917efc59abc7"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement"
+              ],
+              "content_text": "L'utilisateur préfère les hébergements calmes, loin des quartiers festifs.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.preference_pour_des_hebergements_calmes_voyage.",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere des hebergements calmes, loin des quartiers trop festifs.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour des hébergements calmes en voyage.",
+              "source_message_ids": [
+                "d434c2bd-1690-4269-8245-917efc59abc7"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement"
+              ],
+              "content_text": "L'utilisateur préfère les hébergements calmes, loin des quartiers festifs.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.preference_pour_des_hebergements_calmes_voyage.",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere des hebergements calmes, loin des quartiers trop festifs.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour des hébergements calmes en voyage.",
+              "source_message_ids": [
+                "d434c2bd-1690-4269-8245-917efc59abc7"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "29bfc408-8e5e-4406-b11f-351312f193a6",
+            "confidence": 0.92,
+            "topic_slug": "voyage_lisbonne",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "lundi matin",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.84
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur a réservé le train pour aller à l'aéroport.",
+            "event_end_at": "2026-05-11T10:00:00.000Z",
+            "canonical_key": "habitudes.planification.event.reservation_train_pour_aeroport_effectuee_mai_2026.",
+            "event_start_at": "2026-05-11T03:00:00.000Z",
+            "evidence_quote": "Lundi matin, j'ai reserve le train pour aller a l'aeroport.",
+            "time_precision": "part_of_day",
+            "entity_mentions": [],
+            "importance_score": 0.4,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Réservation du train pour l'aéroport effectuée le 11 mai 2026.",
+            "source_message_ids": [
+              "2ae78fd7-29c5-4e87-a6ea-53bc96869b2d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "lundi matin",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a réservé le train pour aller à l'aéroport.",
+              "event_end_at": "2026-05-11T10:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.reservation_train_pour_aeroport_effectuee_mai_2026.",
+              "event_start_at": "2026-05-11T03:00:00.000Z",
+              "evidence_quote": "Lundi matin, j'ai reserve le train pour aller a l'aeroport.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Réservation du train pour l'aéroport effectuée le 11 mai 2026.",
+              "source_message_ids": [
+                "2ae78fd7-29c5-4e87-a6ea-53bc96869b2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "lundi matin",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a réservé le train pour aller à l'aéroport.",
+              "event_end_at": "2026-05-11T10:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.reservation_train_pour_aeroport_effectuee_mai_2026.",
+              "event_start_at": "2026-05-11T03:00:00.000Z",
+              "evidence_quote": "Lundi matin, j'ai reserve le train pour aller a l'aeroport.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Réservation du train pour l'aéroport effectuée le 11 mai 2026.",
+              "source_message_ids": [
+                "2ae78fd7-29c5-4e87-a6ea-53bc96869b2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "29bfc408-8e5e-4406-b11f-351312f193a6",
+            "confidence": 0.7,
+            "topic_slug": "voyage_lisbonne",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "mardi soir",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.84
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.medical",
+              "sante.alimentation"
+            ],
+            "content_text": "L'utilisateur a eu une réaction allergique (plaques rouges) après un dessert.",
+            "event_end_at": "2026-05-12T22:00:00.000Z",
+            "canonical_key": "sante.medical.event.reaction_allergique_cutanee_mai_2026.",
+            "event_start_at": "2026-05-12T16:00:00.000Z",
+            "evidence_quote": "Mardi soir, j'ai eu des plaques rouges apres un dessert dont je ne connaissais pas la composition.",
+            "time_precision": "part_of_day",
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "sensitive",
+            "canonical_key_hint": null,
+            "normalized_summary": "Réaction allergique cutanée le 12 mai 2026.",
+            "source_message_ids": [
+              "9dc3535e-6639-4351-85c7-e8fcbf24680c"
+            ],
+            "sensitivity_categories": [
+              "health"
+            ],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "mardi soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.medical",
+                "sante.alimentation"
+              ],
+              "content_text": "L'utilisateur a eu une réaction allergique (plaques rouges) après un dessert.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "sante.medical.event.reaction_allergique_cutanee_mai_2026.",
+              "event_start_at": "2026-05-12T16:00:00.000Z",
+              "evidence_quote": "Mardi soir, j'ai eu des plaques rouges apres un dessert dont je ne connaissais pas la composition.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Réaction allergique cutanée le 12 mai 2026.",
+              "source_message_ids": [
+                "9dc3535e-6639-4351-85c7-e8fcbf24680c"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "mardi soir",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.84
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.medical",
+                "sante.alimentation"
+              ],
+              "content_text": "L'utilisateur a eu une réaction allergique (plaques rouges) après un dessert.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "sante.medical.event.reaction_allergique_cutanee_mai_2026.",
+              "event_start_at": "2026-05-12T16:00:00.000Z",
+              "evidence_quote": "Mardi soir, j'ai eu des plaques rouges apres un dessert dont je ne connaissais pas la composition.",
+              "time_precision": "part_of_day",
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "sensitive",
+              "canonical_key_hint": null,
+              "normalized_summary": "Réaction allergique cutanée le 12 mai 2026.",
+              "source_message_ids": [
+                "9dc3535e-6639-4351-85c7-e8fcbf24680c"
+              ],
+              "sensitivity_categories": [
+                "health"
+              ],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "aad7e8ce-cc71-4476-9b35-d8c7bcb4eea4",
+            "confidence": 0.92,
+            "topic_slug": "sante_allergies",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme"
+            ],
+            "content_text": "L'objectif à la guitare est de jouer 'Blackbird' en septembre 2026.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.objectif_guitare_jouer_blackbird_septembre.",
+            "event_start_at": null,
+            "evidence_quote": "J'apprends la guitare avec l'objectif de jouer Blackbird en septembre.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif guitare : jouer Blackbird en septembre.",
+            "source_message_ids": [
+              "b8da1d1f-4d0b-4915-94dd-ac1bec71105d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'objectif à la guitare est de jouer 'Blackbird' en septembre 2026.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_guitare_jouer_blackbird_septembre.",
+              "event_start_at": null,
+              "evidence_quote": "J'apprends la guitare avec l'objectif de jouer Blackbird en septembre.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif guitare : jouer Blackbird en septembre.",
+              "source_message_ids": [
+                "b8da1d1f-4d0b-4915-94dd-ac1bec71105d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme"
+              ],
+              "content_text": "L'objectif à la guitare est de jouer 'Blackbird' en septembre 2026.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_guitare_jouer_blackbird_septembre.",
+              "event_start_at": null,
+              "evidence_quote": "J'apprends la guitare avec l'objectif de jouer Blackbird en septembre.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif guitare : jouer Blackbird en septembre.",
+              "source_message_ids": [
+                "b8da1d1f-4d0b-4915-94dd-ac1bec71105d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "f2336dc2-bfe9-45e5-a94a-5d4ae889cd17",
+            "confidence": 0.7,
+            "topic_slug": "pratique_guitare",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 0.95,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur préfère pratiquer la guitare par sessions de 12 minutes au métronome.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.execution.statement.methode_pratique_guitare_min_metronome.",
+            "event_start_at": null,
+            "evidence_quote": "douze minutes au metronome m'aident plus qu'une longue session vague.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Méthode de pratique guitare : 12 min au métronome.",
+            "source_message_ids": [
+              "8e9517f1-6865-43b8-830b-0d498646fe64"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur préfère pratiquer la guitare par sessions de 12 minutes au métronome.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.methode_pratique_guitare_min_metronome.",
+              "event_start_at": null,
+              "evidence_quote": "douze minutes au metronome m'aident plus qu'une longue session vague.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Méthode de pratique guitare : 12 min au métronome.",
+              "source_message_ids": [
+                "8e9517f1-6865-43b8-830b-0d498646fe64"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 0.95,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur préfère pratiquer la guitare par sessions de 12 minutes au métronome.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.methode_pratique_guitare_min_metronome.",
+              "event_start_at": null,
+              "evidence_quote": "douze minutes au metronome m'aident plus qu'une longue session vague.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Méthode de pratique guitare : 12 min au métronome.",
+              "source_message_ids": [
+                "8e9517f1-6865-43b8-830b-0d498646fe64"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "f2336dc2-bfe9-45e5-a94a-5d4ae889cd17",
+            "confidence": 0.7,
+            "topic_slug": "pratique_guitare",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "hier",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a pratiqué 14 minutes d'arpèges à la guitare.",
+            "event_end_at": "2026-05-12T22:00:00.000Z",
+            "canonical_key": "habitudes.execution.event.session_guitare_arpeges_mai_2026.",
+            "event_start_at": "2026-05-12T00:00:00.000Z",
+            "evidence_quote": "Hier, j'ai pratique 14 minutes d'arpeges",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.4,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Session de guitare (arpèges) le 12 mai 2026.",
+            "source_message_ids": [
+              "e4746090-0586-4cdd-86b8-64a2aca5d53e"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a pratiqué 14 minutes d'arpèges à la guitare.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.session_guitare_arpeges_mai_2026.",
+              "event_start_at": "2026-05-12T00:00:00.000Z",
+              "evidence_quote": "Hier, j'ai pratique 14 minutes d'arpeges",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session de guitare (arpèges) le 12 mai 2026.",
+              "source_message_ids": [
+                "e4746090-0586-4cdd-86b8-64a2aca5d53e"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "hier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a pratiqué 14 minutes d'arpèges à la guitare.",
+              "event_end_at": "2026-05-12T22:00:00.000Z",
+              "canonical_key": "habitudes.execution.event.session_guitare_arpeges_mai_2026.",
+              "event_start_at": "2026-05-12T00:00:00.000Z",
+              "evidence_quote": "Hier, j'ai pratique 14 minutes d'arpeges",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Session de guitare (arpèges) le 12 mai 2026.",
+              "source_message_ids": [
+                "e4746090-0586-4cdd-86b8-64a2aca5d53e"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "f2336dc2-bfe9-45e5-a94a-5d4ae889cd17",
+            "confidence": 0.7,
+            "topic_slug": "pratique_guitare",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur souhaite des réponses sous forme de checklist pour préparer ses déplacements.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.planification.statement.preference_pour_format_checklist_lors_planification_voyages.",
+            "event_start_at": null,
+            "evidence_quote": "Quand je prepare un deplacement, je veux des reponses sous forme de checklist.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préférence pour un format checklist lors de la planification de voyages.",
+            "source_message_ids": [
+              "233bc8a7-5695-4242-9c9e-4d30a0b6fa4b"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur souhaite des réponses sous forme de checklist pour préparer ses déplacements.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.preference_pour_format_checklist_lors_planification_voyages.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je prepare un deplacement, je veux des reponses sous forme de checklist.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour un format checklist lors de la planification de voyages.",
+              "source_message_ids": [
+                "233bc8a7-5695-4242-9c9e-4d30a0b6fa4b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur souhaite des réponses sous forme de checklist pour préparer ses déplacements.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.preference_pour_format_checklist_lors_planification_voyages.",
+              "event_start_at": null,
+              "evidence_quote": "Quand je prepare un deplacement, je veux des reponses sous forme de checklist.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour un format checklist lors de la planification de voyages.",
+              "source_message_ids": [
+                "233bc8a7-5695-4242-9c9e-4d30a0b6fa4b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "12df1a9d-de66-42e2-83dd-52a48942c2fd",
+            "confidence": 0.7,
+            "topic_slug": "preferences_deplacement",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "vendredi dernier",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.88
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur a oublié de confirmer l'hôtel et a dû appeler en urgence.",
+            "event_end_at": "2026-05-08T22:00:00.000Z",
+            "canonical_key": "habitudes.planification.event.oubli_confirmation_hotel_mai_2026.",
+            "event_start_at": "2026-05-08T00:00:00.000Z",
+            "evidence_quote": "Vendredi dernier, j'ai oublie de confirmer l'hotel et j'ai du appeler en urgence.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.5,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Oubli de confirmation d'hôtel le 8 mai 2026.",
+            "source_message_ids": [
+              "747e0761-83f8-4919-b245-3318329ef22d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "vendredi dernier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.88
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a oublié de confirmer l'hôtel et a dû appeler en urgence.",
+              "event_end_at": "2026-05-08T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.oubli_confirmation_hotel_mai_2026.",
+              "event_start_at": "2026-05-08T00:00:00.000Z",
+              "evidence_quote": "Vendredi dernier, j'ai oublie de confirmer l'hotel et j'ai du appeler en urgence.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Oubli de confirmation d'hôtel le 8 mai 2026.",
+              "source_message_ids": [
+                "747e0761-83f8-4919-b245-3318329ef22d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "vendredi dernier",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.88
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a oublié de confirmer l'hôtel et a dû appeler en urgence.",
+              "event_end_at": "2026-05-08T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.oubli_confirmation_hotel_mai_2026.",
+              "event_start_at": "2026-05-08T00:00:00.000Z",
+              "evidence_quote": "Vendredi dernier, j'ai oublie de confirmer l'hotel et j'ai du appeler en urgence.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.5,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Oubli de confirmation d'hôtel le 8 mai 2026.",
+              "source_message_ids": [
+                "747e0761-83f8-4919-b245-3318329ef22d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "29bfc408-8e5e-4406-b11f-351312f193a6",
+            "confidence": 0.7,
+            "topic_slug": "voyage_lisbonne",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites"
+            ],
+            "content_text": "L'utilisateur ne veut pas que son allergie soit mentionnée lors de discussions sur la guitare.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.separation_des_sujets_allergie_guitare_dans_conversation.",
+            "event_start_at": null,
+            "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur la guitare.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.6,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Séparation des sujets allergie et guitare dans la conversation.",
+            "source_message_ids": [
+              "39f8ab3f-ce4b-4c72-a15f-3bcf2c9a6921"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne veut pas que son allergie soit mentionnée lors de discussions sur la guitare.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.separation_des_sujets_allergie_guitare_dans_conversation.",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur la guitare.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Séparation des sujets allergie et guitare dans la conversation.",
+              "source_message_ids": [
+                "39f8ab3f-ce4b-4c72-a15f-3bcf2c9a6921"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites"
+              ],
+              "content_text": "L'utilisateur ne veut pas que son allergie soit mentionnée lors de discussions sur la guitare.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.separation_des_sujets_allergie_guitare_dans_conversation.",
+              "event_start_at": null,
+              "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur la guitare.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.6,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Séparation des sujets allergie et guitare dans la conversation.",
+              "source_message_ids": [
+                "39f8ab3f-ce4b-4c72-a15f-3bcf2c9a6921"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "b21d849b-5c0f-49a2-9be0-e9901b05fffd",
+            "confidence": 0.7,
+            "topic_slug": "famille_lina",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "aujourd'hui",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.energie",
+              "habitudes.execution"
+            ],
+            "content_text": "L'utilisateur a annulé une répétition de guitare pour cause d'épuisement.",
+            "event_end_at": "2026-05-13T22:00:00.000Z",
+            "canonical_key": "sante.energie.event.annulation_une_pratique_guitare_mai_2026.",
+            "event_start_at": "2026-05-13T00:00:00.000Z",
+            "evidence_quote": "Aujourd'hui j'ai annule une repetition de guitare parce que j'etais epuise",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.4,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Annulation d'une pratique de guitare le 13 mai 2026.",
+            "source_message_ids": [
+              "8ab9508d-493e-4d21-96ef-d456227fab2d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.energie",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une répétition de guitare pour cause d'épuisement.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.energie.event.annulation_une_pratique_guitare_mai_2026.",
+              "event_start_at": "2026-05-13T00:00:00.000Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une repetition de guitare parce que j'etais epuise",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Annulation d'une pratique de guitare le 13 mai 2026.",
+              "source_message_ids": [
+                "8ab9508d-493e-4d21-96ef-d456227fab2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.energie",
+                "habitudes.execution"
+              ],
+              "content_text": "L'utilisateur a annulé une répétition de guitare pour cause d'épuisement.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "sante.energie.event.annulation_une_pratique_guitare_mai_2026.",
+              "event_start_at": "2026-05-13T00:00:00.000Z",
+              "evidence_quote": "Aujourd'hui j'ai annule une repetition de guitare parce que j'etais epuise",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Annulation d'une pratique de guitare le 13 mai 2026.",
+              "source_message_ids": [
+                "8ab9508d-493e-4d21-96ef-d456227fab2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "f2336dc2-bfe9-45e5-a94a-5d4ae889cd17",
+            "confidence": 0.7,
+            "topic_slug": "pratique_guitare",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "event",
+            "metadata": {
+              "temporal_resolution_raw": "aujourd'hui",
+              "temporal_resolution_timezone": "Europe/Paris",
+              "temporal_resolution_confidence": 0.9
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "L'utilisateur a préparé sa valise.",
+            "event_end_at": "2026-05-13T22:00:00.000Z",
+            "canonical_key": "habitudes.planification.event.preparation_valise_mai_2026.",
+            "event_start_at": "2026-05-13T00:00:00.000Z",
+            "evidence_quote": "j'ai quand meme prepare ma valise.",
+            "time_precision": "day",
+            "entity_mentions": [],
+            "importance_score": 0.4,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préparation de la valise le 13 mai 2026.",
+            "source_message_ids": [
+              "8ab9508d-493e-4d21-96ef-d456227fab2d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a préparé sa valise.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.preparation_valise_mai_2026.",
+              "event_start_at": "2026-05-13T00:00:00.000Z",
+              "evidence_quote": "j'ai quand meme prepare ma valise.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation de la valise le 13 mai 2026.",
+              "source_message_ids": [
+                "8ab9508d-493e-4d21-96ef-d456227fab2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "event",
+              "metadata": {
+                "temporal_resolution_raw": "aujourd'hui",
+                "temporal_resolution_timezone": "Europe/Paris",
+                "temporal_resolution_confidence": 0.9
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "L'utilisateur a préparé sa valise.",
+              "event_end_at": "2026-05-13T22:00:00.000Z",
+              "canonical_key": "habitudes.planification.event.preparation_valise_mai_2026.",
+              "event_start_at": "2026-05-13T00:00:00.000Z",
+              "evidence_quote": "j'ai quand meme prepare ma valise.",
+              "time_precision": "day",
+              "entity_mentions": [],
+              "importance_score": 0.4,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation de la valise le 13 mai 2026.",
+              "source_message_ids": [
+                "8ab9508d-493e-4d21-96ef-d456227fab2d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "mixed_topic_match",
+            "topic_id": "29bfc408-8e5e-4406-b11f-351312f193a6",
+            "confidence": 0.7,
+            "topic_slug": "voyage_lisbonne",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      }
+    ]
+  },
+  "counts": {
+    "input_user_messages": 20,
+    "persisted_items": 14,
+    "active_items": 13,
+    "candidate_items": 1
+  },
+  "expectation_checks": {
+    "lisbon_context": true,
+    "budget_600_sensitive": false,
+    "allergy_sensitive": true,
+    "allergy_event": true,
+    "medical_boundary": false,
+    "guitar_goal": true,
+    "guitar_event": true,
+    "orion_work": false,
+    "lina_cousin_not_colleague": false,
+    "self_blame_not_fact": true,
+    "travel_topic": true,
+    "health_topic": true,
+    "guitar_topic": true,
+    "work_topic": false,
+    "family_topic": false
+  },
+  "memory_items": [
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.planification",
+        "objectifs.court_terme"
+      ],
+      "content_text": "L'utilisateur prépare un voyage à Lisbonne pour juin 2026.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "voyage_lisbonne",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je prepare un voyage a Lisbonne en juin"
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "sante.alimentation",
+        "sante.medical"
+      ],
+      "content_text": "L'utilisateur a une allergie aux noix, noisettes et amandes.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "sante_allergies",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je surveille mon allergie aux noix... evite de me proposer des snacks avec noix, noisettes ou amandes."
+    },
+    {
+      "kind": "fact",
+      "status": "candidate",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme"
+      ],
+      "content_text": "L'utilisateur apprend la guitare.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [],
+      "evidence_quote": "j'apprends la guitare."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "habitudes.environnement"
+      ],
+      "content_text": "L'utilisateur préfère les hébergements calmes, loin des quartiers festifs.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "voyage_lisbonne",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je prefere des hebergements calmes, loin des quartiers trop festifs."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur a réservé le train pour aller à l'aéroport.",
+      "event_start_at": "2026-05-11T03:00:00+00:00",
+      "time_precision": "part_of_day",
+      "topic_links": [
+        {
+          "slug": "voyage_lisbonne",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Lundi matin, j'ai reserve le train pour aller a l'aeroport."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "sensitive",
+      "confidence": 1,
+      "domain_keys": [
+        "sante.medical",
+        "sante.alimentation"
+      ],
+      "content_text": "L'utilisateur a eu une réaction allergique (plaques rouges) après un dessert.",
+      "event_start_at": "2026-05-12T16:00:00+00:00",
+      "time_precision": "part_of_day",
+      "topic_links": [
+        {
+          "slug": "sante_allergies",
+          "confidence": 0.92,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Mardi soir, j'ai eu des plaques rouges apres un dessert dont je ne connaissais pas la composition."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme"
+      ],
+      "content_text": "L'objectif à la guitare est de jouer 'Blackbird' en septembre 2026.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "pratique_guitare",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'apprends la guitare avec l'objectif de jouer Blackbird en septembre."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 0.95,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur préfère pratiquer la guitare par sessions de 12 minutes au métronome.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "pratique_guitare",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "douze minutes au metronome m'aident plus qu'une longue session vague."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a pratiqué 14 minutes d'arpèges à la guitare.",
+      "event_start_at": "2026-05-12T00:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "pratique_guitare",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Hier, j'ai pratique 14 minutes d'arpeges"
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur souhaite des réponses sous forme de checklist pour préparer ses déplacements.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "preferences_deplacement",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand je prepare un deplacement, je veux des reponses sous forme de checklist."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur a oublié de confirmer l'hôtel et a dû appeler en urgence.",
+      "event_start_at": "2026-05-08T00:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "voyage_lisbonne",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Vendredi dernier, j'ai oublie de confirmer l'hotel et j'ai du appeler en urgence."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites"
+      ],
+      "content_text": "L'utilisateur ne veut pas que son allergie soit mentionnée lors de discussions sur la guitare.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "famille_lina",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je ne veux pas que mon allergie ressorte dans une conversation neutre sur la guitare."
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "sante.energie",
+        "habitudes.execution"
+      ],
+      "content_text": "L'utilisateur a annulé une répétition de guitare pour cause d'épuisement.",
+      "event_start_at": "2026-05-13T00:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "pratique_guitare",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Aujourd'hui j'ai annule une repetition de guitare parce que j'etais epuise"
+    },
+    {
+      "kind": "event",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "L'utilisateur a préparé sa valise.",
+      "event_start_at": "2026-05-13T00:00:00+00:00",
+      "time_precision": "day",
+      "topic_links": [
+        {
+          "slug": "voyage_lisbonne",
+          "confidence": 0.7,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "j'ai quand meme prepare ma valise."
+    }
+  ]
+}

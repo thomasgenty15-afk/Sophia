@@ -1,8 +1,10 @@
 import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
-  buildActionEveningReviewMessageFromTitles,
   buildActionMorningFallbackMessage,
+  buildActionMorningFollowupFallbackMessage,
+  buildActionMorningFollowupGrounding,
+  buildActionMorningFollowupInstruction,
   buildActionMorningGrounding,
   localDateYmdInTimezone,
   mondayWeekStartForLocalDate,
@@ -55,6 +57,7 @@ Deno.test("buildActionMorningFallbackMessage summarizes multi-plan mornings", ()
             title: "Marche 20 minutes",
             dimension: "habits",
             kind: "habit",
+            time_of_day: null,
             planned_day: "tue",
             status: "planned",
             source: "weekly_confirmed",
@@ -76,6 +79,7 @@ Deno.test("buildActionMorningFallbackMessage summarizes multi-plan mornings", ()
             title: "Ranger le bureau",
             dimension: "missions",
             kind: "mission",
+            time_of_day: null,
             planned_day: "tue",
             status: "planned",
             source: "weekly_confirmed",
@@ -96,18 +100,49 @@ Deno.test("buildActionMorningFallbackMessage summarizes multi-plan mornings", ()
   assertStringIncludes(grounding, "occurrence_id=occurrence-1");
 });
 
-Deno.test("buildActionEveningReviewMessageFromTitles stays short for button review", () => {
-  assertEquals(
-    buildActionEveningReviewMessageFromTitles(["Marche 20 minutes"]),
-    'Petit check du soir: pour "Marche 20 minutes", tu en es où ?',
-  );
-  assertStringIncludes(
-    buildActionEveningReviewMessageFromTitles([
-      "Marche 20 minutes",
-      "Ranger le bureau",
-      "Lire 5 pages",
-      "Préparer le sac",
-    ]),
-    "+ 1 autre",
-  );
+Deno.test("buildActionMorningFollowup copy stays non culpabilisant and traceable", () => {
+  const schedule: TodayActionOccurrenceSchedule = {
+    local_date: "2026-05-05",
+    week_start_date: "2026-05-04",
+    weekday: "tue",
+    timezone: "Europe/Paris",
+    scheduled_for: "2026-05-06T05:00:00.000Z",
+    transformations: [
+      {
+        transformation_id: "transformation-sleep",
+        transformation_title: "Sommeil",
+        plan_id: "plan-sleep",
+        plan_title: "Sas du soir",
+        occurrences: [
+          {
+            occurrence_id: "occurrence-sas",
+            cycle_id: "cycle-sleep",
+            transformation_id: "transformation-sleep",
+            plan_id: "plan-sleep",
+            plan_item_id: "item-sas",
+            title: "Faire le sas de déchargement",
+            dimension: "habits",
+            kind: "habit",
+            time_of_day: "evening",
+            planned_day: "tue",
+            status: "planned",
+            source: "weekly_confirmed",
+          },
+        ],
+      },
+    ],
+  };
+
+  const message = buildActionMorningFollowupFallbackMessage(schedule);
+  assertStringIncludes(message, "ça s'est passé comment");
+  assertStringIncludes(message, "Pas besoin");
+
+  const instruction = buildActionMorningFollowupInstruction(schedule);
+  assertStringIncludes(instruction, "non culpabilisant");
+  assertStringIncludes(instruction, "sommeil");
+
+  const grounding = buildActionMorningFollowupGrounding(schedule);
+  assertStringIncludes(grounding, "event=action_morning_followup");
+  assertStringIncludes(grounding, "local_date_reviewed=2026-05-05");
+  assertStringIncludes(grounding, "occurrence_id=occurrence-sas");
 });

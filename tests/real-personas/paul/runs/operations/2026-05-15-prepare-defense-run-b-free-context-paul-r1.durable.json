@@ -1,0 +1,114 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "91e59e32-004d-4638-83e9-fdac7f08fb3b",
+        "title": "Faire une marche de décompression (20 min)",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:34:57.069083+00:00"
+      },
+      {
+        "id": "6c013507-fbb4-4ab0-9542-5568a11ec172",
+        "title": "Créer ton Parking à idées",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Choisis un outil unique (carnet, Notion, note sur ton téléphone) dédié uniquement à capturer tes nouvelles idées. La règle : quand une idée surgit pendant que tu travailles, tu la notes en 10 secondes et tu retournes immédiatement à ta tâche.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:26:44.485+00:00"
+      },
+      {
+        "id": "1e37356f-8e65-430d-a4a0-c75111b9499a",
+        "title": "Noter ce qui a vidé ton énergie aujourd'hui",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "active",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": null,
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:34:57.069083+00:00"
+      },
+      {
+        "id": "b0f064b8-2e7c-48d6-9d3b-046ae6928ccb",
+        "title": "Faire une session de travail focus (2h)",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Une session de 2h sur une seule tâche, téléphone éloigné, sans ouvrir de nouveaux onglets. Si une idée arrive, elle va dans le Parking.",
+        "target_reps": 12,
+        "current_reps": 0,
+        "cadence_label": "12 sessions / semaine",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:26:44.485+00:00"
+      },
+      {
+        "id": "89a1ccf2-2751-463e-97c0-94213551631d",
+        "title": "Bloquer tes créneaux de la semaine",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Prends 15 minutes pour définir tes 3 priorités de la semaine et bloquer physiquement tes sessions de 2h dans ton agenda. Ce qui n'est pas planifié n'existe pas.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:26:44.485+00:00"
+      },
+      {
+        "id": "8a1cfdc7-1a02-4512-af12-3695a3c8921b",
+        "title": "Auditer tes fuites d'attention",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "active",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Prends 5 minutes pour identifier ce qui a le plus cassé ton focus cette semaine, afin de l'éliminer pour la suite.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-12T16:26:44.485+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  }
+}

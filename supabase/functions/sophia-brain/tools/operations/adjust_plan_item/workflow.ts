@@ -40,6 +40,8 @@ export type AdjustPlanToolSkillState<TIntakeState = unknown> = {
   confidence: "low" | "medium" | "high";
   sub_skill_trace: AdjustPlanSubSkillTrace[];
   conversation_summary: string;
+  coaching_guidance?: unknown;
+  coaching_guidance_audit?: unknown;
   draft_validation?: DraftReviewState;
 };
 

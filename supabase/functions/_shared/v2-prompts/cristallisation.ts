@@ -53,8 +53,8 @@ export type CristallisationTransformation = {
   /**
    * Contexte questionnaire : les informations que le questionnaire sur mesure
    * devrait chercher à obtenir pour cette transformation.
- * Liste de 3 à 5 angles d'investigation.
-  */
+   * Liste de 3 à 5 angles d'investigation.
+   */
   questionnaire_context: string[];
   /** Indicateur de progression recommandé pour garder une seule unité d'évolution. */
   recommended_progress_indicator: string;
@@ -107,6 +107,7 @@ Chaque transformation doit aussi être **cohérente opérationnellement** : elle
 - 2 à 4 phrases
 - Empathique et directe
 - Tutoiement
+- N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
 - Reflète la situation de l'utilisateur avec ses mots
 - Donne le sentiment d'être compris sans être jugé
 

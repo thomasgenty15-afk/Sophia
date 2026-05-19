@@ -1,0 +1,270 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "75e47876-af81-4f91-bb65-1753a4ce6491",
+    "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r1"
+  },
+  "target": {
+    "key": "coach.question_tendency",
+    "value": "high",
+    "user": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+        "updated_at": "2026-05-17T16:20:16.363+00:00",
+        "last_source_message_id": "5b2b1430-d842-4350-97e8-16521b420bab"
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+        "updated_at": "2026-05-17T16:20:16.363+00:00",
+        "last_source_message_id": "5b2b1430-d842-4350-97e8-16521b420bab"
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:19:45.487617+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "ca7a847e-555e-4889-bc03-2bd60583a268",
+        "role": "user",
+        "content": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T16:19:45.646233+00:00"
+      },
+      {
+        "id": "e64731f5-7fe0-46e5-b59e-109af8304a11",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: j'utiliserai un niveau de challenge plus élevé. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.challenge_level": "high"
+                  },
+                  "reason": "Quand je vais trop vite vers une conclusion, fais-moi davantage préciser mon raisonnement avant de me répondre.",
+                  "summary": "j'utiliserai un niveau de challenge plus élevé."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: j'utiliserai un niveau de challenge plus élevé. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "b3e0ec1b-9287-44d3-befb-696b2dc4e9e1",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-17T16:20:09.047733+00:00"
+      },
+      {
+        "id": "5b2b1430-d842-4350-97e8-16521b420bab",
+        "role": "user",
+        "content": "Oui, applique ce réglage.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T16:20:09.095447+00:00"
+      },
+      {
+        "id": "fe389ba8-3f05-498f-ac87-4e4857fd1896",
+        "role": "assistant",
+        "content": "C'est fait. J'ai appliqué cette préférence : j'utiliserai un niveau de challenge plus élevé.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-questions-high-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "b3e0ec1b-9287-44d3-befb-696b2dc4e9e1",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "Oui",
+                  "applique ce réglage"
+                ],
+                "confidence": "high",
+                "generated_user_message": null
+              },
+              "preferences_update_id": "coach.challenge_level"
+            }
+          }
+        },
+        "created_at": "2026-05-17T16:20:16.370033+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

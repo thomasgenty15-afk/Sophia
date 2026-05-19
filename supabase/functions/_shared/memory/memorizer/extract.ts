@@ -29,6 +29,10 @@ N'utilise jamais kind="preference" ou kind="goal" : encode les preferences/bound
 Pour une action ponctuelle deja realisee avec une date claire ("hier", "dimanche soir", "aujourd'hui"), utilise kind="event" plutot que action_observation.
 Pour sensitivity_categories, utilise uniquement: addiction, mental_health, family, relationship, work, financial, health, sexuality, self_harm, shame, trauma, other_sensitive.
 Si une correction contient la nouvelle verite correcte ("X est mon ex, pas ma soeur"), cree aussi un memory_item positif pour la nouvelle verite.
+Corrections: si le user dit "oublie", "corrige", "en fait", "plutot", "pas X mais Y", "remplace l'ancien souvenir", ou une formulation equivalente visant une information deja connue, ajoute une entree corrections[].
+Utilise operation_type="supersede" quand le message fournit une nouvelle verite de remplacement; utilise operation_type="invalidate" quand il faut seulement retirer l'ancienne information.
+Dans corrections[].target_hint, cite les termes de l'ancien souvenir faux a retrouver, pas seulement la nouvelle verite.
+Pour une correction d'action ("les pompes ne marchent pas apres petit-dejeuner, plutot avant la douche"), cree aussi un memory_item kind="action_observation" pour la nouvelle verite d'action, avec les bons source_message_ids.
 `.trim();
 
 export interface ExtractionContext {

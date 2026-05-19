@@ -1,0 +1,275 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Nettoyer tous mes placards, c'est trop gros, je veux rendre cette action beaucoup plus petite.",
+    "assistant": "Tu veux ajuster une action precise, le niveau actuel, ou le plan dans son ensemble ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer tous mes placards",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "scope"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Une action precise : je parle de Nettoyer ton environnement direct. Je veux une version plus petite, pas changer tout mon plan.",
+    "assistant": "Est-ce que ça te conviendrait de commencer par une version très courte de 5 minutes pour ton rangement ? L'idée est de créer un petit pont pour lancer le mouvement en douceur, tout en gardant l'action complète pour juste après.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "low",
+            "duration_minutes": 5
+          },
+          "title": "Ajustement - Nettoyer ton environnement direct",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "création de \"Version mini - Nettoyer ton environnement direct\"",
+              "format mini de 5 minutes"
+            ],
+            "unchanged": [
+              "\"Nettoyer ton environnement direct\" reste prévue après la version mini",
+              "l'intention de rangement n'est pas supprimée"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Une fois le chantier commencé, reprendre l'action complète devient plus simple parce qu'il y a déjà un élan et un point de reprise concret.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Nettoyer ton environnement direct",
+          "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+          "bridge_action": {
+            "title": "Version mini - Nettoyer ton environnement direct",
+            "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+            "source_relation": "bridge_to_original_action",
+            "resume_original_after_completion": true
+          },
+          "decision_basis": {
+            "evidence": [
+              "Une action precise : je parle de Nettoyer ton environnement direct. Je veux une version plus petite, pas changer tout mon plan.",
+              "operation_input.scope",
+              "message.reduce",
+              "message.too_heavy"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Nettoyer ton environnement direct bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "intention du plan",
+              "reprendre Nettoyer ton environnement direct apres la version mini"
+            ]
+          },
+          "adjustment_type": "reduce",
+          "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+          "change_rationale": {
+            "why_this_change": "Créer une version mini de 5 minutes réduit le coût d'entrée sans supprimer \"Nettoyer ton environnement direct\".",
+            "success_condition": "La version mini est terminée sans te braquer, puis l'action complète reste disponible juste après.",
+            "expected_mechanism": "Une fois le chantier commencé, reprendre l'action complète devient plus simple parce qu'il y a déjà un élan et un point de reprise concret."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "L'action de nettoyage semble trop lourde pour être commencée immédiatement.",
+              "expected_effect": "Une fois le mouvement lancé, reprendre l'action complète sera beaucoup plus simple grâce à l'élan créé.",
+              "why_this_change": "Créer une version de 5 minutes réduit l'effort initial nécessaire."
+            },
+            "boundaries": {
+              "explanation": "Seule cette étape est découpée pour faciliter le démarrage sans impacter le reste de ton organisation.",
+              "affected_scope": "L'action spécifique de nettoyage uniquement.",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Objectif global",
+                "Autres actions du plan",
+                "Structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Création d'une version mini de 5 minutes comme pont vers l'action complète.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "action",
+                  "after": "Action de 5 minutes pour lancer le mouvement.",
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "before": null,
+                  "reason": "Réduire le coût d'entrée pour éviter le blocage."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "action",
+                  "title": "Nettoyer ton environnement direct",
+                  "reason": "L'action d'origine reste prévue pour être reprise après la version mini."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai ajouté une version de 5 minutes pour t'aider à démarrer sans pression.",
+            "user_message_detailed": "Pour contourner le blocage, on commence par 5 minutes de rangement. L'action complète reste programmée juste après pour que tu puisses profiter de l'élan une fois lancé."
+          },
+          "execution_strategy": "bridge_action",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai mis en place une version miniature de 5 minutes pour ton nettoyage. C'est un petit démarrage rapide pour briser la glace sans te mettre la pression. Ton action initiale reste bien là, prête à être reprise dès que tu auras fini ce petit échauffement. Une fois lancé, ce sera beaucoup plus fluide pour toi de continuer. Je suis certaine que ce petit coup de pouce va débloquer la situation.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Est-ce que ça te conviendrait de commencer par une version très courte de 5 minutes pour ton rangement ? L'idée est de créer un petit pont pour lancer le mouvement en douceur, tout en gardant l'action complète pour juste après."
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "d4fcd690-cfc2-424e-805b-5037f1a0241c",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y, applique cette version mini.",
+    "assistant": "J'ai mis en place une version miniature de 5 minutes pour ton nettoyage. C'est un petit démarrage rapide pour briser la glace sans te mettre la pression. Ton action initiale reste bien là, prête à être reprise dès que tu auras fini ce petit échauffement. Une fois lancé, ce sera beaucoup plus fluide pour toi de continuer. Je suis certaine que ce petit coup de pouce va débloquer la situation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "d4fcd690-cfc2-424e-805b-5037f1a0241c",
+      "plan_patch_id": "af259725-e6e3-4d69-920b-6be24f42d02c",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": "89661711-2c3a-4056-bb06-9f05decc64e7"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-agent-confirmation-fix-r1-t03",
+    "trace_error": null
+  }
+]

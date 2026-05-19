@@ -2,14 +2,12 @@ import {
   buildContextString,
   formatDashboardCapabilitiesAddon,
   formatDashboardCapabilitiesLiteAddon,
-  formatNorthStarMetricContext,
   formatPlanItemIndicatorsBlock,
   formatWeeklyRecapSnapshot,
 } from "./loader.ts";
 
 import type {
   SystemRuntimeSnapshotRow,
-  UserMetricRow,
   UserPlanItemEntryRow,
   UserPlanItemRow,
 } from "../../_shared/v2-types.ts";
@@ -78,35 +76,7 @@ function basePlanItem(
     last_entry_at: entries[0]?.effective_at ?? null,
     recent_entries: entries,
     ...overrides,
-  };
-}
-
-function baseNorthStar(
-  overrides: Partial<UserMetricRow> = {},
-): UserMetricRow {
-  return {
-    id: "metric-1",
-    user_id: "u1",
-    cycle_id: "c1",
-    transformation_id: null,
-    scope: "cycle",
-    kind: "north_star",
-    status: "active",
-    title: "Pas quotidiens",
-    unit: "pas",
-    current_value: "5400",
-    target_value: "8000",
-    payload: {
-      history: [
-        { at: "2026-03-22T12:00:00.000Z", value: 4200 },
-        { at: "2026-03-23T12:00:00.000Z", value: 5000 },
-        { at: "2026-03-24T12:00:00.000Z", value: 5400 },
-      ],
-    },
-    created_at: "2026-03-20T08:00:00.000Z",
-    updated_at: "2026-03-24T12:00:00.000Z",
-    ...overrides,
-  };
+  } as PlanItemRuntimeRow;
 }
 
 Deno.test("formatPlanItemIndicatorsBlock: renders V2 plan item indicators", () => {
@@ -123,15 +93,6 @@ Deno.test("formatPlanItemIndicatorsBlock: renders V2 plan item indicators", () =
   assert(block.includes("[habitudes]"));
   assert(block.includes("streak=2"));
   assert(block.includes("tendance=en hausse"));
-});
-
-Deno.test("formatNorthStarMetricContext: renders current value and recent history", () => {
-  const block = formatNorthStarMetricContext(baseNorthStar());
-
-  assert(block.includes("=== NORTH STAR ACTIVE (V2) ==="));
-  assert(block.includes("Pas quotidiens"));
-  assert(block.includes("Valeur actuelle: 5400 pas"));
-  assert(block.includes("2026-03-24: 5400 pas"));
 });
 
 Deno.test("formatWeeklyRecapSnapshot: extracts summary from V2 runtime snapshot", () => {
@@ -167,11 +128,10 @@ Deno.test("formatWeeklyRecapSnapshot: extracts summary from V2 runtime snapshot"
   assert(block?.includes("On garde moins d'items, mais mieux tenus."));
 });
 
-Deno.test("dashboard capability addons: describe V2 surfaces instead of legacy V1 sections", () => {
+Deno.test("dashboard capability addons: describe V2 surfaces instead of old V1 sections", () => {
   const lite = formatDashboardCapabilitiesLiteAddon();
   const full = formatDashboardCapabilitiesAddon({ intents: ["plan_item_discussion"] });
 
-  assert(lite.includes("Carte North Star"));
   assert(lite.includes("Sections dimensions: Soutien, Missions, Habitudes"));
   assert(!lite.includes("Construction du Temple"));
   assert(full.includes("Unlock preview"));

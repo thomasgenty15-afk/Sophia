@@ -1,0 +1,270 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "aa7cdd9e-4dd1-4fb0-b502-51fc72e1633c",
+    "scope": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r3"
+  },
+  "target": {
+    "key": "coach.challenge_level",
+    "value": "high",
+    "user": "Je me rends compte que je decroche quand tu me menages trop. La prochaine fois que je floute mes excuses, j'aimerais que tu appuies un peu plus, meme si c'est moins confortable."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Élevé",
+          "value": "high"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "reason": "Je me rends compte que je decroche quand tu me menages trop. La prochaine fois que je floute mes excuses, j'aimerais que tu appuies un peu plus, meme si c'est moins confortable.",
+        "updated_at": "2026-05-16T19:05:00.585+00:00",
+        "last_source_message_id": "c9d95d53-df5d-47eb-bca5-56c9dfc9adb5"
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:04:37.604521+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:00.585+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "230bb9f1-5605-4888-b309-39457f545d96",
+        "role": "user",
+        "content": "Je me rends compte que je decroche quand tu me menages trop. La prochaine fois que je floute mes excuses, j'aimerais que tu appuies un peu plus, meme si c'est moins confortable.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T19:04:38.343133+00:00"
+      },
+      {
+        "id": "1561debb-a5dd-4ca2-a124-25f35a83766b",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: Sophia utilisera un niveau de challenge plus élevé. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.challenge_level": "high"
+                  },
+                  "reason": "Je me rends compte que je decroche quand tu me menages trop. La prochaine fois que je floute mes excuses, j'aimerais que tu appuies un peu plus, meme si c'est moins confortable.",
+                  "summary": "Sophia utilisera un niveau de challenge plus élevé."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: Sophia utilisera un niveau de challenge plus élevé. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "de90e6b5-59d0-4ed1-854d-4f7c41a5e5a9",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-16T19:04:52.49352+00:00"
+      },
+      {
+        "id": "c9d95d53-df5d-47eb-bca5-56c9dfc9adb5",
+        "role": "user",
+        "content": "Oui, applique ce reglage.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T19:04:52.594729+00:00"
+      },
+      {
+        "id": "d7261bf0-bf79-47e6-86f9-8f493c8fbec3",
+        "role": "assistant",
+        "content": "C'est fait. J'ai appliqué cette préférence : Sophia utilisera un niveau de challenge plus élevé.",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch2-challenge-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "de90e6b5-59d0-4ed1-854d-4f7c41a5e5a9",
+              "selected_handler": "update_coach_preferences",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "Oui",
+                  "applique ce reglage"
+                ],
+                "confidence": "high",
+                "generated_user_message": "C'est entendu, j'ai mis à jour tes préférences. Je serai plus exigeante avec toi dorénavant pour t'aider à rester mobilisé."
+              },
+              "preferences_update_id": "coach.challenge_level"
+            }
+          }
+        },
+        "created_at": "2026-05-16T19:05:00.595945+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

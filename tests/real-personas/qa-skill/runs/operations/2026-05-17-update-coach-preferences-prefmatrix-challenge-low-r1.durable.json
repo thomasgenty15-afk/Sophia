@@ -1,0 +1,210 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "97509220-df9c-4d4c-94ce-a8ed8eede901",
+    "scope": "qa-update-coach-preferences-2026-05-17-prefmatrix-challenge-low-r1"
+  },
+  "target": {
+    "key": "coach.challenge_level",
+    "value": "low",
+    "user": "En ce moment, quand tu me pousses fort, je me braque. J'ai besoin que tu gardes le cap mais avec moins de pression dans les relances."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-17T16:14:47.519788+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "d721fa94-cd5c-496e-a670-cbf91c21e2d4",
+        "role": "user",
+        "content": "En ce moment, quand tu me pousses fort, je me braque. J'ai besoin que tu gardes le cap mais avec moins de pression dans les relances.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-challenge-low-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-17T16:14:47.672303+00:00"
+      },
+      {
+        "id": "745e18a8-9a83-4653-b47b-8f02714f00c1",
+        "role": "assistant",
+        "content": "Je comprends, je vais lever le pied. Tu préfères que je passe à un niveau de challenge faible pour plus de douceur, ou que je reste sur un niveau équilibré ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-challenge-low-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "ask_question",
+              "missing_slots": [
+                "desired_value"
+              ],
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-17T16:15:01.798316+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

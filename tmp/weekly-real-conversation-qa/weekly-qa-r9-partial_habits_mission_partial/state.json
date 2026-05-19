@@ -1,0 +1,254 @@
+{
+  "run_id": "weekly-qa-r9-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "d5e4f692-2994-46a9-adda-d9695746aa7a",
+  "email": "qa-weekly-deep-weekly-qa-r9-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r9",
+  "created_at": "2026-05-18T16:50:17.557Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-18T16:50:17.557Z",
+      "user": "Je l'ai vecue en deux parties : debut OK, puis fatigue forte jeudi/vendredi. La mission du signal de pause est commencee a 50%. Je veux une organisation concrete de la semaine prochaine, pas des regles abstraites.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok, je vois le film : début de semaine bien, puis grosse baisse jeudi/vendredi. Et tu as déjà lancé “Convenir d’un signal de pause” à 50%, donc on a un levier clair pour éviter que ça retombe pareil. 😮‍💨\n\nProposition d’organisation concrète pour la semaine prochaine (sans blabla, juste quoi faire) :\n\n1) “Signal de pause” (à finir)\n- Objectif : passer de 50% à 100%.\n- Quand : en 2 micro-séances, une le lundi et une le mercredi (5-10 minutes chacune).\n- Règle simple : dès que tu sens les premiers signes de fatigue, tu déclenches la version “minimum” de ton signal (pas besoin de faire parfait).\n\n2) Habitudes de fin de journée (pour stabiliser)\n- “Respiration de pause” : 2 fois dans la semaine, plutôt les jours où tu sais que tu as tendance à décrocher (souvent fin de semaine). Objectif : garder le rythme, même si c’est court.\n- “Partager un point positif” : 3 fois, idéalement en soirée ou fin de journée, sans forcer le “bon moment” (même un petit truc compte).\n\n3) Ce que je mets en priorité pour éviter le jeudi/vendredi “mur”\n- “Fiche repère de fatigue” : juste une utilisation en milieu de semaine (mercredi) pour te dire “ok là je surveille”. Pas pour te juger, juste pour anticiper.\n\n4) Petit garde-fou\n- Je garde “Convenir d’un signal de pause” comme action n°1 (parce que c’est déjà commencé), et je ne surcharge pas jeudi/vendredi.\n- Si tu sens que tu glisses dès jeudi, tu fais uniquement le minimum : respiration + signal de pause (pas d’ajouts).\n\nDernière question pour que je te fixe un planning hyper concret (jours précis) : jeudi/vendredi, c’était surtout la fatigue physique, ou plutôt mental/emotions qui te tombaient dessus ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r9-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r9-partial_habits_mission_partial-t01",
+        "user_id": "d5e4f692-2994-46a9-adda-d9695746aa7a",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, je vois le film : début de semaine bien, puis grosse baisse jeudi/vendredi. Et tu as déjà lancé “Convenir d’un signal de pause” à 50%, donc on a un levier clair pour éviter que ça retombe pareil. 😮‍💨\n\nProposition d’organisation concrète pour la semaine prochaine (sans blabla, juste quoi faire) :\n\n1) “Signal de pause” (à finir)\n- Objectif : passer de 50% à 100%.\n- Quand : en 2 micro-séances, une le lundi et une le mercredi (5-10 minutes chacune).\n- Règle simple : dès que tu sens les premiers signes de fatigue, tu déclenches la version “minimum” de ton signal (pas besoin de faire parfait).\n\n2) Habitudes de fin de journée (pour stabiliser)\n- “Respiration de pause” : 2 fois dans la semaine, plutôt les jours où tu sais que tu as tendance à décrocher (souvent fin de semaine). Objectif : garder le rythme, même si c’est court.\n- “Partager un point positif” : 3 fois, idéalement en soirée ou fin de journée, sans forcer le “bon moment” (même un petit truc compte).\n\n3) Ce que je mets en priorité pour éviter le jeudi/vendredi “mur”\n- “Fiche repère de fatigue” : juste une utilisation en milieu de semaine (mercredi) pour te dire “ok là je surveille”. Pas pour te juger, juste pour anticiper.\n\n4) Petit garde-fou\n- Je garde “Convenir d’un signal de pause” comme action n°1 (parce que c’est déjà commencé), et je ne surcharge pas jeudi/vendredi.\n- Si tu sens que tu glisses dès jeudi, tu fais uniquement le minimum : respiration + signal de pause (pas d’ajouts).\n\nDernière question pour que je te fixe un planning hyper concret (jours précis) : jeudi/vendredi, c’était surtout la fatigue physique, ou plutôt mental/emotions qui te tombaient dessus ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r9-partial_habits_mission_partial-t01",
+          "user_id": "d5e4f692-2994-46a9-adda-d9695746aa7a",
+          "source_message_id": "898bccdd-d1b5-45e3-8c4d-01c7624961a4",
+          "ts": "2026-05-18T16:50:27.324+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10221,
+            "latency_ms": 4173,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 569,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r9-partial_habits_mission_partial-t01",
+            "user_id": "d5e4f692-2994-46a9-adda-d9695746aa7a",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_questions",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "898bccdd-d1b5-45e3-8c4d-01c7624961a4",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 9719,
+          "created_at": "2026-05-18T16:50:27.325805+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-18T16:50:27.367Z"
+}

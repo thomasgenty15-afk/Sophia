@@ -1,0 +1,4426 @@
+[
+  {
+    "scenario": "defense",
+    "user": {
+      "userId": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+      "email": "qa-qa-skill-all-skills-conv-risk-long-defense-20260514172902@example.com",
+      "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIzOWRkM2MyMy03OGVlLTQzOWQtYWIyYy00ODM4NTJjM2YyMjIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc4NzgzMzQyLCJpYXQiOjE3Nzg3Nzk3NDIsImVtYWlsIjoicWEtcWEtc2tpbGwtYWxsLXNraWxscy1jb252LXJpc2stbG9uZy1kZWZlbnNlLTIwMjYwNTE0MTcyOTAyQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsiYmFzZV9jb25uZWN0aW9uIjoiYWxsX3NraWxscyIsImNvbm5lY3Rpb25fbmFtZSI6ImFsbF9za2lsbHNfY29udl9yaXNrX2xvbmdfZGVmZW5zZV8yMDI2MDUxNDE3MjkwMiIsImNyZWF0ZWRfYnkiOiJydW5fY29udmVyc2F0aW9uX3Jpc2tfbG9uZ18yMDI2XzA1XzE0IiwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwZXJzb25hIjoicWEtc2tpbGwiLCJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl0sInJ1bl9pZCI6IjIwMjYwNTE0MTcyOTAyIiwidGVtcG9yYXJ5X3FhX2Nvbm5lY3Rpb24iOnRydWV9LCJ1c2VyX21ldGFkYXRhIjp7ImJhc2VfY29ubmVjdGlvbiI6ImFsbF9za2lsbHMiLCJjb25uZWN0aW9uX25hbWUiOiJhbGxfc2tpbGxzX2NvbnZfcmlza19sb25nX2RlZmVuc2VfMjAyNjA1MTQxNzI5MDIiLCJjcmVhdGVkX2J5IjoicnVuX2NvbnZlcnNhdGlvbl9yaXNrX2xvbmdfMjAyNl8wNV8xNCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInJ1bl9pZCI6IjIwMjYwNTE0MTcyOTAyIiwidGVtcG9yYXJ5X3FhX2Nvbm5lY3Rpb24iOnRydWV9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzc4Nzc5NzQyfV0sInNlc3Npb25faWQiOiJiZGFkZTA3ZS1kODQ1LTQ2NTYtYTBkYy05YjYxYzc2Mzk5ZWIiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.LhADorri2TQRGigW9ITSusZA_AnXeYTQM7d1qnilnxY"
+    },
+    "raw": [
+      {
+        "turn": 1,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t01-a2",
+        "attempts": 2,
+        "status": 200,
+        "user": "Je suis Nina. Je veux que tu me crées une carte de défense, mais fais simple.",
+        "assistant": "Il me manque l'action ou le moment à protéger. Donne-moi la cible ou décris-la en une phrase.",
+        "ok": true,
+        "selected_handler": "prepare_defense_card",
+        "response_owner": "tool_skill",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t01-a2",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Il me manque l'action ou le moment à protéger. Donne-moi la cible ou décris-la en une phrase.",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t01-a2",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "89aac27f-28f6-4268-9cec-f1e67fbf030b",
+            "ts": "2026-05-14T17:29:16.334+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 4770,
+              "latency_ms": 5805,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 512,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "person",
+                    "type": "entity",
+                    "priority": "medium",
+                    "query_hint": "Nina",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t01-a2",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "person",
+                    "type": "entity",
+                    "priority": "medium",
+                    "query_hint": "Nina",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "89aac27f-28f6-4268-9cec-f1e67fbf030b",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_defense_card",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_defense_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "attachment",
+                "needed": true,
+                "reason": "attachment_missing",
+                "status": "missing",
+                "known_slots": {}
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "attachment",
+                "risk_situation"
+              ],
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 5909,
+            "created_at": "2026-05-14T17:29:16.337537+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 2,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t02-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "C'est pour quand je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+        "assistant": "Il me manque le moment de risque à couvrir. Décris ce qui risque de te faire décrocher.",
+        "ok": true,
+        "selected_handler": "prepare_defense_card",
+        "response_owner": "tool_skill",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=0",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t02-a1",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Il me manque le moment de risque à couvrir. Décris ce qui risque de te faire décrocher.",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t02-a1",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "29288984-77bb-4892-8b7d-bc187b529c4f",
+            "ts": "2026-05-14T17:29:18.97+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 4914,
+              "latency_ms": 2433,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 557,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t02-a1",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "product_question",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=0",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "29288984-77bb-4892-8b7d-bc187b529c4f",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "quand je rentre",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "risk_situation": {
+                      "value": "quand je rentre",
+                      "status": "identified",
+                      "evidence": [
+                        "C'est pour quand je rentre"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_tool_skill_continue",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_defense_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "risk_situation",
+                "needed": true,
+                "reason": "risk_situation_missing",
+                "status": "missing",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "free_risk_context",
+                    "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                    "status": "identified"
+                  }
+                }
+              },
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "risk_situation"
+              ],
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 2496,
+            "created_at": "2026-05-14T17:29:18.975851+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 3,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t03-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Je l'ai déjà dit: quand je rentre chez moi. Je commence à me perdre dans les questions.",
+        "assistant": "Il me manque le moment de risque à couvrir. Décris ce qui risque de te faire décrocher.",
+        "ok": true,
+        "selected_handler": "prepare_defense_card",
+        "response_owner": "tool_skill",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 1.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1;decay=0.55;recovery=0",
+              "contribution": 0.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t03-a1",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Il me manque le moment de risque à couvrir. Décris ce qui risque de te faire décrocher.",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t03-a1",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "0de7bd56-9b12-47ff-b7b0-68035f7b96c4",
+            "ts": "2026-05-14T17:29:22.27+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5057,
+              "latency_ms": 2956,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 594,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "defense_card_creation",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "moment de risque retour maison",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t03-a1",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "defense_card_creation",
+                    "type": "topic",
+                    "priority": "medium",
+                    "query_hint": "moment de risque retour maison",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 1.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1;decay=0.55;recovery=0",
+                    "contribution": 0.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "0de7bd56-9b12-47ff-b7b0-68035f7b96c4",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "quand je rentre chez moi",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_defense_card",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "risk_situation": {
+                      "value": "quand je rentre chez moi",
+                      "status": "identified",
+                      "evidence": [
+                        "quand je rentre chez moi"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_tool_skill_continue",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_defense_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "risk_situation",
+                "needed": true,
+                "reason": "risk_situation_missing",
+                "status": "missing",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "free_risk_context",
+                    "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                    "status": "identified",
+                    "plan_item_id": null
+                  }
+                }
+              },
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "risk_situation"
+              ],
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 2999,
+            "created_at": "2026-05-14T17:29:22.274497+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 4,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t04-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Stop, là ça part dans tous les sens !!! Tu comprends rien et je dois répéter trois fois, c'est n'importe quoi. Repars à zéro: carte de défense pour retour du travail + stress/fatigue + biscuits.",
+        "assistant": "Ok, on repart proprement.\n\nJe note qu'on se concentre sur une carte de défense pour gérer le retour du travail, quand le stress et la fatigue te poussent vers les biscuits. \n\nConfirme-moi si c'est bien ça, ou dis-moi ce qu'il faut ajuster. 🍪",
+        "ok": true,
+        "selected_handler": null,
+        "response_owner": "normal_reply",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 8.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": true,
+              "evidence": "tu comprends rien",
+              "contribution": 3.5
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": true,
+              "evidence": "stop",
+              "contribution": 2.5
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": true,
+              "evidence": "Stop, là ça part dans tous les sens !!! Tu comprends rien et je dois répéter tro",
+              "contribution": 0.7
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6;decay=0.55;recovery=0",
+              "contribution": 0.9
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "system_misunderstanding",
+            "explicit_stop_or_abandon",
+            "typographic_intensity",
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": "Conversation risk reached threshold; reset active skill/tool skill before continuing.",
+          "previous_scores": [
+            0,
+            1,
+            1.6
+          ],
+          "flow_exit_context": {
+            "known_slots": {
+              "phase": "attachment_resolution",
+              "slot_state": {
+                "slot": "risk_situation",
+                "needed": true,
+                "reason": "risk_situation_missing",
+                "status": "missing",
+                "known_slots": {
+                  "attachment": {
+                    "kind": "free_risk_context",
+                    "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                    "status": "identified",
+                    "plan_item_id": null
+                  }
+                }
+              },
+              "missing_slots": [
+                "risk_situation"
+              ],
+              "operation_type": "prepare_defense_card",
+              "operation_input": {
+                "attachment": {
+                  "kind": "free_risk_context",
+                  "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                  "status": "identified",
+                  "plan_item_id": null
+                }
+              }
+            },
+            "reason_codes": [
+              "system_misunderstanding",
+              "explicit_stop_or_abandon",
+              "typographic_intensity",
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "restart_scope": "tool_subskill",
+            "last_user_message": "Stop, là ça part dans tous les sens !!! Tu comprends rien et je dois répéter trois fois, c'est n'importe quoi. Repars à zéro: carte de défense pour retour du travail + stress/fatigue + biscuits.",
+            "pending_confirmation": null,
+            "interrupted_flow_type": "tool_skill",
+            "active_tool_skill_type": "prepare_defense_card",
+            "active_conversation_skill_id": null
+          },
+          "should_exit_flows": true
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t04-a1",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Ok, on repart proprement.\n\nJe note qu'on se concentre sur une carte de défense pour gérer le retour du travail, quand le stress et la fatigue te poussent vers les biscuits. \n\nConfirme-moi si c'est bien ça, ou dis-moi ce qu'il faut ajuster. 🍪",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t04-a1",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "ca8b5fe0-2aec-4440-acc8-e7e5649d53f2",
+            "ts": "2026-05-14T17:29:26.399+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5153,
+              "latency_ms": 2684,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 863,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.autre",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "grignotage biscuits stress fatigue",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t04-a1",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "addictions.autre",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "grignotage biscuits stress fatigue",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {},
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 8.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": true,
+                    "evidence": "tu comprends rien",
+                    "contribution": 3.5
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": true,
+                    "evidence": "stop",
+                    "contribution": 2.5
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": true,
+                    "evidence": "Stop, là ça part dans tous les sens !!! Tu comprends rien et je dois répéter tro",
+                    "contribution": 0.7
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                    "contribution": 0.9
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "system_misunderstanding",
+                  "explicit_stop_or_abandon",
+                  "typographic_intensity",
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": "Conversation risk reached threshold; reset active skill/tool skill before continuing.",
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "flow_exit_context": {
+                  "known_slots": {
+                    "phase": "attachment_resolution",
+                    "slot_state": {
+                      "slot": "risk_situation",
+                      "needed": true,
+                      "reason": "risk_situation_missing",
+                      "status": "missing",
+                      "known_slots": {
+                        "attachment": {
+                          "kind": "free_risk_context",
+                          "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                          "status": "identified",
+                          "plan_item_id": null
+                        }
+                      }
+                    },
+                    "missing_slots": [
+                      "risk_situation"
+                    ],
+                    "operation_type": "prepare_defense_card",
+                    "operation_input": {
+                      "attachment": {
+                        "kind": "free_risk_context",
+                        "title": "je rentre, enfin ce moment-là. Je ne veux pas un conseil, juste rester dans la carte de défense.",
+                        "status": "identified",
+                        "plan_item_id": null
+                      }
+                    }
+                  },
+                  "reason_codes": [
+                    "system_misunderstanding",
+                    "explicit_stop_or_abandon",
+                    "typographic_intensity",
+                    "active_flow_pressure",
+                    "previous_risk"
+                  ],
+                  "restart_scope": "tool_subskill",
+                  "last_user_message": "Stop, là ça part dans tous les sens !!! Tu comprends rien et je dois répéter trois fois, c'est n'importe quoi. Repars à zéro: carte de défense pour retour du travail + stress/fatigue + biscuits.",
+                  "pending_confirmation": null,
+                  "interrupted_flow_type": "tool_skill",
+                  "active_tool_skill_type": "prepare_defense_card",
+                  "active_conversation_skill_id": null
+                },
+                "should_exit_flows": true
+              },
+              "source_message_id": "ca8b5fe0-2aec-4440-acc8-e7e5649d53f2",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "normal_reply_default",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "memory_use_kind": "none",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "normal_reply",
+            "total_latency_ms": 4071,
+            "created_at": "2026-05-14T17:29:26.40181+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 5,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t05-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Oui c'est ça: carte de défense pour retour du travail, stress, fatigue, biscuits. Rien d'autre. On reprend simplement.",
+        "assistant": "Je te propose de creer une carte de defense pour retour du travail + stress/fatigue + risque biscuits: Attendre 10 minutes, respirer, puis choisir la prochaine petite action utile. Tu veux que je la cree ?",
+        "ok": true,
+        "selected_handler": "prepare_defense_card",
+        "response_owner": "tool_skill",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 3.2,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6,8.6;decay=0.55;recovery=1.5",
+              "contribution": 3.2
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6,
+            8.6
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t05-a1",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je te propose de creer une carte de defense pour retour du travail + stress/fatigue + risque biscuits: Attendre 10 minutes, respirer, puis choisir la prochaine petite action utile. Tu veux que je la cree ?",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t05-a1",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "9a377c78-174c-4e0e-8d92-5dadfbf00909",
+            "ts": "2026-05-14T17:29:37.257+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5089,
+              "latency_ms": 10729,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 557,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "sante.alimentation",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "grignotage biscuits stress fatigue retour travail",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t05-a1",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "sante.alimentation",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "grignotage biscuits stress fatigue retour travail",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 3.2,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6,8.6;decay=0.55;recovery=1.5",
+                    "contribution": 3.2
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  8.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "9a377c78-174c-4e0e-8d92-5dadfbf00909",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "retour du travail, stress, fatigue, biscuits",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "prepare_defense_card",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "prepare_defense_card",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "draft": {
+                "draft": {
+                  "title": "Carte de defense - retour du travail + stress/fatigue + risque biscuits",
+                  "trigger": "impulse",
+                  "target_label": "retour du travail + stress/fatigue + biscuits",
+                  "why_it_helps": "La carte prepare une reponse dans le moment de risque, sans culpabiliser.",
+                  "fallback_plan": "Si ca ne suffit pas, reduire les degats et revenir au plan au prochain moment stable.",
+                  "risk_situation": "retour du travail + stress/fatigue + risque biscuits",
+                  "defense_response": "Attendre 10 minutes, respirer, puis choisir la prochaine petite action utile."
+                },
+                "output_schema": "defense_card_draft_v1",
+                "operation_type": "prepare_defense_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose de creer une carte de defense pour retour du travail + stress/fatigue + risque biscuits: Attendre 10 minutes, respirer, puis choisir la prochaine petite action utile. Tu veux que je la cree ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "tool_skill_intent_start",
+              "operation_id": "6ef366d0-bd86-4ca7-b4c4-74a24d3290a0",
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 10776,
+            "created_at": "2026-05-14T17:29:37.259384+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 6,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t06-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Ne la crée pas encore, garde juste ce cadrage et confirme qu'on est repartis proprement.",
+        "assistant": "Ok, je ne crée pas cette carte de défense.",
+        "ok": true,
+        "selected_handler": "cancel",
+        "response_owner": "pending_confirmation",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 3.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6,8.6,3.2;decay=0.55;recovery=0",
+              "contribution": 2.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6,
+            8.6,
+            3.2
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t06-a1",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Ok, je ne crée pas cette carte de défense.",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t06-a1",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "c246074c-4b66-4588-9638-87a6ddba0d83",
+            "ts": "2026-05-14T17:29:39.79+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5466,
+              "latency_ms": 2448,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 559,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "defense_card_drafting",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "cadrage carte de défense retour travail biscuits",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t06-a1",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "defense_card_drafting",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "cadrage carte de défense retour travail biscuits",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 3.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6,8.6,3.2;decay=0.55;recovery=0",
+                    "contribution": 2.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  8.6,
+                  3.2
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "c246074c-4b66-4588-9638-87a6ddba0d83",
+              "tool_skill_intents": [],
+              "confirmation_response": {
+                "kind": "no",
+                "payload_hint": {
+                  "reason": "user_wants_to_hold_draft_without_creating",
+                  "user_message_fragment": "Ne la crée pas encore"
+                },
+                "confidence_band": "high"
+              },
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "confirmation_no",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "pending_confirmation",
+              "memory_use_kind": "none",
+              "selected_handler": "cancel",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "cancelled",
+              "reason_code": "confirmation_no",
+              "operation_id": "6ef366d0-bd86-4ca7-b4c4-74a24d3290a0",
+              "selected_handler": "prepare_defense_card"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "pending_confirmation",
+            "total_latency_ms": 2481,
+            "created_at": "2026-05-14T17:29:39.792414+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 7,
+        "requestId": "qa-conv-risk-long-defense-20260514172902-t07-a3",
+        "attempts": 3,
+        "status": 200,
+        "user": "Ok, merci. Dis-moi juste ce qui a été retenu sans relancer de questions.",
+        "assistant": "Parfait. On est repartis proprement et j’ai retenu exactement ce cadrage :\n\n- Carte de défense pour ton retour du travail\n- Déclencheur : stress + fatigue\n- Piège ciblé : les biscuits\n- Rien d’autre, pas de rajout\n\nVoilà ✅🍪",
+        "ok": true,
+        "selected_handler": "product_help",
+        "response_owner": "product_help",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 0.5,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "1,1.6,8.6,3.2,3.6;decay=0.55;recovery=1.5",
+              "contribution": 0.5
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            1,
+            1.6,
+            8.6,
+            3.2,
+            3.6
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-defense-20260514172902-t07-a3",
+          "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-defense-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Parfait. On est repartis proprement et j’ai retenu exactement ce cadrage :\n\n- Carte de défense pour ton retour du travail\n- Déclencheur : stress + fatigue\n- Piège ciblé : les biscuits\n- Rien d’autre, pas de rajout\n\nVoilà ✅🍪",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-defense-20260514172902-t07-a3",
+            "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+            "source_message_id": "7e058625-41d7-4d4f-bde4-8ee9080075a0",
+            "ts": "2026-05-14T17:29:59.316+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5098,
+              "latency_ms": 2500,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 549,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "carte de défense retour travail biscuits",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "cadrage carte de défense retour travail stress fatigue biscuits",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-defense-20260514172902-t07-a3",
+              "user_id": "39dd3c23-78ee-439d-ab2c-483852c3f222",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "carte de défense retour travail biscuits",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "cadrage carte de défense retour travail stress fatigue biscuits",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "user_asks_for_confirmation_of_recorded_data_and_status",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 0.5,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "1,1.6,8.6,3.2,3.6;decay=0.55;recovery=1.5",
+                    "contribution": 0.5
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  1,
+                  1.6,
+                  8.6,
+                  3.2,
+                  3.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "7e058625-41d7-4d4f-bde4-8ee9080075a0",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "skill_entry_signal",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "memory_use_kind": "none",
+              "selected_handler": "product_help",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": {
+              "output": {
+                "reply": "Carte de defense: Une carte de defense sert quand quelque chose risque de faire derailler l'action: impulsion, piege, pression, evitement ou reaction automatique.\n\nComment l'utiliser: Une carte de defense peut etre generee librement depuis Ressources, ou etre liee au plan depuis une mission ou une habitude. Elle se retrouve ensuite dans Ressources, ou elle peut etre consultee et utilisee. Processus: identifier un moment concret, reperer le piege observable, definir mon geste faisable en moins de 30 secondes, puis prevoir un plan B simple.\n\nCe que ca apporte:\n- Donne une reponse simple pour les moments de risque.\n- Anticipe les pieges concrets.\n\nImportant: une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, on peut aussi en preparer une nouvelle version apres confirmation.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow prepare_defense_card, avec confirmation.",
+                "status": "complete",
+                "skill_id": "product_help",
+                "diagnosis": {
+                  "locations": [
+                    "Dashboard > Plan",
+                    "Dashboard > Ressources"
+                  ],
+                  "feature_id": "resources.defense_card",
+                  "feature_label": "Carte de defense",
+                  "operation_bridge": {
+                    "trigger_phrases": [
+                      "prepare une carte de defense",
+                      "j'ai besoin d'un plan b",
+                      "aide-moi pour le moment ou je risque de craquer"
+                    ],
+                    "skill_or_operation": "prepare_defense_card",
+                    "requires_confirmation": true
+                  }
+                },
+                "state_patch": {
+                  "summary": "Product help answered for resources.defense_card."
+                },
+                "memory_trace": {
+                  "correction_detected": false,
+                  "memory_item_ids_used": [],
+                  "memory_used_for_response": false,
+                  "correction_target_item_ids": []
+                },
+                "response_intent": "explain",
+                "recommendation_need": {
+                  "type": "none",
+                  "needed": false,
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present"
+                  ]
+                },
+                "operation_suggestions": [
+                  {
+                    "reason": "product_help_operation_bridge_available",
+                    "urgency": "medium",
+                    "operation_type": "prepare_defense_card",
+                    "confidence_band": "medium",
+                    "source_skill_id": "product_help",
+                    "operation_input_hint": {},
+                    "requires_user_consent": true
+                  }
+                ]
+              },
+              "reason_code": "skill_entry_signal",
+              "selected_skill_id": "product_help"
+            },
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "product_help",
+            "total_latency_ms": 3860,
+            "created_at": "2026-05-14T17:29:59.319538+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    ]
+  },
+  {
+    "scenario": "reminder",
+    "user": {
+      "userId": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+      "email": "qa-qa-skill-all-skills-conv-risk-long-reminder-20260514172902@example.com",
+      "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI2MDRkMDJjMy1lMjE0LTRkZTAtOWI4Ni03YzdhZjMyYTZlYTAiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc4NzgzMzk5LCJpYXQiOjE3Nzg3Nzk3OTksImVtYWlsIjoicWEtcWEtc2tpbGwtYWxsLXNraWxscy1jb252LXJpc2stbG9uZy1yZW1pbmRlci0yMDI2MDUxNDE3MjkwMkBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7ImJhc2VfY29ubmVjdGlvbiI6ImFsbF9za2lsbHMiLCJjb25uZWN0aW9uX25hbWUiOiJhbGxfc2tpbGxzX2NvbnZfcmlza19sb25nX3JlbWluZGVyXzIwMjYwNTE0MTcyOTAyIiwiY3JlYXRlZF9ieSI6InJ1bl9jb252ZXJzYXRpb25fcmlza19sb25nXzIwMjZfMDVfMTQiLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXSwicnVuX2lkIjoiMjAyNjA1MTQxNzI5MDIiLCJ0ZW1wb3JhcnlfcWFfY29ubmVjdGlvbiI6dHJ1ZX0sInVzZXJfbWV0YWRhdGEiOnsiYmFzZV9jb25uZWN0aW9uIjoiYWxsX3NraWxscyIsImNvbm5lY3Rpb25fbmFtZSI6ImFsbF9za2lsbHNfY29udl9yaXNrX2xvbmdfcmVtaW5kZXJfMjAyNjA1MTQxNzI5MDIiLCJjcmVhdGVkX2J5IjoicnVuX2NvbnZlcnNhdGlvbl9yaXNrX2xvbmdfMjAyNl8wNV8xNCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBlcnNvbmEiOiJxYS1za2lsbCIsInJ1bl9pZCI6IjIwMjYwNTE0MTcyOTAyIiwidGVtcG9yYXJ5X3FhX2Nvbm5lY3Rpb24iOnRydWV9LCJyb2xlIjoiYXV0aGVudGljYXRlZCIsImFhbCI6ImFhbDEiLCJhbXIiOlt7Im1ldGhvZCI6InBhc3N3b3JkIiwidGltZXN0YW1wIjoxNzc4Nzc5Nzk5fV0sInNlc3Npb25faWQiOiJmYWU3MzM5My00ZDBiLTQ1NzgtOWFhNS1mYWNkZmQzZmIzNjEiLCJpc19hbm9ueW1vdXMiOmZhbHNlfQ.5GLqYtWHb_vcuI3dnOr-MYgZxKXoN6qhenj1PXuKv2k"
+    },
+    "raw": [
+      {
+        "turn": 1,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t01-a2",
+        "attempts": 2,
+        "status": 200,
+        "user": "Je veux créer un rappel récurrent, pas juste en parler.",
+        "assistant": "Tu veux ce rappel a quel moment de la journee ?",
+        "ok": true,
+        "selected_handler": "create_recurring_reminder",
+        "response_owner": "tool_skill",
+        "tool_execution": "blocked",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t01-a2",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Tu veux ce rappel a quel moment de la journee ?",
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t01-a2",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "9782b89f-e045-43e1-b4e6-2900fa711c41",
+            "ts": "2026-05-14T17:30:05.962+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 4765,
+              "latency_ms": 2436,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 479,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t01-a2",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "9782b89f-e045-43e1-b4e6-2900fa711c41",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "create_recurring_reminder",
+                  "confidence_band": "high",
+                  "operation_input": {}
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "create_recurring_reminder",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "frequency",
+                "time"
+              ],
+              "selected_handler": "create_recurring_reminder"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 2500,
+            "created_at": "2026-05-14T17:30:05.965286+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 2,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t02-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "C'est pour mon sac du lendemain, tous les soirs. Je veux rester sur le rappel récurrent.",
+        "assistant": "Je n'ai pas assez d'infos pour le creer depuis le chat. Tu peux le regler dans ton espace sur sophia-coach.ai.",
+        "ok": true,
+        "selected_handler": "create_recurring_reminder",
+        "response_owner": "tool_skill",
+        "tool_execution": "failed",
+        "executed_tools": [
+          "create_recurring_reminder"
+        ],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=0",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t02-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je n'ai pas assez d'infos pour le creer depuis le chat. Tu peux le regler dans ton espace sur sophia-coach.ai.",
+            "mode": "companion",
+            "tool_execution": "failed",
+            "executed_tools": [
+              "create_recurring_reminder"
+            ]
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t02-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "03984106-7aa5-4edf-827c-f909dedfa368",
+            "ts": "2026-05-14T17:30:08.215+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 4877,
+              "latency_ms": 2162,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 457,
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t02-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [],
+                "memory_mode": "none",
+                "context_need": "minimal",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "tiny",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=0",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "03984106-7aa5-4edf-827c-f909dedfa368",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_tool_skill_continue",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "create_recurring_reminder",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [
+              {
+                "outcome": "failed",
+                "tool_id": "create_recurring_reminder"
+              }
+            ],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "fallback_dashboard",
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "time"
+              ],
+              "selected_handler": "create_recurring_reminder"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 2196,
+            "created_at": "2026-05-14T17:30:08.218364+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 3,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t03-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Je l'ai déjà dit: rappel récurrent pour préparer mon sac du lendemain. Je commence à être perdu dans les questions.",
+        "assistant": "Je n'ai pas assez d'infos pour le creer depuis le chat. Tu peux le regler dans ton espace sur sophia-coach.ai.",
+        "ok": true,
+        "selected_handler": "create_recurring_reminder",
+        "response_owner": "tool_skill",
+        "tool_execution": "failed",
+        "executed_tools": [
+          "create_recurring_reminder"
+        ],
+        "conversation_risk": {
+          "score": 1.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1;decay=0.55;recovery=0",
+              "contribution": 0.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t03-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Je n'ai pas assez d'infos pour le creer depuis le chat. Tu peux le regler dans ton espace sur sophia-coach.ai.",
+            "mode": "companion",
+            "tool_execution": "failed",
+            "executed_tools": [
+              "create_recurring_reminder"
+            ]
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t03-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "18f90f07-e6f7-42de-93e5-372eb8132e73",
+            "ts": "2026-05-14T17:30:17.536+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 4949,
+              "latency_ms": 9236,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 548,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "rappels récurrents et organisation du soir",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t03-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "rappels récurrents et organisation du soir",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "taxonomy_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "user_lost_in_process_and_frustrated_by_assistant_limitations",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 1.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1;decay=0.55;recovery=0",
+                    "contribution": 0.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "18f90f07-e6f7-42de-93e5-372eb8132e73",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_tool_skill_continue",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "create_recurring_reminder",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [
+              {
+                "outcome": "failed",
+                "tool_id": "create_recurring_reminder"
+              }
+            ],
+            "skill_run": null,
+            "operation_flow_run": {
+              "status": "fallback_dashboard",
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "frequency",
+                "time"
+              ],
+              "selected_handler": "create_recurring_reminder"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 9279,
+            "created_at": "2026-05-14T17:30:17.538349+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 4,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t04-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Stop, là je suis perdu et franchement agacé !!! Tu comprends rien, c'est n'importe quoi: je veux repartir à zéro avec un rappel récurrent tous les soirs à 19h pour préparer mon sac du lendemain.",
+        "assistant": "Ok, on repart proprement. Tu veux un rappel récurrent tous les soirs à 19h (heure de Paris) pour te préparer : faire/organiser ton sac du lendemain. L’action à mettre en place, c’est un rappel à fréquence quotidienne, avec le message “préparer ton sac du lendemain” (ou équivalent). ✅📌\n\nConfirme-moi si c'est bien ça, ou dis-moi ce qu'il faut ajuster.",
+        "ok": true,
+        "selected_handler": null,
+        "response_owner": "normal_reply",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 8.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": true,
+              "evidence": "tu comprends rien",
+              "contribution": 3.5
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": true,
+              "evidence": "stop",
+              "contribution": 2.5
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": true,
+              "evidence": "Stop, là je suis perdu et franchement agacé !!! Tu comprends rien, c'est n'impor",
+              "contribution": 0.7
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6;decay=0.55;recovery=0",
+              "contribution": 0.9
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "system_misunderstanding",
+            "explicit_stop_or_abandon",
+            "typographic_intensity",
+            "active_flow_pressure",
+            "previous_risk"
+          ],
+          "context_summary": "Conversation risk reached threshold; reset active skill/tool skill before continuing.",
+          "previous_scores": [
+            0,
+            1,
+            1.6
+          ],
+          "flow_exit_context": {
+            "known_slots": {
+              "phase": "recurrence_resolution",
+              "missing_slots": [
+                "frequency",
+                "time"
+              ],
+              "operation_type": "create_recurring_reminder",
+              "operation_input": {
+                "message": "Je veux créer un rappel récurrent, pas juste en parler"
+              }
+            },
+            "reason_codes": [
+              "system_misunderstanding",
+              "explicit_stop_or_abandon",
+              "typographic_intensity",
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "restart_scope": "tool_subskill",
+            "last_user_message": "Stop, là je suis perdu et franchement agacé !!! Tu comprends rien, c'est n'importe quoi: je veux repartir à zéro avec un rappel récurrent tous les soirs à 19h pour préparer mon sac du lendemain.",
+            "pending_confirmation": null,
+            "interrupted_flow_type": "tool_skill",
+            "active_tool_skill_type": "create_recurring_reminder",
+            "active_conversation_skill_id": null
+          },
+          "should_exit_flows": true
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t04-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Ok, on repart proprement. Tu veux un rappel récurrent tous les soirs à 19h (heure de Paris) pour te préparer : faire/organiser ton sac du lendemain. L’action à mettre en place, c’est un rappel à fréquence quotidienne, avec le message “préparer ton sac du lendemain” (ou équivalent). ✅📌\n\nConfirme-moi si c'est bien ça, ou dis-moi ce qu'il faut ajuster.",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t04-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "a424508a-3e55-4a53-8f29-2d2d7e7c6bd7",
+            "ts": "2026-05-14T17:30:25.342+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5041,
+              "latency_ms": 6466,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 782,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "rappels et organisation du soir",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [
+                  "L'utilisateur exprime de l'agacement et de la frustration mais sans risque de mise en danger."
+                ],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t04-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "rappels et organisation du soir",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {},
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 8.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": true,
+                    "evidence": "tu comprends rien",
+                    "contribution": 3.5
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": true,
+                    "evidence": "stop",
+                    "contribution": 2.5
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": true,
+                    "evidence": "Stop, là je suis perdu et franchement agacé !!! Tu comprends rien, c'est n'impor",
+                    "contribution": 0.7
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                    "contribution": 0.9
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "system_misunderstanding",
+                  "explicit_stop_or_abandon",
+                  "typographic_intensity",
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": "Conversation risk reached threshold; reset active skill/tool skill before continuing.",
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "flow_exit_context": {
+                  "known_slots": {
+                    "phase": "recurrence_resolution",
+                    "missing_slots": [
+                      "frequency",
+                      "time"
+                    ],
+                    "operation_type": "create_recurring_reminder",
+                    "operation_input": {
+                      "message": "Je veux créer un rappel récurrent, pas juste en parler"
+                    }
+                  },
+                  "reason_codes": [
+                    "system_misunderstanding",
+                    "explicit_stop_or_abandon",
+                    "typographic_intensity",
+                    "active_flow_pressure",
+                    "previous_risk"
+                  ],
+                  "restart_scope": "tool_subskill",
+                  "last_user_message": "Stop, là je suis perdu et franchement agacé !!! Tu comprends rien, c'est n'importe quoi: je veux repartir à zéro avec un rappel récurrent tous les soirs à 19h pour préparer mon sac du lendemain.",
+                  "pending_confirmation": null,
+                  "interrupted_flow_type": "tool_skill",
+                  "active_tool_skill_type": "create_recurring_reminder",
+                  "active_conversation_skill_id": null
+                },
+                "should_exit_flows": true
+              },
+              "source_message_id": "a424508a-3e55-4a53-8f29-2d2d7e7c6bd7",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "normal_reply_default",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "memory_use_kind": "none",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "normal_reply",
+            "total_latency_ms": 7747,
+            "created_at": "2026-05-14T17:30:25.347288+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 5,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t05-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Oui c'est ça: rappel récurrent tous les soirs à 19h, préparer mon sac pour demain. On reprend simplement.",
+        "assistant": "Parfait. Rappel récurrent tous les soirs à 19h pour préparer ton sac du lendemain. ✅📌\n\nTu veux que le texte du rappel soit exactement “Préparer mon sac du lendemain” ou tu préfères une version plus courte ? 😊",
+        "ok": true,
+        "selected_handler": null,
+        "response_owner": "normal_reply",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 3.2,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6,8.6;decay=0.55;recovery=1.5",
+              "contribution": 3.2
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6,
+            8.6
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t05-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Parfait. Rappel récurrent tous les soirs à 19h pour préparer ton sac du lendemain. ✅📌\n\nTu veux que le texte du rappel soit exactement “Préparer mon sac du lendemain” ou tu préfères une version plus courte ? 😊",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t05-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "f768c302-8afb-4345-b1e8-58b78a79ba3d",
+            "ts": "2026-05-14T17:30:29.095+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "demain"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tomorrow"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5108,
+              "latency_ms": 2775,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 524,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "rappel récurrent sac",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent préparer sac",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t05-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "rappel récurrent sac",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent préparer sac",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 3.2,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6,8.6;decay=0.55;recovery=1.5",
+                    "contribution": 3.2
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  8.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "f768c302-8afb-4345-b1e8-58b78a79ba3d",
+              "tool_skill_intents": [],
+              "confirmation_response": {
+                "kind": "yes",
+                "evidence": [
+                  "Oui c'est ça",
+                  "On reprend simplement"
+                ],
+                "confidence_band": "high"
+              },
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "normal_reply_default",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "memory_use_kind": "none",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "normal_reply",
+            "total_latency_ms": 3606,
+            "created_at": "2026-05-14T17:30:29.097744+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 6,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t06-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Ne le crée pas encore, garde juste ce cadrage et confirme qu'on est repartis proprement.",
+        "assistant": "Ok. On est repartis proprement : rappel récurrent tous les soirs à 19h, pour préparer ton sac du lendemain, avec ce message-cadrage. ✅📌\n\nOn ne le crée pas encore. Tu confirmes juste : tu veux “Préparer mon sac du lendemain” tel quel, ou une version plus courte ? 😊",
+        "ok": true,
+        "selected_handler": null,
+        "response_owner": "normal_reply",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 2.6,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": true,
+              "evidence": "0,1,1.6,8.6,3.2;decay=0.55;recovery=0",
+              "contribution": 2.6
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "previous_risk"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0,
+            1,
+            1.6,
+            8.6,
+            3.2
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t06-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Ok. On est repartis proprement : rappel récurrent tous les soirs à 19h, pour préparer ton sac du lendemain, avec ce message-cadrage. ✅📌\n\nOn ne le crée pas encore. Tu confirmes juste : tu veux “Préparer mon sac du lendemain” tel quel, ou une version plus courte ? 😊",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t06-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "3162d98e-84ce-4e39-88ce-32d1975f3903",
+            "ts": "2026-05-14T17:30:32.722+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5158,
+              "latency_ms": 2492,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 508,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "rappel_recurrent_sac_lendemain",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent sac du lendemain 19h",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t06-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "rappel_recurrent_sac_lendemain",
+                    "type": "topic",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent sac du lendemain 19h",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 2.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6,8.6,3.2;decay=0.55;recovery=0",
+                    "contribution": 2.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  8.6,
+                  3.2
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "3162d98e-84ce-4e39-88ce-32d1975f3903",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "normal_reply_default",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "normal_reply",
+              "memory_use_kind": "none",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "normal_reply",
+            "total_latency_ms": 3556,
+            "created_at": "2026-05-14T17:30:32.726149+00:00"
+          },
+          "trace_error": null
+        }
+      },
+      {
+        "turn": 7,
+        "requestId": "qa-conv-risk-long-reminder-20260514172902-t07-a1",
+        "attempts": 1,
+        "status": 200,
+        "user": "Ok merci, ne relance pas le slot filling, confirme juste ce qui est en place.",
+        "assistant": "C’est bon ✅ On est alignés sur le cadrage : rappel récurrent tous les soirs à 19h (heure de Paris) pour te préparer, avec le texte “Préparer mon sac du lendemain” tel quel.\n\nJe ne relance pas le remplissage. 😊",
+        "ok": true,
+        "selected_handler": "product_help",
+        "response_owner": "product_help",
+        "tool_execution": "none",
+        "executed_tools": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "1,1.6,8.6,3.2,2.6;decay=0.55;recovery=1.5",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [
+            1,
+            1.6,
+            8.6,
+            3.2,
+            2.6
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "active_tool_skill_intake": null,
+        "pending_tool_skill_confirmation": null,
+        "body": {
+          "ok": true,
+          "request_id": "qa-conv-risk-long-reminder-20260514172902-t07-a1",
+          "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+          "channel": "web",
+          "scope": "qa-conv-risk-long-reminder-20260514172902",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C’est bon ✅ On est alignés sur le cadrage : rappel récurrent tous les soirs à 19h (heure de Paris) pour te préparer, avec le texte “Préparer mon sac du lendemain” tel quel.\n\nJe ne relance pas le remplissage. 😊",
+            "mode": "companion",
+            "tool_execution": "none",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-conv-risk-long-reminder-20260514172902-t07-a1",
+            "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+            "source_message_id": "3d8e8648-2763-41fa-8561-859ed75506ac",
+            "ts": "2026-05-14T17:30:45.067+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 5195,
+              "latency_ms": 10661,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 534,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent sac du lendemain 19h",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-conv-risk-long-reminder-20260514172902-t07-a1",
+              "user_id": "604d02c3-e214-4de0-9b86-7c7af32a6ea0",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "habitudes.planification",
+                    "type": "domain_key",
+                    "priority": "high",
+                    "query_hint": "rappel récurrent sac du lendemain 19h",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {
+                  "product_help": {
+                    "reason": "user_requests_state_confirmation_and_process_stop",
+                    "detected": true,
+                    "confidence_band": "high"
+                  }
+                },
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "1,1.6,8.6,3.2,2.6;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [
+                  1,
+                  1.6,
+                  8.6,
+                  3.2,
+                  2.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "3d8e8648-2763-41fa-8561-859ed75506ac",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "skill_entry_signal",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "product_help",
+              "memory_use_kind": "none",
+              "selected_handler": "product_help",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": {
+              "output": {
+                "reply": "Initiatives: Une initiative est un message recurrent planifie que j'envoie. Elle contient une instruction, un contexte, une heure, des jours actifs et une destination: Plan actuel ou Base de vie.\n\nComment l'utiliser: Ouvre l'onglet Initiatives. C'est le seul endroit pour creer une initiative independamment d'une potion. Cree ou modifie une initiative en precisant ce que je dois envoyer, pourquoi c'est important, l'heure et les jours actifs.\n\nCe que ca apporte:\n- Installe une presence utile dans le temps.\n- Soutient une transformation sans obliger le user a revenir au dashboard.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow create_or_update_initiative, avec confirmation.",
+                "status": "complete",
+                "skill_id": "product_help",
+                "diagnosis": {
+                  "locations": [
+                    "Dashboard > Initiatives",
+                    "Base de vie > Initiatives"
+                  ],
+                  "feature_id": "initiatives",
+                  "feature_label": "Initiatives",
+                  "operation_bridge": {
+                    "trigger_phrases": [
+                      "cree une initiative",
+                      "programme un rendez-vous recurrent",
+                      "modifie cette initiative",
+                      "mets cette relance dans ma base de vie"
+                    ],
+                    "skill_or_operation": "create_or_update_initiative",
+                    "requires_confirmation": true
+                  }
+                },
+                "state_patch": {
+                  "summary": "Product help answered for initiatives."
+                },
+                "memory_trace": {
+                  "correction_detected": false,
+                  "memory_item_ids_used": [],
+                  "memory_used_for_response": false,
+                  "correction_target_item_ids": []
+                },
+                "response_intent": "explain",
+                "recommendation_need": {
+                  "type": "none",
+                  "needed": false,
+                  "urgency": "none",
+                  "constraints": [
+                    "product_help_does_not_execute_operations",
+                    "operation_bridge_requires_confirmation_when_present"
+                  ]
+                },
+                "operation_suggestions": []
+              },
+              "reason_code": "skill_entry_signal",
+              "selected_skill_id": "product_help"
+            },
+            "operation_flow_run": null,
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "product_help",
+            "total_latency_ms": 12248,
+            "created_at": "2026-05-14T17:30:45.072266+00:00"
+          },
+          "trace_error": null
+        }
+      }
+    ]
+  }
+]

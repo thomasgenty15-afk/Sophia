@@ -1,0 +1,221 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le soir, quand je sens que je vais craquer et zapper le sas, il me faudrait un truc simple a declencher. Pas envie de reflechir, juste un secours rapide.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r1-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle protéger.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r1-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "c79c412b-af83-42be-8109-c3156b1513b8",
+        "ts": "2026-05-13T10:40:08.426+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3372,
+          "latency_ms": 9683,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 417,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "contexte et définition du sas de déchargement pour cet utilisateur",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "stratégies de secours pour les habitudes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r1-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "contexte et définition du sas de déchargement pour cet utilisateur",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "stratégies de secours pour les habitudes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_requests_rescue_protocol_for_habit_friction",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Faire le sas de déchargement",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_defense_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "c79c412b-af83-42be-8109-c3156b1513b8",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_defense_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "attachment",
+            "needed": true,
+            "reason": "attachment_ambiguous",
+            "status": "ambiguous",
+            "candidates": [
+              {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.5,
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+                "matched_tokens": [
+                  "sas"
+                ]
+              },
+              {
+                "kind": "plan_item",
+                "title": "Bilan et ajustement du sas",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.33,
+                "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+                "matched_tokens": [
+                  "sas"
+                ]
+              }
+            ],
+            "known_slots": {
+              "risk_situation": {
+                "label": "craquage du soir"
+              }
+            }
+          },
+          "reason_code": "operation_intent_start",
+          "missing_slots": [
+            "attachment"
+          ],
+          "selected_handler": "prepare_defense_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 9746,
+        "created_at": "2026-05-13T10:40:08.427377+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

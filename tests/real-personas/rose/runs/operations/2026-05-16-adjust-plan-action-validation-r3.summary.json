@@ -1,0 +1,541 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de regarder mon plan, et l'action 'Partager un point positif' me met un peu la pression. Six jours par semaine, dans l'état actuel avec mon copain, ça me paraît trop.",
+    "assistant": "Je comprends tout à fait, six fois par semaine peut sembler beaucoup si le climat est tendu en ce moment. Quelle fréquence te semblerait plus réaliste et moins stressante pour commencer ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "reason_code": "no_active_flow",
+      "active_owner": "none",
+      "resume_policy": "none",
+      "selected_owner": "none"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Deux fois par semaine, ça me semble déjà plus respirable. Et je voudrais que ce soit vraiment léger: juste une phrase neutre ou un merci concret, pas un grand compliment.",
+    "assistant": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus facile à tenir. Pour l'instant, rien n'a été modifié. Je prévois de passer la fréquence de 6 jours à 2 jours par semaine et de simplifier l'exercice : un simple merci concret ou une phrase neutre remplacera l'idée de faire un compliment. Les autres éléments, comme la mise en place du signal de pause, restent tels quels. Est-ce que ce changement te semble plus respirable ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "active_flow_arbitration": {
+      "decision": "continue_active",
+      "reason_code": "active_tool_skill_continue",
+      "active_owner": "tool_skill",
+      "resume_policy": "none",
+      "selected_owner": "tool_skill"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "target_reps": 6,
+            "cadence_label": "6 jours / semaine"
+          },
+          "title": "Ajustement - Partager un point positif",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Partager un point positif\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Partager un point positif",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Deux fois par semaine, ça me semble déjà plus respirable. Et je voudrais que ce soit vraiment léger: juste une phrase neutre ou un merci concret, pas un grand compliment.",
+              "Partager un point positif"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Partager un point positif apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "La fréquence de 6 jours et l'exigence de compliments sont perçues comme trop lourdes et génèrent de la pression dans le contexte relationnel actuel.",
+              "expected_effect": "Une reprise de l'action avec moins de friction et une diminution du sentiment de surcharge.",
+              "why_this_change": "Réduire la cadence à 2 jours et simplifier l'interaction permet de maintenir un rituel de connexion minimal sans déclencher de résistance."
+            },
+            "boundaries": {
+              "explanation": "Le changement est un ajustement local de fréquence et d'intensité pour s'adapter à la fatigue actuelle, sans modifier la direction globale du plan.",
+              "affected_scope": "L'habitude 'Partager un point positif' uniquement.",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Convenir d'un signal de pause",
+                "Faire le point sur le signal de pause",
+                "Cartographier les déclencheurs"
+              ]
+            },
+            "applied_change": {
+              "summary": "Réduction de la fréquence et simplification du contenu de l'habitude de partage positif pour lever le blocage actuel.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "2 jours / semaine, un merci concret ou une phrase neutre.",
+                  "title": "Partager un point positif",
+                  "before": "6 jours / semaine, exprimer une gratitude ou un compliment.",
+                  "reason": "Alléger la charge mentale et la pression émotionnelle pour rendre l'action à nouveau faisable.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "title": "Convenir d'un signal de pause",
+                  "reason": "Cette mission reste prioritaire pour la gestion des tensions et n'est pas impactée par l'allègement de l'habitude."
+                },
+                {
+                  "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                  "kind": "clarification",
+                  "title": "Cartographier les déclencheurs",
+                  "reason": "Le cadre d'analyse reste identique pour la suite du plan."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai réduit la fréquence de l'habitude de partage positif à 2 fois par semaine et simplifié son contenu pour enlever la pression.",
+            "user_message_detailed": "J'ai préparé une modification pour l'habitude 'Partager un point positif' (ID: 9dd77821-b33c-45b3-be5c-ae2766549a6c). Avant, elle demandait une gratitude quotidienne (6j/7). Après modification, elle passera à 2 fois par semaine avec un contenu plus neutre (un merci concret ou une phrase simple). Ce changement vise à réduire la friction émotionnelle immédiate. Les autres missions comme 'Convenir d'un signal de pause' restent inchangées."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est ajusté. L'habitude 'Partager un point positif' est maintenant fixée à 2 fois par semaine, avec un objectif simplifié : un merci ou une phrase neutre suffit. Cela permet de garder le contact sans la pression quotidienne qui te pesait. Tes autres actions, comme le signal de pause, ne bougent pas. Je suis convaincue que ce format plus léger sera bien plus simple à intégrer cette semaine.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus facile à tenir. Pour l'instant, rien n'a été modifié. Je prévois de passer la fréquence de 6 jours à 2 jours par semaine et de simplifier l'exercice : un simple merci concret ou une phrase neutre remplacera l'idée de faire un compliment. Les autres éléments, comme la mise en place du signal de pause, restent tels quels. Est-ce que ce changement te semble plus respirable ?"
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "f84b49f8-2662-4a74-b9b7-e622ca64a8ba",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Avant de valider, tu peux me redire exactement ce qui changerait et ce qui ne bougerait pas ?",
+    "assistant": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Partager un point positif: avant, 6 jours / semaine, exprimer une gratitude ou un compliment.; maintenant, 2 jours / semaine, un merci concret ou une phrase neutre.. Pourquoi: Alléger la charge mentale et la pression émotionnelle pour rendre l'action à nouveau faisable. Ce qui ne change pas: Convenir d'un signal de pause.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "reason_code": "no_active_flow",
+      "active_owner": "none",
+      "resume_policy": "none",
+      "selected_owner": "none"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "draft_review_details",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "f84b49f8-2662-4a74-b9b7-e622ca64a8ba",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "L'utilisateur demande un récapitulatif précis de ce qui change et ce qui reste inchangé avant de valider."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+    "assistant": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus respirable. Je prévois de réduire la fréquence à 3 fois par semaine et d'appliquer ta règle : une phrase simple, sans chercher à faire joli. Rien n'est encore appliqué à ton plan pour le moment. Les autres actions, comme 'Convenir d'un signal de pause', ne seront pas touchées.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "reason_code": "no_active_flow",
+      "active_owner": "none",
+      "resume_policy": "none",
+      "selected_owner": "none"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "medium",
+            "target_reps": 3,
+            "cadence_label": "3 jours / semaine"
+          },
+          "title": "Ajustement - Partager un point positif",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Partager un point positif\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Partager un point positif",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+              "Partager un point positif",
+              "Ajustement de fréquence et de contenu",
+              "ça me paraît trop",
+              "plus respirable"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "reprendre Partager un point positif apres la version mini"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "ajuster le plan de facon minimale",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "La fréquence quotidienne et l'effort de formulation pour le point positif créent un blocage et une sensation de surcharge.",
+              "expected_effect": "Une meilleure adhésion à l'habitude grâce à une baisse de la pression et de la fatigue décisionnelle.",
+              "why_this_change": "Passer à 3 fois par semaine avec une consigne minimaliste lève la barrière à l'entrée tout en préservant l'intention de l'action."
+            },
+            "boundaries": {
+              "explanation": "Seule la fréquence et la règle d'exécution de cette habitude spécifique sont modifiées.",
+              "affected_scope": "L'habitude 'Partager un point positif'",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "objectif global",
+                "autres actions du plan",
+                "structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Allègement de la fréquence et simplification de la consigne pour l'habitude de gratitude.",
+              "changed_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "after": "3 fois par semaine, une phrase simple, sans chercher à faire joli.",
+                  "title": "Partager un point positif",
+                  "before": "6 jours / semaine, exprime une gratitude ou souligne un point positif chaque jour.",
+                  "reason": "Réduction de la friction et de la charge mentale pour favoriser la régularité sans pression.",
+                  "capability": "change_action_frequency"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "title": "Convenir d'un signal de pause",
+                  "reason": "Action ponctuelle maintenue pour la gestion des conflits."
+                },
+                {
+                  "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                  "kind": "clarification",
+                  "title": "Cartographier les déclencheurs",
+                  "reason": "Élément de structure du plan qui reste inchangé."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai réduit la fréquence de 'Partager un point positif' à 3 fois par semaine avec une consigne simplifiée.",
+            "user_message_detailed": "Pour enlever de la pression, je propose de modifier 'Partager un point positif' : la fréquence passe de 6 jours à 3 fois par semaine, et la consigne devient 'une phrase simple, sans chercher à faire joli'. Les autres éléments comme 'Convenir d'un signal de pause' restent inchangés. C'est un ajustement ciblé pour rendre l'habitude plus durable et moins intimidante."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused",
+            "target_reps",
+            "cadence_label"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai mis à jour ton plan. L'habitude 'Partager un point positif' est maintenant fixée à 3 fois par semaine, avec la consigne simplifiée : une phrase simple, sans chercher à faire joli. Ce changement réduit la pression immédiate tout en gardant l'essentiel de la démarche. Tes autres missions restent inchangées. Je suis convaincu que cette version plus légère sera plus facile à maintenir sur la durée.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus respirable. Je prévois de réduire la fréquence à 3 fois par semaine et d'appliquer ta règle : une phrase simple, sans chercher à faire joli. Rien n'est encore appliqué à ton plan pour le moment. Les autres actions, comme 'Convenir d'un signal de pause', ne seront pas touchées."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "779d55cb-9508-4860-84a7-7b6da18a69c3",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "L'utilisateur demande une modification précise de la fréquence (3 fois au lieu de 2) et confirme la contrainte de style."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "f84b49f8-2662-4a74-b9b7-e622ca64a8ba"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Donc ça ne touche pas au signal de pause, et ça remplace bien seulement l'habitude du point positif ? Je ne veux pas refaire tout le niveau.",
+    "assistant": "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:\n\n1. Partager un point positif: avant, 6 jours / semaine, exprime une gratitude ou souligne un point positif chaque jour.; maintenant, 3 fois par semaine, une phrase simple, sans chercher à faire joli.. Pourquoi: Réduction de la friction et de la charge mentale pour favoriser la régularité sans pression. Ce qui ne change pas: Convenir d'un signal de pause.\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "reason_code": "no_active_flow",
+      "active_owner": "none",
+      "resume_policy": "none",
+      "selected_owner": "none"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "draft_review_details",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "779d55cb-9508-4860-84a7-7b6da18a69c3",
+      "selected_handler": "adjust_plan_item",
+      "draft_review_decision": {
+        "decision": "explain",
+        "evidence": [
+          "L'utilisateur demande une confirmation explicite des limites du brouillon (ce qui change vs ce qui ne change pas)."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r3-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, applique cet ajustement: 3 fois par semaine, phrase simple, et le reste du niveau inchangé.",
+    "assistant": "J'ai mis à jour ton plan. L'habitude 'Partager un point positif' est maintenant fixée à 3 fois par semaine, avec la consigne simplifiée : une phrase simple, sans chercher à faire joli. Ce changement réduit la pression immédiate tout en gardant l'essentiel de la démarche. Tes autres missions restent inchangées. Je suis convaincu que cette version plus légère sera plus facile à maintenir sur la durée.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "active_flow_arbitration": {
+      "decision": "none",
+      "reason_code": "no_active_flow",
+      "active_owner": "none",
+      "resume_policy": "none",
+      "selected_owner": "none"
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "779d55cb-9508-4860-84a7-7b6da18a69c3",
+      "plan_patch_id": "b7a70e7f-2c74-4ad0-a6a7-c83c1abc9e86",
+      "selected_handler": "adjust_plan_item",
+      "bridge_plan_item_id": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

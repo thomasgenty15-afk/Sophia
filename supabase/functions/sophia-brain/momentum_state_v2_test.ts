@@ -6,6 +6,7 @@ import type {
 } from "../_shared/v2-types.ts";
 import type { PlanItemRuntimeRow } from "../_shared/v2-runtime.ts";
 import {
+  consolidateMomentumStateV2,
   deriveMomentumFromSnapshotV2,
   MOMENTUM_STATE_V2_KEY,
   type MomentumConsolidationSnapshotV2,
@@ -98,6 +99,132 @@ function makeSnapshot(
 
 function freshV2(): StoredMomentumV2 {
   return readMomentumStateV2({});
+}
+
+type MockTableRows = Record<string, Record<string, unknown>[]>;
+
+class MockSupabaseQuery {
+  private filters: Array<(row: Record<string, unknown>) => boolean> = [];
+  private limitCount: number | null = null;
+
+  constructor(private readonly rows: Record<string, unknown>[]) {}
+
+  select() {
+    return this;
+  }
+
+  eq(column: string, value: unknown) {
+    this.filters.push((row) => row[column] === value);
+    return this;
+  }
+
+  gte(column: string, value: unknown) {
+    const ref = String(value ?? "");
+    this.filters.push((row) => String(row[column] ?? "") >= ref);
+    return this;
+  }
+
+  order() {
+    return this;
+  }
+
+  limit(count: number) {
+    this.limitCount = count;
+    return this;
+  }
+
+  async maybeSingle() {
+    const data = this.executeRows()[0] ?? null;
+    return { data, error: null };
+  }
+
+  then(
+    resolve: (value: unknown) => unknown,
+    reject?: (reason: unknown) => unknown,
+  ) {
+    return Promise.resolve({ data: this.executeRows(), error: null }).then(
+      resolve,
+      reject,
+    );
+  }
+
+  private executeRows() {
+    let out = this.rows.filter((row) =>
+      this.filters.every((filter) => filter(row))
+    );
+    if (this.limitCount != null) out = out.slice(0, this.limitCount);
+    return out;
+  }
+}
+
+function makeMockSupabase(tables: MockTableRows) {
+  return {
+    from(table: string) {
+      return new MockSupabaseQuery(tables[table] ?? []);
+    },
+  };
+}
+
+function makeRuntimeTables(entryKinds: UserPlanItemEntryRow["entry_kind"][]) {
+  const now = "2026-03-24T09:00:00.000Z";
+  const planItem = makePlanItemRuntime("m1", {
+    recent_entries: [],
+    last_entry_at: null,
+  });
+  const entries = entryKinds.map((kind, index) => ({
+    ...makeEntry("m1", kind),
+    id: `entry-${index + 1}`,
+    created_at: `2026-03-24T08:0${index}:00.000Z`,
+    effective_at: `2026-03-24T08:0${index}:00.000Z`,
+  }));
+
+  return {
+    user_cycles: [{
+      id: "cycle-1",
+      user_id: "user-1",
+      status: "active",
+      active_transformation_id: "t-1",
+      updated_at: now,
+    }],
+    user_transformations: [{
+      id: "t-1",
+      user_id: "user-1",
+      cycle_id: "cycle-1",
+      status: "active",
+      activated_at: now,
+      updated_at: now,
+    }],
+    user_plans_v2: [{
+      id: "plan-1",
+      user_id: "user-1",
+      cycle_id: "cycle-1",
+      transformation_id: "t-1",
+      status: "active",
+      content: null,
+      activated_at: now,
+      updated_at: now,
+    }],
+    user_metrics: [],
+    user_plan_items: [planItem],
+    user_plan_item_entries: entries,
+    profiles: [],
+    chat_messages: [
+      {
+        user_id: "user-1",
+        scope: "web",
+        role: "user",
+        content: "J'ai avance sur l'action et je garde le fil",
+        created_at: "2026-03-24T07:00:00.000Z",
+      },
+      {
+        user_id: "user-1",
+        scope: "web",
+        role: "user",
+        content: "Je continue, j'ai un resultat concret",
+        created_at: "2026-03-24T08:00:00.000Z",
+      },
+    ],
+  } satisfies MockTableRows;
 }
 
 // ── 6 public states ─────────────────────────────────────────────────────────
@@ -343,4 +470,42 @@ Deno.test("V2 plan_fit: active item without entry becomes zombie only after 7 da
     toPublicMomentumV2(result).dimensions.plan_fit.reason,
     "multiple_zombie_items",
   );
+});
+
+Deno.test("V2 watcher consolidation reads runtime entries and reacts when repetitions move", async () => {
+  const positive = await consolidateMomentumStateV2({
+    supabase: makeMockSupabase(
+      makeRuntimeTables(["checkin", "progress", "partial"]),
+    ) as any,
+    userId: "user-1",
+    scope: "web",
+    tempMemory: {},
+    nowIso: "2026-03-24T09:00:00.000Z",
+  });
+
+  assertEquals(positive.dimensions.execution_traction.level, "up");
+  assertEquals(
+    positive.dimensions.execution_traction.reason,
+    "majority_positive_entries",
+  );
+  assertEquals(positive.current_state, "momentum");
+  assertEquals(positive.posture.recommended_posture, "push_lightly");
+
+  const negative = await consolidateMomentumStateV2({
+    supabase: makeMockSupabase(
+      makeRuntimeTables(["skip", "blocker", "skip"]),
+    ) as any,
+    userId: "user-1",
+    scope: "web",
+    tempMemory: positive,
+    nowIso: "2026-03-24T10:00:00.000Z",
+  });
+
+  assertEquals(negative.dimensions.execution_traction.level, "down");
+  assertEquals(
+    negative.dimensions.execution_traction.reason,
+    "majority_negative_entries",
+  );
+  assertEquals(negative.current_state, "friction_legere");
+  assertEquals(negative.posture.recommended_posture, "simplify");
 });

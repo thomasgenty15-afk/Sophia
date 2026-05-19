@@ -39,10 +39,12 @@ const TOOL_RECOMMENDATION_CATEGORY_ENUM = z.enum(
   ],
 );
 
-const TOOL_TYPE_ENUM = z.enum(["app", "product"] satisfies [
-  ToolRecommendationType,
-  ToolRecommendationType,
-]);
+const TOOL_TYPE_ENUM = z.enum(
+  ["app", "product"] satisfies [
+    ToolRecommendationType,
+    ToolRecommendationType,
+  ],
+);
 
 const SOPHIA_OVERLAP_RISK_ENUM = z.enum(["low", "medium", "high"]);
 
@@ -88,15 +90,19 @@ const LEVEL_RECOMMENDATION_SCHEMA = z.object({
   if (value.recommendations.length === 0 && !value.no_recommendation_reason) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "no_recommendation_reason is required when recommendations is empty",
+      message:
+        "no_recommendation_reason is required when recommendations is empty",
       path: ["no_recommendation_reason"],
     });
   }
 
-  if (value.recommendations.length > 0 && value.no_recommendation_reason !== null) {
+  if (
+    value.recommendations.length > 0 && value.no_recommendation_reason !== null
+  ) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "no_recommendation_reason must be null when recommendations are present",
+      message:
+        "no_recommendation_reason must be null when recommendations are present",
       path: ["no_recommendation_reason"],
     });
   }
@@ -164,16 +170,21 @@ export async function loadLevelToolRecommendationPlanContext(args: {
   planRow: UserPlanV2Row;
   plan: PlanContentV3;
 }> {
-  const { data: transformationData, error: transformationError } = await args.admin
+  const { data: transformationData, error: transformationError } = await args
+    .admin
     .from("user_transformations")
     .select("*")
     .eq("id", args.transformationId)
     .maybeSingle();
 
   if (transformationError) {
-    throw new LevelToolRecommendationsV1Error(500, "Failed to load transformation", {
-      cause: transformationError,
-    });
+    throw new LevelToolRecommendationsV1Error(
+      500,
+      "Failed to load transformation",
+      {
+        cause: transformationError,
+      },
+    );
   }
   if (!transformationData) {
     throw new LevelToolRecommendationsV1Error(404, "Transformation not found");
@@ -193,7 +204,10 @@ export async function loadLevelToolRecommendationPlanContext(args: {
     });
   }
   if (!cycleData) {
-    throw new LevelToolRecommendationsV1Error(404, "Cycle not found for this user");
+    throw new LevelToolRecommendationsV1Error(
+      404,
+      "Cycle not found for this user",
+    );
   }
 
   const { data: planData, error: planError } = await args.admin
@@ -207,9 +221,13 @@ export async function loadLevelToolRecommendationPlanContext(args: {
     .maybeSingle();
 
   if (planError) {
-    throw new LevelToolRecommendationsV1Error(500, "Failed to load active plan", {
-      cause: planError,
-    });
+    throw new LevelToolRecommendationsV1Error(
+      500,
+      "Failed to load active plan",
+      {
+        cause: planError,
+      },
+    );
   }
   if (!planData) {
     throw new LevelToolRecommendationsV1Error(
@@ -317,7 +335,9 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim());
+    parsed = JSON.parse(
+      raw.replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim(),
+    );
   } catch (error) {
     throw new LevelToolRecommendationsV1Error(
       500,
@@ -335,12 +355,17 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
     );
   }
 
-  const normalizedLevels = normalizeLevelsOutput(validation.data.levels, eligibleLevels);
+  const normalizedLevels = normalizeLevelsOutput(
+    validation.data.levels,
+    eligibleLevels,
+  );
   console.info("[level-tools][llm_validated]", {
     request_id: args.requestId,
     transformation_id: args.transformation.id,
     plan_id: args.planRow.id,
-    returned_level_orders: validation.data.levels.map((entry) => entry.target_level_order),
+    returned_level_orders: validation.data.levels.map((entry) =>
+      entry.target_level_order
+    ),
     normalized: normalizedLevels.map((entry) => ({
       target_level_order: entry.target_level_order,
       recommendation_count: entry.recommendations.length,
@@ -393,7 +418,9 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
   const levelSummaries: LevelToolRecommendationState["levels"] = [];
 
   for (const levelOutput of normalizedLevels) {
-    const activeRows = [...(activeByLevel.get(levelOutput.target_level_order) ?? [])]
+    const activeRows = [
+      ...(activeByLevel.get(levelOutput.target_level_order) ?? []),
+    ]
       .sort((a, b) => a.priority_rank - b.priority_rank);
     const nextSnapshot = buildLevelSnapshot(levelOutput.phase);
     const sameLevelState = activeRows.length > 0 &&
@@ -404,7 +431,10 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
         areLevelSnapshotsEqual(row.level_snapshot, nextSnapshot)
       );
 
-    if (sameLevelState && areRecommendationSetsEquivalent(activeRows, levelOutput.recommendations)) {
+    if (
+      sameLevelState &&
+      areRecommendationSetsEquivalent(activeRows, levelOutput.recommendations)
+    ) {
       console.info("[level-tools][level_unchanged]", {
         request_id: args.requestId,
         transformation_id: args.transformation.id,
@@ -417,7 +447,9 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
         target_level_id: levelOutput.phase.phase_id,
         target_level_order: levelOutput.phase.phase_order,
         recommendation_count: activeRows.length,
-        no_recommendation_reason: activeRows.length === 0 ? levelOutput.no_recommendation_reason : null,
+        no_recommendation_reason: activeRows.length === 0
+          ? levelOutput.no_recommendation_reason
+          : null,
       });
       continue;
     }
@@ -577,7 +609,9 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
     });
   }
 
-  const nextLevelOrders = new Set(normalizedLevels.map((entry) => entry.target_level_order));
+  const nextLevelOrders = new Set(
+    normalizedLevels.map((entry) => entry.target_level_order),
+  );
   const removedActiveRows = existingRecommendations.filter((row) =>
     row.is_active && !nextLevelOrders.has(row.target_level_order)
   );
@@ -594,7 +628,9 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
       transformation_id: args.transformation.id,
       plan_id: args.planRow.id,
       removed_count: removedActiveRows.length,
-      removed_level_orders: [...new Set(removedActiveRows.map((row) => row.target_level_order))],
+      removed_level_orders: [
+        ...new Set(removedActiveRows.map((row) => row.target_level_order)),
+      ],
     });
   }
 
@@ -604,14 +640,19 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
     plan_version: args.planRow.version,
     plan_updated_at: args.planRow.updated_at,
     generated_at: now,
-    levels: levelSummaries.sort((a, b) => a.target_level_order - b.target_level_order),
+    levels: levelSummaries.sort((a, b) =>
+      a.target_level_order - b.target_level_order
+    ),
   };
 
   const latestHandoffPayload = await loadLatestTransformationHandoffPayload({
     admin: args.admin,
     transformationId: args.transformation.id,
   });
-  const nextHandoffPayload = mergeLevelToolRecommendationState(latestHandoffPayload, state);
+  const nextHandoffPayload = mergeLevelToolRecommendationState(
+    latestHandoffPayload,
+    state,
+  );
   const { error: handoffError } = await args.admin
     .from("user_transformations")
     .update({
@@ -638,7 +679,8 @@ export async function classifyAndPersistLevelToolRecommendations(args: {
 
   return {
     recommendations: persistedRows.sort((a, b) =>
-      a.target_level_order - b.target_level_order || a.priority_rank - b.priority_rank
+      a.target_level_order - b.target_level_order ||
+      a.priority_rank - b.priority_rank
     ),
     state,
   };
@@ -688,7 +730,8 @@ async function supersedeLevelRecommendations(args: {
   newRecommendationIdsByRank: Map<number, string>;
 }) {
   for (const row of args.rows) {
-    const supersededById = args.newRecommendationIdsByRank.get(row.priority_rank) ?? null;
+    const supersededById =
+      args.newRecommendationIdsByRank.get(row.priority_rank) ?? null;
     const { error } = await args.admin
       .from("user_level_tool_recommendations")
       .update({
@@ -755,8 +798,13 @@ async function insertLevelToolRecommendationEvent(args: {
   }
 }
 
-function normalizeLevelsOutput(levels: LevelRecommendationOutput[], eligibleLevels: EligibleLevel[]) {
-  const outputByOrder = new Map(levels.map((entry) => [entry.target_level_order, entry]));
+function normalizeLevelsOutput(
+  levels: LevelRecommendationOutput[],
+  eligibleLevels: EligibleLevel[],
+) {
+  const outputByOrder = new Map(
+    levels.map((entry) => [entry.target_level_order, entry]),
+  );
 
   return eligibleLevels.map((level) => {
     const raw = outputByOrder.get(level.phase_order);
@@ -764,7 +812,8 @@ function normalizeLevelsOutput(levels: LevelRecommendationOutput[], eligibleLeve
       return {
         target_level_order: level.phase_order,
         target_level_id: level.phase_id,
-        no_recommendation_reason: "Aucun outil n'atteint le seuil de confiance requis pour ce niveau.",
+        no_recommendation_reason:
+          "Aucun outil n'atteint le seuil de confiance requis pour ce niveau.",
         recommendations: [],
         phase: level,
       };
@@ -803,7 +852,8 @@ function containsBlockedOverlap(value: {
   reason: string;
   why_this_level: string;
 }) {
-  const haystack = `${value.display_name}\n${value.reason}\n${value.why_this_level}`;
+  const haystack =
+    `${value.display_name}\n${value.reason}\n${value.why_this_level}`;
   return BLOCKED_OVERLAP_PATTERNS.some((pattern) => pattern.test(haystack));
 }
 
@@ -865,7 +915,9 @@ function areRecommendationSetsEquivalent(
   if (existingRows.length !== nextRecommendations.length) return false;
 
   for (const existing of existingRows) {
-    const next = nextRecommendations.find((entry) => entry.priority_rank === existing.priority_rank);
+    const next = nextRecommendations.find((entry) =>
+      entry.priority_rank === existing.priority_rank
+    );
     if (!next) return false;
     if (
       existing.tool_type !== next.tool_type ||
@@ -912,7 +964,9 @@ function buildLevelToolRecommendationUserPrompt(input: {
   plan: PlanContentV3;
   planRow: UserPlanV2Row;
 }): string {
-  const onboardingV2 = extractOnboardingV2Payload(input.transformation.handoff_payload);
+  const onboardingV2 = extractOnboardingV2Payload(
+    input.transformation.handoff_payload,
+  );
   const levelContexts = getEligibleLevels(input.plan)
     .map((phase) => ({
       target_level_order: phase.phase_order,
@@ -927,11 +981,24 @@ function buildLevelToolRecommendationUserPrompt(input: {
 
   return `## Transformation
 
-- Title: ${String(input.transformation.title ?? input.plan.title).trim() || "Untitled transformation"}
+- Title: ${
+    String(input.transformation.title ?? input.plan.title).trim() ||
+    "Untitled transformation"
+  }
 - User summary: ${input.transformation.user_summary}
 - Internal summary: ${input.transformation.internal_summary}
-- Success definition: ${String(input.transformation.success_definition ?? input.plan.strategy.success_definition).trim() || "Not provided"}
-- Main constraint: ${String(input.transformation.main_constraint ?? input.plan.strategy.main_constraint).trim() || "Not provided"}
+- Success definition: ${
+    String(
+      input.transformation.success_definition ??
+        input.plan.strategy.success_definition,
+    ).trim() || "Not provided"
+  }
+- Main constraint: ${
+    String(
+      input.transformation.main_constraint ??
+        input.plan.strategy.main_constraint,
+    ).trim() || "Not provided"
+  }
 
 ## Plan metadata
 
@@ -941,19 +1008,31 @@ function buildLevelToolRecommendationUserPrompt(input: {
 
 ## Existing classification hints
 
-${JSON.stringify({
-    plan_type_classification: onboardingV2.plan_type_classification ?? null,
-    questionnaire_context: onboardingV2.questionnaire_context ?? null,
-    professional_support: onboardingV2.professional_support ?? null,
-  }, null, 2)}
+${
+    JSON.stringify(
+      {
+        plan_type_classification: onboardingV2.plan_type_classification ?? null,
+        questionnaire_context: onboardingV2.questionnaire_context ?? null,
+        professional_support: onboardingV2.professional_support ?? null,
+      },
+      null,
+      2,
+    )
+  }
 
 ## User profile snapshot
 
-${JSON.stringify({
-    birth_date_snapshot: input.cycle.birth_date_snapshot ?? null,
-    gender_snapshot: input.cycle.gender_snapshot ?? null,
-    pace_preference: input.cycle.requested_pace ?? null,
-  }, null, 2)}
+${
+    JSON.stringify(
+      {
+        birth_date_snapshot: input.cycle.birth_date_snapshot ?? null,
+        gender_snapshot: input.cycle.gender_snapshot ?? null,
+        pace_preference: input.cycle.requested_pace ?? null,
+      },
+      null,
+      2,
+    )
+  }
 
 ## Levels that can receive tool recommendations
 
@@ -981,9 +1060,9 @@ function getEligibleLevels(plan: PlanContentV3): EligibleLevel[] {
     });
   }
 
-  const currentLevelOrder = plan.current_level_runtime?.level_order
-    ?? plan.phases[0]?.phase_order
-    ?? 1;
+  const currentLevelOrder = plan.current_level_runtime?.level_order ??
+    plan.phases[0]?.phase_order ??
+    1;
   for (const level of plan.plan_blueprint?.levels ?? []) {
     const displayOrder = getDisplayLevelOrder(level.level_order);
     if (displayOrder < 2) continue;
@@ -999,7 +1078,9 @@ function getEligibleLevels(plan: PlanContentV3): EligibleLevel[] {
       why_this_now: level.preview_summary ?? null,
       how_this_phase_works: level.intention,
       duration_guidance: level.estimated_duration_weeks
-        ? `${level.estimated_duration_weeks} semaine${level.estimated_duration_weeks > 1 ? "s" : ""}`
+        ? `${level.estimated_duration_weeks} semaine${
+          level.estimated_duration_weeks > 1 ? "s" : ""
+        }`
         : null,
     });
   }
@@ -1020,7 +1101,10 @@ async function persistLevelToolRecommendationState(args: {
     admin: args.admin,
     transformationId: args.transformationId,
   });
-  const nextHandoffPayload = mergeLevelToolRecommendationState(latestHandoffPayload, args.state);
+  const nextHandoffPayload = mergeLevelToolRecommendationState(
+    latestHandoffPayload,
+    args.state,
+  );
   const { error } = await args.admin
     .from("user_transformations")
     .update({
@@ -1089,6 +1173,7 @@ Rules:
 - No more than 2 recommendations per level.
 - priority_rank must be unique inside each level and start at 1.
 - sophia_overlap_risk must be "low" for every recommendation.
+- If reason, why_this_level, or no_recommendation_reason can be shown to the user, write them in French tutoiement. Use "vous", "votre", or "vos" only when explicitly talking about the couple or several people, never to address the user directly.
 - why_this_level must explain why this tool helps execute this specific level now.
 - no_recommendation_reason is required when a level gets 0 tools.
 

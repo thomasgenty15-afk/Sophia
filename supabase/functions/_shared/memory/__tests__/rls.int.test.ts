@@ -19,7 +19,7 @@ const MIGRATIONS = [
   "20260501091100_add_fk_extraction_run_id.sql",
   "20260501091200_create_memory_v2_updated_at_triggers.sql",
   "20260501091400_schedule_memory_v2_topic_compaction.sql",
-  "20260504090000_drop_legacy_memory_v1.sql",
+  "20260504090000_drop_memory_v1.sql",
 ] as const;
 
 const USER_SCOPED_TABLES = [
@@ -142,9 +142,9 @@ Deno.test("Memory V2 updated_at triggers cover mutable V2 tables", async () => {
   }
 });
 
-Deno.test("Memory V2-only cleanup drops legacy V1 surfaces", async () => {
+Deno.test("Memory V2-only cleanup drops V1 surfaces", async () => {
   const sql = await readMigration(
-    "20260504090000_drop_legacy_memory_v1.sql",
+    "20260504090000_drop_memory_v1.sql",
   );
   assertStringIncludes(sql, "drop table if exists public.user_global_memories");
   assertStringIncludes(sql, "drop table if exists public.user_event_memories");

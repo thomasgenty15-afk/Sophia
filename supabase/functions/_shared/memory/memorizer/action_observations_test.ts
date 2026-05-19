@@ -3,6 +3,7 @@ import {
   buildActionLinkFromOccurrences,
   buildActionObservationItem,
   buildPossiblePatternObservation,
+  buildStructuredActionObservationItems,
   detectActionObservationPattern,
   shouldMaterializePossiblePattern,
 } from "./action_observations.ts";
@@ -108,6 +109,40 @@ Deno.test("action observation item links occurrences without materializing a pat
   );
 });
 
+Deno.test("structured action observations are built from canonical daily entries", () => {
+  const items = buildStructuredActionObservationItems({
+    source_message_ids: ["msg-daily-1"],
+    source: "daily_action_review_v1",
+    plan_signals: [{
+      plan_item_id: "plan-focus",
+      title: "Session focus",
+      kind: "habit",
+      dimension: "habits",
+      action_family_key: "habit:focus",
+      occurrence_ids: ["entry-1"],
+      observation_window_start: "2026-05-11T12:00:00Z",
+      observation_window_end: "2026-05-11T12:00:00Z",
+      action_variant: {
+        recent_entry_outcomes: [{
+          outcome: "missed",
+          entry_kind: "habit_checkin",
+          effective_at: "2026-05-11T12:00:00Z",
+        }],
+      },
+    }],
+  });
+
+  assertEquals(items.length, 1);
+  assertEquals(items[0].kind, "action_observation");
+  assertEquals(items[0].metadata?.source_event_log, true);
+  assertEquals(
+    items[0].metadata?.structured_extraction_source,
+    "daily_action_review_v1",
+  );
+  assertEquals(items[0].metadata?.action_family_key, "habit:focus");
+  assertEquals(items[0].metadata?.occurrence_ids, ["entry-1"]);
+});
+
 Deno.test("possible_pattern needs at least three observations across two weeks", () => {
   const observations = [
     {
@@ -140,6 +175,11 @@ Deno.test("possible_pattern needs at least three observations across two weeks",
     iso_week_key: "2026-W16",
   });
   assertEquals(pattern?.metadata.observation_role, "possible_pattern");
+  assertEquals(pattern?.metadata.memory_type, "action_execution_profile");
+  assertEquals(
+    pattern?.metadata.structured_extraction_source,
+    "weekly_adaptive_review_v1",
+  );
   assertEquals(
     pattern?.canonical_key,
     "action_possible_pattern:plan-walk:2026-W16",

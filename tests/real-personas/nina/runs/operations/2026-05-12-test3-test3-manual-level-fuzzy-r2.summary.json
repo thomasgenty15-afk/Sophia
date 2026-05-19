@@ -1,0 +1,388 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "assistant": "Ah ouais, ça sature quand c’est “trop lourd” ET que les grignotages prennent la place. 😅 Je te propose de ne pas “annuler ta semaine”, juste de la rendre digeste.\n\nFais simple, tout de suite, en mode allègement :\n1) Ce que tu grignotes en ce moment, tu le gardes mais tu le rends cadré: 1 portion, à une heure précise, pas en continu.\n2) Tu réduis le plan d’1 cran pour cette semaine : soit tu gardes les grignotages “autorisés” mais tu enlèves 1 truc de mission/charge mentale, soit tu gardes les missions mais tu passes en “minimum vital” sur l’alimentation.\n\nDis-moi juste un truc : tes grignotages, c’est plutôt le soir, le milieu de l’aprem, ou dès que tu es fatigué(e)/stressé(e) ? 🍫",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "target_ambiguous",
+        "target_hint": "grignotages",
+        "user_intent": "adjust",
+        "explicitness": "implicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": {
+      "output": {
+        "reply": "On ne va pas modifier ton plan juste parce que tu as un moment de decrochage. D'abord, je veux comprendre ce qui bloque: energie trop basse, premiere etape floue, ou peur de refaire le meme schema ?",
+        "status": "continue",
+        "skill_id": "demotivation_repair",
+        "diagnosis": {
+          "motivation_state": "unclear"
+        },
+        "state_patch": {
+          "summary": "Demotivation diagnosis: unclear."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "motivation_diagnosis",
+        "recommendation_need": {
+          "type": "motivation_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "no_moralizing",
+            "prefer_attack_card_over_plan_edit",
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "demotivation_state_regulation_before_action",
+            "urgency": "medium",
+            "operation_type": "select_state_potion",
+            "confidence_band": "medium",
+            "source_skill_id": "demotivation_repair",
+            "operation_input_hint": {
+              "state": "fear_avoidance",
+              "potion_type": "courage"
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+            "confidence_band": "medium",
+            "sensitivity_level": 2,
+            "evidence_source_ids": [
+              "7f4ce87d-f46c-4d9d-972f-2a52d4621161"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "demotivation_repair"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Plutôt le soir, quand je suis rincé. Mais le problème c'est aussi que tout ce qui est autour de ça me semble trop chargé.",
+    "assistant": "Ouais, je vois le combo : le soir t’es rincé, et en plus tout l’environnement te réclame. Du coup ton cerveau dit “non” avant même de commencer. 😅\n\nOn va le rendre simple, sans “forcer” :\n1) On ne change pas tes grignotages, on change le cadre autour : un seul micro-réflexe avant de manger (genre te servir une portion et la mettre hors de vue).\n2) Et on baisse la charge globale autour de ce moment : pour cette semaine, tu te contentes de 1 seule mission/mini-action “autour de toi” au lieu de plusieurs.\n\nConcrètement, quand tu dis “tout ce qui est autour me semble trop chargé”, c’est plutôt : A) le ménage/environnement, B) les décisions/choix (“quoi faire maintenant”), ou C) les tentations/grignotages ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "conversation_handler",
+    "selected_handler": "demotivation_repair",
+    "route_reason_code": "active_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "On ne va pas modifier ton plan juste parce que tu as un moment de decrochage. D'abord, je veux comprendre ce qui bloque: energie trop basse, premiere etape floue, ou peur de refaire le meme schema ?",
+        "status": "continue",
+        "skill_id": "demotivation_repair",
+        "diagnosis": {
+          "motivation_state": "unclear"
+        },
+        "state_patch": {
+          "summary": "Demotivation diagnosis: unclear."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "motivation_diagnosis",
+        "recommendation_need": {
+          "type": "motivation_repair",
+          "needed": true,
+          "urgency": "medium",
+          "constraints": [
+            "no_moralizing",
+            "prefer_attack_card_over_plan_edit",
+            "understand_before_solution"
+          ]
+        },
+        "operation_suggestions": [
+          {
+            "reason": "demotivation_state_regulation_before_action",
+            "urgency": "medium",
+            "operation_type": "select_state_potion",
+            "confidence_band": "medium",
+            "source_skill_id": "demotivation_repair",
+            "operation_input_hint": {
+              "state": "fear_avoidance",
+              "potion_type": "courage"
+            },
+            "requires_user_consent": true
+          }
+        ],
+        "memory_write_candidates": [
+          {
+            "kind": "statement",
+            "scope_hint": "session",
+            "content_text": "Plutôt le soir, quand je suis rincé. Mais le problème c'est aussi que tout ce qui est autour de ça me semble trop chargé.",
+            "confidence_band": "medium",
+            "sensitivity_level": 2,
+            "evidence_source_ids": [
+              "63168d0a-9caa-49d5-a092-d1c7e3ba128c"
+            ],
+            "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+            "should_persist_default": false,
+            "anti_identity_freeze_checked": true
+          }
+        ]
+      },
+      "reason_code": "active_skill_continue",
+      "selected_skill_id": "demotivation_repair"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "cooldown_or_contraindications_exhausted_surfaces",
+        "timing": "later",
+        "decision": "defer",
+        "cta_style": "none",
+        "confidence": 0.7,
+        "alternatives": [],
+        "do_not_recommend": [],
+        "requires_consent": false,
+        "recommendation_id": "rec_qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t02_1778670657319",
+        "presentation_level": 0
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Un peu A et B. J'aimerais que ce soit moins lourd dans le plan, pas juste en parler là maintenant.",
+    "assistant": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "alléger le plan sur l'environnement et les décisions",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": null,
+      "target_title": "niveau actuel",
+      "missing_slots": [
+        "current_level.reason_change"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "C'est surtout le nombre de petites choses et l'intensité. Je veux garder l'idée, mais que ce soit beaucoup plus léger cette semaine.",
+    "assistant": "Ok, je te suis. Le problème c’est pas “l’idée”, c’est le mille-feuille: trop de petites choses qui s’additionnent + une intensité qui te met hors-jeu. Du coup on ne “garde pas tout”, on garde juste le noyau. 😅\n\nProposition d’allègement pour cette semaine (concret, sans blabla) :\n1) On enlève les doublons / versions mini superposées : on garde 1 seule “ligne” de nettoyage, pas plusieurs.\n2) On remplace “missions” par 1 seul passage en format express (même intention, moins de friction).\n3) On limite le nombre de répétitions: 3 fenêtres max sur la semaine, pas “un peu partout” chaque jour.\n4) Niveau intensité: on vise “acceptable à faire rincé”, donc taille de tâche divisée par 2 (ou arrêt après 5 minutes).\n\nJe peux te le traduire en 2 options (A = super léger / B = léger mais un peu plus structuré). Tu préfères A ou B ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan de la semaine",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "A, super léger. Et oui, applique-le vraiment dans le plan.",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "target_title": "Nettoyer ton environnement direct",
+      "missing_slots": [
+        "specific_plan_item.adjustment_type",
+        "specific_plan_item.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r2-t05",
+    "trace_error": null
+  }
+]

@@ -286,7 +286,7 @@ async function materializePossiblePatterns(args: {
   const { data, error } = await args.admin
     .from("memory_item_actions")
     .select(
-      "plan_item_id,observation_window_start,observation_window_end,aggregation_kind,memory_items!inner(id,content_text,domain_keys,created_at,status,kind)",
+      "plan_item_id,observation_window_start,observation_window_end,aggregation_kind,metadata,memory_items!inner(id,content_text,domain_keys,created_at,status,kind)",
     )
     .eq("user_id", args.user_id)
     .neq("aggregation_kind", "possible_pattern")
@@ -302,6 +302,9 @@ async function materializePossiblePatterns(args: {
     return [{
       memory_item_id: String(item.id),
       plan_item_id: String(row.plan_item_id),
+      action_family_key: row.metadata?.action_family_key
+        ? String(row.metadata.action_family_key)
+        : null,
       content_text: item.content_text ?? null,
       observation_window_start: row.observation_window_start ?? null,
       observation_window_end: row.observation_window_end ?? null,
@@ -361,7 +364,10 @@ async function materializePossiblePatterns(args: {
         observation_window_end: row.observation_window_end,
         aggregation_kind: "possible_pattern",
         confidence: 0.72,
-        metadata: { created_by: "trigger-weekly-memory-review" },
+        metadata: {
+          created_by: "trigger-weekly-memory-review",
+          action_family_key: row.metadata?.action_family_key ?? null,
+        },
       });
     if (actionError) throw actionError;
     created++;

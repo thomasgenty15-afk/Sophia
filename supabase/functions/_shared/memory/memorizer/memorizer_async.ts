@@ -6,6 +6,7 @@ import {
   isMemorizerWriteEnabled,
   memorizerCostCapUserDayEur,
 } from "./controls.ts";
+import { buildStructuredActionObservationItems } from "./action_observations.ts";
 import { dedupeMemoryItems } from "./dedupe.ts";
 import {
   type ExtractionLlmProvider,
@@ -55,6 +56,32 @@ export interface MemorizerAsyncResult {
   batch_hash: string | null;
   write_decisions: WriteDecision[];
   persisted: PersistedMemoryWrite[];
+}
+
+function structuredDailySourceMessageIds(
+  messages: MemorizerMessage[],
+): string[] {
+  return messages.flatMap((message) => {
+    const metadata = message.metadata && typeof message.metadata === "object"
+      ? message.metadata as Record<string, unknown>
+      : {};
+    const source = String(
+      metadata.structured_extraction_source ??
+        metadata.source ??
+        metadata.chat_capability ??
+        "",
+    ).trim();
+    const daily = metadata.daily_action_review_v1 &&
+        typeof metadata.daily_action_review_v1 === "object"
+      ? metadata.daily_action_review_v1 as Record<string, unknown>
+      : null;
+    const isDaily = source === "daily_action_review_v1" ||
+      source === "daily_action_review" ||
+      source === "daily_action_review_clarification" ||
+      source === "action_evening_review_v2" ||
+      Boolean(daily?.structured_extraction_id);
+    return isDaily ? [message.id] : [];
+  });
 }
 
 export async function runMemorizerAsyncIfEnabled(
@@ -186,8 +213,22 @@ export async function runMemorizerAsync(
       model_name: batch.model_name,
       user_id: input.user_id,
     });
+    const structuredSourceMessageIds = structuredDailySourceMessageIds(
+      batch.primary_messages,
+    );
+    const structuredActionItems = buildStructuredActionObservationItems({
+      source_message_ids: structuredSourceMessageIds,
+      plan_signals: input.plan_signals ?? [],
+      source: input.trigger_type ?? "memorizer_async",
+    });
     const validation = validateExtractionPayload(
-      extraction,
+      {
+        ...extraction,
+        memory_items: [
+          ...structuredActionItems,
+          ...extraction.memory_items,
+        ],
+      },
       batch.primary_messages,
     );
     const entityDecisions = resolveEntities(
@@ -233,11 +274,21 @@ export async function runMemorizerAsync(
         decisions,
       })
       : [];
+    const correctionResults = repo.applyCorrections
+      ? await repo.applyCorrections({
+        user_id: input.user_id,
+        extraction_run_id: run.id,
+        corrections: extraction.corrections,
+        known_memory_items: input.existing_memory_items ?? [],
+        persisted,
+      })
+      : [];
     await completeAsyncMemorizerExtraction(repo, {
       run_id: run.id,
       duration_ms: Date.now() - started,
       decisions,
       persisted,
+      correction_results: correctionResults,
       rejected_observations: [
         ...batch.skipped_noise_messages.map((m) => ({
           reason: m.metadata?.anti_noise_reason ?? "noise",

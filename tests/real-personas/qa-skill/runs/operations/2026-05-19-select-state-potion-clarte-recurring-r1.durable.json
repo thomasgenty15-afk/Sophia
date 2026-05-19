@@ -1,0 +1,27 @@
+{
+  "potion_sessions": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "traces": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column conversation_turn_traces.id does not exist"
+    }
+  }
+}

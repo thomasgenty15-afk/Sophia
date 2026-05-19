@@ -1,0 +1,11 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-one-shot-reminder-oneshotreminder-r3d-t01",
+    "user": "Tu peux me rappeler dans une heure de remettre la pâte au frais ?",
+    "status": 504,
+    "body": {
+      "message": "The upstream server is timing out"
+    }
+  }
+]

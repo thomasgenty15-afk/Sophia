@@ -1,0 +1,55 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit, par exemple 'trier seulement trois documents', et que tu me demandes avant de l'appliquer.",
+    "assistant": "Yes, bonne idée : on passe d’un gros “ranger tout” à un truc faisable maintenant, sans te cramer. 📄🙂\n\nOn peut ajuster en mode micro-mission : “trier seulement trois documents” (tu choisis lesquels : facture / contrat / courrier administratif, par ex.).\n\nAvant de l’appliquer, confirme juste A ou B :\nA) tu mets 3 documents au hasard dans un premier lot\nB) tu me donnes les 3 documents exacts (titres ou type)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "route_decision": {
+      "reason_code": "tool_skill_intent_start",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "tool_skill",
+      "memory_use_kind": "none",
+      "selected_handler": "adjust_plan_item",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [
+      "execution_breakdown"
+    ],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": {
+      "reason_code": "tool_skill_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

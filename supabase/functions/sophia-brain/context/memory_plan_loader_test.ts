@@ -42,7 +42,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: no plan keeps historical memory b
   assertEquals(strategy.loadIdentity, false);
 });
 
-Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads exact theme and no noisy fallback", () => {
+Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads exact domain prefix and no noisy fallback", () => {
   const strategy = deriveDispatcherMemoryLoadStrategy({
     mode: "companion",
     profile: COMPANION_PROFILE,
@@ -56,7 +56,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads ex
       context_budget_tier: "large",
       targets: [
         {
-          type: "global_theme",
+          type: "domain_prefix",
           key: "psychologie",
           priority: "high",
           retrieval_policy: "force_taxonomy",
@@ -68,8 +68,8 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: inventory on psychologie loads ex
   });
 
   assertEquals(strategy.usePlan, true);
-  assertEquals(strategy.globalThemeKeys, ["psychologie"]);
-  assertEquals(strategy.globalSubthemeKeys, []);
+  assertEquals(strategy.domainPrefixKeys, ["psychologie"]);
+  assertEquals(strategy.domainKeys, []);
   assertEquals(strategy.fallbackSemanticGlobalMax, 0);
   assertEquals(strategy.fallbackSemanticTopicMax, 0);
   assertEquals(strategy.fallbackSemanticEventMax, 0);
@@ -85,13 +85,13 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: targeted work relation problem as
       response_intent: "problem_solving",
       reasoning_complexity: "medium",
       context_need: "targeted",
-      memory_mode: "targeted",
+      memory_mode: "light",
       model_tier_hint: "standard",
       context_budget_tier: "medium",
       targets: [
         {
-          type: "global_subtheme",
-          key: "travail.relations_professionnelles",
+          type: "domain_key",
+          key: "travail.conflits",
           priority: "high",
           retrieval_policy: "taxonomy_first",
           expansion_policy: "add_supporting_topics",
@@ -102,8 +102,8 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: targeted work relation problem as
   });
 
   assertEquals(
-    strategy.globalSubthemeKeys,
-    ["travail.relations_professionnelles"],
+    strategy.domainKeys,
+    ["travail.conflits"],
   );
   assert(
     strategy.fallbackSemanticTopicMax > 0,
@@ -138,7 +138,7 @@ Deno.test("deriveDispatcherMemoryLoadStrategy: memory_mode none disables all mem
 
 Deno.test("resolveContextMemoryLoadStrategy: daily_bilan uses V2 minimal execution/coaching/event", () => {
   const strategy = resolveContextMemoryLoadStrategy({
-    mode: "investigator",
+    mode: "companion",
     profile: COMPANION_PROFILE,
     message: "daily",
     v2Intent: "daily_bilan",
@@ -153,7 +153,7 @@ Deno.test("resolveContextMemoryLoadStrategy: daily_bilan uses V2 minimal executi
 
 Deno.test("resolveContextMemoryLoadStrategy: weekly_bilan uses V2 scoped globals", () => {
   const strategy = resolveContextMemoryLoadStrategy({
-    mode: "investigator",
+    mode: "companion",
     profile: COMPANION_PROFILE,
     message: "weekly",
     v2Intent: "weekly_bilan",
@@ -168,7 +168,7 @@ Deno.test("resolveContextMemoryLoadStrategy: weekly_bilan uses V2 scoped globals
 
 Deno.test("resolveContextMemoryLoadStrategy: nudge_decision keeps relational globals only", () => {
   const strategy = resolveContextMemoryLoadStrategy({
-    mode: "investigator",
+    mode: "companion",
     profile: COMPANION_PROFILE,
     message: "nudge",
     v2Intent: "nudge_decision",
@@ -183,7 +183,7 @@ Deno.test("resolveContextMemoryLoadStrategy: nudge_decision keeps relational glo
 
 Deno.test("resolveContextMemoryLoadStrategy: rendez_vous_or_outreach keeps relational + execution + event", () => {
   const strategy = resolveContextMemoryLoadStrategy({
-    mode: "investigator",
+    mode: "companion",
     profile: COMPANION_PROFILE,
     message: "rdv",
     v2Intent: "rendez_vous_or_outreach",
@@ -211,18 +211,11 @@ Deno.test("resolveContextMemoryLoadStrategy: answer_user_now keeps dispatcher pl
       context_budget_tier: "large",
       targets: [
         {
-          type: "global_theme",
+          type: "domain_prefix",
           key: "psychologie",
           priority: "high",
           retrieval_policy: "force_taxonomy",
           expansion_policy: "expand_theme_subthemes",
-        },
-        {
-          type: "core_identity",
-          key: "temple",
-          priority: "high",
-          retrieval_policy: "semantic_only",
-          expansion_policy: "exact_only",
         },
       ],
       plan_confidence: 0.95,
@@ -236,8 +229,8 @@ Deno.test("resolveContextMemoryLoadStrategy: answer_user_now keeps dispatcher pl
     "relational",
   ]);
   assert(
-    strategy.budget.globalThemeMax <= 4,
-    "global cap should respect V2 full budget",
+    strategy.budget.domainMax <= 4,
+    "domain cap should respect V2 full budget",
   );
   assertEquals(strategy.loadIdentity, false);
 });

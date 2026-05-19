@@ -1,0 +1,12 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r16-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux alléger le bloc du soir sur les grignotages sans toucher au plan global. Ce qui bloque, c'est surtout devoir préparer ou choisir quand j'ai déjà faim. Garde le nettoyage et le décodage tels quels ; change seulement Préparer tes alternatives d'avance et Faire le choix du brut pour que ce soit prêt et décidé avant le soir.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  }
+]

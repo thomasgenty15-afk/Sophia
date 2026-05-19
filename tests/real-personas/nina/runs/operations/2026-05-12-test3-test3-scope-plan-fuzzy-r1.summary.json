@@ -1,0 +1,226 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Mon plan ne colle plus trop. Je ne veux pas repartir de zéro, mais là il est devenu lourd à tenir.",
+    "assistant": "Ah oui… quand ça devient lourd à tenir, c’est souvent pas “toi le problème”, c’est le plan qui a grossi trop vite 😕. L’idée là, c’est de garder l’essentiel sans repartir de zéro: on allège, on regroupe, et on supprime ce qui te vole de l’énergie.\n\nOn fait simple en 2 mouvements:\n1) On garde 2-3 “ancres” qui marchent encore.\n2) On retire ou on réduit le reste (version minimaliste), pour que ça redevienne tenable.\n\nDis-moi juste: c’est lourd surtout à cause du nombre d’actions, ou parce que certaines actions sont devenues trop difficiles/peu claires ? 👇🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "plan global",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Globalement, c'est parce que mon contexte de travail a changé et j'ai moins de marge. Je veux garder la même direction, juste rendre l'ensemble plus tenable.",
+    "assistant": "Je te propose d'ajuster le plan dans son ensemble: reduire la charge globale du plan. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "ensemble du plan",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write"
+            ],
+            "reason_type": "context_changed",
+            "reason_change": "time_or_capacity_changed",
+            "load_adjustment": "lighter",
+            "plan_adjustment": "reduce_global_load"
+          },
+          "title": "Ajustement - plan global",
+          "scope_label": "plan global",
+          "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire la charge globale du plan",
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster le plan dans son ensemble: reduire la charge globale du plan. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "2ce5028a-4594-44d0-8ca2-a2bd49ddd223",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t03",
+    "status": 502,
+    "ok": null,
+    "user": "Oui applique cette logique au plan global, sans reconstruire tout le plan automatiquement.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t04",
+    "status": 502,
+    "ok": null,
+    "user": "On est d'accord que l'objectif reste le même et que c'est juste un ajustement préparé ?",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t05",
+    "status": 502,
+    "ok": null,
+    "user": "Résume-moi la décision globale en une phrase.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-fuzzy-r1-t05",
+    "trace_error": null
+  }
+]

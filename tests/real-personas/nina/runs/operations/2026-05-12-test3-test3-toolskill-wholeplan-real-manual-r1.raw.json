@@ -1,0 +1,83 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Depuis quelques jours je me dis que le probleme n est pas seulement ce niveau. Toute la trajectoire est trop optimiste par rapport a mon rythme de travail, et ca me donne envie de tout repousser.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais… quand tu sens que “tout est trop optimiste pour ton rythme”, c’est normal que ton cerveau parte en mode repousser pour se protéger 😕.\n\nLà, on peut faire simple et concret : au lieu de décider “je repousse tout”, on ajuste le prochain pas pour qu’il soit faisable même quand t’es pas en forme. Par exemple, tu choisis une seule mission à garder, et tu la réduis en version “je fais 10 minutes / je lance / je prépare juste la première partie”.\n\nTu veux qu’on commence par quoi ce soir : réduire une seule mission (oui/non) ou clarifier pourquoi ton rythme a changé (A/B) ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Clarifier pourquoi, mais je ne veux pas reduire une seule mission. Je veux que tu regardes le plan global, parce que mon rythme de travail a change pour plusieurs semaines.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je propose d'ajuster la charge de votre plan global pour qu'il s'adapte à votre nouveau rythme de travail. Rien n'a encore été modifié. Ce changement permet de garder le cap sans vous surcharger. Par exemple, je suggère de remplacer l'action 'Nettoyer ton environnement direct' par une version courte de 5 minutes et de simplifier 'Préparer tes alternatives d'avance' pour retirer les étapes complexes. Votre objectif final et la structure du plan resteront inchangés. Est-ce que cette proposition vous semble correcte ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Avant que je dise oui, je veux comprendre ton niveau de confiance. Qu est ce qui change exactement dans le plan global, sur combien de temps, et qu est ce qui ne bouge pas ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-wholeplan-real-manual-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je propose d'ajuster la charge de votre plan global pour qu'il s'adapte à votre nouveau rythme de travail. Rien n'a encore été modifié. Ce changement permet de garder le cap sans vous surcharger. Par exemple, je suggère de remplacer l'action 'Nettoyer ton environnement direct' par une version courte de 5 minutes et de simplifier 'Préparer tes alternatives d'avance' pour retirer les étapes complexes. Votre objectif final et la structure du plan resteront inchangés. Est-ce que cette proposition vous semble correcte ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

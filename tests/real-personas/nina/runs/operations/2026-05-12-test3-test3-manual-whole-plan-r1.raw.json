@@ -1,0 +1,866 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Là ce n'est pas juste l'action placards, ni seulement le niveau actuel sur le grignotage. Je pense que tout mon plan perte de poids est trop optimiste avec ma charge de travail : le rythme du premier niveau, la suite mouvement puis repas, et l'objectif à 82 kg sur ce cycle me mettent trop de pression. Je veux garder l'objectif long terme, mais revoir la charge de tout le plan pour qu'il soit plus lent et plus réaliste.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je comprends tout à fait. Vouloir tout mener de front avec une grosse charge de travail, c'est le meilleur moyen de finir par tout lâcher. C'est courageux de ta part de lever le pied maintenant plutôt que d'attendre l'épuisement. \n\nOn va transformer cette pression en un rythme qui te laisse respirer. Garder l'objectif des 82 kg à long terme est une super idée, ça reste ton cap, mais on va simplement allonger la route pour que le voyage soit supportable. \n\nPour ajuster tout ça, que ce soit la vitesse des niveaux, l'enchaînement des étapes ou tes objectifs de poids, tout se passe sur ton tableau de bord. Tu pourras y revoir la structure globale de ton plan pour qu'elle colle enfin à ton emploi du temps actuel. ⚖️",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "2657305d-e170-4b81-adc0-49844621186c",
+        "ts": "2026-05-13T02:59:20.214+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3973,
+          "latency_ms": 18144,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 417,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "charge de travail et pression",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectifs.transformation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "objectif 82kg et plan perte de poids",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "charge de travail et pression",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "objectifs.transformation",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "objectif 82kg et plan perte de poids",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "plan_overload_and_pressure",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "ensemble du plan perte de poids (rythme, suite mouvement/repas, objectif 82kg)",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "2657305d-e170-4b81-adc0-49844621186c",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 20160,
+        "created_at": "2026-05-13T02:59:20.216118+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Je ne veux pas juste aller dans le dashboard. Je te demande de me proposer ici un ajustement global du plan, avec confirmation avant de l'appliquer : garder le cap long terme, mais réduire la charge de tout le plan, pas seulement le niveau actuel.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "bae033a6-16e7-4567-b93e-5ef83279505b",
+        "ts": "2026-05-13T02:59:47.438+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4231,
+          "latency_ms": 9211,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 415,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.court_terme",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "structure du plan perte de poids et charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "charge de travail",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "pression professionnelle mentionnée",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.court_terme",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "structure du plan perte de poids et charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "charge de travail",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "pression professionnelle mentionnée",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "user_refused_dashboard_navigation_and_requested_in_chat_plan_modification",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "ensemble du plan / charge globale",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "bae033a6-16e7-4567-b93e-5ef83279505b",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "operation_intent_start",
+          "plan_item_id": null,
+          "target_title": "niveau actuel",
+          "missing_slots": [
+            "current_level.reason_change"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 9262,
+        "created_at": "2026-05-13T02:59:47.439305+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Non, justement, ce n'est pas ce niveau seulement. Ce qui est trop lourd, c'est la charge globale du plan : objectif 82 kg trop serré pour ce cycle, progression vers mouvement puis repas trop rapide, et trop de pression hebdomadaire. La priorité à changer en premier, c'est la charge globale et le rythme du plan entier, pas une action ni ce niveau.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je propose d'alléger l'intensité de ton niveau actuel pour qu'il soit plus facile à suivre, sans toucher au reste de ton programme. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "2c6b9355-2e50-4a57-9b25-f7ff5a696c26",
+        "ts": "2026-05-13T03:00:19.477+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4470,
+          "latency_ms": 8622,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 399,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.court_terme",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "objectif 82kg",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.court_terme",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "objectif 82kg",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "rythme du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "structural_friction_global_load",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "rythme et charge globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "2c6b9355-2e50-4a57-9b25-f7ff5a696c26",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "intensity",
+                "reason_change": "goal_changed",
+                "load_adjustment": "lighter",
+                "level_adjustment": "reduce_load"
+              },
+              "title": "Ajustement - niveau actuel",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"lighter\"",
+                  "cible de changement: intensity"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "niveau actuel",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "Non, justement, ce n'est pas ce niveau seulement. Ce qui est trop lourd, c'est la charge globale du plan : objectif 82 kg trop serré pour ce cycle, progression vers mouvement puis repas trop rapide, et trop de pression hebdomadaire. La priorité à changer en premier, c'est la charge globale et le rythme du plan entier, pas une action ni ce niveau.",
+                  "operation_input.scope",
+                  "message.reduce_load",
+                  "message.wrong_focus",
+                  "message.goal_changed",
+                  "message.load_or_intensity"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "intention du plan",
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+              "change_rationale": {
+                "why_this_change": "Alléger intensity répond au problème \"goal_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [
+                    "les actions spécifiques que tu trouves les plus pénibles pour un ajustement encore plus fin"
+                  ],
+                  "user_problem": "La charge actuelle est perçue comme trop lourde et génère trop de pression hebdomadaire.",
+                  "expected_effect": "Une reprise plus fluide avec moins de résistance mentale et une meilleure adhésion au quotidien.",
+                  "why_this_change": "Baisser l'intensité permet de maintenir l'élan sans abandonner l'objectif malgré un changement de contexte."
+                },
+                "boundaries": {
+                  "explanation": "Seule l'intensité immédiate est modifiée pour réduire la friction sans dénaturer le projet final.",
+                  "affected_scope": "niveau actuel uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "structure complète du plan",
+                    "autres niveaux"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réduction de l'intensité du niveau actuel pour alléger la charge quotidienne.",
+                  "changed_items": [
+                    {
+                      "id": null,
+                      "kind": "level_setting",
+                      "after": "Allégée",
+                      "title": "Intensité du niveau",
+                      "before": "Standard",
+                      "reason": "Le rythme actuel était trop soutenu par rapport à tes besoins du moment."
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": null,
+                      "kind": "plan",
+                      "title": "Objectif global",
+                      "reason": "L'ajustement se concentre uniquement sur la phase actuelle pour préserver la direction finale."
+                    }
+                  ]
+                },
+                "user_message_brief": "Intensité du niveau actuel réduite pour plus de souplesse.",
+                "user_message_detailed": "J'ai ajusté la difficulté de ton niveau actuel pour qu'il soit plus léger. Ton objectif final reste inchangé, mais le quotidien devient plus accessible pour t'enlever la pression actuelle."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "J'ai réduit l'exigence de ton niveau actuel. L'objectif reste le même, mais le rythme est maintenant plus souple pour t'enlever cette sensation de pression. Le reste de ton organisation et tes objectifs à long terme ne bougent pas. C'est une solution intermédiaire pour te permettre de garder le cap sans t'épuiser. Je suis assez confiante sur le fait que cela va t'aider à retrouver du souffle.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je propose d'alléger l'intensité de ton niveau actuel pour qu'il soit plus facile à suivre, sans toucher au reste de ton programme. Est-ce que cela te convient ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "596aa6f9-82b7-4d09-af77-ad5e5bce5f47",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 16433,
+        "created_at": "2026-05-13T03:00:19.478256+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Non, n'applique pas. Ce n'est pas ce que je demande : tu me proposes encore le niveau actuel alors que je parle du plan entier.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je n'applique pas cet ajustement.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "eb403795-4a24-4b88-836f-f0f584a5cc1c",
+        "ts": "2026-05-13T03:00:42.347+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6406,
+          "latency_ms": 6813,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 376,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.long_terme",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "plan perte de poids 82kg",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "charge de travail actuelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-r1-t04",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "objectifs.long_terme",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "plan perte de poids 82kg",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "travail.charge",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "charge de travail actuelle",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan entier",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "eb403795-4a24-4b88-836f-f0f584a5cc1c",
+          "confirmation_response": {
+            "kind": "no",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "confirmation_no",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "pending_confirmation",
+          "memory_use_kind": "none",
+          "selected_handler": "cancel",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "cancelled",
+          "reason_code": "confirmation_no",
+          "operation_id": "596aa6f9-82b7-4d09-af77-ad5e5bce5f47",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "pending_confirmation",
+        "total_latency_ms": 6879,
+        "created_at": "2026-05-13T03:00:42.349059+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

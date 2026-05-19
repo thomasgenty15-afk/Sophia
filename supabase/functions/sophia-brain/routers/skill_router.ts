@@ -88,7 +88,27 @@ export function runSkillRouter(input: {
   const lifecycle = active
     ? input.turn_frame.skill_signals.lifecycle?.[active]
     : null;
+  const exitSignals = input.turn_frame.skill_signals.exit ?? {};
+  const exit = active
+    ? exitSignals[active] ??
+      ((exitSignals as any).skill_id === active ? exitSignals as any : null)
+    : null;
   const entry = bestEntrySkill(input.turn_frame);
+  if (
+    active && exit &&
+    (exit.detected ||
+      exit.confidence_band === "high" ||
+      exit.confidence_band === "critical" ||
+      (exit as any).skill_id === active ||
+      Boolean((exit as any).reason || (exit as any).evidence))
+  ) {
+    return {
+      status: "exit",
+      selected_skill_id: active,
+      reason_code: "active_skill_exit_requested",
+      blocked_paths: [],
+    };
+  }
   if (active && lifecycle?.detected && (!entry || entry === active)) {
     return {
       status: "continue",

@@ -1,7 +1,10 @@
 import type { ConfirmationToken } from "../../../contracts/confirmation_token.v1.ts";
 import type { RiskBand } from "../../../contracts/turn_frame.v1.ts";
 import { verifyExecutorConfirmation } from "../_shared/executor_guard.ts";
-import type { RecurringReminderDraftV1 } from "./generator.ts";
+import {
+  buildRecurringReminderCreatedMessage,
+  type RecurringReminderDraftV1,
+} from "./generator.ts";
 
 export type CreateRecurringReminderExecutorOutcome =
   | {
@@ -58,7 +61,6 @@ export async function executeCreateRecurringReminder(input: {
   return {
     status: "executed",
     recurring_reminder_id: written.recurring_reminder_id,
-    ack:
-      `C'est fait. J'ai cree ce rappel recurrent : ${input.draft.draft.message}, ${input.draft.draft.frequency}, ${input.draft.draft.time}. Tu peux modifier dans ton espace sur sophia-coach.ai.`,
+    ack: buildRecurringReminderCreatedMessage(input.draft),
   };
 }

@@ -1,0 +1,1181 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le bloc du soir anti-grignotage est trop lourd pour cette semaine. Je veux garder l'objectif, mais alléger le niveau sans refaire tout le plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Pour alléger ce bloc cette semaine, qu'est-ce qui te faciliterait le plus la tâche : passer toutes les actions en version 'mini' ou réduire le nombre de tâches à accomplir chaque soir ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "4318c372-5f74-4afc-8919-53d051bb2033",
+        "ts": "2026-05-14T17:31:01.323+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4991,
+          "latency_ms": 2900,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 633,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "4318c372-5f74-4afc-8919-53d051bb2033",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "bloc du soir anti-grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "bloc du soir anti-grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc du soir anti-grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du bloc du soir",
+                    "veut alléger le niveau sans refaire tout le plan"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.adjustment_type",
+            "current_level.reason"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 24141,
+        "created_at": "2026-05-14T17:31:01.325397+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Réduire le nombre de tâches à faire le soir. Je veux garder Faire le choix du brut et Préparer tes alternatives d'avance comme base. Par contre Décoder ton envie doit seulement rester quand l'envie est forte, et Nettoyer ton environnement direct doit être une action ponctuelle, pas un truc à avoir en tête chaque soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est très clair pour ces ajustements sur le décodage et le nettoyage. Pour que je puisse bien calibrer la suite, qu'est-ce qui rend ce bloc du soir trop lourd à gérer en ce moment ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "492db1c9-cbae-4656-ba31-ba4c5fd1649e",
+        "ts": "2026-05-14T17:31:41.304+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 5998,
+          "latency_ms": 11256,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 649,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "ajustement du bloc du soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "ajustement du bloc du soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "problem_solving",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "adjust_plan_item": {
+                "phase": "intake",
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "492db1c9-cbae-4656-ba31-ba4c5fd1649e",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "bloc du soir",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "bloc du soir anti-grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "le soir"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Réduire le nombre de tâches à faire le soir"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "current_level.reason"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 27978,
+        "created_at": "2026-05-14T17:31:41.310281+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "C'est la fatigue de fin de journée : quand il y a trois choses à penser, je n'en fais aucune. Je veux une base simple au quotidien, et garder le décodage seulement pour les grosses envies.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'alléger ton bloc du soir pour mieux gérer la fatigue de fin de journée. Rien n'est encore appliqué, voici ce que je suggère pour simplifier ton quotidien :\n- On limite l'action 'Décoder ton envie de grignoter' aux moments de forte envie uniquement pour réduire la charge mentale.\n- On transforme 'Nettoyer ton environnement direct' en une action ponctuelle plutôt que quotidienne.\nLes piliers comme 'Faire le choix du brut' et 'Préparer tes alternatives d'avance' restent inchangés pour garder ta base solide. Ce changement reste limité à ton niveau actuel et ne modifie pas ton plan global. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "95d58282-a6da-4097-a318-0a3a91df7bd2",
+        "ts": "2026-05-14T17:32:19.786+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 6464,
+          "latency_ms": 3416,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 706,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "fatigue fin de journée",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "fatigue fin de journée",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "conversation_risk": {
+            "score": 1.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "95d58282-a6da-4097-a318-0a3a91df7bd2",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "bloc du soir anti-grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "bloc du soir anti-grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "C'est la fatigue de fin de journée",
+                    "quand il y a trois choses à penser"
+                  ]
+                },
+                "payload": {
+                  "reason": {
+                    "status": "identified",
+                    "evidence": [
+                      "fatigue de fin de journée",
+                      "quand il y a trois choses à penser, je n'en fais aucune"
+                    ]
+                  }
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Je veux une base simple au quotidien",
+                    "garder le décodage seulement pour les grosses envies"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "confidence": "medium",
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "Préserver 'Faire le choix du brut'",
+                  "Préserver 'Préparer tes alternatives d'avance'",
+                  "Conditionner 'Décoder ton envie' aux envies fortes uniquement",
+                  "Transformer 'Nettoyer ton environnement' en action ponctuelle",
+                  "affected_item:Faire le choix du brut",
+                  "affected_item:Préparer tes alternatives d'avance",
+                  "affected_item:Décoder ton envie de grignoter",
+                  "affected_item:Nettoyer ton environnement direct"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed",
+                "load_adjustment": "same",
+                "level_adjustment": "rebalance"
+              },
+              "title": "Ajustement - bloc du soir anti-grignotage",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "niveau actuel: charge ajustée vers \"same\"",
+                  "cible de changement: global_load"
+                ],
+                "unchanged": [
+                  "le cœur du niveau reste préservé",
+                  "chaque action n'est pas réécrite automatiquement"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+              },
+              "scope_label": "bloc du soir anti-grignotage",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "decision_basis": {
+                "evidence": [
+                  "C'est la fatigue de fin de journée : quand il y a trois choses à penser, je n'en fais aucune. Je veux une base simple au quotidien, et garder le décodage seulement pour les grosses envies.",
+                  "fatigue de fin de journée",
+                  "quand il y a trois choses à penser",
+                  "base simple au quotidien",
+                  "garder le décodage seulement pour les grosses envies",
+                  "fatigue de fin de journée",
+                  "quand il y a trois choses à penser, je n'en fais aucune",
+                  "surcharge mentale le soir",
+                  "fatigue de fin de journée",
+                  "alléger la charge quotidienne",
+                  "base simple"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "actions exactes du niveau a choisir pour une modification fine"
+                ],
+                "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                "must_preserve": [
+                  "coeur du niveau"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "reequilibrer le niveau actuel",
+              "change_rationale": {
+                "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+              },
+              "adjust_plan_result": {
+                "scope": "level",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Surcharge mentale et fatigue le soir rendant le niveau actuel difficile à suivre.",
+                  "expected_effect": "Une meilleure adhésion au plan grâce à une base quotidienne plus simple et moins exigeante.",
+                  "why_this_change": "En ciblant les actions les plus coûteuses en énergie (décodage systématique et nettoyage répétitif), on libère de l'espace pour les habitudes de base."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement se concentre sur la réduction de la charge mentale immédiate sans dévier de l'objectif anti-grignotage.",
+                  "affected_scope": "niveau actuel uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "structure complète du plan",
+                    "autres niveaux"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Rééquilibrage du bloc du soir pour réduire la charge mentale liée à la fatigue de fin de journée.",
+                  "changed_items": [
+                    {
+                      "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+                      "kind": "action",
+                      "after": "Prends 2 minutes uniquement lors d'une forte envie de sucre ou de gras pour identifier ce qui se joue vraiment.",
+                      "title": "Décoder ton envie de grignoter",
+                      "before": "Prends 2 minutes lors d'une envie de sucre ou de gras pour identifier ce qui se joue vraiment.",
+                      "reason": "Réduire la fréquence pour ne solliciter l'utilisateur que lorsque c'est vraiment nécessaire.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+                      "kind": "action",
+                      "after": "Action ponctuelle à réaliser une seule fois pour assainir l'espace.",
+                      "title": "Nettoyer ton environnement direct",
+                      "before": "Action quotidienne de tri des placards.",
+                      "reason": "Éviter la répétition d'une tâche logistique qui sature l'esprit le soir.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+                      "kind": "action",
+                      "title": "Faire le choix du brut",
+                      "reason": "Action fondamentale pour la réussite du plan."
+                    },
+                    {
+                      "id": "23f34398-87ae-4388-80b4-786989faac97",
+                      "kind": "action",
+                      "title": "Préparer tes alternatives d'avance",
+                      "reason": "Action préventive essentielle qui doit rester stable."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai allégé ton bloc du soir en rendant le décodage sélectif et le nettoyage ponctuel, tout en préservant tes habitudes de base.",
+                "user_message_detailed": "Pour répondre à ta fatigue du soir, je propose de modifier deux points précis : l'exercice de décodage ne s'appliquera qu'aux envies fortes, et le nettoyage de l'environnement devient une action unique. Tes choix de produits bruts et tes préparations d'avance restent inchangés. Ce changement reste limité à ton niveau actuel pour te redonner de l'air sans toucher à la direction de ton plan. Je suis assez confiante sur l'efficacité de cet allégement."
+              },
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait, j'ai rééquilibré ton bloc du soir pour qu'il soit plus léger quand tu es fatigué. Concrètement, l'exercice de décodage ne te sera proposé que lors des envies intenses, et le nettoyage de ton environnement devient une tâche ponctuelle. Tes habitudes de base sur le choix du brut et la préparation des alternatives ne bougent pas. Ce changement devrait t'aider à maintenir tes efforts sans te sentir submergé le soir. Je suis assez confiante sur le fait que cette version simplifiée sera plus facile à tenir au quotidien.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'alléger ton bloc du soir pour mieux gérer la fatigue de fin de journée. Rien n'est encore appliqué, voici ce que je suggère pour simplifier ton quotidien :\n- On limite l'action 'Décoder ton envie de grignoter' aux moments de forte envie uniquement pour réduire la charge mentale.\n- On transforme 'Nettoyer ton environnement direct' en une action ponctuelle plutôt que quotidienne.\nLes piliers comme 'Faire le choix du brut' et 'Préparer tes alternatives d'avance' restent inchangés pour garder ta base solide. Ce changement reste limité à ton niveau actuel et ne modifie pas ton plan global. Est-ce que cela te convient ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "b3a0d7ad-52cc-471a-af8a-bdf65d2ab784",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 29443,
+        "created_at": "2026-05-14T17:32:19.789164+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, applique cet ajustement.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, valide vraiment cet ajustement.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait, j'ai rééquilibré ton bloc du soir pour qu'il soit plus léger quand tu es fatigué. Concrètement, l'exercice de décodage ne te sera proposé que lors des envies intenses, et le nettoyage de ton environnement devient une tâche ponctuelle. Tes habitudes de base sur le choix du brut et la préparation des alternatives ne bougent pas. Ce changement devrait t'aider à maintenir tes efforts sans te sentir submergé le soir. Je suis assez confiante sur le fait que cette version simplifiée sera plus facile à tenir au quotidien.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t05",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "9362342d-dd57-4811-92b8-eb8ab1c4f07b",
+        "ts": "2026-05-14T17:33:10.398+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 5440,
+          "latency_ms": 3143,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 661,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage soir fatigue",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r22-t05",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage soir fatigue",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1,1.6;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              1.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9362342d-dd57-4811-92b8-eb8ab1c4f07b",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "bloc du soir anti-grignotage",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "bloc du soir anti-grignotage",
+                  "status": "identified",
+                  "evidence": [
+                    "bloc du soir anti-grignotage"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du bloc du soir",
+                    "le user veut alléger le niveau sans refaire tout le plan"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "evidence": [
+              "Oui, valide vraiment cet ajustement"
+            ],
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "b3a0d7ad-52cc-471a-af8a-bdf65d2ab784",
+          "plan_patch_id": "3444c8d1-dec7-4ea2-a038-5aa1b9eedf8b",
+          "selected_handler": "adjust_plan_item",
+          "bridge_plan_item_id": null
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 3256,
+        "created_at": "2026-05-14T17:33:10.400657+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

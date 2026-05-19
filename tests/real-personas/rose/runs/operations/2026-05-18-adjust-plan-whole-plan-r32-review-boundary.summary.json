@@ -1,0 +1,26 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r32-review-boundary-t01",
+    "user": "Cette semaine j'ai seulement fait le point positif une fois et le signal de pause m'a semblé lourd. Je ne sais pas encore si je veux modifier le plan, j'essaie juste de comprendre ce que ça dit de mon rythme.",
+    "status": 200,
+    "sophia": "Ok, déjà je note deux trucs : tu as réussi à faire au moins 1 point positif, et tu sens que le “signal de pause” te pèse. Ça suffit largement pour lire ton rythme, sans te juger. 😌\n\nCe que ça dit probablement :\n- ton énergie est là, mais tu as besoin que les “exercices” restent simples et courts\n- si ça devient “lourd”, c’est peut-être le cadre (fréquence/forme) qui te freine plus que le fond\n\nPour avancer sans modifier tout de suite : prends une seule question et observe ta semaine en mode détective. Qu’est-ce qui a rendu le signal de pause lourd : le moment choisi, la difficulté à trouver un signal, ou le fait d’y penser trop souvent ? 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "conversation_handler",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "track_progress_plan_item"
+      ]
+    }
+  }
+]

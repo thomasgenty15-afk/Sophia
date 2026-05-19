@@ -1,0 +1,24 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-5t-plan-action-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Petit update : hier soir j'ai fait le sas, mais j'ai senti que la fin était fragile. Je veux juste te le poser là avant d'oublier.",
+    "assistant": "Trop bien que tu l’aies fait, et je te crois : quand on sent que “la fin est fragile”, c’est souvent le moment où tout se joue (et où ça vaut le coup d’avoir un filet). Je te le garde en tête comme point à renforcer pour la prochaine fois pour “Faire le sas de déchargement”. 😊\n\nOption : tu veux qu’on prépare une Carte de défense pour sécuriser exactement cette fin de séquence ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

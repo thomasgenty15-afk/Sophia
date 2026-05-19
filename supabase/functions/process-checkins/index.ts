@@ -35,18 +35,22 @@ import {
   MORNING_LIGHT_GREETING_EVENT_CONTEXT,
 } from "../_shared/action_occurrences.ts";
 import {
-  buildDailyActionReviewOpeningPlan,
+  buildDailyActionReviewActionIntelligence,
   buildDailyActionReviewGrounding,
   buildDailyActionReviewInstruction,
+  buildDailyActionReviewOpeningPlan,
   buildInitialDailyActionReviewState,
   dailyActionReviewFocusTargets,
   type DailyActionReviewOpeningPlan,
+  formatDailyActionReviewActionIntelligenceForPrompt,
 } from "../_shared/daily_action_review.ts";
+import { loadMemoryV2Payload } from "../_shared/memory/runtime/loader.ts";
 import {
   loadMomentumSnapshotV2,
   type MomentumSnapshotV2,
   persistMomentumSnapshotV2,
 } from "../_shared/momentum_v2.ts";
+import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
 import {
   buildWeeklyPlanningValidationMessage,
   buildWeeklyProgressReviewFallbackMessage,
@@ -60,7 +64,6 @@ import {
   buildWeeklyAdaptiveReview,
   buildWeeklyAdaptiveReviewGrounding,
   buildWeeklyAdaptiveReviewInstruction,
-  buildWeeklyAdaptiveReviewMessage,
 } from "../_shared/weekly_adaptive_review.ts";
 import {
   buildWeeklyPlanningConfirmationMessage,
@@ -102,6 +105,7 @@ const QUIET_WINDOW_MINUTES = Number.parseInt(
 const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5;
 const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template";
 const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000;
+const RECURRING_REMINDER_LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
 
 function cleanText(value: unknown): string {
   return String(value ?? "").trim();
@@ -128,6 +132,11 @@ type ActionEveningReviewTarget = {
   week_start_date: string | null;
   time_of_day?: string | null;
   reviewed_local_date?: string | null;
+};
+
+type AlreadyResolvedActionEveningReviewTarget = ActionEveningReviewTarget & {
+  resolved_status: string;
+  resolved_source: "entry" | "occurrence" | "entry_and_occurrence";
 };
 
 function dateFromLocalDateYmd(localDate: string): Date | null {
@@ -323,16 +332,21 @@ async function markScheduledCheckinDeliveryState(params: {
     .eq("id", params.checkinId);
 }
 
-async function loadOpenActionEveningReviewTargets(params: {
+async function loadActionEveningReviewTargets(params: {
   supabaseAdmin: ReturnType<typeof createClient>;
   userId: string;
   occurrenceIds: string[];
   timezone: string;
   reviewedLocalDate?: string | null;
   now?: Date;
-}): Promise<ActionEveningReviewTarget[]> {
+}): Promise<{
+  openTargets: ActionEveningReviewTarget[];
+  alreadyResolvedTargets: AlreadyResolvedActionEveningReviewTarget[];
+}> {
   const occurrenceIds = [...new Set(params.occurrenceIds)].filter(Boolean);
-  if (occurrenceIds.length === 0) return [];
+  if (occurrenceIds.length === 0) {
+    return { openTargets: [], alreadyResolvedTargets: [] };
+  }
 
   const { data: occurrences, error: occurrencesErr } = await params
     .supabaseAdmin
@@ -341,12 +355,13 @@ async function loadOpenActionEveningReviewTargets(params: {
       "id,cycle_id,transformation_id,plan_id,plan_item_id,week_start_date,planned_day,original_planned_day,status",
     )
     .eq("user_id", params.userId)
-    .in("id", occurrenceIds)
-    .in("status", ["planned", "rescheduled"]);
+    .in("id", occurrenceIds);
   if (occurrencesErr) throw occurrencesErr;
 
   const rows = (occurrences ?? []) as Array<Record<string, unknown>>;
-  if (rows.length === 0) return [];
+  if (rows.length === 0) {
+    return { openTargets: [], alreadyResolvedTargets: [] };
+  }
 
   const planItemIds = [
     ...new Set(rows.map((row) => cleanText(row.plan_item_id)).filter(Boolean)),
@@ -374,7 +389,7 @@ async function loadOpenActionEveningReviewTargets(params: {
       .in("id", planItemIds),
     params.supabaseAdmin
       .from("user_plan_item_entries")
-      .select("plan_item_id")
+      .select("plan_item_id,outcome,entry_kind,effective_at,metadata")
       .eq("user_id", params.userId)
       .in("plan_item_id", planItemIds)
       .gte("effective_at", dayStartIso)
@@ -389,20 +404,27 @@ async function loadOpenActionEveningReviewTargets(params: {
       row,
     ]),
   );
-  const loggedItemIds = new Set(
-    ((entriesResult.data ?? []) as Array<Record<string, unknown>>).map((row) =>
-      cleanText(row.plan_item_id)
-    ),
-  );
+  const entryByItemId = new Map<string, Record<string, unknown>>();
+  for (
+    const row of (entriesResult.data ?? []) as Array<
+      Record<string, unknown>
+    >
+  ) {
+    const planItemId = cleanText(row.plan_item_id);
+    if (planItemId && !entryByItemId.has(planItemId)) {
+      entryByItemId.set(planItemId, row);
+    }
+  }
 
-  return rows.flatMap((occurrence) => {
+  const openTargets: ActionEveningReviewTarget[] = [];
+  const alreadyResolvedTargets: AlreadyResolvedActionEveningReviewTarget[] = [];
+  for (const occurrence of rows) {
     const planItemId = cleanText(occurrence.plan_item_id);
-    if (!planItemId || loggedItemIds.has(planItemId)) return [];
+    if (!planItemId) continue;
     const item = itemById.get(planItemId);
-    if (!item) return [];
+    if (!item) continue;
     const status = cleanText(item.status);
-    if (!["active", "in_maintenance", "stalled"].includes(status)) return [];
-    return [{
+    const target = {
       occurrence_id: cleanText(occurrence.id),
       cycle_id: cleanText(occurrence.cycle_id),
       transformation_id: cleanText(occurrence.transformation_id),
@@ -417,8 +439,57 @@ async function loadOpenActionEveningReviewTargets(params: {
       week_start_date: cleanText(occurrence.week_start_date) || null,
       time_of_day: cleanText(item.time_of_day) || null,
       reviewed_local_date: cleanText(params.reviewedLocalDate) || null,
-    }];
-  });
+    };
+    const occurrenceStatus = cleanText(occurrence.status);
+    const entry = entryByItemId.get(planItemId);
+    const entryOutcome = cleanText(entry?.outcome);
+    const entryResolved = ["completed", "partial", "missed"].includes(
+      entryOutcome,
+    );
+    const occurrenceResolved = ["done", "partial", "missed"].includes(
+      occurrenceStatus,
+    );
+    if (entryResolved || occurrenceResolved) {
+      alreadyResolvedTargets.push({
+        ...target,
+        resolved_status: entryOutcome || occurrenceStatus,
+        resolved_source: entryResolved && occurrenceResolved
+          ? "entry_and_occurrence"
+          : entryResolved
+          ? "entry"
+          : "occurrence",
+      });
+      continue;
+    }
+    if (
+      ["planned", "rescheduled"].includes(occurrenceStatus) &&
+      ["active", "in_maintenance", "stalled"].includes(status)
+    ) {
+      openTargets.push(target);
+    }
+  }
+  return { openTargets, alreadyResolvedTargets };
+}
+
+function buildAlreadyResolvedDailyReviewAcknowledgement(
+  targets: AlreadyResolvedActionEveningReviewTarget[],
+): string {
+  const positiveTargets = targets.filter((target) =>
+    ["completed", "done", "partial"].includes(target.resolved_status)
+  );
+  if (positiveTargets.length === 0) return "";
+  const titles = positiveTargets.slice(0, 3).map((target) =>
+    `« ${target.title} »`
+  );
+  const suffix = positiveTargets.length > 3
+    ? ` et ${positiveTargets.length - 3} autre(s)`
+    : "";
+  const label = titles.length === 1
+    ? titles[0]
+    : `${titles.slice(0, -1).join(", ")} et ${titles[titles.length - 1]}`;
+  return `J'ai vu que ${label}${suffix} ${
+    positiveTargets.length === 1 ? "est déjà validée" : "sont déjà validées"
+  } aujourd'hui. Bien joué.`;
 }
 
 async function generateDailyActionReviewOpening(params: {
@@ -429,71 +500,123 @@ async function generateDailyActionReviewOpening(params: {
   requestId: string;
   allowGreeting: boolean;
 }): Promise<DailyActionReviewOpeningPlan> {
-  const initialState = buildInitialDailyActionReviewState(params.targets);
+  const provisionalState = buildInitialDailyActionReviewState(params.targets);
+  const provisionalFocusTargets = dailyActionReviewFocusTargets(
+    params.targets,
+    provisionalState,
+  );
+  let actionIntelligenceByOccurrenceId = {};
+  try {
+    const actionPayload = await loadMemoryV2Payload({
+      supabase: params.supabaseAdmin as any,
+      user_id: params.userId,
+      retrieval_mode: "cross_topic_lookup",
+      hints: ["action_related"],
+      message: provisionalFocusTargets.map((target) =>
+        `${target.plan_item_id} ${target.title}`
+      ).join("\n"),
+      limit: 4,
+      loader_plan: {
+        enabled: true,
+        reason: "daily_action_review_action_context",
+        retrieval_mode: "cross_topic_lookup",
+        budget: {
+          max_items: 4,
+          max_entities: 0,
+          topic_items: 0,
+          event_items: 0,
+          global_items: 0,
+          action_items: 4,
+          level_items: 0,
+        },
+        requested_scopes: ["action"],
+        topic_targets: [],
+        event_queries: [],
+        action_targets: provisionalFocusTargets.flatMap((target) => [
+          target.plan_item_id,
+          target.title,
+        ]),
+        domain_keys: [],
+        domain_prefixes: [],
+        retrieval_policy: "semantic_first",
+        requires_topic_router: false,
+        dispatcher_memory_plan_applied: true,
+        dispatcher_memory_mode: "targeted",
+        dispatcher_context_need: "daily_action_review",
+      },
+    });
+    actionIntelligenceByOccurrenceId = buildDailyActionReviewActionIntelligence(
+      {
+        targets: provisionalFocusTargets,
+        memoryItems: actionPayload.items,
+      },
+    );
+  } catch (error) {
+    console.warn(
+      `[process-checkins] request_id=${params.requestId} daily_action_review_action_context_failed`,
+      error,
+    );
+  }
+  const initialState = buildInitialDailyActionReviewState(params.targets, {
+    actionIntelligenceByOccurrenceId,
+  });
   const focusTargets = dailyActionReviewFocusTargets(
     params.targets,
     initialState,
   );
-  let body = await generateDynamicWhatsAppCheckinMessage({
-    admin: params.supabaseAdmin as any,
-    userId: params.userId,
-    eventContext: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
-    scheduledFor: params.scheduledFor,
-    instruction: buildDailyActionReviewInstruction(focusTargets, {
+  const attempts: string[] = [];
+  const baseInstruction = [
+    buildDailyActionReviewInstruction(focusTargets, {
       allowGreeting: params.allowGreeting,
     }),
-    eventGrounding: [
-      buildDailyActionReviewGrounding(focusTargets),
-      `current_focus_occurrence_ids=${
-        initialState.current_focus_occurrence_ids.join(",")
-      }`,
-      `remaining_occurrence_ids=${
-        initialState.remaining_occurrence_ids.join(",")
-      }`,
-    ].join("\n"),
-    source: "process-checkins:daily_action_review",
-    requestId: params.requestId,
-    fallbackMessage: null,
-  });
-  if (
-    focusTargets.length > 1 && !openingCoversDailyReviewTargets(
-      body,
-      focusTargets,
-    )
-  ) {
-    body = await generateDynamicWhatsAppCheckinMessage({
+    formatDailyActionReviewActionIntelligenceForPrompt(
+      initialState.action_intelligence_by_occurrence_id,
+    ),
+  ].filter(Boolean).join("\n\n");
+  const eventGrounding = [
+    buildDailyActionReviewGrounding(focusTargets),
+    `current_focus_occurrence_ids=${
+      initialState.current_focus_occurrence_ids.join(",")
+    }`,
+    `remaining_occurrence_ids=${
+      initialState.remaining_occurrence_ids.join(",")
+    }`,
+  ].join("\n");
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const body = await generateDynamicWhatsAppCheckinMessage({
       admin: params.supabaseAdmin as any,
       userId: params.userId,
       eventContext: ACTION_EVENING_REVIEW_EVENT_CONTEXT,
       scheduledFor: params.scheduledFor,
-      instruction: [
-        buildDailyActionReviewInstruction(focusTargets, {
-          allowGreeting: params.allowGreeting,
-        }),
+      instruction: attempt === 0 ? baseInstruction : [
+        baseInstruction,
         "",
-        "Correction obligatoire: la tentative precedente ne couvrait pas clairement toutes les actions.",
+        "Correction obligatoire: les tentatives precedentes ne couvraient pas clairement toutes les actions selon le guard systeme.",
         "Regenere une question naturelle qui couvre explicitement chaque action ciblee.",
         "Ne reduis pas la question a une seule action.",
-        `Tentative precedente: ${body}`,
+        "Reprends suffisamment de mots distinctifs de chaque titre.",
+        `Tentatives precedentes: ${JSON.stringify(attempts)}`,
       ].join("\n"),
-      eventGrounding: [
-        buildDailyActionReviewGrounding(focusTargets),
-        `current_focus_occurrence_ids=${
-          initialState.current_focus_occurrence_ids.join(",")
-        }`,
-        `remaining_occurrence_ids=${
-          initialState.remaining_occurrence_ids.join(",")
-        }`,
-      ].join("\n"),
-      source: "process-checkins:daily_action_review_opening_repair",
+      eventGrounding,
+      source: attempt === 0
+        ? "process-checkins:daily_action_review"
+        : "process-checkins:daily_action_review_opening_repair",
       requestId: params.requestId,
       fallbackMessage: null,
     });
+    attempts.push(body);
+    if (
+      focusTargets.length <= 1 ||
+      openingCoversDailyReviewTargets(body, focusTargets)
+    ) {
+      return buildDailyActionReviewOpeningPlan({
+        targets: params.targets,
+        openingMessage: body,
+        actionIntelligenceByOccurrenceId,
+      });
+    }
   }
-  return buildDailyActionReviewOpeningPlan({
-    targets: params.targets,
-    openingMessage: body,
-  });
+  throw new Error("daily_action_review_opening_missing_target_coverage");
 }
 
 function normalizeOpeningCoverageText(value: unknown): string {
@@ -524,6 +647,103 @@ function openingCoversDailyReviewTargets(
   });
 }
 
+function weeklyOpeningLooksValid(message: string): boolean {
+  const text = String(message ?? "").trim();
+  if (!text) return false;
+  const questionCount = (text.match(/\?/g) ?? []).length;
+  if (questionCount > 1) return false;
+  const normalized = text.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  if (
+    /\bbridge\b|bridge_week|semaine pont|carry_over|mode advance|repeat_week|level_review|not_relevant|item_decision|plan_patch|\boperation\b|brouillon/
+      .test(normalized)
+  ) return false;
+  if (/%|\b\d+\s*\/\s*\d+\b|adherence|ratio|pourcentage/.test(normalized)) {
+    return false;
+  }
+  return /bilan de la semaine|point de fin de semaine/.test(normalized);
+}
+
+async function generateWeeklyAdaptiveReviewOpening(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  scheduledFor: string;
+  requestId: string;
+  review: unknown;
+  adaptiveReview: unknown;
+  momentumSnapshot?: MomentumSnapshotV2 | null;
+  allowGreeting: boolean;
+}): Promise<string> {
+  const tempMemory = await fetchWhatsappTempMemory(
+    params.supabaseAdmin,
+    params.userId,
+  ).catch(() => ({}));
+  const previousWeeklySummary =
+    (tempMemory as any)?.__last_weekly_adaptive_review_summary ?? null;
+  const eventGrounding = [
+    buildWeeklyProgressReviewGrounding(params.review as any),
+    `weekly_adaptive_review=${
+      buildWeeklyAdaptiveReviewGrounding(params.adaptiveReview as any)
+    }`,
+    params.momentumSnapshot
+      ? `momentum_snapshot_v2=${JSON.stringify(params.momentumSnapshot)}`
+      : "",
+    previousWeeklySummary
+      ? `previous_weekly_summary=${JSON.stringify(previousWeeklySummary)}`
+      : "",
+  ].filter(Boolean).join("\n\n");
+  const baseInstruction = [
+    buildWeeklyAdaptiveReviewInstruction(params.adaptiveReview as any),
+    "",
+    "Generation du message d'ouverture weekly:",
+    "- Tu dois ecrire le premier message envoye par Sophia, pas une reponse au user.",
+    "- Message court WhatsApp, naturel, 4 a 8 lignes maximum.",
+    params.allowGreeting
+      ? "- La derniere interaction est assez ancienne: commence par une salutation courte et naturelle, comme le daily."
+      : "- La conversation est recente: ne commence pas par une salutation.",
+    "- Dis toujours clairement que c'est le moment du bilan de la semaine ou du point de fin de semaine.",
+    "- Parle a un humain: pas de ratio, pas de pourcentage, pas de '5/6', pas de '83%'.",
+    "- Tu peux utiliser un petit compteur simple s'il clarifie l'etat, par exemple '6 actions prevues' ou '6 en attente', mais jamais comme score de performance.",
+    "- Si tu dois resumer les actions, privilegie des mots humains: la plupart, une partie, presque tout, peu de retours fiables, plusieurs points restes ouverts.",
+    "- Structure: annonce du bilan de la semaine, mini synthese humaine, lecture claire des actions sans chiffres, option d'organisation de la semaine prochaine, puis une seule question large.",
+    previousWeeklySummary
+      ? "- Si previous_weekly_summary existe, utilise-le seulement comme contexte discret pour voir le point a surveiller, sans le reciter."
+      : "",
+    "- La question unique doit inviter le user a raconter la semaine dans l'ensemble; elle ne doit pas separer progression ressentie et etat/energie en deux questions.",
+    "- Ne conclus pas encore que la validation est disponible: elle ne se debloque qu'apres la discussion weekly terminee.",
+  ].join("\n");
+
+  const attempts: string[] = [];
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const body = await generateDynamicWhatsAppCheckinMessage({
+      admin: params.supabaseAdmin as any,
+      userId: params.userId,
+      eventContext: WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
+      scheduledFor: params.scheduledFor,
+      instruction: attempt === 0 ? baseInstruction : [
+        baseInstruction,
+        "",
+        "Correction obligatoire: le message precedent ne respectait pas les regles weekly.",
+        "Regenere avec une seule question maximum, aucun vocabulaire interne, aucun ratio/pourcentage, une mention claire du bilan de la semaine, et sans dire que la validation est deja disponible.",
+        `Tentatives precedentes: ${JSON.stringify(attempts)}`,
+      ].join("\n"),
+      eventGrounding,
+      source: attempt === 0
+        ? "process-checkins:weekly_adaptive_review_opening"
+        : "process-checkins:weekly_adaptive_review_opening_repair",
+      requestId: params.requestId,
+      fallbackMessage: null,
+    });
+    const normalizedBody = applyScheduledCheckinGreetingPolicy({
+      text: body,
+      allowRelaunchGreeting: params.allowGreeting,
+    });
+    attempts.push(normalizedBody);
+    if (weeklyOpeningLooksValid(normalizedBody)) return normalizedBody;
+  }
+  throw new Error("weekly_adaptive_review_opening_invalid");
+}
+
 function getRecurringReminderIdFromEventContext(
   eventContext: string,
 ): string | null {
@@ -532,6 +752,164 @@ function getRecurringReminderIdFromEventContext(
   if (!raw.startsWith(prefix)) return null;
   const id = raw.slice(prefix.length).trim();
   return id || null;
+}
+
+function recurringReminderHasLiveLifecycle(
+  reminder: Record<string, unknown>,
+): boolean {
+  const lifecycle = cleanText(reminder.target_lifecycle_policy);
+  return lifecycle === "while_target_active" ||
+    lifecycle === "while_family_in_current_plan";
+}
+
+function recurringReminderPlanItemFamilyKey(
+  item: Record<string, unknown>,
+): string {
+  return buildActionFamilyKey({
+    id: cleanText(item.id),
+    title: cleanText(item.title),
+    kind: cleanText(item.kind),
+    dimension: cleanText(item.dimension),
+    start_after_item_id: cleanText(item.start_after_item_id),
+    payload: item.payload && typeof item.payload === "object"
+      ? item.payload as Record<string, unknown>
+      : null,
+  });
+}
+
+function buildRecurringReminderLiveGrounding(
+  reminder: Record<string, unknown>,
+  item: Record<string, unknown> | null,
+): string {
+  if (!item) {
+    return [
+      "Rappel lié à une action du plan.",
+      `Statut cible: indisponible (${
+        cleanText(reminder.target_lifecycle_policy) || "n/a"
+      }).`,
+      "Ne pas envoyer un message qui suppose que l'action existe encore.",
+    ].join("\n");
+  }
+  return [
+    "Rappel lié à une action active du plan.",
+    `Action actuelle: ${cleanText(item.title) || "Action sans titre"}`,
+    cleanText(item.description)
+      ? `Description actuelle: ${cleanText(item.description).slice(0, 500)}`
+      : "",
+    `Type: ${cleanText(item.kind) || "n/a"} | Dimension: ${
+      cleanText(item.dimension) || "n/a"
+    } | Statut: ${cleanText(item.status) || "n/a"}`,
+    cleanText(item.cadence_label)
+      ? `Cadence actuelle: ${cleanText(item.cadence_label)}`
+      : "",
+    Array.isArray(item.scheduled_days) && item.scheduled_days.length
+      ? `Jours prévus actuellement: ${
+        (item.scheduled_days as unknown[]).map(cleanText).filter(Boolean).join(
+          ", ",
+        )
+      }`
+      : "",
+    cleanText(item.time_of_day)
+      ? `Horaire plan actuel: ${cleanText(item.time_of_day)}`
+      : "",
+    Number.isFinite(Number(item.target_reps))
+      ? `Objectif actuel: ${Number(item.target_reps)} répétition(s)`
+      : "",
+    `Famille d'action: ${recurringReminderPlanItemFamilyKey(item)}`,
+    "Rédige le rappel avec ces détails actuels, pas avec une ancienne version stockée.",
+  ].filter(Boolean).join("\n");
+}
+
+async function resolveRecurringReminderLiveTarget(params: {
+  supabaseAdmin: any;
+  userId: string;
+  reminder: Record<string, unknown>;
+}): Promise<{
+  available: boolean;
+  item: Record<string, unknown> | null;
+  grounding: string;
+  unavailableReason: string | null;
+}> {
+  const reminder = params.reminder;
+  if (!recurringReminderHasLiveLifecycle(reminder)) {
+    return {
+      available: true,
+      item: null,
+      grounding: "",
+      unavailableReason: null,
+    };
+  }
+  const targetKind = cleanText(reminder.target_kind);
+  const targetPlanItemId = cleanText(reminder.target_plan_item_id);
+  const targetFamilyKey = cleanText(reminder.target_action_family_key);
+  const targetGeneratedTempId = cleanText(reminder.target_generated_temp_id);
+  const selectColumns =
+    "id,user_id,cycle_id,transformation_id,plan_id,dimension,kind,status,title,description,current_habit_state,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload,updated_at";
+
+  if (targetKind === "plan_item" && targetPlanItemId) {
+    const { data: item } = await params.supabaseAdmin
+      .from("user_plan_items")
+      .select(selectColumns)
+      .eq("id", targetPlanItemId)
+      .eq("user_id", params.userId)
+      .in("status", RECURRING_REMINDER_LIVE_TARGET_STATUSES)
+      .maybeSingle();
+    const resolved = (item as Record<string, unknown> | null) ?? null;
+    return {
+      available: Boolean(resolved),
+      item: resolved,
+      grounding: buildRecurringReminderLiveGrounding(reminder, resolved),
+      unavailableReason: resolved
+        ? null
+        : "target_plan_item_inactive_or_missing",
+    };
+  }
+
+  if (
+    targetKind === "action_family" &&
+    (targetFamilyKey || targetGeneratedTempId || targetPlanItemId)
+  ) {
+    let query = params.supabaseAdmin
+      .from("user_plan_items")
+      .select(selectColumns)
+      .eq("user_id", params.userId)
+      .in("status", RECURRING_REMINDER_LIVE_TARGET_STATUSES)
+      .order("updated_at", { ascending: false })
+      .limit(50);
+    const transformationId = cleanText(reminder.transformation_id);
+    if (transformationId) {
+      query = query.eq("transformation_id", transformationId);
+    }
+    const { data: items } = await query;
+    const resolved =
+      ((items ?? []) as Array<Record<string, unknown>>).find((item) => {
+        const payload = item.payload && typeof item.payload === "object"
+          ? item.payload as Record<string, unknown>
+          : {};
+        const generatedTempId = cleanText(payload.generated_temp_id) ||
+          cleanText(payload.generatedTempId);
+        return (targetFamilyKey &&
+          recurringReminderPlanItemFamilyKey(item) === targetFamilyKey) ||
+          (targetGeneratedTempId &&
+            generatedTempId === targetGeneratedTempId) ||
+          (targetPlanItemId && cleanText(item.id) === targetPlanItemId);
+      }) ?? null;
+    return {
+      available: Boolean(resolved),
+      item: resolved,
+      grounding: buildRecurringReminderLiveGrounding(reminder, resolved),
+      unavailableReason: resolved
+        ? null
+        : "target_action_family_inactive_or_missing",
+    };
+  }
+
+  return {
+    available: false,
+    item: null,
+    grounding: buildRecurringReminderLiveGrounding(reminder, null),
+    unavailableReason: "target_binding_missing",
+  };
 }
 
 function buildMomentumDeliveryPayload(
@@ -628,6 +1006,54 @@ async function persistWhatsappTempMemory(params: {
       temp_memory: params.tempMemory,
     },
   );
+}
+
+function buildWeeklyAdaptiveReviewSkillState(params: {
+  weeklyProgressReview: unknown;
+  weeklyAdaptiveReview: unknown;
+  checkinId?: unknown;
+}) {
+  return {
+    skill_id: "weekly_adaptive_review_v1",
+    weekly_progress_review: params.weeklyProgressReview,
+    weekly_adaptive_review: params.weeklyAdaptiveReview,
+    scheduled_checkin_id: cleanText(params.checkinId) || null,
+    status: "open",
+    validation_unlock: {
+      status: "locked_until_weekly_complete",
+      meaning:
+        "La validation de la semaine suivante se debloque quand le point weekly est termine; sinon le rappel du lundi matin sert de fallback.",
+    },
+    weekly_flow_state: {
+      status: "open",
+      proposal_status: "none",
+      validation_unlock_status: "locked_until_weekly_complete",
+      updated_at: new Date().toISOString(),
+    },
+    turn_count: 0,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+async function activateWeeklyAdaptiveReviewState(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  weeklyProgressReview: unknown;
+  weeklyAdaptiveReview: unknown;
+  checkinId?: unknown;
+}) {
+  const tempMemory = await fetchWhatsappTempMemory(
+    params.supabaseAdmin,
+    params.userId,
+  ).catch(() => ({}));
+  await persistWhatsappTempMemory({
+    supabaseAdmin: params.supabaseAdmin,
+    userId: params.userId,
+    tempMemory: {
+      ...tempMemory,
+      __active_skill_state: buildWeeklyAdaptiveReviewSkillState(params),
+    },
+  });
 }
 
 async function consumeUnansweredRecurringProbe(params: {
@@ -1560,7 +1986,7 @@ Deno.serve(async (req) => {
     const { data: checkins, error: fetchError } = await supabaseAdmin
       .from("scheduled_checkins")
       .select(
-        "id, user_id, origin, draft_message, event_context, message_mode, message_payload, delivery_attempt_count",
+        "id, user_id, origin, draft_message, event_context, message_mode, message_payload, delivery_attempt_count, scheduled_for",
       )
       .in("status", ["pending", "retrying"])
       .lte("scheduled_for", new Date().toISOString())
@@ -1631,6 +2057,10 @@ Deno.serve(async (req) => {
       let userTimezone = "Europe/Paris";
       let userProfileSnapshot: Record<string, unknown> | null = null;
       let morningPlan: any = null;
+      let recurringReminderLiveGrounding = "";
+      let recurringReminderLiveTargetPayload: Record<string, unknown> | null =
+        null;
+      let forceDynamicRecurringReminder = false;
 
       // Recurring reminders: if previous consent probes were unanswered, count them.
       // After 2 unanswered probes, auto-pause the reminder and stop future sends.
@@ -1645,7 +2075,7 @@ Deno.serve(async (req) => {
           const { data: reminder } = await supabaseAdmin
             .from("user_recurring_reminders")
             .select(
-              "id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at",
+              "id,user_id,transformation_id,status,initiative_kind,ends_at,unanswered_probe_count,probe_last_sent_at,message_instruction,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy",
             )
             .eq("id", recurringReminderId)
             .eq("user_id", checkin.user_id)
@@ -1723,6 +2153,58 @@ Deno.serve(async (req) => {
               })
               .eq("id", checkin.id);
             continue;
+          }
+
+          const liveTarget = await resolveRecurringReminderLiveTarget({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            reminder: reminder as Record<string, unknown>,
+          });
+          if (!liveTarget.available) {
+            await supabaseAdmin
+              .from("user_recurring_reminders")
+              .update({
+                status: "expired",
+                ended_reason: liveTarget.unavailableReason ?? "target_inactive",
+                deactivated_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as any)
+              .eq("id", recurringReminderId)
+              .eq("user_id", checkin.user_id);
+
+            await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({
+                status: "cancelled",
+                processed_at: new Date().toISOString(),
+              })
+              .eq("id", checkin.id);
+            continue;
+          }
+          if (
+            recurringReminderHasLiveLifecycle(
+              reminder as Record<string, unknown>,
+            )
+          ) {
+            recurringReminderLiveGrounding = liveTarget.grounding;
+            recurringReminderLiveTargetPayload = {
+              live_target_item_id: liveTarget.item
+                ? cleanText(liveTarget.item.id)
+                : null,
+              live_target_refreshed_at: new Date().toISOString(),
+              target_kind: (reminder as any).target_kind ?? null,
+              target_plan_item_id: (reminder as any).target_plan_item_id ??
+                null,
+              target_action_family_key:
+                (reminder as any).target_action_family_key ?? null,
+              target_generated_temp_id:
+                (reminder as any).target_generated_temp_id ?? null,
+              target_binding_policy: (reminder as any).target_binding_policy ??
+                null,
+              target_lifecycle_policy:
+                (reminder as any).target_lifecycle_policy ?? null,
+            };
+            forceDynamicRecurringReminder = true;
           }
         } catch (e) {
           console.warn(
@@ -1893,6 +2375,34 @@ Deno.serve(async (req) => {
       let payload = ((checkin as any)?.message_payload ?? {}) as any;
       let bodyText = String((checkin as any)?.draft_message ?? "").trim();
       let tempMemory: Record<string, unknown> = {};
+      if (recurringReminderId && forceDynamicRecurringReminder) {
+        const existingGrounding = cleanText(payload?.event_grounding);
+        payload = {
+          ...payload,
+          ...(recurringReminderLiveTargetPayload ?? {}),
+          instruction: cleanText(payload?.instruction) ||
+            cleanText(payload?.reminder_instruction),
+          event_grounding: [existingGrounding, recurringReminderLiveGrounding]
+            .filter(Boolean)
+            .join("\n\n"),
+          source: cleanText(payload?.source) ||
+            "recurring_reminder_live_action",
+        };
+        mode = "dynamic";
+        try {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ message_payload: payload, message_mode: "dynamic" })
+            .eq("id", checkin.id);
+          (checkin as any).message_payload = payload;
+          (checkin as any).message_mode = "dynamic";
+        } catch (error) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} persist_recurring_live_payload_failed checkin_id=${checkin.id}`,
+            error,
+          );
+        }
+      }
       if (isMomentumMorningNudge) {
         tempMemory = await fetchWhatsappTempMemory(
           supabaseAdmin,
@@ -2089,14 +2599,103 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const targets = await loadOpenActionEveningReviewTargets({
+        const targetLoad = await loadActionEveningReviewTargets({
           supabaseAdmin,
           userId: String(checkin.user_id),
           occurrenceIds,
           timezone: userTimezone,
           reviewedLocalDate: cleanText(payload?.local_date),
         });
+        const targets = targetLoad.openTargets;
+        const alreadyResolvedTargets = targetLoad.alreadyResolvedTargets;
         if (targets.length === 0) {
+          const alreadyResolvedAck =
+            buildAlreadyResolvedDailyReviewAcknowledgement(
+              alreadyResolvedTargets,
+            );
+          if (alreadyResolvedAck) {
+            if (!in24hConversationWindow) {
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "cancelled",
+                attemptCount,
+                errorMessage: "action_evening_review_requires_24h_window",
+                requestId,
+              });
+              continue;
+            }
+            try {
+              const resp = await callWhatsappSend({
+                user_id: checkin.user_id,
+                message: {
+                  type: "text",
+                  body: alreadyResolvedAck,
+                },
+                purpose: "action_evening_review",
+                require_opted_in: true,
+                metadata_extra: {
+                  source: "scheduled_checkin",
+                  event_context: checkin.event_context,
+                  original_checkin_id: checkin.id,
+                  purpose: "action_evening_review_already_resolved",
+                  occurrence_ids: alreadyResolvedTargets.map((target) =>
+                    target.occurrence_id
+                  ),
+                  plan_item_ids: [
+                    ...new Set(
+                      alreadyResolvedTargets.map((target) =>
+                        target.plan_item_id
+                      ),
+                    ),
+                  ],
+                },
+              });
+              const skipped = Boolean((resp as any)?.skipped);
+              if (skipped) {
+                await markScheduledCheckinDeliveryState({
+                  supabaseAdmin,
+                  checkinId: checkin.id,
+                  status: "cancelled",
+                  attemptCount,
+                  draftMessage: alreadyResolvedAck,
+                  errorMessage: String(
+                    (resp as any)?.skip_reason ??
+                      "action_evening_review_already_resolved_skipped",
+                  ),
+                  requestId: String((resp as any)?.request_id ?? requestId),
+                });
+                continue;
+              }
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: "sent",
+                attemptCount,
+                draftMessage: alreadyResolvedAck,
+                errorMessage: null,
+                requestId: String((resp as any)?.request_id ?? requestId),
+              });
+              processedCount++;
+              continue;
+            } catch (e) {
+              const status = (e as any)?.status;
+              const msg = e instanceof Error ? e.message : String(e);
+              const nextStatus = shouldRetryScheduledCheckinDelivery(status)
+                ? "retrying"
+                : "failed";
+              await markScheduledCheckinDeliveryState({
+                supabaseAdmin,
+                checkinId: checkin.id,
+                status: nextStatus,
+                attemptCount,
+                draftMessage: alreadyResolvedAck,
+                errorMessage: msg,
+                requestId,
+              });
+              continue;
+            }
+          }
           await markScheduledCheckinDeliveryState({
             supabaseAdmin,
             checkinId: checkin.id,
@@ -2144,6 +2743,17 @@ Deno.serve(async (req) => {
             allowGreeting: allowRelaunchGreeting,
           });
           reviewBody = openingPlan.opening_message;
+          const alreadyResolvedAck =
+            buildAlreadyResolvedDailyReviewAcknowledgement(
+              alreadyResolvedTargets,
+            );
+          if (alreadyResolvedAck) {
+            reviewBody = `${alreadyResolvedAck}\n\n${reviewBody}`;
+            openingPlan = {
+              ...openingPlan,
+              opening_message: reviewBody,
+            };
+          }
           if (!allowRelaunchGreeting) {
             reviewBody = applyScheduledCheckinGreetingPolicy({
               text: reviewBody,
@@ -2196,6 +2806,9 @@ Deno.serve(async (req) => {
               original_checkin_id: checkin.id,
               purpose: "action_evening_review",
               occurrence_ids: targets.map((target) => target.occurrence_id),
+              already_resolved_occurrence_ids: alreadyResolvedTargets.map((
+                target,
+              ) => target.occurrence_id),
               plan_item_ids: [
                 ...new Set(targets.map((target) => target.plan_item_id)),
               ],
@@ -2232,6 +2845,7 @@ Deno.serve(async (req) => {
                 chat_capability: "daily_action_review",
                 occurrence_ids: targets.map((target) => target.occurrence_id),
                 targets,
+                already_resolved_targets: alreadyResolvedTargets,
                 review_state: openingPlan?.initial_skill_state ?? null,
                 asked_occurrence_ids: openingPlan?.asked_occurrence_ids ?? [],
                 not_yet_asked_occurrence_ids:
@@ -2630,8 +3244,84 @@ Deno.serve(async (req) => {
             e,
           );
         }
+        const weeklyReviewPayload = {
+          ...payload,
+          source: "process_checkins:weekly_adaptive_review_v1",
+          weekly_progress_review: review,
+          weekly_adaptive_review: adaptiveReview,
+          momentum_snapshot_v2: momentumSnapshot,
+          instruction: buildWeeklyAdaptiveReviewInstruction(adaptiveReview),
+          event_grounding: momentumSnapshot
+            ? `${
+              buildWeeklyProgressReviewGrounding(review)
+            }\n\nweekly_adaptive_review=${
+              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
+            }\n\nmomentum_snapshot_v2=${JSON.stringify(momentumSnapshot)}`
+            : `${
+              buildWeeklyProgressReviewGrounding(review)
+            }\n\nweekly_adaptive_review=${
+              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
+            }`,
+          chat_capability: "weekly_adaptive_review",
+        };
+        let weeklyReviewIntro = "";
+        try {
+          const { data: profileForGreeting } = await supabaseAdmin
+            .from("profiles")
+            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+            .eq("id", checkin.user_id)
+            .maybeSingle();
+          const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
+            lastInboundAt: (profileForGreeting as any)
+              ?.whatsapp_last_inbound_at,
+            lastOutboundAt: (profileForGreeting as any)
+              ?.whatsapp_last_outbound_at,
+          });
+          weeklyReviewIntro = await generateWeeklyAdaptiveReviewOpening({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            scheduledFor: String((checkin as any)?.scheduled_for ?? ""),
+            requestId,
+            review,
+            adaptiveReview,
+            momentumSnapshot,
+            allowGreeting: allowRelaunchGreeting,
+          });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn(
+            `[process-checkins] request_id=${requestId} weekly_adaptive_review_opening_generation_failed checkin_id=${checkin.id}`,
+            e,
+          );
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "retrying",
+            attemptCount,
+            errorMessage:
+              `weekly_adaptive_review_opening_generation_failed:${msg}`,
+            requestId,
+          });
+          continue;
+        }
+        try {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({
+              message_payload: weeklyReviewPayload,
+              draft_message: weeklyReviewIntro,
+            })
+            .eq("id", checkin.id);
+          (checkin as any).message_payload = weeklyReviewPayload;
+          (checkin as any).draft_message = weeklyReviewIntro;
+        } catch (e) {
+          console.warn(
+            `[process-checkins] request_id=${requestId} persist_weekly_review_payload_failed checkin_id=${checkin.id}`,
+            e,
+          );
+        }
         if (!in24hConversationWindow) {
-          const reviewBody = buildWeeklyProgressReviewFallbackMessage(summary);
+          const reviewBody = weeklyReviewIntro;
           const templateMessage = weeklyProgressReviewTemplateMessage(
             dashboardUrl,
           );
@@ -2687,10 +3377,27 @@ Deno.serve(async (req) => {
               });
               continue;
             }
+            const { error: pendErr } = await supabaseAdmin
+              .from("whatsapp_pending_actions")
+              .insert({
+                user_id: checkin.user_id,
+                kind: "scheduled_checkin",
+                status: "pending",
+                scheduled_checkin_id: checkin.id,
+                payload: {
+                  draft_message: reviewBody,
+                  event_context: checkin.event_context,
+                  message_mode: "dynamic",
+                  message_payload: weeklyReviewPayload,
+                },
+                expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+                  .toISOString(),
+              });
+            if (pendErr) throw pendErr;
             await markScheduledCheckinDeliveryState({
               supabaseAdmin,
               checkinId: checkin.id,
-              status: "sent",
+              status: "awaiting_user",
               attemptCount,
               draftMessage: reviewBody,
               errorMessage: null,
@@ -2717,41 +3424,9 @@ Deno.serve(async (req) => {
           }
           continue;
         }
-        mode = "dynamic";
-        payload = {
-          ...payload,
-          source: "process_checkins:weekly_adaptive_review_v1",
-          weekly_progress_review: review,
-          weekly_adaptive_review: adaptiveReview,
-          momentum_snapshot_v2: momentumSnapshot,
-          instruction: buildWeeklyAdaptiveReviewInstruction(adaptiveReview),
-          event_grounding: momentumSnapshot
-            ? `${
-              buildWeeklyProgressReviewGrounding(review)
-            }\n\nweekly_adaptive_review=${
-              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
-            }\n\nmomentum_snapshot_v2=${JSON.stringify(momentumSnapshot)}`
-            : `${
-              buildWeeklyProgressReviewGrounding(review)
-            }\n\nweekly_adaptive_review=${
-              buildWeeklyAdaptiveReviewGrounding(adaptiveReview)
-            }`,
-          chat_capability: "weekly_adaptive_review",
-        };
-        bodyText = buildWeeklyAdaptiveReviewMessage(adaptiveReview);
-        try {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ message_payload: payload, draft_message: bodyText })
-            .eq("id", checkin.id);
-          (checkin as any).message_payload = payload;
-          (checkin as any).draft_message = bodyText;
-        } catch (e) {
-          console.warn(
-            `[process-checkins] request_id=${requestId} persist_weekly_review_payload_failed checkin_id=${checkin.id}`,
-            e,
-          );
-        }
+        mode = "static";
+        payload = weeklyReviewPayload;
+        bodyText = weeklyReviewIntro;
       }
       if (mode === "dynamic") {
         try {
@@ -3016,6 +3691,21 @@ Deno.serve(async (req) => {
             requestId: String((resp as any)?.request_id ?? requestId),
           });
           continue;
+        }
+
+        if (isWeeklyProgressReview && !usedTemplate) {
+          await activateWeeklyAdaptiveReviewState({
+            supabaseAdmin,
+            userId: String(checkin.user_id),
+            weeklyProgressReview: payload?.weekly_progress_review ?? null,
+            weeklyAdaptiveReview: payload?.weekly_adaptive_review ?? null,
+            checkinId: checkin.id,
+          }).catch((error) => {
+            console.warn(
+              `[process-checkins] request_id=${requestId} weekly_active_state_persist_failed checkin_id=${checkin.id}`,
+              error,
+            );
+          });
         }
 
         if (isMomentumMorningNudge) {

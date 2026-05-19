@@ -211,8 +211,12 @@ function heuristicRecommendation(
       executor_tool_id: potion.executor_tool_id,
       operation_type: "select_state_potion",
       operation_input: {
-        state: /honte|shame/.test(text) ? "shame_guilt" : "activation",
-        potion_type: "regulation",
+        state: {
+          kind: /honte|shame/.test(text) ? "shame_guilt" : "stress_pressure",
+          intensity: "high",
+          evidence: [input.skill_output?.reply ?? "state_regulation"],
+        },
+        potion_type: /honte|shame/.test(text) ? "guerison" : "apaisement",
         evidence: [input.skill_output?.reply ?? "state_regulation"],
       },
       confidence: 0.82,
@@ -236,7 +240,14 @@ function heuristicRecommendation(
       surface_id: potion.id,
       executor_tool_id: potion.executor_tool_id,
       operation_type: "select_state_potion",
-      operation_input: { state: "shame_guilt", potion_type: "regulation" },
+      operation_input: {
+        state: {
+          kind: "stress_pressure",
+          intensity: "medium",
+          evidence: [input.skill_output?.reply ?? "state_regulation"],
+        },
+        potion_type: "apaisement",
+      },
       confidence: 0.8,
       timing: "now",
       presentation_level: 2,

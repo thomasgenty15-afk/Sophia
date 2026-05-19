@@ -1,0 +1,758 @@
+{
+  "run_id": "daily-paul-two-plans-postfix-20260516-r1",
+  "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+  "run_started_at": "2026-05-16T19:09:22.787Z",
+  "ids": {
+    "second_plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+    "second_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+    "primary_transformation_id": "607650e6-2d1f-484c-b884-b3ccf0e9f320",
+    "primary_plan_id": "05a61a4b-2803-4289-a6f2-c97649d1d676",
+    "primary_item_id": "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+    "primary_occurrence_id": "33994741-1bc3-440c-9081-a53b75196954",
+    "primary_entry_id": "c47270b1-5ca5-4e62-bb8c-dcb4f53610b9",
+    "second_occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+    "scheduled_id": "f092b27b-8e37-4abb-aabf-7b2e3867ed59",
+    "pending_id": "8df2762b-3345-4110-9277-d718939d819f"
+  },
+  "setup": {
+    "secondPlan": {
+      "id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+      "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+      "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+      "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+      "status": "active",
+      "version": 1,
+      "title": "Plan énergie du soir",
+      "content": {
+        "created_for": "daily_two_plans_harder_qa",
+        "description": "Plan actif secondaire conservé pour les prochains tests Paul.",
+        "qa_persistent_slug": "paul-second-plan-energy"
+      },
+      "generation_attempts": 0,
+      "last_generation_reason": null,
+      "activated_at": "2026-05-16T18:02:40.391+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-05-16T18:02:40.39179+00:00",
+      "updated_at": "2026-05-16T18:02:40.39179+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": null
+    },
+    "secondItem": {
+      "id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+      "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+      "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+      "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+      "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "active",
+      "title": "Préparer ton sas de décompression du soir",
+      "description": "Choisir un coin, un minuteur et une règle simple pour couper après le travail.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "evening",
+      "start_after_item_id": null,
+      "payload": {
+        "plan_context": "énergie personnelle",
+        "qa_persistent_slug": "paul-second-plan-energy-action"
+      },
+      "created_at": "2026-05-16T18:02:40.396813+00:00",
+      "updated_at": "2026-05-16T18:03:20.103507+00:00",
+      "activated_at": "2026-05-16T18:02:40.397+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": "0e4e77eb-0fd1-4e61-9cb2-df258c0b6933",
+      "attack_card_id": "d81db897-b440-4166-8009-2e95bfd74621",
+      "cards_status": "ready",
+      "cards_generated_at": "2026-05-16T18:03:20.103+00:00"
+    },
+    "processResponse": {
+      "status": 200,
+      "body": {
+        "success": true,
+        "processed": 1,
+        "flushed_deferred": 0,
+        "delivered_rendez_vous": 0,
+        "processed_access_notifications": 0,
+        "processed_proactive_candidates": 0,
+        "request_id": "daily-paul-two-plans-postfix-20260516-r1-process"
+      }
+    },
+    "pending": {
+      "id": "8df2762b-3345-4110-9277-d718939d819f",
+      "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+      "kind": "scheduled_checkin",
+      "status": "pending",
+      "scheduled_checkin_id": "f092b27b-8e37-4abb-aabf-7b2e3867ed59",
+      "payload": {
+        "targets": [
+          {
+            "kind": "task",
+            "title": "Préparer ton sas de décompression du soir",
+            "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+            "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+            "dimension": "missions",
+            "planned_day": "sat",
+            "time_of_day": "evening",
+            "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+            "occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+            "tracking_type": "boolean",
+            "week_start_date": "2026-05-11",
+            "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+            "reviewed_local_date": "2026-05-16",
+            "original_planned_day": "sat"
+          }
+        ],
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-16",
+        "message_mode": "conversation",
+        "review_state": {
+          "items": {
+            "b3d65405-121e-437f-a8a9-7486a0705a19": {
+              "title": "Préparer ton sas de décompression du soir",
+              "outcome": null,
+              "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+              "confidence": "low",
+              "plan_label": null,
+              "action_type": "mission",
+              "reason_text": null,
+              "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+              "evidence_text": null,
+              "missing_slots": [
+                "outcome"
+              ],
+              "occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+              "still_relevant": "unknown",
+              "reason_category": null,
+              "matched_user_text": null
+            }
+          },
+          "source": "daily_action_review_v1",
+          "status": "collecting",
+          "skill_id": "daily_action_review_v1",
+          "stop_reason": null,
+          "next_question": null,
+          "should_apply_effects": false,
+          "next_question_targets": [
+            "b3d65405-121e-437f-a8a9-7486a0705a19"
+          ],
+          "generated_user_message": null,
+          "remaining_occurrence_ids": [],
+          "asked_occurrence_ids_history": [
+            [
+              "b3d65405-121e-437f-a8a9-7486a0705a19"
+            ]
+          ],
+          "current_focus_occurrence_ids": [
+            "b3d65405-121e-437f-a8a9-7486a0705a19"
+          ],
+          "action_intelligence_by_occurrence_id": {}
+        },
+        "draft_message": "J'ai vu que « Ranger trois idées dans ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nPréparer ton sas de décompression du soir : qu’est-ce qui s’est passé pour toi avec ça ce soir ?",
+        "event_context": "action_evening_review_v2",
+        "occurrence_ids": [
+          "b3d65405-121e-437f-a8a9-7486a0705a19"
+        ],
+        "chat_capability": "daily_action_review",
+        "grouping_reason": "single_action",
+        "week_start_date": "2026-05-11",
+        "asked_occurrence_ids": [
+          "b3d65405-121e-437f-a8a9-7486a0705a19"
+        ],
+        "action_evening_review": true,
+        "already_resolved_targets": [
+          {
+            "kind": "task",
+            "title": "Ranger trois idées dans ton Parking à idées",
+            "plan_id": "05a61a4b-2803-4289-a6f2-c97649d1d676",
+            "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+            "dimension": "missions",
+            "planned_day": "sat",
+            "time_of_day": "anytime",
+            "plan_item_id": "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+            "occurrence_id": "33994741-1bc3-440c-9081-a53b75196954",
+            "tracking_type": "boolean",
+            "resolved_source": "entry_and_occurrence",
+            "resolved_status": "completed",
+            "week_start_date": "2026-05-11",
+            "transformation_id": "607650e6-2d1f-484c-b884-b3ccf0e9f320",
+            "reviewed_local_date": "2026-05-16",
+            "original_planned_day": "sat"
+          }
+        ],
+        "not_yet_asked_occurrence_ids": []
+      },
+      "expires_at": "2026-05-17T13:09:22.772+00:00",
+      "created_at": "2026-05-16T19:09:22.772837+00:00",
+      "processed_at": null,
+      "not_before": null
+    },
+    "scheduled": {
+      "id": "f092b27b-8e37-4abb-aabf-7b2e3867ed59",
+      "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+      "event_context": "action_evening_review_v2",
+      "draft_message": "",
+      "scheduled_for": "2026-05-16T15:00:00+00:00",
+      "status": "pending",
+      "created_at": "2026-05-16T19:09:19.714181+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "run_id": "daily-paul-two-plans-postfix-20260516-r1",
+        "source": "qa_daily_two_plans_postfix",
+        "timezone": "Europe/Paris",
+        "local_date": "2026-05-16",
+        "plan_item_ids": [
+          "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+          "c97739c7-330b-4d15-b999-3fa8e7456b48"
+        ],
+        "occurrence_ids": [
+          "33994741-1bc3-440c-9081-a53b75196954",
+          "b3d65405-121e-437f-a8a9-7486a0705a19"
+        ],
+        "week_start_date": "2026-05-11",
+        "reviewed_local_date": "2026-05-16"
+      },
+      "origin": "action_review",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  },
+  "whatsapp": {
+    "from": "15550385418005",
+    "display_phone": "15550385418005",
+    "phone_number_id": "3f718e408fc6c0bf"
+  },
+  "turns": [
+    {
+      "turn": 0,
+      "role": "assistant",
+      "text": "J'ai vu que « Ranger trois idées dans ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nPréparer ton sas de décompression du soir : qu’est-ce qui s’est passé pour toi avec ça ce soir ?",
+      "trace": {
+        "pending_id": "8df2762b-3345-4110-9277-d718939d819f",
+        "targets_count": 1,
+        "already_resolved_count": 1
+      }
+    },
+    {
+      "turn": 1,
+      "role": "user",
+      "text": "J'ai préparé le coin et lancé le minuteur, donc il y a un vrai début. Mais au bout de dix minutes Slack m'a repris et je n'ai pas vraiment fait le sas complet. Disons que ce n'est pas zéro, mais je ne le vendrais pas comme terminé."
+    },
+    {
+      "turn": 1,
+      "role": "assistant",
+      "text": "C'est noté pour ton sas de décompression, fait en partie car tu as été interrompu par Slack. C'est tout pour aujourd'hui !",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "bf4ccc5c-21e7-4dec-86ab-703307e32e76",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 2,
+      "role": "user",
+      "text": "Attends, quand tu dis fait en partie, ça veut dire que tu le comptes comme fait ou que tu le repousses complètement ?"
+    },
+    {
+      "turn": 2,
+      "role": "assistant",
+      "text": "Quand je note que c'est fait en partie, ça veut dire que je valide ton effort d'aujourd'hui sans considérer l'action comme terminée. J'ai donc créé une suite intitulée « Terminer Préparer ton sas de décompression du soir (2e partie) » pour demain dimanche afin que tu puisses finir ce que tu as commencé.",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "302bb3a3-45d9-49d9-88aa-641c30b81e6d",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 3,
+      "role": "user",
+      "text": "Non, je parle du bilan que tu viens de me faire sur le sas de décompression, pas des potions. Tu as noté quoi exactement ?"
+    },
+    {
+      "turn": 3,
+      "role": "assistant",
+      "text": "Pour ton sas de décompression, j'ai noté que c'est « partiellement fait » car tu as été interrompu par Slack après 10 minutes. J'ai aussi programmé une suite pour demain dimanche : « Terminer Préparer ton sas de décompression du soir (2e partie) ».",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "b2d1c8fa-9f0b-4a84-a91b-67959356ad2a",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 4,
+      "role": "user",
+      "text": "Et l'action du Parking à idées, tu l'as bien prise en compte aussi ? Je l'avais faite avant que tu demandes."
+    },
+    {
+      "turn": 4,
+      "role": "assistant",
+      "text": "Oui, tout à fait. J'ai bien pris en compte que l'action « Ranger trois idées dans ton Parking à idées » était déjà faite avant notre échange, elle est bien validée dans ton bilan.",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "8e8ae289-5314-4298-bdcc-68205ca9dd5a",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 5,
+      "role": "user",
+      "text": "Ok, et du coup pour demain, tu as créé quoi exactement pour finir le sas ?"
+    },
+    {
+      "turn": 5,
+      "role": "assistant",
+      "text": "Pour demain dimanche, j'ai créé l'action « Terminer Préparer ton sas de décompression du soir (2e partie) » afin que tu puisses finir ce que tu as commencé.",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "33b304d6-6b3e-4253-b08c-c2779bc78719",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 6,
+      "role": "user",
+      "text": "Toujours pas le dashboard : je parle de ce que toi tu viens de créer dans mon plan après ma réponse partiellement faite. C'est quel titre ?"
+    },
+    {
+      "turn": 6,
+      "role": "assistant",
+      "text": "Le titre exact de l'action que j'ai créée pour demain dimanche est : « Terminer Préparer ton sas de décompression du soir (2e partie) ».",
+      "trace": {
+        "http_status": 200,
+        "pending_status": "done",
+        "assistant_metadata": [
+          {
+            "source": "daily_action_review_recap",
+            "channel": "whatsapp",
+            "purpose": "action_evening_review",
+            "is_proactive": false,
+            "event_context": "action_evening_review_v2",
+            "outbound_tracking_id": "47eb5286-5772-45a4-aaa3-4d1d7640de8e",
+            "wa_outbound_message_id": "wamid_DISABLED"
+          }
+        ]
+      }
+    }
+  ],
+  "latest_snapshot": {
+    "pending": [
+      {
+        "id": "8df2762b-3345-4110-9277-d718939d819f",
+        "status": "done",
+        "payload": {
+          "targets": [
+            {
+              "kind": "task",
+              "title": "Préparer ton sas de décompression du soir",
+              "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+              "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+              "dimension": "missions",
+              "planned_day": "sat",
+              "time_of_day": "evening",
+              "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+              "occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+              "tracking_type": "boolean",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+              "reviewed_local_date": "2026-05-16",
+              "original_planned_day": "sat"
+            }
+          ],
+          "timezone": "Europe/Paris",
+          "local_date": "2026-05-16",
+          "completed_at": "2026-05-16T19:09:32.798Z",
+          "message_mode": "conversation",
+          "review_state": {
+            "items": {
+              "b3d65405-121e-437f-a8a9-7486a0705a19": {
+                "title": "Préparer ton sas de décompression du soir",
+                "outcome": "partial",
+                "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+                "confidence": "high",
+                "plan_label": null,
+                "action_type": "mission",
+                "reason_text": "Interrompu par Slack après 10 minutes.",
+                "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+                "evidence_text": "Préparé le coin et lancé le minuteur.",
+                "missing_slots": [],
+                "occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+                "still_relevant": "unknown",
+                "reason_category": "external",
+                "matched_user_text": "J'ai préparé le coin et lancé le minuteur, donc il y a un vrai début. Mais au bout de dix minutes Slack m'a repris et je n'ai pas vraiment fait le sas complet."
+              }
+            },
+            "source": "daily_action_review_v1",
+            "status": "complete",
+            "skill_id": "daily_action_review_v1",
+            "stop_reason": "all_required_slots_filled",
+            "next_question": null,
+            "last_user_text": "J'ai préparé le coin et lancé le minuteur, donc il y a un vrai début. Mais au bout de dix minutes Slack m'a repris et je n'ai pas vraiment fait le sas complet. Disons que ce n'est pas zéro, mais je ne le vendrais pas comme terminé.",
+            "should_apply_effects": true,
+            "next_question_targets": [],
+            "generated_user_message": "C'est noté pour ton sas de décompression, fait en partie car tu as été interrompu par Slack. C'est tout pour aujourd'hui !",
+            "remaining_occurrence_ids": [],
+            "asked_occurrence_ids_history": [
+              [
+                "b3d65405-121e-437f-a8a9-7486a0705a19"
+              ]
+            ],
+            "current_focus_occurrence_ids": [
+              "b3d65405-121e-437f-a8a9-7486a0705a19"
+            ],
+            "action_intelligence_by_occurrence_id": {}
+          },
+          "draft_message": "J'ai vu que « Ranger trois idées dans ton Parking à idées » est déjà validée aujourd'hui. Bien joué.\n\nPréparer ton sas de décompression du soir : qu’est-ce qui s’est passé pour toi avec ça ce soir ?",
+          "event_context": "action_evening_review_v2",
+          "occurrence_ids": [
+            "b3d65405-121e-437f-a8a9-7486a0705a19"
+          ],
+          "chat_capability": "daily_action_review",
+          "grouping_reason": "single_action",
+          "week_start_date": "2026-05-11",
+          "asked_occurrence_ids": [
+            "b3d65405-121e-437f-a8a9-7486a0705a19"
+          ],
+          "action_evening_review": true,
+          "missing_occurrence_ids": [],
+          "already_resolved_targets": [
+            {
+              "kind": "task",
+              "title": "Ranger trois idées dans ton Parking à idées",
+              "plan_id": "05a61a4b-2803-4289-a6f2-c97649d1d676",
+              "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+              "dimension": "missions",
+              "planned_day": "sat",
+              "time_of_day": "anytime",
+              "plan_item_id": "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+              "occurrence_id": "33994741-1bc3-440c-9081-a53b75196954",
+              "tracking_type": "boolean",
+              "resolved_source": "entry_and_occurrence",
+              "resolved_status": "completed",
+              "week_start_date": "2026-05-11",
+              "transformation_id": "607650e6-2d1f-484c-b884-b3ccf0e9f320",
+              "reviewed_local_date": "2026-05-16",
+              "original_planned_day": "sat"
+            }
+          ],
+          "not_yet_asked_occurrence_ids": []
+        },
+        "processed_at": "2026-05-16T19:09:39.597+00:00"
+      }
+    ],
+    "entries": [
+      {
+        "id": "7eae963b-4978-4a5e-97f8-ebceb98a3a78",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+        "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+        "entry_kind": "partial",
+        "outcome": "partial",
+        "value_numeric": null,
+        "value_text": "Interrompu par Slack après 10 minutes.",
+        "difficulty_level": null,
+        "blocker_hint": "external",
+        "created_at": "2026-05-16T19:09:32.798+00:00",
+        "effective_at": "2026-05-16T12:00:00+00:00",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-05-16",
+          "reason_text": "Interrompu par Slack après 10 minutes.",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+          "daily_decision": "mission_partial_split_continuation_created",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "external",
+          "matched_user_text": "J'ai préparé le coin et lancé le minuteur, donc il y a un vrai début. Mais au bout de dix minutes Slack m'a repris et je n'ai pas vraiment fait le sas complet.",
+          "occurrence_status": "done",
+          "pending_action_id": "8df2762b-3345-4110-9277-d718939d819f",
+          "reschedule_decision": null,
+          "completed_part_label": "1ere_partie",
+          "scheduled_checkin_id": "f092b27b-8e37-4abb-aabf-7b2e3867ed59",
+          "continuation_planned_day": "sun",
+          "continuation_plan_item_id": "90d16568-6f36-4b63-ac2e-b55a54b3c1b2",
+          "continuation_occurrence_id": "19b33d3d-d328-4b55-918c-e11520d4b36d",
+          "continuation_cards_decision": "cards_duplicated"
+        }
+      },
+      {
+        "id": "c47270b1-5ca5-4e62-bb8c-dcb4f53610b9",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "607650e6-2d1f-484c-b884-b3ccf0e9f320",
+        "plan_id": "05a61a4b-2803-4289-a6f2-c97649d1d676",
+        "plan_item_id": "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": null,
+        "value_text": "Fait avant le daily QA.",
+        "difficulty_level": null,
+        "blocker_hint": null,
+        "created_at": "2026-05-16T19:09:19.707736+00:00",
+        "effective_at": "2026-05-16T17:00:00+00:00",
+        "metadata": {
+          "run_id": "daily-paul-two-plans-postfix-20260516-r1",
+          "source": "qa_prevalidated_before_daily",
+          "occurrence_id": "33994741-1bc3-440c-9081-a53b75196954"
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "33994741-1bc3-440c-9081-a53b75196954",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "607650e6-2d1f-484c-b884-b3ccf0e9f320",
+        "plan_id": "05a61a4b-2803-4289-a6f2-c97649d1d676",
+        "plan_item_id": "2ede46f2-a787-426d-8d69-a2b116fee6e1",
+        "week_start_date": "2026-05-11",
+        "ordinal": 6,
+        "planned_day": "sat",
+        "original_planned_day": "sat",
+        "actual_day": null,
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-05-16T19:09:19.702+00:00",
+        "created_at": "2026-05-16T19:09:19.704007+00:00",
+        "updated_at": "2026-05-16T19:09:19.704007+00:00",
+        "default_day": "sat"
+      },
+      {
+        "id": "b3d65405-121e-437f-a8a9-7486a0705a19",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+        "plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+        "week_start_date": "2026-05-11",
+        "ordinal": 6,
+        "planned_day": "sat",
+        "original_planned_day": "sat",
+        "actual_day": null,
+        "status": "done",
+        "source": "manual_change",
+        "validated_at": "2026-05-16T19:09:32.798+00:00",
+        "created_at": "2026-05-16T19:09:19.711228+00:00",
+        "updated_at": "2026-05-16T19:09:32.798+00:00",
+        "default_day": "sat"
+      }
+    ],
+    "continuation": [
+      {
+        "id": "90d16568-6f36-4b63-ac2e-b55a54b3c1b2",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "title": "Terminer Préparer ton sas de décompression du soir (2e partie)",
+        "description": "Choisir un coin, un minuteur et une règle simple pour couper après le travail.",
+        "tracking_type": "boolean",
+        "activation_order": 2,
+        "activation_condition": null,
+        "current_habit_state": null,
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": null,
+        "current_reps": 0,
+        "cadence_label": null,
+        "scheduled_days": [
+          "sun"
+        ],
+        "time_of_day": "evening",
+        "start_after_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+        "payload": {
+          "plan_context": "énergie personnelle",
+          "daily_split_part": "2e_partie",
+          "qa_persistent_slug": "paul-second-plan-energy-action",
+          "daily_split_created_at": "2026-05-16T19:09:32.798Z",
+          "daily_split_planned_day": "sun",
+          "daily_split_continuation": true,
+          "daily_split_from_plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+          "daily_split_from_occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19"
+        },
+        "created_at": "2026-05-16T19:09:32.798+00:00",
+        "updated_at": "2026-05-16T19:09:39.576081+00:00",
+        "activated_at": "2026-05-16T19:09:32.798+00:00",
+        "completed_at": null,
+        "phase_id": "phase-1",
+        "phase_order": 1,
+        "defense_card_id": "b11e683e-cac3-4038-8c6c-b42d2de2e0a3",
+        "attack_card_id": "bd8e9741-22ea-4c71-ad28-0cb9e1e9fd1e",
+        "cards_status": "ready",
+        "cards_generated_at": "2026-05-16T19:09:32.798+00:00"
+      }
+    ],
+    "continuation_occurrences": [
+      {
+        "id": "19b33d3d-d328-4b55-918c-e11520d4b36d",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "plan_id": "8f04426c-a84c-4239-a9b3-37d98cb81e02",
+        "plan_item_id": "90d16568-6f36-4b63-ac2e-b55a54b3c1b2",
+        "week_start_date": "2026-05-11",
+        "ordinal": 7,
+        "planned_day": "sun",
+        "original_planned_day": "sun",
+        "actual_day": null,
+        "status": "planned",
+        "source": "manual_change",
+        "validated_at": null,
+        "created_at": "2026-05-16T19:09:32.798+00:00",
+        "updated_at": "2026-05-16T19:09:32.798+00:00",
+        "default_day": "sun"
+      }
+    ],
+    "cloned_defense": [
+      {
+        "id": "b11e683e-cac3-4038-8c6c-b42d2de2e0a3",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "content": {
+          "title": "Quand Slack aspire la fin de journée",
+          "trigger": "Je veux juste répondre à un dernier message.",
+          "response": "Je pose le minuteur et je ferme Slack avant le sas."
+        },
+        "generated_at": "2026-05-16T19:09:32.798+00:00",
+        "last_updated_at": "2026-05-16T19:09:32.798+00:00",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "scope_kind": "transformation",
+        "metadata": {
+          "qa_persistent_slug": "paul-second-plan-energy-defense",
+          "duplicated_from_card_id": "0e4e77eb-0fd1-4e61-9cb2-df258c0b6933",
+          "duplicated_for_daily_split": true,
+          "daily_split_source_plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+          "daily_split_source_occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19"
+        },
+        "phase_id": "phase-1",
+        "plan_item_id": "90d16568-6f36-4b63-ac2e-b55a54b3c1b2",
+        "source": "system",
+        "status": "active"
+      }
+    ],
+    "cloned_attack": [
+      {
+        "id": "bd8e9741-22ea-4c71-ad28-0cb9e1e9fd1e",
+        "user_id": "3b2d22cd-3c57-4c43-a035-941c014f8165",
+        "cycle_id": "3e603564-f978-4212-8101-cb8c0c2452ec",
+        "transformation_id": "b833664c-179e-4d0c-be1e-eeb06ece6f3b",
+        "phase_id": "phase-1",
+        "source": "system",
+        "status": "active",
+        "content": {
+          "cue": "Quand la dernière réunion se termine.",
+          "move": "Je lance 20 minutes de décompression avant de rouvrir Slack.",
+          "title": "Déclencheur sas du soir"
+        },
+        "metadata": {
+          "qa_persistent_slug": "paul-second-plan-energy-attack",
+          "duplicated_from_card_id": "d81db897-b440-4166-8009-2e95bfd74621",
+          "duplicated_for_daily_split": true,
+          "daily_split_source_plan_item_id": "c97739c7-330b-4d15-b999-3fa8e7456b48",
+          "daily_split_source_occurrence_id": "b3d65405-121e-437f-a8a9-7486a0705a19"
+        },
+        "generated_at": "2026-05-16T19:09:32.798+00:00",
+        "last_updated_at": "2026-05-16T19:09:32.798+00:00",
+        "scope_kind": "transformation",
+        "plan_item_id": "90d16568-6f36-4b63-ac2e-b55a54b3c1b2"
+      }
+    ]
+  },
+  "detected": {
+    "continuation_ids": [
+      "90d16568-6f36-4b63-ac2e-b55a54b3c1b2"
+    ],
+    "cloned_defense_ids": [
+      "b11e683e-cac3-4038-8c6c-b42d2de2e0a3"
+    ],
+    "cloned_attack_ids": [
+      "bd8e9741-22ea-4c71-ad28-0cb9e1e9fd1e"
+    ],
+    "continuation_occurrence_ids": [
+      "19b33d3d-d328-4b55-918c-e11520d4b36d"
+    ]
+  },
+  "cleanup": {
+    "cleaned_at": "2026-05-17T15:57:09.058Z",
+    "verification": {
+      "pending_remaining": 0,
+      "scheduled_remaining": 0,
+      "second_plan_remaining": 1,
+      "second_item_remaining": 1
+    }
+  }
+}

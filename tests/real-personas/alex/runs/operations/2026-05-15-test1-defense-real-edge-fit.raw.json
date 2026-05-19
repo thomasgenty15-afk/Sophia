@@ -1,0 +1,574 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t01",
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "status": 200,
+    "response": {
+      "content": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "b0b88d03-596a-429c-a7bb-4567b7e695d0",
+      "ts": "2026-05-15T10:23:24.26+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 5707,
+        "latency_ms": 9012,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 555,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficulté à démarrer le sas",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "taxonomy_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficulté à démarrer le sas",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "taxonomy_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "b0b88d03-596a-429c-a7bb-4567b7e695d0",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "démarrer le sas",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "target_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_defense_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "tool_fit",
+          "needed": true,
+          "reason": "structured_ai_missing_tool_fit",
+          "status": "missing",
+          "question": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?",
+          "known_slots": {
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "trigger": {
+                "type": "avoidance",
+                "status": "identified",
+                "evidence": [
+                  "pas envie de m'y mettre"
+                ],
+                "confidence": 0.9
+              },
+              "skill_id": "prepare_defense_card",
+              "tool_fit": {
+                "reason": "L'utilisateur exprime une résistance au démarrage de l'action ('pas envie de m'y mettre'), ce qui relève davantage d'une carte d'attaque que d'une carte de défense.",
+                "status": "attack_better",
+                "evidence": [
+                  "j'ai pas envie de m'y mettre"
+                ],
+                "confidence": "high"
+              },
+              "attachment": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "démarrer le sas"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "confidence": "high",
+              "constraints": [],
+              "current_step": "attachment_intake",
+              "defense_goal": {
+                "value": "protect_action",
+                "status": "identified",
+                "evidence": [
+                  "démarrer le sas"
+                ],
+                "confidence": "high"
+              },
+              "missing_slots": [
+                "tool_fit"
+              ],
+              "risk_situation": {
+                "label": "Démarrage du sas",
+                "status": "identified",
+                "evidence": [
+                  "démarrer le sas",
+                  "pas envie de m'y mettre"
+                ],
+                "confidence": "high",
+                "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+                "timing_hint": "Soir",
+                "context_hint": "Avant le coucher"
+              },
+              "defense_response_hint": {
+                "value": null,
+                "status": "missing",
+                "evidence": [],
+                "confidence": "low",
+                "strategy_hint": null
+              },
+              "generated_user_message": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?"
+            },
+            "risk_situation": {
+              "label": "Démarrage du sas",
+              "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+              "timing_hint": "Soir",
+              "context_hint": "Avant le coucher"
+            }
+          }
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "tool_fit"
+        ],
+        "selected_handler": "prepare_defense_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 16849,
+      "created_at": "2026-05-15T10:23:24.281418+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t02",
+    "user": "Oui vas-y.",
+    "status": 200,
+    "response": {
+      "content": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "974d4fac-7f54-4bda-9c32-3c949bf6f7b5",
+      "ts": "2026-05-15T10:24:08.129+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 6766,
+        "latency_ms": 20284,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 509,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=1.5",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "974d4fac-7f54-4bda-9c32-3c949bf6f7b5",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "Faire le sas de déchargement",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high"
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_defense_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "tool_fit",
+          "needed": true,
+          "reason": "structured_ai_missing_tool_fit",
+          "status": "missing",
+          "question": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?",
+          "known_slots": {
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "trigger": {
+                "type": "avoidance",
+                "status": "identified",
+                "evidence": [
+                  "pas envie de m'y mettre"
+                ],
+                "confidence": 0.9
+              },
+              "skill_id": "prepare_defense_card",
+              "tool_fit": {
+                "reason": "L'utilisateur a validé le passage en mode 'attaque' pour surmonter la résistance au démarrage du sas.",
+                "status": "attack_better",
+                "evidence": [
+                  "Oui vas-y."
+                ],
+                "confidence": "high"
+              },
+              "attachment": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "confidence": "high",
+              "constraints": [],
+              "current_step": "attachment_intake",
+              "defense_goal": {
+                "value": "protect_action",
+                "status": "identified",
+                "evidence": [
+                  "démarrer le sas"
+                ],
+                "confidence": "high"
+              },
+              "missing_slots": [
+                "tool_fit"
+              ],
+              "risk_situation": {
+                "label": "Démarrage du sas",
+                "status": "identified",
+                "evidence": [
+                  "structured_operation_input"
+                ],
+                "confidence": "high",
+                "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+                "timing_hint": "Soir",
+                "context_hint": "Avant le coucher"
+              },
+              "defense_response_hint": {
+                "value": null,
+                "status": "missing",
+                "evidence": [],
+                "confidence": "low",
+                "strategy_hint": null
+              },
+              "generated_user_message": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?"
+            },
+            "risk_situation": {
+              "label": "Démarrage du sas",
+              "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+              "timing_hint": "Soir",
+              "context_hint": "Avant le coucher"
+            }
+          }
+        },
+        "reason_code": "active_tool_skill_continue",
+        "missing_slots": [
+          "tool_fit"
+        ],
+        "selected_handler": "prepare_defense_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 30170,
+      "created_at": "2026-05-15T10:24:08.141916+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

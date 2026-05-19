@@ -1,0 +1,340 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le truc des placards dans mon plan est trop gros, je veux le rendre beaucoup plus petit.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "eb95152c-c380-4d2d-9b72-c97c68059fb7",
+        "ts": "2026-05-12T22:12:24.372+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 2623,
+          "latency_ms": 6475,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 319,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "placards",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "nettoyage placards environnement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "low",
+                "query_hint": "difficulté exécution tâche trop grosse",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "placards",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "nettoyage placards environnement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "low",
+                "query_hint": "difficulté exécution tâche trop grosse",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "action_too_big",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "placards",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "eb95152c-c380-4d2d-9b72-c97c68059fb7",
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de mettre une version mini de Nettoyer ton environnement direct maintenant, comme pont avant de reprendre l'action initiale. Tu veux que je l'applique ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "operation_intent_start",
+          "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 6598,
+        "created_at": "2026-05-12T22:12:24.374148+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "oui allege-la, mais pas en mode ridicule",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait : j'ai mis \"Version mini - Nettoyer ton environnement direct\" à la place pour l'instant. C'est une action pont de 5 minutes, difficulté basse; \"Nettoyer ton environnement direct\" reste prévue juste après, quand cette version mini est faite.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8",
+        "ts": "2026-05-12T22:12:41.592+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3359,
+          "latency_ms": 5304,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 202,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "user_refining_task_reduction",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8",
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "confidence_band": "high"
+          }
+        },
+        "route_decision": {
+          "reason_code": "confirmation_yes_with_adjustment",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "pending_confirmation",
+          "memory_use_kind": "none",
+          "selected_handler": "execute_confirmed",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "executed",
+          "reason_code": "confirmation_yes_with_adjustment",
+          "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+          "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+          "selected_handler": "adjust_plan_item",
+          "bridge_plan_item_id": "35abdc18-4ac9-4942-967b-06a9591304c2"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "pending_confirmation",
+        "total_latency_ms": 5398,
+        "created_at": "2026-05-12T22:12:41.593292+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

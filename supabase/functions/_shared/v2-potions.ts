@@ -1,4 +1,8 @@
 import type { LabTransformationContext } from "./v2-lab-context.ts";
+import {
+  formatPotionBaseContextForPrompt,
+  type PotionBaseContext,
+} from "./potion-base-context.ts";
 import type {
   PotionActivationContent,
   PotionDefinition,
@@ -386,6 +390,7 @@ Regles :
 - pas de jargon therapeutique
 - pas de ton professoral
 - tutoie toujours la personne
+- n'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à la personne
 - adapte la reponse au type de potion, aux reponses donnees et au contexte
 - \`potion_name\` doit etre court, concret, memorisable, et donner envie de retrouver cette potion plus tard
 - instant_response doit vraiment ressembler a des mots qui font du bien maintenant
@@ -401,6 +406,7 @@ export function getPotionDefinition(type: PotionType): PotionDefinition {
 
 export function buildPotionActivationPrompt(args: {
   context: LabTransformationContext;
+  baseContext?: PotionBaseContext | null;
   definition: PotionDefinition;
   answers: Record<string, string>;
   freeText: string | null;
@@ -462,9 +468,14 @@ ${args.freeText?.trim() || "Non renseigne"}
 
 ${JSON.stringify(args.context.questionnaire_answers ?? {}, null, 2)}
 
+## Contexte de base disponible en base
+
+${formatPotionBaseContextForPrompt(args.baseContext)}
+
 Rappels importants:
 - traite d'abord l'etat interieur, pas la mecanique du plan
 - si le user parle d'une action du plan, tu peux t'y raccrocher, mais la potion reste centree sur son etat
+- n'invente jamais de contexte personnel absent de la base ou des reponses de l'utilisateur
 - le texte doit etre court, chaud, concret et utile
 
 Retourne uniquement le JSON demande.`;

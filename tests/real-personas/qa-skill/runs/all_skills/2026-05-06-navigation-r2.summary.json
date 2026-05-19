@@ -1,0 +1,394 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "dans Sophia, le dashboard sert a quoi exactement quand j'ai deja un plan ?",
+    "assistant": "Bonne question 😄 Le dashboard, quand tu as déjà un plan, sert surtout à 3 trucs concrets :\n\n1) Suivre l’exécution (bilan du quotidien/trace de ce que tu as fait)\nTu vois ta progression, ce qui tourne, et ce qui a besoin d’attention.\n\n2) Rendre le plan “pilotable”\nMême si le plan existe déjà, le dashboard t’aide à garder une vision claire des dimensions (soutien, missions, habitudes) et des items associés, sans tout recalculer dans ta tête.\n\n3) Ajuster proprement quand ça coince\nSi tu veux modifier/activer/pause des actions, c’est là que ça se fait de façon organisée (et pas “à l’arrache” dans le chat).\n\nL’idée: le plan te donne la direction, le dashboard te donne le volant et les instruments. 🚗✨\n\nTu veux plutôt comprendre le suivi (progression) ou la partie “changer des actions” ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "ok, et si je veux ajuster une action sans tout refaire, je dois passer par quelle partie ?",
+    "assistant": "Je peux l'ajuster, mais il me manque la cible exacte. Donne-moi le nom de l'action du plan a clarifier.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "scope"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "je demande parce que mon plan a une action admin et je ne sais pas si je dois la modifier ou juste la traiter ici",
+    "assistant": "Ok, bonne question 😄\n\nSi ton action admin doit juste être faite (remplir des docs, envoyer un mail, traiter un dossier), alors tu la traites ici en “exécution” et tu fais le suivi côté dashboard quand c’est fait.\n\nPar contre, si tu sens que le contenu, le périmètre, la fréquence, ou la façon de l’accomplir ne te convient plus (ou que ça a changé), là tu ajustes l’action depuis le dashboard, sans tout refaire.\n\nDis-moi juste le nom exact de l’action admin (ou ce que tu mets dedans), et ce que tu veux changer: A) la traiter comme prévu, ou B) modifier quelque chose dedans ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "l'action c'est ouvrir mon dossier mutuelle et envoyer une piece manquante; je bloque depuis trois jours",
+    "assistant": "Ah merde… trois jours, c’est clairement un “je repousse” pas un “j’ai rien à faire”. 😅\n\nComme c’est une action admin simple (ouvrir le dossier + envoyer une pièce), on ne touche pas au plan : on la traite en exécution ici, en mode micro-étapes.\n\nFais juste ça maintenant, sans chercher à “finir” :\n1) Ouvrir le dossier mutuelle (ou la page)  \n2) Sortir la pièce manquante (fichier prêt à être joint)  \n3) Préparer le mail / téléversement (tu t’arrêtes juste après “joindre”)\n\nTu veux que je te fasse une version ultra-courte du message à envoyer, ou c’est plutôt un téléversement sur un portail ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "skill_entry_ids": [
+      "execution_breakdown"
+    ],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [
+        "bounded_context_lowers_risk"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [
+        "bounded_context_lowers_risk"
+      ]
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t05",
+    "status": 200,
+    "ok": true,
+    "user": "je connais le resultat attendu, mais des que j'ouvre le site je me perds dans les onglets",
+    "assistant": "Ah ouais… le piège classique: tu veux juste faire 2 clics, et ton cerveau se retrouve à explorer le web comme si c’était un menu secret 😅\n\nLe but, c’est pas “comprendre le site”, c’est “forcer un chemin”.\nFais ce micro-process avant d’ouvrir:\n1) Prépare 1 phrase à exécuter: “Je vais uniquement à la page où on envoie la pièce”\n2) Ouvre le site avec un seul onglet (pas plusieurs), et ignore tout le reste\n3) Quand tu es sur la bonne page, ne ferme pas: tu fais la pièce + l’envoi, point.\n\nSi tu veux, on le rend encore plus béton: dis-moi ce qui t’attire en premier (menu “documents”, “espace client”, “contact”…). C’est quoi le nom du premier écran/zone que tu vois quand tu ouvres le site ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [
+      "execution_breakdown"
+    ],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t06",
+    "status": 200,
+    "ok": true,
+    "user": "je veux seulement la plus petite etape maintenant, pas un plan complet",
+    "assistant": "Ok, la plus petite étape maintenant pour ton dossier mutuelle ✅🙂\n\nOuvre juste le fichier de la pièce manquante (ou prépare le fichier à joindre), et ferme tout le reste sauf l’onglet du site. Ensuite seulement, tu iras sur “joindre/envoyer”.  \n\nTu as déjà la pièce prête en fichier sur ton tel/ordi, oui ou non ? 📄",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [
+      "execution_breakdown"
+    ],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ]
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t07",
+    "status": 200,
+    "ok": true,
+    "user": "si je mets cinq minutes, ce serait quoi le geste exact ?",
+    "assistant": "Ok, cinq minutes = zéro réflexion, juste une passe d’exécution 🎯🙂\n\n1) Tu ouvres le site dans un seul onglet.  \n2) Tu cliques uniquement sur “envoyer / joindre une pièce” (ou le champ “pièce manquante”).  \n3) Tu fais glisser/le choix du fichier: tu sélectionnes la pièce déjà prête.  \n4) Tu vérifies vite que le bon fichier est attaché, puis tu mets “envoyer/valider”.  \n5) Si ça bloque à l’étape finale, tu t’arrêtes juste après et tu me dis à quel écran exact ça coince.\n\nLa pièce manquante, elle est déjà sur ton appareil (oui/non) ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [
+      "execution_breakdown"
+    ],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t08",
+    "status": 200,
+    "ok": true,
+    "user": "je peux ouvrir l'onglet, mais j'ai peur de partir verifier tous les documents au lieu d'avancer",
+    "assistant": "Ah je vois le coup venir 😅 La peur, c’est pas “j’ai du mal”, c’est “si je démarre, je risque de partir en exploration”.\n\nDonc là, on s’équipe avec une règle anti-dérive : tu ne fais qu’une seule chose, dans le même onglet, pour 5 minutes max. Ensuite tu arrêtes même si c’est pas parfait.\n\nGeste exact (zéro docs en plus) :\n1) Ouvre le bon onglet\n2) Clique “joindre / envoyer”\n3) Attache uniquement la pièce déjà prête (ou la dernière version que tu as sous la main)\n4) Tu vérifies juste “c’est le bon fichier ?” puis tu vas au bouton suivant\n5) Si tu sens que tu vas fouiller : tu fermes tous les autres onglets et tu reviens au bouton “envoyer/valider” (même sans améliorer)\n\nTu veux faire le défi en mode A ou B ?\nA) 5 minutes chrono, sans regarder tes documents\nB) 1 minute chrono, juste “joindre le fichier”, et tu stop dès que c’est attaché 🚀",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "active_skill_continue",
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [
+      "execution_breakdown"
+    ],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "turn_frame_safety": {
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": []
+    },
+    "direct_effects": [],
+    "trace_direct_effects": [],
+    "memory_write_candidates_emitted": 0,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-all-skills-navigation-2026-05-06-r2-t09",
+    "status": 502,
+    "ok": null,
+    "user": "choisis une contrainte simple pour eviter que je transforme ca en chantier",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "skill_run_id": null,
+    "skill_run_status": null,
+    "safety_pregate": null,
+    "turn_frame_safety": null,
+    "direct_effects": [],
+    "trace_direct_effects": null,
+    "memory_write_candidates_emitted": null,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "tool_skill_run": null,
+    "trace_error": null
+  }
+]

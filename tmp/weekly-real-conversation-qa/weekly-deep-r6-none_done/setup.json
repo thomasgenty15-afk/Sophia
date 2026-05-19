@@ -1,0 +1,229 @@
+{
+  "run_id": "weekly-deep-r6-none_done",
+  "variant": "none_done",
+  "user_id": "d5e9b5fc-2dcb-4746-b941-0dd2346c47ae",
+  "email": "qa-weekly-deep-weekly-deep-r6-none_done@example.com",
+  "password_redacted": true,
+  "scope": "weekly-deep-none_done-weekly-deep-r6",
+  "connection_file": "tmp/weekly-real-conversation-qa/connections/weekly-deep-r6-none_done.json",
+  "week_start_date": "2026-05-11",
+  "week_end_date": "2026-05-17",
+  "scheduled_checkin_id": "17293b16-eaf0-45bb-b111-a01c60dbc0d5",
+  "opening": "J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+  "expected": {
+    "habit_verdict": {
+      "status": "failed",
+      "completion_rate": 0,
+      "planned_count": 5,
+      "done_points": 0,
+      "reason": "La cible d'habitudes n'est pas atteinte."
+    },
+    "daily_evidence_summary": {
+      "source": "daily_action_review_v1",
+      "coverage": "complete",
+      "covered_count": 6,
+      "action_count": 6,
+      "dominant_blockers": [
+        "fatigue",
+        "too_hard",
+        "emotional"
+      ],
+      "rescheduled_open_count": 0,
+      "not_answered_count": 0,
+      "confidence": "high"
+    },
+    "week_strategy": {
+      "decision": "bridge_week",
+      "reason": "Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple.",
+      "preserve_level_objective": true,
+      "preserve_level_architecture": true
+    },
+    "question": {
+      "id": "weekly_confirm_dominant_blocker",
+      "text": "J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+      "reason": "Le daily donne deja la cause dominante; Sophia demande seulement confirmation.",
+      "blocks_decision": true
+    },
+    "plan_patch": {
+      "requires_confirmation": true,
+      "operations": [
+        {
+          "op": "insert_bridge_week",
+          "details": {
+            "reason": "Les habitudes ne sont pas validees et la cause dominante demande une semaine plus simple."
+          }
+        }
+      ]
+    },
+    "item_decisions": [
+      {
+        "plan_item_id": "72f20956-10e5-4f6d-ab85-7395dfe924c9",
+        "occurrence_id": "50730e62-39a8-42a5-9b07-1fccda52ee8a",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "fatigue",
+          "reason_text": "journee trop chargee",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes suivent la strategie bridge de la semaine."
+      },
+      {
+        "plan_item_id": "72f20956-10e5-4f6d-ab85-7395dfe924c9",
+        "occurrence_id": "b0fc22f1-c2fc-4a4a-badb-b888b394d61b",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "emotional",
+          "reason_text": "j'etais trop tendu",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes suivent la strategie bridge de la semaine."
+      },
+      {
+        "plan_item_id": "72f20956-10e5-4f6d-ab85-7395dfe924c9",
+        "occurrence_id": "017baea8-47f2-4259-87e0-8dc989c92863",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "too_hard",
+          "reason_text": "trop gros a faire",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes suivent la strategie bridge de la semaine."
+      },
+      {
+        "plan_item_id": "d7a6295b-3ff8-41c8-8698-5eedd7a852f5",
+        "occurrence_id": "e6aa5874-dabe-463f-b815-572b76e1ce00",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "fatigue",
+          "reason_text": "pas d'energie",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes suivent la strategie bridge de la semaine."
+      },
+      {
+        "plan_item_id": "d7a6295b-3ff8-41c8-8698-5eedd7a852f5",
+        "occurrence_id": "597f0851-1124-4676-aaf0-57c31e85c90c",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "too_hard",
+          "reason_text": "je n'ai pas trouve le moment",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes suivent la strategie bridge de la semaine."
+      },
+      {
+        "plan_item_id": "e9195a83-f9bb-4f66-913e-16fecb875c5a",
+        "occurrence_id": "a352db43-4ba1-48e6-b6fe-4e3b4ecacb27",
+        "title": "Convenir d'un signal de pause",
+        "family": "mission",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "context",
+          "reason_text": "pas de fenetre pour en parler",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les non-habitudes suivent la semaine bridge sauf exception."
+      }
+    ],
+    "supports_out_of_scope": true
+  },
+  "review_summary": [
+    {
+      "transformation_id": "e9517532-0190-475d-aff7-cdd067bb99ff",
+      "plan_id": "c183485f-414a-490b-89c1-f56ad7f1d55e",
+      "summary": {
+        "planned_count": 6,
+        "done_count": 0,
+        "partial_count": 0,
+        "missed_count": 6,
+        "unanswered_count": 0,
+        "rescheduled_count": 0,
+        "adherence_rate": 0
+      },
+      "actions": [
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "fatigue"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "emotional"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "too_hard"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "fatigue"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "too_hard"
+        },
+        {
+          "title": "Convenir d'un signal de pause",
+          "dimension": "missions",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "context"
+        }
+      ]
+    }
+  ]
+}

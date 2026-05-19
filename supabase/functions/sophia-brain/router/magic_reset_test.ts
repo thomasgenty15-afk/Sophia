@@ -30,6 +30,9 @@ Deno.test("clearMachineStateTempMemory: clears machine-related keys only", () =>
   const input = {
     global_machine: { v: 1, stack: [] },
     __pending_relaunch_consent: { machine_type: "plan_item_discussion" },
+    __active_skill_state: { skill_id: "emotional_repair" },
+    __active_tool_skill_intake: { operation_type: "prepare_attack_card" },
+    __pending_tool_skill_confirmation: { operation_type: "prepare_attack_card" },
     __onboarding_flow: { step: "q1" },
     soft_cap: { count: 8, date: "2026-02-09" },
     user_pref_tone: "direct",
@@ -52,6 +55,27 @@ Deno.test("clearMachineStateTempMemory: clears machine-related keys only", () =>
   );
   assertEquals(
     Object.prototype.hasOwnProperty.call(result.tempMemory, "__onboarding_flow"),
+    false,
+  );
+  assertEquals(
+    Object.prototype.hasOwnProperty.call(
+      result.tempMemory,
+      "__active_skill_state",
+    ),
+    false,
+  );
+  assertEquals(
+    Object.prototype.hasOwnProperty.call(
+      result.tempMemory,
+      "__active_tool_skill_intake",
+    ),
+    false,
+  );
+  assertEquals(
+    Object.prototype.hasOwnProperty.call(
+      result.tempMemory,
+      "__pending_tool_skill_confirmation",
+    ),
     false,
   );
   assertEquals((result.tempMemory as any).soft_cap?.count, 8);

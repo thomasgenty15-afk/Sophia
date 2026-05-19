@@ -1,0 +1,98 @@
+{
+  "ok": true,
+  "run_id": "r1",
+  "full_ai_requested": true,
+  "mega_test_mode_expected": "0",
+  "scope": "qa-momentum-watcher-full-ai-2026-05-06-r1",
+  "user_id": "b9c7c03a-0395-4765-ba86-4e14f5563826",
+  "runtime": {
+    "cycleId": "1f497261-6599-4e1e-a959-2731d52a66a2",
+    "transformationId": "1e3c5e7a-33bb-4684-9646-b7e1a551e00c",
+    "planId": "a82449c4-5d15-4c7e-af2a-a7027d476b4c",
+    "itemId": "36f060bf-fbf4-4fc1-b0b0-7fe239544bc0"
+  },
+  "started_at": "2026-05-06T12:41:46.172Z",
+  "ended_at": "2026-05-06T12:43:04.209Z",
+  "entries_source": "fallback_after_full_ai_conversation",
+  "fallback_entries_inserted": 3,
+  "counts": {
+    "turns_recorded": 1,
+    "successful_turns": 0,
+    "chat_messages": 0,
+    "plan_entries": 3,
+    "observability_events": 0,
+    "watcher_events": 0
+  },
+  "cron": {
+    "request_id": "qa-momentum-watcher-full-ai-2026-05-06-r1-cron",
+    "status": 546,
+    "ok": false,
+    "body": {
+      "code": "WORKER_LIMIT",
+      "message": "Worker failed to respond due to a resource limit (please check logs)"
+    }
+  },
+  "final_momentum": {
+    "current_state": null,
+    "state_reason": null,
+    "execution_traction": null,
+    "engagement": null,
+    "emotional_load": null,
+    "consent": null,
+    "plan_fit": null,
+    "load_balance": null,
+    "recommended_posture": null,
+    "top_risk": null,
+    "top_blocker": null,
+    "last_classified_by": null,
+    "watcher_updated_at": null
+  },
+  "entries": [
+    {
+      "id": "466dcce4-88df-46a8-ba0b-2dfd125501ad",
+      "entry_kind": "progress",
+      "outcome": "completed",
+      "plan_item_id": "36f060bf-fbf4-4fc1-b0b0-7fe239544bc0",
+      "created_at": "2026-05-06T12:42:43.053+00:00",
+      "effective_at": "2026-05-06T12:42:43.053+00:00",
+      "metadata": {
+        "run_id": "r1",
+        "fixture": "momentum_watcher_full_ai_2026_05_06",
+        "inserted_by": "runner_fallback_after_full_ai_conversation"
+      }
+    },
+    {
+      "id": "9dce780a-ebca-41fc-9297-b00243a4c934",
+      "entry_kind": "progress",
+      "outcome": "completed",
+      "plan_item_id": "36f060bf-fbf4-4fc1-b0b0-7fe239544bc0",
+      "created_at": "2026-05-06T12:42:44.053+00:00",
+      "effective_at": "2026-05-06T12:42:44.053+00:00",
+      "metadata": {
+        "run_id": "r1",
+        "fixture": "momentum_watcher_full_ai_2026_05_06",
+        "inserted_by": "runner_fallback_after_full_ai_conversation"
+      }
+    },
+    {
+      "id": "a128f535-99ba-4e92-be16-12e3a29691ef",
+      "entry_kind": "skip",
+      "outcome": "skipped",
+      "plan_item_id": "36f060bf-fbf4-4fc1-b0b0-7fe239544bc0",
+      "created_at": "2026-05-06T12:42:45.053+00:00",
+      "effective_at": "2026-05-06T12:42:45.053+00:00",
+      "metadata": {
+        "run_id": "r1",
+        "fixture": "momentum_watcher_full_ai_2026_05_06",
+        "inserted_by": "runner_fallback_after_full_ai_conversation"
+      }
+    }
+  ],
+  "watcher_events": [],
+  "files": {
+    "raw": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_watcher_full_ai/2026-05-06-momentum-watcher-full-ai-r1.raw.json",
+    "summary": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_watcher_full_ai/2026-05-06-momentum-watcher-full-ai-r1.summary.json",
+    "proof": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_watcher_full_ai/2026-05-06-momentum-watcher-full-ai-r1.proof.json",
+    "report": "/Users/ahmedamara/Dev/Sophia 2/tests/real-personas/qa-skill/runs/momentum_watcher_full_ai/2026-05-06-momentum-watcher-full-ai-r1.md"
+  }
+}

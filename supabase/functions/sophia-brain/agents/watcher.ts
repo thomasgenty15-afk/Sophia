@@ -10,6 +10,7 @@ import {
   fetchCheckinExclusionSnapshot,
   formatWatcherExclusionSnapshot,
   sanitizeWatcherGrounding,
+  watcherCandidateCoveredByExistingFollowUp,
   watcherEventContextTouchesExcludedScope,
 } from "../../_shared/checkin_scope.ts";
 import { logMomentumStateObservability } from "../../_shared/momentum-observability.ts";
@@ -542,6 +543,9 @@ Règles CRITIQUES :
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
 - Si l'utilisateur demande explicitement un rappel ponctuel a Sophia ("rappelle-moi", "envoie-moi un rappel", etc.), renvoie []: ce cas est géré par le tool de reminder one-shot, pas par le watcher.
+- AVANT de retourner un element dans "events", compare-le aux suivis existants listes plus bas: rappels dashboard/chat, potions, one-shot reminders, check-ins deja planifies.
+- Si le besoin utilisateur est deja pris en charge par un autre flow, ne retourne PAS ce candidat dans "events". Le watcher ne doit pas recreer un check-in pour un element deja handle.
+- Raisonne candidat par candidat: un evenement non couvert peut etre retourne, mais tout element couvert par un one-shot reminder, un rappel recurrent, une potion ou un check-in existant doit etre exclu directement dans ta sortie JSON.
 - Si le sujet/rappel semble déjà pris en charge via le flux rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
 - Si l'échange montre qu'un rendez-vous couvre déjà le besoin, renvoie [] pour éviter les doublons.
 - event_context doit être une étiquette canonique et stable de l'événement, pas une formulation relative.
@@ -729,6 +733,30 @@ ${exclusionSnapshotBlock}
         String(candidate.eventGrounding ?? ""),
         exclusionSnapshot,
       );
+      const coverage = watcherCandidateCoveredByExistingFollowUp({
+        event_context: eventContext,
+        event_grounding: eventGrounding,
+        scheduled_for: scheduledFor,
+        now_iso: now,
+      }, exclusionSnapshot);
+      if (coverage.covered) {
+        console.log(JSON.stringify({
+          tag: "watcher_candidate_skipped_existing_followup",
+          request_id: meta?.requestId ?? null,
+          user_id: userId,
+          scope,
+          reason: coverage.reason,
+          candidate_event_context: eventContext,
+          scheduled_for: scheduledFor,
+          matched_source: coverage.matched_followup?.source ?? null,
+          matched_event_context: coverage.matched_followup?.event_context ??
+            null,
+          matched_label: coverage.matched_followup?.label ?? null,
+          matched_recurring_reminder_id:
+            coverage.matched_followup?.recurring_reminder_id ?? null,
+        }));
+        continue;
+      }
 
       // Hard product rule: avoid check-ins about plan objectives unless exceptional support need (>0.9).
       if (isPlanObjectiveContext(eventContext) && score <= 9) continue;
@@ -771,7 +799,7 @@ ${exclusionSnapshotBlock}
         message_payload: {
           source: "trigger-watcher-batch",
           instruction:
-            "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
+            'Relance courte liée à l\'événement. Tutoie toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur. 1 question max. Pas de markdown.',
           event_grounding: eventGrounding || null,
         },
         scheduled_for: scheduledFor,

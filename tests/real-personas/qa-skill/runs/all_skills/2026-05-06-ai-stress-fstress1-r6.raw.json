@@ -1,0 +1,608 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t01",
+    "user": "Comment je modifie une action de mon plan si elle est trop grosse ? Je ne veux pas refaire tout le plan.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t01",
+      "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je vois le souci : si l’action est trop grosse, tu veux surtout la “découper” sans tout casser. 💡\n\n1) Tu vas dans le dashboard sur l’action concernée (section Habitudes ou Missions selon son type).\n2) Tu la mets à jour en mode “plus petit” : réduire la durée, le nombre de fois, ou remplacer par une version allégée (ex : “30 min” → “10 min”, “préparer tout” → “faire la 1re étape”).\n3) Si tu veux éviter de toucher au reste : tu ne modifies que cette action-là (pas de replan global).\n\nTu me dis juste : c’est une mission ponctuelle ou une habitude quotidienne/hebdo ? (A/B)",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t01",
+        "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+        "source_message_id": "cc41be22-6044-4236-a474-0838d3a70ed4",
+        "ts": "2026-05-06T13:38:27.087+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 520,
+          "latency_ms": 5500,
+          "tokens_out": 300,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "reasoning": "L'utilisateur pose une question méthodologique sur la gestion des actions volumineuses au sein de son plan sans vouloir tout régénérer.",
+            "target_id": null,
+            "target_skill": "ai_assistant"
+          },
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t01",
+          "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "topic_state": {
+            "status": "active",
+            "current_topic": "plan_modification_help"
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "product_signal": {
+            "kind": "how_to",
+            "detected": true,
+            "explicitness": "explicit",
+            "surface_hints": [
+              "plan.adjust"
+            ],
+            "confidence_band": "high"
+          },
+          "safety_pregate": {
+            "evidence": "L'utilisateur demande des instructions sur l'utilisation de l'outil pour modifier son plan.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "cc41be22-6044-4236-a474-0838d3a70ed4",
+          "operation_analysis": {
+            "operation_type": null,
+            "new_operation_detected": false,
+            "pending_confirmation_response": null
+          },
+          "intent_classification": {
+            "confidence": 0.98,
+            "primary_intent": "support_guidance",
+            "secondary_intent": "plan_management"
+          }
+        },
+        "route_decision": {
+          "reason_code": "product_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 8314,
+        "created_at": "2026-05-06T13:38:27.089162+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t02",
+    "user": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit et que tu me demandes avant de l'appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t02",
+      "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux l'ajuster, mais il me manque la cible exacte. Donne-moi le nom de l'action du plan a clarifier.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t02",
+        "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+        "source_message_id": "92bd7f33-85ec-4774-8ce5-30789c5163c9",
+        "ts": "2026-05-06T13:38:41.777+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 716,
+          "latency_ms": 5549,
+          "tokens_out": 361,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "planner",
+            "reasoning": "L'utilisateur souhaite réduire l'envergure d'une mission spécifique. Le skill planner est le plus apte à proposer un découpage ou une réduction d'objectif.",
+            "target_id": null,
+            "confidence": 0.95
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "modify_task",
+              "evidence": "proposes un ajustement plus petit"
+            },
+            {
+              "type": "topic",
+              "value": "task_management",
+              "evidence": "Mission ponctuelle : 'ranger tous mes papiers'"
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t02",
+          "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_signals": {},
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "Demande de gestion de tâches domestiques sans risque.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "parameters": {
+              "task_type": "mission",
+              "task_label": "ranger tous mes papiers",
+              "requires_confirmation": true
+            },
+            "operation_type": "propose_task_reduction"
+          },
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit et que tu me demandes avant de l'appliquer.",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "92bd7f33-85ec-4774-8ce5-30789c5163c9",
+          "pending_confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "scope"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 5577,
+        "created_at": "2026-05-06T13:38:41.778162+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t03",
+    "user": "Le nom exact est 'ranger tous mes papiers'. Je veux la réduire à 'trier seulement trois documents'.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t03",
+      "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Parfait. On transforme “ranger tous mes papiers” en une version plus petite et tenable : “trier seulement trois documents” 📄✅\n\nJe te la propose comme nouvelle action :\n- Nom : trier seulement trois documents\n- Mission (petite) : choisir 3 documents au hasard ou selon priorité, et ne faire que le tri (garder / jeter / classeur)\n\nTu confirmes que tu veux bien que je l’applique telle quelle, ou tu préfères que je précise lesquels (ex: factures 2025, papiers d’identité, assurance) avant d’appliquer ? 😊",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t03",
+        "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+        "source_message_id": "f4816108-e1ad-486b-b76e-fbe944f21713",
+        "ts": "2026-05-06T13:39:09.331+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 782,
+          "latency_ms": 6471,
+          "tokens_out": 346,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t03",
+          "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "skill_routing": {
+            "reasoning": "L'utilisateur fournit les détails nécessaires (nom actuel et nouvelle définition) pour modifier une mission spécifique dans son plan.",
+            "target_skill": "plan_manager"
+          },
+          "skill_signals": {
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur demande la modification d'une tâche de son plan personnel.",
+            "risk_band": "low"
+          },
+          "operation_intake": {
+            "status": "collecting",
+            "parameters": {
+              "action_type": "mission",
+              "original_name": "ranger tous mes papiers",
+              "new_definition": "trier seulement trois documents"
+            },
+            "operation_type": "update_action"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "f4816108-e1ad-486b-b76e-fbe944f21713",
+          "flow_state_context": {
+            "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6",
+            "channel": "web",
+            "forced_mode": null,
+            "whatsapp_mode": null,
+            "onboarding_active": false,
+            "force_onboarding_flow": false
+          },
+          "intent_classification": {
+            "confidence": 0.98,
+            "primary_intent": "plan_management",
+            "secondary_intent": "action_update"
+          },
+          "pending_tool_skill_confirmation": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "target_resolution",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Need concrete target."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "target_resolution",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Le nom exact est 'ranger tous mes papiers'. Je veux la réduire à 'trier seulement trois documents'.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "f4816108-e1ad-486b-b76e-fbe944f21713"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 8102,
+        "created_at": "2026-05-06T13:39:09.333568+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t04",
+    "user": "Oui, applique-la telle quelle.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t04",
+      "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+      "channel": "web",
+      "scope": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Top, c’est validé ✅\n\nJe te la propose à appliquer tout de suite dans ton dashboard : dans l’action “ranger tous mes papiers”, remplace/ajuste en “trier seulement trois documents” avec la mission “choisir 3 documents et ne faire que le tri (garder/jeter/classeur)”.\n\nTu veux que je te guide pour le faire en 2 clics ? 😄",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t04",
+        "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+        "source_message_id": "2f6fc8b6-713a-4da8-8be4-036763a25bb5",
+        "ts": "2026-05-06T13:39:34.964+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 960,
+          "latency_ms": 10662,
+          "tokens_out": 381,
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "routing": {
+            "skill_id": "execution_breakdown",
+            "reasoning": "L'utilisateur confirme explicitement la proposition de découpage de l'action 'ranger tous mes papiers' faite par l'assistant au tour précédent. Le skill execution_breakdown doit finaliser l'application.",
+            "target_id": null
+          },
+          "signals": [
+            {
+              "type": "intent",
+              "value": "confirmation",
+              "evidence": "Oui, applique-la telle quelle."
+            },
+            {
+              "type": "sentiment",
+              "value": "positive",
+              "evidence": "L'utilisateur valide la proposition de l'assistant."
+            }
+          ],
+          "turn_id": "qa-all-skills-ai-stress-2026-05-06-fstress1-r6-t04",
+          "user_id": "31ee688d-e5da-424c-85b0-1f8aabab6017",
+          "memory_cues": {
+            "explicit_recall": false,
+            "allowed_for_route": false,
+            "correction_or_forget": false
+          },
+          "topic_state": null,
+          "memory_update": {
+            "contextual_facts": "L'utilisateur a validé la transformation de 'ranger tous mes papiers' en 'trier seulement trois documents'.",
+            "user_preferences": "Préfère découper les tâches volumineuses en micro-actions très spécifiques (ex: 3 documents au lieu de tout ranger)."
+          },
+          "skill_signals": {
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "safety_pregate": {
+            "evidence": "L'utilisateur confirme une modification de tâche sans risque de sécurité.",
+            "risk_band": "low"
+          },
+          "tool_skill_intents": [],
+          "source_message_id": "2f6fc8b6-713a-4da8-8be4-036763a25bb5",
+          "operation_confirmation": {
+            "evidence": "Oui, applique-la telle quelle.",
+            "classification": "yes"
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "target_resolution",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Need concrete target."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "target_resolution",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": false,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Oui, applique-la telle quelle.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "2f6fc8b6-713a-4da8-8be4-036763a25bb5"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "active_skill_continue",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 12345,
+        "created_at": "2026-05-06T13:39:34.967021+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

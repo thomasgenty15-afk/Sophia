@@ -9,8 +9,6 @@ import type {
   AttackCardStep,
 } from "./workflow.ts";
 
-declare const Deno: any;
-
 export type AttackCardSlotFillerInput = {
   user_id: string;
   request_id?: string | null;
@@ -24,6 +22,17 @@ export type AttackCardSlotFillerInput = {
 export type AttackCardSlotFillerOutput = {
   current_step: AttackCardStep;
   state_patch: Partial<AttackCardIntakeState>;
+  draft_review_decision?: {
+    decision:
+      | "approve"
+      | "reject"
+      | "revise"
+      | "explain"
+      | "topic_change"
+      | "unclear";
+    confidence: AttackCardConfidence;
+    evidence: string[];
+  };
   missing_slots: string[];
   confidence: AttackCardConfidence;
   generated_user_message?: string | null;
@@ -33,18 +42,6 @@ export type AttackCardSlotFillerOutput = {
 export type AttackCardSlotFiller = (
   input: AttackCardSlotFillerInput,
 ) => Promise<AttackCardSlotFillerOutput | null>;
-
-function safeEnvGet(name: string): string | undefined {
-  try {
-    return Deno.env.get(name);
-  } catch {
-    return undefined;
-  }
-}
-
-export function shouldUsePrepareAttackCardAiFlow(): boolean {
-  return String(safeEnvGet("SOPHIA_ATTACK_CARD_AI_FLOW") ?? "").trim() === "1";
-}
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
   if (raw && typeof raw === "object" && !Array.isArray(raw)) {
@@ -244,6 +241,33 @@ function normalizeStatePatch(value: unknown): Partial<AttackCardIntakeState> {
   return patch;
 }
 
+function normalizeDraftReviewDecision(
+  value: unknown,
+): AttackCardSlotFillerOutput[
+  "draft_review_decision"
+] {
+  const root = objectValue(value);
+  if (!root) return undefined;
+  const rawDecision = String(root.decision ?? "").trim();
+  const decision = [
+      "approve",
+      "reject",
+      "revise",
+      "explain",
+      "topic_change",
+      "unclear",
+    ].includes(rawDecision)
+    ? rawDecision as NonNullable<
+      AttackCardSlotFillerOutput["draft_review_decision"]
+    >["decision"]
+    : "unclear";
+  return {
+    decision,
+    confidence: confidence(root.confidence),
+    evidence: stringArray(root.evidence),
+  };
+}
+
 export function normalizeAttackCardSlotFillerOutput(
   raw: unknown,
 ): AttackCardSlotFillerOutput {
@@ -251,6 +275,9 @@ export function normalizeAttackCardSlotFillerOutput(
   return {
     current_step: step(root.current_step),
     state_patch: normalizeStatePatch(root.state_patch),
+    draft_review_decision: normalizeDraftReviewDecision(
+      objectValue(root.state_patch)?.draft_validation,
+    ),
     missing_slots: stringArray(root.missing_slots),
     confidence: confidence(root.confidence),
     generated_user_message: root.generated_user_message == null
@@ -268,11 +295,20 @@ export async function fillAttackCardSlotsWithAi(
     "Tu ne réponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
     "Tu dois identifier ou mettre a jour: cible, technique, mot de bascule si applicable, blocker, contraintes, slots manquants, message court a envoyer au user.",
+    "Si operation_input.previous_draft existe, tu es dans le sous-skill draft_validation: dans le meme JSON, remplis state_patch.draft_validation.decision avec approve|reject|revise|explain|topic_change|unclear.",
+    "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details; topic_change sort du brouillon; unclear ne suffit pas.",
+    "Dans draft_validation, si le user dit oui a une demande de preparer/montrer/reformuler le brouillon, ce n'est pas approve: c'est revise tant qu'il ne demande pas explicitement la creation.",
+    "Dans draft_validation, si le user donne une correction exacte puis dit d'appliquer, classe revise si le brouillon doit d'abord intégrer cette correction.",
     "Les techniques autorisées viennent de la source de vérité fournie. Ne crée jamais une technique hors enum.",
+    "Quand tu proposes des techniques au user, affiche uniquement les titres exacts de attack_techniques_source_of_truth[technique_key].title. Ne raccourcis pas et ne renomme pas les techniques.",
+    "Chaque option proposée doit garder son technique_key exact avec le title exact correspondant.",
     "Ne choisis pas une technique d'office si le user ne l'a pas demandée explicitement et si plusieurs options sont plausibles: propose 2-3 options pertinentes.",
     "Mot de bascule convient surtout si le user risque de craquer, abandonner, esquiver ou a besoin d'un mot court a envoyer a Sophia.",
     "Si le user corrige un champ, conserve les autres champs déjà valides dans l'état.",
+    "Si operation_input.target_candidate existe, tu es dans la validation de cible: si le user accepte ce candidat, copie-le dans state_patch.target avec status identified; s'il le refuse, mets target.status missing et pose une nouvelle question; s'il corrige, identifie la nouvelle cible depuis son message.",
     "Si des slots manquent, generated_user_message doit contenir une question WhatsApp courte.",
+    'Tu tutoies toujours l\'utilisateur dans generated_user_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
+    'Quand generated_user_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
     "Retourne uniquement du JSON valide.",
   ].join("\n");
   const userPrompt = JSON.stringify({
@@ -326,6 +362,11 @@ export async function fillAttackCardSlotsWithAi(
           evidence: ["string"],
         },
         constraints: ["string"],
+        draft_validation: {
+          decision: "approve|reject|revise|explain|topic_change|unclear",
+          confidence: "low|medium|high",
+          evidence: ["string"],
+        },
         missing_slots: ["target|technique|activation_keyword"],
         confidence: "low|medium|high",
         generated_user_message: "string|null",

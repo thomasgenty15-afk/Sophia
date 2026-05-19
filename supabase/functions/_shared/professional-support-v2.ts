@@ -21,16 +21,24 @@ import type {
 } from "./v2-types.ts";
 
 const PROFESSIONAL_SUPPORT_KEY_ENUM = z.enum(
-  PROFESSIONAL_SUPPORT_KEYS as [ProfessionalSupportKey, ...ProfessionalSupportKey[]],
+  PROFESSIONAL_SUPPORT_KEYS as [
+    ProfessionalSupportKey,
+    ...ProfessionalSupportKey[],
+  ],
 );
 
 const ENRICHED_RECOMMENDATION_SCHEMA = z.object({
   key: PROFESSIONAL_SUPPORT_KEY_ENUM,
   reason: z.string().min(1).max(220),
   priority_rank: z.number().int().min(1).max(3),
-  timing_kind: z.enum([
-    "during_target_level",
-  ] satisfies [ProfessionalSupportTimingKind, ...ProfessionalSupportTimingKind[]]),
+  timing_kind: z.enum(
+    [
+      "during_target_level",
+    ] satisfies [
+      ProfessionalSupportTimingKind,
+      ...ProfessionalSupportTimingKind[],
+    ],
+  ),
   target_level_order: z.number().int().min(2).max(12).nullable(),
   timing_reason: z.string().min(1).max(240),
 }).superRefine((value, ctx) => {
@@ -100,7 +108,8 @@ const ENRICHED_SUPPORT_SCHEMA = z.object({
   if (value.recommendations.length === 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "recommendations must contain at least one item when should_recommend is true",
+      message:
+        "recommendations must contain at least one item when should_recommend is true",
       path: ["recommendations"],
     });
   }
@@ -126,7 +135,8 @@ export async function loadProfessionalSupportPlanContext(args: {
   planRow: UserPlanV2Row;
   plan: PlanContentV3;
 }> {
-  const { data: transformationData, error: transformationError } = await args.admin
+  const { data: transformationData, error: transformationError } = await args
+    .admin
     .from("user_transformations")
     .select("*")
     .eq("id", args.transformationId)
@@ -174,7 +184,10 @@ export async function loadProfessionalSupportPlanContext(args: {
     });
   }
   if (!planData) {
-    throw new ProfessionalSupportV2Error(409, "A validated plan is required before classifying professional support");
+    throw new ProfessionalSupportV2Error(
+      409,
+      "A validated plan is required before classifying professional support",
+    );
   }
 
   const planRow = planData as UserPlanV2Row;
@@ -203,9 +216,10 @@ export async function classifyAndPersistProfessionalSupport(args: {
   professionalSupport: ProfessionalSupportV1;
   recommendations: UserProfessionalSupportRecommendationRow[];
 }> {
-  const questionnaireAnswers = isRecord(args.transformation.questionnaire_answers)
-    ? args.transformation.questionnaire_answers
-    : {};
+  const questionnaireAnswers =
+    isRecord(args.transformation.questionnaire_answers)
+      ? args.transformation.questionnaire_answers
+      : {};
   const questionnaireSchema = isRecord(args.transformation.questionnaire_schema)
     ? args.transformation.questionnaire_schema
     : {};
@@ -325,7 +339,9 @@ export async function classifyAndPersistProfessionalSupport(args: {
     existingRecommendations.map((row) => [row.professional_key, row]),
   );
   const nextKeys = new Set(
-    professionalSupport.recommendations.map((recommendation) => recommendation.key),
+    professionalSupport.recommendations.map((recommendation) =>
+      recommendation.key
+    ),
   );
 
   for (const existing of existingRecommendations) {
@@ -351,7 +367,10 @@ export async function classifyAndPersistProfessionalSupport(args: {
 
   for (const recommendation of professionalSupport.recommendations) {
     const existing = existingByKey.get(recommendation.key);
-    const targetPhaseId = resolveTargetPhaseIdForRecommendation(args.plan, recommendation.target_level_order ?? null);
+    const targetPhaseId = resolveTargetPhaseIdForRecommendation(
+      args.plan,
+      recommendation.target_level_order ?? null,
+    );
     const preservedStatus: ProfessionalSupportRecommendationStatus =
       existing?.status ?? "pending";
     const nextRow = {
@@ -514,7 +533,9 @@ function resolveTargetPhaseIdForRecommendation(
   targetLevelOrder: number | null,
 ): string | null {
   if (targetLevelOrder == null) return null;
-  const phase = plan.phases.find((entry) => entry.phase_order === targetLevelOrder);
+  const phase = plan.phases.find((entry) =>
+    entry.phase_order === targetLevelOrder
+  );
   if (phase?.phase_id) return phase.phase_id;
 
   const blueprintPhase = plan.plan_blueprint?.levels.find((entry) =>
@@ -600,8 +621,9 @@ function normalizeProfessionalSupportCandidate(
   return {
     ...value,
     should_recommend: true,
-    recommendation_level:
-      value.recommendation_level === "recommended" ? "recommended" : "optional",
+    recommendation_level: value.recommendation_level === "recommended"
+      ? "recommended"
+      : "optional",
     summary: typeof value.summary === "string" && value.summary.trim()
       ? value.summary.trim()
       : "Un appui professionnel ciblé peut aider à sécuriser cette transformation.",
@@ -624,7 +646,9 @@ function resolveAvailableLevelOrders(plan: PlanContentV3): number[] {
   return [...orders].sort((a, b) => a - b);
 }
 
-function normalizeProfessionalSupportKey(value: string): ProfessionalSupportKey | null {
+function normalizeProfessionalSupportKey(
+  value: string,
+): ProfessionalSupportKey | null {
   const normalized = value.trim().toLowerCase();
   if ((PROFESSIONAL_SUPPORT_KEYS as string[]).includes(normalized)) {
     return normalized as ProfessionalSupportKey;
@@ -669,7 +693,9 @@ function buildProfessionalSupportV2UserPrompt(input: {
   questionnaireSchema: Record<string, unknown>;
 }): string {
   const ageYears = calculateAgeFromBirthDate(input.cycle.birth_date_snapshot);
-  const biologicalSexSnapshot = normalizeBiologicalSex(input.cycle.gender_snapshot);
+  const biologicalSexSnapshot = normalizeBiologicalSex(
+    input.cycle.gender_snapshot,
+  );
   const profileLines = [
     ageYears != null ? `- Age years: ${ageYears}` : null,
     input.cycle.birth_date_snapshot
@@ -683,7 +709,9 @@ function buildProfessionalSupportV2UserPrompt(input: {
       : null,
   ].filter(Boolean).join("\n");
 
-  const onboardingV2 = extractOnboardingV2Payload(input.transformation.handoff_payload);
+  const onboardingV2 = extractOnboardingV2Payload(
+    input.transformation.handoff_payload,
+  );
   const futureLevels = Array.isArray(input.plan.plan_blueprint?.levels)
     ? input.plan.plan_blueprint.levels.map((level) => ({
       level_order: level.level_order,
@@ -696,11 +724,18 @@ function buildProfessionalSupportV2UserPrompt(input: {
 
   return `## Transformation
 
-- Title: ${String(input.transformation.title ?? "").trim() || "Untitled transformation"}
+- Title: ${
+    String(input.transformation.title ?? "").trim() || "Untitled transformation"
+  }
 - Internal summary: ${input.transformation.internal_summary}
 - User summary: ${input.transformation.user_summary}
-- Success definition: ${String(input.transformation.success_definition ?? "").trim() || "Not provided"}
-- Main constraint: ${String(input.transformation.main_constraint ?? "").trim() || "Not provided"}
+- Success definition: ${
+    String(input.transformation.success_definition ?? "").trim() ||
+    "Not provided"
+  }
+- Main constraint: ${
+    String(input.transformation.main_constraint ?? "").trim() || "Not provided"
+  }
 
 ## Profile
 
@@ -708,10 +743,16 @@ ${profileLines || "- No profile snapshot"}
 
 ## Existing classification hints
 
-${JSON.stringify({
-    plan_type_classification: onboardingV2.plan_type_classification ?? null,
-    questionnaire_context: onboardingV2.questionnaire_context ?? null,
-  }, null, 2)}
+${
+    JSON.stringify(
+      {
+        plan_type_classification: onboardingV2.plan_type_classification ?? null,
+        questionnaire_context: onboardingV2.questionnaire_context ?? null,
+      },
+      null,
+      2,
+    )
+  }
 
 ## Product timing model
 
@@ -791,6 +832,7 @@ Rules:
   - optional: could help but not central
   - recommended: likely to materially improve the user's chances
 - summary must be short, concrete, and personalized to the transformation.
+- If summary, recommendation.reason, or timing_reason can be shown to the user, write them in French tutoiement. Use "vous", "votre", or "vos" only when explicitly talking about the couple or several people, never to address the user directly.
 - Each recommendation.reason must explain why this professional is relevant in this specific case.
 - priority_rank must be unique and start at 1.
 - timing_kind must be one of:

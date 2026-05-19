@@ -1,0 +1,167 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je repense à un truc hors plan officiel : en rentrant le soir, si je pose mon téléphone sur le canapé, je glisse dans le scroll et ça finit souvent par une envie de snack. Le laisser charger dans l’entrée serait sûrement plus protecteur.",
+    "assistant": "Ah ouais, je vois le pattern : téléphone sur le canapé = scroll automatique = grignotage derrière. C’est logique que le laisser charger dans l’entrée te protège mieux. 😅\n\nTu veux qu’on prépare une Carte de defense pour “le retour du soir (scroll et snack)” ? 📱🍿",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, préparons une carte de défense pour ce retour du soir. Je veux bien que ce soit explicitement libre, pas rattaché à une action du plan : juste téléphone, canapé et snack.",
+    "assistant": "Voici ta carte de défense :\nLe moment : Le retour du soir\nLe piège : Poser le téléphone sur le canapé\nMon geste : Laisser le téléphone charger dans l'entrée\nPlan B : Mettre le téléphone dans une autre pièce\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Retour du soir",
+          "plan_b": "Mettre le téléphone dans une autre pièce",
+          "signal": "Poser le téléphone sur le canapé",
+          "trigger": "Poser le téléphone sur le canapé",
+          "situation": "Le retour du soir",
+          "target_label": "Soirée sereine",
+          "why_it_helps": "Casse la boucle automatique du scroll",
+          "fallback_plan": "Mettre le téléphone dans une autre pièce",
+          "impulse_label": "Scroll et snack",
+          "risk_situation": "Le retour du soir",
+          "generic_defense": "Eloigner la tentation",
+          "defense_response": "Laisser le téléphone charger dans l'entrée"
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\nLe moment : Le retour du soir\nLe piège : Poser le téléphone sur le canapé\nMon geste : Laisser le téléphone charger dans l'entrée\nPlan B : Mettre le téléphone dans une autre pièce\nOn valide ?"
+      },
+      "source": "recommendation_tool",
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "6f395302-f6ce-4b19-a480-e86512013b93",
+      "selected_handler": "prepare_defense_card",
+      "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t01"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t03",
+    "status": 200,
+    "ok": true,
+    "user": "C’est trop large. Le moment précis : juste après avoir enlevé mes chaussures, quand je m’assois “deux minutes” sur le canapé. Le piège concret : je me dis que je mérite une pause, puis le scroll fait monter l’envie de snack.",
+    "assistant": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, sur le canapé.\nLe piège : Se dire 'je mérite une pause' et scroller.\nMon geste : Laisser charger le téléphone dans l'entrée dès l'arrivée.\nPlan B : Boire un grand verre d'eau et lire 2 pages.\nOn valide ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Retour du soir",
+          "plan_b": "Boire un grand verre d'eau et lire 2 pages.",
+          "signal": "Se dire 'je mérite une pause' et scroller.",
+          "trigger": "Pensée 'je mérite une pause' + scroll",
+          "situation": "Juste après avoir enlevé mes chaussures, sur le canapé.",
+          "target_label": "Snack",
+          "why_it_helps": "Évite le scroll qui déclenche l'envie de snack.",
+          "fallback_plan": "Boire un grand verre d'eau",
+          "impulse_label": "Grignotage",
+          "risk_situation": "Juste après avoir enlevé mes chaussures, sur le canapé.",
+          "generic_defense": "Changer d'activité immédiate",
+          "defense_response": "Laisser charger le téléphone dans l'entrée dès l'arrivée."
+        },
+        "output_schema": "defense_card_draft_v1",
+        "operation_type": "prepare_defense_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, sur le canapé.\nLe piège : Se dire 'je mérite une pause' et scroller.\nMon geste : Laisser charger le téléphone dans l'entrée dès l'arrivée.\nPlan B : Boire un grand verre d'eau et lire 2 pages.\nOn valide ?"
+      },
+      "status": "pending_confirmation_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "63c6081d-5f39-43f7-93e3-3a9b910ffd7f",
+      "selected_handler": "prepare_defense_card",
+      "draft_review_decision": null,
+      "previous_operation_id": "6f395302-f6ce-4b19-a480-e86512013b93"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r6-t03",
+    "trace_error": null
+  }
+]

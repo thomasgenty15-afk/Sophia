@@ -95,6 +95,7 @@ export function selectWeeklyReviewTopics(
 
 export interface PossiblePatternCandidate {
   plan_item_id: string;
+  action_family_key?: string | null;
   title?: string | null;
   observations: ExistingActionObservation[];
 }
@@ -106,12 +107,14 @@ export function groupPossiblePatternCandidates(
   for (const observation of observations) {
     if (!observation.plan_item_id) continue;
     if (observation.aggregation_kind === "possible_pattern") continue;
-    const list = groups.get(observation.plan_item_id) ?? [];
+    const groupKey = observation.action_family_key || observation.plan_item_id;
+    const list = groups.get(groupKey) ?? [];
     list.push(observation);
-    groups.set(observation.plan_item_id, list);
+    groups.set(groupKey, list);
   }
-  return [...groups.entries()].map(([planItemId, rows]) => ({
-    plan_item_id: planItemId,
+  return [...groups.values()].map((rows) => ({
+    plan_item_id: rows[0]?.plan_item_id ?? "",
+    action_family_key: rows[0]?.action_family_key ?? null,
     title: rows[0]?.content_text ?? null,
     observations: rows,
   }));
@@ -132,6 +135,7 @@ export function buildWeeklyPossiblePatternRows(args: {
   return args.candidates.flatMap((candidate) => {
     const row = buildPossiblePatternObservation({
       plan_item_id: candidate.plan_item_id,
+      action_family_key: (candidate as any).action_family_key ?? null,
       title: candidate.title,
       observations: candidate.observations,
       iso_week_key: args.iso_week_key,

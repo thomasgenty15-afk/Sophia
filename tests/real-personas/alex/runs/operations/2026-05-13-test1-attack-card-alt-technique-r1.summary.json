@@ -1,0 +1,301 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une carte d'attaque pour le sas du soir. Mon probleme c'est que si rien ne me le rappelle visuellement, je pars ailleurs. Il me faudrait un repere simple dans la piece.",
+    "assistant": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_ambiguous",
+        "status": "ambiguous",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.5,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "sas"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.33,
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+            "matched_tokens": [
+              "sas"
+            ]
+          }
+        ]
+      },
+      "reason_code": "operation_intent_start",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Le sas de dechargement, pas le bilan. Je parle du rituel du soir.",
+    "assistant": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Preparer le terrain (recommandee): option simple pour faciliter le demarrage. Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.\n2. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "attack_technique_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique_options": [
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "option utile si la resistance est surtout mentale",
+            "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je ne connais pas les techniques. Choisis celle qui marche avec un rappel visuel, un repere que je vois avant de zapper.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nAncre visuelle\nAncre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"\n\nMode d'emploi: Place l'ancre dans ton environnement et utilise-la comme signal de depart.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "ancre_visuelle",
+          "instruction": "Place l'ancre visuelle la ou tu verras le signal juste avant \"Faire le sas de déchargement\".",
+          "mode_emploi": "Place l'ancre dans ton environnement et utilise-la comme signal de depart.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Utiliser l'environnement comme rappel concret de l'engagement.",
+          "generated_asset": "Ancre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"",
+          "technique_title": "Ancre visuelle",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nAncre visuelle\nAncre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"\n\nMode d'emploi: Place l'ancre dans ton environnement et utilise-la comme signal de depart.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "68000354-8107-477a-a8af-6690b1aca049",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, cree-la.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nCarte d'attaque - Faire le sas de déchargement\nTechnique : Ancre visuelle\nAncre: un objet visible lie a Faire le sas de déchargement. Phrase: \"Je commence par le geste le plus simple.\"\n\nMode d'emploi : Place l'ancre dans ton environnement et utilise-la comme signal de depart.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la modifier ou l'imprimer.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "68000354-8107-477a-a8af-6690b1aca049",
+      "attack_card_id": "c7ec2f16-0123-48c1-a2c6-f0dfa209ac01",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-alt-technique-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Stop, rien d'autre.",
+    "assistant": "Ok, j'arrête là. Je ne crée rien d'autre.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

@@ -10,6 +10,11 @@ import type {
   MemoryV2LoaderScope,
 } from "./dispatcher_plan_adapter.ts";
 import { geminiGenerate } from "../../llm.ts";
+import {
+  actionFamilyAliases,
+  buildActionFamilyKey,
+  normalizeActionText,
+} from "../action_family.ts";
 
 declare const Deno: any;
 
@@ -26,6 +31,16 @@ export interface MemoryV2Item {
   requires_user_initiated?: boolean | null;
   topic_ids?: string[];
   search_doc?: string | null;
+  metadata?: Record<string, unknown> | null;
+  action_link?: {
+    plan_item_id?: string | null;
+    action_family_key?: string | null;
+    aggregation_kind?: string | null;
+    observation_window_start?: string | null;
+    observation_window_end?: string | null;
+    confidence?: number | null;
+    metadata?: Record<string, unknown> | null;
+  } | null;
 }
 
 export interface MemoryV2Entity {
@@ -50,6 +65,7 @@ export interface MemoryV2Payload {
       event: number;
       global: number;
       action: number;
+      level: number;
       entity: number;
     };
     sensitive_excluded_count: number;
@@ -486,12 +502,26 @@ function lexicalAnchorScore(message: string, item: MemoryV2Item): number {
     .filter((token) => token.length >= 4 && !SCORE_STOPWORDS.has(token));
   const expandedTokens = new Set(messageTokens);
   if (/\bnatation|session\b/.test(normalizedMessage)) {
-    for (const token of ["nager", "nage", "recuperation", "performance", "semaine"]) {
+    for (
+      const token of ["nager", "nage", "recuperation", "performance", "semaine"]
+    ) {
       expandedTokens.add(token);
     }
   }
-  if (/\bprochaine action|adaptee|adaptée|bloque|fatigue\b/.test(normalizedMessage)) {
-    for (const token of ["sept", "observable", "concrete", "boucle", "micro-livraison"]) {
+  if (
+    /\bprochaine action|adaptee|adaptée|bloque|fatigue\b/.test(
+      normalizedMessage,
+    )
+  ) {
+    for (
+      const token of [
+        "sept",
+        "observable",
+        "concrete",
+        "boucle",
+        "micro-livraison",
+      ]
+    ) {
       expandedTokens.add(token);
     }
   }
@@ -500,7 +530,11 @@ function lexicalAnchorScore(message: string, item: MemoryV2Item): number {
       expandedTokens.add(token);
     }
   }
-  if (/\banesthesier|pression le soir|apero|alcool|whisky\b/.test(normalizedMessage)) {
+  if (
+    /\banesthesier|pression le soir|apero|alcool|whisky\b/.test(
+      normalizedMessage,
+    )
+  ) {
     for (const token of ["whisky", "alcool", "sensible"]) {
       expandedTokens.add(token);
     }
@@ -516,7 +550,11 @@ function lexicalAnchorScore(message: string, item: MemoryV2Item): number {
 
 function directAvoidanceScore(message: string, item: MemoryV2Item): number {
   const msg = normalize(message);
-  if (!/\b(ingredient\w*|restaurant\w*|repas|plat|manger|eviter|evite)\b/.test(msg)) {
+  if (
+    !/\b(ingredient\w*|restaurant\w*|repas|plat|manger|eviter|evite)\b/.test(
+      msg,
+    )
+  ) {
     return 0;
   }
   const text = normalize(item.content_text);
@@ -561,6 +599,268 @@ async function runQuery<T>(query: unknown): Promise<T[]> {
   const { data, error } = await query as { data?: T[]; error?: unknown };
   if (error) throw error;
   return Array.isArray(data) ? data : [];
+}
+
+interface ActiveActionSignal {
+  plan_item_id: string;
+  title: string;
+  kind?: string | null;
+  dimension?: string | null;
+  action_family_key: string;
+  aliases: string[];
+  target_reps?: number | null;
+  current_reps?: number | null;
+  cadence_label?: string | null;
+  scheduled_days?: string[] | null;
+  time_of_day?: string | null;
+  start_after_item_id?: string | null;
+}
+
+function toStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.map((entry) => String(entry ?? "").trim()).filter(Boolean);
+}
+
+function numberOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function loadActiveActionSignals(
+  supabase: any,
+  userId: string,
+): Promise<ActiveActionSignal[]> {
+  const rows = await runQuery<any>(
+    supabase
+      .from("user_plan_items")
+      .select(
+        "id,title,kind,dimension,status,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload",
+      )
+      .eq("user_id", userId)
+      .in("status", ["active", "in_maintenance"])
+      .limit(80),
+  );
+  return rows.map((row) => {
+    const payload = row.payload && typeof row.payload === "object"
+      ? row.payload as Record<string, unknown>
+      : {};
+    const source = {
+      id: row.id,
+      title: row.title,
+      kind: row.kind,
+      dimension: row.dimension,
+      start_after_item_id: row.start_after_item_id,
+      payload,
+    };
+    return {
+      plan_item_id: String(row.id ?? ""),
+      title: String(row.title ?? ""),
+      kind: row.kind ?? null,
+      dimension: row.dimension ?? null,
+      action_family_key: buildActionFamilyKey(source),
+      aliases: actionFamilyAliases(source),
+      target_reps: numberOrNull(row.target_reps),
+      current_reps: numberOrNull(row.current_reps),
+      cadence_label: row.cadence_label ?? null,
+      scheduled_days: toStringArray(row.scheduled_days),
+      time_of_day: row.time_of_day ?? null,
+      start_after_item_id: row.start_after_item_id ?? null,
+    };
+  }).filter((signal) => signal.plan_item_id);
+}
+
+function selectActionSignalsForMessage(args: {
+  signals: ActiveActionSignal[];
+  message: string;
+  action_targets?: string[];
+}): ActiveActionSignal[] {
+  const targets = new Set(
+    (args.action_targets ?? []).map((target) => normalizeActionText(target))
+      .filter(Boolean),
+  );
+  const message = normalizeActionText(args.message);
+  const scored = args.signals.map((signal) => {
+    const signalTokens = [
+      signal.plan_item_id,
+      signal.action_family_key,
+      signal.title,
+      ...signal.aliases,
+    ].map(normalizeActionText).filter(Boolean);
+    let score = 0;
+    if (targets.has(normalizeActionText(signal.plan_item_id))) score += 1.2;
+    if (targets.has(normalizeActionText(signal.action_family_key))) {
+      score += 1.0;
+    }
+    for (const token of signalTokens) {
+      if (targets.has(token)) score += 0.8;
+      if (token && message.includes(token)) score += 0.55;
+    }
+    return { signal, score };
+  }).sort((a, b) => b.score - a.score);
+  const strong = scored.filter((entry) => entry.score >= 0.55).slice(0, 3)
+    .map((entry) => entry.signal);
+  return strong.length > 0 ? strong : [];
+}
+
+function actionRowsToMemoryItems(rows: any[]): MemoryV2Item[] {
+  return rows
+    .map((row) => {
+      const item = row.memory_items ?? null;
+      if (!item) return null;
+      const metadata = row.metadata && typeof row.metadata === "object"
+        ? row.metadata as Record<string, unknown>
+        : {};
+      return {
+        ...item,
+        action_link: {
+          plan_item_id: row.plan_item_id ?? null,
+          action_family_key: metadata.action_family_key
+            ? String(metadata.action_family_key)
+            : null,
+          aggregation_kind: row.aggregation_kind ?? null,
+          observation_window_start: row.observation_window_start ?? null,
+          observation_window_end: row.observation_window_end ?? null,
+          confidence: row.confidence ?? null,
+          metadata,
+        },
+      } as MemoryV2Item;
+    })
+    .filter(Boolean) as MemoryV2Item[];
+}
+
+async function loadActionLinkedItems(args: {
+  supabase: any;
+  user_id: string;
+  target_signals: ActiveActionSignal[];
+  limit: number;
+}): Promise<MemoryV2Item[]> {
+  const limit = Math.max(1, args.limit);
+  const planItemIds = [
+    ...new Set(args.target_signals.map((signal) => signal.plan_item_id)),
+  ];
+  const familyKeys = [
+    ...new Set(args.target_signals.map((signal) => signal.action_family_key)),
+  ].filter(Boolean);
+  const rows: MemoryV2Item[] = [];
+  if (planItemIds.length > 0) {
+    rows.push(...actionRowsToMemoryItems(
+      await runQuery<any>(
+        args.supabase
+          .from("memory_item_actions")
+          .select(
+            "plan_item_id,aggregation_kind,confidence,observation_window_start,observation_window_end,metadata,memory_items!inner(*)",
+          )
+          .eq("user_id", args.user_id)
+          .eq("memory_items.status", "active")
+          .in("plan_item_id", planItemIds)
+          .limit(Math.min(30, limit * 5)),
+      ),
+    ));
+  }
+  for (const familyKey of familyKeys) {
+    rows.push(...actionRowsToMemoryItems(
+      await runQuery<any>(
+        args.supabase
+          .from("memory_item_actions")
+          .select(
+            "plan_item_id,aggregation_kind,confidence,observation_window_start,observation_window_end,metadata,memory_items!inner(*)",
+          )
+          .eq("user_id", args.user_id)
+          .eq("memory_items.status", "active")
+          .contains("metadata", { action_family_key: familyKey })
+          .limit(Math.min(30, limit * 5)),
+      ),
+    ));
+  }
+  const targetIds = new Set(planItemIds);
+  const targetFamilies = new Set(familyKeys);
+  return [...new Map(rows.map((item) => [item.id, item])).values()]
+    .sort((left, right) => {
+      const leftExact =
+        targetIds.has(String(left.action_link?.plan_item_id ?? "")) ? 1 : 0;
+      const rightExact =
+        targetIds.has(String(right.action_link?.plan_item_id ?? "")) ? 1 : 0;
+      if (leftExact !== rightExact) return rightExact - leftExact;
+      const leftFamily = targetFamilies.has(
+          String(left.action_link?.action_family_key ?? ""),
+        )
+        ? 1
+        : 0;
+      const rightFamily = targetFamilies.has(
+          String(right.action_link?.action_family_key ?? ""),
+        )
+        ? 1
+        : 0;
+      if (leftFamily !== rightFamily) return rightFamily - leftFamily;
+      return String(right.observed_at ?? "").localeCompare(
+        String(left.observed_at ?? ""),
+      );
+    })
+    .slice(0, limit);
+}
+
+function memoryItemMetadata(item: MemoryV2Item): Record<string, unknown> {
+  return item && typeof (item as any).metadata === "object"
+    ? (item as any).metadata as Record<string, unknown>
+    : {};
+}
+
+async function loadLevelHandoffItems(args: {
+  supabase: any;
+  user_id: string;
+  level_targets?: string[];
+  limit: number;
+}): Promise<MemoryV2Item[]> {
+  let rows = await runQuery<MemoryV2Item>(
+    args.supabase
+      .from("memory_items")
+      .select("*")
+      .eq("user_id", args.user_id)
+      .eq("status", "active")
+      .contains("metadata", { memory_type: "level_execution_handoff" })
+      .limit(Math.max(1, Math.min(4, args.limit))),
+  );
+  if (rows.length === 0) {
+    rows = await runQuery<MemoryV2Item>(
+      args.supabase
+        .from("memory_items")
+        .select("*")
+        .eq("user_id", args.user_id)
+        .eq("status", "active")
+        .filter("metadata->>memory_type", "eq", "level_execution_handoff")
+        .limit(Math.max(1, Math.min(4, args.limit))),
+    );
+  }
+  const targets = new Set(
+    (args.level_targets ?? []).map((target) => normalizeActionText(target))
+      .filter((target) =>
+        target &&
+        !["transition", "current_level", "previous_level", "global"].includes(
+          target,
+        ) &&
+        !["current level", "previous level"].includes(
+          target,
+        )
+      ),
+  );
+  return rows
+    .filter((item) => {
+      if (targets.size === 0) return true;
+      const metadata = memoryItemMetadata(item);
+      const keys = [
+        metadata.level_id,
+        metadata.transformation_id,
+        metadata.previous_level_id,
+        metadata.previous_transformation_id,
+        metadata.next_level_id,
+        metadata.next_transformation_id,
+        item.content_text,
+      ].map(normalizeActionText).filter(Boolean);
+      return keys.some((key) =>
+        targets.has(key) || [...targets].some((target) => key.includes(target))
+      );
+    })
+    .slice(0, Math.max(1, args.limit));
 }
 
 async function loadTopicItems(
@@ -648,11 +948,14 @@ export async function loadMemoryV2Payload(
   );
   let items: MemoryV2Item[] = [];
   let entities: MemoryV2Entity[] = [];
+  const actionTargetPlanIds = new Set<string>();
+  const actionTargetFamilyKeys = new Set<string>();
   const loadedScopeCounts = {
     topic: 0,
     event: 0,
     global: 0,
     action: 0,
+    level: 0,
     entity: 0,
   };
   let fallbackUsed = false;
@@ -717,7 +1020,8 @@ export async function loadMemoryV2Payload(
     effectiveDomainKeys = [...new Set(domainKeys)].filter((key) =>
       !(suppressSensitiveTargets && isSensitiveDomainKey(key))
     );
-    directSensitiveRequest = messageRequestsSensitiveMemory(input.message ?? "") &&
+    directSensitiveRequest =
+      messageRequestsSensitiveMemory(input.message ?? "") &&
       effectiveDomainKeys.some(isSensitiveDomainKey);
     const baseGlobalLimit = Math.min(limit, plan?.budget.global_items ?? limit);
     const globalRerankLimit = Math.max(
@@ -756,11 +1060,19 @@ export async function loadMemoryV2Payload(
           .eq("status", "active")
           .limit(Math.min(50, Math.max(12, limit * 6))),
       );
+      const semanticPool =
+        directSensitiveRequest && effectiveDomainKeys.length > 0
+          ? semanticItems.filter((item) =>
+            (item.domain_keys ?? []).some((key) =>
+              effectiveDomainKeys.includes(key)
+            )
+          )
+          : semanticItems;
       const merged = mergeAndRerankCrossTopicItems({
         message: input.message ?? "",
         domain_keys: effectiveDomainKeys,
         domain_items: domainItems,
-        semantic_items: semanticItems,
+        semantic_items: semanticPool,
         limit: globalRerankLimit,
       });
       writeCrossTopicCache(cacheKey, merged);
@@ -813,23 +1125,63 @@ export async function loadMemoryV2Payload(
     items = [...items, ...events];
   }
   if (scopes.has("action")) {
-    const actionItems = await runQuery<MemoryV2Item>(
-      supabase
-        .from("memory_items")
-        .select("*")
-        .eq("user_id", input.user_id)
-        .eq("status", "active")
-        .eq("kind", "action_observation")
-        .limit(Math.min(4, plan?.budget.action_items ?? 4)),
+    const actionLimit = Math.min(
+      limit,
+      Math.max(4, plan?.budget.action_items ?? 4),
     );
+    const activeSignals = await loadActiveActionSignals(
+      supabase,
+      input.user_id,
+    );
+    const targetSignals = selectActionSignalsForMessage({
+      signals: activeSignals,
+      message: input.message ?? "",
+      action_targets: plan?.action_targets ?? [],
+    });
+    for (const signal of targetSignals) {
+      actionTargetPlanIds.add(signal.plan_item_id);
+      actionTargetFamilyKeys.add(signal.action_family_key);
+    }
+    const linkedActionItems = targetSignals.length > 0
+      ? await loadActionLinkedItems({
+        supabase,
+        user_id: input.user_id,
+        target_signals: targetSignals,
+        limit: Math.max(1, actionLimit),
+      })
+      : [];
+    const actionItems = linkedActionItems.length > 0
+      ? linkedActionItems
+      : targetSignals.length === 0 && activeSignals.length > 0
+      ? []
+      : await runQuery<MemoryV2Item>(
+        supabase
+          .from("memory_items")
+          .select("*")
+          .eq("user_id", input.user_id)
+          .eq("status", "active")
+          .eq("kind", "action_observation")
+          .limit(Math.max(1, actionLimit)),
+      );
     loadedScopeCounts.action += actionItems.length;
     items = [...items, ...actionItems];
+  }
+  if (scopes.has("level")) {
+    const levelItems = await loadLevelHandoffItems({
+      supabase,
+      user_id: input.user_id,
+      level_targets: plan?.level_targets ?? [],
+      limit: Math.max(1, plan?.budget.level_items ?? 1),
+    });
+    loadedScopeCounts.level += levelItems.length;
+    items = [...items, ...levelItems];
   }
 
   const deduped = [...new Map(items.map((item) => [item.id, item])).values()];
   assertOnlyActiveMemoryItems(deduped);
   const requestedSensitive = input.retrieval_mode === "safety_first" ||
     directSensitiveRequest ||
+    (scopes.has("action") && actionTargetPlanIds.size > 0) ||
     (messageRequestsKnownMemory(input.message ?? "") &&
       input.retrieval_mode === "cross_topic_lookup");
   const filtered = applySensitivityFilter({
@@ -838,11 +1190,44 @@ export async function loadMemoryV2Payload(
     active_topic_id: input.active_topic_id,
     requested_sensitive: requestedSensitive,
   });
+  const actionFilteredItems =
+    scopes.has("action") && actionTargetPlanIds.size > 0
+      ? filtered.items.filter((item) => {
+        const link = item.action_link;
+        if (!link) return item.kind !== "action_observation";
+        return actionTargetPlanIds.has(String(link.plan_item_id ?? "")) ||
+          actionTargetFamilyKeys.has(String(link.action_family_key ?? ""));
+      })
+      : filtered.items;
+  const finalItems = scopes.has("action")
+    ? [...actionFilteredItems].sort((left, right) => {
+      const score = (item: MemoryV2Item) => {
+        const link = item.action_link;
+        if (!link) return 0;
+        let value = 25;
+        if (actionTargetPlanIds.has(String(link.plan_item_id ?? ""))) {
+          value += 100;
+        }
+        if (
+          actionTargetFamilyKeys.has(String(link.action_family_key ?? ""))
+        ) {
+          value += 80;
+        }
+        if (item.kind === "action_observation") value += 10;
+        return value;
+      };
+      const delta = score(right) - score(left);
+      if (delta !== 0) return delta;
+      return String(right.observed_at ?? "").localeCompare(
+        String(left.observed_at ?? ""),
+      );
+    })
+    : filtered.items;
   return {
     retrieval_mode: input.retrieval_mode,
     hints: input.hints ?? [],
     topic_id: input.active_topic_id ?? null,
-    items: filtered.items.slice(0, limit),
+    items: finalItems.slice(0, limit),
     entities: entities.slice(0, plan?.budget.max_entities ?? 5),
     modules: plan
       ? {

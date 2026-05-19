@@ -1,0 +1,1707 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je vois un petit levier qui n’est pas dans mon plan officiel : après le dîner, si je garde le téléphone avec moi en allant au canapé, je scrolle et l’envie de grignoter revient. Je pourrais le déposer dans l’entrée avant de m’asseoir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah oui, je vois très bien le piège : téléphone + canapé = mode “grignotage automatique” 😅 Alors que déposer le tel dans l’entrée, c’est hyper concret et immédiat.\n\nTu veux qu’on utilise la Carte de defense (surface “Carte de defense”) pour verrouiller ce moment après le dîner / canapé ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "f701a082-8800-4782-974b-21ce974ddee7",
+        "ts": "2026-05-16T14:50:56.067+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 55270,
+          "latency_ms": 6604,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 722,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte grignotage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.environnement",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "leviers environnementaux grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Reprendre le contrôle sur le grignotage",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte grignotage soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.environnement",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "leviers environnementaux grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "f701a082-8800-4782-974b-21ce974ddee7",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "defense_card",
+            "surface_id": "defense_card",
+            "prop_reason": "user_identified_new_trigger_and_leverage_outside_official_plan",
+            "source_span": "Je vois un petit levier qui n’est pas dans mon plan officiel : après le dîner, si je garde le téléphone avec moi en allant au canapé, je scrolle et l’envie de grignoter revient. Je pourrais le déposer dans l’entrée avant de m’asseoir.",
+            "target_hint": "Moment après le dîner / canapé (éviter le scroll et le grignotage)",
+            "offer_timing": "now",
+            "should_offer": true,
+            "target_status": "identified",
+            "operation_type": "prepare_defense_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_defense_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "user_identified_new_trigger_and_leverage_outside_official_plan",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.86,
+            "surface_id": "defense_card",
+            "alternatives": [],
+            "operation_type": "prepare_defense_card",
+            "operation_input": {
+              "attachment": {
+                "kind": "personal_action",
+                "title": "Moment après le dîner / canapé (éviter le scroll et le grignotage)"
+              },
+              "risk_situation": {
+                "label": "Je vois un petit levier qui n’est pas dans mon plan officiel : après le dîner, si je garde le téléphone avec moi en allant au canapé, je scrolle et l’envie de grignoter revient. Je pourrais le déposer dans l’entrée avant de m’asseoir."
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_defense_card",
+            "requires_consent": true,
+            "recommendation_id": "dispatcher_opportunity:defense_card:qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+            "user_facing_offer": "Je vois un risque récurrent pour \"Moment après le dîner / canapé (éviter le scroll et le grignotage)\". Si tu veux, on peut préparer une Carte de defense pour ce moment précis.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 7827,
+        "created_at": "2026-05-16T14:50:56.06978+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Je préfère une carte d’attaque libre, justement. Pas rattachée au plan : l’idée est d’attaquer le décor avant le canapé, avec “téléphone posé dans l’entrée”.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "b69c7c77-ba20-43ef-b402-7d27a1ddba39",
+        "ts": "2026-05-16T14:51:23.304+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 55397,
+          "latency_ms": 5033,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 673,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "usage du téléphone et grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "usage du téléphone et grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "b69c7c77-ba20-43ef-b402-7d27a1ddba39",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "téléphone posé dans l’entrée",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "evidence": [
+                  "Je préfère une carte d’attaque libre",
+                  "Pas rattachée au plan",
+                  "téléphone posé dans l’entrée"
+                ],
+                "is_free_card": true,
+                "target_title": "téléphone posé dans l’entrée",
+                "target_status": "missing"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "technique",
+            "needed": true,
+            "reason": "structured_ai_missing_technique",
+            "status": "missing",
+            "question": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?",
+            "known_slots": {
+              "target": {
+                "kind": "personal_action",
+                "title": "Attaquer le décor avant le canapé",
+                "plan_item_id": null
+              },
+              "intake_state": {
+                "target": {
+                  "kind": "personal_action",
+                  "title": "Attaquer le décor avant le canapé",
+                  "status": "identified",
+                  "evidence": [
+                    "attaquer le décor avant le canapé",
+                    "Pas rattachée au plan"
+                  ],
+                  "confidence": "high",
+                  "plan_item_id": null
+                },
+                "blocker": {
+                  "type": "friction",
+                  "evidence": [
+                    "attaquer le décor avant le canapé"
+                  ],
+                  "confidence": 0.7
+                },
+                "skill_id": "prepare_attack_card",
+                "technique": {
+                  "value": null,
+                  "status": "ambiguous",
+                  "options": [
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                      "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": true,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Ancre visuelle",
+                      "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                      "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                      "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                      "recommended": false,
+                      "technique_key": "ancre_visuelle"
+                    }
+                  ],
+                  "evidence": [
+                    "téléphone posé dans l'entrée"
+                  ],
+                  "confidence": "medium",
+                  "fit_warning": null,
+                  "explicitly_requested": false
+                },
+                "confidence": "high",
+                "constraints": [
+                  "téléphone posé dans l'entrée"
+                ],
+                "current_step": "technique_selection",
+                "missing_slots": [
+                  "technique"
+                ],
+                "activation_keyword": {
+                  "value": null,
+                  "status": "not_applicable",
+                  "options": [],
+                  "evidence": [],
+                  "confidence": "low",
+                  "rejected_value": null
+                },
+                "generated_user_message": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?"
+              },
+              "technique_options": [
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                  "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": true,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Ancre visuelle",
+                  "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                  "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                  "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                  "recommended": false,
+                  "technique_key": "ancre_visuelle"
+                }
+              ]
+            },
+            "technique_options": [
+              {
+                "title": "Preparer le terrain",
+                "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                "description": "Retirer de la friction avant que le moment d'action arrive.",
+                "recommended": true,
+                "technique_key": "preparer_terrain"
+              },
+              {
+                "title": "Ancre visuelle",
+                "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                "recommended": false,
+                "technique_key": "ancre_visuelle"
+              }
+            ],
+            "activation_keyword_options": []
+          },
+          "reason_code": "tool_skill_intent_start",
+          "missing_slots": [
+            "technique"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 18046,
+        "created_at": "2026-05-16T14:51:23.307835+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Préparer le terrain. Le moment précis, c’est quand je quitte la cuisine après avoir débarrassé : si le téléphone est encore dans ma main à ce moment-là, je l’emmène au canapé.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici ton brouillon : *Le sas de la cuisine*\nTechnique : Préparer le terrain\nDès que la cuisine est propre, le téléphone reste loin du canapé.\nPose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.\nOn valide cette carte ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "817bee21-95d8-4789-9aba-8d4bf3d3e6c3",
+        "ts": "2026-05-16T14:52:16.402+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 57443,
+          "latency_ms": 5871,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 608,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "grignotage_soir",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "habitudes de grignotage le soir et téléphone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "grignotage_soir",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "habitudes de grignotage le soir et téléphone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "817bee21-95d8-4789-9aba-8d4bf3d3e6c3",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "product_help_inline_resume_active_tool_skill",
+          "blocked_paths": [
+            {
+              "path": "tool_skills",
+              "reason_code": "product_help_inline_preserves_active_tool_skill"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "inline_answer_then_resume",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_owner": "tool_skill",
+            "resume_policy": "auto_after_answer",
+            "selected_owner": "product_help"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "title": "Le sas de la cuisine",
+              "technique": "preparer_terrain",
+              "instruction": "Pose ton téléphone dans une autre pièce dès que tu as fini de débarrasser.",
+              "mode_emploi": "Pose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.",
+              "target_label": "Attaquer le décor avant le canapé",
+              "why_it_helps": "Cela supprime la friction du choix en éloignant la tentation avant d'arriver dans la zone de repos.",
+              "generated_asset": "Dès que la cuisine est propre, le téléphone reste loin du canapé.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "Évite la tentation immédiate une fois assis.",
+                "Crée une rupture physique avec l'écran."
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton brouillon : *Le sas de la cuisine*\nTechnique : Préparer le terrain\nDès que la cuisine est propre, le téléphone reste loin du canapé.\nPose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.\nOn valide cette carte ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "product_help_inline_resume_active_tool_skill",
+          "operation_id": "a2be78d0-5e4c-4a21-9a3e-61bc19d4c86d",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 43890,
+        "created_at": "2026-05-16T14:52:16.408881+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Pas “cuisine propre”, ça met trop de condition. Remplace par : “quand je sors de la cuisine”. Et précise le vide-poche de l’entrée, près des clés, pas juste hors de portée.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Voici ton nouveau brouillon :\n\n*Attaquer le décor avant le canapé*\nTechnique : Préparer le terrain\nAsset : Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.\nDès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.\n\nÇa te convient pour créer la carte ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "40027089-13a3-417c-9a4a-81bc67a0635e",
+        "ts": "2026-05-16T14:52:47.23+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 55636,
+          "latency_ms": 5097,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 604,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "grignotage_soir_telephone",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "contexte du grignotage au canapé et téléphone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "grignotage_soir_telephone",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "contexte du grignotage au canapé et téléphone",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "40027089-13a3-417c-9a4a-81bc67a0635e",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "title": "Attaquer le décor avant le canapé",
+              "technique": "preparer_terrain",
+              "instruction": "Pose ton téléphone dans le vide-poche de l'entrée, près des clés, dès que tu sors de la cuisine.",
+              "mode_emploi": "Dès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.",
+              "target_label": "Attaquer le décor avant le canapé",
+              "why_it_helps": "En retirant la distraction principale avant d'arriver au salon, tu élimines la friction qui t'empêche d'attaquer le décor.",
+              "generated_asset": "Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "Élimine la tentation du téléphone avant le salon",
+                "Crée une rupture physique avec la distraction",
+                "Rend l'action sur le décor plus fluide"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton nouveau brouillon :\n\n*Attaquer le décor avant le canapé*\nTechnique : Préparer le terrain\nAsset : Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.\nDès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.\n\nÇa te convient pour créer la carte ?"
+          },
+          "status": "pending_confirmation_updated",
+          "reason_code": "skill_entry_signal",
+          "operation_id": "3d4f8e62-419a-4937-8fae-710d9b6435a6",
+          "selected_handler": "prepare_attack_card",
+          "draft_review_decision": null,
+          "previous_operation_id": "a2be78d0-5e4c-4a21-9a3e-61bc19d4c86d"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 21742,
+        "created_at": "2026-05-16T14:52:47.233189+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, le contenu est bon. Fais juste le titre plus court : “Téléphone au vide-poche”. Après ça je pourrai valider.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Titre : Téléphone au vide-poche\nTechnique : Préparer le terrain\nAction : Téléphone au vide-poche de l’entrée, près des clés.\nPrépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\nEst-ce que ça te convient pour créer ta carte ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "018decce-a8ea-450b-aa26-9a3311c36d2f",
+        "ts": "2026-05-16T14:53:13.801+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 55761,
+          "latency_ms": 4498,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 527,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0,1,0.6;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1,
+              0.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "018decce-a8ea-450b-aa26-9a3311c36d2f",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "title": "Téléphone au vide-poche",
+              "technique": "preparer_terrain",
+              "instruction": "Pose ton téléphone dans le vide-poche dès que tu sors de la cuisine.",
+              "mode_emploi": "Prépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.",
+              "target_label": "Attaquer le décor avant le canapé",
+              "why_it_helps": "Cela retire la friction en éloignant la distraction principale avant d'atteindre la zone de repos.",
+              "generated_asset": "Téléphone au vide-poche de l’entrée, près des clés.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "Réduit la tentation du canapé",
+                "Crée une barrière physique avec l'écran"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Titre : Téléphone au vide-poche\nTechnique : Préparer le terrain\nAction : Téléphone au vide-poche de l’entrée, près des clés.\nPrépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\nEst-ce que ça te convient pour créer ta carte ?"
+          },
+          "status": "pending_confirmation_updated",
+          "reason_code": "normal_reply_default",
+          "operation_id": "4b33ddc5-fa76-445f-a01c-8c9b908d1bed",
+          "selected_handler": "prepare_attack_card",
+          "draft_review_decision": null,
+          "previous_operation_id": "3d4f8e62-419a-4937-8fae-710d9b6435a6"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 17848,
+        "created_at": "2026-05-16T14:53:13.803619+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, crée cette carte d’attaque libre.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nTéléphone au vide-poche\nTechnique : Préparer le terrain\nTéléphone au vide-poche de l’entrée, près des clés.\n\nMode d'emploi : Prépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "prepare_attack_card"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "7168d3cf-2977-48b3-832b-2f520ed373aa",
+        "ts": "2026-05-16T14:53:36.265+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 55707,
+          "latency_ms": 5282,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 620,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0,1,0.6,0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1,
+              0.6,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "7168d3cf-2977-48b3-832b-2f520ed373aa",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Téléphone au vide-poche",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "asset": "Téléphone au vide-poche (entrée, près des clés)",
+                "title": "Téléphone au vide-poche",
+                "technique": "Préparer le terrain",
+                "action_trigger": "quand je sors de la cuisine"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "4b33ddc5-fa76-445f-a01c-8c9b908d1bed",
+          "attack_card_id": "02733893-6b0c-4dc9-be2e-a03ee1a63609",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 13091,
+        "created_at": "2026-05-16T14:53:36.268235+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

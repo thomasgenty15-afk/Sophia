@@ -1,0 +1,1203 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Là je décroche un peu avec les grignotages. Je vois ce qui est prévu et ça me paraît trop lourd pour cette semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah je vois… si tu “décroches” et que tout te paraît trop lourd, c’est souvent que la semaine est en mode surcharge, pas que toi tu lâches. 😮‍💨\n\nOn va alléger sans tout annuler :\n1) Choisis 1 seul grignotage “prioritaire” à réduire (pas tous).\n2) Pour le reste, objectif minimal : diminuer un peu, ou garder la même quantité mais à des moments choisis (pas en mode automatique).\n3) Et si la semaine est vraiment chargée : on descend le plan à une version “survie” pendant 7 jours, juste pour remettre le contrôle.\n\nTu veux qu’on fasse une version “survie” (0 pression) ou une version “léger allègement” (un petit effort mais réaliste) ? 🤍",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "438f9485-9bd8-4999-b969-9cc3d16c8f8b",
+        "ts": "2026-05-13T11:16:11.278+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3977,
+          "latency_ms": 8958,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 375,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotages",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotages",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "demotivation_repair": {
+                "reason": "user_reports_dropping_out_and_overload",
+                "detected": true,
+                "confidence_band": "high"
+              },
+              "execution_breakdown": {
+                "reason": "plan_perceived_as_too_heavy_to_execute",
+                "detected": true,
+                "confidence_band": "medium"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "grignotages",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "438f9485-9bd8-4999-b969-9cc3d16c8f8b",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 11300,
+        "created_at": "2026-05-13T11:16:11.279733+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Version survie. Mais ce n'est pas seulement un grignotage précis, c'est tout ce qu'il y a autour qui me fait trop.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah ouais… là c’est pas “un” grignotage, c’est l’ambiance complète autour qui te tire vers le bas. 😮‍💨\n\nVersion survie (ultra simple) :\n1) On ne “choisit” rien : on coupe le flux. Pendant 48h, tu retires/évites les déclencheurs à proximité (les trucs prêts à grignoter, visibles, à portée).\n2) Objectif minimal : 0 grignotage “automatique”. S’il y en a, c’est uniquement après une pause de 10 minutes (tu te demandes : j’ai vraiment faim ou je cherche juste l’occupation ?).\n3) Tu gardes 1 option “tampon” (thé/eau + un truc autorisé et prévu, petit et cadré). L’idée c’est que la faim soit gérée sans négociation.\n\nTu veux qu’on fasse ça avec quel niveau de coupe : A) tu ranges hors de vue tout de suite, ou B) tu fais “barrière” (tu gardes le truc, mais pas accessible sans effort) ? 🍀",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "76debe0c-57c6-4426-b955-5c66ba747bc8",
+        "ts": "2026-05-13T11:16:39.846+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4183,
+          "latency_ms": 11035,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 353,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "mode survie et surcharge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "mode survie et surcharge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_overwhelmed_by_general_load_and_context",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "version survie",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "76debe0c-57c6-4426-b955-5c66ba747bc8",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 13642,
+        "created_at": "2026-05-13T11:16:39.847699+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "B. Et mets ça dans le plan s'il te plaît, parce que là il y a trop d'étapes et trop de décisions pour moi.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Avant de modifier ce niveau, qu'est-ce qui le rend trop lourd concretement, et quoi faut-il changer en premier: nombre d'actions, intensite, timing, ou priorite ? Je vois notamment dans le plan: Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct, Version mini - Nettoyer ton environnement direct.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "1f863e90-906c-48d2-adac-2e346ec75c25",
+        "ts": "2026-05-13T11:17:02.214+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4425,
+          "latency_ms": 9210,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 404,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "difficulté avec le nombre d'étapes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage version survie",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "difficulté avec le nombre d'étapes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "sante.alimentation",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "grignotage version survie",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_overwhelmed_by_complexity",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Version survie - Option B (barrière)",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "1f863e90-906c-48d2-adac-2e346ec75c25",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "reason_code": "operation_intent_start",
+          "plan_item_id": null,
+          "target_title": "niveau actuel",
+          "missing_slots": [
+            "current_level.change_target"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 9268,
+        "created_at": "2026-05-13T11:17:02.215796+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Nombre d'actions et intensité. Je veux garder l'intention, mais en mode très léger cette semaine.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, donc le problème c’est surtout le volume d’actions + leur intensité. On garde l’intention, mais on passe en mode “survie propre” : moins d’étapes, moins de décisions, et des micro-missions. 😮‍💨\n\nConcrètement, pour cette semaine, je te propose juste 1 axe d’ajustement :\n- Nombre d’actions : réduire à 1 seule mission “Version mini - Nettoyer ton environnement direct” (pas 9 fois la même famille)\n- Intensité : version 5 minutes max, puis arrêt (pas de “finir”, juste “démarrer”)\n- Décision : si ça te coûte, tu t’arrêtes. L’objectif c’est de ne pas re-décrocher.\n\nJe te redirige pour que ça soit modifié au bon endroit dans le tableau de bord. ✅\n\nTu préfères une seule mission pour toute la semaine, ou 2 petites sessions (ex: 2 jours) ? 🎯",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "df9fe092-5338-41db-8898-5db05dcd0900",
+        "ts": "2026-05-13T11:17:24.697+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4668,
+          "latency_ms": 9752,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 406,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "allègement du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "surcharge et friction",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t04",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "allègement du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "surcharge et friction",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "user_confirms_overload_and_specifies_reduction_criteria",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global / niveau de difficulté",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "df9fe092-5338-41db-8898-5db05dcd0900",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "active_tool_skill_continue",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 11926,
+        "created_at": "2026-05-13T11:17:24.698335+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Une seule mission. Mais je ne veux pas être redirigé, je veux que tu l'appliques ici si c'est possible.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te suis : une seule mission, et sans te perdre dans des étapes. 😮‍💨\n\nLà, je ne peux pas “appliquer” une modification directe du plan dans ton tableau comme par magie depuis le chat. Par contre, on peut le faire ultra simple ici, tout de suite, comme une version survie à exécuter maintenant.\n\nVersion survie, une seule mission (celle qu’on garde) :\nNettoyer ton environnement direct (mode mini).\nRègle : 5 minutes max, une seule zone (table/plan de travail OU cuisine proche OU sac/entrée), et tu t’arrêtes même si c’est “pas parfait”.\n\nTu la fais maintenant sur quelle zone précise : table de travail, cuisine, ou entrée/sac ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "3968f4eb-792c-430e-a837-a011729228f8",
+        "ts": "2026-05-13T11:17:40.175+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4898,
+          "latency_ms": 2692,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 324,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "allègement plan grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t05",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "high",
+                "query_hint": "allègement plan grignotage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Une seule mission",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "3968f4eb-792c-430e-a837-a011729228f8",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "active_tool_skill_continue",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 5087,
+        "created_at": "2026-05-13T11:17:40.176837+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+    "auth_method": "get-jwt.sh",
+    "user": "Je suis perdu : tu viens de dire que tu pouvais l'adapter dans le plan, puis maintenant tu dis que non. Qu'est-ce qui est réellement modifié ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "b7abe78e-495c-4eea-8f30-baf7c6a123ce",
+        "ts": "2026-05-13T11:17:57.707+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "maintenant"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_now"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4903,
+          "latency_ms": 7901,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 368,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_modification",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "modification du plan survie et contradictions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t06",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_modification",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "modification du plan survie et contradictions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "user confused by contradictory statements about plan modification capabilities and current status",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "high",
+              "target_hint": "plan modification",
+              "user_intent": "clarify",
+              "explicitness": "implicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "medium"
+            }
+          ],
+          "source_message_id": "b7abe78e-495c-4eea-8f30-baf7c6a123ce",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+          "target_title": "Nettoyer ton environnement direct",
+          "missing_slots": [
+            "current_level.adjustment_type",
+            "current_level.reason",
+            "current_level.reason_change",
+            "current_level.change_target"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 7948,
+        "created_at": "2026-05-13T11:17:57.708222+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+    "auth_method": "get-jwt.sh",
+    "user": "Ok donc rien n'a été changé ? Si quelque chose a été changé, donne-moi deux exemples précis, sinon dis clairement que rien n'a été appliqué.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "4817a05e-c815-424b-b1e4-3d07825bea98",
+        "ts": "2026-05-13T11:18:16.277+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4742,
+          "latency_ms": 7572,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 333,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_status",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "dernières modifications ou tentatives d'ajustement du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-level-fuzzy-r4-t07",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "plan_status",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "dernières modifications ou tentatives d'ajustement du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "L'utilisateur demande une clarification explicite sur l'état de son plan et les capacités de modification de l'outil.",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "4817a05e-c815-424b-b1e4-3d07825bea98",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "fallback_dashboard",
+          "reason_code": "active_tool_skill_continue",
+          "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+          "target_title": "Nettoyer ton environnement direct",
+          "missing_slots": [
+            "current_level.adjustment_type",
+            "current_level.reason_change",
+            "current_level.change_target"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 7624,
+        "created_at": "2026-05-13T11:18:16.27762+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

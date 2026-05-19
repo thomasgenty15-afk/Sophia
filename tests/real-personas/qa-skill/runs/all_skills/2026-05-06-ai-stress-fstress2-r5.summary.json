@@ -1,0 +1,163 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r5-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Mission ponctuelle : 'ranger tous mes papiers'. Je veux que tu proposes un ajustement plus petit, par exemple 'trier seulement trois documents', et que tu me demandes avant de l'appliquer.",
+    "assistant": "Je te propose d'ajuster ranger tous mes papiers: reduire l'action a une version minimale. Tu veux que je l'applique ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "route_decision": {
+      "reason_code": "tool_skill_intent_start",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "tool_skill",
+      "memory_use_kind": "none",
+      "selected_handler": "adjust_plan_item",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [
+      "execution_breakdown"
+    ],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "difficulty": "low",
+            "duration_minutes": 5
+          },
+          "title": "Ajustement - ranger tous mes papiers",
+          "scope_label": "ranger tous mes papiers",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "adjustment_type": "reduce",
+          "proposed_change": "reduire l'action a une version minimale",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose d'ajuster ranger tous mes papiers: reduire l'action a une version minimale. Tu veux que je l'applique ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "502c91f1-f4ac-402e-9845-adddde0249f6",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r5-t02",
+    "status": 500,
+    "ok": null,
+    "user": "Oui.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "route_decision": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "turn_frame_direct_effects": null,
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": null,
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-all-skills-ai-stress-2026-05-06-fstress2-r5-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui.",
+    "assistant": "Je ne l'applique pas automatiquement, parce que je n'ai pas retrouvé cette action comme item réel du dashboard. Proposition prête à copier : remplace \"ranger tous mes papiers\" par \"trier seulement trois documents\". Applique-la depuis ton dashboard pour que le plan canonique reste exact.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "route_decision": {
+      "reason_code": "confirmation_yes",
+      "blocked_paths": [],
+      "route_version": "v1",
+      "response_owner": "pending_confirmation",
+      "memory_use_kind": "none",
+      "selected_handler": "execute_confirmed",
+      "direct_effects_to_run": [],
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": []
+    },
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "turn_frame_direct_effects": [],
+    "skill_entry_ids": [],
+    "skill_lifecycle_ids": [],
+    "tool_skill_run": {
+      "status": "not_executed_missing_plan_item_id",
+      "reason_code": "confirmation_yes",
+      "operation_id": "502c91f1-f4ac-402e-9845-adddde0249f6",
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "recommendation": null,
+    "memory_write_candidates_emitted": 0,
+    "trace_error": null
+  }
+]

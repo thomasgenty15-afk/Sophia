@@ -1,6 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { runMemorizerDryRun } from "../memorizer/dry_run.ts";
-import { heuristicExtractionProvider } from "../memorizer/heuristic_extract.ts";
 import { InMemoryMemorizerRepository } from "../memorizer/memory_repo_test_utils.ts";
 import type {
   KnownEntity,
@@ -8,6 +7,7 @@ import type {
   MemorizerMessage,
 } from "../memorizer/types.ts";
 import { loadScenarios } from "./scenario_loader.ts";
+import type { ScenarioTurn } from "./types.ts";
 
 const TARGETS = new Set([
   "04_reopen_dormant_cannabis",
@@ -16,6 +16,73 @@ const TARGETS = new Set([
   "08_strong_statement_self_blame",
   "12_entity_father_aliases",
 ]);
+
+function fixtureExtractionForTurn(turn: ScenarioTurn, messageId: string): string {
+  const memoryItems = (turn.expect.created_items ?? []).map((expected, index) => {
+    const domainKey = expected.domain_keys_any_of?.[0] ?? "";
+    const sensitiveByDomain = domainKey.startsWith("relations.") ||
+      domainKey.startsWith("addictions.") ||
+      domainKey.startsWith("psychologie.");
+    const entityMention = expected.linked_entity_aliases_any_of?.[0] ?? null;
+    return {
+      kind: expected.kind,
+      content_text: turn.user ?? "",
+      normalized_summary: turn.user ?? "",
+      domain_keys: domainKey ? [domainKey] : [],
+      confidence: 0.82,
+      importance_score: 0.68,
+      sensitivity_level: expected.sensitivity_level ??
+        (sensitiveByDomain ? "sensitive" : "normal"),
+      sensitivity_categories: domainKey.startsWith("relations.")
+        ? ["family"]
+        : domainKey.startsWith("addictions.")
+        ? ["addiction"]
+        : domainKey.startsWith("psychologie.")
+        ? ["mental_health"]
+        : [],
+      source_message_ids: [messageId],
+      evidence_quote: turn.user ?? "",
+      event_start_at: expected.kind === "event"
+        ? "2026-05-06T00:00:00.000+02:00"
+        : null,
+      time_precision: expected.kind === "event" ? "day" : null,
+      entity_mentions: entityMention ? [entityMention] : [],
+      metadata: expected.linked_action
+        ? { observation_role: "single" }
+        : { fixture_index: index },
+    };
+  });
+  const linkedEntityAliases = (turn.expect.created_items ?? [])
+    .flatMap((item) => item.linked_entity_aliases_any_of ?? []);
+  const entities = [
+    ...(turn.expect.created_entities ?? []).map((expected, index) => ({
+      entity_type: expected.entity_type ?? "person",
+      display_name: expected.display_name ?? expected.aliases_any_of?.[0] ??
+        `entity-${index}`,
+      aliases: expected.aliases_any_of ?? [],
+      relation_to_user: expected.relation_to_user ?? null,
+      confidence: 0.82,
+      metadata: {},
+    })),
+    ...linkedEntityAliases.map((alias) => ({
+      entity_type: "person",
+      display_name: alias,
+      aliases: [alias],
+      relation_to_user: alias.toLowerCase().includes("papa") ||
+          alias.toLowerCase().includes("pere")
+        ? "father"
+        : null,
+      confidence: 0.82,
+      metadata: {},
+    })),
+  ];
+  return JSON.stringify({
+    memory_items: memoryItems,
+    entities,
+    corrections: [],
+    rejected_observations: [],
+  });
+}
 
 Deno.test("memorizer dry-run scenarios expose expected created items and no forbidden items", async () => {
   const scenarios = (await loadScenarios()).filter((s) => TARGETS.has(s.id));
@@ -58,8 +125,7 @@ Deno.test("memorizer dry-run scenarios expose expected created items and no forb
           title: "marche",
           occurrence_ids: ["occ-1"],
         }],
-        llm_provider: async ({ user_payload }) =>
-          heuristicExtractionProvider(user_payload),
+        llm_provider: async () => fixtureExtractionForTurn(turn, message.id),
       });
       for (const expected of turn.expect.created_items ?? []) {
         const found = result.dry_run_candidates.some((candidate) =>

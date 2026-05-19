@@ -5,12 +5,17 @@ export type DefenseCardDraftV1 = {
   output_schema: "defense_card_draft_v1";
   draft: {
     title: string;
+    impulse_label: string;
     target_label: string;
+    situation: string;
+    signal: string;
     risk_situation: string;
     trigger: string;
     defense_response: string;
+    plan_b: string;
     fallback_plan?: string | null;
     why_it_helps: string;
+    generic_defense: string;
   };
   confirmation_message: string;
   confirmation_actions: ["yes", "no"];
@@ -40,14 +45,21 @@ export function runDefenseCardGenerator(
     output_schema: "defense_card_draft_v1",
     draft: {
       title: `Carte de defense - ${input.risk_situation.label}`,
+      impulse_label: input.risk_situation.label,
       target_label: input.attachment.title,
+      situation: input.risk_situation.label,
+      signal: input.risk_situation.description ?? input.trigger.evidence[0] ??
+        input.trigger.type,
       risk_situation: input.risk_situation.label,
       trigger: input.trigger.type,
       defense_response: response,
+      plan_b:
+        "Si ca ne suffit pas, reduire les degats et revenir au plan au prochain moment stable.",
       fallback_plan:
         "Si ca ne suffit pas, reduire les degats et revenir au plan au prochain moment stable.",
       why_it_helps:
         "La carte prepare une reponse dans le moment de risque, sans culpabiliser.",
+      generic_defense: response,
     },
     confirmation_message:
       `Je te propose de creer une carte de defense pour ${input.risk_situation.label}: ${response} Tu veux que je la cree ?`,

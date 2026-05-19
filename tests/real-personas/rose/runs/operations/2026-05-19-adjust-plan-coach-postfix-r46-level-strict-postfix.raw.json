@@ -1,0 +1,1171 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t01",
+    "user": "Le niveau actuel me semble trop dense cette semaine. Je ne veux pas revoir tout le plan, juste alléger le niveau en gardant le signal de pause comme priorité.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r46-level-strict-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Tu souhaites alléger le niveau actuel en gardant le signal de pause comme priorité. Pour cela, quelles actions ou habitudes aimerais-tu ajuster ? Par exemple, penses-tu à 'Partager un point positif' ou à d'autres éléments ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "eb9bb627-2749-4d74-b262-dae49d69e4e9",
+        "ts": "2026-05-19T16:10:17.024+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11294,
+          "latency_ms": 7333,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 899,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Convenir d'un signal de pause",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Le niveau actuel me semble trop dense cette semaine. Je ne veux pas revoir tout le plan, juste alléger le niveau en gardant le signal de pause comme priorité.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Convenir d'un signal de pause",
+                "type": "action",
+                "priority": "medium",
+                "query_hint": "signal de pause",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Le niveau actuel me semble trop dense cette semaine. Je ne veux pas revoir tout le plan, juste alléger le niveau en gardant le signal de pause comme priorité.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "eb9bb627-2749-4d74-b262-dae49d69e4e9",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "Le niveau actuel me semble trop dense cette semaine"
+                  ]
+                },
+                "constraints": {
+                  "value": "garder le signal de pause comme priorité",
+                  "status": "identified",
+                  "evidence": [
+                    "en gardant le signal de pause comme priorité"
+                  ],
+                  "confidence": "high"
+                },
+                "target_granularity": {
+                  "value": "current_level",
+                  "status": "identified",
+                  "evidence": [
+                    "Le niveau actuel me semble trop dense cette semaine",
+                    "juste alléger le niveau"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "Je ne veux pas revoir tout le plan"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer de supprimer ou de modifier la nature du 'signal de pause' ou de son suivi.",
+              "Revenir sur les simplifications déjà apportées à l'habitude 'Partager un point positif' sans demande explicite.",
+              "Suggérer des changements qui affecteraient la structure ou la cohérence des phases du plan."
+            ],
+            "scope": "level",
+            "preserve": [
+              "L'importance et la place centrale du 'signal de pause' dans la dynamique du niveau 'Désamorcer et recréer de la sécurité'.",
+              "L'objectif global du niveau 'Désamorcer et recréer de la sécurité'.",
+              "La nature et l'intention des missions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause'.",
+              "Les ajustements récents de l'habitude 'Partager un point positif' qui ont déjà visé à en réduire la friction."
+            ],
+            "warnings": [
+              "Ne pas proposer de supprimer ou de modifier la nature de la mission 'Convenir d'un signal de pause' ou de son suivi ('Faire le point sur le signal de pause').",
+              "Éviter de revenir sur les simplifications déjà apportées à l'habitude 'Partager un point positif' sans une demande explicite, car cela pourrait réintroduire la friction récemment levée.",
+              "Ne pas suggérer de changements qui affecteraient la structure globale du plan ou les objectifs à long terme du niveau."
+            ],
+            "confidence": "medium",
+            "guidelines": [
+              "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+              "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+              "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+              "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+              "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+              "Guidelines action: Le rôle de chaque action doit être maintenu, son intention préservée. Un 'pont mini' peut être créé si une action est trop lourde, mais sa nature ne doit pas changer sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant peuvent être ajustés, mais une baisse doit être temporaire et non globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan, les prérequis, l'ordre des phases, l'objectif et le questionnaire doivent être préservés."
+            ],
+            "observation": "L'utilisateur exprime un sentiment de surcharge pour la semaine en cours et souhaite alléger la densité du niveau actuel. Il insiste sur la nécessité de maintenir le 'signal de pause' comme une priorité, soulignant son importance fondamentale pour le niveau, même si la mission initiale est déjà complétée. La demande concerne une réduction de la charge sans revoir l'ensemble du plan.",
+            "recommendation": "Concentrer les ajustements sur les éléments de la semaine courante qui contribuent à la densité perçue, en veillant à ne pas compromettre l'intégration ou la consolidation du 'signal de pause' qui est une fondation essentielle du niveau.",
+            "options_to_discuss": [
+              "Proposer de temporairement mettre en pause ou de reporter la tâche 'Cartographier les déclencheurs' à une semaine ultérieure au sein du même niveau.",
+              "Discuter d'une réduction supplémentaire de la fréquence de l'habitude 'Partager un point positif' (par exemple, de 3 à 2 fois par semaine), en reconnaissant les ajustements récents."
+            ],
+            "questions_to_clarify": [
+              "Qu'est-ce qui contribue le plus à cette sensation de densité cette semaine : l'habitude de 'Partager un point positif' ou la tâche de 'Cartographier les déclencheurs' ?",
+              "Lorsque vous dites 'garder le signal de pause comme priorité', est-ce que cela signifie que vous souhaitez vous concentrer sur son utilisation et son intégration, ou simplement vous assurer qu'il reste un élément central du plan sans être modifié ?"
+            ]
+          },
+          "coaching_guidance_audit": {
+            "scope": "level",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 33523,
+        "created_at": "2026-05-19T16:10:16.761436+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t02",
+    "user": "Le plus lourd c'est 'Partager un point positif'. Je veux passer cette action à 2 jours cette semaine. Prépare un brouillon sans appliquer, et ne touche pas au signal de pause ni au reste.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r46-level-strict-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster ton plan pour cette semaine. Pour alléger la charge que tu ressens avec l'habitude 'Partager un point positif', je te suggère de réduire sa fréquence de 3 jours par semaine à 2 jours par semaine, uniquement pour cette semaine. Cela devrait te permettre de la reprendre plus facilement.\n\nRien d'autre ne sera modifié : ton habitude 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et toutes les autres actions de ton plan resteront exactement telles qu'elles sont.\n\nQu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "421decb6-9109-4a99-a5ef-00d959d0c8e2",
+        "ts": "2026-05-19T16:11:23.67+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 14367,
+          "latency_ms": 18899,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 977,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "Désamorcer et recréer de la sécurité",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "state": "collecting_slots",
+              "reason": "user_provides_slots_for_active_tool_skill",
+              "skill_id": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": "matched_active_plan_item",
+            "status": "identified",
+            "detected": true,
+            "action_type": "habit",
+            "action_title": "Partager un point positif",
+            "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+            "expansion_policy": "exact_then_action_family_recent",
+            "action_family_key": "habit:partager_point_positif"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "421decb6-9109-4a99-a5ef-00d959d0c8e2",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "current_level",
+                  "label": "niveau actuel",
+                  "title": "niveau actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "Le niveau actuel me semble trop dense cette semaine"
+                  ],
+                  "plan_item_id": null,
+                  "current_summary": "niveau actuel"
+                },
+                "payload": {
+                  "constraints": [
+                    "preserve:Convenir d'un signal de pause",
+                    "preserve:Faire le point sur le signal de pause"
+                  ],
+                  "change_target": "Partager un point positif",
+                  "new_frequency": "2 days this week",
+                  "target_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "adjustment_type": "reduce_frequency",
+                  "draft_generation_confirmation": true
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "Le plus lourd c'est 'Partager un point positif'. Je veux passer cette action à 2 jours cette semaine."
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "current_level"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "coach_warning:Ne pas proposer de supprimer l'habitude 'Partager un point positif'.",
+                "target_reps": 2,
+                "cadence_label": "2 jours / semaine"
+              },
+              "title": "Ajustement - Partager un point positif",
+              "confidence": "high",
+              "ack_summary": {
+                "changed": [
+                  "ajustement de \"Partager un point positif\""
+                ],
+                "unchanged": [
+                  "le reste du plan n'est pas touché"
+                ],
+                "confidence": "high",
+                "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                "follow_up_needed": null
+              },
+              "scope_label": "Partager un point positif",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "decision_basis": {
+                "evidence": [
+                  "Le plus lourd c'est 'Partager un point positif'. Je veux passer cette action à 2 jours cette semaine. Prépare un brouillon sans appliquer, et ne touche pas au signal de pause ni au reste.",
+                  "Le plus lourd c'est 'Partager un point positif'.",
+                  "passer cette action à 2 jours cette semaine",
+                  "Le plus lourd c'est 'Partager un point positif'"
+                ],
+                "confidence": "high",
+                "uncertainty": [],
+                "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                "must_preserve": [
+                  "reprendre Partager un point positif apres la version mini"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "ajuster le plan de facon minimale",
+              "change_rationale": {
+                "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                "success_condition": "L'action redevient faisable.",
+                "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+              },
+              "adjust_plan_result": {
+                "scope": "action",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [],
+                  "user_problem": "Partager un point positif bloque parce que l'entrée est trop lourde.",
+                  "expected_effect": "L'habitude 'Partager un point positif' devrait être plus facile à réaliser cette semaine, réduisant la friction et permettant de maintenir l'élan.",
+                  "why_this_change": "Réduire la fréquence de 'Partager un point positif' à 2 jours cette semaine permet de soulager la charge perçue et de débloquer l'habitude, tout en respectant ta demande de ne pas toucher au reste du plan."
+                },
+                "boundaries": {
+                  "explanation": "Cet ajustement est temporaire et ne concerne que la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours. Le reste de ton plan, y compris les actions liées au signal de pause, reste inchangé.",
+                  "affected_scope": "action ciblée uniquement",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "autres actions du plan",
+                    "structure complète du plan",
+                    "Convenir d'un signal de pause",
+                    "Faire le point sur le signal de pause"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réduction de la fréquence de l'habitude 'Partager un point positif' pour cette semaine.",
+                  "changed_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "2 jours / semaine",
+                      "title": "Partager un point positif",
+                      "before": "3 jours / semaine",
+                      "reason": "Pour alléger la charge et débloquer l'habitude cette semaine.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "L'utilisateur a explicitement demandé de ne pas toucher à cette action."
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "title": "Faire le point sur le signal de pause",
+                      "reason": "L'utilisateur a explicitement demandé de ne pas toucher aux actions liées au signal de pause."
+                    },
+                    {
+                      "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                      "kind": "clarification",
+                      "title": "Cartographier les déclencheurs",
+                      "reason": "L'utilisateur a demandé de ne pas toucher au reste du plan."
+                    }
+                  ]
+                },
+                "user_message_brief": "Je te propose de réduire la fréquence de 'Partager un point positif' à 2 jours cette semaine pour alléger la charge, sans toucher au reste de ton plan.",
+                "user_message_detailed": "Je te propose d'ajuster ton plan pour cette semaine afin de t'aider à gérer la charge.\n\nVoici le changement que je te propose :\n*   **Partager un point positif** : Actuellement à 3 jours par semaine, je te propose de la passer à **2 jours par semaine** pour cette semaine.\n    *   *Pourquoi ça aide :* Tu as indiqué que cette habitude était trop lourde et te bloquait. En réduisant sa fréquence pour cette semaine, l'objectif est de la rendre plus accessible et de te permettre de la reprendre sans pression excessive.\n\nCe qui ne bouge pas :\n*   Les actions liées au signal de pause, comme 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause', ne seront pas touchées.\n*   Toutes les autres actions et habitudes de ton plan restent inchangées.\n\nCet ajustement est ciblé et temporaire pour cette semaine. Il ne modifie pas la trajectoire globale de ton plan. Je suis confiante que cette petite modification t'aidera à retrouver de l'élan.\n\nQu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé."
+              },
+              "execution_strategy": "patch_existing",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused",
+                "target_reps",
+                "cadence_label"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait ! J'ai ajusté ton plan pour cette semaine.\n\nL'habitude 'Partager un point positif' est maintenant prévue pour 2 jours cette semaine, au lieu de 3. Cela devrait te permettre de te sentir moins sous pression et de reprendre cette habitude plus sereinement.\n\nLe reste de ton plan, y compris 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause', reste inchangé. Cet ajustement est temporaire et ne concerne que cette semaine pour te soulager.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster ton plan pour cette semaine. Pour alléger la charge que tu ressens avec l'habitude 'Partager un point positif', je te suggère de réduire sa fréquence de 3 jours par semaine à 2 jours par semaine, uniquement pour cette semaine. Cela devrait te permettre de la reprendre plus facilement.\n\nRien d'autre ne sera modifié : ton habitude 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et toutes les autres actions de ton plan resteront exactement telles qu'elles sont.\n\nQu'en penses-tu ? Rien n'est appliqué tant que tu n'as pas validé."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "824865a0-32a9-4163-baeb-bae4f9ffbfc6",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des changements qui iraient au-delà de la fréquence hebdomadaire de l'action ciblée.",
+              "Suggérer des modifications qui pourraient réintroduire de la friction ou de la complexité dans l'habitude 'Partager un point positif' après les simplifications précédentes.",
+              "Toute proposition de modification des actions non mentionnées par l'utilisateur."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'existence et l'intention fondamentale de l'habitude 'Partager un point positif'.",
+              "Toutes les autres actions et missions du plan, en particulier 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause'.",
+              "La cohérence globale du niveau actuel et du plan dans son ensemble."
+            ],
+            "warnings": [
+              "Ne pas proposer de supprimer l'habitude 'Partager un point positif'.",
+              "Ne pas modifier la nature ou l'instruction de l'habitude 'Partager un point positif', car la demande concerne uniquement la fréquence.",
+              "Ne pas toucher aux missions liées au 'signal de pause' ni à toute autre action du plan, comme explicitement demandé par l'utilisateur."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action 'Partager un point positif' doit être maintenu, son intention préservée. La réduction de fréquence est un 'pont mini' pour alléger la charge, mais sa nature ne doit pas changer sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant peuvent être ajustés pour cette action spécifique, mais cette baisse est temporaire et localisée, sans impacter la structure ou le cœur du niveau.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan, les prérequis, l'ordre des phases, l'objectif et le questionnaire doivent être préservés. Aucun changement ne doit affecter ces éléments."
+            ],
+            "observation": "L'utilisateur exprime une surcharge spécifique liée à l'habitude 'Partager un point positif' pour la semaine en cours et demande une réduction de sa fréquence à 2 jours, tout en insistant sur la non-modification des autres éléments du plan, notamment le 'signal de pause'.",
+            "recommendation": "Procéder à l'ajustement de la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours, en respectant scrupuleusement la demande de ne toucher à aucun autre élément du plan. L'objectif est de soulager la charge perçue tout en maintenant l'intention de l'habitude.",
+            "options_to_discuss": [
+              "Étant donné les ajustements récents de cette habitude (fréquence et instruction), explorer si cette nouvelle réduction à 2 jours est une mesure temporaire pour une semaine particulièrement chargée, ou si l'habitude, même simplifiée, reste intrinsèquement trop exigeante à une fréquence plus élevée."
+            ],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 55046,
+        "created_at": "2026-05-19T16:11:23.390772+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t03",
+    "user": "Oui, j'accepte. Applique uniquement ça : 'Partager un point positif' à 2 jours cette semaine, et rien d'autre ne change.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-19-adjust-plan-coach-postfix-r46-level-strict-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait ! J'ai ajusté ton plan pour cette semaine.\n\nL'habitude 'Partager un point positif' est maintenant prévue pour 2 jours cette semaine, au lieu de 3. Cela devrait te permettre de te sentir moins sous pression et de reprendre cette habitude plus sereinement.\n\nLe reste de ton plan, y compris 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause', reste inchangé. Cet ajustement est temporaire et ne concerne que cette semaine pour te soulager. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "2bc22f06-317e-4168-b6e2-889bb6ff3d98",
+        "ts": "2026-05-19T16:11:40.8+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11605,
+          "latency_ms": 6902,
+          "model_used": "gemini-2.5-flash",
+          "tokens_out": 808,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r46-level-strict-postfix-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,1;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "2bc22f06-317e-4168-b6e2-889bb6ff3d98",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_action",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ],
+                  "target_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+                },
+                "constraints": {
+                  "value": [
+                    "rien d'autre ne change"
+                  ],
+                  "status": "identified",
+                  "evidence": [
+                    "rien d'autre ne change"
+                  ],
+                  "confidence": "high"
+                },
+                "change_value": {
+                  "value": {
+                    "target_reps": 2,
+                    "cadence_label": "2 jours / semaine"
+                  },
+                  "status": "identified",
+                  "evidence": [
+                    "à 2 jours cette semaine"
+                  ],
+                  "confidence": "high"
+                },
+                "change_target": {
+                  "value": "frequency",
+                  "status": "identified",
+                  "evidence": [
+                    "à 2 jours cette semaine"
+                  ],
+                  "confidence": "high"
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": []
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "yes",
+            "reason": "user_confirms_pending_tool_skill_operation",
+            "source_span": "Oui, j'accepte. Applique uniquement ça",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "824865a0-32a9-4163-baeb-bae4f9ffbfc6",
+          "plan_patch_id": "30c5bffe-dfee-4fbd-a606-a40023f9bdf4",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des changements qui iraient au-delà de la fréquence hebdomadaire de l'action ciblée.",
+              "Suggérer des modifications qui pourraient réintroduire de la friction ou de la complexité dans l'habitude 'Partager un point positif' après les simplifications précédentes.",
+              "Toute proposition de modification des actions non mentionnées par l'utilisateur."
+            ],
+            "scope": "action",
+            "preserve": [
+              "L'existence et l'intention fondamentale de l'habitude 'Partager un point positif'.",
+              "Toutes les autres actions et missions du plan, en particulier 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause'.",
+              "La cohérence globale du niveau actuel et du plan dans son ensemble."
+            ],
+            "warnings": [
+              "Ne pas proposer de supprimer l'habitude 'Partager un point positif'.",
+              "Ne pas modifier la nature ou l'instruction de l'habitude 'Partager un point positif', car la demande concerne uniquement la fréquence.",
+              "Ne pas toucher aux missions liées au 'signal de pause' ni à toute autre action du plan, comme explicitement demandé par l'utilisateur."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+              "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+              "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+              "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+              "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+              "Guidelines action: Le rôle de l'action 'Partager un point positif' doit être maintenu, son intention préservée. La réduction de fréquence est un 'pont mini' pour alléger la charge, mais sa nature ne doit pas changer sans demande explicite.",
+              "Guidelines niveau: La charge et le rythme du niveau courant peuvent être ajustés pour cette action spécifique, mais cette baisse est temporaire et localisée, sans impacter la structure ou le cœur du niveau.",
+              "Guidelines whole_plan: La trajectoire et la cohérence globale du plan, les prérequis, l'ordre des phases, l'objectif et le questionnaire doivent être préservés. Aucun changement ne doit affecter ces éléments."
+            ],
+            "observation": "L'utilisateur exprime une surcharge spécifique liée à l'habitude 'Partager un point positif' pour la semaine en cours et demande une réduction de sa fréquence à 2 jours, tout en insistant sur la non-modification des autres éléments du plan, notamment le 'signal de pause'.",
+            "recommendation": "Procéder à l'ajustement de la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours, en respectant scrupuleusement la demande de ne toucher à aucun autre élément du plan. L'objectif est de soulager la charge perçue tout en maintenant l'intention de l'habitude.",
+            "options_to_discuss": [
+              "Étant donné les ajustements récents de cette habitude (fréquence et instruction), explorer si cette nouvelle réduction à 2 jours est une mesure temporaire pour une semaine particulièrement chargée, ou si l'habitude, même simplifiée, reste intrinsèquement trop exigeante à une fréquence plus élevée."
+            ],
+            "questions_to_clarify": []
+          },
+          "bridge_plan_item_id": null,
+          "coaching_guidance_audit": {
+            "scope": "action",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 7115,
+        "created_at": "2026-05-19T16:11:40.399778+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

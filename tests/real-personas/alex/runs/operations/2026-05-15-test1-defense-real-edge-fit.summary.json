@@ -1,0 +1,221 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais une carte de défense pour démarrer le sas, le problème c'est surtout que j'ai pas envie de m'y mettre.",
+    "assistant": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "tool_fit",
+        "needed": true,
+        "reason": "structured_ai_missing_tool_fit",
+        "status": "missing",
+        "question": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "trigger": {
+              "type": "avoidance",
+              "status": "identified",
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": "L'utilisateur exprime une résistance au démarrage de l'action ('pas envie de m'y mettre'), ce qui relève davantage d'une carte d'attaque que d'une carte de défense.",
+              "status": "attack_better",
+              "evidence": [
+                "j'ai pas envie de m'y mettre"
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "attachment_intake",
+            "defense_goal": {
+              "value": "protect_action",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas"
+              ],
+              "confidence": "high"
+            },
+            "missing_slots": [
+              "tool_fit"
+            ],
+            "risk_situation": {
+              "label": "Démarrage du sas",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas",
+                "pas envie de m'y mettre"
+              ],
+              "confidence": "high",
+              "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+              "timing_hint": "Soir",
+              "context_hint": "Avant le coucher"
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "Je vois. Comme c'est pour t'aider à vaincre la résistance au démarrage, une carte d'attaque serait plus adaptée qu'une carte de défense. On part là-dessus ?"
+          },
+          "risk_situation": {
+            "label": "Démarrage du sas",
+            "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+            "timing_hint": "Soir",
+            "context_hint": "Avant le coucher"
+          }
+        }
+      },
+      "reason_code": "tool_skill_intent_start",
+      "missing_slots": [
+        "tool_fit"
+      ],
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-15-defense-real-edge-fit-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y.",
+    "assistant": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_defense_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "tool_fit",
+        "needed": true,
+        "reason": "structured_ai_missing_tool_fit",
+        "status": "missing",
+        "question": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?",
+        "known_slots": {
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "intake_state": {
+            "trigger": {
+              "type": "avoidance",
+              "status": "identified",
+              "evidence": [
+                "pas envie de m'y mettre"
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_defense_card",
+            "tool_fit": {
+              "reason": "L'utilisateur a validé le passage en mode 'attaque' pour surmonter la résistance au démarrage du sas.",
+              "status": "attack_better",
+              "evidence": [
+                "Oui vas-y."
+              ],
+              "confidence": "high"
+            },
+            "attachment": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "confidence": "high",
+            "constraints": [],
+            "current_step": "attachment_intake",
+            "defense_goal": {
+              "value": "protect_action",
+              "status": "identified",
+              "evidence": [
+                "démarrer le sas"
+              ],
+              "confidence": "high"
+            },
+            "missing_slots": [
+              "tool_fit"
+            ],
+            "risk_situation": {
+              "label": "Démarrage du sas",
+              "status": "identified",
+              "evidence": [
+                "structured_operation_input"
+              ],
+              "confidence": "high",
+              "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+              "timing_hint": "Soir",
+              "context_hint": "Avant le coucher"
+            },
+            "defense_response_hint": {
+              "value": null,
+              "status": "missing",
+              "evidence": [],
+              "confidence": "low",
+              "strategy_hint": null
+            },
+            "generated_user_message": "Top. Pour contrer cette flemme au démarrage, qu'est-ce qui t'aide d'habitude ? Juste ouvrir le carnet sans réfléchir, ou te dire que ça ne durera que 2 minutes ?"
+          },
+          "risk_situation": {
+            "label": "Démarrage du sas",
+            "description": "Moment de transition vers le rituel du soir où la résistance mentale est forte.",
+            "timing_hint": "Soir",
+            "context_hint": "Avant le coucher"
+          }
+        }
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "tool_fit"
+      ],
+      "selected_handler": "prepare_defense_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

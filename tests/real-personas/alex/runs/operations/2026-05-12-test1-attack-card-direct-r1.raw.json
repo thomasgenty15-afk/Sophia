@@ -1,0 +1,13 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-direct-r1-t01",
+    "auth_method": "local_jwt_secret_fallback",
+    "user": "Fais-moi une carte d attaque pour lancer mon sas de dechargement ce soir.",
+    "status": 401,
+    "body": {
+      "error": "Unauthorized",
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-direct-r1-t01"
+    }
+  }
+]

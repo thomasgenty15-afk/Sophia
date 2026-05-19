@@ -1,0 +1,752 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, j'ai un doute plus global : la troisième partie me paraît trop rapide, surtout l'étape suivante. Je ne parle pas d'une action de cette semaine, je veux revoir la trajectoire.",
+    "assistant": "Pour que je puisse t'aider à revoir la trajectoire, qu'est-ce qui te donne l'impression que la troisième partie, ou l'étape suivante, est trop rapide ? Est-ce la quantité d'actions, leur complexité, l'intensité émotionnelle ou le temps alloué ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer purement et simplement une phase ou une étape majeure sans avoir exploré les raisons profondes de la perception de rapidité.",
+          "Faire des ajustements qui compromettent la logique de progression ou les prérequis nécessaires pour les étapes ultérieures.",
+          "Ignorer la dimension émotionnelle ou la charge mentale sous-jacente à la demande de l'utilisateur."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan et l'intention fondamentale de chaque phase, même si leur déroulement est ajusté.",
+          "La cohérence de la progression, en s'assurant que les ajustements ne créent pas de lacunes ou de sauts illogiques.",
+          "Les acquis et les fondations déjà établies dans les phases précédentes."
+        ],
+        "warnings": [
+          "Éviter de proposer des modifications superficielles ou des ajustements d'actions individuelles, car la demande porte sur la trajectoire globale.",
+          "Ne pas interpréter 'trop rapide' comme une volonté de supprimer des étapes, mais plutôt comme un besoin de réévaluer le séquençage, la charge ou la complexité.",
+          "Ne pas minimiser l'importance de cette perception globale, car elle peut impacter l'engagement sur le long terme."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines whole_plan: Se concentrer sur la trajectoire globale, la cohérence entre les phases, les prérequis nécessaires et l'ordre des étapes pour préserver l'objectif final du plan. Tout ajustement doit maintenir l'intégrité de la progression et la pertinence du questionnaire final.",
+          "Guidelines niveau: Bien que le scope soit 'whole_plan', les principes de 'charge et rythme' sont essentiels pour chaque phase. La modification de la trajectoire doit viser à optimiser la charge et le rythme des niveaux futurs, sans compromettre leur cœur ou leur objectif.",
+          "Guidelines action: Ne pas se focaliser sur les actions individuelles, mais sur la manière dont elles s'inscrivent dans la progression des phases. Si des actions sont impactées par un changement de trajectoire, s'assurer que leur intention est préservée ou adaptée de manière cohérente."
+        ],
+        "observation": "L'utilisateur exprime un sentiment d'accélération excessive concernant la trajectoire globale du plan, en particulier la troisième partie. Il ne s'agit pas d'un ajustement ponctuel mais d'une remise en question du rythme et de la cohérence de la progression future, suggérant un décalage entre le plan et sa capacité ou sa disponibilité actuelle.",
+        "recommendation": "Guider le sous-skill à explorer la perception de l'utilisateur sur ce qui rend la troisième partie 'trop rapide' et à identifier les éléments spécifiques qui génèrent cette sensation. L'objectif est de réaligner la trajectoire du plan avec le rythme interne et les contraintes externes de l'utilisateur, en assurant une progression soutenable et pertinente.",
+        "options_to_discuss": [
+          "Ajuster la durée des phases à venir pour permettre une intégration plus profonde des apprentissages.",
+          "Re-séquencer certaines étapes clés de la troisième partie pour mieux construire les prérequis émotionnels ou pratiques.",
+          "Décomposer les étapes les plus denses de la troisième partie en sous-étapes plus petites et plus progressives.",
+          "Réévaluer les prérequis nécessaires avant d'aborder la troisième partie, pour s'assurer que les fondations sont solides.",
+          "Explorer si la perception de rapidité est liée à des facteurs externes (charge de travail, événements personnels) ou internes (fatigue, résistance au changement)."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui, spécifiquement dans la troisième partie ou l'étape suivante, donne l'impression d'être 'trop rapide' ? Est-ce la quantité d'actions, leur complexité, l'intensité émotionnelle ou le temps alloué ?",
+          "Quel serait le rythme idéal ou une progression plus confortable pour les phases à venir ?",
+          "Y a-t-il des éléments ou des thèmes particuliers dans la troisième partie qui semblent prématurés ou particulièrement exigeants à ce stade ?",
+          "Quelles sont les ressources (temps, énergie, soutien) dont l'utilisateur dispose actuellement pour aborder la suite du plan ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer purement et simplement une phase ou une étape majeure sans avoir exploré les raisons profondes de la perception de rapidité.",
+        "Faire des ajustements qui compromettent la logique de progression ou les prérequis nécessaires pour les étapes ultérieures.",
+        "Ignorer la dimension émotionnelle ou la charge mentale sous-jacente à la demande de l'utilisateur."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan et l'intention fondamentale de chaque phase, même si leur déroulement est ajusté.",
+        "La cohérence de la progression, en s'assurant que les ajustements ne créent pas de lacunes ou de sauts illogiques.",
+        "Les acquis et les fondations déjà établies dans les phases précédentes."
+      ],
+      "warnings": [
+        "Éviter de proposer des modifications superficielles ou des ajustements d'actions individuelles, car la demande porte sur la trajectoire globale.",
+        "Ne pas interpréter 'trop rapide' comme une volonté de supprimer des étapes, mais plutôt comme un besoin de réévaluer le séquençage, la charge ou la complexité.",
+        "Ne pas minimiser l'importance de cette perception globale, car elle peut impacter l'engagement sur le long terme."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines whole_plan: Se concentrer sur la trajectoire globale, la cohérence entre les phases, les prérequis nécessaires et l'ordre des étapes pour préserver l'objectif final du plan. Tout ajustement doit maintenir l'intégrité de la progression et la pertinence du questionnaire final.",
+        "Guidelines niveau: Bien que le scope soit 'whole_plan', les principes de 'charge et rythme' sont essentiels pour chaque phase. La modification de la trajectoire doit viser à optimiser la charge et le rythme des niveaux futurs, sans compromettre leur cœur ou leur objectif.",
+        "Guidelines action: Ne pas se focaliser sur les actions individuelles, mais sur la manière dont elles s'inscrivent dans la progression des phases. Si des actions sont impactées par un changement de trajectoire, s'assurer que leur intention est préservée ou adaptée de manière cohérente."
+      ],
+      "observation": "L'utilisateur exprime un sentiment d'accélération excessive concernant la trajectoire globale du plan, en particulier la troisième partie. Il ne s'agit pas d'un ajustement ponctuel mais d'une remise en question du rythme et de la cohérence de la progression future, suggérant un décalage entre le plan et sa capacité ou sa disponibilité actuelle.",
+      "recommendation": "Guider le sous-skill à explorer la perception de l'utilisateur sur ce qui rend la troisième partie 'trop rapide' et à identifier les éléments spécifiques qui génèrent cette sensation. L'objectif est de réaligner la trajectoire du plan avec le rythme interne et les contraintes externes de l'utilisateur, en assurant une progression soutenable et pertinente.",
+      "options_to_discuss": [
+        "Ajuster la durée des phases à venir pour permettre une intégration plus profonde des apprentissages.",
+        "Re-séquencer certaines étapes clés de la troisième partie pour mieux construire les prérequis émotionnels ou pratiques.",
+        "Décomposer les étapes les plus denses de la troisième partie en sous-étapes plus petites et plus progressives.",
+        "Réévaluer les prérequis nécessaires avant d'aborder la troisième partie, pour s'assurer que les fondations sont solides.",
+        "Explorer si la perception de rapidité est liée à des facteurs externes (charge de travail, événements personnels) ou internes (fatigue, résistance au changement)."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui, spécifiquement dans la troisième partie ou l'étape suivante, donne l'impression d'être 'trop rapide' ? Est-ce la quantité d'actions, leur complexité, l'intensité émotionnelle ou le temps alloué ?",
+        "Quel serait le rythme idéal ou une progression plus confortable pour les phases à venir ?",
+        "Y a-t-il des éléments ou des thèmes particuliers dans la troisième partie qui semblent prématurés ou particulièrement exigeants à ce stade ?",
+        "Quelles sont les ressources (temps, énergie, soutien) dont l'utilisateur dispose actuellement pour aborder la suite du plan ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t02",
+    "status": 200,
+    "ok": true,
+    "user": "C'est surtout la complexité et l'intensité émotionnelle. Je veux ralentir la transition avant les conversations plus sensibles. La suite devrait ajouter une étape intermédiaire autour de 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et une réparation simple après conflit. L'objectif global reste le même.",
+    "assistant": "Si je comprends bien, tu souhaites ralentir la transition avant les conversations plus sensibles en ajoutant une étape intermédiaire qui inclurait des actions comme 'Convenir d'un signal de pause', 'Faire le point sur le signal de pause' et une réparation simple après conflit, tout en gardant l'objectif global du plan. Est-ce que je peux te préparer une proposition concrète pour cela ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "la troisième partie du plan et la trajectoire globale",
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+          "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+          "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan, qui reste inchangé.",
+          "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+          "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations."
+        ],
+        "warnings": [
+          "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+          "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+          "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution.",
+          "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+        ],
+        "observation": "L'utilisateur exprime un besoin de ralentir la progression du plan avant d'aborder des sujets plus sensibles, en raison de la complexité et de l'intensité émotionnelle perçues. Il propose une solution structurelle : l'ajout d'une étape intermédiaire intégrant des actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') et une nouvelle ('réparation simple après conflit'). Cela indique une volonté de renforcer les fondations de gestion des conflits et de sécurité émotionnelle avant d'avancer.",
+        "recommendation": "Guider le sous-skill à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit. L'objectif est de créer un espace sécurisé et progressif, permettant à l'utilisateur de se sentir mieux préparé et moins submergé par les conversations futures, tout en maintenant l'objectif global du plan.",
+        "options_to_discuss": [
+          "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+          "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+          "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'.",
+          "Préciser le contenu et les modalités de la 'réparation simple après conflit' pour qu'elle soit concrète et applicable."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui, pour l'utilisateur, caractérise une 'réparation simple après conflit' ? Quels en seraient les éléments clés ou les actions concrètes ?",
+          "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+          "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+          "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+        "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+        "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan, qui reste inchangé.",
+        "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+        "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations."
+      ],
+      "warnings": [
+        "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+        "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+        "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution.",
+        "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+      ],
+      "observation": "L'utilisateur exprime un besoin de ralentir la progression du plan avant d'aborder des sujets plus sensibles, en raison de la complexité et de l'intensité émotionnelle perçues. Il propose une solution structurelle : l'ajout d'une étape intermédiaire intégrant des actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') et une nouvelle ('réparation simple après conflit'). Cela indique une volonté de renforcer les fondations de gestion des conflits et de sécurité émotionnelle avant d'avancer.",
+      "recommendation": "Guider le sous-skill à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit. L'objectif est de créer un espace sécurisé et progressif, permettant à l'utilisateur de se sentir mieux préparé et moins submergé par les conversations futures, tout en maintenant l'objectif global du plan.",
+      "options_to_discuss": [
+        "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+        "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+        "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'.",
+        "Préciser le contenu et les modalités de la 'réparation simple après conflit' pour qu'elle soit concrète et applicable."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui, pour l'utilisateur, caractérise une 'réparation simple après conflit' ? Quels en seraient les éléments clés ou les actions concrètes ?",
+        "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+        "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+        "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare le brouillon sans appliquer. Pour réparation simple, je veux dire : revenir au calme, dire ce qui a débordé sans accusation, puis choisir une petite réparation concrète. Garde l'objectif global du plan.",
+    "assistant": "Je peux te proposer d'ajuster le plan global en gardant le même objectif, mais en insérant une étape intermédiaire avant les conversations plus sensibles. Cette étape consoliderait le signal de pause et une réparation simple après conflit. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "coach_observation:L'utilisateur confirme son intention de créer une étape intermédiaire pour ralentir la progression du plan avant d'aborder des sujets plus sensibles. Il précise la nature de la 'réparation simple après conflit' qu'il souhaite inclure dans cette nouvelle étape : revenir au calme, exprimer ce qui a débordé sans accusation, et choisir une petite réparation concrète. Cette clarification est essentielle pour la conception de la nouvelle action.",
+              "coach_recommendation:Guider le sous-skill à intégrer la définition de la 'réparation simple après conflit' fournie par l'utilisateur dans la conception de la nouvelle action. Continuer à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit, en s'assurant qu'elle crée un espace sécurisé et progressif, tout en maintenant l'objectif global du plan.",
+              "coach_warning:Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+              "coach_warning:Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+              "coach_warning:Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir.",
+              "coach_preserve:L'objectif global du plan, qui reste inchangé.",
+              "coach_preserve:L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+              "coach_preserve:La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations.",
+              "coach_preserve:La définition de la 'réparation simple après conflit' telle que fournie par l'utilisateur.",
+              "coach_avoid:Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+              "coach_avoid:Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+              "coach_avoid:Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution, en intégrant la définition fournie par l'utilisateur.",
+              "coach_guideline:Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+              "coach_guideline:Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide.",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:réparation simple après conflit"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Rôle du signal de pause",
+              "Actions de soutien existantes sauf réordonnancement nécessaire"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, prépare le brouillon sans appliquer. Pour réparation simple, je veux dire : revenir au calme, dire ce qui a débordé sans accusation, puis choisir une petite réparation concrète. Garde l'objectif global du plan.",
+              "la troisième partie me paraît trop rapide",
+              "revoir la trajectoire",
+              "ralentir la transition avant les conversations plus sensibles",
+              "L'objectif global reste le même",
+              "ajouter une étape intermédiaire",
+              "complexité et l'intensité émotionnelle",
+              "complexité et l'intensité émotionnelle",
+              "ralentir la transition avant les conversations plus sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+            "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+              "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+              "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ]
+            },
+            "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+            "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer d'ajuster le plan global en gardant le même objectif, mais en insérant une étape intermédiaire avant les conversations plus sensibles. Cette étape consoliderait le signal de pause et une réparation simple après conflit. Rien n'est appliqué tant que tu ne valides pas."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "e905b3b7-c1aa-4bb8-af31-0b0f808842a5",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+          "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+          "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan, qui reste inchangé.",
+          "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+          "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations.",
+          "La définition de la 'réparation simple après conflit' telle que fournie par l'utilisateur."
+        ],
+        "warnings": [
+          "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+          "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+          "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution, en intégrant la définition fournie par l'utilisateur.",
+          "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+        ],
+        "observation": "L'utilisateur confirme son intention de créer une étape intermédiaire pour ralentir la progression du plan avant d'aborder des sujets plus sensibles. Il précise la nature de la 'réparation simple après conflit' qu'il souhaite inclure dans cette nouvelle étape : revenir au calme, exprimer ce qui a débordé sans accusation, et choisir une petite réparation concrète. Cette clarification est essentielle pour la conception de la nouvelle action.",
+        "recommendation": "Guider le sous-skill à intégrer la définition de la 'réparation simple après conflit' fournie par l'utilisateur dans la conception de la nouvelle action. Continuer à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit, en s'assurant qu'elle crée un espace sécurisé et progressif, tout en maintenant l'objectif global du plan.",
+        "options_to_discuss": [
+          "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+          "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+          "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'."
+        ],
+        "questions_to_clarify": [
+          "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+          "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+          "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+        "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+        "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan, qui reste inchangé.",
+        "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+        "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations.",
+        "La définition de la 'réparation simple après conflit' telle que fournie par l'utilisateur."
+      ],
+      "warnings": [
+        "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+        "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+        "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution, en intégrant la définition fournie par l'utilisateur.",
+        "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+      ],
+      "observation": "L'utilisateur confirme son intention de créer une étape intermédiaire pour ralentir la progression du plan avant d'aborder des sujets plus sensibles. Il précise la nature de la 'réparation simple après conflit' qu'il souhaite inclure dans cette nouvelle étape : revenir au calme, exprimer ce qui a débordé sans accusation, et choisir une petite réparation concrète. Cette clarification est essentielle pour la conception de la nouvelle action.",
+      "recommendation": "Guider le sous-skill à intégrer la définition de la 'réparation simple après conflit' fournie par l'utilisateur dans la conception de la nouvelle action. Continuer à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit, en s'assurant qu'elle crée un espace sécurisé et progressif, tout en maintenant l'objectif global du plan.",
+      "options_to_discuss": [
+        "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+        "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+        "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'."
+      ],
+      "questions_to_clarify": [
+        "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+        "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+        "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, je valide. Applique cet ajustement global : garder le même objectif, mais insérer une étape intermédiaire de signal de pause + réparation simple avant les conversations sensibles.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "e905b3b7-c1aa-4bb8-af31-0b0f808842a5",
+      "plan_patch_id": "6a916662-045a-4933-8bd1-214d201f9519",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+          "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+          "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan, qui reste inchangé.",
+          "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+          "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations.",
+          "La définition de la 'réparation simple après conflit' telle que fournie par l'utilisateur."
+        ],
+        "warnings": [
+          "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+          "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+          "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution, en intégrant la définition fournie par l'utilisateur.",
+          "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+          "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+        ],
+        "observation": "L'utilisateur confirme son intention de créer une étape intermédiaire pour ralentir la progression du plan avant d'aborder des sujets plus sensibles. Il précise la nature de la 'réparation simple après conflit' qu'il souhaite inclure dans cette nouvelle étape : revenir au calme, exprimer ce qui a débordé sans accusation, et choisir une petite réparation concrète. Cette clarification est essentielle pour la conception de la nouvelle action.",
+        "recommendation": "Guider le sous-skill à intégrer la définition de la 'réparation simple après conflit' fournie par l'utilisateur dans la conception de la nouvelle action. Continuer à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit, en s'assurant qu'elle crée un espace sécurisé et progressif, tout en maintenant l'objectif global du plan.",
+        "options_to_discuss": [
+          "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+          "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+          "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'."
+        ],
+        "questions_to_clarify": [
+          "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+          "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+          "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+        ]
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "whole_plan",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des ajustements qui ne répondent qu'à la surface de la demande, sans adresser la perception de complexité et d'intensité émotionnelle.",
+        "Suggérer que l'utilisateur est réticent à aborder des sujets difficiles, mais plutôt qu'il a besoin d'une préparation plus solide et progressive.",
+        "Introduire de nouvelles complexités ou une charge mentale supplémentaire dans cette étape intermédiaire."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan, qui reste inchangé.",
+        "L'intention et l'importance des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' comme outils de gestion des tensions.",
+        "La logique de progression générale du plan, en s'assurant que cette nouvelle étape s'y intègre de manière cohérente et renforce les fondations.",
+        "La définition de la 'réparation simple après conflit' telle que fournie par l'utilisateur."
+      ],
+      "warnings": [
+        "Ne pas se contenter de déplacer les actions existantes ('Convenir d'un signal de pause', 'Faire le point sur le signal de pause') sans les intégrer dans une intention claire pour cette nouvelle étape intermédiaire.",
+        "Éviter de minimiser la perception de 'complexité et intensité émotionnelle' de l'utilisateur, car elle est le moteur de cette demande de réajustement de trajectoire.",
+        "Ne pas proposer de supprimer d'autres étapes du plan pour compenser l'ajout de cette étape, car l'intention est de ralentir, non de raccourcir."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Guidelines action: Le rôle des actions 'Convenir d'un signal de pause' et 'Faire le point sur le signal de pause' doit être préservé et potentiellement renforcé dans cette nouvelle étape. La 'réparation simple après conflit' doit être une nouvelle action dont l'intention est de construire un pont mini vers la résolution, en intégrant la définition fournie par l'utilisateur.",
+        "Guidelines niveau: Cette nouvelle étape intermédiaire doit être pensée comme un niveau ou une phase à part entière, avec une charge et un rythme adaptés pour permettre une baisse temporaire de l'intensité globale avant les sujets sensibles. Le cœur de la désescalade et de la réparation doit être préservé.",
+        "Guidelines whole_plan: La trajectoire globale du plan doit être ajustée pour intégrer cette nouvelle étape, en assurant la cohérence avec les prérequis des phases futures et en préservant l'objectif et le questionnaire initiaux. L'ordre des phases doit être réévalué pour que cette étape serve de fondation solide."
+      ],
+      "observation": "L'utilisateur confirme son intention de créer une étape intermédiaire pour ralentir la progression du plan avant d'aborder des sujets plus sensibles. Il précise la nature de la 'réparation simple après conflit' qu'il souhaite inclure dans cette nouvelle étape : revenir au calme, exprimer ce qui a débordé sans accusation, et choisir une petite réparation concrète. Cette clarification est essentielle pour la conception de la nouvelle action.",
+      "recommendation": "Guider le sous-skill à intégrer la définition de la 'réparation simple après conflit' fournie par l'utilisateur dans la conception de la nouvelle action. Continuer à concevoir cette nouvelle étape intermédiaire comme un palier de consolidation des compétences de désescalade et de réparation post-conflit, en s'assurant qu'elle crée un espace sécurisé et progressif, tout en maintenant l'objectif global du plan.",
+      "options_to_discuss": [
+        "Définir le positionnement optimal de cette nouvelle étape intermédiaire dans la trajectoire globale du plan (par exemple, comme une nouvelle phase dédiée ou une extension d'une phase existante).",
+        "Explorer comment cette étape peut spécifiquement construire les prérequis émotionnels et pratiques pour les 'conversations plus sensibles' à venir.",
+        "Discuter de la durée et de l'intensité souhaitées pour cette étape intermédiaire afin qu'elle réponde au besoin de 'ralentir la transition'."
+      ],
+      "questions_to_clarify": [
+        "Quelles sont les 'conversations plus sensibles' que l'utilisateur anticipe et pour lesquelles il souhaite se préparer davantage ?",
+        "Comment l'utilisateur imagine-t-il l'intégration de cette étape intermédiaire ? S'agit-il d'une nouvelle phase à part entière, ou d'une extension/réorganisation des semaines existantes ?",
+        "Quel serait le rythme ou la charge de travail idéal pour cette nouvelle étape afin de réduire la 'complexité et l'intensité émotionnelle' ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r48-whole-plan-directional-postfix-t04",
+    "trace_error": null
+  }
+]

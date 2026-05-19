@@ -306,7 +306,7 @@ Choisis reduce si :
 5. **IDs valides** : chaque target_item_id dans load_adjustments DOIT correspondre à un id présent dans items[].
 6. **Pas de doublon** : un même target_item_id ne peut apparaître qu'une fois dans load_adjustments.
 7. **Posture obligatoire** : suggested_posture_next_week est toujours renseigné.
-8. **Coaching sobre** : coaching_note est optionnelle. Si présente, 1 à 2 phrases max, ton empathique et direct (tutoiement), pas de jargon.
+8. **Coaching sobre** : coaching_note est optionnelle. Si présente, 1 à 2 phrases max, ton empathique et direct (tutoiement), pas de jargon. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 9. **Lecture des deux signaux** : utilise tone_evolution pour arbitrer hold vs reduce/consolidate, best_traction_moments pour renforcer expand, closure_fatigue_moments pour renforcer reduce/consolidate, most_real_blockage / main_risk_next_week / relational_opportunity pour enrichir le raisonnement et la coaching_note.
 
 ## Format de sortie

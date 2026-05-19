@@ -1,0 +1,936 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je veux une carte d'attaque pour le sas du soir. Quand je sens que je vais craquer, il me faudrait un signal tres simple a utiliser, sans devoir lire un long texte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Yes, on va te faire une carte d’attaque hyper simple pour le sas du soir. 😄\n\nObjectif: quand tu sens que tu vas craquer, tu as un signal unique que tu peux faire tout de suite, sans lire.\n\nDans Dashboard > Ressources > Cartes d’attaque du plan, va sur la carte liée au sas du soir, et règle-la sur un format “1 mot / 1 geste”.\n\nProposition de signal (très simple) :\n- Mot: “PAUSE”\n- Geste: 1 inspiration lente + tu mets ton téléphone en face arrière ou tu poses ta main sur la poitrine 10 secondes\n- Phrase minimale à afficher sur la carte: “PAUSE. Je respire 10s.”\n\nTu veux que ton signal soit plutôt A) un mot (ultra sec) ou B) un petit geste (plus ancré) ? 😊",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "424ae642-6dc8-4dc7-91be-6968cdd75b46",
+        "ts": "2026-05-13T10:40:41.265+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3375,
+          "latency_ms": 9380,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 347,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficulté exécution soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sas de déchargement",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficulté exécution soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "424ae642-6dc8-4dc7-91be-6968cdd75b46",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Tu la retrouves dans Dashboard > Ressources > Cartes d'attaque du plan.\n\nCherche la carte liee a l'action concernee. C'est la que tu peux la consulter, la modifier ou l'imprimer.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Ressources"
+              ],
+              "feature_id": "resources.attack_card",
+              "feature_label": "Carte d'attaque",
+              "operation_bridge": {
+                "trigger_phrases": [
+                  "prepare une carte d'attaque",
+                  "aide-moi a preparer cette action",
+                  "rends cette mission plus facile a lancer"
+                ],
+                "skill_or_operation": "prepare_attack_card",
+                "requires_confirmation": true
+              }
+            },
+            "state_patch": {
+              "summary": "Product help answered for attack card location."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 14257,
+        "created_at": "2026-05-13T10:40:41.266118+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Non, je ne veux pas aller regler ca moi-meme. Fais-moi la carte ici pour le sas, avec ton meilleur choix.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "1d6529b6-df43-42bf-8c65-5326296a24f0",
+        "ts": "2026-05-13T10:41:06.882+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3585,
+          "latency_ms": 9364,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 343,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "carte d'attaque sas",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t02",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "carte d'attaque sas",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "sas",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "payload_hint": {
+                "context": "sas du soir",
+                "target_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "1d6529b6-df43-42bf-8c65-5326296a24f0",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "target",
+            "needed": true,
+            "reason": "target_ambiguous",
+            "status": "ambiguous",
+            "candidates": [
+              {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.5,
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+                "matched_tokens": [
+                  "sas"
+                ]
+              },
+              {
+                "kind": "plan_item",
+                "title": "Bilan et ajustement du sas",
+                "reason": "close_partial_plan_item_matches",
+                "confidence": 0.33,
+                "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+                "matched_tokens": [
+                  "sas"
+                ]
+              }
+            ]
+          },
+          "reason_code": "operation_intent_start",
+          "missing_slots": [
+            "target"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 9415,
+        "created_at": "2026-05-13T10:41:06.883107+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Le sas, pas le bilan. Celui que je dois faire le soir.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t03",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Preparer le terrain (recommandee): option simple pour faciliter le demarrage. Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.\n2. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t03",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "b53669ef-ab03-49c4-9bbd-4697f7034729",
+        "ts": "2026-05-13T10:41:28.263+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3809,
+          "latency_ms": 9234,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 326,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t03",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "sas de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "standard",
+            "plan_confidence": 0.7,
+            "response_intent": "inventory",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "medium"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Faire le sas de déchargement",
+              "user_intent": "clarify",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "b53669ef-ab03-49c4-9bbd-4697f7034729",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "ask_question",
+          "slot_state": {
+            "slot": "technique",
+            "needed": true,
+            "reason": "attack_technique_missing",
+            "status": "missing",
+            "known_slots": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "technique_options": [
+                {
+                  "title": "Preparer le terrain",
+                  "reason": "option simple pour faciliter le demarrage",
+                  "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+                  "description": "Retirer de la friction avant que le moment d'action arrive.",
+                  "recommended": true,
+                  "technique_key": "preparer_terrain"
+                },
+                {
+                  "title": "Le texte magique",
+                  "reason": "option utile si la resistance est surtout mentale",
+                  "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": false,
+                  "technique_key": "texte_recadrage"
+                }
+              ]
+            },
+            "technique_options": [
+              {
+                "title": "Preparer le terrain",
+                "reason": "option simple pour faciliter le demarrage",
+                "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+                "description": "Retirer de la friction avant que le moment d'action arrive.",
+                "recommended": true,
+                "technique_key": "preparer_terrain"
+              },
+              {
+                "title": "Le texte magique",
+                "reason": "option utile si la resistance est surtout mentale",
+                "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+                "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                "recommended": false,
+                "technique_key": "texte_recadrage"
+              }
+            ]
+          },
+          "reason_code": "active_tool_skill_continue",
+          "missing_slots": [
+            "technique"
+          ],
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 9274,
+        "created_at": "2026-05-13T10:41:28.264494+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Je sais pas le nom. Choisis ce qui colle au fait d'avoir un signal de secours quand je sens que je vais craquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t04",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t04",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "93b1df92-a6f9-40ba-8e92-339d1f91547b",
+        "ts": "2026-05-13T10:41:52.844+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4463,
+          "latency_ms": 10494,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 330,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "signal de secours craquage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t04",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "signal de secours craquage",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+              "user_intent": "provide_slot",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "93b1df92-a6f9-40ba-8e92-339d1f91547b",
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "texte_recadrage",
+              "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+              "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+              "technique_title": "Le texte magique",
+              "supporting_points": []
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "f1e99e5b-4fc1-49ef-a9e3-6366a07abc3e",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 10532,
+        "created_at": "2026-05-13T10:41:52.845003+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Non, stop. Ne cree pas cette carte.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t05",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je ne crée pas cette carte d'attaque.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t05",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "8b7fe2f4-d50f-467f-853b-c09f3f0438b3",
+        "ts": "2026-05-13T10:44:12.15+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 4360,
+          "latency_ms": 2418,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 249,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s9"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-mot-secours-r2-t05",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "8b7fe2f4-d50f-467f-853b-c09f3f0438b3",
+          "confirmation_response": {
+            "kind": "no",
+            "confidence_band": "high",
+            "correction_payload": null
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "confirmation_no",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "pending_confirmation",
+          "memory_use_kind": "none",
+          "selected_handler": "cancel",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "cancelled",
+          "reason_code": "confirmation_no",
+          "operation_id": "f1e99e5b-4fc1-49ef-a9e3-6366a07abc3e",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "pending_confirmation",
+        "total_latency_ms": 2456,
+        "created_at": "2026-05-13T10:44:12.151583+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

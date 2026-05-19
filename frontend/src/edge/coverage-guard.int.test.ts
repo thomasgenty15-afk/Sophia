@@ -97,6 +97,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "stripe-webhook",
       "test-env",
       "trigger-global-memory-compaction",
+      "trigger-level-review-transitions-v1",
       "trigger-memorizer-daily",
       "trigger-retention-emails",
       "trigger-synthesizer-batch",
@@ -104,6 +105,8 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "update-core-identity",
       "whatsapp-optin",
       "whatsapp-send",
+      "whatsapp-sim-inbound",
+      "whatsapp-sim-trigger",
       "whatsapp-webhook",
     ].sort();
 

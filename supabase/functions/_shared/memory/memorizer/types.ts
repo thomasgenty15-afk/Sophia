@@ -70,6 +70,18 @@ export interface TemporalHint {
 export interface PlanSignal {
   plan_item_id: string;
   title?: string;
+  kind?: string | null;
+  dimension?: string | null;
+  status?: string | null;
+  action_family_key?: string | null;
+  aliases?: string[] | null;
+  target_reps?: number | null;
+  current_reps?: number | null;
+  cadence_label?: string | null;
+  scheduled_days?: string[] | null;
+  time_of_day?: string | null;
+  start_after_item_id?: string | null;
+  action_variant?: Record<string, unknown> | null;
   occurrence_ids?: string[];
   observation_window_start?: string | null;
   observation_window_end?: string | null;
@@ -212,11 +224,13 @@ export interface EntityLinkDecision {
 export interface ActionLinkDecision {
   item: ValidatedMemoryItem;
   plan_item_id: string;
+  action_family_key?: string | null;
   occurrence_ids: string[];
   aggregation_kind: AggregationKind;
   observation_window_start: string | null;
   observation_window_end: string | null;
   confidence: number;
+  metadata?: Record<string, unknown>;
 }
 
 export interface DryRunCandidate {

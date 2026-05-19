@@ -1,12 +1,43 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
-import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
+import {
+  enforceCors,
+  getCorsHeaders,
+  handleCorsOptions,
+} from "../_shared/cors.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
+import { buildActionFamilyKey } from "../_shared/memory/action_family.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 
 type PersonalizationLevel = 1 | 2 | 3;
 type WeekdayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 const RDV_GENERATION_MODEL = "gpt-5.2";
+const LIVE_TARGET_STATUSES = ["active", "in_maintenance"];
+
+type RecurringReminderRow = {
+  id: string;
+  user_id: string;
+  transformation_id?: string | null;
+  message_instruction: string;
+  rationale: string | null;
+  local_time_hhmm: string;
+  scheduled_days: string[];
+  status: string;
+  target_kind?: string | null;
+  target_plan_item_id?: string | null;
+  target_action_family_key?: string | null;
+  target_generated_temp_id?: string | null;
+  target_binding_policy?: string | null;
+  target_lifecycle_policy?: string | null;
+  initiative_metadata?: Record<string, unknown> | null;
+};
+
+type LiveReminderTarget = {
+  available: boolean;
+  item: Record<string, unknown> | null;
+  grounding: string;
+  unavailableReason: string | null;
+};
 
 function str(v: unknown): string {
   return String(v ?? "").trim();
@@ -64,7 +95,14 @@ async function generateDraftsWithExactCount(params: {
   expectedCount: number;
   reminderInstruction: string;
   requestId: string;
-}): Promise<{ drafts: string[]; generatedCount: number; missingCount: number; repairAttempts: number }> {
+}): Promise<
+  {
+    drafts: string[];
+    generatedCount: number;
+    missingCount: number;
+    repairAttempts: number;
+  }
+> {
   const missingFallback = Array.from({ length: params.expectedCount }).map(() =>
     fallbackDraftFromInstruction(params.reminderInstruction)
   );
@@ -122,7 +160,12 @@ async function generateDraftsWithExactCount(params: {
       const repaired = parseMessages(repairRaw, params.expectedCount);
       if (repaired.length > 0) drafts = repaired;
       if (drafts.length < params.expectedCount) {
-        drafts = [...drafts, ...Array.from({ length: missing }).map(() => fallbackDraftFromInstruction(params.reminderInstruction))]
+        drafts = [
+          ...drafts,
+          ...Array.from({ length: missing }).map(() =>
+            fallbackDraftFromInstruction(params.reminderInstruction)
+          ),
+        ]
           .slice(0, params.expectedCount);
       }
     } catch {
@@ -138,11 +181,18 @@ async function generateDraftsWithExactCount(params: {
   };
 }
 
-function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now?: Date }): WeekdayKey {
+function weekdayKeyInTimezone(
+  params: { timezone: string; dayOffset: number; now?: Date },
+): WeekdayKey {
   const tz = str(params.timezone) || "Europe/Paris";
   const base = params.now ?? new Date();
-  const target = new Date(base.getTime() + Math.max(0, params.dayOffset) * 24 * 60 * 60 * 1000);
-  const short = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: tz }).format(target).toLowerCase();
+  const target = new Date(
+    base.getTime() + Math.max(0, params.dayOffset) * 24 * 60 * 60 * 1000,
+  );
+  const short = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: tz,
+  }).format(target).toLowerCase();
   const map: Record<string, WeekdayKey> = {
     mon: "mon",
     tue: "tue",
@@ -155,7 +205,9 @@ function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now
   return map[short.slice(0, 3)] ?? "mon";
 }
 
-function localTimeHHMMInTimezone(params: { timezone: string; now?: Date }): string {
+function localTimeHHMMInTimezone(
+  params: { timezone: string; now?: Date },
+): string {
   const tz = str(params.timezone) || "Europe/Paris";
   const now = params.now ?? new Date();
   const parts = new Intl.DateTimeFormat("en-GB", {
@@ -193,17 +245,157 @@ function daysUntilNextSunday(timezone: string): number {
   return delta === 0 ? 7 : delta;
 }
 
+function reminderHasLiveLifecycle(reminder: RecurringReminderRow): boolean {
+  const lifecycle = str(reminder.target_lifecycle_policy);
+  return lifecycle === "while_target_active" ||
+    lifecycle === "while_family_in_current_plan";
+}
+
+function planItemFamilyKey(item: Record<string, unknown>): string {
+  return buildActionFamilyKey({
+    id: str(item.id),
+    title: str(item.title),
+    kind: str(item.kind),
+    dimension: str(item.dimension),
+    start_after_item_id: str(item.start_after_item_id),
+    payload: item.payload && typeof item.payload === "object"
+      ? item.payload as Record<string, unknown>
+      : null,
+  });
+}
+
+function formatLiveTargetGrounding(
+  reminder: RecurringReminderRow,
+  item: Record<string, unknown> | null,
+): string {
+  if (!item) {
+    return [
+      "Rappel lié à une action du plan.",
+      `Statut cible: indisponible (${
+        str(reminder.target_lifecycle_policy) || "n/a"
+      }).`,
+      "Ne pas envoyer un message qui suppose que l'action existe encore.",
+    ].join("\n");
+  }
+  const lines = [
+    "Rappel lié à une action active du plan.",
+    `Action actuelle: ${str(item.title) || "Action sans titre"}`,
+    str(item.description)
+      ? `Description actuelle: ${clampText(str(item.description), 500)}`
+      : "",
+    `Type: ${str(item.kind) || "n/a"} | Dimension: ${
+      str(item.dimension) || "n/a"
+    } | Statut: ${str(item.status) || "n/a"}`,
+    str(item.cadence_label)
+      ? `Cadence actuelle: ${str(item.cadence_label)}`
+      : "",
+    Array.isArray(item.scheduled_days) && item.scheduled_days.length
+      ? `Jours prévus actuellement: ${
+        (item.scheduled_days as unknown[]).map(str).filter(Boolean).join(", ")
+      }`
+      : "",
+    str(item.time_of_day)
+      ? `Horaire plan actuel: ${str(item.time_of_day)}`
+      : "",
+    Number.isFinite(Number(item.target_reps))
+      ? `Objectif actuel: ${Number(item.target_reps)} répétition(s)`
+      : "",
+    `Famille d'action: ${planItemFamilyKey(item)}`,
+    "Rédige le rappel avec ces détails actuels, pas avec une ancienne version stockée.",
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+async function resolveLiveReminderTarget(params: {
+  admin: ReturnType<typeof createClient>;
+  reminder: RecurringReminderRow;
+}): Promise<LiveReminderTarget> {
+  const reminder = params.reminder;
+  if (!reminderHasLiveLifecycle(reminder)) {
+    return {
+      available: true,
+      item: null,
+      grounding: "",
+      unavailableReason: null,
+    };
+  }
+
+  const targetKind = str(reminder.target_kind);
+  const targetPlanItemId = str(reminder.target_plan_item_id);
+  const targetFamilyKey = str(reminder.target_action_family_key);
+  const targetGeneratedTempId = str(reminder.target_generated_temp_id);
+  const selectColumns =
+    "id,user_id,cycle_id,transformation_id,plan_id,dimension,kind,status,title,description,current_habit_state,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload,updated_at";
+
+  if (targetKind === "plan_item" && targetPlanItemId) {
+    const { data: item } = await params.admin
+      .from("user_plan_items")
+      .select(selectColumns)
+      .eq("id", targetPlanItemId)
+      .eq("user_id", reminder.user_id)
+      .in("status", LIVE_TARGET_STATUSES)
+      .maybeSingle();
+    const resolved = (item as Record<string, unknown> | null) ?? null;
+    return {
+      available: Boolean(resolved),
+      item: resolved,
+      grounding: formatLiveTargetGrounding(reminder, resolved),
+      unavailableReason: resolved
+        ? null
+        : "target_plan_item_inactive_or_missing",
+    };
+  }
+
+  if (
+    targetKind === "action_family" &&
+    (targetFamilyKey || targetGeneratedTempId || targetPlanItemId)
+  ) {
+    let query = params.admin
+      .from("user_plan_items")
+      .select(selectColumns)
+      .eq("user_id", reminder.user_id)
+      .in("status", LIVE_TARGET_STATUSES)
+      .order("updated_at", { ascending: false })
+      .limit(50);
+    const transformationId = str(reminder.transformation_id);
+    if (transformationId) {
+      query = query.eq("transformation_id", transformationId);
+    }
+    const { data: items } = await query;
+    const resolved =
+      ((items ?? []) as Array<Record<string, unknown>>).find((item) => {
+        const payload = item.payload && typeof item.payload === "object"
+          ? item.payload as Record<string, unknown>
+          : {};
+        const generatedTempId = str(payload.generated_temp_id) ||
+          str(payload.generatedTempId);
+        return (targetFamilyKey &&
+          planItemFamilyKey(item) === targetFamilyKey) ||
+          (targetGeneratedTempId &&
+            generatedTempId === targetGeneratedTempId) ||
+          (targetPlanItemId && str(item.id) === targetPlanItemId);
+      }) ?? null;
+    return {
+      available: Boolean(resolved),
+      item: resolved,
+      grounding: formatLiveTargetGrounding(reminder, resolved),
+      unavailableReason: resolved
+        ? null
+        : "target_action_family_inactive_or_missing",
+    };
+  }
+
+  return {
+    available: false,
+    item: null,
+    grounding: formatLiveTargetGrounding(reminder, null),
+    unavailableReason: "target_binding_missing",
+  };
+}
+
 async function seedReminderUntilNextSunday(params: {
   admin: ReturnType<typeof createClient>;
-  reminder: {
-    id: string;
-    user_id: string;
-    message_instruction: string;
-    rationale: string | null;
-    local_time_hhmm: string;
-    scheduled_days: string[];
-    status: string;
-  };
+  reminder: RecurringReminderRow;
   level: PersonalizationLevel;
 }): Promise<number> {
   const reminder = params.reminder;
@@ -218,9 +410,10 @@ async function seedReminderUntilNextSunday(params: {
   const locale = str((profile as any)?.locale) || "fr-FR";
   const eventContext = `recurring_reminder:${reminder.id}`;
   const localTime = normalizeHHMM(reminder.local_time_hhmm);
-  const scheduledDays = (Array.isArray(reminder.scheduled_days) ? reminder.scheduled_days : [])
-    .map((d) => str(d).toLowerCase())
-    .filter(Boolean) as WeekdayKey[];
+  const scheduledDays =
+    (Array.isArray(reminder.scheduled_days) ? reminder.scheduled_days : [])
+      .map((d) => str(d).toLowerCase())
+      .filter(Boolean) as WeekdayKey[];
 
   if (scheduledDays.length === 0) return 0;
 
@@ -246,6 +439,24 @@ async function seedReminderUntilNextSunday(params: {
     .gte("scheduled_for", nowIso)
     .lt("scheduled_for", horizonEndIso);
 
+  const liveTarget = await resolveLiveReminderTarget({
+    admin: params.admin,
+    reminder,
+  });
+  if (!liveTarget.available) {
+    await params.admin
+      .from("user_recurring_reminders")
+      .update({
+        status: "expired",
+        ended_reason: liveTarget.unavailableReason ?? "target_inactive",
+        deactivated_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as any)
+      .eq("id", reminder.id)
+      .eq("user_id", reminder.user_id);
+    return 0;
+  }
+
   const nowLocalHHMM = localTimeHHMMInTimezone({ timezone });
   const slots: Array<{
     dayOffset: number;
@@ -254,7 +465,11 @@ async function seedReminderUntilNextSunday(params: {
     slotLabel: string;
   }> = [];
   for (let dayOffset = 0; dayOffset <= maxOffset; dayOffset++) {
-    const weekday = weekdayKeyInTimezone({ timezone, dayOffset, now: new Date() });
+    const weekday = weekdayKeyInTimezone({
+      timezone,
+      dayOffset,
+      now: new Date(),
+    });
     if (!scheduledDays.includes(weekday)) continue;
     if (dayOffset === 0 && nowLocalHHMM >= localTime) continue;
 
@@ -293,10 +508,18 @@ async function seedReminderUntilNextSunday(params: {
     "- Variations réelles entre les messages, mais sans changer le besoin utilisateur.",
     "- Interdiction de répéter la même idée dans deux formulations voisines au sein d'un même message.",
     "- Interdiction des doublons sémantiques du type 'point sur ta journée' + 'comment s'est passée ta journée'. Une seule formulation, une seule idée principale.",
+    liveTarget.grounding
+      ? "- Si le rappel est lié à une action, respecte le contexte live de cette action."
+      : "",
     "",
     "Contexte rendez-vous:",
     `- Instruction: ${clampText(str(reminder.message_instruction), 1000)}`,
-    reminder.rationale ? `- Pourquoi c'est important: ${clampText(str(reminder.rationale), 420)}` : "",
+    reminder.rationale
+      ? `- Pourquoi c'est important: ${clampText(str(reminder.rationale), 420)}`
+      : "",
+    liveTarget.grounding
+      ? `- Contexte action live:\n${liveTarget.grounding}`
+      : "",
     `- Timezone: ${timezone}`,
     `- Locale: ${locale}`,
     "",
@@ -318,22 +541,36 @@ async function seedReminderUntilNextSunday(params: {
 
   for (let idx = 0; idx < slots.length; idx++) {
     const slot = slots[idx];
-    const draft = drafts[idx] || fallbackDraftFromInstruction(reminder.message_instruction);
+    const draft = drafts[idx] ||
+      fallbackDraftFromInstruction(reminder.message_instruction);
     const payload = {
       source: "recurring_reminder_seed_until_sunday",
       recurring_reminder_id: reminder.id,
       reminder_instruction: reminder.message_instruction,
       reminder_rationale: reminder.rationale ?? null,
+      instruction: reminder.message_instruction,
+      event_grounding: liveTarget.grounding || "",
+      target_kind: reminder.target_kind ?? "none",
+      target_plan_item_id: reminder.target_plan_item_id ?? null,
+      target_action_family_key: reminder.target_action_family_key ?? null,
+      target_generated_temp_id: reminder.target_generated_temp_id ?? null,
+      target_binding_policy: reminder.target_binding_policy ?? "none",
+      target_lifecycle_policy: reminder.target_lifecycle_policy ??
+        "independent",
+      live_target_item_id: liveTarget.item ? str(liveTarget.item.id) : null,
       personalization_level_configured: params.level,
       personalization_level_effective: params.level,
       generated_at: new Date().toISOString(),
       slot_day_offset: slot.dayOffset,
       slot_weekday: slot.weekday,
+      slot_local_time_hhmm: localTime,
+      slot_timezone: timezone,
+      slot_intended_scheduled_for: slot.scheduledFor,
       seed_mode: "until_next_sunday_cron",
       generated_by_ai: Boolean(drafts[idx]),
     };
 
-    await params.admin
+    const { error: upsertError } = await params.admin
       .from("scheduled_checkins")
       .upsert(
         {
@@ -342,13 +579,16 @@ async function seedReminderUntilNextSunday(params: {
           recurring_reminder_id: reminder.id,
           event_context: eventContext,
           draft_message: draft,
-          message_mode: "static",
+          message_mode: reminderHasLiveLifecycle(reminder)
+            ? "dynamic"
+            : "static",
           message_payload: payload,
           scheduled_for: slot.scheduledFor,
           status: "pending",
         } as any,
         { onConflict: "user_id,event_context,scheduled_for" },
       );
+    if (upsertError) throw upsertError;
   }
 
   let repairDbAttempts = 0;
@@ -360,7 +600,12 @@ async function seedReminderUntilNextSunday(params: {
     .eq("event_context", eventContext)
     .in("scheduled_for", [...expectedScheduledFor]);
 
-  const existingSet = new Set((existingRows ?? []).map((r: any) => String(r.scheduled_for ?? "")));
+  const existingSet = new Set(
+    (existingRows ?? []).map((r: any) => {
+      const ms = new Date(String(r.scheduled_for ?? "")).getTime();
+      return Number.isFinite(ms) ? new Date(ms).toISOString() : "";
+    }).filter(Boolean),
+  );
   const missingSlots = slots.filter((s) => !existingSet.has(s.scheduledFor));
   if (missingSlots.length > 0) {
     repairDbAttempts++;
@@ -370,15 +615,28 @@ async function seedReminderUntilNextSunday(params: {
         recurring_reminder_id: reminder.id,
         reminder_instruction: reminder.message_instruction,
         reminder_rationale: reminder.rationale ?? null,
+        instruction: reminder.message_instruction,
+        event_grounding: liveTarget.grounding || "",
+        target_kind: reminder.target_kind ?? "none",
+        target_plan_item_id: reminder.target_plan_item_id ?? null,
+        target_action_family_key: reminder.target_action_family_key ?? null,
+        target_generated_temp_id: reminder.target_generated_temp_id ?? null,
+        target_binding_policy: reminder.target_binding_policy ?? "none",
+        target_lifecycle_policy: reminder.target_lifecycle_policy ??
+          "independent",
+        live_target_item_id: liveTarget.item ? str(liveTarget.item.id) : null,
         personalization_level_configured: params.level,
         personalization_level_effective: params.level,
         generated_at: new Date().toISOString(),
         slot_day_offset: slot.dayOffset,
         slot_weekday: slot.weekday,
+        slot_local_time_hhmm: localTime,
+        slot_timezone: timezone,
+        slot_intended_scheduled_for: slot.scheduledFor,
         seed_mode: "until_next_sunday_cron",
         generated_by_ai: false,
       };
-      await params.admin
+      const { error: repairUpsertError } = await params.admin
         .from("scheduled_checkins")
         .upsert(
           {
@@ -386,14 +644,19 @@ async function seedReminderUntilNextSunday(params: {
             origin: "rendez_vous",
             recurring_reminder_id: reminder.id,
             event_context: eventContext,
-            draft_message: fallbackDraftFromInstruction(reminder.message_instruction),
-            message_mode: "static",
+            draft_message: fallbackDraftFromInstruction(
+              reminder.message_instruction,
+            ),
+            message_mode: reminderHasLiveLifecycle(reminder)
+              ? "dynamic"
+              : "static",
             message_payload: payload,
             scheduled_for: slot.scheduledFor,
             status: "pending",
           } as any,
           { onConflict: "user_id,event_context,scheduled_for" },
         );
+      if (repairUpsertError) throw repairUpsertError;
     }
   }
 
@@ -423,7 +686,8 @@ async function seedReminderUntilNextSunday(params: {
     .from("user_recurring_reminders")
     .update({
       last_drafted_at: new Date().toISOString(),
-      last_draft_message: drafts[0] || fallbackDraftFromInstruction(reminder.message_instruction),
+      last_draft_message: drafts[0] ||
+        fallbackDraftFromInstruction(reminder.message_instruction),
       updated_at: new Date().toISOString(),
     } as any)
     .eq("id", reminder.id)
@@ -432,7 +696,9 @@ async function seedReminderUntilNextSunday(params: {
   return finalInserted;
 }
 
-function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown> {
+function buildContextPolicy(
+  level: PersonalizationLevel,
+): Record<string, unknown> {
   if (level === 1) {
     return {
       include_creation_instruction: true,
@@ -466,14 +732,19 @@ function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown
   };
 }
 
-function heuristicLevel(instruction: string, rationale: string): PersonalizationLevel {
+function heuristicLevel(
+  instruction: string,
+  rationale: string,
+): PersonalizationLevel {
   const text = `${instruction}\n${rationale}`.toLowerCase();
   const needsTopicMemory =
-    /ce qu'?on s'?est dit|nos discussions|mes conversations|topic|mémoire|memory|semaine derni[èe]re|historique/.test(text);
+    /ce qu'?on s'?est dit|nos discussions|mes conversations|topic|mémoire|memory|semaine derni[èe]re|historique/
+      .test(text);
   if (needsTopicMemory) return 3;
 
   const needsPlanContext =
-    /pourquoi|je continue|blocage|objectif|cap|progression|progr[eè]s|doute|rechute|north star|[ée]toile polaire/.test(text);
+    /pourquoi|je continue|blocage|objectif|cap|progression|progr[eè]s|doute|rechute|north star|[ée]toile polaire/
+      .test(text);
   if (needsPlanContext) return 2;
 
   return 1;
@@ -529,8 +800,15 @@ Rendez-vous:
   const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
   const levelRaw = Number((parsed as any)?.level);
   const reason = str((parsed as any)?.reason).slice(0, 180);
-  const level: PersonalizationLevel = levelRaw === 3 ? 3 : levelRaw === 2 ? 2 : 1;
-  return { level, reason: reason || "Classification automatique par intention utilisateur." };
+  const level: PersonalizationLevel = levelRaw === 3
+    ? 3
+    : levelRaw === 2
+    ? 2
+    : 1;
+  return {
+    level,
+    reason: reason || "Classification automatique par intention utilisateur.",
+  };
 }
 
 Deno.serve(async (req) => {
@@ -568,22 +846,38 @@ Deno.serve(async (req) => {
       });
     }
 
-    const userClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: authData, error: authErr } = await userClient.auth.getUser();
-    if (authErr || !authData?.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const serviceAuthorized = authHeader === `Bearer ${serviceKey}` ||
+      req.headers.get("apikey") === serviceKey;
+    let userId = "";
+    if (serviceAuthorized) {
+      userId = str((body as any)?.user_id);
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Missing user_id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      const userClient = createClient(supabaseUrl, anonKey, {
+        global: { headers: { Authorization: authHeader } },
       });
+      const { data: authData, error: authErr } = await userClient.auth
+        .getUser();
+      if (authErr || !authData?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = authData.user.id;
     }
-    const userId = authData.user.id;
     const admin = createClient(supabaseUrl, serviceKey);
 
     const { data: reminder, error: reminderErr } = await admin
       .from("user_recurring_reminders")
-      .select("id,user_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status")
+      .select(
+        "id,user_id,transformation_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy,initiative_metadata",
+      )
       .eq("id", reminderId)
       .eq("user_id", userId)
       .maybeSingle();
@@ -640,13 +934,14 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (profileErr) throw profileErr;
 
-    const seededCheckins = isWhatsappSchedulingTierEligible((profile as any)?.access_tier)
-      ? await seedReminderUntilNextSunday({
-        admin,
-        reminder: reminder as any,
-        level,
-      })
-      : 0;
+    const seededCheckins =
+      isWhatsappSchedulingTierEligible((profile as any)?.access_tier)
+        ? await seedReminderUntilNextSunday({
+          admin,
+          reminder: reminder as any,
+          level,
+        })
+        : 0;
 
     return new Response(
       JSON.stringify({

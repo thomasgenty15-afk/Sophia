@@ -18,6 +18,7 @@ type TestSendMessageBody = {
   disable_debounce?: boolean;
   debounce_wait_ms?: number;
   force_full_ai?: boolean;
+  enable_adjust_plan_coach_guidance?: boolean;
 };
 
 function env(name: string): string {
@@ -107,6 +108,99 @@ async function latestConversationTurnTrace(args: {
   return { trace: data ?? null, error: null };
 }
 
+function serializeError(error: unknown): {
+  name: string | null;
+  message: string;
+  stack: string | null;
+} {
+  if (error instanceof Error) {
+    return {
+      name: error.name || null,
+      message: error.message,
+      stack: error.stack ?? null,
+    };
+  }
+  return {
+    name: null,
+    message: String(error),
+    stack: null,
+  };
+}
+
+function classifyQaFailure(error: unknown): {
+  category: "provider_network" | "provider_timeout" | "router_or_app";
+  reason:
+    | "dns_resolution_failed"
+    | "provider_connect_failed"
+    | "provider_timeout_or_abort"
+    | "unknown";
+  provider: "openai" | "gemini" | "unknown";
+  suggested_status: number;
+  retryable: boolean;
+} {
+  const serialized = serializeError(error);
+  const haystack = `${serialized.name ?? ""}\n${serialized.message}\n${
+    serialized.stack ?? ""
+  }`.toLowerCase();
+  const provider = haystack.includes("api.openai.com")
+    ? "openai" as const
+    : haystack.includes("generativelanguage.googleapis.com") ||
+        haystack.includes("gemini")
+    ? "gemini" as const
+    : "unknown" as const;
+
+  if (
+    haystack.includes("dns error") ||
+    haystack.includes("failed to lookup address") ||
+    haystack.includes("name resolution failed") ||
+    haystack.includes("name or service not known")
+  ) {
+    return {
+      category: "provider_network",
+      reason: "dns_resolution_failed",
+      provider,
+      suggested_status: 503,
+      retryable: true,
+    };
+  }
+  if (
+    haystack.includes("client error (connect)") ||
+    haystack.includes("connection refused") ||
+    haystack.includes("connection reset") ||
+    haystack.includes("network error")
+  ) {
+    return {
+      category: "provider_network",
+      reason: "provider_connect_failed",
+      provider,
+      suggested_status: 503,
+      retryable: true,
+    };
+  }
+  if (
+    haystack.includes("aborterror") ||
+    haystack.includes("timed out") ||
+    haystack.includes("timeout") ||
+    haystack.includes("early termination") ||
+    haystack.includes("wall clock duration")
+  ) {
+    return {
+      category: "provider_timeout",
+      reason: "provider_timeout_or_abort",
+      provider,
+      suggested_status: 504,
+      retryable: true,
+    };
+  }
+  return {
+    category: "router_or_app",
+    reason: "unknown",
+    provider,
+    suggested_status: 500,
+    retryable: false,
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   if (req.method !== "POST") {
@@ -120,7 +214,10 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = String(req.headers.get("authorization") ?? "").trim();
-    if (!authHeader) {
+    const userAuthHeader = String(
+      req.headers.get("x-user-authorization") ?? authHeader,
+    ).trim();
+    if (!authHeader || !userAuthHeader) {
       return jsonResponse(
         req,
         { error: "Missing Authorization header", request_id: requestId },
@@ -132,7 +229,7 @@ Deno.serve(async (req) => {
       env("SUPABASE_URL"),
       env("SUPABASE_ANON_KEY"),
       {
-        global: { headers: { Authorization: authHeader } },
+        global: { headers: { Authorization: userAuthHeader } },
         auth: { persistSession: false, autoRefreshToken: false },
       },
     );
@@ -211,6 +308,8 @@ Deno.serve(async (req) => {
         scope,
         forceBrainTrace: true,
         forceRealAi: forceFullAi,
+        enableAdjustPlanCoachGuidance:
+          body.enable_adjust_plan_coach_guidance === true,
       },
       {
         forceMode: forceMode === "dispatcher" ||
@@ -256,14 +355,45 @@ Deno.serve(async (req) => {
       status: aborted || contentText.length === 0 ? 409 : 200,
     });
   } catch (error) {
-    console.warn("[test-send-message] failed", error);
+    const serializedError = serializeError(error);
+    const diagnostic = classifyQaFailure(error);
+    console.warn(
+      "[test-send-message] failed",
+      JSON.stringify({
+        request_id: requestId,
+        qa_failure_category: diagnostic.category,
+        qa_failure_reason: diagnostic.reason,
+        provider: diagnostic.provider,
+        retryable: diagnostic.retryable,
+        error_name: serializedError.name,
+        error_message: serializedError.message,
+      }),
+    );
     return jsonResponse(
       req,
       {
-        error: error instanceof Error ? error.message : String(error),
+        error: serializedError.message,
         request_id: requestId,
+        qa_diagnostic: {
+          source: "test-send-message",
+          category: diagnostic.category,
+          reason: diagnostic.reason,
+          provider: diagnostic.provider,
+          retryable: diagnostic.retryable,
+          note: diagnostic.retryable
+            ? "Provider/network/DNS failure while running QA endpoint; this is not enough by itself to classify as a router bug."
+            : "Unhandled application/router failure while running QA endpoint.",
+        },
       },
-      { status: 500 },
+      {
+        status: diagnostic.suggested_status,
+        errorLogMeta: {
+          qa_failure_category: diagnostic.category,
+          qa_failure_reason: diagnostic.reason,
+          provider: diagnostic.provider,
+          retryable: diagnostic.retryable,
+        },
+      },
     );
   }
 });

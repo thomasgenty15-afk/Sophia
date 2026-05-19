@@ -1,0 +1,338 @@
+Principe Central
+
+Le skill ne doit pas “comprendre” le message user avec du code déterministe.
+La compréhension appartient à l’IA, sous forme de JSON structuré. Le code ne fait ensuite que lire ce JSON, vérifier qu’il respecte le contrat attendu, faire avancer l’état du skill, appeler le bon sous-skill, ou déclencher le tool quand tout est prêt.
+
+Donc :
+
+pas de regex pour remplir des slots ;
+pas de fallback regex si l’appel IA échoue ;
+pas de phrase user codée en dur ;
+pas de mini-classification parallèle dans le code ;
+pas de “si le message contient X alors scope = Y” ;
+pas de “si ça ressemble à oui/non alors confirmation = yes” dans le flow concerné ;
+le router avance uniquement à partir de sorties structurées ;
+le skill avance uniquement à partir de son intake_state structuré ;
+les messages envoyés au user doivent venir d’un appel IA de rédaction ou d’un champ généré par le tool/generator.
+
+Frontière Dispatcher / Skill / Sous-Skill
+
+Règle critique : le dispatcher ne pilote jamais le déroulé interne d’un skill déjà actif.
+
+Cette règle est non négociable. Le dispatcher ne doit pas être utilisé comme un “helper” de sous-skill, même partiellement, même pour une confirmation courte, même pour un pending draft, même si cela semble plus simple à implémenter.
+
+Le dispatcher sert à l’entrée du système :
+
+détecter qu’un nouveau skill doit prendre la main quand aucun skill prioritaire n’est déjà ouvert ;
+arbitrer les signaux globaux comme safety, mémoire, recherche, interruption forte ou changement explicite de sujet ;
+orienter le premier routage vers le bon skill ou tool skill.
+
+Mais dès qu’un skill ou tool skill est actif, la progression interne appartient au skill lui-même.
+
+Le dispatcher ne doit pas décider :
+
+quel sous-skill vient après ;
+si un slot métier est rempli ;
+si un brouillon est bon ;
+si une correction du user modifie le brouillon ;
+si un “oui” veut dire appliquer, préparer, reformuler ou continuer ;
+si une validation de brouillon doit déclencher l’executor.
+
+Ces décisions appartiennent au code du skill, à partir des sorties IA du skill.
+
+Implémentation attendue :
+
+quand aucun skill n’est actif, le dispatcher peut choisir le skill d’entrée ;
+quand un skill est actif, le dispatcher peut seulement signaler des éléments globaux non métier comme safety ou interruption forte ;
+le pending du skill reste dans l’état du skill ou dans une mémoire technique réservée au skill ;
+le pending du skill n’est pas fourni au dispatcher comme objet métier à interpréter ;
+le dispatcher ne reçoit pas le brouillon complet pour décider si “oui”, “non”, “change ça” ou “explique” ;
+le code global peut appeler le handler du skill actif, mais il ne doit pas décider de son sous-skill à sa place ;
+le handler du skill appelle son propre slot filler IA, lit le JSON produit, puis route vers le bon sous-skill ;
+si le skill contient des sous-skills, la transition entre sous-skills est déterminée uniquement par le JSON IA du skill et par les validations de contrat du skill.
+
+Interdit en implémentation :
+
+passer `pending_tool_skill_confirmation` au dispatcher pour un tool skill qui possède déjà son sous-skill de validation ;
+utiliser `turnFrame.confirmation_response` pour confirmer ou refuser un brouillon métier appartenant à un tool skill ;
+faire décider au dispatcher si un brouillon doit être appliqué, modifié, expliqué ou annulé ;
+faire décider au dispatcher si un message concerne `action_intake`, `level_intake`, `whole_plan_intake`, `draft_generation` ou `draft_validation` ;
+faire un “fallback” global qui exécute un tool parce que le dispatcher a classé une réponse courte comme yes ;
+faire une classification parallèle dans le routeur global pendant qu’un skill est ouvert ;
+faire avancer un sous-skill depuis une regex, un helper global, ou une heuristique de routeur.
+
+Autorisé côté code global :
+
+détecter qu’un skill actif existe ;
+appeler le handler du skill actif ;
+bloquer des effets concurrents tant qu’un pending métier existe ;
+vider l’état du skill en cas de safety critique ou reset explicite ;
+persister l’état produit par le skill ;
+journaliser `tool_skill_run`, `skill_run`, `current_sub_skill`, `status`, `reason_code`.
+
+Exemple anti-pattern à éviter :
+
+User: “oui mais fais-le plutôt sur toute la semaine”
+Dispatcher: confirmation_response = yes
+Routeur global: exécute le brouillon pending
+
+Ce comportement est faux. Le bon chemin est :
+
+User: “oui mais fais-le plutôt sur toute la semaine”
+Tool Skill actif: reçoit le message + le brouillon pending + l’état courant
+Slot filler IA du skill: produit `draft_validation.decision = revise` avec evidence
+Code du skill: route vers révision du brouillon
+Generator du skill: produit un nouveau brouillon user-ready
+Sophia: présente ce nouveau brouillon et attend validation explicite
+
+Exemple adjust_plan :
+
+dispatcher peut router vers adjust_plan au départ ;
+adjust_plan choisit ensuite scope_router, action_intake, level_intake, whole_plan_intake, draft_generation, draft_validation, confirmation ou execution ;
+draft_validation lit le brouillon pending, le message user, l’état du skill et produit une sortie IA structurée du type approve/reject/revise/explain/topic_change/unclear ;
+le code du skill lit cette sortie et avance vers révision, explication, annulation ou exécution ;
+le dispatcher ne reçoit pas le brouillon et ne classe pas lui-même la confirmation de ce brouillon.
+
+Donc :
+
+le dispatcher route hors skill actif ;
+le skill route dans son propre flow ;
+les sous-skills avancent uniquement à partir des JSON IA produits pour ce skill ;
+un pending draft ou pending confirmation métier doit rester dans l’état du skill, pas devenir une logique métier du dispatcher ;
+si un pending doit être exposé à un module global, c’est seulement pour bloquer des effets concurrents, pas pour être interprété conversationnellement.
+
+Règle Des Deux Appels IA Maximum
+
+Le tour peut avoir au maximum deux appels IA conversationnels :
+
+1. dispatcher, seulement pour le routage d’entrée et les signaux globaux ;
+2. skill actif, pour comprendre le message dans le contexte du skill et produire son JSON de progression.
+
+Il ne doit pas y avoir un troisième appel IA “classifier” entre les deux.
+Il ne doit pas y avoir un appel IA séparé pour décider la confirmation si le skill actif peut le faire dans son propre JSON.
+
+Le bon modèle est donc :
+
+dispatcher -> sélectionne ou laisse continuer le skill
+skill -> remplit les slots, choisit le sous-skill, classe la validation, génère ou demande la suite
+
+Le mauvais modèle est :
+
+dispatcher -> skill -> classifier global de confirmation -> routeur global -> executor
+
+Ce mauvais modèle recrée exactement le problème : le dispatcher ou le routeur global participe au job du sous-skill.
+
+Pourquoi Les Fallbacks Déterministes Ne Servent À Rien
+
+Si l’appel IA qui devait comprendre le tour échoue, le système n’a pas réellement compris le tour.
+Faire une regex derrière pour “sauver” un slot donne une illusion de robustesse, mais en réalité ça crée deux cerveaux concurrents :
+
+l’IA croit que le scope est incomplet ;
+le code croit avoir détecté un scope ;
+le router peut avancer alors que la réponse conversationnelle n’est pas alignée ;
+Sophia peut appliquer une vieille intention ou une intention mal comprise ;
+les sous-skills peuvent recevoir un état partiel incohérent.
+Dans ce modèle, si l’appel IA ne répond pas, c’est un problème technique, pas un manque d’information utilisateur. Le bon comportement est donc de remonter une erreur technique proprement ou de bloquer le tour, pas de poser une fausse question métier du type “il me manque une étape de compréhension”.
+
+Version Tool Skills
+
+Un Tool Skill est un skill conversationnel orienté action, avec un moment où il peut produire un brouillon, demander validation, puis exécuter une modification réelle.
+
+Exemple : adjust_plan.
+
+Le flow idéal :
+
+Le router détecte qu’un Tool Skill doit prendre la main via une sortie structurée.
+Le Tool Skill reçoit le message, l’historique, le plan, la mémoire utile, et l’état courant.
+Un appel IA de slot filling remplit ou met à jour le JSON du skill.
+Le code merge uniquement cette sortie structurée dans tool_skill_state.
+Le code regarde les slots manquants.
+Si des slots manquent, un message user est généré par IA à partir de l’état.
+Si les slots minimaux sont prêts, le tool/generator prépare un brouillon.
+Le brouillon contient une explication user-ready générée par IA : ce qui change, pourquoi, ce qui ne change pas, limites, confiance, exemples.
+Sophia présente ce brouillon et attend confirmation.
+Si le user demande des détails ou une modification du brouillon, cette intention est détectée par sortie structurée, pas par regex.
+Le brouillon reste pending jusqu’à validation.
+Après validation structurée, l’executor applique.
+Pour un Tool Skill avec sous-skills, le JSON doit contenir explicitement la progression. Par exemple :
+
+type ToolSkillState = {
+  skill_id: "adjust_plan";
+  current_sub_skill:
+    | "scope_router"
+    | "action_intake"
+    | "level_intake"
+    | "whole_plan_intake"
+    | "draft_generation"
+    | "draft_validation"
+    | "confirmation";
+  slots: Record<string, unknown>;
+  missing_slots: string[];
+  confidence: "low" | "medium" | "high";
+  generated_user_message?: string;
+};
+Le sous-skill ne se choisit pas avec du texte brut. Il se choisit avec le JSON IA :
+
+target_granularity: {
+  status: "identified";
+  value: "single_action" | "current_level" | "whole_plan";
+  confidence: "high";
+  evidence: string[];
+}
+Ensuite seulement le code route :
+
+single_action -> action_intake
+current_level -> level_intake
+whole_plan -> whole_plan_intake
+Le code ne décide pas que “bloc”, “programme”, “rythme” ou “trop lourd” signifie niveau ou plan global. L’IA le décide dans le JSON, avec evidence et confidence.
+
+Contrat Tool Skill
+
+Le code peut faire :
+
+validation de schéma ;
+validation enum ;
+vérification qu’un champ requis existe ;
+vérification qu’un brouillon contient des IDs réels si une modification doit toucher des actions ;
+refus d’exécution si le patch contient un champ interdit ;
+contrôle que le niveau ne touche pas le plan global si le scope est current_level.
+Le code ne doit pas faire :
+
+interprétation du message user ;
+classification textuelle ;
+extraction de durée depuis le texte ;
+détection “oui/non” par mots-clés ;
+création de message user hardcodé ;
+fallback de scope ;
+fallback de reason ;
+fallback de payload ;
+fallback “probable action” depuis le titre dans le texte.
+Version Conversation Skills
+
+Un Conversation Skill ne modifie pas forcément un objet produit, mais il a quand même une logique d’état. Par exemple : réparation émotionnelle, clarification, coaching, exploration d’un blocage, aide à décider.
+
+Même principe : l’IA remplit un état structuré, le code ne comprend pas à sa place.
+
+Exemple :
+
+type ConversationSkillState = {
+  skill_id: "emotional_repair";
+  phase:
+    | "entry"
+    | "understand"
+    | "stabilize"
+    | "reflect"
+    | "next_step"
+    | "exit";
+  slots: {
+    user_problem?: {
+      status: "missing" | "identified";
+      value?: string;
+      evidence?: string[];
+    };
+    emotional_state?: {
+      status: "missing" | "identified";
+      value?: string;
+      intensity?: "low" | "medium" | "high";
+      evidence?: string[];
+    };
+    desired_response?: {
+      status: "missing" | "identified";
+      value?: "listen" | "clarify" | "decide" | "act" | "vent";
+      evidence?: string[];
+    };
+    safety_boundary?: {
+      status: "missing" | "identified";
+      value?: "none" | "watch" | "escalate";
+      evidence?: string[];
+    };
+  };
+  missing_slots: string[];
+  confidence: "low" | "medium" | "high";
+  generated_user_message: string;
+};
+Le Conversation Skill avance comme ça :
+
+Le router choisit le skill via sortie structurée.
+Le skill reçoit le message + contexte + état existant.
+Un appel IA met à jour les slots.
+Le skill choisit la phase suivante depuis le JSON.
+Un appel IA rédige la réponse user à partir de l’état.
+Le code sauvegarde l’état et renvoie le message généré.
+Si le user corrige Sophia, la correction est intégrée dans le prochain JSON, pas traitée par regex.
+Si l’appel IA échoue, le tour ne doit pas inventer une compréhension.
+Contrat Conversation Skill
+
+Le code peut faire :
+
+vérifier que la phase existe ;
+vérifier que safety_boundary respecte les enums ;
+vérifier qu’un message user-ready est présent ;
+empêcher une réponse si safety critique ;
+sauvegarder l’état ;
+router vers un autre skill si la sortie structurée le demande.
+Le code ne doit pas faire :
+
+“si le user dit stop alors exit” dans le skill lui-même ;
+“si le user dit triste alors emotional_state = sadness” ;
+“si le user dit je veux agir alors desired_response = act” ;
+réponse hardcodée ;
+fallback conversationnel écrit dans le code ;
+classification parallèle du message.
+Messages User
+
+Règle stricte : aucun message user-facing important ne doit être codé en dur dans le flow.
+
+Le code peut avoir des labels internes comme :
+
+reason_code: "scope_missing"
+status: "collecting"
+current_sub_skill: "level_intake"
+Mais pas :
+
+content: "Tu veux ajuster une action précise, le niveau actuel, ou le plan entier ?"
+À la place, le skill doit demander à l’IA :
+
+{
+  task: "write_next_user_message",
+  skill_state,
+  missing_slots,
+  tone_contract,
+  context
+}
+Et l’IA retourne :
+
+{
+  user_message: "...",
+  intent: "ask_clarification",
+  references_used: ["missing_slots.scope", "plan_snapshot"]
+}
+Pour les Tool Skills, le generator doit aussi produire :
+
+confirmation_message
+user_message_brief
+user_message_detailed
+execution_message
+revision_message si brouillon modifié
+Sophia ne reconstruit pas ces phrases avec du code. Elle affiche le champ généré.
+
+Résumé Canonique
+
+Le bon modèle, c’est :
+
+User message
+  -> Router IA produit une sortie structurée
+  -> Skill sélectionné
+  -> Slot filler IA met à jour le JSON du skill
+  -> Code valide le JSON, sans interpréter le texte
+  -> Sous-skill choisi depuis le JSON
+  -> Si incomplet : IA génère la question
+  -> Si complet : generator/tool produit brouillon + message user-ready
+  -> Sous-skill de validation classe la réponse user depuis une sortie IA structurée
+  -> Executor applique uniquement après validation
+Et surtout :
+
+Pas d’appel IA = pas de compréhension fiable.
+Pas de compréhension fiable = pas d’avancement métier.
+Pas d’avancement métier = pas de fallback regex.
+C’est cette règle qui doit devenir commune aux Conversation Skills et aux Tool Skills.

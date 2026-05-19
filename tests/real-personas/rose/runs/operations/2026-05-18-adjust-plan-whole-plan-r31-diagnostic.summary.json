@@ -1,0 +1,114 @@
+[
+  {
+    "turn": 1,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t01",
+    "user": "Je veux ajuster le plan dans son ensemble pour deux semaines, en gardant l'objectif couple. Fais un brouillon: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Ne l'applique pas encore.",
+    "status": 502,
+    "sophia": "",
+    "trace": {
+      "http_status": 502,
+      "ok": null,
+      "empty_response": null,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "memory_mode": null,
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": null,
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 2,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t02",
+    "user": "Je veux ajuster le plan dans son ensemble pour deux semaines, en gardant l'objectif couple. Fais un brouillon: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Ne l'applique pas encore.",
+    "status": 502,
+    "sophia": "",
+    "trace": {
+      "http_status": 502,
+      "ok": null,
+      "empty_response": null,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "memory_mode": null,
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": null,
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 3,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t03",
+    "user": "Juste pour vérifier, tu peux me répondre normalement ?",
+    "status": 200,
+    "sophia": "Oui, je suis bien là ! Pour que je puisse ajuster ton plan sur les deux prochaines semaines, dis-moi ce que tu souhaites obtenir : est-ce que tu as besoin d'alléger tes actions pour que ce soit plus facile à tenir, ou est-ce qu'il y a un aspect précis de ton objectif de couple que tu veux prioriser ? 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "memory_mode": null,
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 4,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t04",
+    "user": "Je veux alléger le plan entier sans changer l'objectif couple: signal de pause en 5 minutes, point positif 2 fois par semaine sans horaire fixe, bilan du signal repoussé après deux semaines. Prépare le brouillon sans appliquer.",
+    "status": 200,
+    "sophia": "Je te propose d'alléger ton plan pour les deux prochaines semaines tout en gardant ton objectif de couple. Voici ce que je prévois de modifier : l'action pour convenir d'un signal de pause sera limitée à 5 minutes pour être plus rapide, et l'habitude de partager un point positif passera à 2 fois par semaine sans horaire fixe. Le bilan sur le signal de pause sera quant à lui repoussé à dans deux semaines. Rien n'est encore appliqué, j'attends ton feu vert pour enregistrer ces changements. 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "light",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "blocked",
+      "executed_tools": []
+    }
+  },
+  {
+    "turn": 5,
+    "request_id": "qa-rose-2026-05-18-adjust-plan-whole-plan-r31-diagnostic-t05",
+    "user": "Oui, j'applique maintenant ce brouillon. Je valide explicitement l'ajustement du plan entier.",
+    "status": 200,
+    "sophia": "C'est fait, j'ai ajusté ton plan pour qu'il soit plus tenable. J'ai réduit la durée pour convenir du signal de pause à 5 minutes et j'ai passé le partage de points positifs à 2 fois par semaine sans contrainte d'horaire. Le bilan est décalé de deux semaines pour te laisser le temps de tester le signal. Ces ajustements te permettent de garder le cap sans la pression du rythme initial. Je suis assez confiante sur le fait que cela rendra ton quotidien plus fluide. 🙂",
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": null,
+      "safety": "none",
+      "memory_mode": "none",
+      "operation_flow_status": null,
+      "operation_type": null,
+      "pending_confirmation": null,
+      "tool_execution": "success",
+      "executed_tools": [
+        "adjust_plan_item"
+      ]
+    }
+  }
+]

@@ -1,0 +1,96 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r10-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Hier j'ai fait le sas, mais j'ai tourné autour du carnet au lieu de commencer tout de suite. Ce soir je veux couper ce moment d'hésitation.",
+    "assistant": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "Ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_ambiguous",
+        "status": "ambiguous",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.5,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "sas"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.33,
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+            "matched_tokens": [
+              "sas"
+            ]
+          }
+        ],
+        "known_slots": {
+          "technique_options": [
+            {
+              "title": "Preparer le terrain",
+              "reason": "retire la friction avant le moment d'action",
+              "example": "Exemple pour \"cette action\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"cette action\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ],
+          "technique_signal_text": "Hier j'ai fait le sas, mais j'ai tourné autour du carnet au lieu de commencer tout de suite. Ce soir je veux couper ce moment d'hésitation."
+        }
+      },
+      "reason_code": "operation_intent_start",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

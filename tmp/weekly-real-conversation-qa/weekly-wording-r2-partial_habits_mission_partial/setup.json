@@ -1,0 +1,229 @@
+{
+  "run_id": "weekly-wording-r2-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "user_id": "8de55efa-4515-4d5b-8575-ad40b09856e7",
+  "email": "qa-weekly-deep-weekly-wording-r2-partial_habits_mission_partial@example.com",
+  "password_redacted": true,
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-wording-r2",
+  "connection_file": "tmp/weekly-real-conversation-qa/connections/weekly-wording-r2-partial_habits_mission_partial.json",
+  "week_start_date": "2026-05-18",
+  "week_end_date": "2026-05-24",
+  "scheduled_checkin_id": "1edb2da2-265c-4934-80d4-0e0fc4b7f40d",
+  "opening": "Point de fin de semaine: 2/6 action(s) faites, 2 partielle(s), 2 non faite(s).\n\nCote actions, je vois 2/6 action(s) faites, 2 partielle(s), 2 non faite(s).\n\nPour l'organisation de la semaine prochaine, l'option naturelle serait une semaine allegee: on garde le cap, mais avec moins de charge.\n\nAvant de confirmer la suite, j'ai deux questions: est-ce que tu sens une difference vers ton objectif, et dans quel etat tu termines la semaine ?\n\nJ'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+  "expected": {
+    "habit_verdict": {
+      "status": "partial_validatable",
+      "completion_rate": 0.5,
+      "planned_count": 5,
+      "done_points": 2.5,
+      "reason": "Les habitudes ont cree une traction partielle."
+    },
+    "daily_evidence_summary": {
+      "source": "daily_action_review_v1",
+      "coverage": "complete",
+      "covered_count": 6,
+      "action_count": 6,
+      "dominant_blockers": [
+        "fatigue",
+        "too_hard",
+        "context"
+      ],
+      "rescheduled_open_count": 0,
+      "not_answered_count": 0,
+      "confidence": "high"
+    },
+    "week_strategy": {
+      "decision": "bridge_week",
+      "reason": "La traction existe, mais les blocages indiquent une charge a alleger.",
+      "preserve_level_objective": true,
+      "preserve_level_architecture": true
+    },
+    "question": {
+      "id": "weekly_confirm_dominant_blocker",
+      "text": "J'ai surtout vu ce blocage cette semaine: fatigue. Tu confirmes que c'est bien ca qui doit guider l'ajustement de la semaine prochaine ?",
+      "reason": "Le daily donne deja la cause dominante; Sophia demande seulement confirmation.",
+      "blocks_decision": true
+    },
+    "plan_patch": {
+      "requires_confirmation": true,
+      "operations": [
+        {
+          "op": "insert_bridge_week",
+          "details": {
+            "reason": "La traction existe, mais les blocages indiquent une charge a alleger."
+          }
+        }
+      ]
+    },
+    "item_decisions": [
+      {
+        "plan_item_id": "735e3d5b-73c5-4657-a697-e2571d474178",
+        "occurrence_id": "1616b755-0a58-46d8-a2ad-4ccb104d0320",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "735e3d5b-73c5-4657-a697-e2571d474178",
+        "occurrence_id": "7227b1a7-218c-4fbe-ae43-e6cc3f6e142d",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "partial",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "fatigue",
+          "reason_text": "j'ai commence mais trop fatigue",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes passent dans une semaine plus legere."
+      },
+      {
+        "plan_item_id": "735e3d5b-73c5-4657-a697-e2571d474178",
+        "occurrence_id": "f85e6c45-d33a-4fd8-ae5b-6ef31479fdc4",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "too_hard",
+          "reason_text": "trop lourd en fin de semaine",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes passent dans une semaine plus legere."
+      },
+      {
+        "plan_item_id": "7b33544c-bff9-4857-8728-c97b9d48abce",
+        "occurrence_id": "e253a309-0cb6-4aa2-82dd-889b4c5a882f",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "7b33544c-bff9-4857-8728-c97b9d48abce",
+        "occurrence_id": "3b27ad8f-3bff-4b46-8abc-12006fb99648",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "fatigue",
+          "reason_text": "j'ai zappe en rentrant tard",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les habitudes passent dans une semaine plus legere."
+      },
+      {
+        "plan_item_id": "f6dead18-2c50-4b23-83c9-12434dbeb042",
+        "occurrence_id": "43228873-e3b1-4905-928c-d335be6608e1",
+        "title": "Convenir d'un signal de pause",
+        "family": "mission",
+        "current_week_status": "partial",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "context",
+          "reason_text": "message brouillon fait mais pas envoye",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "bridge_with_week",
+        "reason": "Les non-habitudes passent dans une semaine plus legere."
+      }
+    ],
+    "supports_out_of_scope": true
+  },
+  "review_summary": [
+    {
+      "transformation_id": "96c34e8d-c850-400f-9ed0-22070ab26f31",
+      "plan_id": "105062ec-83f2-49f2-bfb7-e624c1351bc8",
+      "summary": {
+        "planned_count": 6,
+        "done_count": 2,
+        "partial_count": 2,
+        "missed_count": 2,
+        "unanswered_count": 0,
+        "rescheduled_count": 0,
+        "adherence_rate": 0.5
+      },
+      "actions": [
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "partial",
+          "had_entry": true,
+          "reason_category": "fatigue"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "too_hard"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "fatigue"
+        },
+        {
+          "title": "Convenir d'un signal de pause",
+          "dimension": "missions",
+          "deviation": "partial",
+          "had_entry": true,
+          "reason_category": "context"
+        }
+      ]
+    }
+  ]
+}

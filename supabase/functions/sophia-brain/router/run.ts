@@ -1,7 +1,7 @@
 /// <reference path="../../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
   type AgentMode,
   getUserState,
@@ -66,7 +66,10 @@ import {
 import { runConversationRouters } from "../routers/routers.ts";
 import { runSafetyPregate } from "../safety/safety_pregate.ts";
 import { blocksToolSkills } from "../safety/safety_thresholds.ts";
-import type { RouteDecision } from "../contracts/route_decision.v1.ts";
+import type {
+  ResponseOwner,
+  RouteDecision,
+} from "../contracts/route_decision.v1.ts";
 import type {
   ToolSkillOpportunity,
   TurnFrame,
@@ -76,50 +79,52 @@ import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { buildConversationPulse } from "../conversation_pulse_builder.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
+import { buildActionFamilyKey } from "../../_shared/memory/action_family.ts";
 import {
   isLikelyOneShotReminderRequest,
 } from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
 import {
+  buildRecurringReminderCreatedMessage,
   type RecurringReminderDraftV1,
 } from "../tools/operations/create_recurring_reminder/generator.ts";
 import {
+  reviewCreateRecurringReminderDraft,
   runCreateRecurringReminderIntake,
 } from "../tools/operations/create_recurring_reminder/intake.ts";
 import { createConfirmationToken } from "../confirmation/confirmation_token.ts";
 import {
   ATTACK_TECHNIQUES,
   type AttackCardDraftV1,
-  type AttackTechniqueKey,
 } from "../tools/operations/prepare_attack_card/generator.ts";
-import {
-  runPrepareAttackCardIntake,
-} from "../tools/operations/prepare_attack_card/intake.ts";
 import { runPrepareAttackCardAiIntake } from "../tools/operations/prepare_attack_card/ai_intake.ts";
-import { shouldUsePrepareAttackCardAiFlow } from "../tools/operations/prepare_attack_card/slot_filler.ts";
 import {
   type DefenseCardDraftV1,
 } from "../tools/operations/prepare_defense_card/generator.ts";
-import {
-  runPrepareDefenseCardIntake,
-} from "../tools/operations/prepare_defense_card/intake.ts";
+import { runPrepareDefenseCardAiIntake } from "../tools/operations/prepare_defense_card/ai_intake.ts";
 import {
   type PlanAdjustmentDraftV1,
 } from "../tools/operations/adjust_plan_item/generator.ts";
 import { executeAdjustPlanItem } from "../tools/operations/adjust_plan_item/executor.ts";
 import { runAdjustPlanItemIntake } from "../tools/operations/adjust_plan_item/intake.ts";
+import { generatePlanV2ForTransformation } from "../../generate-plan-v2/index.ts";
 import {
   type CoachPreferencesPatchDraftV1,
 } from "../tools/operations/update_coach_preferences/generator.ts";
 import {
+  reviewUpdateCoachPreferencesDraft,
   runUpdateCoachPreferencesIntake,
 } from "../tools/operations/update_coach_preferences/intake.ts";
 import {
+  generatePotionSessionDraftWithAi,
+  type PotionSessionDraftGeneratorInput,
   type PotionSessionDraftV1,
 } from "../tools/operations/select_state_potion/generator.ts";
 import {
   runSelectStatePotionIntake,
 } from "../tools/operations/select_state_potion/intake.ts";
+import { reviewSelectStatePotionDraft } from "../tools/operations/select_state_potion/draft_validation.ts";
 import { executeActivateStatePotion } from "../tools/operations/select_state_potion/executor.ts";
+import { loadPotionBaseContext } from "../../_shared/potion-base-context.ts";
 import {
   buildCoachingInterventionRuntimeAddon,
   buildKnownCoachingBlockersFromTempMemory,
@@ -198,10 +203,274 @@ export type V2PlanItemSnapshotItem = {
   dimension: PlanDimension;
   item_type: PlanItemKind;
   status: PlanItemStatus;
+  cadence_label?: string | null;
+  target_reps?: number | null;
+  current_reps?: number | null;
+  scheduled_days?: string[] | null;
+  time_of_day?: string | null;
+  phase_id?: string | null;
+  phase_order?: number | null;
+  generated_temp_id?: string | null;
+  source_kind?: "plan_generated" | "operation_bridge" | "unknown";
+  item_nature?:
+    | "recurring_habit"
+    | "one_shot_mission"
+    | "clarification"
+    | "other";
+  available_this_week?: boolean;
+  availability_status?:
+    | "available_this_week"
+    | "available_past_week"
+    | "available_upcoming_week"
+    | "assigned_no_calendar"
+    | "not_assigned_to_level_weeks";
+  week_scope?: {
+    level_order?: number | null;
+    level_title?: string | null;
+    week_order?: number | null;
+    week_title?: string | null;
+    week_status?: "completed" | "current" | "upcoming" | "unknown";
+    week_start?: string | null;
+    week_end?: string | null;
+    weekly_reps?: number | null;
+    weekly_cadence_label?: string | null;
+    weekly_description_override?: string | null;
+    mission_days?: string[];
+  } | null;
   streak_current: number;
   last_entry_at: string | null;
   active_load_score?: number;
+  payload?: Record<string, unknown> | null;
 };
+
+function readPlanItemPayload(
+  item: { payload?: unknown },
+): Record<string, unknown> {
+  return isRecord(item.payload) ? item.payload : {};
+}
+
+function readPlanItemGeneratedTempId(
+  item: { payload?: unknown },
+): string | null {
+  const payload = readPlanItemPayload(item);
+  const generation = isRecord(payload._generation)
+    ? payload._generation
+    : isRecord(payload.generation)
+    ? payload.generation
+    : null;
+  const tempId = String(generation?.temp_id ?? "").trim();
+  return tempId || null;
+}
+
+function readPlanItemSourceKind(
+  item: { payload?: unknown },
+): V2PlanItemSnapshotItem["source_kind"] {
+  const payload = readPlanItemPayload(item);
+  return isRecord(payload.operation_bridge)
+    ? "operation_bridge"
+    : "plan_generated";
+}
+
+function readPlanItemNature(item: {
+  dimension?: unknown;
+  kind?: unknown;
+}): V2PlanItemSnapshotItem["item_nature"] {
+  if (item.kind === "habit" || item.dimension === "habits") {
+    return "recurring_habit";
+  }
+  if (item.dimension === "missions") return "one_shot_mission";
+  if (item.dimension === "clarifications") return "clarification";
+  return "other";
+}
+
+function parseYmdPartsForPlanSnapshot(
+  ymd: string,
+): [number, number, number] | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
+}
+
+function dateFromYmdUtcForPlanSnapshot(ymd: string): Date | null {
+  const parts = parseYmdPartsForPlanSnapshot(ymd);
+  if (!parts) return null;
+  const [year, month, day] = parts;
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
+function addDaysYmdForPlanSnapshot(ymd: string, days: number): string | null {
+  const date = dateFromYmdUtcForPlanSnapshot(ymd);
+  if (!date) return null;
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function compareYmdForPlanSnapshot(left: string, right: string): number {
+  if (left === right) return 0;
+  return left < right ? -1 : 1;
+}
+
+function getLocalYmdForPlanSnapshot(
+  timezone: string,
+  now = new Date(),
+): string | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(now);
+    const map = new Map(parts.map((part) => [part.type, part.value]));
+    const year = map.get("year");
+    const month = map.get("month");
+    const day = map.get("day");
+    return year && month && day ? `${year}-${month}-${day}` : null;
+  } catch {
+    return null;
+  }
+}
+
+function readScheduleAnchorForPlanSnapshot(
+  content: unknown,
+): Record<string, unknown> | null {
+  if (!isRecord(content)) return null;
+  const metadata = isRecord(content.metadata) ? content.metadata : {};
+  const anchor = metadata.schedule_anchor;
+  if (!isRecord(anchor)) return null;
+  const timezone = String(anchor.timezone ?? "").trim();
+  const anchorWeekStart = String(anchor.anchor_week_start ?? "").trim();
+  const anchorWeekEnd = String(anchor.anchor_week_end ?? "").trim();
+  if (!timezone || !anchorWeekStart || !anchorWeekEnd) return null;
+  return anchor;
+}
+
+function getWeekStatusForPlanSnapshot(args: {
+  anchor: Record<string, unknown> | null;
+  weekOrder: number;
+}): {
+  status: "completed" | "current" | "upcoming" | "unknown";
+  start: string | null;
+  end: string | null;
+} {
+  if (!args.anchor || !Number.isInteger(args.weekOrder) || args.weekOrder < 1) {
+    return { status: "unknown", start: null, end: null };
+  }
+  const timezone = String(args.anchor.timezone ?? "").trim();
+  const anchorWeekStart = String(args.anchor.anchor_week_start ?? "").trim();
+  const anchorWeekEnd = String(args.anchor.anchor_week_end ?? "").trim();
+  const anchorDisplayStart = String(args.anchor.anchor_display_start ?? "")
+    .trim();
+  const offsetDays = (args.weekOrder - 1) * 7;
+  const fullWeekStart = addDaysYmdForPlanSnapshot(anchorWeekStart, offsetDays);
+  const fullWeekEnd = addDaysYmdForPlanSnapshot(anchorWeekEnd, offsetDays);
+  if (!timezone || !fullWeekStart || !fullWeekEnd) {
+    return { status: "unknown", start: null, end: null };
+  }
+  const start = args.weekOrder === 1 && anchorDisplayStart
+    ? anchorDisplayStart
+    : fullWeekStart;
+  const localToday = getLocalYmdForPlanSnapshot(timezone);
+  if (!localToday) return { status: "unknown", start, end: fullWeekEnd };
+  if (compareYmdForPlanSnapshot(localToday, start) < 0) {
+    return { status: "upcoming", start, end: fullWeekEnd };
+  }
+  if (compareYmdForPlanSnapshot(localToday, fullWeekEnd) > 0) {
+    return { status: "completed", start, end: fullWeekEnd };
+  }
+  return { status: "current", start, end: fullWeekEnd };
+}
+
+function planSnapshotAvailabilityRank(
+  status: NonNullable<V2PlanItemSnapshotItem["availability_status"]>,
+): number {
+  if (status === "available_this_week") return 4;
+  if (status === "available_upcoming_week") return 3;
+  if (status === "assigned_no_calendar") return 2;
+  if (status === "available_past_week") return 1;
+  return 0;
+}
+
+function buildWeeklyAvailabilityByTempIdForPlanSnapshot(
+  content: unknown,
+): Map<
+  string,
+  NonNullable<V2PlanItemSnapshotItem["week_scope"]> & {
+    availability_status: NonNullable<
+      V2PlanItemSnapshotItem["availability_status"]
+    >;
+  }
+> {
+  const out = new Map<
+    string,
+    NonNullable<V2PlanItemSnapshotItem["week_scope"]> & {
+      availability_status: NonNullable<
+        V2PlanItemSnapshotItem["availability_status"]
+      >;
+    }
+  >();
+  if (!isRecord(content) || !isRecord(content.current_level_runtime)) {
+    return out;
+  }
+  const runtime = content.current_level_runtime;
+  const weeks = Array.isArray(runtime.weeks) ? runtime.weeks : [];
+  const anchor = readScheduleAnchorForPlanSnapshot(content);
+  for (const week of weeks) {
+    if (!isRecord(week)) continue;
+    const weekOrder = Number(week.week_order);
+    const calendar = getWeekStatusForPlanSnapshot({ anchor, weekOrder });
+    const weekStatus = calendar.status;
+    const assignments = Array.isArray(week.item_assignments)
+      ? week.item_assignments
+      : [];
+    for (const assignment of assignments) {
+      if (!isRecord(assignment)) continue;
+      const tempId = String(assignment.temp_id ?? "").trim();
+      if (!tempId) continue;
+      const availabilityStatus: NonNullable<
+        V2PlanItemSnapshotItem["availability_status"]
+      > = weekStatus === "current"
+        ? "available_this_week"
+        : weekStatus === "completed"
+        ? "available_past_week"
+        : weekStatus === "upcoming"
+        ? "available_upcoming_week"
+        : "assigned_no_calendar";
+      const previous = out.get(tempId);
+      if (
+        previous &&
+        planSnapshotAvailabilityRank(previous.availability_status) >=
+          planSnapshotAvailabilityRank(availabilityStatus)
+      ) {
+        continue;
+      }
+      out.set(tempId, {
+        level_order: typeof runtime.level_order === "number"
+          ? runtime.level_order
+          : null,
+        level_title: String(runtime.title ?? "").trim() || null,
+        week_order: Number.isInteger(weekOrder) ? weekOrder : null,
+        week_title: String(week.title ?? "").trim() || null,
+        week_status: weekStatus,
+        week_start: calendar.start,
+        week_end: calendar.end,
+        weekly_reps: typeof assignment.weekly_reps === "number"
+          ? assignment.weekly_reps
+          : null,
+        weekly_cadence_label: String(assignment.weekly_cadence_label ?? "")
+          .trim() ||
+          null,
+        weekly_description_override:
+          String(assignment.weekly_description_override ?? "").trim() || null,
+        mission_days: Array.isArray(week.mission_days)
+          ? week.mission_days.map((day) => String(day)).filter(Boolean)
+          : [],
+        availability_status: availabilityStatus,
+      });
+    }
+  }
+  return out;
+}
 
 function envFlagEnabled(name: string): boolean {
   const raw = String(Deno.env.get(name) ?? "").trim().toLowerCase();
@@ -236,6 +505,338 @@ function stripDeprecatedProductVocabulary(text: string): string {
     .replace(/\bboussole\b/gi, "repere");
 }
 
+function stripWeeklyInternalVocabulary(text: string): string {
+  return text
+    .replace(/\bbridge_week\b/gi, "semaine allegee")
+    .replace(/\bbridge\b/gi, "semaine allegee")
+    .replace(/\bsemaine pont\b/gi, "semaine allegee")
+    .replace(/\bcarry_over\b/gi, "report")
+    .replace(/\bmode advance\b/gi, "passage a la suite")
+    .replace(/\brepeat_week\b/gi, "refaire la meme semaine")
+    .replace(/\blevel_review\b/gi, "revoir la forme du niveau")
+    .replace(/\bnot_relevant\b/gi, "pas assez adapte a ta situation")
+    .replace(/\blevel\b/gi, "niveau")
+    .replace(/\bitem_decision\b/gi, "decision sur l'action")
+    .replace(/\bplan_patch\b/gi, "proposition d'organisation")
+    .replace(/\boperation\b/gi, "ajustement")
+    .replace(/\bbrouillon\b/gi, "proposition");
+}
+
+function applyWeeklyForgottenProgressAckGuard(args: {
+  responseContent: string;
+  tempMemory: any;
+  loggedMessageId: string | null;
+}): string {
+  const progress = args.tempMemory?.__weekly_forgotten_progress;
+  if (!progress || progress.mode !== "logged") return args.responseContent;
+  if (
+    args.loggedMessageId &&
+    String(progress.source_message_id ?? "") !== args.loggedMessageId
+  ) {
+    return args.responseContent;
+  }
+  const title = String(progress.title ?? "l'action").trim();
+  const count = Number(progress.count ?? 0);
+  const dateHint = String(progress.date_hint ?? "").trim();
+  const ack = `C'est enregistré: +${
+    Number.isFinite(count) && count > 0 ? count : 1
+  } répétition(s) pour "${title}"${
+    dateHint ? ` sur la semaine (${dateHint})` : ""
+  }.`;
+  const normalized = normalizeRouteText(args.responseContent);
+  if (
+    /\bc est note\b|\bcest note\b|\benregistre\b|\benregistree\b/.test(
+      normalized,
+    )
+  ) {
+    if (/\btu confirmes\b|\bconfirme moi\b|\bconfirmer\b/.test(normalized)) {
+      return `${ack}\n\nOn reste sur le point weekly et l'organisation de la semaine prochaine.`;
+    }
+    return args.responseContent;
+  }
+  return `${ack}\n\n${args.responseContent}`.trim();
+}
+
+function applyWeeklyRepeatedClarificationGuard(args: {
+  responseContent: string;
+  userMessage: string;
+  activeSkillState: unknown;
+  tempMemory: any;
+}): string {
+  if (
+    !weeklyAdaptiveReviewStateForTurn({
+      activeSkillState: args.activeSkillState,
+      tempMemory: args.tempMemory,
+    })
+  ) return args.responseContent;
+  const user = normalizeRouteText(args.userMessage);
+  const response = normalizeRouteText(args.responseContent);
+  const userGaveTrackingCause =
+    /\boubli de suivi\b|\boublie de suivi\b|\boublie de cocher\b|\bpas coche\b|\bpas cochees\b|\bpas cochees\b|\bles habitudes n ont pas ete cochees\b/
+      .test(user);
+  const responseRepeatsCauseChoice =
+    /\bplutot\b[\s\S]{0,120}\boubli\b[\s\S]{0,120}\b(fatigue|charge|chargee|impossible)\b/
+      .test(response) ||
+    /\bplutot\b[\s\S]{0,120}\b(fatigue|charge|chargee|impossible)\b[\s\S]{0,120}\boubli\b/
+      .test(response) ||
+    /\bhabitudes\b[\s\S]{0,120}\bactions non faites\b/.test(response) ||
+    /\bconfirmes juste\b[\s\S]{0,160}\bcheck[- ]?ins\b[\s\S]{0,160}\bhabitudes\b/
+      .test(response);
+  if (userGaveTrackingCause && responseRepeatsCauseChoice) {
+    return [
+      "C'est clair: je garde la cause comme un oubli de suivi, pas comme une preuve que le plan ne tient pas.",
+      "",
+      "Donc on consolide la même semaine pour récupérer un signal propre, sans augmenter la charge. La validation de la semaine prochaine reste en attente tant que ce point weekly n'est pas conclu.",
+    ].join("\n");
+  }
+  return args.responseContent;
+}
+
+function stripWeeklySupportItemsFromResponse(text: string): string {
+  return String(text ?? "")
+    .replace(
+      /\n?\s*\d+\)\s*[^\n]*(?:fiche|support|repere de fatigue|repère de fatigue)[\s\S]*?(?=\n\s*\d+\)|\n\s*Derniere|\n\s*Dernière|\n\s*Tu\b|\n\s*$)/gi,
+      "\n",
+    )
+    .replace(
+      /\n?\s*[-•]\s*[^\n]*(?:fiche|support|repere de fatigue|repère de fatigue)[^\n]*(?:\n\s*[^\n]*){0,2}/gi,
+      "\n",
+    )
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function applyWeeklyConcreteOrganizationGuard(args: {
+  responseContent: string;
+  userMessage: string;
+  activeSkillState: unknown;
+  tempMemory: any;
+}): string {
+  if (
+    !weeklyAdaptiveReviewStateForTurn({
+      activeSkillState: args.activeSkillState,
+      tempMemory: args.tempMemory,
+    })
+  ) return args.responseContent;
+  const user = normalizeRouteText(args.userMessage);
+  const userRejectsRules =
+    /\bpas des? regles?\b|\bsans regles?\b|\bpas une liste de regles\b|\borganisation concrete\b|\bparle moi de l organisation\b/
+      .test(user);
+  let next = stripWeeklySupportItemsFromResponse(args.responseContent);
+  if (userRejectsRules) {
+    next = next
+      .replace(/\bR[eè]gle d[’']or\b/gi, "Point concret")
+      .replace(/\bR[eè]gle simple\b/gi, "Point concret")
+      .replace(/\bR[eè]gle\b/gi, "Point")
+      .replace(/\br[eè]gles\b/gi, "points")
+      .replace(/\bje te verrouille ça\b/gi, "je te propose ça")
+      .replace(/\bte verrouiller ça\b/gi, "te proposer ça")
+      .replace(/\bverrouiller ça\b/gi, "poser cette proposition")
+      .replace(/\bverrouille ça\b/gi, "pose cette proposition")
+      .replace(/\bplan précis\b/gi, "proposition concrète");
+  }
+  if (
+    /\bfatigue forte\b|\btres fatigue\b|\btrès fatigu[eé]\b|\bcrame\b|\bcram[eé]\b|\bko\b/
+      .test(user)
+  ) {
+    next = next
+      .replace(
+        /\bobjectif concret\s*:\s*100\s*%[^\n.]*/gi,
+        "objectif concret: avancer sans viser la perfection",
+      )
+      .replace(
+        /\bobjectif\s*:\s*100\s*%[^\n.]*/gi,
+        "objectif: avancer sans viser la perfection",
+      )
+      .replace(/\b100\s*%\b/g, "une version tenable")
+      .replace(/\btout finir a tout prix\b/gi, "garder une charge tenable")
+      .replace(/\btout finir à tout prix\b/gi, "garder une charge tenable");
+  }
+  return next;
+}
+
+function weeklyUserAskedConcreteOrganization(message: string): boolean {
+  const text = normalizeRouteText(message);
+  return /\borganisation concrete\b|\borganiser concretement\b|\bconcretement\b|\bpas des? regles?\b|\bsans regles?\b|\bpas une liste de regles\b|\bjours?\b|\bordre\b|\bcharge\b/
+    .test(text) &&
+    /\bsemaine prochaine\b|\borganisation\b|\bplan\b|\bactions?\b|\bhabitudes?\b|\bmissions?\b|\bcharge\b|\bjours?\b/
+      .test(text);
+}
+
+function weeklyResponseHasOrganizationProposal(response: string): boolean {
+  const text = normalizeRouteText(response);
+  return /\bproposition d organisation\b|\borganisation de la semaine prochaine\b|\bvoila une proposition\b|\bje te propose\b/
+    .test(text);
+}
+
+function weeklyResponseConcludesReview(response: string): boolean {
+  const text = normalizeRouteText(response);
+  if (/\bvalidation\b[\s\S]{0,80}\bpas encore\b/.test(text)) return false;
+  return (
+    /\b(point weekly|point de fin de semaine|bilan de la semaine)\b[\s\S]{0,120}\b(termine|terminee|conclu|cloture|cloturee)\b/
+      .test(text) ||
+    /\bvalidation de la semaine prochaine\b[\s\S]{0,80}\b(disponible|debloquee|ouverte)\b/
+      .test(text)
+  );
+}
+
+function compactWeeklySummaryText(value: unknown, maxChars = 420): string {
+  const text = String(value ?? "").replace(/\s+/g, " ").trim();
+  if (text.length <= maxChars) return text;
+  return `${text.slice(0, maxChars - 1).trimEnd()}…`;
+}
+
+function writeWeeklyAdaptiveReviewStateToTempMemory(
+  tempMemory: any,
+  weeklyState: Record<string, unknown>,
+): any {
+  const next = { ...(tempMemory ?? {}) };
+  next.__active_skill_state = weeklyState;
+  delete next.active_skill_state;
+  if (
+    next.__suspended_flow_v1 &&
+    typeof next.__suspended_flow_v1 === "object" &&
+    isWeeklyAdaptiveReviewActive(
+      (next.__suspended_flow_v1 as any).state_snapshot,
+    )
+  ) {
+    delete next.__suspended_flow_v1;
+  }
+  return next;
+}
+
+function updateWeeklyAdaptiveReviewStateAfterConversationTurn(args: {
+  tempMemory: any;
+  activeSkillState: unknown;
+  userMessage: string;
+  responseContent: string;
+  routeDecision: RouteDecision | null;
+}): any {
+  const weeklyState = weeklyAdaptiveReviewStateForTurn({
+    activeSkillState: args.activeSkillState,
+    tempMemory: args.tempMemory,
+  });
+  if (!weeklyState || typeof weeklyState !== "object") return args.tempMemory;
+  const previous = weeklyState as Record<string, unknown>;
+  const nowIso = new Date().toISOString();
+  const flow = previous.weekly_flow_state &&
+      typeof previous.weekly_flow_state === "object"
+    ? previous.weekly_flow_state as Record<string, unknown>
+    : {};
+  const nextFlow: Record<string, unknown> = {
+    ...flow,
+    status: String(flow.status ?? "open"),
+    proposal_status: String(flow.proposal_status ?? "none"),
+    validation_unlock_status: String(
+      flow.validation_unlock_status ?? "locked_until_weekly_complete",
+    ),
+    updated_at: nowIso,
+  };
+
+  const isWeeklyConversation =
+    args.routeDecision?.response_owner === "conversation_handler" &&
+    String(args.routeDecision?.selected_handler ?? "").trim() ===
+      "weekly_adaptive_review_v1";
+  if (
+    isWeeklyConversation &&
+    (weeklyUserAskedConcreteOrganization(args.userMessage) ||
+      weeklyResponseHasOrganizationProposal(args.responseContent))
+  ) {
+    nextFlow.status = "proposal_discussed";
+    nextFlow.proposal_status = "discussed_not_applied";
+    nextFlow.last_user_signal = compactWeeklySummaryText(args.userMessage);
+    nextFlow.last_proposal_summary = compactWeeklySummaryText(
+      args.responseContent,
+    );
+  }
+
+  if (weeklyResponseConcludesReview(args.responseContent)) {
+    nextFlow.status = "completed";
+    nextFlow.validation_unlock_status = "available";
+    nextFlow.completed_at = nowIso;
+    nextFlow.next_weekly_summary = {
+      source: "weekly_adaptive_review_v1",
+      user_signal: compactWeeklySummaryText(args.userMessage),
+      assistant_summary: compactWeeklySummaryText(args.responseContent),
+      created_at: nowIso,
+    };
+  }
+
+  const nextState: Record<string, unknown> = {
+    ...previous,
+    status: nextFlow.status === "completed" ? "completed" : "open",
+    validation_unlock: nextFlow.validation_unlock_status === "available"
+      ? {
+        status: "available",
+        meaning:
+          "La validation de la semaine suivante est disponible apres conclusion du point weekly.",
+      }
+      : previous.validation_unlock,
+    weekly_flow_state: nextFlow,
+    updated_at: nowIso,
+  };
+  const nextMemory = writeWeeklyAdaptiveReviewStateToTempMemory(
+    args.tempMemory,
+    nextState,
+  );
+  if (nextFlow.status === "completed") {
+    nextMemory.__last_weekly_adaptive_review_summary =
+      nextFlow.next_weekly_summary;
+  }
+  return nextMemory;
+}
+
+function markWeeklyAdaptiveReviewAdjustPlanApplied(args: {
+  tempMemory: any;
+  weeklyState: unknown;
+  operationRuntime: OperationRuntimeResult;
+}): any {
+  if (
+    !args.weeklyState || typeof args.weeklyState !== "object" ||
+    args.operationRuntime.toolExecution !== "success" ||
+    !args.operationRuntime.executedTools.includes("adjust_plan_item")
+  ) {
+    return args.tempMemory;
+  }
+  const previous = args.weeklyState as Record<string, unknown>;
+  const nowIso = new Date().toISOString();
+  const flow = previous.weekly_flow_state &&
+      typeof previous.weekly_flow_state === "object"
+    ? previous.weekly_flow_state as Record<string, unknown>
+    : {};
+  const nextFlow: Record<string, unknown> = {
+    ...flow,
+    status: "adjustment_applied",
+    proposal_status: "applied_via_adjust_plan_item",
+    validation_unlock_status: "locked_until_weekly_complete",
+    adjusted_at: nowIso,
+    adjusted_plan_patch_id: args.operationRuntime.toolSkillRun?.plan_patch_id ??
+      null,
+    adjusted_operation_id: args.operationRuntime.toolSkillRun?.operation_id ??
+      null,
+    updated_at: nowIso,
+  };
+  return writeWeeklyAdaptiveReviewStateToTempMemory(args.tempMemory, {
+    ...previous,
+    status: "open",
+    weekly_flow_state: nextFlow,
+    validation_unlock: {
+      status: "locked_until_weekly_complete",
+      meaning:
+        "Un ajustement a ete applique pendant le weekly; la validation se debloque quand le point weekly est conclu.",
+    },
+    updated_at: nowIso,
+  });
+}
+
+const VISIBLE_EMOJI_REGEX = /\p{Extended_Pictographic}/u;
+
+function ensureVisibleSophiaEmoji(text: unknown): string {
+  const content = String(text ?? "").trim();
+  if (!content || VISIBLE_EMOJI_REGEX.test(content)) return content;
+  return `${content} 🙂`;
+}
+
 function applyExecutionBreakdownBrevityGuard(args: {
   channel: "web" | "whatsapp";
   routeDecision: RouteDecision | null;
@@ -253,16 +854,7 @@ function applyExecutionBreakdownBrevityGuard(args: {
   const visibleLines = text.split(/\n+/).filter((line) => line.trim()).length;
   if (text.length <= 650 && visibleLines <= 8) return text;
 
-  const normalizedUser = normalizeRouteText(args.userMessage);
-  if (
-    /\b(outil|protocole|anti[- ]?derapage|anti[- ]?dérapage|truc|aide)\b/
-      .test(normalizedUser)
-  ) {
-    return "Je te fais court : le blocage, c'est le terrain. Ce soir, prépare seulement carnet + stylo au même endroit, puis éloigne le téléphone avant d'ouvrir le carnet. Je peux aussi te le transformer en carte d'attaque si tu veux.";
-  }
-
-  const skillReply = String(args.skillOutput?.reply ?? "").trim();
-  return skillReply || text.split(/\n+/).slice(0, 5).join("\n").trim();
+  return text.split(/\n+/).slice(0, 5).join("\n").trim();
 }
 
 function withActiveSafetyFlowCaution<
@@ -404,21 +996,65 @@ export async function buildV2PlanItemSnapshot(
     }),
     getActiveLoad(supabase, resolvedRuntime.plan.id),
   ]);
+  const weeklyAvailabilityByTempId =
+    buildWeeklyAvailabilityByTempIdForPlanSnapshot(
+      (resolvedRuntime.plan as any)?.content,
+    );
 
   return planItems
     .filter((item) => !SNAPSHOT_EXCLUDED_STATUSES.has(item.status))
     .slice(0, 30)
-    .map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description ?? null,
-      dimension: item.dimension,
-      item_type: item.kind,
-      status: item.status,
-      streak_current: computeStreakFromEntries(item.recent_entries),
-      last_entry_at: item.last_entry_at,
-      active_load_score: activeLoad.current_load_score,
-    }));
+    .map((item) => {
+      const generatedTempId = readPlanItemGeneratedTempId(item);
+      const weekScope = generatedTempId
+        ? weeklyAvailabilityByTempId.get(generatedTempId) ?? null
+        : null;
+      const availabilityStatus = weekScope?.availability_status ??
+        "not_assigned_to_level_weeks";
+      return {
+        id: item.id,
+        title: item.title,
+        description: item.description ?? null,
+        dimension: item.dimension,
+        item_type: item.kind,
+        status: item.status,
+        cadence_label: item.cadence_label ?? null,
+        target_reps: item.target_reps ?? null,
+        current_reps: item.current_reps ?? null,
+        scheduled_days: Array.isArray(item.scheduled_days)
+          ? item.scheduled_days
+          : null,
+        time_of_day: item.time_of_day ?? null,
+        phase_id: item.phase_id ?? null,
+        phase_order: item.phase_order ?? null,
+        generated_temp_id: generatedTempId,
+        source_kind: readPlanItemSourceKind(item),
+        item_nature: readPlanItemNature(item),
+        available_this_week: availabilityStatus === "available_this_week",
+        availability_status: availabilityStatus,
+        week_scope: weekScope
+          ? {
+            level_order: weekScope.level_order,
+            level_title: weekScope.level_title,
+            week_order: weekScope.week_order,
+            week_title: weekScope.week_title,
+            week_status: weekScope.week_status,
+            week_start: weekScope.week_start,
+            week_end: weekScope.week_end,
+            weekly_reps: weekScope.weekly_reps,
+            weekly_cadence_label: weekScope.weekly_cadence_label,
+            weekly_description_override: weekScope.weekly_description_override,
+            mission_days: weekScope.mission_days,
+          }
+          : null,
+        streak_current: computeStreakFromEntries(item.recent_entries),
+        last_entry_at: item.last_entry_at,
+        active_load_score: activeLoad.current_load_score,
+        payload: item.payload && typeof item.payload === "object"
+          ? item.payload as Record<string, unknown>
+          : null,
+      };
+    });
 }
 
 async function loadDirectV2PlanItemSnapshotFallback(
@@ -429,7 +1065,7 @@ async function loadDirectV2PlanItemSnapshotFallback(
   let query = supabase
     .from("user_plan_items")
     .select(
-      "id,title,description,dimension,kind,status,created_at,activation_order,updated_at",
+      "id,title,description,dimension,kind,status,cadence_label,target_reps,current_reps,scheduled_days,time_of_day,phase_id,phase_order,payload,created_at,activation_order,updated_at",
     )
     .eq("user_id", userId);
   if (runtime?.plan?.id) {
@@ -442,18 +1078,62 @@ async function loadDirectV2PlanItemSnapshotFallback(
     .order("created_at", { ascending: true })
     .limit(30);
   if (error) throw error;
+  const weeklyAvailabilityByTempId =
+    buildWeeklyAvailabilityByTempIdForPlanSnapshot(
+      (runtime?.plan as any)?.content,
+    );
   return (((data as UserPlanItemRow[] | null) ?? [])
     .filter((item) => !SNAPSHOT_EXCLUDED_STATUSES.has(item.status))
-    .map((item) => ({
-      id: item.id,
-      title: item.title,
-      description: item.description ?? null,
-      dimension: item.dimension,
-      item_type: item.kind,
-      status: item.status,
-      streak_current: 0,
-      last_entry_at: null,
-    })));
+    .map((item) => {
+      const generatedTempId = readPlanItemGeneratedTempId(item);
+      const weekScope = generatedTempId
+        ? weeklyAvailabilityByTempId.get(generatedTempId) ?? null
+        : null;
+      const availabilityStatus = weekScope?.availability_status ??
+        "not_assigned_to_level_weeks";
+      return {
+        id: item.id,
+        title: item.title,
+        description: item.description ?? null,
+        dimension: item.dimension,
+        item_type: item.kind,
+        status: item.status,
+        cadence_label: item.cadence_label ?? null,
+        target_reps: item.target_reps ?? null,
+        current_reps: item.current_reps ?? null,
+        scheduled_days: Array.isArray((item as any).scheduled_days)
+          ? (item as any).scheduled_days
+          : null,
+        time_of_day: (item as any).time_of_day ?? null,
+        phase_id: (item as any).phase_id ?? null,
+        phase_order: (item as any).phase_order ?? null,
+        generated_temp_id: generatedTempId,
+        source_kind: readPlanItemSourceKind(item),
+        item_nature: readPlanItemNature(item),
+        available_this_week: availabilityStatus === "available_this_week",
+        availability_status: availabilityStatus,
+        week_scope: weekScope
+          ? {
+            level_order: weekScope.level_order,
+            level_title: weekScope.level_title,
+            week_order: weekScope.week_order,
+            week_title: weekScope.week_title,
+            week_status: weekScope.week_status,
+            week_start: weekScope.week_start,
+            week_end: weekScope.week_end,
+            weekly_reps: weekScope.weekly_reps,
+            weekly_cadence_label: weekScope.weekly_cadence_label,
+            weekly_description_override: weekScope.weekly_description_override,
+            mission_days: weekScope.mission_days,
+          }
+          : null,
+        streak_current: 0,
+        last_entry_at: null,
+        payload: item.payload && typeof item.payload === "object"
+          ? item.payload as Record<string, unknown>
+          : null,
+      };
+    }));
 }
 
 function envBool(name: string, fallback: boolean): boolean {
@@ -677,6 +1357,8 @@ function buildAttackKeywordContextOverride(args: {
     "- Reponds de facon breve, concrete, stable.",
     "- Commence par aider a tenir maintenant.",
     "- Donne une seule action immediate ou une seule etape de regulation.",
+    "- Ne lui dis pas d'envoyer le mot-cle: il vient deja de l'envoyer.",
+    "- Meme si le mot-cle ressemble a 'stop', 'annule' ou 'pause', ne l'interprete pas comme une demande d'arret: c'est le declencheur configure.",
     "- Tu peux finir par une relance tres courte, pas plus.",
     "- Ne mentionne pas les termes techniques comme carte d'attaque, mot-cle configure ou systeme.",
   ].join("\n");
@@ -705,8 +1387,13 @@ const DEFAULT_DISPATCHER_MEMORY_PLAN: DispatcherMemoryPlan = {
   plan_confidence: 0.7,
 };
 
-const ATTACK_CARD_CREATED_LOCATION =
-  "Tu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.";
+function attackCardCreatedLocation(target: unknown): string {
+  const kind = String((target as any)?.kind ?? "").trim();
+  const resourceLabel = kind === "personal_action"
+    ? "Ressources > Cartes d'attaque"
+    : "Ressources > Cartes d'attaque du plan";
+  return `Tu peux la retrouver dans ${resourceLabel} pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.`;
+}
 
 const DEFENSE_CARD_CREATED_LOCATION =
   "Tu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.";
@@ -737,6 +1424,17 @@ function dispatcherSignalsFromTurnFrame(args: {
   const payload = trackEffect?.payload_hint ?? {};
   const safetyActive = args.turnFrame.safety.risk_band === "high" ||
     args.turnFrame.safety.risk_band === "critical";
+  const researchSignal = args.turnFrame.needs_research;
+  const fallbackResearchSignal =
+    /\bcherche|recherche|internet|actualité|actualite|actu\b/
+        .test(text)
+      ? {
+        detected: true,
+        value: true,
+        query: args.userMessage,
+        confidence: 0.7,
+      }
+      : DEFAULT_SIGNALS.needs_research;
   return {
     ...DEFAULT_SIGNALS,
     safety: safetyActive
@@ -746,15 +1444,9 @@ function dispatcherSignalsFromTurnFrame(args: {
       ? { kind: "EXPLICIT_STOP", confidence: 0.8 }
       : DEFAULT_SIGNALS.interrupt,
     risk_score: riskScoreFromBand(args.turnFrame.safety.risk_band),
-    needs_research: /\bcherche|recherche|internet|actualité|actualite|actu\b/
-        .test(text)
-      ? {
-        detected: true,
-        value: true,
-        query: args.userMessage,
-        confidence: 0.7,
-      }
-      : DEFAULT_SIGNALS.needs_research,
+    needs_research: researchSignal?.detected || researchSignal?.value === true
+      ? researchSignal
+      : fallbackResearchSignal,
     track_progress_plan_item: trackEffect
       ? {
         detected: true,
@@ -881,6 +1573,60 @@ function memoryV2LineTexts(contextBlock: string): string[] {
     .filter(Boolean);
 }
 
+function humanizeMemoryLine(line: string): string {
+  const cleaned = String(line ?? "")
+    .replace(/\s+Priorite:.*$/i, "")
+    .replace(/\bPattern famille [a-z0-9:_-]+\s*:\s*/i, "")
+    .replace(/^Sur\s+[^,]+,\s+/i, "")
+    .replace(/\bNiveau precedent\s+/i, "Au niveau précédent, ")
+    .replace(/\ble user\b/gi, "tu")
+    .replace(/\bquand il ouvre\b/gi, "quand tu ouvres")
+    .replace(/\bet lance\b/gi, "et que tu lances")
+    .replace(/\bdemarre\b/gi, "démarres")
+    .replace(/\bdemarrage\b/gi, "démarrage")
+    .replace(/\bdeja\b/gi, "déjà")
+    .replace(/\bpret\b/gi, "prêt")
+    .replace(/\bevite\b/gi, "évite")
+    .replace(/\beviter\b/gi, "éviter")
+    .trim();
+  const sentence = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return sentence.endsWith(".") ? sentence : `${sentence}.`;
+}
+
+function renderHumanActionMemory(lines: string[]): string {
+  const humanLines = lines.map(humanizeMemoryLine).filter(Boolean);
+  const exact = humanLines.find((line) =>
+    /fichier déjà prêt|minuteur|12 minutes/i.test(line)
+  );
+  const family = humanLines.find((line) =>
+    /cible augmente|sous 15 minutes|intimidante/i.test(line)
+  );
+  const out = [
+    exact ??
+      "Ce qui t'aide, c'est de rendre le démarrage très concret avant de réfléchir au reste.",
+  ];
+  if (family) out.push(family);
+  return [
+    "Oui. Ce que je garde pour cette action, c'est très concret :",
+    ...out.map((line) => `- ${line}`),
+    "Donc demain, le plus important n'est pas de changer de technique : c'est de préparer le fichier, puis de lancer le minuteur directement.",
+  ].join("\n");
+}
+
+function renderHumanLevelMemory(lines: string[]): string {
+  const humanLines = lines.map(humanizeMemoryLine).filter(Boolean);
+  const strongest =
+    humanLines.find((line) =>
+      /une seule prochaine action|gros blocs abstraits/i.test(line)
+    ) ?? humanLines[0] ??
+      "Je dois garder une prochaine action claire et éviter les blocs trop abstraits.";
+  return [
+    "Oui, je le vois. Le signal à garder du niveau précédent, c'est :",
+    `- ${strongest}`,
+    "Donc dans ce nouveau niveau, je dois rester sur une seule prochaine action claire, pas repartir dans un gros bloc abstrait.",
+  ].join("\n");
+}
+
 function applyMemoryV2ResponseGroundingGuardrail(args: {
   userMessage: string;
   responseContent: string;
@@ -901,6 +1647,65 @@ function applyMemoryV2ResponseGroundingGuardrail(args: {
   const normalizedContext = normalizeMemoryGroundingText(contextBlock);
 
   if (
+    /\b(souviens|souvenir|souvenirs|memorise|memorises|mémoire|memoire|ce que tu sais|sais deja|sais déjà|detail concret|détail concret|pas de conseils generiques|pas de conseils génériques|ce qui m'aide|ce qui marche|m'aide sur cette action|demarrage bloque|démarrage bloque|bloque souvent|pourquoi.*bloque)\b/
+      .test(message) &&
+    normalizedLines.some((line) =>
+      /\baction_(occurrence|family_pattern|week_summary)\b/.test(
+        line.normalized,
+      ) ||
+      /\bsession focus courte|demarre mieux|demarrage sous|minuteur|fichier deja pret\b/
+        .test(line.normalized)
+    ) &&
+    (
+      /\bpas assez|pas la description|besoin.*detail|redonnes?|conseils generiques|en general|souvent que\b/
+        .test(response) ||
+      !/minuteur|fichier|12|quinze|15/.test(response)
+    )
+  ) {
+    const actionLines = normalizedLines
+      .filter((line) =>
+        /\baction_(occurrence|family_pattern|week_summary)\b/.test(
+          line.normalized,
+        ) ||
+        /\bsession focus courte|demarre mieux|demarrage sous|minuteur|fichier deja pret\b/
+          .test(line.normalized)
+      )
+      .map((line) => line.raw.replace(/\s+Priorite:.*$/i, "").trim())
+      .slice(0, 3);
+    if (actionLines.length > 0) {
+      return renderHumanActionMemory(actionLines);
+    }
+  }
+
+  if (
+    /\b(niveau precedent|niveau précédent|nouveau niveau|transition|garder en tete|garder en tête|handoff)\b/
+      .test(message) &&
+    normalizedLines.some((line) =>
+      /\bniveau precedent|niveau précédent|une seule prochaine action|gros blocs abstraits|sortir de l'inertie\b/
+        .test(line.normalized)
+    ) &&
+    (
+      /\bbesoin d'un mini rappel|besoin.*rappel|c'etait quoi|c’était quoi|je dois garder en tete|je dois garder en tête\b/
+        .test(response) ||
+      !/une seule prochaine action|gros blocs|abstraits|sortir de l'inertie/
+        .test(
+          response,
+        )
+    )
+  ) {
+    const levelLines = normalizedLines
+      .filter((line) =>
+        /\bniveau precedent|niveau précédent|une seule prochaine action|gros blocs abstraits|sortir de l'inertie\b/
+          .test(line.normalized)
+      )
+      .map((line) => line.raw.trim())
+      .slice(0, 2);
+    if (levelLines.length > 0) {
+      return renderHumanLevelMemory(levelLines);
+    }
+  }
+
+  if (
     /\b(plat|repas|ingredient|eviter|evite)\b/.test(message) &&
     /sesame|tahini|gomasio/.test(normalizedContext) &&
     !/sesame|tahini|gomasio|allerg/.test(response)
@@ -913,11 +1718,25 @@ function applyMemoryV2ResponseGroundingGuardrail(args: {
     /sept minutes|observable|concrete/.test(normalizedContext) &&
     !/sept|observable|concret|concrete|boucle/.test(response)
   ) {
+    const actionLines = normalizedLines
+      .filter((line) =>
+        /\bsession focus courte|demarre mieux|demarrage sous|minuteur|fichier deja pret\b/
+          .test(line.normalized)
+      )
+      .map((line) => line.raw.replace(/\s+Priorite:.*$/i, "").trim())
+      .slice(0, 3);
+    if (
+      actionLines.length > 0 &&
+      /\bsession focus|demarrage bloque|démarrage bloque|bloque souvent|pourquoi.*bloque\b/
+        .test(message)
+    ) {
+      return renderHumanActionMemory(actionLines);
+    }
     const loopLine = findLine(/boucle ouverte|surcharge/);
     const loop = loopLine
-      ? " Si tu es en surcharge, commence par fermer une boucle ouverte plutot que d'ajouter une nouvelle ambition."
+      ? " Si tu es en surcharge, commence par fermer une boucle ouverte plutôt que d'ajouter une nouvelle ambition."
       : "";
-    return `Action adaptee a toi: une action de sept minutes, observable et concrete.${loop} Choisis une seule micro-livraison liee au sujet courant et rends-la visible, sans ouvrir une nouvelle decision.`;
+    return `Pour toi, le bon format ici serait une action de sept minutes, observable et concrète.${loop} Choisis une seule micro-livraison liée au sujet courant et rends-la visible, sans ouvrir une nouvelle décision.`;
   }
 
   if (
@@ -925,7 +1744,7 @@ function applyMemoryV2ResponseGroundingGuardrail(args: {
     /deux fois par semaine|recuperation/.test(normalizedContext) &&
     !/deux fois|recuperation|recuperer/.test(response)
   ) {
-    return "Le bon cadre: nager deux fois par semaine, comme recuperation, sans objectif de performance. La seance sert a redescendre la pression, pas a battre un chrono.";
+    return "Le bon cadre pour toi : nager deux fois par semaine, comme récupération, sans objectif de performance. La séance sert à redescendre la pression, pas à battre un chrono.";
   }
 
   if (
@@ -985,6 +1804,19 @@ function resolveLoggedAtIso(dateHint: string | null | undefined): string {
     return new Date(`${trimmed}T12:00:00.000Z`).toISOString();
   }
   return new Date().toISOString();
+}
+
+function ymdToUtcNoonDate(ymd: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!match) return null;
+  return new Date(Date.UTC(
+    Number(match[1]),
+    Number(match[2]) - 1,
+    Number(match[3]),
+    12,
+    0,
+    0,
+  ));
 }
 
 function derivePlanItemEntryKind(args: {
@@ -2040,6 +2872,10 @@ function buildConversationRiskFlowExitAddon(
     "- Ne relance pas immediatement le meme flow et ne demande aucun slot specifique.",
     "- Interdit sur ce tour: question A/B, choix de moment, demande de declencheur, demande de cible, demande de detail operationnel.",
     "- La seule question autorisee est une validation globale du resume: 'confirme-moi si c'est bien ca, ou dis-moi ce qu'il faut ajuster'.",
+    "- Le resume a confirmer doit porter uniquement sur les informations utiles au travail: sujet, cible, moment, besoin, operation souhaitee, contrainte, intention.",
+    "- Ne fais jamais confirmer la frustration elle-meme, ni le fait que l'utilisateur est en colere, ni que Sophia a mal compris, ni que tu as repondu a cote.",
+    "- Si tu reconnais brievement la friction, reste neutre et oriente reprise: 'Ok, on reprend proprement.' Ne parle pas de ce que Sophia a compris ou rate.",
+    "- Evite les formulations comme: 'tu es frustre parce que je...', 'a chaque fois je...', 'je t'ai fait tourner en rond', 'tu veux repartir a zero parce que je...', 'je n'ai pas compris', 'je ne comprends pas', 'je te suis pas', 'je t'ai perdu', 'je reponds a cote'.",
     "- Pour un tool_skill, nomme l'operation en langage user: 'carte de defense', 'ajustement du plan', 'carte d'attaque', etc., pas l'identifiant technique.",
     "",
     `Contexte structure pour toi: ${knownContext}`,
@@ -2169,105 +3005,6 @@ function normalizeRouteText(text: string): string {
   return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
-function isStabilizedConcreteAsk(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  const stabilized =
-    /\bm[' ]?aide un peu\b|\bdescend un peu\b|\bok\b|\boui\b|\bje veux\b|\bplus simple\b|\bphrase simple\b|\bje peux\b|\bje peux peut[- ]?etre\b|\bje peux essayer\b|\bapres\b|\bpour finir\b|\bmaintenant\b|\bconcretement\b|\bconcr[eè]tement\b|\bdevant la page\b|\bj[' ]?ai trouve\b|\bj[' ]?ai trouvé\b/
-      .test(normalized);
-  const concrete =
-    /\bversion exacte\b|\bphrase exacte\b|\bphrase simple\b|\ben une ligne\b|\bpremier petit pas concret\b|\bpremier pas\b|\baction concrete\b|\baction concr[eè]te\b|\benvoyer une ligne\b|\benvoyer une phrase\b|\breprendre l[' ]?intro\b|\breprendre l intro\b|\breconnait le tort\b|\breconnaît le tort\b|\bsans me flageller\b|\bje clique\b|\bclique\b|\bboutons?\b|\bonglets?\b|\bpage\b|\bdossier\b|\bdocuments?\b|\bcherche quoi\b|\bquoi en premier\b/
-      .test(normalized);
-  const concreteRepairAsk =
-    /\bphrase exacte\b|\bphrase simple\b|\breprendre l[' ]?intro\b|\breprendre l intro\b|\breconnait le tort\b|\breconnaît le tort\b|\bsans me flageller\b|\bje clique\b|\bclique\b|\bboutons?\b|\bonglets?\b|\bpage\b|\bdossier\b|\bdocuments?\b|\bcherche quoi\b|\bquoi en premier\b/
-      .test(normalized);
-  return (stabilized && concrete) || concreteRepairAsk;
-}
-
-function isEmotionalRepairStabilization(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  return /\bpression redescend\b|\bredescend\b|\bmoment pas identite\b|\bmoment pas une identite\b|\bpas identite\b|\bpas une identite\b|\brevenir au concret\b|\bje peux revenir\b|\bje peux reprendre\b/
-    .test(normalized);
-}
-
-function isWorkSelfPhraseAsk(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  return /\bphrase simple\b|\bphrase courte\b|\bphrase a me dire\b|\bme dire avant\b|\bavant de reprendre\b|\breprendre l[' ]?intro\b|\breprendre l intro\b/
-    .test(normalized);
-}
-
-function renderWorkSelfPhraseReply(): string {
-  return [
-    "Garde une phrase courte, sans te pousser ni te juger :",
-    "",
-    "« Je n’ai pas besoin de me juger pour reprendre. Je peux juste poser un premier geste. »",
-    "",
-    "Et ensuite, seulement ce premier geste. Pas tout le dossier.",
-  ].join("\n");
-}
-
-function isAdminExecutionContext(text: string): boolean {
-  return /\bmutuelle\b|\bdossier\b|\badministratif\b|\badmin\b|\bdocuments?\b|\bonglets?\b|\bpi[eè]ce manquante\b|\bpage\b|\bboutons?\b/
-    .test(text);
-}
-
-function renderWorkSelfAttackReply(text: string): string {
-  const target = isAdminExecutionContext(text)
-    ? "ce dossier administratif"
-    : "cette action";
-  return [
-    "Je vois le piège : le blocage essaie de devenir un verdict sur toi.",
-    "",
-    `Mais ${target} est un fait concret à reprendre, pas une preuve que tu es incapable.`,
-    "",
-    "On garde le fait sans avaler la conclusion : tu es bloqué maintenant, tu n'es pas ce blocage.",
-  ].join("\n");
-}
-
-function isWorkPressureDown(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  return /\bpression\b.*\bredescend|\bredescend\b.*\bpression|\bligne bancale\b|\bpremiere ligne\b|\bpremière ligne\b/
-    .test(normalized);
-}
-
-function isWorkLineCommitment(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  return /\bok\b.*\b(peux|vais)\b.*\b(une seule ligne|premiere ligne|première ligne|ligne)\b|\b(une seule ligne|premiere ligne|première ligne)\b.*\b(phrase|reprendre|poser)\b/
-    .test(normalized);
-}
-
-function renderWorkLineCommitmentReply(): string {
-  return [
-    "Oui. Une seule ligne, c’est exactement le bon format.",
-    "",
-    "Tu n’as pas besoin de la rendre intelligente maintenant. Tu poses la ligne, tu la laisses exister, et tu ajustes plus tard si nécessaire.",
-  ].join("\n");
-}
-
-function isSoberRecapRequest(text: string): boolean {
-  const normalized = normalizeRouteText(text);
-  return /\brecap\b|\brécap\b|\bce qu[' ]?on garde\b|\bsobre\b/.test(
-    normalized,
-  );
-}
-
-function renderWorkPressureDownReply(): string {
-  return [
-    "C’est suffisant pour maintenant : une ligne imparfaite, et la pression qui baisse.",
-    "",
-    "Tu peux soit poser une deuxième ligne dans le même esprit, soit faire une pause courte. Les deux gardent le mouvement sans relancer le jugement.",
-  ].join("\n");
-}
-
-function renderWorkSoberRecapReply(): string {
-  return [
-    "On garde trois choses :",
-    "",
-    "- Un blocage est un fait ponctuel, pas un verdict sur ton identité.",
-    "- Une première ligne imparfaite peut suffire à relancer le mouvement.",
-    "- Reprendre petit protège mieux que se forcer à tout résoudre d’un coup.",
-  ].join("\n");
-}
-
 function emotionalRepairContext(
   text: string,
 ): "relationship" | "work" | "general" {
@@ -2288,440 +3025,64 @@ function emotionalRepairContext(
   return "general";
 }
 
-function renderAcuteEmotionalRepairReply(
-  userMessage: string,
-  recentText = "",
-): string {
-  const text = normalizeRouteText(userMessage);
-  const context = emotionalRepairContext(`${recentText}\n${text}`);
-  const bodyPart = /\bventre\b/.test(text)
-    ? "ventre"
-    : /\bgorge\b/.test(text)
-    ? "gorge"
-    : null;
-  if (
-    context === "relationship" &&
-    /\brepondu sechement\b|\bparle sechement\b|\bquelqu[' ]?un que j[' ]?aime\b|\bquelqu un que j aime\b/
-      .test(text) &&
-    !/\bnul\b|\bminable\b|\bhonte\b|\bdegoute\b/.test(text)
-  ) {
-    return [
-      "Oui, je vois le genre de phrase qui reste accrochée après coup.",
-      "",
-      "Tu as été sec avec quelqu’un qui compte, et maintenant ça te serre parce que le lien compte aussi. On peut rester sur ce fait-là sans partir tout de suite en procès contre toi.",
-      "",
-      "Pour l’instant, tu n’as pas besoin de réparer dans la panique. Juste reconnaître : “j’ai parlé trop sèchement, et je veux faire mieux que ça”.",
-    ].join("\n");
-  }
-  if (
-    /\btrop vite\b|\bchaque (idee|idée|solution)\b/.test(text) ||
-    bodyPart
-  ) {
-    if (context === "relationship") {
-      return [
-        "Oui, là ce serait trop vite d’écrire depuis cette honte.",
-        "",
-        `Le ${
-          bodyPart ?? "corps"
-        } qui se noue, ça dit surtout que tu tiens à ne pas abîmer le lien. Pas que ton excuse serait forcément fausse ou calculée.`,
-        "",
-        "On peut laisser le message de côté une minute. Le point simple, c’est : tu regrettes, tu veux réparer, et tu n’as pas besoin de te démolir pour que ce soit sincère.",
-      ].join("\n");
-    }
-    return [
-      "Oui, là ce serait trop vite d’écrire ou de résoudre.",
-      "",
-      `Le ${
-        bodyPart ?? "corps"
-      } qui se serre dit surtout que c’est chargé, pas que tu dois trouver la phrase parfaite tout de suite.`,
-      "",
-      "Tu peux juste rester avec cette phrase : c’est dur maintenant, ça ne dit pas tout de toi.",
-    ].join("\n");
-  }
-  if (/\bdegoute\b|\bincapable\b|\bpas fiable\b|\bminable\b/.test(text)) {
-    if (context === "work") {
-      return renderWorkSelfAttackReply(`${recentText}\n${text}`);
-    }
-    if (context === "relationship") {
-      return [
-        "Je comprends que tu te dégoûtes un peu là, mais je ne prendrais pas ça comme un verdict fiable sur toi.",
-        "",
-        "Tu as parlé sèchement, tu le regrettes, et ça te fait mal parce que cette personne compte. Ça ne t’absout pas magiquement, mais ça ne fait pas de toi quelqu’un de mauvais non plus.",
-        "",
-        "On peut viser une réparation sobre, sans théâtre et sans auto-punition.",
-      ].join("\n");
-    }
-    return [
-      "Je comprends que tu te dégoûtes un peu là, mais je ne prendrais pas ça comme un verdict fiable sur toi.",
-      "",
-      "Un moment de blocage peut demander une reprise simple. Ça ne veut pas dire que toute ta personne est à jeter.",
-      "",
-      "On garde le fait, pas le verdict.",
-    ].join("\n");
-  }
-  if (
-    /\bhonte\b|\bboulet\b|\badulte\b|\bfiable\b|\bquelqu[' ]?un de bien\b|\bquelqu un de bien\b|\bpersonne qui blesse\b/
-      .test(text)
-  ) {
-    if (context === "work") {
-      return renderWorkSelfAttackReply(`${recentText}\n${text}`);
-    }
-    if (context === "relationship") {
-      return [
-        "Aïe. Ça touche un endroit très dur : pas seulement “j’ai mal parlé”, mais “est-ce que je suis quelqu’un qui fait du mal ?”",
-        "",
-        "Je ne veux pas minimiser ce que tu as dit. Mais une parole sèche, même regrettable, ne suffit pas à résumer qui tu es. Le fait que ça te remue montre aussi que le lien compte pour toi.",
-        "",
-        "Pour l’instant, on garde deux phrases séparées : “j’ai blessé / brusqué quelqu’un” et “je suis minable”. La première peut se réparer. La deuxième est la honte qui frappe trop large.",
-      ].join("\n");
-    }
-    const intensity = /\b8\s*\/\s*10\b/.test(text)
-      ? "8/10, c’est fort."
-      : "Aïe.";
-    return [
-      `${intensity} Quand la honte monte, elle transforme vite un moment raté en jugement sur toute ta valeur.`,
-      "",
-      "Il peut y avoir un fait concret à réparer, oui. Mais “je suis nul” ou “je suis un boulet” sont des conclusions trop dures, pas des faits.",
-      "",
-      "On sépare juste le moment de ton identité avant de passer à l’action.",
-    ].join("\n");
-  }
-  if (/\bnul\b|\bimmature\b|\bcon\b|\bparle comme ca\b/.test(text)) {
-    if (context === "work") {
-      return renderWorkSelfAttackReply(`${recentText}\n${text}`);
-    }
-    if (context === "relationship") {
-      return [
-        "Je comprends que tu te tapes dessus, mais “j’ai mal parlé” et “je suis nul” ne sont pas la même phrase.",
-        "",
-        "Le fait, c’est : tu as été sec, tu regrettes, et ça te touche. On peut partir de là sans te condamner entièrement.",
-      ].join("\n");
-    }
-    return [
-      "Je vois le piège : un petit blocage arrive, puis il devient une preuve contre toi.",
-      "",
-      "Mais ce que tu n’arrives pas à faire là ne mérite pas une condamnation de toute ta personne.",
-      "",
-      "On peut garder le fait concret sans rajouter “je suis nul” par-dessus.",
-    ].join("\n");
-  }
-  return [
-    "Je te réponds d’abord sur la honte, pas sur l’action.",
-    "",
-    "Ce que tu dis ressemble à une attaque contre toi dans un moment difficile. On peut garder le fait concret sans le transformer en identité durable.",
-  ].join("\n");
-}
-
-function applyEmotionalRepairResponseGuardrail(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  responseContent: string;
-  recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-}): string {
-  if (
-    args.routeDecision?.response_owner !== "conversation_handler" ||
-    args.routeDecision.selected_handler !== "emotional_repair"
-  ) {
-    return args.responseContent;
-  }
-  if (isLikelyOneShotReminderRequest(args.userMessage)) {
-    return args.responseContent;
-  }
-  if (isWorkSelfPhraseAsk(args.userMessage)) {
-    return renderWorkSelfPhraseReply();
-  }
-  if (isWorkLineCommitment(args.userMessage)) {
-    return renderWorkLineCommitmentReply();
-  }
-  if (isEmotionalRepairStabilization(args.userMessage)) {
-    return [
-      "Oui, c’est le bon signal : la pression redescend un peu.",
-      "",
-      "On garde la séparation : ce blocage est un moment, pas une identité. Quand tu reviens au concret, tu n’as pas besoin de te convaincre que tout va bien ; juste de reprendre petit.",
-    ].join("\n");
-  }
-  if (isStabilizedConcreteAsk(args.userMessage)) {
-    return [
-      "Oui. On peut revenir au concret sans perdre le fil : petit, sobre, sans te juger.",
-      "",
-      "La prochaine étape doit être assez légère pour ne pas relancer la honte.",
-    ].join("\n");
-  }
-  return renderAcuteEmotionalRepairReply(
-    args.userMessage,
-    normalizeRouteText(
-      args.recentMessages
-        .filter((turn) => turn.role === "user")
-        .map((turn) => turn.content)
-        .join("\n"),
-    ),
-  );
-}
-
-function applyExecutionBreakdownRelationshipRepairGuardrail(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  responseContent: string;
-  recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-}): string {
-  if (
-    args.routeDecision?.response_owner !== "conversation_handler" ||
-    args.routeDecision.selected_handler !== "execution_breakdown"
-  ) {
-    return args.responseContent;
-  }
-  if (isLikelyOneShotReminderRequest(args.userMessage)) {
-    return args.responseContent;
-  }
-  const current = normalizeRouteText(args.userMessage);
-  const recent = normalizeRouteText(
-    args.recentMessages.map((turn) => turn.content).join("\n"),
-  );
-  const context = emotionalRepairContext(`${recent}\n${current}`);
-  if (isSoberRecapRequest(args.userMessage)) {
-    return renderWorkSoberRecapReply();
-  }
-  if (context === "work" && isWorkSelfPhraseAsk(args.userMessage)) {
-    return renderWorkSelfPhraseReply();
-  }
-  if (context === "work" && isWorkPressureDown(args.userMessage)) {
-    return renderWorkPressureDownReply();
-  }
-  if (context === "work") {
-    return args.responseContent;
-  }
-  const asksPostSendStep =
-    /\bapres l[' ]?envoyer\b|\bapres envoyer\b|\bapres l envoi\b|\bapres l'envoi\b|\bpremier pas concret\b|\bpremier petit pas concret\b|\bruminer\b|\bsoir[eé]e\b/
-      .test(current);
-  if (asksPostSendStep) {
-    return [
-      "Ok. Après l’envoi, le premier pas concret c’est de ne pas rester devant l’écran à guetter.",
-      "",
-      "Pendant 5 minutes : pose le téléphone hors de vue, note juste “j’ai réparé ce que je pouvais réparer maintenant”, puis fais un geste physique simple : boire de l’eau, prendre une douche, ou marcher un peu.",
-      "",
-      "Le but n’est pas de te convaincre que tout va bien. C’est d’éviter que ton cerveau transforme l’attente en procès.",
-    ].join("\n");
-  }
-  const asksRepairPhrase =
-    /\benvoyer une phrase\b|\bphrase exacte\b|\breconnait le tort\b|\breconnaît le tort\b|\bsans me flageller\b|\bne sonne pas dramatique\b/
-      .test(current);
-  if (!asksRepairPhrase) return args.responseContent;
-
-  if (
-    /\breconnait le tort\b|\breconnaît le tort\b|\bsans me flageller\b/.test(
-      current,
-    )
-  ) {
-    return [
-      "Oui. Tu peux lui envoyer quelque chose de simple, qui reconnaît le tort sans te démolir :",
-      "",
-      "« Je suis désolé d’avoir répondu sèchement tout à l’heure. Tu ne méritais pas ça, et je voulais te le reconnaître simplement. »",
-    ].join("\n");
-  }
-
-  return [
-    "Oui. Une version sobre, sans drama :",
-    "",
-    "« Je repense à ma façon de te répondre tout à l’heure. J’ai été sec, je suis désolé. Je tenais à te le dire simplement. »",
-  ].join("\n");
-}
-
-function renderDeterministicSafetyReply(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  turnFrame: TurnFrame | null;
-}): string | null {
-  const safetyReasonCodes = Array.isArray(args.turnFrame?.safety?.reason_codes)
-    ? args.turnFrame.safety.reason_codes
-    : [];
-  const safetyContextActive = args.routeDecision?.response_owner === "safety" ||
-    safetyReasonCodes.includes("recent_safety_context_caution");
-  if (!safetyContextActive) return null;
-  const current = normalizeRouteText(args.userMessage);
-
-  if (isLikelyOneShotReminderRequest(args.userMessage)) {
-    return [
-      "Je ne programme pas de rappel pendant que le risque est encore actif.",
-      "",
-      "La priorité, c’est le contact humain maintenant : écris à une personne sûre tout de suite, même une phrase simple comme “je ne suis pas au mieux, tu peux rester joignable ?”.",
-    ].join("\n");
-  }
-
-  if (
-    /\bredescendre\b|\bredescend\b|\bsans dramatiser\b|\bsans minimiser\b|\brespire\b|\brespirer\b/
-      .test(current)
-  ) {
-    return [
-      "Ok. On redescend sans dramatiser et sans minimiser.",
-      "",
-      "Pendant une minute : pose les deux pieds au sol, expire plus longtemps que tu n’inspires, puis nomme cinq choses que tu vois autour de toi.",
-      "",
-      "Et garde une phrase simple : “Je suis en sécurité maintenant, et je peux demander du soutien réel.”",
-    ].join("\n");
-  }
-
-  if (
-    /\bpas en danger\b|\brien prepare\b|\brien préparé\b|\bne veux pas me faire du mal\b|\bveux pas me faire du mal\b|\bpas maintenant\b/
-      .test(current)
-  ) {
-    return [
-      "Merci de le préciser. Je garde deux choses ensemble : tu n’es pas en danger immédiat, et ces pensées t’ont fait peur.",
-      "",
-      "Ne reste pas seul avec ça si elles reviennent. Si le risque remonte, appelle le 3114, le 15 ou le 112. Là, est-ce que tu peux prévenir une personne sûre que tu as besoin qu’elle soit joignable ?",
-    ].join("\n");
-  }
-
-  return [
-    "Merci de me le dire. Là, on met la sécurité avant le reste.",
-    "",
-    "Est-ce que tu es en sécurité maintenant, oui ou non ? Et est-ce que tu peux contacter une personne réelle tout de suite ?",
-    "",
-    "Si tu sens un risque de passage à l’acte, appelle le 3114, le 15 ou le 112 maintenant.",
-  ].join("\n");
-}
-
-function renderDeterministicSkillReply(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  turnFrame: TurnFrame | null;
-  recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-  userId: string;
-  activeSkillState: unknown;
-  planItemSnapshot: unknown[] | null | undefined;
-  productSurfaces: unknown[];
-  skillOutput: ConversationSkillOutput | null;
-}): string | null {
-  if (!args.turnFrame || !args.routeDecision) return null;
-  if (
-    args.skillOutput?.reply &&
-    args.routeDecision.response_owner === "conversation_handler"
-  ) {
-    return String(args.skillOutput.reply).trim();
-  }
-  if (args.routeDecision.response_owner !== "product_help") return null;
-  const verificationReply = renderAttackCardPostCreationVerificationReply({
-    message: args.userMessage,
-    recentMessages: args.recentMessages,
-  });
-  if (verificationReply) return verificationReply;
-  const context = buildSkillContextForRecommendation({
-    skillId: "product_help",
-    userId: args.userId,
-    turnFrame: args.turnFrame,
-    recentMessages: args.recentMessages,
-    activeSkillState: args.activeSkillState,
-    planItemSnapshot: args.planItemSnapshot,
-    productSurfaces: args.productSurfaces,
-  });
-  return String(
-    runProductHelpSkill({ user_message: args.userMessage, context }).reply ??
-      "",
-  ).trim() || null;
-}
-
-function renderDeterministicNormalReply(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  turnFrame: TurnFrame | null;
-}): string | null {
-  if (args.routeDecision?.response_owner !== "normal_reply") return null;
-  const current = normalizeRouteText(args.userMessage);
-
-  if (
-    /\b(stop|arrete|arrête|c est bon|c'est bon|ne cree rien|ne crée rien|rien d autre|rien d'autre)\b/
-      .test(current)
-  ) {
-    return "Ok, j'arrête là. Je ne crée rien d'autre.";
-  }
-
-  if (
-    /\baction admin\b|\bmodifier\b|\bmodifie\b|\btraiter ici\b|\bnoter ce micro[- ]?pas\b|\bmodifier le plan\b/
-      .test(current)
-  ) {
-    return [
-      "Règle simple : si tu changes l’action elle-même, tu modifies le dashboard. Si tu veux juste avancer sur l'exécution, on le traite ici sans toucher au plan.",
-      "",
-      "Donc pour une action admin déjà prévue : on la traite ici quand le blocage est l’exécution; on modifie le dashboard seulement si l’action n’est plus la bonne.",
-    ].join("\n");
-  }
-
-  if (
-    /\brespire\b.*\bmieux\b|\bmessage a quelqu[' ]?un\b|\bmessage a quelqu un\b/
-      .test(current)
-  ) {
-    return [
-      "Ok. On garde d’abord le soutien réel : envoyer un message simple à quelqu’un après cette conversation.",
-      "",
-      "Ensuite seulement, tu peux revenir au concret avec une micro-action, pas plus.",
-    ].join("\n");
-  }
-
-  if (isSoberRecapRequest(args.userMessage)) {
-    return [
-      "Recap sobre :",
-      "",
-      "- Sécurité : si les pensées de disparition reviennent ou montent, tu contactes une personne réelle; si le risque devient immédiat, 3114, 15 ou 112.",
-      "- Elan : on ne force pas la motivation; on réduit la charge au prochain geste utile.",
-      "- Mutuelle : ouvrir le site et atteindre l’écran d’envoi de pièce, sans transformer ça en audit complet.",
-    ].join("\n");
-  }
-
-  const turnFrameSafetyReasonCodes = Array.isArray(
-      args.turnFrame?.safety?.reason_codes,
-    )
-    ? args.turnFrame.safety.reason_codes
-    : [];
-  if (turnFrameSafetyReasonCodes.includes("recent_safety_context_caution")) {
-    return [
-      "On reste prudent et simple : pas de produit, pas d’optimisation.",
-      "",
-      "Le prochain bon geste est de rester relié à quelqu’un et de garder la suite très petite.",
-    ].join("\n");
-  }
-
-  return null;
-}
-
-function renderDeterministicConversationHandlerReply(args: {
-  routeDecision: RouteDecision | null;
-  userMessage: string;
-  recentMessages: Array<{ role: "user" | "assistant"; content: string }>;
-}): string | null {
-  if (
-    args.routeDecision?.response_owner !== "conversation_handler" ||
-    !args.routeDecision.selected_handler ||
-    isLikelyOneShotReminderRequest(args.userMessage)
-  ) {
-    return null;
-  }
-
-  const current = normalizeRouteText(args.userMessage);
-  const recent = normalizeRouteText(
-    args.recentMessages.map((turn) => turn.content).join("\n"),
-  );
-  if (isSoberRecapRequest(args.userMessage)) {
-    return renderWorkSoberRecapReply();
-  }
-  const context = emotionalRepairContext(`${recent}\n${current}`);
-  if (context !== "work") return null;
-
-  if (isWorkSelfPhraseAsk(args.userMessage)) {
-    return renderWorkSelfPhraseReply();
-  }
-  if (isWorkPressureDown(args.userMessage)) {
-    return renderWorkPressureDownReply();
-  }
-  return null;
-}
-
 function persistConversationSkillRoute(
   tempMemory: any,
   routeDecision: RouteDecision | null,
 ): any {
   const next = { ...(tempMemory ?? {}) };
+  const arbitration = routeDecision?.active_flow_arbitration;
+  if (
+    arbitration?.decision === "inline_answer_then_resume" ||
+    arbitration?.decision === "suspend_active" ||
+    arbitration?.decision === "supersede_active"
+  ) {
+    const activeOwner = String(arbitration.active_owner ?? "none");
+    const snapshot = activeOwner === "pending_confirmation"
+      ? next.__pending_tool_skill_confirmation ??
+        next.pending_tool_skill_confirmation ?? null
+      : activeOwner === "tool_skill"
+      ? next.__active_tool_skill_intake ?? next.active_tool_skill_intake ?? null
+      : activeOwner === "conversation_skill"
+      ? next.__active_skill_state ?? next.active_skill_state ?? null
+      : null;
+    if (snapshot) {
+      next.__suspended_flow_v1 = {
+        owner: activeOwner,
+        state_snapshot: snapshot,
+        suspended_by: routeDecision?.response_owner ?? "unknown",
+        resume_policy: arbitration.resume_policy,
+        turn_ttl: arbitration.resume_policy === "auto_after_answer" ? 1 : 2,
+        created_at: new Date().toISOString(),
+      };
+    }
+    if (
+      arbitration.decision !== "inline_answer_then_resume" &&
+      activeOwner === "tool_skill" &&
+      arbitration.selected_owner !== "tool_skill"
+    ) {
+      delete next.__active_tool_skill_intake;
+      delete next.active_tool_skill_intake;
+    }
+    if (
+      arbitration.decision !== "inline_answer_then_resume" &&
+      activeOwner === "pending_confirmation" &&
+      arbitration.selected_owner !== "pending_confirmation"
+    ) {
+      delete next.__pending_tool_skill_confirmation;
+      delete next.pending_tool_skill_confirmation;
+    }
+  }
   const selected = String(routeDecision?.selected_handler ?? "").trim();
   if (routeDecision?.response_owner === "conversation_handler" && selected) {
-    const rawPrevious = next.__active_skill_state ?? next.active_skill_state;
+    const suspendedFlow = next.__suspended_flow_v1 &&
+        typeof next.__suspended_flow_v1 === "object"
+      ? next.__suspended_flow_v1 as Record<string, unknown>
+      : null;
+    const rawPrevious = next.__active_skill_state ?? next.active_skill_state ??
+      (selected === "weekly_adaptive_review_v1" &&
+          isWeeklyAdaptiveReviewActive(suspendedFlow?.state_snapshot)
+        ? suspendedFlow?.state_snapshot
+        : null);
     const previous = rawPrevious && typeof rawPrevious === "object"
       ? rawPrevious as Record<string, unknown>
       : {};
@@ -2742,14 +3103,49 @@ function persistConversationSkillRoute(
       updated_at: new Date().toISOString(),
     };
     delete next.active_skill_state;
+    if (selected === "weekly_adaptive_review_v1") {
+      delete next.__suspended_flow_v1;
+    }
+    return next;
+  }
+
+  const suspendedFlow = next.__suspended_flow_v1 &&
+      typeof next.__suspended_flow_v1 === "object"
+    ? next.__suspended_flow_v1 as Record<string, unknown>
+    : null;
+  const rawPrevious = next.__active_skill_state ?? next.active_skill_state ??
+    (isWeeklyAdaptiveReviewActive(suspendedFlow?.state_snapshot)
+      ? suspendedFlow?.state_snapshot
+      : null);
+  if (
+    isWeeklyAdaptiveReviewActive(rawPrevious) &&
+    routeDecision?.response_owner !== "safety"
+  ) {
+    const previous = rawPrevious && typeof rawPrevious === "object"
+      ? rawPrevious as Record<string, unknown>
+      : {};
+    next.__active_skill_state = {
+      ...previous,
+      skill_id: "weekly_adaptive_review_v1",
+      turn_count: Number(previous.turn_count ?? 0) + 1,
+      updated_at: new Date().toISOString(),
+    };
+    delete next.active_skill_state;
+    delete next.__suspended_flow_v1;
     return next;
   }
 
   if (
     routeDecision?.response_owner === "normal_reply" ||
     routeDecision?.response_owner === "tool_skill" ||
-    routeDecision?.response_owner === "product_help" ||
     routeDecision?.response_owner === "safety"
+  ) {
+    delete next.__active_skill_state;
+    delete next.active_skill_state;
+  }
+  if (
+    routeDecision?.response_owner === "product_help" &&
+    arbitration?.decision !== "inline_answer_then_resume"
   ) {
     delete next.__active_skill_state;
     delete next.active_skill_state;
@@ -2883,6 +3279,12 @@ function writeLastResolvedPlanItem(
       kind: item.item_type,
       dimension: item.dimension,
       status: item.status,
+      available_this_week: item.available_this_week ?? false,
+      availability_status: item.availability_status ?? null,
+      item_nature: item.item_nature ?? null,
+      cadence_label: item.cadence_label ?? null,
+      target_reps: item.target_reps ?? null,
+      week_scope: item.week_scope ?? null,
       source,
       updated_at: new Date().toISOString(),
     },
@@ -2924,6 +3326,42 @@ function operationInputFromPlanAdjustmentScope(
     !Array.isArray(structuredInput)
   ) {
     return structuredInput as Record<string, unknown>;
+  }
+  if (intent?.adjust_plan_scope === "current_level") {
+    return {
+      target_granularity: {
+        status: "identified",
+        value: "current_level",
+        confidence: intent.confidence_band === "high" ? "high" : "medium",
+        evidence: [intent.target_hint ?? "turn_frame.adjust_plan_scope"],
+        negative_evidence: intent.rejected_operations ?? [],
+      },
+      scope: {
+        status: "identified",
+        kind: "current_level",
+        label: intent.target_hint ?? "niveau actuel",
+        evidence: [intent.target_hint ?? "turn_frame.adjust_plan_scope"],
+      },
+      rejected_operations: intent.rejected_operations ?? [],
+    };
+  }
+  if (intent?.adjust_plan_scope === "whole_plan") {
+    return {
+      target_granularity: {
+        status: "identified",
+        value: "whole_plan",
+        confidence: intent.confidence_band === "high" ? "high" : "medium",
+        evidence: [intent.target_hint ?? "turn_frame.adjust_plan_scope"],
+        negative_evidence: intent.rejected_operations ?? [],
+      },
+      scope: {
+        status: "identified",
+        kind: "whole_plan",
+        label: intent.target_hint ?? "plan global",
+        evidence: [intent.target_hint ?? "turn_frame.adjust_plan_scope"],
+      },
+      rejected_operations: intent.rejected_operations ?? [],
+    };
   }
   return null;
 }
@@ -2983,8 +3421,616 @@ function defaultPlanItemForAdjustment(
   planItems?: V2PlanItemSnapshotItem[] | null,
 ): V2PlanItemSnapshotItem | null {
   if (!Array.isArray(planItems) || planItems.length === 0) return null;
-  return planItems.find((item) => item.status === "active") ?? planItems[0] ??
-    null;
+  const generatedPlanItems = planItems.filter((item) =>
+    item.source_kind !== "operation_bridge"
+  );
+  return generatedPlanItems.find((item) => item.available_this_week === true) ??
+    planItems.find((item) => item.available_this_week === true) ??
+    generatedPlanItems.find((item) => item.status === "active") ??
+    planItems.find((item) => item.status === "active") ??
+    generatedPlanItems[0] ?? planItems[0] ?? null;
+}
+
+function formatPlanSnapshotLine(item: V2PlanItemSnapshotItem): string {
+  const parts = [
+    item.dimension,
+    item.item_type,
+    item.item_nature,
+    `status=${item.status}`,
+  ];
+  if (item.week_scope?.weekly_cadence_label) {
+    parts.push(`cadence_cette_semaine=${item.week_scope.weekly_cadence_label}`);
+  } else if (typeof item.week_scope?.weekly_reps === "number") {
+    parts.push(`reps_cette_semaine=${item.week_scope.weekly_reps}`);
+  }
+  if (item.cadence_label) {
+    parts.push(`cadence_base_item=${item.cadence_label}`);
+  }
+  if (typeof item.target_reps === "number") {
+    parts.push(`target_reps_global=${item.target_reps}`);
+  }
+  if (item.week_scope?.week_order) {
+    parts.push(`week_order=${item.week_scope.week_order}`);
+  }
+  if (item.week_scope?.week_status) {
+    const weekStatus = item.week_scope.week_status === "completed"
+      ? "calendar_week_past"
+      : item.week_scope.week_status;
+    parts.push(`week_status=${weekStatus}`);
+  }
+  return `- ${item.title} (${parts.filter(Boolean).join("; ")})`;
+}
+
+function formatCurrentWeekSummaryItem(item: V2PlanItemSnapshotItem): string {
+  const weekly = item.week_scope?.weekly_cadence_label ??
+    (typeof item.week_scope?.weekly_reps === "number"
+      ? `${item.week_scope.weekly_reps} reps cette semaine`
+      : null);
+  return weekly ? `${item.title} [${weekly}]` : item.title;
+}
+
+function buildActivePlanSnapshotAddon(args: {
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+  routeDecision?: RouteDecision | null;
+  userMessage: string;
+}): string | null {
+  const items = (args.planItemSnapshot ?? []).filter((item) =>
+    item.source_kind !== "operation_bridge"
+  );
+  if (items.length === 0) return null;
+  const normalized = normalizeRouteText(args.userMessage);
+  const likelyPlanContentQuestion =
+    /\b(cette semaine|quoi faire|faire quoi|censee|cense|supposee|suppose|tous les jours|chaque jour|quotidien|ponctuel|ponctuelle|combien de fois|frequence|frequence|nettoyer|environnement|mission|habitude|action)\b/
+      .test(normalized);
+  if (!likelyPlanContentQuestion) return null;
+
+  const currentWeek = items.filter((item) => item.available_this_week === true);
+  const pastWeek = items.filter((item) =>
+    item.availability_status === "available_past_week"
+  );
+  const upcomingWeek = items.filter((item) =>
+    item.availability_status === "available_upcoming_week"
+  );
+  const unassigned = items.filter((item) =>
+    item.availability_status === "not_assigned_to_level_weeks" ||
+    item.availability_status === "assigned_no_calendar"
+  );
+
+  const lines = [
+    "=== CONTEXTE OPERATIONNEL PLAN ACTIF (A UTILISER POUR REPONDRE) ===",
+    "Le backend te donne le plan actif: ne dis pas que tu ne peux pas le voir.",
+    "Tu peux affirmer qu'un item est dans le plan si cette section le liste.",
+    "Tu peux affirmer qu'un item est a faire cette semaine si cette section le liste dans 'Disponibles cette semaine', meme si son status runtime est pending.",
+    "Si le user demande quoi faire cette semaine, cite uniquement les items du resume 'Cette semaine uniquement'. Ne cite pas les items passes ou a venir comme s'ils etaient de cette semaine.",
+    "Quand tu reponds a 'quoi faire cette semaine', inclus toutes les categories disponibles cette semaine: habitudes recurrentes, missions ponctuelles et clarifications. Ne reduis pas la reponse aux seules missions ou clarifications.",
+    "Quand un item disponible cette semaine a cadence_cette_semaine/reps_cette_semaine, cette cadence hebdomadaire prime sur cadence_base_item et target_reps_global.",
+    "available_past_week ou week_status=calendar_week_past signifie seulement que la semaine calendrier est passee. Cela ne signifie PAS que l'item est complete. Ne dis qu'une action est completee si status=completed.",
+    "Important: status=active/pending est un etat runtime en base, pas la disponibilite de la semaine. Pour repondre a 'cette semaine', utilise available_this_week et week_scope.",
+    "Nature des items: recurring_habit = habitude repetee; one_shot_mission = mission ponctuelle; clarification = exercice/clarification.",
+  ];
+  if (currentWeek.length > 0) {
+    lines.push(
+      `Cette semaine uniquement: ${
+        currentWeek.map(formatCurrentWeekSummaryItem).join(" ; ")
+      }`,
+    );
+    lines.push("Disponibles cette semaine:");
+    lines.push(...currentWeek.slice(0, 8).map(formatPlanSnapshotLine));
+  }
+  if (pastWeek.length > 0) {
+    lines.push(
+      `A ne pas presenter comme cette semaine car deja passe: ${
+        pastWeek.map((item) => item.title).slice(0, 6).join(" ; ")
+      }`,
+    );
+    lines.push("Deja assignes a une semaine passee du niveau:");
+    lines.push(...pastWeek.slice(0, 6).map(formatPlanSnapshotLine));
+  }
+  if (upcomingWeek.length > 0) {
+    lines.push(
+      `A ne pas presenter comme cette semaine car a venir: ${
+        upcomingWeek.map((item) => item.title).slice(0, 6).join(" ; ")
+      }`,
+    );
+    lines.push("Assignes a une semaine a venir du niveau:");
+    lines.push(...upcomingWeek.slice(0, 6).map(formatPlanSnapshotLine));
+  }
+  if (unassigned.length > 0) {
+    lines.push("Autres items du plan sans semaine courante identifiable:");
+    lines.push(...unassigned.slice(0, 4).map(formatPlanSnapshotLine));
+  }
+  lines.push(
+    "Quand le user demande si une mission est quotidienne, verifie item_nature/cadence avant de repondre. Ne transforme pas une mission ponctuelle en habitude quotidienne.",
+  );
+  return lines.join("\n");
+}
+
+function isWeeklyAdaptiveReviewActive(activeSkillState: unknown): boolean {
+  return String((activeSkillState as any)?.skill_id ?? "").trim() ===
+    "weekly_adaptive_review_v1";
+}
+
+function weeklyAdaptiveReviewStateForTurn(args: {
+  activeSkillState: unknown;
+  tempMemory: unknown;
+}): unknown {
+  if (isWeeklyAdaptiveReviewActive(args.activeSkillState)) {
+    return args.activeSkillState;
+  }
+  const memory = args.tempMemory && typeof args.tempMemory === "object"
+    ? args.tempMemory as Record<string, unknown>
+    : {};
+  const stored = memory.__active_skill_state ?? memory.active_skill_state;
+  if (isWeeklyAdaptiveReviewActive(stored)) return stored;
+  const suspended = memory.__suspended_flow_v1 &&
+      typeof memory.__suspended_flow_v1 === "object"
+    ? memory.__suspended_flow_v1 as Record<string, unknown>
+    : null;
+  const suspendedSnapshot = suspended?.state_snapshot;
+  return isWeeklyAdaptiveReviewActive(suspendedSnapshot)
+    ? suspendedSnapshot
+    : null;
+}
+
+function isExplicitWeeklyReviewExit(message: string): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(stop|arrete|arrête|pause|plus tard|sors du bilan|sortir du bilan|autre sujet|je veux parler d autre chose)\b/
+    .test(text) ||
+    /\boublie\s+(ca|ça|le bilan|ce bilan|la revue|ce point)\b/.test(text);
+}
+
+function shouldKeepWeeklyAdaptiveReviewInConversation(args: {
+  activeSkillState: unknown;
+  tempMemory?: unknown;
+  routeDecision: RouteDecision | null;
+  turnFrame?: TurnFrame | null;
+  userMessage: string;
+}): boolean {
+  if (
+    !weeklyAdaptiveReviewStateForTurn({
+      activeSkillState: args.activeSkillState,
+      tempMemory: args.tempMemory,
+    })
+  ) return false;
+  if (isExplicitWeeklyReviewExit(args.userMessage)) return false;
+  if (
+    weeklyReviewAllowsAdjustPlanBridge({
+      routeDecision: args.routeDecision,
+      turnFrame: args.turnFrame,
+      userMessage: args.userMessage,
+    })
+  ) return false;
+  const owner = args.routeDecision?.response_owner;
+  return owner === "tool_skill" || owner === "product_help";
+}
+
+function weeklyReviewAllowsAdjustPlanBridge(args: {
+  routeDecision: RouteDecision | null;
+  turnFrame?: TurnFrame | null;
+  userMessage: string;
+}): boolean {
+  if (isEarlyWeeklyPlanningValidationRequest(args.userMessage)) return false;
+  if (!isExplicitWeeklyAdjustPlanRequest(args.userMessage)) return false;
+  if (args.routeDecision?.response_owner !== "tool_skill") return false;
+  if (
+    String(args.routeDecision?.selected_handler ?? "").trim() !==
+      "adjust_plan_item"
+  ) {
+    return false;
+  }
+  return Boolean(
+    args.turnFrame?.tool_skill_intents?.some((intent) =>
+      String(intent?.operation_type ?? "").trim() === "adjust_plan_item" &&
+      intent.explicitness === "explicit" &&
+      (intent.user_intent === "adjust" || intent.user_intent === "update") &&
+      intent.ambiguity !== "intent_ambiguous" &&
+      intent.ambiguity !== "both"
+    ),
+  );
+}
+
+function isExplicitWeeklyAdjustPlanRequest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  if (
+    /\b(si je demande|si on demande|tu peux|est ce que tu peux|peux tu|possible de|capacite|capable)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  if (
+    /\b(ne l['’ ]applique pas|n['’ ]applique pas|ne change rien|rien appliquer|pas maintenant|pas tout de suite|juste comprendre|explique moi|resume moi|tu proposes quoi|proposes quoi)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  return /\b(applique|appliquer|confirme|valide|valider|change|changer|modifie|modifier|ajuste|ajuster|alleger|allege|all[eé]ge|simplifie|simplifier|reduis|reduit|retire|supprime|remplace|reorganise|réorganise)\b/
+    .test(text) &&
+    /\b(organisation|semaine|plan|niveau|bloc|action|mission|habitude|charge|rythme)\b/
+      .test(text);
+}
+
+function weeklyStrategyUserLabel(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (raw === "advance") return "passer a la suite";
+  if (raw === "advance_with_caution" || raw === "advance_with_watch") {
+    return "passer a la suite prudemment";
+  }
+  if (raw === "bridge_week") return "faire une semaine allegee";
+  if (raw === "repeat_week") return "refaire la meme semaine";
+  if (raw === "level_review") return "revoir la forme du niveau";
+  return raw || "ajuster la semaine prochaine";
+}
+
+function weeklyItemDecisionUserLabel(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (raw === "keep") return "garder tel quel";
+  if (raw === "mark_completed") return "compter comme fait";
+  if (raw === "carry_over") return "reporter si encore utile";
+  if (raw === "drop") return "retirer si ca ne sert plus";
+  if (raw === "repeat_with_week") return "refaire avec la meme semaine";
+  if (raw === "bridge_with_week") return "garder en version allegee";
+  if (raw === "split_or_replace") return "simplifier ou remplacer";
+  if (raw === "escalate_level_review") return "revoir la forme du niveau";
+  return raw || "a clarifier";
+}
+
+function weeklyOperationUserLabel(value: unknown): string {
+  const raw = String(value ?? "").trim();
+  if (raw === "advance_week") return "passer a la suite";
+  if (raw === "repeat_week") return "refaire la meme semaine";
+  if (raw === "insert_bridge_week") return "creer une semaine allegee";
+  if (raw === "mark_item_completed") return "compter un item comme fait";
+  if (raw === "carry_over_item") return "reporter une mission/action utile";
+  if (raw === "drop_item") return "retirer un item devenu inutile";
+  if (raw === "open_level_review") return "ouvrir une revue du niveau";
+  return raw || "ajustement";
+}
+
+function summarizeWeeklyAdaptiveReviewForAddon(
+  activeSkillState: unknown,
+): string | null {
+  if (!isWeeklyAdaptiveReviewActive(activeSkillState)) return null;
+  const review = (activeSkillState as any)?.weekly_adaptive_review;
+  if (!review || typeof review !== "object") return null;
+  const habitVerdict = (review as any)?.habit_verdict ?? {};
+  const strategy = (review as any)?.week_strategy ?? {};
+  const question = (review as any)?.question ?? null;
+  const daily = (review as any)?.daily_evidence_summary ?? {};
+  const operations = Array.isArray((review as any)?.plan_patch?.operations)
+    ? (review as any).plan_patch.operations.map((op: any) =>
+      weeklyOperationUserLabel(op?.op)
+    ).filter(Boolean)
+    : [];
+  const itemDecisions = Array.isArray((review as any)?.item_decisions)
+    ? (review as any).item_decisions.map((item: any) =>
+      `${String(item?.title ?? "item")}: ${
+        weeklyItemDecisionUserLabel(item?.decision)
+      } (${String(item?.current_week_status ?? "unknown")})`
+    ).slice(0, 8)
+    : [];
+  return [
+    "=== CONTEXTE WEEKLY_ADAPTIVE_REVIEW_V1 ACTIF ===",
+    "Tu es dans le point weekly. Continue la revue weekly, sauf si le user demande explicitement de sortir du bilan.",
+    "Base-toi sur le JSON weekly_adaptive_review deja calcule; ne refais pas un bilan action par action si les raisons daily sont deja disponibles.",
+    "Le message d'ouverture weekly est proactif et doit deja avoir pose une seule question large sur la semaine. Ensuite, remplis naturellement les signaux humains dans le JSON: progression ressentie, etat/energie, blocage dominant, pertinence des actions et confirmation finale.",
+    "Ne repose pas deux questions frontales progression + etat sauf si une information manque vraiment apres la reponse du user.",
+    "Si le user corrige le bilan en disant qu'une action a ete faite mais oubliee/non cochee, ne lance pas le daily et ne lance pas un flow separe. Il faut seulement reunir action concernee + nombre de repetitions a ajouter + date/semaine si donnee; quand c'est complet, le runtime logge en direct et tu continues le weekly.",
+    "Vocabulaire simple obligatoire: ne dis jamais bridge, bridge_week, semaine pont, carry_over, mode advance, repeat_week, level_review, not_relevant, item_decision, plan_patch ou operation. Ce sont des codes internes.",
+    "Si le user emploie un de ces mots interdits, ne le repete pas, meme pour dire que tu ne vas pas l'utiliser; reformule directement en vocabulaire simple.",
+    "Traductions a utiliser: bridge_week = semaine allegee; advance = passer a la suite; repeat_week = refaire la meme semaine; level_review = revoir la forme du niveau; carry_over = reporter cette mission/action utile.",
+    "Aucun changement de plan ne doit etre applique sans confirmation explicite. Formule les changements comme une proposition d'organisation de la semaine prochaine, pas comme des regles abstraites.",
+    "Si le user demande une organisation concrete ou refuse les regles/listes de regles, ne dis pas le mot regle. Reponds avec actions a garder/reporter/alleger, charge, ordre ou jours, pas avec des principes generaux.",
+    "Si le user signale une fatigue forte, ne parle pas d'objectif 100%, de perfection ou de tout finir a tout prix. Propose plutot une charge tenable et la prochaine etape utile.",
+    "Tant que le flow d'ajustement n'a pas ete lance et confirme, ne dis pas que tu verrouilles, appliques ou enregistres un plan precis. Dis que c'est une proposition concrete et demande si le user veut l'appliquer maintenant ou continuer la discussion sans confirmation.",
+    "Pendant le weekly, evite le mot brouillon. Dis plutot proposition d'organisation, version proposee, ou rien n'est confirme.",
+    "Si le user demande explicitement de modifier et appliquer l'organisation, le weekly peut passer ponctuellement par adjust_plan_item, puis revenir ici pour conclure le bilan.",
+    "Si le user pose seulement une question hypothetique du type 'si je demande a changer...' ou 'tu peux passer par le flow...', reponds dans le weekly sans lancer d'ajustement.",
+    "Si le user veut attendre demain/plus tard ou dit de ne rien changer maintenant, dis qu'on reprendra plus tard et que rien n'est confirme maintenant. Ne demande pas une heure de reprise sauf demande explicite de rappel.",
+    "Quand le weekly est conclu, dis clairement: le point de fin de semaine est termine et la validation de la semaine prochaine est disponible. Ici, validation veut dire confirmer l'organisation de la semaine suivante apres ce bilan.",
+    "A la conclusion du weekly, ajoute une mini-synthese utile pour le prochain weekly: ce qu'on retient de la semaine, l'ajustement choisi pour la suite, et le point a surveiller. Reste court.",
+    "Si la proposition n'est pas confirmee ou si le user dit de ne rien changer maintenant, dis que la validation de la semaine prochaine n'est pas encore debloquee.",
+    "Ne propose pas de valider une occurrence dans le dashboard pour combler une semaine sans signal. En no_signal, clarifie la cause avant de conclure performance ou progression.",
+    "Si decision_user_label=passer a la suite: ne reporte que les missions/clarifications utiles non faites. Ne reporte pas les habitudes deja comptabilisees.",
+    "Si decision_user_label=passer a la suite avec des habitudes deja faites, ne propose aucune modification de cadence, pression, frequence, statut ou maintien sur ces habitudes. Elles sont seulement acquises/comptees; le seul ajustement possible vient des missions/actions utiles a reporter.",
+    "Si decision_user_label=faire une semaine allegee: propose moins de charge pour garder le cap, pas un reset complet ni une repetition brute.",
+    "Si decision_user_label=refaire la meme semaine: explique que le signal est insuffisant et qu'on consolide avant d'avancer; demande la cause si elle bloque la decision.",
+    "Si decision_user_label=revoir la forme du niveau: traite cela comme une revue de la forme du niveau/bloc, pas comme une modification item par item. Ne demande pas 'quelles actions modifier'; demande confirmation ou clarifie le mauvais calibrage du niveau.",
+    "Les supports sont hors scope des decisions weekly. Ne les propose pas dans l'organisation de la semaine prochaine et ne les compte jamais comme action a garder/reporter/alleger.",
+    `habit_verdict=${
+      String(habitVerdict.status ?? "unknown")
+    } completion_rate=${String(habitVerdict.completion_rate ?? "unknown")}`,
+    `daily_coverage=${String(daily.coverage ?? "unknown")} blockers=${
+      JSON.stringify(daily.dominant_blockers ?? [])
+    }`,
+    `decision_user_label=${weeklyStrategyUserLabel(strategy.decision)} reason=${
+      String(strategy.reason ?? "")
+    }`,
+    question
+      ? `question_active=${String(question.id ?? "")}: ${
+        String(question.text ?? "")
+      } blocks_decision=${String(question.blocks_decision ?? "")}`
+      : "question_active=none",
+    `confirmation_required=${
+      String((review as any)?.plan_patch?.requires_confirmation ?? true)
+    } proposed_changes=${JSON.stringify(operations)}`,
+    itemDecisions.length > 0
+      ? `item_notes=${itemDecisions.join(" ; ")}`
+      : "item_notes=none",
+  ].join("\n");
+}
+
+function buildWeeklyTurnSlotAddon(args: {
+  activeSkillState: unknown;
+  tempMemory: unknown;
+  userMessage: string;
+}): string | null {
+  const weeklyState = weeklyAdaptiveReviewStateForTurn({
+    activeSkillState: args.activeSkillState,
+    tempMemory: args.tempMemory,
+  });
+  if (!weeklyState) return null;
+  const text = normalizeRouteText(args.userMessage);
+  const lines = ["=== SLOTS WEEKLY REMPLIS CE TOUR ==="];
+  let hasSignal = false;
+  if (
+    /\boubli de suivi\b|\boublie de suivi\b|\boublie de cocher\b|\bpas coche\b|\bpas cochees\b|\bles habitudes n ont pas ete cochees\b/
+      .test(text)
+  ) {
+    lines.push(
+      "- cause_no_signal: oubli de suivi / check-ins non renseignes. Ne redemande pas si c'etait oubli ou fatigue; utilise cette cause.",
+    );
+    hasSignal = true;
+  }
+  if (weeklyForgottenProgressMentioned(args.userMessage)) {
+    lines.push(
+      "- correction_action_oubliee: le user corrige le bilan weekly. Si action + repetitions + date/semaine sont completes, le runtime peut logger; apres log, acquiesce et continue le weekly.",
+    );
+    hasSignal = true;
+  }
+  if (
+    /\bpas des? regles?\b|\bsans regles?\b|\bpas une liste de regles\b|\borganisation concrete\b|\bparle moi de l organisation\b/
+      .test(text)
+  ) {
+    lines.push(
+      "- preference_wording: le user demande une organisation concrete. Reponds en termes d'actions, charge, jours/ordre si utile. Evite le mot regle et les principes abstraits. N'inclus aucun item support/fiche support dans l'organisation weekly.",
+    );
+    hasSignal = true;
+  }
+  if (/\bje viens de le dire\b|\bje l ai deja dit\b/.test(text)) {
+    lines.push(
+      "- anti_repetition: le user signale une repetition. Ne repose pas la meme clarification; resume l'etat avec les infos deja donnees.",
+    );
+    hasSignal = true;
+  }
+  return hasSignal ? lines.join("\n") : null;
+}
+
+type WeeklyForgottenProgressCandidate = {
+  detected: boolean;
+  ready: boolean;
+  reason_code: string;
+  plan_item_id?: string;
+  title?: string;
+  count?: number;
+  date_hint?: string | null;
+};
+
+function weeklyForgottenProgressMentioned(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const mentionsForgotten =
+    /\b(oublie|oubliee|oublier|pas coche|pas cochee|pas confirme|pas confirmee|pas dit|pas renseigne|pas renseignee|pas mis|pas note|pas notee|pas logue|pas loguee|manque)\b/
+      .test(text);
+  const mentionsDone =
+    /\b(fait|faite|faites|realise|realisee|coche|cochee|cocher|confirme|confirmee|confirmer|valide|validee|valider|logue|loguee|loguer)\b/
+      .test(text);
+  return mentionsForgotten && mentionsDone;
+}
+
+function weeklyFrenchNumber(value: string): number | null {
+  const normalized = normalizeRouteText(value).trim();
+  const map: Record<string, number> = {
+    un: 1,
+    une: 1,
+    deux: 2,
+    trois: 3,
+    quatre: 4,
+    cinq: 5,
+    six: 6,
+    sept: 7,
+    huit: 8,
+    neuf: 9,
+    dix: 10,
+  };
+  return map[normalized] ?? null;
+}
+
+function extractWeeklyForgottenCount(message: string): number {
+  const text = normalizeRouteText(message);
+  const numeric =
+    /\b(\d{1,2})\s*(?:fois|repetitions?|repetition|seances?|seance|reps?)\b/
+      .exec(text)?.[1];
+  if (numeric) return Math.max(1, Math.min(20, Number(numeric)));
+  const word =
+    /\b(un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix)\s*(?:fois|repetitions?|repetition|seances?|seance|reps?)\b/
+      .exec(text)?.[1];
+  const parsed = word ? weeklyFrenchNumber(word) : null;
+  return parsed ? Math.max(1, Math.min(20, parsed)) : 1;
+}
+
+function ymdPlusDays(ymd: string, days: number): string | null {
+  const date = ymdToUtcNoonDate(ymd);
+  if (!date) return null;
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function weeklyForgottenDateHint(message: string, weeklyState: unknown) {
+  const text = normalizeRouteText(message);
+  const explicit = /(?:^|\D)(20\d{2}-\d{2}-\d{2})(?:\D|$)/.exec(text)?.[1];
+  if (explicit) return explicit;
+  const progressReview = (weeklyState as any)?.weekly_progress_review ?? {};
+  const weekStart = String(progressReview?.week_start_date ?? "").trim();
+  const weekEnd = String(progressReview?.week_end_date ?? "").trim();
+  const weekdays: Array<[RegExp, number]> = [
+    [/\blundi\b/, 0],
+    [/\bmardi\b/, 1],
+    [/\bmercredi\b/, 2],
+    [/\bjeudi\b/, 3],
+    [/\bvendredi\b/, 4],
+    [/\bsamedi\b/, 5],
+    [/\bdimanche\b/, 6],
+  ];
+  const matched = weekdays.find(([pattern]) => pattern.test(text));
+  if (matched && weekStart) return ymdPlusDays(weekStart, matched[1]);
+  return weekEnd || weekStart || null;
+}
+
+function weeklyActionCandidatesForForgottenProgress(
+  weeklyState: unknown,
+): Array<{
+  plan_item_id: string;
+  title: string;
+  status: string;
+  family: string;
+}> {
+  const byId = new Map<
+    string,
+    { plan_item_id: string; title: string; status: string; family: string }
+  >();
+  const progressReview = (weeklyState as any)?.weekly_progress_review;
+  const transformations = Array.isArray(progressReview?.transformations)
+    ? progressReview.transformations
+    : [];
+  for (const transformation of transformations) {
+    const actions = Array.isArray(transformation?.actions)
+      ? transformation.actions
+      : [];
+    for (const action of actions) {
+      const planItemId = String(action?.plan_item_id ?? "").trim();
+      const title = String(action?.title ?? "").trim();
+      if (!planItemId || !title) continue;
+      byId.set(planItemId, {
+        plan_item_id: planItemId,
+        title,
+        status: String(action?.deviation ?? action?.status ?? "unknown"),
+        family: String(action?.dimension ?? action?.kind ?? "unknown"),
+      });
+    }
+  }
+  const adaptiveReview = (weeklyState as any)?.weekly_adaptive_review;
+  const items = Array.isArray(adaptiveReview?.item_decisions)
+    ? adaptiveReview.item_decisions
+    : [];
+  for (const item of items) {
+    const planItemId = String(item?.plan_item_id ?? "").trim();
+    const title = String(item?.title ?? "").trim();
+    if (!planItemId || !title) continue;
+    byId.set(planItemId, {
+      plan_item_id: planItemId,
+      title,
+      status: String(item?.current_week_status ?? "unknown"),
+      family: String(item?.family ?? "unknown"),
+    });
+  }
+  return [...byId.values()];
+}
+
+function weeklyActionReferenceScore(message: string, title: string): number {
+  const normalizedMessage = normalizePlanItemTitle(message);
+  const normalizedTitle = normalizePlanItemTitle(title);
+  if (!normalizedMessage || !normalizedTitle) return 0;
+  if (normalizedMessage.includes(normalizedTitle)) return 100;
+  const tokens = normalizedTitle.split(" ").filter((token) =>
+    token.length >= 4
+  );
+  if (tokens.length === 0) return 0;
+  const matches = tokens.filter((token) => normalizedMessage.includes(token))
+    .length;
+  const required = Math.min(2, tokens.length);
+  return matches >= required ? matches : 0;
+}
+
+function resolveWeeklyForgottenAction(args: {
+  message: string;
+  weeklyState: unknown;
+}) {
+  const candidates = weeklyActionCandidatesForForgottenProgress(
+    args.weeklyState,
+  );
+  const scored = candidates
+    .map((candidate) => ({
+      candidate,
+      score: weeklyActionReferenceScore(args.message, candidate.title),
+    }))
+    .filter((item) => item.score > 0)
+    .sort((a, b) => b.score - a.score);
+  if (scored.length > 0) {
+    const top = scored[0];
+    const tied = scored.filter((item) => item.score === top.score);
+    return tied.length === 1 ? top.candidate : null;
+  }
+  const unresolved = candidates.filter((candidate) =>
+    ["missed", "partial", "not_answered", "rescheduled", "unknown"].includes(
+      candidate.status,
+    )
+  );
+  return unresolved.length === 1 ? unresolved[0] : null;
+}
+
+export function resolveWeeklyForgottenProgressCandidate(args: {
+  activeSkillState: unknown;
+  tempMemory?: unknown;
+  userMessage: string;
+}): WeeklyForgottenProgressCandidate {
+  const weeklyState = weeklyAdaptiveReviewStateForTurn({
+    activeSkillState: args.activeSkillState,
+    tempMemory: args.tempMemory,
+  });
+  if (!weeklyState) {
+    return {
+      detected: false,
+      ready: false,
+      reason_code: "weekly_review_not_active",
+    };
+  }
+  if (!weeklyForgottenProgressMentioned(args.userMessage)) {
+    return {
+      detected: false,
+      ready: false,
+      reason_code: "no_weekly_forgotten_progress_signal",
+    };
+  }
+  const action = resolveWeeklyForgottenAction({
+    message: args.userMessage,
+    weeklyState,
+  });
+  if (!action) {
+    return {
+      detected: true,
+      ready: false,
+      reason_code: "missing_or_ambiguous_action",
+    };
+  }
+  const count = extractWeeklyForgottenCount(args.userMessage);
+  const dateHint = weeklyForgottenDateHint(args.userMessage, weeklyState);
+  if (!count || count < 1) {
+    return {
+      detected: true,
+      ready: false,
+      reason_code: "missing_count",
+      plan_item_id: action.plan_item_id,
+      title: action.title,
+    };
+  }
+  return {
+    detected: true,
+    ready: true,
+    reason_code: "ready",
+    plan_item_id: action.plan_item_id,
+    title: action.title,
+    count,
+    date_hint: dateHint,
+  };
 }
 
 function normalizeAdjustmentTypeFromRecommendation(
@@ -3254,6 +4300,37 @@ function isOperationEscapeMessage(message: string): boolean {
   );
 }
 
+function isEarlyWeeklyPlanningValidationRequest(message: string): boolean {
+  const text = normalizePlanTargetText(message);
+  if (!text) return false;
+  const mentionsNextWeek =
+    /\b(semaine prochaine|prochaine semaine|lundi prochain|pour lundi|des lundi|des le lundi|next week)\b/
+      .test(text);
+  const mentionsWeekly =
+    /\b(weekly|bilan hebdo|point hebdo|revue hebdo|review hebdo)\b/.test(text);
+  const asksValidation =
+    /\b(valide|valider|validation|confirme|confirmer|programme|programmer|planifie|planifier|considere que c est bon|c est bon pour lundi|sans attendre|tout de suite|maintenant)\b/
+      .test(text);
+  return asksValidation && mentionsNextWeek &&
+    (mentionsWeekly ||
+      /\bsans attendre\b|\btout de suite\b|\bmaintenant\b/.test(text));
+}
+
+function isExplicitPendingApplyConfirmation(message: string): boolean {
+  const text = normalizePlanTargetText(message);
+  if (!text) return false;
+  if (
+    /\b(je pourrai|je pourrais|ca pourrait|ça pourrait|presque|pas encore|avant validation|je veux relire|montre|reformule|corrige|change|enleve|enlève|ajoute plutot|ajoute plutôt)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  return /\b(oui|ok|d accord|vas y|go|valide|applique|execute|exécute|fais le|tu peux le faire|c est bon)\b/
+    .test(text) &&
+    /\b(valide|applique|execute|exécute|fais le|tu peux le faire|c est bon|cette version)\b/
+      .test(text);
+}
+
 function isOperationCorrectionOrSafetyInterruption(message: string): boolean {
   const text = normalizePlanTargetText(message);
   if (!text) return false;
@@ -3284,6 +4361,7 @@ async function maybeTrackProgressParallel(args: {
   userId: string;
   state: any;
   tempMemory: any;
+  activeSkillState?: unknown;
   dispatcherSignals: DispatcherSignals;
   directEffectGateResult?: EffectGateOrchestratorResult | null;
   planItemSnapshot?: V2PlanItemSnapshotItem[];
@@ -3299,6 +4377,7 @@ async function maybeTrackProgressParallel(args: {
     userId,
     state,
     tempMemory,
+    activeSkillState,
     dispatcherSignals,
     directEffectGateResult,
     planItemSnapshot,
@@ -3335,24 +4414,27 @@ async function maybeTrackProgressParallel(args: {
   const trackPlanItemStatus = String(trackPlanItem?.status_hint ?? "unknown");
   const requestedPlanItemTitle = String(trackPlanItem?.target_title ?? "")
     .trim();
+  const explicitTrackTargetId = String(trackPlanItem?.target_item_id ?? "")
+    .trim();
   const trackPlanItemTargetId = String(
-    trackPlanItem?.target_item_id ??
-      resolvePlanItemIdFromSnapshot(planItemSnapshot, requestedPlanItemTitle),
+    explicitTrackTargetId ||
+      resolvePlanItemIdFromSnapshot(planItemSnapshot, requestedPlanItemTitle) ||
+      "",
   ).trim();
   const trackPlanItemTarget = String(
     trackPlanItem?.target_title ||
       resolvePlanItemTitleFromSnapshot(planItemSnapshot, trackPlanItemTargetId),
   ).trim();
   const trackPlanItemValue = Number(trackPlanItem?.value_hint);
-  const trackPlanItemDate = typeof trackPlanItem?.date_hint === "string" &&
-      /^\d{4}-\d{2}-\d{2}$/.test(trackPlanItem.date_hint)
-    ? trackPlanItem.date_hint
-    : undefined;
+  const weeklyReviewActive = Boolean(
+    weeklyAdaptiveReviewStateForTurn({ activeSkillState, tempMemory }),
+  );
   const canTrackPlanItem = trackPlanItem?.detected === true &&
     trackPlanItemTargetId.length >= 2 &&
     (trackPlanItemStatus === "completed" || trackPlanItemStatus === "missed" ||
       trackPlanItemStatus === "partial");
-  const canTrack = !isCheckupActive(state) && canTrackPlanItem;
+  const canTrack = !isCheckupActive(state) && !weeklyReviewActive &&
+    canTrackPlanItem;
 
   const alreadyLogged =
     (tempMemory as any)?.__track_progress_parallel?.source_message_id &&
@@ -3375,7 +4457,6 @@ async function maybeTrackProgressParallel(args: {
         value: Number.isFinite(trackPlanItemValue)
           ? trackPlanItemValue
           : (trackPlanItemStatus === "missed" ? 0 : 1),
-        ...(trackPlanItemDate ? { dateHint: trackPlanItemDate } : {}),
         source: channel,
         sourceMessageId: loggedMessageId ?? null,
         runtime: v2Runtime,
@@ -3432,6 +4513,131 @@ async function maybeTrackProgressParallel(args: {
       source_message_id: loggedMessageId ?? null,
     };
     return { toolExecution: "failed", executedTools: ["track_progress"] };
+  }
+}
+
+async function maybeLogWeeklyForgottenProgressParallel(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  tempMemory: any;
+  activeSkillState?: unknown;
+  v2Runtime?: ActiveTransformationRuntime | null;
+  loggedMessageId: string | null;
+  userMessage: string;
+}): Promise<{
+  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  executedTools: string[];
+}> {
+  const candidate = resolveWeeklyForgottenProgressCandidate({
+    activeSkillState: args.activeSkillState,
+    tempMemory: args.tempMemory,
+    userMessage: args.userMessage,
+  });
+  if (!candidate.detected) {
+    return { toolExecution: "none", executedTools: [] };
+  }
+
+  const alreadyLogged =
+    (args.tempMemory as any)?.__weekly_forgotten_progress?.source_message_id &&
+    args.loggedMessageId &&
+    (args.tempMemory as any).__weekly_forgotten_progress.source_message_id ===
+      args.loggedMessageId;
+  if (alreadyLogged) return { toolExecution: "none", executedTools: [] };
+
+  if (!candidate.ready || !candidate.plan_item_id || !candidate.count) {
+    (args.tempMemory as any).__weekly_forgotten_progress = {
+      mode: "incomplete",
+      reason_code: candidate.reason_code,
+      title: candidate.title ?? null,
+      source_message_id: args.loggedMessageId ?? null,
+      updated_at: new Date().toISOString(),
+    };
+    return { toolExecution: "none", executedTools: [] };
+  }
+
+  try {
+    const result = await logPlanItemProgressV2({
+      supabase: args.supabase,
+      userId: args.userId,
+      planItemId: candidate.plan_item_id,
+      status: "completed",
+      value: candidate.count,
+      dateHint: candidate.date_hint ?? null,
+      source: "weekly_adaptive_review_v1",
+      sourceMessageId: args.loggedMessageId ?? null,
+      runtime: args.v2Runtime,
+    });
+
+    if (result.mode !== "logged") {
+      (args.tempMemory as any).__weekly_forgotten_progress = {
+        mode: "needs_clarify",
+        reason_code: result.message,
+        plan_item_id: candidate.plan_item_id,
+        title: candidate.title ?? result.target,
+        count: candidate.count,
+        source_message_id: args.loggedMessageId ?? null,
+        updated_at: new Date().toISOString(),
+      };
+      return { toolExecution: "blocked", executedTools: [] };
+    }
+
+    const message =
+      `Correction weekly enregistrée: +${candidate.count} répétition(s) pour "${
+        candidate.title ?? result.target
+      }".`;
+    (args.tempMemory as any).__weekly_forgotten_progress = {
+      mode: "logged",
+      plan_item_id: candidate.plan_item_id,
+      title: candidate.title ?? result.target,
+      count: candidate.count,
+      date_hint: candidate.date_hint ?? null,
+      source_message_id: args.loggedMessageId ?? null,
+      updated_at: new Date().toISOString(),
+    };
+    (args.tempMemory as any).__track_progress_parallel = {
+      mode: "logged",
+      message,
+      target: candidate.title ?? result.target,
+      status: "completed",
+      source_message_id: args.loggedMessageId ?? null,
+    };
+    const activeWeeklyState = weeklyAdaptiveReviewStateForTurn({
+      activeSkillState: args.activeSkillState,
+      tempMemory: args.tempMemory,
+    });
+    if (activeWeeklyState && typeof activeWeeklyState === "object") {
+      (activeWeeklyState as any).forgotten_progress_slots = {
+        status: "logged",
+        plan_item_id: candidate.plan_item_id,
+        title: candidate.title ?? result.target,
+        repetitions_to_add: candidate.count,
+        date_hint: candidate.date_hint ?? null,
+        source_message_id: args.loggedMessageId ?? null,
+        updated_at: new Date().toISOString(),
+      };
+    }
+    return {
+      toolExecution: "success",
+      executedTools: ["weekly_forgotten_progress_log"],
+    };
+  } catch (error) {
+    console.warn(
+      "[Router] weekly forgotten progress log failed (non-blocking):",
+      error,
+    );
+    (args.tempMemory as any).__weekly_forgotten_progress = {
+      mode: "failed",
+      reason_code: error instanceof Error ? error.message : String(error),
+      plan_item_id: candidate.plan_item_id,
+      title: candidate.title ?? null,
+      count: candidate.count,
+      source_message_id: args.loggedMessageId ?? null,
+      updated_at: new Date().toISOString(),
+    };
+    return {
+      toolExecution: "failed",
+      executedTools: ["weekly_forgotten_progress_log"],
+    };
   }
 }
 
@@ -3871,6 +5077,7 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
 
 type OperationRuntimeResult = {
   content: string;
+  additionalContents?: string[];
   nextTempMemory: any;
   toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
   executedTools: string[];
@@ -3925,23 +5132,6 @@ function recurringReminderRouteIsSelected(args: {
   );
 }
 
-function isExplicitRecurringReminderOperationMessage(message: string): boolean {
-  const text = normalizeOperationText(message);
-  const hasCreateVerb =
-    /\b(rappelle moi|me rappeler|me faire un rappel|mets moi|programme moi|cree|creer|crée|créer)\b/
-      .test(text);
-  const hasRecurringCadence =
-    /\b(rappel recurrent|rappel récurrent|soutien recurrent|soutien récurrent|tous les jours|chaque jour|tous les soirs|chaque soir|tous les matins|chaque matin|chaque semaine|toutes les semaines|chaque lundi|chaque mardi|chaque mercredi|chaque jeudi|chaque vendredi|chaque samedi|chaque dimanche)\b/
-      .test(text);
-  return hasCreateVerb && hasRecurringCadence;
-}
-
-function isRecurringReminderCorrectionMessage(message: string): boolean {
-  const text = normalizeOperationText(message);
-  return /\b(pas .*finalement|plutot|plutôt|corrige|change|remplace|meme message|même message|chaque lundi|chaque mardi|chaque mercredi|chaque jeudi|chaque vendredi|chaque samedi|chaque dimanche|tous les jours|toutes les semaines|\d{1,2}h)\b/
-    .test(text);
-}
-
 function recurringReminderDraftOperationInput(
   draft: RecurringReminderDraftV1 | null | undefined,
 ): Record<string, unknown> {
@@ -3951,6 +5141,17 @@ function recurringReminderDraftOperationInput(
     ...(inner?.days ? { days: inner.days } : {}),
     ...(inner?.time ? { time: inner.time } : {}),
     ...(inner?.message ? { message: inner.message } : {}),
+    ...(draft?.confirmation_message || draft?.execution_message
+      ? {
+        draft_messages: {
+          confirmation_message: draft?.confirmation_message,
+          user_message_brief: draft?.user_message_brief,
+          user_message_detailed: draft?.user_message_detailed,
+          execution_message: draft?.execution_message,
+          revision_message: draft?.revision_message,
+        },
+      }
+      : {}),
   };
 }
 
@@ -3995,52 +5196,10 @@ function detectConfirmationKind(args: {
   structuredOnly?: boolean;
 }): "yes" | "no" | "correction_to_pending" | "topic_change" | "unknown" {
   const frameKind = args.turnFrame?.confirmation_response?.kind;
-  if (args.structuredOnly) {
-    return frameKind === "yes" || frameKind === "no" ||
-        frameKind === "correction_to_pending" || frameKind === "topic_change"
-      ? frameKind
-      : "unknown";
-  }
-  const text = normalizeOperationText(args.userMessage);
-  const asksBeforeConfirming =
-    /\b(avant que je dise oui|avant de dire oui|avant que je valide|avant de valider|avant que je confirme|avant de confirmer|si je dis oui|si je valide|si je confirme|dis moi d abord|explique moi d abord|montre moi d abord|je veux voir avant|avant d appliquer|avant que tu appliques)\b/
-      .test(text);
-  if (asksBeforeConfirming || isAdjustPlanExplainOnlyIntent(args.turnFrame)) {
-    return "unknown";
-  }
-  const hasExplicitYes =
-    /\b(oui|ok|vas y|confirme|je confirme|applique|cree la|cree le|c est bon|go)\b/
-      .test(text);
-  const hasExplicitNo =
-    /\b(non|annule|laisse tomber|pas maintenant|ne le cree pas|stop)\b/.test(
-      text,
-    );
-  const hasCorrectionInstruction =
-    /\b(mais|ajoute|ajouter|garde|gardes|mets|mettre|modifie|modifier|change|changer|corrige|corriger|remplace|remplacer|inclu|inclus|inclure|avec|sans|premier geste|premiere etape|première etape)\b/
-      .test(text);
-  const hasStrongCorrectionInstruction =
-    /\b(mais|pas|plutot|plutôt|sauf|sans|ajoute|ajouter|garde|gardes|mets|mettre|modifie|modifier|change|changer|corrige|corriger|remplace|remplacer|enleve|enlève|retire|premier geste|premiere etape|première etape)\b/
-      .test(text);
-  if (hasExplicitYes && hasStrongCorrectionInstruction && !hasExplicitNo) {
-    return "correction_to_pending";
-  }
-  if (
-    frameKind === "correction_to_pending" && hasExplicitYes &&
-    !hasExplicitNo && !hasCorrectionInstruction
-  ) {
-    return "yes";
-  }
-  if (frameKind === "yes" || frameKind === "no") return frameKind;
-  if (frameKind === "correction_to_pending" || frameKind === "topic_change") {
-    return frameKind;
-  }
-  if (
-    /\b(non pas|pas ca|pas ça|plutot|plutôt|en fait|corrige|je voulais|remplace|pas juste|pas seulement|pas que|pas une action|pas ce morceau|trop cible|trop ciblé|bloc|programme|rythme|volume total|missions? s enchain|missions? s'enchain|tout arrive trop vite)\b/
-      .test(text)
-  ) return "correction_to_pending";
-  if (hasExplicitNo) return "no";
-  if (hasExplicitYes) return "yes";
-  return "unknown";
+  return frameKind === "yes" || frameKind === "no" ||
+      frameKind === "correction_to_pending" || frameKind === "topic_change"
+    ? frameKind
+    : "unknown";
 }
 
 function isBroaderPlanAdjustmentInput(value: Record<string, unknown> | null) {
@@ -4053,6 +5212,42 @@ function isBroaderPlanAdjustmentInput(value: Record<string, unknown> | null) {
   return scopeKind === "current_level" || scopeKind === "whole_plan" ||
     granularity === "action_cluster" || granularity === "current_level" ||
     granularity === "whole_plan";
+}
+
+function adjustPlanScopeKindFromOperationInput(
+  value: Record<string, unknown> | null,
+): string {
+  if (!value || typeof value !== "object") return "";
+  return String((value as any)?.scope?.kind ?? "").trim();
+}
+
+function mergeActiveAdjustPlanOperationInput(args: {
+  active: Record<string, unknown> | null;
+  scoped: Record<string, unknown> | null;
+}): Record<string, unknown> | null {
+  if (!args.active) return args.scoped;
+  if (!args.scoped) return args.active;
+  const activeScope = adjustPlanScopeKindFromOperationInput(args.active);
+  const scopedScope = adjustPlanScopeKindFromOperationInput(args.scoped);
+  const activeIsBroad = activeScope === "current_level" ||
+    activeScope === "whole_plan";
+  const scopedIsSpecific = scopedScope === "specific_plan_item";
+  if (activeIsBroad && scopedIsSpecific) {
+    return {
+      ...args.active,
+      latest_turn_operation_input: args.scoped,
+      latest_turn_affected_item_hint: (args.scoped as any).scope ??
+        (args.scoped as any).target ?? null,
+    };
+  }
+  return {
+    ...args.active,
+    ...args.scoped,
+    intake_state: (args.active as any).intake_state ??
+      (args.scoped as any).intake_state,
+    payload: (args.active as any).payload ?? (args.scoped as any).payload,
+    latest_turn_operation_input: args.scoped,
+  };
 }
 
 function adjustPlanIntentUserIntent(
@@ -4073,8 +5268,9 @@ function isAdjustPlanRevisionIntent(turnFrame: TurnFrame | null): boolean {
   return adjustPlanIntentUserIntent(turnFrame) === "adjust";
 }
 
-function renderAdjustPlanDraftDetails(raw: any, options?: {
+export function renderAdjustPlanDraftDetails(raw: any, options?: {
   alreadyApplied?: boolean;
+  preferExamples?: boolean;
 }): string | null {
   const result = raw?.draft?.draft?.adjust_plan_result;
   const generatedMessage = String(
@@ -4082,10 +5278,14 @@ function renderAdjustPlanDraftDetails(raw: any, options?: {
       ? raw?.draft?.execution_message ?? result?.user_message_detailed ?? ""
       : result?.user_message_detailed ?? raw?.draft?.confirmation_message ?? "",
   ).trim();
-  if (generatedMessage) return generatedMessage;
   const changedItems = Array.isArray(result?.applied_change?.changed_items)
     ? result.applied_change.changed_items
     : [];
+  if (
+    generatedMessage && (!options?.preferExamples || changedItems.length === 0)
+  ) {
+    return generatedMessage;
+  }
   const missingInfo = Array.isArray(result?.rationale?.missing_info)
     ? result.rationale.missing_info.map((item: unknown) =>
       String(item ?? "").trim()
@@ -4097,7 +5297,7 @@ function renderAdjustPlanDraftDetails(raw: any, options?: {
       missingInfo.slice(0, 2).join(" et ")
     }.`;
   }
-  const examples = changedItems.slice(0, 2).map((item: any, index: number) => {
+  const examples = changedItems.slice(0, 4).map((item: any, index: number) => {
     const title = String(item?.title ?? "Element ajuste").trim();
     const before = String(item?.before ?? "").trim();
     const after = String(item?.after ?? "").trim();
@@ -4109,10 +5309,15 @@ function renderAdjustPlanDraftDetails(raw: any, options?: {
     }`;
   });
   const preserved = Array.isArray(result?.applied_change?.preserved_items)
-    ? result.applied_change.preserved_items.slice(0, 1)
+    ? result.applied_change.preserved_items.slice(0, 3)
     : [];
-  const preservedLine = preserved[0]?.title
-    ? ` Ce qui ne change pas: ${String(preserved[0].title).trim()}.`
+  const preservedLines = preserved.map((item: any) => {
+    const title = String(item?.title ?? "").trim();
+    const reason = String(item?.reason ?? "").trim();
+    return title ? `- ${title}${reason ? `: ${reason}` : ""}` : "";
+  }).filter(Boolean);
+  const preservedBlock = preservedLines.length
+    ? `\n\nCe qui reste inchangé:\n${preservedLines.join("\n")}`
     : "";
   const intro = options?.alreadyApplied
     ? "Oui. Les changements concrets appliqués sont:"
@@ -4120,12 +5325,15 @@ function renderAdjustPlanDraftDetails(raw: any, options?: {
   const validation = options?.alreadyApplied
     ? ""
     : "\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.";
-  return `${intro}\n\n${examples.join("\n")}${preservedLine}${validation}`;
+  return `${intro}\n\n${examples.join("\n")}${preservedBlock}${validation}`;
 }
 
 function renderLastAdjustPlanDetails(tempMemory: any): string | null {
   const raw = (tempMemory as any)?.__last_adjust_plan_execution;
-  return renderAdjustPlanDraftDetails(raw, { alreadyApplied: true });
+  return renderAdjustPlanDraftDetails(raw, {
+    alreadyApplied: true,
+    preferExamples: true,
+  });
 }
 
 function renderPendingAdjustPlanDraftDetails(tempMemory: any): string | null {
@@ -4138,7 +5346,110 @@ function renderPendingAdjustPlanDraftDetails(tempMemory: any): string | null {
   ) {
     return null;
   }
-  return renderAdjustPlanDraftDetails(raw, { alreadyApplied: false });
+  return renderAdjustPlanDraftDetails(raw, {
+    alreadyApplied: false,
+    preferExamples: true,
+  });
+}
+
+function isSimpleAdjustPlanDraftRevisionMessage(message: string): boolean {
+  const normalized = normalizeRecommendationText(message);
+  return /\b(brouillon|proposition|version|ajustement)\b/.test(normalized) &&
+    /\b(modifie|corrige|change|prefere|plutot|au lieu)\b/.test(normalized) &&
+    /\b(n'applique pas|n'applique rien|pas encore|sans appliquer|avant validation)\b/
+      .test(normalized);
+}
+
+function replaceAdjustPlanDraftText(
+  value: unknown,
+  instruction: string,
+): string {
+  const text = String(value ?? "");
+  if (!text) return text;
+  return text
+    .replace(/instruction:une phrase simple même imparfaite/gi, instruction)
+    .replace(/une phrase simple, même imparfaite/gi, instruction)
+    .replace(/une phrase simple même imparfaite/gi, instruction)
+    .replace(/phrase simple, même imparfaite/gi, instruction)
+    .replace(/phrase simple même imparfaite/gi, instruction)
+    .replace(/une phrase simple/gi, instruction)
+    .replace(/phrase simple/gi, instruction);
+}
+
+function revisePendingAdjustPlanDraftDeterministically(args: {
+  pending: {
+    draft: PlanAdjustmentDraftV1;
+  };
+  userMessage: string;
+}): PlanAdjustmentDraftV1 | null {
+  const normalized = normalizeRecommendationText(args.userMessage);
+  if (!isSimpleAdjustPlanDraftRevisionMessage(args.userMessage)) return null;
+  if (!/\bphrase neutre\b/.test(normalized)) return null;
+  const instruction = /\bimparfaite\b/.test(normalized)
+    ? "une phrase neutre, même imparfaite"
+    : "une phrase neutre";
+  const wantsFreeTiming = asksForFreeTiming(args.userMessage);
+  const next = JSON.parse(
+    JSON.stringify(args.pending.draft),
+  ) as PlanAdjustmentDraftV1;
+  const draftAny = next.draft as any;
+  draftAny.patch = {
+    ...(draftAny.patch ?? {}),
+    instruction,
+  };
+  for (
+    const key of [
+      "proposed_change",
+      "why_it_helps",
+      "confirmation_message",
+      "execution_message",
+    ]
+  ) {
+    if (typeof (next as any)[key] === "string") {
+      (next as any)[key] = replaceAdjustPlanDraftText(
+        (next as any)[key],
+        instruction,
+      );
+    }
+    if (typeof draftAny[key] === "string") {
+      draftAny[key] = replaceAdjustPlanDraftText(draftAny[key], instruction);
+    }
+  }
+  const result = draftAny.adjust_plan_result as any;
+  if (result) {
+    for (const key of ["user_message_brief", "user_message_detailed"]) {
+      if (typeof result[key] === "string") {
+        result[key] = replaceAdjustPlanDraftText(result[key], instruction);
+      }
+    }
+    const changedItems = Array.isArray(result.applied_change?.changed_items)
+      ? result.applied_change.changed_items
+      : [];
+    for (const item of changedItems) {
+      if (typeof item.after === "string") {
+        item.after = replaceAdjustPlanDraftText(item.after, instruction);
+        if (wantsFreeTiming && !asksForFreeTiming(item.after)) {
+          item.after = `${item.after}, sans créneau fixe`;
+        }
+      }
+      if (typeof item.reason === "string") {
+        item.reason = replaceAdjustPlanDraftText(item.reason, instruction);
+      }
+    }
+  }
+  if (typeof next.confirmation_message === "string") {
+    next.confirmation_message = replaceAdjustPlanDraftText(
+      next.confirmation_message,
+      instruction,
+    );
+  }
+  if (typeof next.execution_message === "string") {
+    next.execution_message = replaceAdjustPlanDraftText(
+      next.execution_message,
+      instruction,
+    );
+  }
+  return next;
 }
 
 function pendingOperationType(value: unknown): string | null {
@@ -4149,6 +5460,44 @@ function pendingOperationType(value: unknown): string | null {
     : typeof record.draft?.operation_type === "string"
     ? record.draft.operation_type
     : null;
+}
+
+function pendingConfirmationOwnedByToolSkill(value: unknown): boolean {
+  return [
+    "adjust_plan_item",
+    "prepare_attack_card",
+    "prepare_defense_card",
+    "create_recurring_reminder",
+    "select_state_potion",
+    "update_coach_preferences",
+  ].includes(String(pendingOperationType(value) ?? ""));
+}
+
+export function effectiveResponseOwnerForOperationRuntime(args: {
+  routeDecision: Pick<RouteDecision, "response_owner"> | null;
+  toolSkillRun?: unknown;
+}): ResponseOwner {
+  const selectedHandler = String(
+    (args.toolSkillRun as any)?.selected_handler ?? "",
+  ).trim();
+  if (selectedHandler) return "tool_skill";
+  return args.routeDecision?.response_owner ?? "normal_reply";
+}
+
+function isActiveAttackCardKeywordIntake(value: unknown): boolean {
+  const record = value as any;
+  if (!record || typeof record !== "object") return false;
+  if (record.operation_type !== "prepare_attack_card") return false;
+  const phase = String(record.phase ?? "").trim();
+  const slot = String(
+    record.slot_state?.slot ?? record.next_question?.slot ?? "",
+  )
+    .trim();
+  const missing = Array.isArray(record.missing_slots)
+    ? record.missing_slots.map((item: unknown) => String(item))
+    : [];
+  return phase === "keyword_intake" || slot === "activation_keyword" ||
+    missing.includes("activation_keyword");
 }
 
 function isPendingAdjustPlanDraftReview(value: unknown): value is {
@@ -4249,26 +5598,26 @@ function hasStrongToolSkillIntent(
   );
 }
 
-function attackTechniqueHintFromTurnFrame(
-  turnFrame: TurnFrame | null,
-): AttackTechniqueKey | null {
-  const intents = turnFrame?.tool_skill_intents ?? [];
-  for (const intent of intents) {
-    if (
-      intent.operation_type !== "prepare_attack_card" ||
-      intent.confidence_band === "low"
-    ) continue;
-    const hint = String(intent.target_hint ?? "").trim();
-    if (hint in ATTACK_TECHNIQUES) return hint as AttackTechniqueKey;
-    const normalized = normalizeOperationText(hint);
-    if (/\b(texte|recadrage|negoc|excuse)\b/.test(normalized)) {
-      return "texte_recadrage";
-    }
-    if (/\b(preparer|terrain|friction|environnement)\b/.test(normalized)) {
-      return "preparer_terrain";
-    }
-  }
-  return null;
+function isAmbivalentAdjustPlanReflectionRequest(text: string): boolean {
+  const normalized = normalizeRecommendationText(text).replace(/\s+/g, " ")
+    .trim();
+  if (!normalized) return false;
+
+  const hasAmbivalence =
+    /\b(je ne suis pas sur|je suis pas sur|pas sur|pas sure|pas certain|pas certaine|j'hesite|j hesite|je me demande|une partie de moi|je me dis|reaction de fatigue)\b/
+      .test(normalized);
+  const asksForReflection =
+    /\b(aide[- ]?moi a reflechir|reflechir|bonne idee|est ce que c'est|est-ce que c'est|plutot)\b/
+      .test(normalized);
+  const mentionsAdjustment =
+    /\b(ajuster|modifier|changer|baisser|descendre|diminuer|reduire|alleger|laisser tomber|retirer|supprimer|rythme|fois|jour)\b/
+      .test(normalized);
+  const directAdjustmentCommand =
+    /\b(je veux|passe|mets|met|applique|valide|confirme|modifie|change|ajuste|baisse|descends|diminue|reduis|allege|prepare un brouillon|propose[- ]?moi un brouillon)\b/
+      .test(normalized);
+
+  return mentionsAdjustment && (hasAmbivalence || asksForReflection) &&
+    !directAdjustmentCommand;
 }
 
 function isPendingAttackCardOperation(value: unknown): value is {
@@ -4439,19 +5788,6 @@ function isAttackCardLocationOrManagementQuestion(message: string): boolean {
     .test(text) &&
     /\b(carte|cartes|attaque|elle|la)\b/.test(text) &&
     !/\b(cree|creer|fais|faire|nouvelle)\b/.test(text);
-}
-
-function isExplicitAttackCardCreationRequest(message: string): boolean {
-  const text = normalizeOperationText(message);
-  if (!/\bcarte d[' ]?attaque\b|\battaque\b/.test(text)) return false;
-  if (
-    /\b(c'est quoi|c est quoi|a quoi|explique|difference|ou est|ou sont|retrouve|trouver|modifier|imprimer)\b/
-      .test(text)
-  ) {
-    return false;
-  }
-  return /\b(je veux|j'ai besoin|il me faut|fais|faire|cree|creer|prepare|preparer|fabrique)\b/
-    .test(text);
 }
 
 function hasRecentAttackCardContext(
@@ -4628,6 +5964,8 @@ function renderDefenseCardSlotQuestion(
     "Il me manque l'action ou le moment à protéger. Donne-moi la cible ou décris-la en une phrase.",
 ): string {
   const question = nextQuestion as any;
+  const generated = String(question?.question ?? "").trim();
+  if (generated) return generated;
   const slot = String(question?.slot ?? "");
   const status = String(question?.status ?? "");
   const candidate = attackCardQuestionCandidate(question?.candidate);
@@ -4728,17 +6066,255 @@ function scheduledDaysFromDraft(draft: RecurringReminderDraftV1): string[] {
   return ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 }
 
-function formatRecurringReminderSummary(
-  draft: RecurringReminderDraftV1,
-): string {
-  const frequency = draft.draft.frequency === "daily"
-    ? "tous les jours"
-    : draft.draft.frequency === "weekdays"
-    ? "les jours de semaine"
-    : (draft.draft.days?.length
-      ? draft.draft.days.join(", ")
-      : "chaque semaine");
-  return `"${draft.draft.message}" à ${draft.draft.time}, ${frequency}`;
+function buildRecurringReminderPlatformContext(args: {
+  v2Runtime?: ActiveTransformationRuntime | null;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+}): Record<string, unknown> {
+  const transformation = args.v2Runtime?.transformation ?? null;
+  const plan = args.v2Runtime?.plan ?? null;
+  const planItems = (args.planItemSnapshot ?? []).slice(0, 20).map((item) => {
+    const isRecurringHabitTarget = item.item_nature === "recurring_habit" ||
+      item.item_type === "habit";
+    return {
+      id: item.id,
+      title: item.title,
+      description: item.description ?? null,
+      dimension: item.dimension,
+      kind: item.item_type,
+      status: item.status,
+      item_nature: item.item_nature ?? null,
+      cadence_label: item.cadence_label ?? null,
+      target_reps: item.target_reps ?? null,
+      current_reps: item.current_reps ?? null,
+      scheduled_days: item.scheduled_days ?? null,
+      time_of_day: item.time_of_day ?? null,
+      available_this_week: item.available_this_week ?? null,
+      availability_status: item.availability_status ?? null,
+      week_scope: item.week_scope ?? null,
+      generated_temp_id: item.generated_temp_id ?? null,
+      action_family_key: isRecurringHabitTarget
+        ? buildActionFamilyKey({
+          id: item.id,
+          title: item.title,
+          kind: item.item_type,
+          dimension: item.dimension,
+          payload: null,
+        })
+        : null,
+    };
+  });
+  return {
+    active_cycle: args.v2Runtime?.cycle
+      ? {
+        id: args.v2Runtime.cycle.id,
+        status: args.v2Runtime.cycle.status,
+        active_transformation_id: args.v2Runtime.cycle.active_transformation_id,
+      }
+      : null,
+    active_transformation: transformation
+      ? {
+        id: transformation.id,
+        title: transformation.title,
+        user_summary: transformation.user_summary,
+        success_definition: transformation.success_definition,
+        main_constraint: transformation.main_constraint,
+      }
+      : null,
+    active_plan: plan
+      ? {
+        id: plan.id,
+        title: plan.title,
+        status: plan.status,
+      }
+      : null,
+    active_plans: plan
+      ? [{
+        cycle_id: args.v2Runtime?.cycle?.id ?? null,
+        transformation_id: transformation?.id ?? null,
+        transformation_title: transformation?.title ?? null,
+        plan_id: plan.id,
+        plan_title: plan.title,
+        status: plan.status,
+        plan_items: planItems,
+      }]
+      : [],
+    plan_items: planItems,
+  };
+}
+
+function recurringReminderPlanItemContext(args: {
+  draft: RecurringReminderDraftV1;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+}): Record<string, unknown> | null {
+  const relatedId = String(args.draft.draft.related_plan_item_id ?? "").trim();
+  if (!relatedId) return null;
+  const item = (args.planItemSnapshot ?? []).find((candidate) =>
+    candidate.id === relatedId
+  );
+  if (!item) return { id: relatedId, status: "not_found_in_snapshot" };
+  const isRecurringHabitTarget = item.item_nature === "recurring_habit" ||
+    item.item_type === "habit";
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.description ?? null,
+    dimension: item.dimension,
+    kind: item.item_type,
+    item_nature: item.item_nature ?? null,
+    cadence_label: item.cadence_label ?? null,
+    target_reps: item.target_reps ?? null,
+    current_reps: item.current_reps ?? null,
+    scheduled_days: item.scheduled_days ?? null,
+    time_of_day: item.time_of_day ?? null,
+    week_scope: item.week_scope ?? null,
+    generated_temp_id: item.generated_temp_id ?? null,
+    action_family_key: isRecurringHabitTarget
+      ? buildActionFamilyKey({
+        id: item.id,
+        title: item.title,
+        kind: item.item_type,
+        dimension: item.dimension,
+        payload: null,
+      })
+      : null,
+  };
+}
+
+function recurringReminderTargetBinding(args: {
+  draft: RecurringReminderDraftV1;
+  relatedPlanItem: Record<string, unknown> | null;
+  resolvedDestination: "current_plan" | "base_de_vie";
+}): {
+  target_kind: "none" | "transformation" | "plan_item" | "action_family";
+  target_plan_item_id: string | null;
+  target_action_family_key: string | null;
+  target_generated_temp_id: string | null;
+  target_binding_policy:
+    | "none"
+    | "snapshot"
+    | "live_action"
+    | "live_action_family";
+  target_lifecycle_policy:
+    | "independent"
+    | "while_target_active"
+    | "while_family_in_current_plan";
+  target_label: string | null;
+} {
+  const requested = args.draft.draft.target_binding ?? null;
+  const relatedId = String(args.relatedPlanItem?.id ?? "").trim() ||
+    String(args.draft.draft.related_plan_item_id ?? "").trim();
+  const relatedLabel = String(args.relatedPlanItem?.title ?? "").trim() ||
+    requested?.target_label || null;
+  const actionFamilyKey = String(
+    args.relatedPlanItem?.action_family_key ??
+      requested?.target_action_family_key ?? "",
+  ).trim() || null;
+  const generatedTempId = String(
+    args.relatedPlanItem?.generated_temp_id ??
+      requested?.target_generated_temp_id ?? "",
+  ).trim() || null;
+  const itemNature = String(args.relatedPlanItem?.item_nature ?? "").trim();
+  const isRecurringHabitTarget = itemNature === "recurring_habit" ||
+    String(args.relatedPlanItem?.kind ?? "").trim() === "habit";
+
+  if (args.resolvedDestination !== "current_plan") {
+    return {
+      target_kind: "none",
+      target_plan_item_id: null,
+      target_action_family_key: null,
+      target_generated_temp_id: null,
+      target_binding_policy: "none",
+      target_lifecycle_policy: "independent",
+      target_label: null,
+    };
+  }
+
+  if (
+    (requested?.target_kind === "action_family" && isRecurringHabitTarget) ||
+    (relatedId && isRecurringHabitTarget && actionFamilyKey)
+  ) {
+    return {
+      target_kind: "action_family",
+      target_plan_item_id: relatedId || requested?.target_plan_item_id || null,
+      target_action_family_key: actionFamilyKey,
+      target_generated_temp_id: generatedTempId,
+      target_binding_policy: "live_action_family",
+      target_lifecycle_policy: "while_family_in_current_plan",
+      target_label: relatedLabel,
+    };
+  }
+
+  if (requested?.target_kind === "plan_item" || relatedId) {
+    return {
+      target_kind: "plan_item",
+      target_plan_item_id: relatedId || requested?.target_plan_item_id || null,
+      target_action_family_key: actionFamilyKey,
+      target_generated_temp_id: generatedTempId,
+      target_binding_policy: "live_action",
+      target_lifecycle_policy: "while_target_active",
+      target_label: relatedLabel,
+    };
+  }
+
+  return {
+    target_kind: "transformation",
+    target_plan_item_id: null,
+    target_action_family_key: null,
+    target_generated_temp_id: null,
+    target_binding_policy: "snapshot",
+    target_lifecycle_policy: "independent",
+    target_label: requested?.target_label ?? null,
+  };
+}
+
+async function classifyRecurringReminderBestEffort(args: {
+  userId: string;
+  reminderId: string;
+}): Promise<Record<string, unknown> | null> {
+  try {
+    const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
+    const serviceRoleKey = String(
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+    ).trim();
+    if (!url || !serviceRoleKey) {
+      return { ok: false, error: "classification_env_missing" };
+    }
+    const response = await fetch(
+      `${url.replace(/\/$/, "")}/functions/v1/classify-recurring-reminder`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          apikey: serviceRoleKey,
+          authorization: `Bearer ${serviceRoleKey}`,
+        },
+        body: JSON.stringify({
+          reminder_id: args.reminderId,
+          user_id: args.userId,
+        }),
+      },
+    );
+    const data = await response.json().catch(() => null);
+    if (!response.ok) {
+      console.warn("[Router] recurring reminder classification failed", data);
+      return {
+        ok: false,
+        status: response.status,
+        error: data && typeof data === "object"
+          ? data
+          : `http_${response.status}`,
+      };
+    }
+    return data && typeof data === "object"
+      ? data as Record<string, unknown>
+      : { ok: true };
+  } catch (error) {
+    console.warn("[Router] recurring reminder classification failed", error);
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 async function insertRecurringReminderFromDraft(args: {
@@ -4748,33 +6324,95 @@ async function insertRecurringReminderFromDraft(args: {
   operationId?: string | null;
   sourceMessageId?: string | null;
   requestId?: string | null;
+  v2Runtime?: ActiveTransformationRuntime | null;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
 }) {
   const scheduledDays = scheduledDaysFromDraft(args.draft);
-  return await args.supabase
+  const activeCycle = args.v2Runtime?.cycle ?? null;
+  const activeTransformation = args.v2Runtime?.transformation ?? null;
+  const activePlan = args.v2Runtime?.plan ?? null;
+  const relatedPlanItem = recurringReminderPlanItemContext({
+    draft: args.draft,
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  const hasActivePlanContext = Boolean(
+    activeCycle?.id && activeTransformation?.id && activePlan?.id,
+  );
+  const wantsCurrentPlan = args.draft.draft.destination === "current_plan";
+  const resolvedDestination = wantsCurrentPlan && hasActivePlanContext
+    ? "current_plan"
+    : "base_de_vie";
+  const targetBinding = recurringReminderTargetBinding({
+    draft: args.draft,
+    relatedPlanItem,
+    resolvedDestination,
+  });
+  const nowIso = new Date().toISOString();
+  const insertResult = await args.supabase
     .from("user_recurring_reminders")
     .insert({
       user_id: args.userId,
+      cycle_id: activeCycle?.id ?? null,
+      transformation_id: resolvedDestination === "current_plan"
+        ? activeTransformation?.id ?? null
+        : null,
       message_instruction: args.draft.draft.message,
-      rationale:
-        `Rappel récurrent créé depuis la conversation web Sophia : ${args.draft.draft.title}`,
+      rationale: resolvedDestination === "current_plan" && activeTransformation
+        ? `Rappel récurrent créé depuis la conversation Sophia pour soutenir ${
+          activeTransformation.title ?? "la transformation en cours"
+        } : ${args.draft.draft.title}`
+        : `Rappel récurrent créé depuis la conversation web Sophia : ${args.draft.draft.title}`,
       local_time_hhmm: args.draft.draft.time,
       scheduled_days: scheduledDays,
       status: "active",
-      starts_at: new Date().toISOString(),
-      scope_kind: "out_of_plan",
-      initiative_kind: "base_free",
+      starts_at: nowIso,
+      ends_at: null,
+      deactivated_at: null,
+      ended_reason: null,
+      archived_at: null,
+      scope_kind: resolvedDestination === "current_plan"
+        ? "transformation"
+        : "out_of_plan",
+      initiative_kind: resolvedDestination === "current_plan"
+        ? "plan_free"
+        : "base_free",
       source_kind: "user_created",
+      source_potion_session_id: null,
+      target_kind: targetBinding.target_kind,
+      target_plan_item_id: targetBinding.target_plan_item_id,
+      target_action_family_key: targetBinding.target_action_family_key,
+      target_generated_temp_id: targetBinding.target_generated_temp_id,
+      target_binding_policy: targetBinding.target_binding_policy,
+      target_lifecycle_policy: targetBinding.target_lifecycle_policy,
+      updated_at: nowIso,
       initiative_metadata: {
         source: "sophia_brain_tool_skill",
         operation_type: "create_recurring_reminder",
         operation_id: args.operationId ?? null,
         source_message_id: args.sourceMessageId ?? null,
         request_id: args.requestId ?? null,
+        destination_requested: args.draft.draft.destination,
+        destination_resolved: resolvedDestination,
+        active_cycle_id: activeCycle?.id ?? null,
+        active_transformation_id: activeTransformation?.id ?? null,
+        active_transformation_title: activeTransformation?.title ?? null,
+        active_plan_id: activePlan?.id ?? null,
+        active_plan_title: activePlan?.title ?? null,
+        related_plan_item: relatedPlanItem,
+        target_binding: targetBinding,
         draft: args.draft,
       },
     } as any)
-    .select("id")
+    .select(
+      "id,target_kind,target_plan_item_id,target_action_family_key,target_generated_temp_id,target_binding_policy,target_lifecycle_policy",
+    )
     .single();
+  if (insertResult.error || !insertResult.data?.id) return insertResult;
+  await classifyRecurringReminderBestEffort({
+    userId: args.userId,
+    reminderId: String(insertResult.data.id),
+  });
+  return insertResult;
 }
 
 async function ensureOperationCycle(args: {
@@ -4804,6 +6442,19 @@ async function ensureOperationCycle(args: {
     .single();
   if (insertError) throw insertError;
   return String(inserted.id);
+}
+
+let operationServiceClient: SupabaseClient | null = null;
+
+function getOperationServiceClient(): SupabaseClient | null {
+  if (operationServiceClient) return operationServiceClient;
+  const url = String(Deno.env.get("SUPABASE_URL") ?? "").trim();
+  const key = String(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  if (!url || !key) return null;
+  operationServiceClient = createClient(url, key, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  return operationServiceClient;
 }
 
 async function insertAttackCardFromDraft(args: {
@@ -4928,13 +6579,18 @@ async function insertDefenseCardFromDraft(args: {
   } | null;
   riskSituation?: { label?: string | null } | null;
 }) {
+  const writeClient = getOperationServiceClient() ?? args.supabase;
   const cycleId = await ensureOperationCycle({
-    supabase: args.supabase,
+    supabase: writeClient,
     userId: args.userId,
   });
-  const planItemId = args.attachment?.plan_item_id ?? null;
+  const planItemId = args.attachment?.kind === "plan_item"
+    ? args.attachment?.plan_item_id ?? null
+    : null;
   const attachmentTitle = args.attachment?.title ??
     args.draft.draft.target_label;
+  const triggerId = crypto.randomUUID();
+  const impulseId = crypto.randomUUID();
   const payload = {
     user_id: args.userId,
     cycle_id: cycleId,
@@ -4945,20 +6601,27 @@ async function insertDefenseCardFromDraft(args: {
     source: "system",
     status: "active",
     content: {
-      title: args.draft.draft.title,
-      target_label: attachmentTitle,
-      risk_situation: args.draft.draft.risk_situation,
-      trigger: args.draft.draft.trigger,
-      defense_response: args.draft.draft.defense_response,
-      fallback_plan: args.draft.draft.fallback_plan ?? null,
-      why_it_helps: args.draft.draft.why_it_helps,
-      operation_draft: args.draft.draft,
-      techniques: [
+      impulses: [
         {
-          technique_key: "operation_defense_card",
-          generated_result: args.draft.draft,
+          impulse_id: impulseId,
+          label: args.draft.draft.impulse_label || args.draft.draft.title,
+          generic_defense: args.draft.draft.generic_defense ||
+            args.draft.draft.defense_response,
+          triggers: [
+            {
+              trigger_id: triggerId,
+              label: args.draft.draft.title,
+              difficulty_preview: args.draft.draft.why_it_helps || null,
+              illustration: null,
+              situation: args.draft.draft.situation,
+              signal: args.draft.draft.signal,
+              defense_response: args.draft.draft.defense_response,
+              plan_b: args.draft.draft.plan_b,
+            },
+          ],
         },
       ],
+      difficulty_map_summary: null,
     },
     metadata: {
       source: "sophia_brain_tool_skill",
@@ -4974,7 +6637,7 @@ async function insertDefenseCardFromDraft(args: {
     last_updated_at: new Date().toISOString(),
   } as any;
 
-  const { data, error } = await args.supabase
+  const { data, error } = await writeClient
     .from("user_defense_cards")
     .insert(payload)
     .select("id")
@@ -4982,7 +6645,7 @@ async function insertDefenseCardFromDraft(args: {
   if (error || !data?.id) return { data, error };
 
   if (planItemId) {
-    const { error: planItemUpdateError } = await args.supabase
+    const { error: planItemUpdateError } = await writeClient
       .from("user_plan_items")
       .update({
         defense_card_id: data.id,
@@ -5014,12 +6677,55 @@ async function writeStatePotionActivation(args: {
   recurring_reminder_id: string;
   scheduled_checkin_ids: string[];
 }> {
+  const writeClient = getOperationServiceClient() ?? args.supabase;
   const cycleId = await ensureOperationCycle({
-    supabase: args.supabase,
+    supabase: writeClient,
     userId: args.userId,
   });
   const nowIso = new Date().toISOString();
-  const { data: potion, error: potionError } = await args.supabase
+  const targetBinding = args.draft.target_binding ?? {
+    kind: "none",
+    label: null,
+    related_plan_item_id: null,
+    target_plan_item_id: null,
+    target_action_family_key: null,
+    target_generated_temp_id: null,
+    recurrence_hint: null,
+    date_or_window_hint: null,
+    evidence: [],
+  };
+  const schedulePlan = args.draft.follow_up.schedule_plan ?? {
+    mode: "daily_series",
+    duration_days: args.draft.follow_up.duration_days,
+    local_time_hhmm: args.draft.follow_up.local_time_hhmm,
+    scheduled_days: [],
+    local_dates: [],
+    timing_relation: "daily",
+    reason: args.draft.follow_up.reason_for_time,
+  };
+  const scheduledDays = schedulePlan.mode === "specific_weekdays" &&
+      schedulePlan.scheduled_days?.length
+    ? schedulePlan.scheduled_days
+    : args.scheduledFollowups
+      .map((followup) =>
+        ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
+          new Date(`${followup.local_date}T00:00:00.000Z`).getUTCDay()
+        ]
+      )
+      .filter((day, index, all) => day && all.indexOf(day) === index);
+  const lifecyclePolicy = targetBinding.kind === "plan_item"
+    ? "while_target_active"
+    : targetBinding.kind === "action_family"
+    ? "while_family_in_current_plan"
+    : "independent";
+  const bindingPolicy = targetBinding.kind === "plan_item"
+    ? "live_action"
+    : targetBinding.kind === "action_family"
+    ? "live_action_family"
+    : targetBinding.kind === "none"
+    ? "none"
+    : "snapshot";
+  const { data: potion, error: potionError } = await writeClient
     .from("user_potion_sessions")
     .insert({
       user_id: args.userId,
@@ -5036,10 +6742,16 @@ async function writeStatePotionActivation(args: {
       content: {
         title: args.draft.title,
         instant_support_message: args.draft.instant_support_message,
+        potion_info_message: args.draft.potion_info_message,
         why_this_potion: args.draft.why_this_potion,
+        target_binding: targetBinding,
         operation_draft: args.draft,
       },
-      follow_up_strategy: args.draft.follow_up,
+      follow_up_strategy: {
+        ...args.draft.follow_up,
+        target_binding: targetBinding,
+        schedule_plan: schedulePlan,
+      },
       metadata: {
         source: "sophia_brain_tool_skill",
         operation_type: "select_state_potion",
@@ -5057,15 +6769,17 @@ async function writeStatePotionActivation(args: {
   }
 
   const followUp = args.draft.follow_up;
-  const { data: reminder, error: reminderError } = await args.supabase
+  const { data: reminder, error: reminderError } = await writeClient
     .from("user_recurring_reminders")
     .insert({
       user_id: args.userId,
       cycle_id: cycleId,
       message_instruction: followUp.reminder_instruction,
-      rationale: `Suivi 7 jours pour ${args.draft.title}`,
-      local_time_hhmm: followUp.local_time_hhmm,
-      scheduled_days: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+      rationale: schedulePlan.reason || `Suivi pour ${args.draft.title}`,
+      local_time_hhmm: schedulePlan.local_time_hhmm ?? followUp.local_time_hhmm,
+      scheduled_days: scheduledDays.length
+        ? scheduledDays
+        : ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
       status: "active",
       starts_at: nowIso,
       scope_kind: "out_of_plan",
@@ -5077,7 +6791,22 @@ async function writeStatePotionActivation(args: {
         operation_type: "select_state_potion",
         operation_id: args.operationId ?? null,
         request_id: args.requestId ?? null,
+        schedule_plan: schedulePlan,
+        target_binding: targetBinding,
       },
+      target_kind: targetBinding.kind === "plan_item"
+        ? "plan_item"
+        : targetBinding.kind === "action_family"
+        ? "action_family"
+        : targetBinding.kind === "none"
+        ? "none"
+        : "transformation",
+      target_plan_item_id: targetBinding.target_plan_item_id ??
+        targetBinding.related_plan_item_id,
+      target_action_family_key: targetBinding.target_action_family_key,
+      target_generated_temp_id: targetBinding.target_generated_temp_id,
+      target_binding_policy: bindingPolicy,
+      target_lifecycle_policy: lifecyclePolicy,
     } as any)
     .select("id")
     .single();
@@ -5094,9 +6823,10 @@ async function writeStatePotionActivation(args: {
     scheduled_for: new Date(
       `${followup.local_date}T${followup.local_time_hhmm}:00.000Z`,
     ).toISOString(),
+    origin: "rendez_vous",
     status: "pending",
   }));
-  const { data: checkins, error: checkinsError } = await args.supabase
+  const { data: checkins, error: checkinsError } = await writeClient
     .from("scheduled_checkins")
     .insert(scheduledRows as any)
     .select("id");
@@ -5110,7 +6840,158 @@ async function writeStatePotionActivation(args: {
   };
 }
 
-async function writePlanAdjustmentPatch(args: {
+const FRENCH_SMALL_NUMBERS: Record<string, number> = {
+  un: 1,
+  une: 1,
+  deux: 2,
+  trois: 3,
+  quatre: 4,
+  cinq: 5,
+  six: 6,
+  sept: 7,
+};
+
+function extractWeeklyTargetReps(text: string): number | null {
+  const normalized = text.toLowerCase().normalize("NFD").replace(
+    /\p{Diacritic}/gu,
+    "",
+  );
+  const digitMatch = normalized.match(
+    /\b([1-7])\s*(?:jours?|fois|x)\s*(?:\/|par|dans la)?\s*(?:semaine)?\b/,
+  );
+  if (digitMatch?.[1]) return Number(digitMatch[1]);
+  const wordMatch = normalized.match(
+    /\b(un|une|deux|trois|quatre|cinq|six|sept)\s*(?:jours?|fois|x)\s*(?:\/|par|dans la)?\s*(?:semaine)?\b/,
+  );
+  return wordMatch?.[1] ? FRENCH_SMALL_NUMBERS[wordMatch[1]] ?? null : null;
+}
+
+function extractSimpleInstruction(text: string): string | null {
+  const normalizedWhitespace = text.replace(/\s+/g, " ").trim();
+  const phraseMatch = normalizedWhitespace.match(
+    /\bune\s+phrase\s+[^,.;]+/i,
+  );
+  if (phraseMatch?.[0]) return phraseMatch[0].trim();
+  const barePhraseMatch = normalizedWhitespace.match(
+    /\bphrase\s+(neutre|simple|courte|facile|tr[eè]s simple)\b/i,
+  );
+  if (barePhraseMatch?.[0]) return barePhraseMatch[0].trim();
+  const merciMatch = normalizedWhitespace.match(/\bun\s+merci\s+[^,.;]+/i);
+  return merciMatch?.[0] ? merciMatch[0].trim() : null;
+}
+
+function asksForFreeTiming(text: string): boolean {
+  const normalized = text.toLowerCase().normalize("NFD").replace(
+    /\p{Diacritic}/gu,
+    "",
+  );
+  return [
+    "sans creneau",
+    "sans creneau fixe",
+    "sans creneau impose",
+    "sans contrainte de creneau",
+    "pas de creneau",
+    "moment libre",
+    "horaire libre",
+    "sans horaire",
+    "sans horaire fixe",
+    "sans contrainte d'horaire",
+    "sans contrainte horaire",
+    "quand ca se presente",
+    "naturellement",
+  ].some((marker) => normalized.includes(marker));
+}
+
+function materializationTextForChangedItem(args: {
+  draft: PlanAdjustmentDraftV1;
+  change: any;
+  patch: Record<string, unknown>;
+}): string {
+  return [
+    args.change?.after,
+    args.draft.draft.proposed_change,
+    args.patch.instruction,
+    args.patch.cadence_label,
+  ]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+function buildLevelMaterializedItemUpdate(args: {
+  item: { kind?: string | null; dimension?: string | null };
+  change: {
+    capability?: unknown;
+    after?: unknown;
+  };
+}): Record<string, unknown> {
+  const capability = String(args.change?.capability ?? "").trim();
+  const after = String(args.change?.after ?? "").trim();
+  const update: Record<string, unknown> = {};
+  if (capability === "modify_existing_action") {
+    if (!after) throw new Error("level_action_after_missing");
+    update.description = after;
+    if (asksForFreeTiming(after)) update.time_of_day = "anytime";
+    return update;
+  }
+  if (capability !== "change_action_frequency") return update;
+
+  const targetReps = extractWeeklyTargetReps(after);
+  if (targetReps == null) {
+    throw new Error("level_frequency_target_reps_missing");
+  }
+  update.target_reps = targetReps;
+  update.cadence_label = `${targetReps} jours / semaine`;
+
+  const instruction = extractSimpleInstruction(after);
+  if (instruction) update.description = instruction;
+  if (asksForFreeTiming(after)) update.time_of_day = "anytime";
+  return update;
+}
+
+function planAdjustmentRegenerationFeedback(
+  draft: PlanAdjustmentDraftV1,
+): string {
+  const result = draft.draft.adjust_plan_result;
+  const changedItems = result?.applied_change?.changed_items ?? [];
+  const preservedItems = result?.applied_change?.preserved_items ?? [];
+  return [
+    result?.user_message_detailed
+      ? `Résumé pour le user de ce qui change: ${result.user_message_detailed}`
+      : null,
+    draft.draft.decision_basis?.user_problem
+      ? `Problème identifié: ${draft.draft.decision_basis.user_problem}`
+      : null,
+    draft.draft.change_rationale?.why_this_change
+      ? `Raison de l'ajustement: ${draft.draft.change_rationale.why_this_change}`
+      : null,
+    changedItems.length
+      ? `Changements confirmés:\n${
+        changedItems.map((item: any) =>
+          `- ${String(item.title ?? "item").trim()}: ${
+            String(item.before ?? "").trim() || "avant non précisé"
+          } -> ${String(item.after ?? "").trim()}`
+        ).join("\n")
+      }`
+      : null,
+    preservedItems.length
+      ? `À préserver:\n${
+        preservedItems.map((item: any) =>
+          `- ${String(item.title ?? "item").trim()}: ${
+            String(item.reason ?? "").trim()
+          }`
+        ).join("\n")
+      }`
+      : null,
+  ].filter((entry): entry is string => Boolean(entry?.trim())).join("\n\n");
+}
+
+type AdjustedPlanRegenerationResult = {
+  plan_id: string;
+  roadmap_changed: boolean;
+};
+
+export async function writePlanAdjustmentPatch(args: {
   supabase: SupabaseClient;
   userId: string;
   draft: PlanAdjustmentDraftV1;
@@ -5118,7 +6999,20 @@ async function writePlanAdjustmentPatch(args: {
   operationId?: string | null;
   requestId?: string | null;
   sourceMessageId?: string | null;
-}): Promise<{ plan_patch_id: string; bridge_plan_item_id?: string | null }> {
+  regenerateAdjustedPlan?: (input: {
+    transformationId: string;
+    scopeKind: "current_level" | "whole_plan";
+    feedback: string;
+    reason: string;
+    userChangeSummary: string | null;
+    assistantMessage: string | null;
+  }) => Promise<AdjustedPlanRegenerationResult>;
+}): Promise<{
+  plan_patch_id: string;
+  bridge_plan_item_id?: string | null;
+  adjusted_plan_id?: string | null;
+  roadmap_changed?: boolean;
+}> {
   const scope = (args.operationInput?.scope as any) ?? null;
   const planItemId = String(scope?.plan_item_id ?? "").trim();
   const patchId = crypto.randomUUID();
@@ -5163,7 +7057,9 @@ async function writePlanAdjustmentPatch(args: {
 
     const message = JSON.stringify(error).toLowerCase();
     const code = String((error as any)?.code ?? "").trim();
-    if (code !== "23514" && !message.includes("snapshot_type")) throw error;
+    if (code !== "23514" && !message.includes("snapshot_type")) {
+      throw new Error(`plan_adjustment_snapshot_insert_failed:${message}`);
+    }
 
     const { error: fallbackError } = await args.supabase
       .from("system_runtime_snapshots")
@@ -5175,13 +7071,30 @@ async function writePlanAdjustmentPatch(args: {
           storage_fallback: "plan_generated_v2",
         },
       } as any);
-    if (fallbackError) throw fallbackError;
+    if (fallbackError) {
+      throw new Error(
+        `plan_adjustment_snapshot_fallback_failed:${
+          JSON.stringify(fallbackError)
+        }`,
+      );
+    }
   };
 
   if (!planItemId) {
     const scopeKind = String(scope?.kind ?? "").trim();
     if (scopeKind && scopeKind !== "specific_plan_item") {
-      if (materializedPlanItemIds.length < 2) {
+      const patchConstraints = Array.isArray((patch as any)?.constraints)
+        ? (patch as any).constraints.map((constraint: unknown) =>
+          String(constraint ?? "").trim()
+        ).filter(Boolean)
+        : [];
+      const singleAffectedLevelAdjustment = scopeKind === "current_level" &&
+        patchConstraints.includes("strict_affected_items_only") &&
+        patchConstraints.filter((constraint: string) =>
+            constraint.startsWith("affected_item:")
+          ).length === 1;
+      const requiredMaterializedItems = singleAffectedLevelAdjustment ? 1 : 2;
+      if (materializedPlanItemIds.length < requiredMaterializedItems) {
         throw new Error(`${scopeKind}_materialized_items_missing`);
       }
       const { data: materializedItems, error: materializedSelectError } =
@@ -5198,6 +7111,13 @@ async function writePlanAdjustmentPatch(args: {
         materializedItems.length !== materializedPlanItemIds.length
       ) {
         throw new Error(`${scopeKind}_materialized_items_not_found`);
+      }
+      if (
+        (materializedItems as Array<{ dimension?: string | null }>).some((
+          item,
+        ) => String(item.dimension ?? "").trim() === "clarifications")
+      ) {
+        throw new Error("clarification_items_read_only");
       }
       const adjustmentRecord = {
         plan_patch_id: patchId,
@@ -5223,169 +7143,314 @@ async function writePlanAdjustmentPatch(args: {
           throw new Error(`level_capability_not_materializable:${capability}`);
         }
       }
-      for (
-        const item of materializedItems as Array<{
-          id: string;
-          user_id?: string;
-          cycle_id?: string | null;
-          transformation_id?: string | null;
-          plan_id?: string | null;
-          dimension?: string | null;
-          kind?: string | null;
-          title?: string | null;
-          description?: string | null;
-          tracking_type?: string | null;
-          activation_order?: number | null;
-          activation_condition?: unknown;
-          current_habit_state?: string | null;
-          support_mode?: string | null;
-          support_function?: string | null;
-          target_reps?: number | null;
-          current_reps?: number | null;
-          cadence_label?: string | null;
-          scheduled_days?: unknown;
-          time_of_day?: string | null;
-          start_after_item_id?: string | null;
-          phase_id?: string | null;
-          phase_order?: number | null;
-          cards_status?: string | null;
-          payload?: unknown;
-        }>
-      ) {
-        const change = materializedChangeById.get(item.id) as any;
-        const capability = String(change?.capability ?? "").trim();
-        const currentPayload = item.payload && typeof item.payload === "object"
-          ? item.payload as Record<string, unknown>
-          : {};
-        const previousAdjustments = Array.isArray(
-            (currentPayload as any).operation_adjustments,
-          )
-          ? (currentPayload as any).operation_adjustments
-          : [];
-        const itemUpdate: Record<string, unknown> = {
-          payload: {
-            ...currentPayload,
-            active_operation_adjustment: adjustmentRecord,
-            operation_adjustments: [
-              ...previousAdjustments,
-              adjustmentRecord,
-            ].slice(-10),
-          },
-          updated_at: nowIso,
+      type MaterializedPlanItem = {
+        id: string;
+        user_id?: string;
+        cycle_id?: string | null;
+        transformation_id?: string | null;
+        plan_id?: string | null;
+        dimension?: string | null;
+        kind?: string | null;
+        status?: string | null;
+        title?: string | null;
+        description?: string | null;
+        tracking_type?: string | null;
+        activation_order?: number | null;
+        activation_condition?: unknown;
+        current_habit_state?: string | null;
+        support_mode?: string | null;
+        support_function?: string | null;
+        target_reps?: number | null;
+        current_reps?: number | null;
+        cadence_label?: string | null;
+        scheduled_days?: unknown;
+        time_of_day?: string | null;
+        start_after_item_id?: string | null;
+        phase_id?: string | null;
+        phase_order?: number | null;
+        cards_status?: string | null;
+        payload?: unknown;
+      };
+      if (scopeKind === "whole_plan" && args.regenerateAdjustedPlan) {
+        const transformationId = String(
+          (materializedItems as MaterializedPlanItem[]).find((item) =>
+            String(item.transformation_id ?? "").trim()
+          )?.transformation_id ?? "",
+        ).trim();
+        if (!transformationId) {
+          throw new Error("whole_plan_transformation_id_missing");
+        }
+        const adjustedPlanResult = await args.regenerateAdjustedPlan({
+          transformationId,
+          scopeKind: "whole_plan",
+          feedback: planAdjustmentRegenerationFeedback(args.draft),
+          reason: String(
+            args.draft.draft.decision_basis?.user_problem ??
+              args.draft.draft.change_rationale?.why_this_change ??
+              args.draft.draft.proposed_change ??
+              "Ajustement global confirmé depuis le chat.",
+          ).trim(),
+          userChangeSummary:
+            args.draft.draft.adjust_plan_result?.user_message_brief ??
+              args.draft.draft.proposed_change ?? null,
+          assistantMessage: args.draft.confirmation_message ?? null,
+        });
+        await insertAdjustmentSnapshot({
+          plan_patch_id: patchId,
+          operation_id: args.operationId ?? null,
+          request_id: args.requestId ?? null,
+          source_message_id: args.sourceMessageId ?? null,
+          draft: args.draft,
+          patch,
+          scope,
+          applied: true,
+          affected_scope: scopeKind,
+          materialized_plan_item_ids: materializedPlanItemIds,
+          adjusted_plan_id: adjustedPlanResult.plan_id,
+          roadmap_changed: adjustedPlanResult.roadmap_changed,
+          reason: "whole_plan_regenerated_from_chat",
+          created_at: nowIso,
+        });
+        return {
+          plan_patch_id: patchId,
+          adjusted_plan_id: adjustedPlanResult.plan_id,
+          roadmap_changed: adjustedPlanResult.roadmap_changed,
         };
-        if (capability === "modify_existing_action") {
-          itemUpdate.description = String(change?.after ?? "").trim();
-        }
-        if (capability === "change_action_frequency") {
-          itemUpdate.cadence_label = String(change?.after ?? "").trim();
-        }
-        if (
-          capability === "pause_action" ||
-          capability === "remove_action_from_level"
-        ) {
-          itemUpdate.status = "paused";
-        }
-        if (capability === "create_bridge_action") {
-          const bridgeId = crypto.randomUUID();
-          const bridgeTitle = `Version mini - ${
-            String(item.title ?? "action").trim() || "action"
-          }`;
-          const bridgeDescription = String(change?.after ?? "").trim() ||
-            `Action pont vers "${String(item.title ?? "l'action initiale")}".`;
-          const bridgePayload = {
-            ...currentPayload,
-            operation_bridge: {
-              kind: "level_reduction_bridge",
-              source_plan_item_id: item.id,
-              plan_patch_id: patchId,
-              operation_id: args.operationId ?? null,
-              request_id: args.requestId ?? null,
-              source_message_id: args.sourceMessageId ?? null,
-              created_at: nowIso,
-              patch,
-              resume_original_after_completion: true,
-            },
-            active_operation_adjustment: adjustmentRecord,
-          };
-          const { error: bridgeInsertError } = await args.supabase
-            .from("user_plan_items")
-            .insert({
-              id: bridgeId,
-              user_id: args.userId,
-              cycle_id: item.cycle_id,
-              transformation_id: item.transformation_id,
-              plan_id: item.plan_id,
-              dimension: item.dimension,
-              kind: item.kind,
-              status: "active",
-              title: bridgeTitle,
-              description: bridgeDescription,
-              tracking_type: item.tracking_type,
-              activation_order: item.activation_order,
-              activation_condition: item.activation_condition,
-              current_habit_state: item.current_habit_state,
-              support_mode: item.support_mode,
-              support_function: item.support_function,
-              target_reps: item.kind === "habit" ? 1 : null,
-              current_reps: item.kind === "habit" ? 0 : null,
-              cadence_label: item.kind === "habit" ? "1 fois" : null,
-              scheduled_days: null,
-              time_of_day: item.time_of_day,
-              start_after_item_id: item.start_after_item_id,
-              phase_id: item.phase_id,
-              phase_order: item.phase_order,
-              cards_status: ["missions", "habits"].includes(
-                  String(item.dimension),
-                )
-                ? "not_started"
-                : "not_required",
-              payload: bridgePayload,
-              activated_at: nowIso,
-              updated_at: nowIso,
-            } as any);
-          if (bridgeInsertError) throw bridgeInsertError;
-          itemUpdate.status = "pending";
-          itemUpdate.start_after_item_id = bridgeId;
-          itemUpdate.payload = {
-            ...currentPayload,
-            deferred_by_operation_bridge: {
-              plan_patch_id: patchId,
-              operation_id: args.operationId ?? null,
-              request_id: args.requestId ?? null,
-              source_message_id: args.sourceMessageId ?? null,
-              deferred_at: nowIso,
-              bridge_plan_item_id: bridgeId,
-              reason: "level_adjustment_bridge_created",
-              patch,
-            },
-            operation_adjustments: [
-              ...previousAdjustments,
-              adjustmentRecord,
-            ].slice(-10),
-          };
-        }
-        const { error: itemUpdateError } = await args.supabase
+      }
+      const rollbackPlanItem = async (item: MaterializedPlanItem) => {
+        const rollbackPatch = {
+          dimension: item.dimension,
+          kind: item.kind,
+          status: item.status,
+          title: item.title,
+          description: item.description,
+          tracking_type: item.tracking_type,
+          activation_order: item.activation_order,
+          activation_condition: item.activation_condition,
+          current_habit_state: item.current_habit_state,
+          support_mode: item.support_mode,
+          support_function: item.support_function,
+          target_reps: item.target_reps,
+          current_reps: item.current_reps,
+          cadence_label: item.cadence_label,
+          scheduled_days: item.scheduled_days,
+          time_of_day: item.time_of_day,
+          start_after_item_id: item.start_after_item_id,
+          phase_id: item.phase_id,
+          phase_order: item.phase_order,
+          cards_status: item.cards_status,
+          payload: item.payload,
+        };
+        await args.supabase
           .from("user_plan_items")
-          .update(itemUpdate as any)
+          .update(rollbackPatch as any)
           .eq("id", item.id)
           .eq("user_id", args.userId);
-        if (itemUpdateError) throw itemUpdateError;
+      };
+      const createdBridgeIds: string[] = [];
+      let adjustedPlanResult: AdjustedPlanRegenerationResult | null = null;
+      try {
+        for (const item of materializedItems as MaterializedPlanItem[]) {
+          const change = materializedChangeById.get(item.id) as any;
+          const capability = String(change?.capability ?? "").trim();
+          const currentPayload = item.payload &&
+              typeof item.payload === "object"
+            ? item.payload as Record<string, unknown>
+            : {};
+          const previousAdjustments = Array.isArray(
+              (currentPayload as any).operation_adjustments,
+            )
+            ? (currentPayload as any).operation_adjustments
+            : [];
+          const itemUpdate: Record<string, unknown> = {
+            payload: {
+              ...currentPayload,
+              active_operation_adjustment: adjustmentRecord,
+              operation_adjustments: [
+                ...previousAdjustments,
+                adjustmentRecord,
+              ].slice(-10),
+            },
+            updated_at: nowIso,
+          };
+          if (
+            capability === "modify_existing_action" ||
+            capability === "change_action_frequency"
+          ) {
+            Object.assign(
+              itemUpdate,
+              buildLevelMaterializedItemUpdate({ item, change }),
+            );
+          }
+          if (
+            capability === "pause_action" ||
+            capability === "remove_action_from_level"
+          ) {
+            itemUpdate.status = capability === "pause_action"
+              ? "in_maintenance"
+              : "deactivated";
+          }
+          if (capability === "create_bridge_action") {
+            const bridgeId = crypto.randomUUID();
+            const bridgeTitle = `Version mini - ${
+              String(item.title ?? "action").trim() || "action"
+            }`;
+            const bridgeDescription = String(change?.after ?? "").trim() ||
+              `Action pont vers "${
+                String(item.title ?? "l'action initiale")
+              }".`;
+            const bridgePayload = {
+              ...currentPayload,
+              operation_bridge: {
+                kind: "level_reduction_bridge",
+                source_plan_item_id: item.id,
+                plan_patch_id: patchId,
+                operation_id: args.operationId ?? null,
+                request_id: args.requestId ?? null,
+                source_message_id: args.sourceMessageId ?? null,
+                created_at: nowIso,
+                patch,
+                resume_original_after_completion: true,
+              },
+              active_operation_adjustment: adjustmentRecord,
+            };
+            const { error: bridgeInsertError } = await args.supabase
+              .from("user_plan_items")
+              .insert({
+                id: bridgeId,
+                user_id: args.userId,
+                cycle_id: item.cycle_id,
+                transformation_id: item.transformation_id,
+                plan_id: item.plan_id,
+                dimension: item.dimension,
+                kind: item.kind,
+                status: "active",
+                title: bridgeTitle,
+                description: bridgeDescription,
+                tracking_type: item.tracking_type,
+                activation_order: item.activation_order,
+                activation_condition: item.activation_condition,
+                current_habit_state: item.current_habit_state,
+                support_mode: item.support_mode,
+                support_function: item.support_function,
+                target_reps: item.kind === "habit" ? 1 : null,
+                current_reps: item.kind === "habit" ? 0 : null,
+                cadence_label: item.kind === "habit" ? "1 fois" : null,
+                scheduled_days: null,
+                time_of_day: item.time_of_day,
+                start_after_item_id: item.start_after_item_id,
+                phase_id: item.phase_id,
+                phase_order: item.phase_order,
+                cards_status: ["missions", "habits"].includes(
+                    String(item.dimension),
+                  )
+                  ? "not_started"
+                  : "not_required",
+                payload: bridgePayload,
+                activated_at: nowIso,
+                updated_at: nowIso,
+              } as any);
+            if (bridgeInsertError) {
+              throw new Error(
+                `plan_adjustment_bridge_insert_failed:${
+                  JSON.stringify(bridgeInsertError)
+                }`,
+              );
+            }
+            createdBridgeIds.push(bridgeId);
+            itemUpdate.status = "pending";
+            itemUpdate.start_after_item_id = bridgeId;
+            itemUpdate.payload = {
+              ...currentPayload,
+              deferred_by_operation_bridge: {
+                plan_patch_id: patchId,
+                operation_id: args.operationId ?? null,
+                request_id: args.requestId ?? null,
+                source_message_id: args.sourceMessageId ?? null,
+                deferred_at: nowIso,
+                bridge_plan_item_id: bridgeId,
+                reason: "level_adjustment_bridge_created",
+                patch,
+              },
+              operation_adjustments: [
+                ...previousAdjustments,
+                adjustmentRecord,
+              ].slice(-10),
+            };
+          }
+          const { error: itemUpdateError } = await args.supabase
+            .from("user_plan_items")
+            .update(itemUpdate as any)
+            .eq("id", item.id)
+            .eq("user_id", args.userId);
+          if (itemUpdateError) {
+            throw new Error(
+              `plan_adjustment_item_update_failed:${
+                JSON.stringify(itemUpdateError)
+              }`,
+            );
+          }
+        }
+        const transformationId = String(
+          (materializedItems as MaterializedPlanItem[]).find((item) =>
+            String(item.transformation_id ?? "").trim()
+          )?.transformation_id ?? "",
+        ).trim();
+        if (
+          args.regenerateAdjustedPlan &&
+          (scopeKind === "current_level" || scopeKind === "whole_plan") &&
+          transformationId
+        ) {
+          adjustedPlanResult = await args.regenerateAdjustedPlan({
+            transformationId,
+            scopeKind,
+            feedback: planAdjustmentRegenerationFeedback(args.draft),
+            reason: String(
+              args.draft.draft.decision_basis?.user_problem ??
+                args.draft.draft.change_rationale?.why_this_change ??
+                args.draft.draft.proposed_change ??
+                "Ajustement confirmé depuis le chat.",
+            ).trim(),
+            userChangeSummary:
+              args.draft.draft.adjust_plan_result?.user_message_brief ??
+                args.draft.draft.proposed_change ?? null,
+            assistantMessage: args.draft.confirmation_message ?? null,
+          });
+        }
+        await insertAdjustmentSnapshot({
+          plan_patch_id: patchId,
+          operation_id: args.operationId ?? null,
+          request_id: args.requestId ?? null,
+          source_message_id: args.sourceMessageId ?? null,
+          draft: args.draft,
+          patch,
+          scope,
+          applied: true,
+          affected_scope: scopeKind,
+          materialized_plan_item_ids: materializedPlanItemIds,
+          adjusted_plan_id: adjustedPlanResult?.plan_id ?? null,
+          roadmap_changed: adjustedPlanResult?.roadmap_changed ?? null,
+          reason: "non_item_scope_plan_adjustment",
+          created_at: nowIso,
+        });
+      } catch (error) {
+        for (const bridgeId of createdBridgeIds) {
+          await args.supabase
+            .from("user_plan_items")
+            .delete()
+            .eq("id", bridgeId)
+            .eq("user_id", args.userId);
+        }
+        for (const item of materializedItems as MaterializedPlanItem[]) {
+          await rollbackPlanItem(item);
+        }
+        throw error;
       }
-      await insertAdjustmentSnapshot({
+      return {
         plan_patch_id: patchId,
-        operation_id: args.operationId ?? null,
-        request_id: args.requestId ?? null,
-        source_message_id: args.sourceMessageId ?? null,
-        draft: args.draft,
-        patch,
-        scope,
-        applied: true,
-        affected_scope: scopeKind,
-        materialized_plan_item_ids: materializedPlanItemIds,
-        reason: "non_item_scope_plan_adjustment",
-        created_at: nowIso,
-      });
-      return { plan_patch_id: patchId };
+        adjusted_plan_id: adjustedPlanResult?.plan_id ?? null,
+        roadmap_changed: adjustedPlanResult?.roadmap_changed ?? false,
+      };
     }
     await insertAdjustmentSnapshot({
       plan_patch_id: patchId,
@@ -5413,6 +7478,9 @@ async function writePlanAdjustmentPatch(args: {
     .maybeSingle();
   if (selectError) throw selectError;
   if (!item?.id) throw new Error("plan_item_not_found_for_adjustment");
+  if (String((item as any).dimension ?? "").trim() === "clarifications") {
+    throw new Error("clarification_items_read_only");
+  }
 
   const currentPayload = item.payload && typeof item.payload === "object"
     ? item.payload as Record<string, unknown>
@@ -5539,7 +7607,46 @@ async function writePlanAdjustmentPatch(args: {
     updated_at: nowIso,
   };
   if (patch.paused === true) {
-    updatePayload.status = "paused";
+    updatePayload.status = "in_maintenance";
+  }
+  if (
+    typeof patch.target_reps === "number" && Number.isFinite(patch.target_reps)
+  ) {
+    updatePayload.target_reps = patch.target_reps;
+  }
+  if (typeof patch.cadence_label === "string" && patch.cadence_label.trim()) {
+    updatePayload.cadence_label = patch.cadence_label.trim();
+  }
+  if (typeof patch.instruction === "string" && patch.instruction.trim()) {
+    updatePayload.description = patch.instruction.trim();
+  }
+  const materializedChangeForItem = materializedChangeById.get(planItemId) ??
+    (materializedChangedItems.length === 1
+      ? materializedChangedItems[0]
+      : null);
+  if (materializedChangeForItem) {
+    const materializationText = materializationTextForChangedItem({
+      draft: args.draft,
+      change: materializedChangeForItem,
+      patch: patch as Record<string, unknown>,
+    });
+    if (
+      updatePayload.target_reps == null &&
+      String((item as any).kind ?? "") === "habit"
+    ) {
+      const targetReps = extractWeeklyTargetReps(materializationText);
+      if (targetReps != null) {
+        updatePayload.target_reps = targetReps;
+        updatePayload.cadence_label = `${targetReps} jours / semaine`;
+      }
+    }
+    if (typeof updatePayload.description !== "string") {
+      const instruction = extractSimpleInstruction(materializationText);
+      if (instruction) updatePayload.description = instruction;
+    }
+    if (asksForFreeTiming(materializationText)) {
+      updatePayload.time_of_day = "anytime";
+    }
   }
 
   const { error: updateError } = await args.supabase
@@ -5554,21 +7661,31 @@ async function writePlanAdjustmentPatch(args: {
 
 function coachPreferenceLabel(key: string, value: string): string {
   if (key === "coach.tone") {
-    return value === "tres_direct"
+    return value === "direct" || value === "tres_direct"
       ? "Très direct"
-      : value === "doux"
+      : value === "soft" || value === "doux"
       ? "Doux"
+      : value === "warm_direct" || value === "bienveillant_ferme"
+      ? "Bienveillant ferme"
       : value;
   }
   if (key === "coach.question_tendency") {
-    return value === "peu_de_questions"
+    return value === "low" || value === "peu_de_questions"
       ? "Peu de questions"
-      : value === "tres_questionnant"
+      : value === "high" || value === "tres_questionnant"
       ? "Très questionnant"
+      : value === "normal" || value === "equilibre"
+      ? "Équilibré"
       : value;
   }
   if (key === "coach.challenge_level") {
-    return value === "eleve" ? "Élevé" : value === "leger" ? "Léger" : value;
+    return value === "high" || value === "eleve"
+      ? "Élevé"
+      : value === "low" || value === "leger"
+      ? "Léger"
+      : value === "balanced" || value === "equilibre"
+      ? "Équilibré"
+      : value;
   }
   return value;
 }
@@ -5615,6 +7732,8 @@ async function maybeRunCreateRecurringReminderOperation(args: {
   channel: "web" | "whatsapp";
   userTimezone: string;
   tempMemory: any;
+  v2Runtime?: ActiveTransformationRuntime | null;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
   turnFrame: TurnFrame | null;
   routeDecision: RouteDecision | null;
   safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
@@ -5646,6 +7765,7 @@ async function maybeRunCreateRecurringReminderOperation(args: {
     const confirmation = detectConfirmationKind({
       userMessage: args.userMessage,
       turnFrame: args.turnFrame,
+      structuredOnly: true,
     });
     if (confirmation === "no") {
       delete nextTempMemory.__pending_recommendation_operation;
@@ -5663,16 +7783,21 @@ async function maybeRunCreateRecurringReminderOperation(args: {
     }
     if (confirmation !== "yes") return null;
 
-    const output = runCreateRecurringReminderIntake({
+    const output = await runCreateRecurringReminderIntake({
       user_id: args.userId,
       channel: args.channel,
       timezone: args.userTimezone,
       message: args.userMessage,
-      source: "direct_user_request",
+      source: "recommendation_tool",
       trigger_message_id: args.sourceMessageId ?? args.requestId ??
         crypto.randomUUID(),
       safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
       operation_input: pendingRecommendation.operation_input ?? null,
+      platform_context: buildRecurringReminderPlatformContext({
+        v2Runtime: args.v2Runtime ?? null,
+        planItemSnapshot: args.planItemSnapshot ?? null,
+      }),
+      request_id: args.requestId ?? null,
     });
     if (
       output.status === "pending_confirmation" && output.pending_confirmation
@@ -5741,32 +7866,19 @@ async function maybeRunCreateRecurringReminderOperation(args: {
       },
     };
   }
-  if (
-    isPendingRecurringReminderOperation(pendingRaw) &&
-    isRecurringReminderCorrectionMessage(args.userMessage)
-  ) {
-    delete nextTempMemory.__pending_tool_skill_confirmation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    nextTempMemory.__active_tool_skill_intake = {
-      operation_type: "create_recurring_reminder",
-      phase: "recurrence_resolution",
-      missing_slots: [],
-      operation_input: recurringReminderDraftOperationInput(
-        pendingRaw.draft as RecurringReminderDraftV1,
-      ),
-      turn_count: 0,
-      updated_at: new Date().toISOString(),
-    };
-  } else if (isPendingRecurringReminderOperation(pendingRaw)) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
+  if (isPendingRecurringReminderOperation(pendingRaw)) {
+    const draftReviewDecision = await reviewCreateRecurringReminderDraft({
+      message: args.userMessage,
+      previous_draft: pendingRaw.draft,
+      operation_input: recurringReminderDraftOperationInput(pendingRaw.draft),
+      request_id: args.requestId ?? null,
     });
-    if (confirmation === "no") {
+    if (!draftReviewDecision) return null;
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
-        content: "Ok, je ne crée pas ce rappel.",
+        content: draftReviewDecision.generated_user_message ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -5774,10 +7886,139 @@ async function maybeRunCreateRecurringReminderOperation(args: {
           selected_handler: "create_recurring_reminder",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (draftReviewDecision.decision === "explain") {
+      return {
+        content: draftReviewDecision.generated_user_message ??
+          pendingRaw.draft.confirmation_message,
+        nextTempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "create_recurring_reminder",
+          status: "draft_review_details",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision === "revise") {
+      delete nextTempMemory.__pending_tool_skill_confirmation;
+      delete nextTempMemory.pending_tool_skill_confirmation;
+      const previousOperationInput = recurringReminderDraftOperationInput(
+        pendingRaw.draft,
+      );
+      const revisedOutput = await runCreateRecurringReminderIntake({
+        user_id: args.userId,
+        channel: args.channel,
+        timezone: args.userTimezone,
+        message: args.userMessage,
+        source: "direct_user_request",
+        trigger_message_id: args.sourceMessageId ?? args.requestId ??
+          crypto.randomUUID(),
+        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+        turn_count: 0,
+        operation_input: previousOperationInput,
+        platform_context: buildRecurringReminderPlatformContext({
+          v2Runtime: args.v2Runtime ?? null,
+          planItemSnapshot: args.planItemSnapshot ?? null,
+        }),
+        request_id: args.requestId ?? null,
+      });
+      if (
+        revisedOutput.status === "pending_confirmation" &&
+        revisedOutput.pending_confirmation
+      ) {
+        nextTempMemory.__pending_tool_skill_confirmation = {
+          ...revisedOutput.pending_confirmation,
+          created_at: new Date().toISOString(),
+          turn_count: 0,
+        };
+        delete nextTempMemory.__active_tool_skill_intake;
+        delete nextTempMemory.active_tool_skill_intake;
+        return {
+          content: revisedOutput.confirmation?.message ??
+            revisedOutput.draft?.confirmation_message ??
+            "J'ai intégré la modification. Tu veux que je crée ce rappel ?",
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "create_recurring_reminder",
+            status: "draft_review_updated",
+            operation_id:
+              (revisedOutput.pending_confirmation as any)?.operation_id ??
+                pendingRaw.operation_id ?? null,
+            previous_operation_id: pendingRaw.operation_id ?? null,
+            draft: revisedOutput.draft ?? null,
+            draft_review_decision: draftReviewDecision,
+          },
+        };
+      }
+      if (revisedOutput.status === "ask_question") {
+        nextTempMemory.__active_tool_skill_intake = {
+          operation_type: "create_recurring_reminder",
+          phase: revisedOutput.phase,
+          missing_slots: revisedOutput.state_patch.missing_slots,
+          operation_input: revisedOutput.state_patch.operation_input ??
+            previousOperationInput,
+          turn_count: 1,
+          updated_at: new Date().toISOString(),
+        };
+        return {
+          content: revisedOutput.next_question?.question ??
+            draftReviewDecision.generated_user_message ??
+            "J'ai intégré la modification. Tu veux préciser quoi exactement ?",
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "create_recurring_reminder",
+            status: "draft_review_revision_needs_slots",
+            operation_id: pendingRaw.operation_id ?? null,
+            missing_slots: revisedOutput.state_patch.missing_slots,
+            draft_review_decision: draftReviewDecision,
+          },
+        };
+      }
+      nextTempMemory.__active_tool_skill_intake = {
+        operation_type: "create_recurring_reminder",
+        phase: "recurrence_resolution",
+        missing_slots: [],
+        operation_input: previousOperationInput,
+        turn_count: 0,
+        updated_at: new Date().toISOString(),
+      };
+      return {
+        content: draftReviewDecision.generated_user_message ?? "",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "create_recurring_reminder",
+          status: "draft_review_revision_requested",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision !== "approve") {
+      return {
+        content: draftReviewDecision.generated_user_message ?? "",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "create_recurring_reminder",
+          status: "draft_review_unclear",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
 
     const { data, error } = await insertRecurringReminderFromDraft({
       supabase: args.supabase,
@@ -5786,6 +8027,8 @@ async function maybeRunCreateRecurringReminderOperation(args: {
       operationId: pendingRaw.operation_id ?? null,
       sourceMessageId: args.sourceMessageId,
       requestId: args.requestId ?? null,
+      v2Runtime: args.v2Runtime ?? null,
+      planItemSnapshot: args.planItemSnapshot ?? null,
     });
     delete nextTempMemory.__pending_tool_skill_confirmation;
     delete nextTempMemory.pending_tool_skill_confirmation;
@@ -5803,13 +8046,31 @@ async function maybeRunCreateRecurringReminderOperation(args: {
           status: "failed",
           operation_id: pendingRaw.operation_id ?? null,
           error: error?.message ?? "missing_inserted_id",
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
+    const createdDraft: RecurringReminderDraftV1 = {
+      ...pendingRaw.draft,
+      draft: {
+        ...pendingRaw.draft.draft,
+        target_binding: {
+          target_kind: (data as any).target_kind ?? "none",
+          target_plan_item_id: (data as any).target_plan_item_id ?? null,
+          target_action_family_key: (data as any).target_action_family_key ??
+            null,
+          target_generated_temp_id: (data as any).target_generated_temp_id ??
+            null,
+          binding_policy: (data as any).target_binding_policy ?? "none",
+          lifecycle_policy: (data as any).target_lifecycle_policy ??
+            "independent",
+          target_label: pendingRaw.draft.draft.target_binding?.target_label ??
+            null,
+        },
+      },
+    };
     return {
-      content: `C'est fait. J'ai créé le rappel récurrent: ${
-        formatRecurringReminderSummary(pendingRaw.draft)
-      }.`,
+      content: buildRecurringReminderCreatedMessage(createdDraft),
       nextTempMemory,
       toolExecution: "success",
       executedTools: ["create_recurring_reminder"],
@@ -5818,6 +8079,7 @@ async function maybeRunCreateRecurringReminderOperation(args: {
         status: "executed",
         operation_id: pendingRaw.operation_id ?? null,
         recurring_reminder_id: data.id,
+        draft_review_decision: draftReviewDecision,
       },
     };
   }
@@ -5826,15 +8088,11 @@ async function maybeRunCreateRecurringReminderOperation(args: {
   const routeExplicitlySelected =
     args.routeDecision?.response_owner === "tool_skill" &&
     args.routeDecision.selected_handler === "create_recurring_reminder";
-  if (
-    !activeIntake &&
-    !isExplicitRecurringReminderOperationMessage(args.userMessage) &&
-    !routeExplicitlySelected
-  ) {
+  if (!activeIntake && !routeExplicitlySelected) {
     return null;
   }
 
-  const output = runCreateRecurringReminderIntake({
+  const output = await runCreateRecurringReminderIntake({
     user_id: args.userId,
     channel: args.channel,
     timezone: args.userTimezone,
@@ -5843,8 +8101,15 @@ async function maybeRunCreateRecurringReminderOperation(args: {
     trigger_message_id: args.sourceMessageId ?? args.requestId ??
       crypto.randomUUID(),
     safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-    turn_count: Number(activeIntake?.turn_count ?? 0),
+    turn_count: Number(
+      (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
+    ),
     operation_input: activeIntake?.operation_input ?? null,
+    platform_context: buildRecurringReminderPlatformContext({
+      v2Runtime: args.v2Runtime ?? null,
+      planItemSnapshot: args.planItemSnapshot ?? null,
+    }),
+    request_id: args.requestId ?? null,
   });
 
   if (output.status === "pending_confirmation" && output.pending_confirmation) {
@@ -5878,7 +8143,7 @@ async function maybeRunCreateRecurringReminderOperation(args: {
       phase: output.phase,
       missing_slots: output.state_patch.missing_slots,
       operation_input: output.state_patch.operation_input ?? {},
-      turn_count: 1,
+      turn_count: Number(activeIntake?.turn_count ?? 0) + 1,
       updated_at: new Date().toISOString(),
     };
     return {
@@ -5900,14 +8165,24 @@ async function maybeRunCreateRecurringReminderOperation(args: {
       "Je n'ai pas pu créer ce rappel depuis le chat pour l'instant.",
     nextTempMemory,
     toolExecution: output.status === "blocked_by_safety" ? "blocked" : "failed",
-    executedTools: output.status === "blocked_by_safety"
-      ? []
-      : ["create_recurring_reminder"],
+    executedTools: [],
     toolSkillRun: {
       selected_handler: "create_recurring_reminder",
       status: output.status,
       missing_slots: output.state_patch.missing_slots,
     },
+  };
+}
+
+function adjustPlanCoachTrace(
+  operationInput?: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const input = operationInput && typeof operationInput === "object"
+    ? operationInput as Record<string, unknown>
+    : {};
+  return {
+    coaching_guidance: input.coaching_guidance ?? null,
+    coaching_guidance_audit: input.coaching_guidance_audit ?? null,
   };
 }
 
@@ -5949,6 +8224,7 @@ async function executePendingAdjustPlanDraft(args: {
         selected_handler: "adjust_plan_item",
         status: "not_executed_missing_plan_item_id",
         operation_id: operationId,
+        ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
       },
     };
   }
@@ -5983,6 +8259,36 @@ async function executePendingAdjustPlanDraft(args: {
         operationId,
         requestId: args.requestId ?? null,
         sourceMessageId: args.sourceMessageId,
+        regenerateAdjustedPlan: async (input) => {
+          const userTime = await getUserTimeContext({
+            supabase: args.supabase,
+            userId: args.userId,
+          }).catch(() => null);
+          const result = await generatePlanV2ForTransformation({
+            admin: args.supabase,
+            requestId: args.requestId ?? crypto.randomUUID(),
+            userId: args.userId,
+            transformationId: input.transformationId,
+            mode: "generate_and_activate",
+            feedback: input.feedback,
+            forceRegenerate: true,
+            pace: null,
+            preserveActiveTransformationId: input.transformationId,
+            adjustmentContext: {
+              reviewId: operationId,
+              scope: input.scopeKind === "current_level" ? "level" : "plan",
+              effectiveStartDate: userTime?.user_local_date ??
+                new Date().toISOString().slice(0, 10),
+              reason: input.reason,
+              userChangeSummary: input.userChangeSummary,
+              assistantMessage: input.assistantMessage,
+            },
+          });
+          return {
+            plan_id: result.planRow.id,
+            roadmap_changed: result.roadmapChanged,
+          };
+        },
       }).then((result) => {
         if (!patch || Object.keys(patch).length === 0) {
           throw new Error("plan_patch_empty");
@@ -6008,6 +8314,7 @@ async function executePendingAdjustPlanDraft(args: {
         status: executed.status,
         operation_id: operationId,
         reason_code: executed.reason_code,
+        ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
       },
     };
   }
@@ -6033,6 +8340,7 @@ async function executePendingAdjustPlanDraft(args: {
       operation_id: operationId,
       plan_patch_id: executed.plan_patch_id,
       bridge_plan_item_id: executed.bridge_plan_item_id ?? null,
+      ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
     },
   };
 }
@@ -6052,6 +8360,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
   sourceMessageId: string | null;
   requestId?: string | null;
   forceFullAi?: boolean;
+  enableAdjustPlanCoachGuidance?: boolean;
 }): Promise<OperationRuntimeResult | null> {
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
   const pendingDraftReview =
@@ -6065,21 +8374,97 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     (nextTempMemory.__active_tool_skill_intake ??
       nextTempMemory.active_tool_skill_intake)?.operation_type ?? "",
   ).trim();
-  if (activeOperationType && activeOperationType !== "adjust_plan_item") {
-    return null;
-  }
   if (isPendingAdjustPlanDraftReview(pendingDraftReview)) {
-    const confirmation = detectConfirmationKind({
+    if (activeOperationType && activeOperationType !== "adjust_plan_item") {
+      delete nextTempMemory.__active_tool_skill_intake;
+      delete nextTempMemory.active_tool_skill_intake;
+    }
+    const deterministicRevisedDraft =
+      revisePendingAdjustPlanDraftDeterministically({
+        pending: pendingDraftReview,
+        userMessage: args.userMessage,
+      });
+    if (deterministicRevisedDraft) {
+      nextTempMemory.__pending_adjust_plan_draft_review = {
+        ...pendingDraftReview,
+        draft: deterministicRevisedDraft,
+        updated_at: new Date().toISOString(),
+        turn_count: 0,
+        revision_history: [
+          ...(pendingDraftReview.revision_history ?? []),
+          {
+            user_request: args.userMessage,
+            changed: ["instruction"],
+            apply_after_revision: false,
+            created_at: new Date().toISOString(),
+            source: "deterministic_simple_revision",
+          },
+        ],
+      };
+      delete nextTempMemory.__pending_tool_skill_confirmation;
+      delete nextTempMemory.pending_tool_skill_confirmation;
+      return {
+        content:
+          "C'est corrigé dans le brouillon: on garde 2 fois par semaine, sans créneau fixe, avec une phrase neutre. Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "adjust_plan_item",
+          status: "draft_review_updated",
+          operation_id: pendingDraftReview.operation_id ?? null,
+          draft: deterministicRevisedDraft,
+          draft_review_decision: {
+            decision: "revise",
+            confidence: "high",
+            evidence: ["deterministic_simple_revision"],
+            apply_after_revision: false,
+          },
+        },
+      };
+    }
+    const draftReviewConfirmationKind = detectConfirmationKind({
       userMessage: args.userMessage,
       turnFrame: args.turnFrame,
-      structuredOnly: true,
     });
-    if (confirmation === "no") {
+    const output = await runAdjustPlanItemIntake({
+      user_id: args.userId,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(pendingDraftReview.turn_count ?? 0) + 1,
+      recent_messages: (args.history ?? [])
+        .map((turn: any) => ({
+          role: turn?.role === "assistant"
+            ? "assistant" as const
+            : "user" as const,
+          content: String(turn?.content ?? "").trim(),
+        }))
+        .filter((turn) => turn.content)
+        .slice(-12),
+      plan_snapshot: { items: args.planItemSnapshot ?? [] },
+      operation_input: {
+        ...(pendingDraftReview.operation_input ?? {}),
+        previous_draft: pendingDraftReview.draft,
+        revision_request: args.userMessage,
+        confirmation_response_kind: draftReviewConfirmationKind,
+      },
+      force_ai_slot_filling: true,
+      force_coach_guidance: args.enableAdjustPlanCoachGuidance === true,
+    });
+    const draftReviewDecision = output.state_patch.draft_review_decision;
+    if (!draftReviewDecision) return null;
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_adjust_plan_draft_review;
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
-        content: "Ok, je n'applique pas cet ajustement.",
+        content:
+          "Ok, je n'applique pas cet ajustement. On garde ton plan tel quel pour l'instant; observe encore une journée, et si le besoin d'alléger se confirme, on reprendra proprement.",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -6087,12 +8472,15 @@ export async function maybeRunAdjustPlanItemOperation(args: {
           selected_handler: "adjust_plan_item",
           status: "draft_review_cancelled",
           operation_id: pendingDraftReview.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+          ...adjustPlanCoachTrace(
+            output.state_patch.operation_input ??
+              pendingDraftReview.operation_input ?? null,
+          ),
         },
       };
     }
-    const asksDraftDetails = isAdjustPlanExplainOnlyIntent(args.turnFrame);
-    const asksDraftRevision = isAdjustPlanRevisionIntent(args.turnFrame);
-    if (asksDraftDetails && !asksDraftRevision) {
+    if (draftReviewDecision.decision === "explain") {
       const detailReply = renderPendingAdjustPlanDraftDetails({
         __pending_adjust_plan_draft_review: pendingDraftReview,
       });
@@ -6106,44 +8494,20 @@ export async function maybeRunAdjustPlanItemOperation(args: {
             selected_handler: "adjust_plan_item",
             status: "draft_review_details",
             operation_id: pendingDraftReview.operation_id ?? null,
+            draft_review_decision: draftReviewDecision,
+            ...adjustPlanCoachTrace(
+              output.state_patch.operation_input ??
+                pendingDraftReview.operation_input ?? null,
+            ),
           },
         };
       }
     }
-    if (
-      confirmation === "correction_to_pending" ||
-      asksDraftRevision
-    ) {
-      const output = await runAdjustPlanItemIntake({
-        user_id: args.userId,
-        channel: args.channel,
-        timezone: args.userTimezone,
-        message: args.userMessage,
-        source: "direct_user_request",
-        trigger_message_id: args.sourceMessageId ?? args.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-        turn_count: Number(pendingDraftReview.turn_count ?? 0) + 1,
-        plan_snapshot: { items: args.planItemSnapshot ?? [] },
-        operation_input: {
-          ...(pendingDraftReview.operation_input ?? {}),
-          previous_draft: pendingDraftReview.draft,
-          revision_request: args.userMessage,
-        },
-        force_ai_slot_filling: args.forceFullAi === true,
-      });
+    if (draftReviewDecision.decision === "revise") {
       if (
         output.status === "pending_confirmation" && output.pending_confirmation
       ) {
-        const revisionHistory = [
-          ...(pendingDraftReview.revision_history ?? []),
-          {
-            user_request: args.userMessage,
-            changed: ["draft_regenerated"],
-            created_at: new Date().toISOString(),
-          },
-        ];
-        nextTempMemory.__pending_adjust_plan_draft_review = {
+        const revisedPendingRaw = {
           ...output.pending_confirmation,
           phase: "draft_review",
           operation_input: output.state_patch.operation_input ??
@@ -6153,8 +8517,35 @@ export async function maybeRunAdjustPlanItemOperation(args: {
           created_at: pendingDraftReview.created_at ?? new Date().toISOString(),
           updated_at: new Date().toISOString(),
           turn_count: 0,
-          revision_history: revisionHistory,
+          revision_history: [
+            ...(pendingDraftReview.revision_history ?? []),
+            {
+              user_request: args.userMessage,
+              changed: ["draft_regenerated"],
+              apply_after_revision:
+                draftReviewDecision.apply_after_revision === true,
+              created_at: new Date().toISOString(),
+            },
+          ],
           supersedes_operation_id: pendingDraftReview.operation_id ?? null,
+        };
+        if (draftReviewDecision.apply_after_revision === true) {
+          delete nextTempMemory.__pending_adjust_plan_draft_review;
+          delete nextTempMemory.__pending_tool_skill_confirmation;
+          delete nextTempMemory.pending_tool_skill_confirmation;
+          return await executePendingAdjustPlanDraft({
+            supabase: args.supabase,
+            userId: args.userId,
+            channel: args.channel,
+            safetyPregateOutput: args.safetyPregateOutput,
+            sourceMessageId: args.sourceMessageId,
+            requestId: args.requestId,
+            nextTempMemory,
+            pendingRaw: revisedPendingRaw as any,
+          });
+        }
+        nextTempMemory.__pending_adjust_plan_draft_review = {
+          ...revisedPendingRaw,
         };
         delete nextTempMemory.__pending_tool_skill_confirmation;
         delete nextTempMemory.pending_tool_skill_confirmation;
@@ -6172,6 +8563,11 @@ export async function maybeRunAdjustPlanItemOperation(args: {
               pendingDraftReview.operation_id ?? null,
             previous_operation_id: pendingDraftReview.operation_id ?? null,
             draft: output.draft ?? null,
+            draft_review_decision: draftReviewDecision,
+            ...adjustPlanCoachTrace(
+              output.state_patch.operation_input ??
+                revisedPendingRaw.operation_input ?? null,
+            ),
           },
         };
       }
@@ -6192,10 +8588,15 @@ export async function maybeRunAdjustPlanItemOperation(args: {
           operation_id: pendingDraftReview.operation_id ?? null,
           missing_slots: output.state_patch.missing_slots,
           draft_review: true,
+          draft_review_decision: draftReviewDecision,
+          ...adjustPlanCoachTrace(
+            output.state_patch.operation_input ??
+              pendingDraftReview.operation_input ?? null,
+          ),
         },
       };
     }
-    if (confirmation === "yes") {
+    if (draftReviewDecision.decision === "approve") {
       return await executePendingAdjustPlanDraft({
         supabase: args.supabase,
         userId: args.userId,
@@ -6207,6 +8608,19 @@ export async function maybeRunAdjustPlanItemOperation(args: {
         pendingRaw: pendingDraftReview,
       });
     }
+    return null;
+  }
+  if (activeOperationType && activeOperationType !== "adjust_plan_item") {
+    return null;
+  }
+  if (
+    !activeOperationType &&
+    pendingOperationType(pendingRaw) !== "adjust_plan_item" &&
+    !isPendingAdjustPlanItemRecommendationOperation(
+      nextTempMemory.__pending_recommendation_operation,
+    ) &&
+    isAmbivalentAdjustPlanReflectionRequest(args.userMessage)
+  ) {
     return null;
   }
   if (
@@ -6240,54 +8654,19 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     nextTempMemory.__pending_recommendation_operation;
 
   if (isPendingAdjustPlanItemOperation(pendingRaw)) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
-      structuredOnly: true,
+    nextTempMemory.__pending_adjust_plan_draft_review = {
+      ...pendingRaw,
+      phase: "draft_review",
+      operation_input: pendingRaw.operation_input ?? null,
+      updated_at: new Date().toISOString(),
+      turn_count: Number(pendingRaw.turn_count ?? 0),
+    };
+    delete nextTempMemory.__pending_tool_skill_confirmation;
+    delete nextTempMemory.pending_tool_skill_confirmation;
+    return await maybeRunAdjustPlanItemOperation({
+      ...args,
+      tempMemory: nextTempMemory,
     });
-    const correctionScopeInput = operationInputFromPlanAdjustmentScope(
-      args.userMessage,
-      args.turnFrame,
-    );
-    if (
-      confirmation === "correction_to_pending" ||
-      (confirmation === "yes" &&
-        isBroaderPlanAdjustmentInput(correctionScopeInput))
-    ) {
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      delete nextTempMemory.__last_resolved_plan_item;
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-    } else {
-      if (confirmation === "no") {
-        delete nextTempMemory.__pending_tool_skill_confirmation;
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: "Ok, je n'applique pas cet ajustement.",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "adjust_plan_item",
-            status: "cancelled",
-            operation_id: pendingRaw.operation_id ?? null,
-          },
-        };
-      }
-      if (confirmation !== "yes") return null;
-
-      return await executePendingAdjustPlanDraft({
-        supabase: args.supabase,
-        userId: args.userId,
-        channel: args.channel,
-        safetyPregateOutput: args.safetyPregateOutput,
-        sourceMessageId: args.sourceMessageId,
-        requestId: args.requestId,
-        nextTempMemory,
-        pendingRaw,
-      });
-    }
   }
 
   if (isPendingAdjustPlanItemRecommendationOperation(pendingRecommendation)) {
@@ -6338,6 +8717,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
         plan_snapshot: { items: args.planItemSnapshot ?? [] },
         operation_input: pendingRecommendation.operation_input ?? null,
         force_ai_slot_filling: args.forceFullAi === true,
+        force_coach_guidance: args.enableAdjustPlanCoachGuidance === true,
       });
       if (
         output.status !== "pending_confirmation" ||
@@ -6355,6 +8735,10 @@ export async function maybeRunAdjustPlanItemOperation(args: {
             status: output.status,
             missing_slots: output.state_patch.missing_slots,
             source: "recommendation_tool",
+            ...adjustPlanCoachTrace(
+              output.state_patch.operation_input ??
+                pendingRecommendation.operation_input ?? null,
+            ),
           },
         };
       }
@@ -6386,6 +8770,11 @@ export async function maybeRunAdjustPlanItemOperation(args: {
             null,
           recommendation_id: pendingRecommendation.recommendation_id ?? null,
           draft: output.draft,
+          ...adjustPlanCoachTrace(
+            output.state_patch.operation_input ??
+              (output.pending_confirmation as any).operation_input ??
+              pendingRecommendation.operation_input ?? null,
+          ),
         },
       };
     }
@@ -6435,9 +8824,10 @@ export async function maybeRunAdjustPlanItemOperation(args: {
       item = readLastResolvedPlanItem(nextTempMemory);
     }
   }
-  const fallbackOperationInput = scopedOperationInput ??
-    activeAdjustPlanOperationInput ??
-    operationInputFromLastPlanItem(nextTempMemory);
+  const fallbackOperationInput = mergeActiveAdjustPlanOperationInput({
+    active: activeAdjustPlanOperationInput,
+    scoped: scopedOperationInput,
+  }) ?? operationInputFromLastPlanItem(nextTempMemory);
   const output = await runAdjustPlanItemIntake({
     user_id: args.userId,
     channel: args.channel,
@@ -6453,6 +8843,7 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     plan_snapshot: { items: args.planItemSnapshot ?? [] },
     operation_input: fallbackOperationInput,
     force_ai_slot_filling: args.forceFullAi === true,
+    force_coach_guidance: args.enableAdjustPlanCoachGuidance === true,
   });
 
   if (output.status === "pending_confirmation" && output.pending_confirmation) {
@@ -6484,18 +8875,26 @@ export async function maybeRunAdjustPlanItemOperation(args: {
         operation_id: (output.pending_confirmation as any)?.operation_id ??
           null,
         draft: output.draft ?? null,
+        ...adjustPlanCoachTrace(
+          output.state_patch.operation_input ??
+            (output.pending_confirmation as any).operation_input ??
+            fallbackOperationInput,
+        ),
       },
     };
   }
 
   if (output.status === "ask_question") {
+    const previousTurnCount = Number(
+      (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
+    );
     nextTempMemory.__active_tool_skill_intake = {
       operation_type: "adjust_plan_item",
       phase: output.phase,
       missing_slots: output.state_patch.missing_slots,
       operation_input: output.state_patch.operation_input ??
         fallbackOperationInput,
-      turn_count: 1,
+      turn_count: previousTurnCount + 1,
       updated_at: new Date().toISOString(),
     };
   }
@@ -6516,6 +8915,10 @@ export async function maybeRunAdjustPlanItemOperation(args: {
       target_title: item?.title ??
         planItemTitleFromOperationInput(fallbackOperationInput),
       missing_slots: output.state_patch.missing_slots,
+      ...adjustPlanCoachTrace(
+        output.state_patch.operation_input ??
+          fallbackOperationInput,
+      ),
     },
   };
 }
@@ -6539,8 +8942,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     routeDecision: args.routeDecision,
     turnFrame: args.turnFrame,
     tempMemory: args.tempMemory,
-  }) ||
-    isExplicitAttackCardCreationRequest(args.userMessage);
+  });
   if (!routeSelected) return null;
 
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
@@ -6552,6 +8954,9 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   const activeAttackCardIntakeRaw = nextTempMemory.__active_tool_skill_intake ??
     nextTempMemory.active_tool_skill_intake ??
     null;
+  const explicitAttackCardRoute =
+    args.routeDecision?.response_owner === "tool_skill" &&
+    args.routeDecision?.selected_handler === "prepare_attack_card";
   if (
     !isPendingAttackCardOperation(pendingRaw) &&
     !isPendingAttackCardRecommendationOperation(pendingRecommendation) &&
@@ -6562,7 +8967,8 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   }
   if (
     isOperationEscapeMessage(args.userMessage) &&
-    !isPendingAttackCardOperation(pendingRaw)
+    !isPendingAttackCardOperation(pendingRaw) &&
+    !isActiveAttackCardKeywordIntake(activeAttackCardIntakeRaw)
   ) {
     return null;
   }
@@ -6576,26 +8982,132 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     ...(input ?? {}),
     occupied_activation_keywords: occupiedAttackKeywords,
   });
-  const useAiAttackCardFlow = shouldUsePrepareAttackCardAiFlow();
   const detectAttackCardConfirmation = () =>
     detectConfirmationKind({
       userMessage: args.userMessage,
       turnFrame: args.turnFrame,
-      structuredOnly: useAiAttackCardFlow,
+      structuredOnly: true,
     });
   const runAttackCardIntake = (
-    input: Parameters<typeof runPrepareAttackCardIntake>[0],
+    input: Parameters<typeof runPrepareAttackCardAiIntake>[0],
   ) =>
-    useAiAttackCardFlow
-      ? runPrepareAttackCardAiIntake({
-        ...input,
-        request_id: args.requestId ?? null,
-      })
-      : Promise.resolve(runPrepareAttackCardIntake(input));
+    runPrepareAttackCardAiIntake({
+      ...input,
+      request_id: args.requestId ?? null,
+    });
   let fallbackOperationInput = operationInputFromLastPlanItem(nextTempMemory);
   if (isPendingAttackCardOperation(pendingRaw)) {
-    const confirmation = detectAttackCardConfirmation();
-    if (confirmation === "no") {
+    const pendingReviewOutput = await runAttackCardIntake({
+      user_id: args.userId,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+      plan_snapshot: args.planSnapshot ?? {},
+      operation_input: withOccupiedAttackKeywords({
+        previous_draft: pendingRaw.draft,
+        target: attackCardTargetFromPendingConfirmation(
+          pendingRaw as unknown as Record<string, unknown>,
+          null,
+        ),
+        technique: pendingRaw.draft?.draft?.technique ?? undefined,
+        activation_keyword: pendingRaw.draft?.draft?.activation_keyword ??
+          undefined,
+        intake_state: (pendingRaw as any).intake_state ?? undefined,
+      }),
+    });
+    const draftReviewDecision =
+      pendingReviewOutput.state_patch.draft_review_decision;
+    if (!draftReviewDecision) {
+      if (
+        pendingReviewOutput.status === "pending_confirmation" &&
+        pendingReviewOutput.pending_confirmation &&
+        pendingReviewOutput.draft
+      ) {
+        nextTempMemory.__pending_tool_skill_confirmation = {
+          ...pendingReviewOutput.pending_confirmation,
+          target: attackCardTargetFromPendingConfirmation(
+            pendingReviewOutput.pending_confirmation,
+            {
+              target: pendingRaw.target ?? null,
+              intake_state: (pendingRaw as any).intake_state ?? undefined,
+            },
+          ),
+          created_at: new Date().toISOString(),
+          turn_count: 0,
+          supersedes_operation_id: pendingRaw.operation_id ?? null,
+        };
+        delete nextTempMemory.pending_tool_skill_confirmation;
+        return {
+          content: pendingReviewOutput.confirmation?.message ??
+            pendingReviewOutput.draft.confirmation_message,
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            status: "pending_confirmation_updated",
+            operation_id: String(
+              pendingReviewOutput.pending_confirmation.operation_id ??
+                pendingRaw.operation_id ??
+                "",
+            ),
+            previous_operation_id: pendingRaw.operation_id ?? null,
+            draft: pendingReviewOutput.draft,
+            draft_review_decision: null,
+          },
+        };
+      }
+      if (pendingReviewOutput.status === "ask_question") {
+        nextTempMemory.__active_tool_skill_intake = {
+          operation_type: "prepare_attack_card",
+          phase: pendingReviewOutput.phase,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          slot_state: pendingReviewOutput.next_question ?? null,
+          operation_input: pendingReviewOutput.state_patch.operation_input ??
+            pendingReviewOutput.next_question?.known_slots ?? null,
+          tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
+            null,
+          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+          updated_at: new Date().toISOString(),
+        };
+        return {
+          content: renderAttackCardSlotQuestion(
+            pendingReviewOutput.next_question,
+          ),
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            status: pendingReviewOutput.status,
+            operation_id: pendingRaw.operation_id ?? null,
+            missing_slots: pendingReviewOutput.state_patch.missing_slots,
+            slot_state: pendingReviewOutput.next_question ?? null,
+            draft_review_decision: null,
+          },
+        };
+      }
+      return {
+        content: pendingReviewOutput.ack ??
+          "Je n'ai pas réussi à relire cette validation techniquement. Je préfère ne rien créer sans confirmation claire.",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_attack_card",
+          status: pendingReviewOutput.status,
+          operation_id: pendingRaw.operation_id ?? null,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          draft_review_decision: null,
+        },
+      };
+    }
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
@@ -6607,43 +9119,36 @@ export async function maybeRunPrepareAttackCardOperation(args: {
           selected_handler: "prepare_attack_card",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation === "correction_to_pending") {
-      const pendingCorrectionInput = {
-        target: attackCardTargetFromPendingConfirmation(
-          pendingRaw as unknown as Record<string, unknown>,
-          null,
-        ),
-        technique: pendingRaw.draft?.draft?.technique ?? undefined,
-        activation_keyword: pendingRaw.draft?.draft?.activation_keyword ??
-          undefined,
-        occupied_activation_keywords: occupiedAttackKeywords,
+    if (draftReviewDecision.decision === "explain") {
+      return {
+        content: pendingRaw.draft?.confirmation_message ??
+          pendingRaw.draft?.draft?.mode_emploi ??
+          "",
+        nextTempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_attack_card",
+          status: "draft_review_details",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
       };
-      const correctionOutput = await runAttackCardIntake({
-        user_id: args.userId,
-        channel: args.channel,
-        timezone: args.userTimezone,
-        message: args.userMessage,
-        source: "direct_user_request",
-        trigger_message_id: args.sourceMessageId ?? args.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-        turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-        plan_snapshot: args.planSnapshot ?? {},
-        operation_input: withOccupiedAttackKeywords(pendingCorrectionInput),
-      });
-
+    }
+    if (draftReviewDecision.decision === "revise") {
       if (
-        correctionOutput.status === "pending_confirmation" &&
-        correctionOutput.pending_confirmation &&
-        correctionOutput.draft
+        pendingReviewOutput.status === "pending_confirmation" &&
+        pendingReviewOutput.pending_confirmation &&
+        pendingReviewOutput.draft
       ) {
         nextTempMemory.__pending_tool_skill_confirmation = {
-          ...correctionOutput.pending_confirmation,
+          ...pendingReviewOutput.pending_confirmation,
           target: attackCardTargetFromPendingConfirmation(
-            correctionOutput.pending_confirmation,
+            pendingReviewOutput.pending_confirmation,
             null,
           ),
           created_at: new Date().toISOString(),
@@ -6652,8 +9157,8 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         };
         delete nextTempMemory.pending_tool_skill_confirmation;
         return {
-          content: correctionOutput.confirmation?.message ??
-            correctionOutput.draft.confirmation_message,
+          content: pendingReviewOutput.confirmation?.message ??
+            pendingReviewOutput.draft.confirmation_message,
           nextTempMemory,
           toolExecution: "blocked",
           executedTools: [],
@@ -6661,12 +9166,13 @@ export async function maybeRunPrepareAttackCardOperation(args: {
             selected_handler: "prepare_attack_card",
             status: "pending_confirmation_updated",
             operation_id: String(
-              correctionOutput.pending_confirmation.operation_id ??
+              pendingReviewOutput.pending_confirmation.operation_id ??
                 pendingRaw.operation_id ??
                 "",
             ),
             previous_operation_id: pendingRaw.operation_id ?? null,
-            draft: correctionOutput.draft,
+            draft: pendingReviewOutput.draft,
+            draft_review_decision: draftReviewDecision,
           },
         };
       }
@@ -6675,31 +9181,34 @@ export async function maybeRunPrepareAttackCardOperation(args: {
       delete nextTempMemory.pending_tool_skill_confirmation;
       nextTempMemory.__active_tool_skill_intake = {
         operation_type: "prepare_attack_card",
-        phase: correctionOutput.phase,
-        missing_slots: correctionOutput.state_patch.missing_slots,
-        slot_state: correctionOutput.next_question ?? null,
-        operation_input: correctionOutput.state_patch.operation_input ?? {
-          ...pendingCorrectionInput,
-          ...(correctionOutput.next_question?.known_slots ?? {}),
+        phase: pendingReviewOutput.phase,
+        missing_slots: pendingReviewOutput.state_patch.missing_slots,
+        slot_state: pendingReviewOutput.next_question ?? null,
+        operation_input: pendingReviewOutput.state_patch.operation_input ?? {
+          ...(pendingReviewOutput.next_question?.known_slots ?? {}),
         },
-        tool_skill_state: correctionOutput.state_patch.tool_skill_state ?? null,
+        tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
+          null,
         turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
       };
       return {
-        content: renderAttackCardSlotQuestion(correctionOutput.next_question),
+        content: renderAttackCardSlotQuestion(
+          pendingReviewOutput.next_question,
+        ),
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_attack_card",
-          status: correctionOutput.status,
+          status: pendingReviewOutput.status,
           operation_id: pendingRaw.operation_id ?? null,
-          missing_slots: correctionOutput.state_patch.missing_slots,
-          slot_state: correctionOutput.next_question ?? null,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          slot_state: pendingReviewOutput.next_question ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (draftReviewDecision.decision !== "approve") return null;
 
     const { data, error } = await insertAttackCardFromDraft({
       supabase: args.supabase,
@@ -6731,7 +9240,9 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     }
     return {
       content:
-        `C'est fait. J'ai créé cette carte d'attaque :\n\n${pendingRaw.draft.draft.title}\nTechnique : ${pendingRaw.draft.draft.technique_title}\n${pendingRaw.draft.draft.generated_asset}\n\nMode d'emploi : ${pendingRaw.draft.draft.mode_emploi}\n\n${ATTACK_CARD_CREATED_LOCATION}`,
+        `C'est fait. J'ai créé cette carte d'attaque :\n\n${pendingRaw.draft.draft.title}\nTechnique : ${pendingRaw.draft.draft.technique_title}\n${pendingRaw.draft.draft.generated_asset}\n\nMode d'emploi : ${pendingRaw.draft.draft.mode_emploi}\n\n${
+          attackCardCreatedLocation(pendingRaw.target)
+        }`,
       nextTempMemory,
       toolExecution: "success",
       executedTools: ["prepare_attack_card"],
@@ -6756,136 +9267,88 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     activeTargetQuestion?.known_slots ??
     {};
   if (activeTargetCandidate) {
-    const confirmation = detectAttackCardConfirmation();
-    if (confirmation === "yes") {
-      const candidateOutput = await runAttackCardIntake({
-        user_id: args.userId,
-        channel: args.channel,
-        timezone: args.userTimezone,
-        message: args.userMessage,
-        source: "direct_user_request",
-        trigger_message_id: args.sourceMessageId ?? args.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-        turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
-        plan_snapshot: args.planSnapshot ?? {},
-        operation_input: withOccupiedAttackKeywords({
-          ...activeKnownSlots,
-          target: activeTargetCandidate,
-        }),
-      });
-      if (
-        candidateOutput.status === "pending_confirmation" &&
-        candidateOutput.pending_confirmation
-      ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...candidateOutput.pending_confirmation,
-          target: attackCardTargetFromPendingConfirmation(
-            candidateOutput.pending_confirmation,
-            { target: activeTargetCandidate },
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        delete nextTempMemory.__active_tool_skill_intake;
-        delete nextTempMemory.active_tool_skill_intake;
-        return {
-          content: candidateOutput.confirmation?.message ??
-            "Confirme si tu veux que je crée cette carte.",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: "pending_confirmation",
-            operation_id:
-              (candidateOutput.pending_confirmation as any)?.operation_id ??
-                null,
-            draft: candidateOutput.draft ?? null,
-            target_slot_resolution: {
-              status: "confirmed_candidate",
-              target: activeTargetCandidate,
-            },
-          },
-        };
-      }
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_attack_card",
-        phase: candidateOutput.phase,
-        missing_slots: candidateOutput.state_patch.missing_slots,
-        slot_state: candidateOutput.next_question ?? null,
-        operation_input: candidateOutput.state_patch.operation_input ?? {
-          ...activeKnownSlots,
-          target: activeTargetCandidate,
-          ...(candidateOutput.next_question?.known_slots ?? {}),
-        },
-        tool_skill_state: candidateOutput.state_patch.tool_skill_state ?? null,
-        turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
+    const candidateOutput = await runAttackCardIntake({
+      user_id: args.userId,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
+      plan_snapshot: args.planSnapshot ?? {},
+      operation_input: withOccupiedAttackKeywords({
+        ...activeKnownSlots,
+        target_candidate: activeTargetCandidate,
+      }),
+    });
+    if (
+      candidateOutput.status === "pending_confirmation" &&
+      candidateOutput.pending_confirmation
+    ) {
+      nextTempMemory.__pending_tool_skill_confirmation = {
+        ...candidateOutput.pending_confirmation,
+        target: attackCardTargetFromPendingConfirmation(
+          candidateOutput.pending_confirmation,
+          { target: activeTargetCandidate },
+        ),
+        created_at: new Date().toISOString(),
+        turn_count: 0,
       };
-      return {
-        content: renderAttackCardSlotQuestion(candidateOutput.next_question),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: candidateOutput.status,
-          missing_slots: candidateOutput.state_patch.missing_slots,
-          slot_state: candidateOutput.next_question ?? null,
-        },
-      };
-    }
-    if (confirmation === "no") {
-      const slotState = {
-        needed: true,
-        slot: "target",
-        status: "missing",
-        reason: "target_candidate_rejected",
-      };
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_attack_card",
-        phase: "target_resolution",
-        missing_slots: ["target"],
-        slot_state: slotState,
-        operation_input: activeKnownSlots,
-        turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
-      };
-      return {
-        content: renderAttackCardSlotQuestion(slotState),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "ask_question",
-          missing_slots: ["target"],
-          slot_state: slotState,
-        },
-      };
-    }
-    if (confirmation === "correction_to_pending") {
-      fallbackOperationInput = null;
+      delete nextTempMemory.pending_tool_skill_confirmation;
       delete nextTempMemory.__active_tool_skill_intake;
       delete nextTempMemory.active_tool_skill_intake;
-    } else if (confirmation !== "unknown") {
-      return null;
-    } else {
       return {
-        content: renderAttackCardSlotQuestion(activeTargetQuestion),
+        content: candidateOutput.confirmation?.message ??
+          candidateOutput.draft?.confirmation_message ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_attack_card",
-          status: "ask_question",
-          missing_slots: ["target"],
-          slot_state: activeTargetQuestion,
+          status: "pending_confirmation",
+          operation_id:
+            (candidateOutput.pending_confirmation as any)?.operation_id ??
+              null,
+          draft: candidateOutput.draft ?? null,
+          target_slot_resolution: {
+            status: "resolved_by_skill_intake",
+            target: activeTargetCandidate,
+          },
         },
       };
     }
+    nextTempMemory.__active_tool_skill_intake = {
+      operation_type: "prepare_attack_card",
+      phase: candidateOutput.phase,
+      missing_slots: candidateOutput.state_patch.missing_slots,
+      slot_state: candidateOutput.next_question ?? null,
+      operation_input: candidateOutput.state_patch.operation_input ?? {
+        ...activeKnownSlots,
+        target_candidate: activeTargetCandidate,
+        ...(candidateOutput.next_question?.known_slots ?? {}),
+      },
+      tool_skill_state: candidateOutput.state_patch.tool_skill_state ?? null,
+      turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
+      updated_at: new Date().toISOString(),
+    };
+    return {
+      content: renderAttackCardSlotQuestion(candidateOutput.next_question),
+      nextTempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        status: candidateOutput.status,
+        missing_slots: candidateOutput.state_patch.missing_slots,
+        slot_state: candidateOutput.next_question ?? null,
+        target_slot_resolution: {
+          status: "handled_by_skill_intake",
+          target: activeTargetCandidate,
+        },
+      },
+    };
   }
 
   if (
@@ -6911,7 +9374,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (confirmation !== "yes" && !explicitAttackCardRoute) return null;
 
     const recommendationOutput = await runAttackCardIntake({
       user_id: args.userId,
@@ -7003,7 +9466,6 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     };
   }
 
-  const attackTechniqueHint = attackTechniqueHintFromTurnFrame(args.turnFrame);
   const output = await runAttackCardIntake({
     user_id: args.userId,
     channel: args.channel,
@@ -7013,15 +9475,10 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     trigger_message_id: args.sourceMessageId ?? args.requestId ??
       crypto.randomUUID(),
     safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-    turn_count: Number(
-      (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
-    ),
+    turn_count: Number(activeAttackCardIntake?.turn_count ?? 0),
     plan_snapshot: args.planSnapshot ?? {},
     operation_input: {
       ...(fallbackOperationInput ?? {}),
-      ...(attackTechniqueHint
-        ? { desired_attack_technique: attackTechniqueHint }
-        : {}),
       occupied_activation_keywords: occupiedAttackKeywords,
     },
   });
@@ -7111,14 +9568,13 @@ async function maybeRunPrepareDefenseCardOperation(args: {
   requestId?: string | null;
   planSnapshot?: unknown;
 }): Promise<OperationRuntimeResult | null> {
-  if (
-    !operationRouteIsSelected({
-      operationType: "prepare_defense_card",
-      routeDecision: args.routeDecision,
-      turnFrame: args.turnFrame,
-      tempMemory: args.tempMemory,
-    })
-  ) return null;
+  const defenseCardRouteSelected = operationRouteIsSelected({
+    operationType: "prepare_defense_card",
+    routeDecision: args.routeDecision,
+    turnFrame: args.turnFrame,
+    tempMemory: args.tempMemory,
+  });
+  if (!defenseCardRouteSelected) return null;
 
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
   const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
@@ -7126,8 +9582,12 @@ async function maybeRunPrepareDefenseCardOperation(args: {
     null;
   const pendingRecommendation =
     nextTempMemory.__pending_recommendation_operation;
+  const explicitDefenseCardRoute =
+    args.routeDecision?.response_owner === "tool_skill" &&
+    args.routeDecision?.selected_handler === "prepare_defense_card";
   if (
     isOperationEscapeMessage(args.userMessage) &&
+    !explicitDefenseCardRoute &&
     !isPendingDefenseCardOperation(pendingRaw) &&
     !isPendingDefenseCardRecommendationOperation(pendingRecommendation)
   ) {
@@ -7136,11 +9596,118 @@ async function maybeRunPrepareDefenseCardOperation(args: {
   let fallbackOperationInput = operationInputFromLastPlanItem(nextTempMemory);
 
   if (isPendingDefenseCardOperation(pendingRaw)) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
+    const pendingReviewOutput = await runPrepareDefenseCardAiIntake({
+      user_id: args.userId,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+      plan_snapshot: args.planSnapshot ?? {},
+      operation_input: {
+        previous_draft: pendingRaw.draft,
+        attachment: pendingRaw.attachment ?? null,
+        risk_situation: pendingRaw.risk_situation ?? null,
+        defense_response_hint: pendingRaw.defense_response_hint ??
+          (pendingRaw.draft?.draft?.defense_response
+            ? {
+              strategy_hint: "unknown",
+              value: pendingRaw.draft.draft.defense_response,
+            }
+            : undefined),
+        intake_state: (pendingRaw as any).intake_state ?? undefined,
+      },
     });
-    if (confirmation === "no") {
+    const draftReviewDecision =
+      pendingReviewOutput.state_patch.draft_review_decision;
+    if (!draftReviewDecision) {
+      if (
+        pendingReviewOutput.status === "pending_confirmation" &&
+        pendingReviewOutput.pending_confirmation &&
+        pendingReviewOutput.draft
+      ) {
+        nextTempMemory.__pending_tool_skill_confirmation = {
+          ...pendingReviewOutput.pending_confirmation,
+          attachment: defenseCardAttachmentFromPendingConfirmation(
+            pendingReviewOutput.pending_confirmation,
+            {
+              attachment: pendingRaw.attachment ?? null,
+              risk_situation: pendingRaw.risk_situation ?? null,
+              intake_state: (pendingRaw as any).intake_state ?? undefined,
+            },
+          ),
+          created_at: new Date().toISOString(),
+          turn_count: 0,
+          supersedes_operation_id: pendingRaw.operation_id ?? null,
+        };
+        delete nextTempMemory.pending_tool_skill_confirmation;
+        return {
+          content: pendingReviewOutput.confirmation?.message ??
+            pendingReviewOutput.draft.confirmation_message,
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_defense_card",
+            status: "pending_confirmation_updated",
+            operation_id: String(
+              pendingReviewOutput.pending_confirmation.operation_id ??
+                pendingRaw.operation_id ??
+                "",
+            ),
+            previous_operation_id: pendingRaw.operation_id ?? null,
+            draft: pendingReviewOutput.draft,
+            draft_review_decision: null,
+          },
+        };
+      }
+      if (pendingReviewOutput.status === "ask_question") {
+        nextTempMemory.__active_tool_skill_intake = {
+          operation_type: "prepare_defense_card",
+          phase: pendingReviewOutput.phase,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          slot_state: pendingReviewOutput.next_question ?? null,
+          operation_input: pendingReviewOutput.next_question?.known_slots ??
+            null,
+          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+          updated_at: new Date().toISOString(),
+        };
+        return {
+          content: renderDefenseCardSlotQuestion(
+            pendingReviewOutput.next_question,
+          ),
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_defense_card",
+            status: pendingReviewOutput.status,
+            operation_id: pendingRaw.operation_id ?? null,
+            missing_slots: pendingReviewOutput.state_patch.missing_slots,
+            slot_state: pendingReviewOutput.next_question ?? null,
+            draft_review_decision: null,
+          },
+        };
+      }
+      return {
+        content: pendingReviewOutput.ack ??
+          "Je n'ai pas réussi à relire cette validation techniquement. Je préfère ne rien créer sans confirmation claire.",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_defense_card",
+          status: pendingReviewOutput.status,
+          operation_id: pendingRaw.operation_id ?? null,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          draft_review_decision: null,
+        },
+      };
+    }
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
@@ -7152,44 +9719,41 @@ async function maybeRunPrepareDefenseCardOperation(args: {
           selected_handler: "prepare_defense_card",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation === "correction_to_pending") {
-      const correctionOutput = runPrepareDefenseCardIntake({
-        user_id: args.userId,
-        channel: args.channel,
-        timezone: args.userTimezone,
-        message: args.userMessage,
-        source: "direct_user_request",
-        trigger_message_id: args.sourceMessageId ?? args.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-        turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-        plan_snapshot: args.planSnapshot ?? {},
-        operation_input: {
-          attachment: pendingRaw.attachment ?? null,
-          risk_situation: pendingRaw.risk_situation ?? null,
-          defense_response_hint: pendingRaw.defense_response_hint ??
-            (pendingRaw.draft?.draft?.defense_response
-              ? {
-                strategy_hint: "unknown",
-                value: pendingRaw.draft.draft.defense_response,
-              }
-              : undefined),
+    if (draftReviewDecision.decision === "explain") {
+      return {
+        content: pendingRaw.draft?.confirmation_message ??
+          pendingRaw.draft?.draft?.defense_response ??
+          "",
+        nextTempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_defense_card",
+          status: "draft_review_details",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
-      });
-
+      };
+    }
+    if (draftReviewDecision.decision === "revise") {
       if (
-        correctionOutput.status === "pending_confirmation" &&
-        correctionOutput.pending_confirmation &&
-        correctionOutput.draft
+        pendingReviewOutput.status === "pending_confirmation" &&
+        pendingReviewOutput.pending_confirmation &&
+        pendingReviewOutput.draft
       ) {
         nextTempMemory.__pending_tool_skill_confirmation = {
-          ...correctionOutput.pending_confirmation,
+          ...pendingReviewOutput.pending_confirmation,
           attachment: defenseCardAttachmentFromPendingConfirmation(
-            correctionOutput.pending_confirmation,
-            null,
+            pendingReviewOutput.pending_confirmation,
+            {
+              attachment: pendingRaw.attachment ?? null,
+              risk_situation: pendingRaw.risk_situation ?? null,
+              intake_state: (pendingRaw as any).intake_state ?? undefined,
+            },
           ),
           created_at: new Date().toISOString(),
           turn_count: 0,
@@ -7197,8 +9761,8 @@ async function maybeRunPrepareDefenseCardOperation(args: {
         };
         delete nextTempMemory.pending_tool_skill_confirmation;
         return {
-          content: correctionOutput.confirmation?.message ??
-            correctionOutput.draft.confirmation_message,
+          content: pendingReviewOutput.confirmation?.message ??
+            pendingReviewOutput.draft.confirmation_message,
           nextTempMemory,
           toolExecution: "blocked",
           executedTools: [],
@@ -7206,12 +9770,13 @@ async function maybeRunPrepareDefenseCardOperation(args: {
             selected_handler: "prepare_defense_card",
             status: "pending_confirmation_updated",
             operation_id: String(
-              correctionOutput.pending_confirmation.operation_id ??
+              pendingReviewOutput.pending_confirmation.operation_id ??
                 pendingRaw.operation_id ??
                 "",
             ),
             previous_operation_id: pendingRaw.operation_id ?? null,
-            draft: correctionOutput.draft,
+            draft: pendingReviewOutput.draft,
+            draft_review_decision: draftReviewDecision,
           },
         };
       }
@@ -7220,27 +9785,30 @@ async function maybeRunPrepareDefenseCardOperation(args: {
       delete nextTempMemory.pending_tool_skill_confirmation;
       nextTempMemory.__active_tool_skill_intake = {
         operation_type: "prepare_defense_card",
-        phase: correctionOutput.phase,
-        missing_slots: correctionOutput.state_patch.missing_slots,
-        slot_state: correctionOutput.next_question ?? null,
-        operation_input: correctionOutput.next_question?.known_slots ?? null,
+        phase: pendingReviewOutput.phase,
+        missing_slots: pendingReviewOutput.state_patch.missing_slots,
+        slot_state: pendingReviewOutput.next_question ?? null,
+        operation_input: pendingReviewOutput.next_question?.known_slots ?? null,
         turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
       };
       return {
-        content: renderDefenseCardSlotQuestion(correctionOutput.next_question),
+        content: renderDefenseCardSlotQuestion(
+          pendingReviewOutput.next_question,
+        ),
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_defense_card",
-          status: correctionOutput.status,
+          status: pendingReviewOutput.status,
           operation_id: pendingRaw.operation_id ?? null,
-          missing_slots: correctionOutput.state_patch.missing_slots,
-          slot_state: correctionOutput.next_question ?? null,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          slot_state: pendingReviewOutput.next_question ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (draftReviewDecision.decision !== "approve") return null;
 
     const { data, error } = await insertDefenseCardFromDraft({
       supabase: args.supabase,
@@ -7288,6 +9856,7 @@ async function maybeRunPrepareDefenseCardOperation(args: {
     const confirmation = detectConfirmationKind({
       userMessage: args.userMessage,
       turnFrame: args.turnFrame,
+      structuredOnly: true,
     });
     if (confirmation === "no") {
       delete nextTempMemory.__pending_recommendation_operation;
@@ -7303,9 +9872,9 @@ async function maybeRunPrepareDefenseCardOperation(args: {
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (confirmation !== "yes" && !explicitDefenseCardRoute) return null;
 
-    const recommendationOutput = runPrepareDefenseCardIntake({
+    const recommendationOutput = await runPrepareDefenseCardAiIntake({
       user_id: args.userId,
       channel: args.channel,
       timezone: args.userTimezone,
@@ -7323,6 +9892,21 @@ async function maybeRunPrepareDefenseCardOperation(args: {
       !recommendationOutput.draft
     ) {
       delete nextTempMemory.__pending_recommendation_operation;
+      if (recommendationOutput.status === "ask_question") {
+        nextTempMemory.__active_tool_skill_intake = {
+          operation_type: "prepare_defense_card",
+          phase: recommendationOutput.phase,
+          missing_slots: recommendationOutput.state_patch.missing_slots,
+          slot_state: recommendationOutput.next_question ?? null,
+          operation_input: recommendationOutput.state_patch.operation_input ??
+            recommendationOutput.next_question?.known_slots ??
+            pendingRecommendation.operation_input ?? null,
+          tool_skill_state: recommendationOutput.state_patch.tool_skill_state ??
+            null,
+          turn_count: 1,
+          updated_at: new Date().toISOString(),
+        };
+      }
       return {
         content: renderDefenseCardSlotQuestion(
           recommendationOutput.next_question,
@@ -7341,64 +9925,34 @@ async function maybeRunPrepareDefenseCardOperation(args: {
       };
     }
 
-    const attachment =
-      (pendingRecommendation.operation_input as any)?.attachment ?? null;
-    const riskSituation =
-      (pendingRecommendation.operation_input as any)?.risk_situation ?? null;
-    const { data, error } = await insertDefenseCardFromDraft({
-      supabase: args.supabase,
-      userId: args.userId,
-      draft: recommendationOutput.draft,
-      operationId: String(
-        (recommendationOutput.pending_confirmation as any)?.operation_id ??
-          crypto.randomUUID(),
+    nextTempMemory.__pending_tool_skill_confirmation = {
+      ...recommendationOutput.pending_confirmation,
+      attachment: defenseCardAttachmentFromPendingConfirmation(
+        recommendationOutput.pending_confirmation,
+        pendingRecommendation.operation_input ?? null,
       ),
-      sourceMessageId: args.sourceMessageId,
-      requestId: args.requestId ?? null,
-      attachment: attachment && typeof attachment === "object"
-        ? {
-          kind: attachment.kind === "personal_action"
-            ? "personal_action"
-            : "plan_item",
-          title: String(
-            attachment.title ?? recommendationOutput.draft.draft.target_label,
-          ),
-          plan_item_id: attachment.plan_item_id ?? null,
-        }
-        : null,
-      riskSituation: riskSituation && typeof riskSituation === "object"
-        ? riskSituation
-        : null,
-    });
+      created_at: new Date().toISOString(),
+      turn_count: 0,
+    };
     delete nextTempMemory.__pending_recommendation_operation;
-    if (error || !data?.id) {
-      return {
-        content:
-          "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
-        nextTempMemory,
-        toolExecution: "failed",
-        executedTools: ["prepare_defense_card"],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: "failed",
-          source: "recommendation_tool",
-          recommendation_id: pendingRecommendation.recommendation_id ?? null,
-          error: error?.message ?? "missing_inserted_id",
-        },
-      };
-    }
+    delete nextTempMemory.pending_tool_skill_confirmation;
+    delete nextTempMemory.__active_tool_skill_intake;
+    delete nextTempMemory.active_tool_skill_intake;
     return {
-      content:
-        `C'est fait. J'ai créé la carte de défense "${recommendationOutput.draft.draft.title}" : ${recommendationOutput.draft.draft.defense_response}\n\n${DEFENSE_CARD_CREATED_LOCATION}`,
+      content: recommendationOutput.confirmation?.message ??
+        recommendationOutput.draft.confirmation_message,
       nextTempMemory,
-      toolExecution: "success",
-      executedTools: ["prepare_defense_card"],
+      toolExecution: "blocked",
+      executedTools: [],
       toolSkillRun: {
         selected_handler: "prepare_defense_card",
-        status: "executed_from_recommendation",
+        status: "pending_confirmation",
         source: "recommendation_tool",
         recommendation_id: pendingRecommendation.recommendation_id ?? null,
-        defense_card_id: data.id,
+        operation_id:
+          (recommendationOutput.pending_confirmation as any)?.operation_id ??
+            null,
+        draft: recommendationOutput.draft,
       },
     };
   }
@@ -7415,140 +9969,89 @@ async function maybeRunPrepareDefenseCardOperation(args: {
     activeAttachmentQuestion?.candidate,
   );
   if (activeAttachmentCandidate) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
-    });
     const activeKnownSlots = activeDefenseIntake?.operation_input ??
       activeAttachmentQuestion?.known_slots ??
       {};
-    if (confirmation === "yes") {
-      const candidateOutput = runPrepareDefenseCardIntake({
-        user_id: args.userId,
-        channel: args.channel,
-        timezone: args.userTimezone,
-        message: args.userMessage,
-        source: "direct_user_request",
-        trigger_message_id: args.sourceMessageId ?? args.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-        turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
-        plan_snapshot: args.planSnapshot ?? {},
-        operation_input: {
-          ...activeKnownSlots,
-          attachment: activeAttachmentCandidate,
-        },
-      });
-      if (
-        candidateOutput.status === "pending_confirmation" &&
-        candidateOutput.pending_confirmation
-      ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...candidateOutput.pending_confirmation,
-          attachment: defenseCardAttachmentFromPendingConfirmation(
-            candidateOutput.pending_confirmation,
-            { attachment: activeAttachmentCandidate },
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        delete nextTempMemory.__active_tool_skill_intake;
-        delete nextTempMemory.active_tool_skill_intake;
-        return {
-          content: candidateOutput.confirmation?.message ??
-            "Confirme si tu veux que je crée cette carte.",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_defense_card",
-            status: "pending_confirmation",
-            operation_id:
-              (candidateOutput.pending_confirmation as any)?.operation_id ??
-                null,
-            draft: candidateOutput.draft ?? null,
-            attachment_slot_resolution: {
-              status: "confirmed_candidate",
-              attachment: activeAttachmentCandidate,
-            },
-          },
-        };
-      }
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_defense_card",
-        phase: candidateOutput.phase,
-        missing_slots: candidateOutput.state_patch.missing_slots,
-        slot_state: candidateOutput.next_question ?? null,
-        operation_input: {
-          ...activeKnownSlots,
-          attachment: activeAttachmentCandidate,
-        },
-        turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
+    const candidateOutput = await runPrepareDefenseCardAiIntake({
+      user_id: args.userId,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
+      plan_snapshot: args.planSnapshot ?? {},
+      operation_input: {
+        ...activeKnownSlots,
+        attachment_candidate: activeAttachmentCandidate,
+      },
+    });
+    if (
+      candidateOutput.status === "pending_confirmation" &&
+      candidateOutput.pending_confirmation
+    ) {
+      nextTempMemory.__pending_tool_skill_confirmation = {
+        ...candidateOutput.pending_confirmation,
+        attachment: defenseCardAttachmentFromPendingConfirmation(
+          candidateOutput.pending_confirmation,
+          { attachment: activeAttachmentCandidate },
+        ),
+        created_at: new Date().toISOString(),
+        turn_count: 0,
       };
-      return {
-        content: renderDefenseCardSlotQuestion(candidateOutput.next_question),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: candidateOutput.status,
-          missing_slots: candidateOutput.state_patch.missing_slots,
-          slot_state: candidateOutput.next_question ?? null,
-        },
-      };
-    }
-    if (confirmation === "no") {
-      const slotState = {
-        needed: true,
-        slot: "attachment",
-        status: "missing",
-        reason: "attachment_candidate_rejected",
-      };
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_defense_card",
-        phase: "attachment_resolution",
-        missing_slots: ["attachment"],
-        slot_state: slotState,
-        operation_input: activeKnownSlots,
-        turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
-      };
-      return {
-        content: renderDefenseCardSlotQuestion(slotState),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: "ask_question",
-          missing_slots: ["attachment"],
-          slot_state: slotState,
-        },
-      };
-    }
-    if (confirmation === "correction_to_pending") {
-      fallbackOperationInput = null;
+      delete nextTempMemory.pending_tool_skill_confirmation;
       delete nextTempMemory.__active_tool_skill_intake;
       delete nextTempMemory.active_tool_skill_intake;
-    } else if (confirmation !== "unknown") {
-      return null;
-    } else {
       return {
-        content: renderDefenseCardSlotQuestion(activeAttachmentQuestion),
+        content: candidateOutput.confirmation?.message ??
+          candidateOutput.draft?.confirmation_message ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_defense_card",
-          status: "ask_question",
-          missing_slots: ["attachment"],
-          slot_state: activeAttachmentQuestion,
+          status: "pending_confirmation",
+          operation_id:
+            (candidateOutput.pending_confirmation as any)?.operation_id ??
+              null,
+          draft: candidateOutput.draft ?? null,
+          attachment_slot_resolution: {
+            status: "resolved_by_skill_intake",
+            attachment: activeAttachmentCandidate,
+          },
         },
       };
     }
+    nextTempMemory.__active_tool_skill_intake = {
+      operation_type: "prepare_defense_card",
+      phase: candidateOutput.phase,
+      missing_slots: candidateOutput.state_patch.missing_slots,
+      slot_state: candidateOutput.next_question ?? null,
+      operation_input: candidateOutput.state_patch.operation_input ?? {
+        ...activeKnownSlots,
+        attachment_candidate: activeAttachmentCandidate,
+      },
+      turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
+      updated_at: new Date().toISOString(),
+    };
+    return {
+      content: renderDefenseCardSlotQuestion(candidateOutput.next_question),
+      nextTempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_defense_card",
+        status: candidateOutput.status,
+        missing_slots: candidateOutput.state_patch.missing_slots,
+        slot_state: candidateOutput.next_question ?? null,
+        attachment_slot_resolution: {
+          status: "handled_by_skill_intake",
+          attachment: activeAttachmentCandidate,
+        },
+      },
+    };
   }
 
   if (
@@ -7558,7 +10061,7 @@ async function maybeRunPrepareDefenseCardOperation(args: {
     fallbackOperationInput = activeDefenseIntake.operation_input;
   }
 
-  const output = runPrepareDefenseCardIntake({
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: args.userId,
     channel: args.channel,
     timezone: args.userTimezone,
@@ -7585,6 +10088,8 @@ async function maybeRunPrepareDefenseCardOperation(args: {
       turn_count: 0,
     };
     delete nextTempMemory.pending_tool_skill_confirmation;
+    delete nextTempMemory.__active_tool_skill_intake;
+    delete nextTempMemory.active_tool_skill_intake;
     return {
       content: output.confirmation?.message ??
         "Tu veux que je crée cette carte de défense ?",
@@ -7663,6 +10168,22 @@ async function maybeRunSelectStatePotionOperation(args: {
     })
   ) return null;
 
+  const draftGeneratorWithDbContext = async (
+    input: PotionSessionDraftGeneratorInput,
+  ) => {
+    const admin = getOperationServiceClient() ?? args.supabase;
+    const baseContext = await loadPotionBaseContext({
+      admin,
+      userId: args.userId,
+      potionType: input.potion_type,
+      relatedPlanItemId: input.context?.related_plan_item_id ?? null,
+    });
+    return await generatePotionSessionDraftWithAi({
+      ...input,
+      base_context: baseContext,
+    });
+  };
+
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
   const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
     nextTempMemory.pending_tool_skill_confirmation ??
@@ -7671,15 +10192,17 @@ async function maybeRunSelectStatePotionOperation(args: {
     nextTempMemory.__pending_recommendation_operation;
 
   if (isPendingStatePotionOperation(pendingRaw)) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
+    const draftReviewDecision = await reviewSelectStatePotionDraft({
+      message: args.userMessage,
+      previous_draft: pendingRaw.draft,
+      request_id: args.requestId ?? null,
     });
-    if (confirmation === "no") {
+    if (!draftReviewDecision) return null;
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
-        content: "Ok, je ne lance pas cette potion.",
+        content: draftReviewDecision.generated_user_message ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -7687,10 +10210,63 @@ async function maybeRunSelectStatePotionOperation(args: {
           selected_handler: "select_state_potion",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (draftReviewDecision.decision === "explain") {
+      return {
+        content: draftReviewDecision.generated_user_message ??
+          pendingRaw.draft.confirmation_message,
+        nextTempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "select_state_potion",
+          status: "draft_review_details",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision === "revise") {
+      delete nextTempMemory.__pending_tool_skill_confirmation;
+      delete nextTempMemory.pending_tool_skill_confirmation;
+      nextTempMemory.__active_tool_skill_intake = {
+        operation_type: "select_state_potion",
+        phase: "state_resolution",
+        missing_slots: [],
+        operation_input: {},
+        turn_count: 0,
+        updated_at: new Date().toISOString(),
+      };
+      return {
+        content: draftReviewDecision.generated_user_message ?? "",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "select_state_potion",
+          status: "draft_review_revision_requested",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision !== "approve") {
+      return {
+        content: draftReviewDecision.generated_user_message ?? "",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "select_state_potion",
+          status: "draft_review_unclear",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
 
     const operationId = String(pendingRaw.operation_id ?? crypto.randomUUID());
     const token = await createConfirmationToken({
@@ -7745,11 +10321,13 @@ async function maybeRunSelectStatePotionOperation(args: {
           status: executed.status,
           operation_id: operationId,
           reason_code: executed.reason_code,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
     return {
-      content: executed.ack,
+      content: executed.messages.instant_support_message,
+      additionalContents: [executed.messages.potion_info_message],
       nextTempMemory,
       toolExecution: "success",
       executedTools: ["select_state_potion"],
@@ -7759,6 +10337,7 @@ async function maybeRunSelectStatePotionOperation(args: {
         operation_id: operationId,
         potion_session_id: executed.potion_session_id,
         recurring_reminder_id: executed.recurring_reminder_id,
+        draft_review_decision: draftReviewDecision,
       },
     };
   }
@@ -7784,7 +10363,7 @@ async function maybeRunSelectStatePotionOperation(args: {
     }
     if (confirmation !== "yes") return null;
 
-    const output = runSelectStatePotionIntake({
+    const output = await runSelectStatePotionIntake({
       user_id: args.userId,
       channel: args.channel,
       timezone: args.userTimezone,
@@ -7794,6 +10373,8 @@ async function maybeRunSelectStatePotionOperation(args: {
         crypto.randomUUID(),
       safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
       operation_input: pendingRecommendation.operation_input ?? null,
+      request_id: args.requestId ?? null,
+      draft_generator: draftGeneratorWithDbContext,
     });
     delete nextTempMemory.__pending_recommendation_operation;
     if (
@@ -7805,8 +10386,7 @@ async function maybeRunSelectStatePotionOperation(args: {
         turn_count: 0,
       };
       return {
-        content: output.confirmation?.message ??
-          "Tu veux que je lance cette potion ?",
+        content: output.confirmation?.message ?? output.ack ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -7825,13 +10405,13 @@ async function maybeRunSelectStatePotionOperation(args: {
         operation_type: "select_state_potion",
         phase: output.phase,
         missing_slots: output.state_patch.missing_slots,
-        operation_input: {},
+        operation_input: output.state_patch.operation_input ?? {},
+        intake_state: output.state_patch.intake_state ?? null,
         turn_count: 1,
         updated_at: new Date().toISOString(),
       };
       return {
-        content: output.next_question?.question ??
-          "C'est plutôt stress, honte, peur, flou, dureté envers toi, ou décrochage ?",
+        content: output.next_question?.question ?? output.ack ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -7845,7 +10425,7 @@ async function maybeRunSelectStatePotionOperation(args: {
     }
     return {
       content: output.ack ??
-        "Je n'ai pas assez d'informations pour choisir cette potion.",
+        "",
       nextTempMemory,
       toolExecution: output.status === "blocked_by_safety"
         ? "blocked"
@@ -7867,7 +10447,7 @@ async function maybeRunSelectStatePotionOperation(args: {
       "select_state_potion"
     ? activeIntake.operation_input ?? {}
     : {};
-  const output = runSelectStatePotionIntake({
+  const output = await runSelectStatePotionIntake({
     user_id: args.userId,
     channel: args.channel,
     timezone: args.userTimezone,
@@ -7878,6 +10458,8 @@ async function maybeRunSelectStatePotionOperation(args: {
     safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
     turn_count: Number(activeIntake?.turn_count ?? 0),
     operation_input: activeOperationInput,
+    request_id: args.requestId ?? null,
+    draft_generator: draftGeneratorWithDbContext,
   });
 
   if (output.status === "pending_confirmation" && output.pending_confirmation) {
@@ -7891,7 +10473,7 @@ async function maybeRunSelectStatePotionOperation(args: {
     delete nextTempMemory.active_tool_skill_intake;
     return {
       content: output.confirmation?.message ??
-        "Tu veux que je lance cette potion ?",
+        output.ack ?? "",
       nextTempMemory,
       toolExecution: "blocked",
       executedTools: [],
@@ -7910,13 +10492,14 @@ async function maybeRunSelectStatePotionOperation(args: {
       operation_type: "select_state_potion",
       phase: output.phase,
       missing_slots: output.state_patch.missing_slots,
-      operation_input: activeOperationInput,
+      operation_input: output.state_patch.operation_input ??
+        activeOperationInput,
+      intake_state: output.state_patch.intake_state ?? null,
       turn_count: Number(activeIntake?.turn_count ?? 0) + 1,
       updated_at: new Date().toISOString(),
     };
     return {
-      content: output.next_question?.question ??
-        "C'est plutôt stress, honte, peur, flou, dureté envers toi, ou décrochage ?",
+      content: output.next_question?.question ?? output.ack ?? "",
       nextTempMemory,
       toolExecution: "blocked",
       executedTools: [],
@@ -7930,7 +10513,7 @@ async function maybeRunSelectStatePotionOperation(args: {
 
   return {
     content: output.ack ??
-      "Je n'ai pas pu choisir cette potion depuis le chat pour l'instant.",
+      "",
     nextTempMemory,
     toolExecution: output.status === "blocked_by_safety" ? "blocked" : "failed",
     executedTools: [],
@@ -7969,15 +10552,17 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     nextTempMemory.pending_tool_skill_confirmation ??
     null;
   if (isPendingCoachPreferencesOperation(pendingRaw)) {
-    const confirmation = detectConfirmationKind({
-      userMessage: args.userMessage,
-      turnFrame: args.turnFrame,
+    const draftReviewDecision = await reviewUpdateCoachPreferencesDraft({
+      message: args.userMessage,
+      previous_draft: pendingRaw.draft,
+      request_id: args.requestId ?? null,
     });
-    if (confirmation === "no") {
+    if (!draftReviewDecision) return null;
+    if (draftReviewDecision.decision === "reject") {
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
       return {
-        content: "Ok, je ne change pas cette préférence.",
+        content: draftReviewDecision.generated_user_message ?? "",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -7985,10 +10570,127 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
           selected_handler: "update_coach_preferences",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
-    if (confirmation !== "yes") return null;
+    if (draftReviewDecision.decision === "explain") {
+      return {
+        content: draftReviewDecision.generated_user_message ??
+          pendingRaw.draft.confirmation_message,
+        nextTempMemory,
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "update_coach_preferences",
+          status: "draft_review_details",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision === "revise") {
+      delete nextTempMemory.__pending_tool_skill_confirmation;
+      delete nextTempMemory.pending_tool_skill_confirmation;
+      const revisionOutput = await runUpdateCoachPreferencesIntake({
+        user_id: args.userId,
+        channel: args.channel,
+        timezone: args.userTimezone,
+        message: args.userMessage,
+        source: "direct_user_request",
+        trigger_message_id: args.sourceMessageId ?? args.requestId ??
+          crypto.randomUUID(),
+        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+        turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+        operation_input: {
+          intake_state: (pendingRaw as any).intake_state ?? undefined,
+        },
+        request_id: args.requestId ?? null,
+      });
+      if (
+        revisionOutput.status === "pending_confirmation" &&
+        revisionOutput.pending_confirmation
+      ) {
+        nextTempMemory.__pending_tool_skill_confirmation = {
+          ...revisionOutput.pending_confirmation,
+          created_at: new Date().toISOString(),
+          turn_count: 0,
+          supersedes_operation_id: pendingRaw.operation_id ?? null,
+        };
+        delete nextTempMemory.__active_tool_skill_intake;
+        delete nextTempMemory.active_tool_skill_intake;
+        return {
+          content: revisionOutput.confirmation?.message ??
+            "Tu veux que j'applique cette préférence ?",
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "update_coach_preferences",
+            status: "pending_confirmation_updated",
+            operation_id:
+              (revisionOutput.pending_confirmation as any)?.operation_id ??
+                null,
+            previous_operation_id: pendingRaw.operation_id ?? null,
+            draft: revisionOutput.draft ?? null,
+            draft_review_decision: draftReviewDecision,
+          },
+        };
+      }
+      if (revisionOutput.status === "ask_question") {
+        nextTempMemory.__active_tool_skill_intake = {
+          operation_type: "update_coach_preferences",
+          phase: revisionOutput.phase,
+          missing_slots: revisionOutput.state_patch.missing_slots,
+          operation_input: revisionOutput.state_patch.operation_input ?? {},
+          intake_state: revisionOutput.state_patch.intake_state ?? null,
+          tool_skill_state: revisionOutput.state_patch.tool_skill_state ?? null,
+          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+          updated_at: new Date().toISOString(),
+        };
+        return {
+          content: revisionOutput.next_question?.question ??
+            "Tu veux changer mon ton, mon niveau de challenge, ou le nombre de questions ?",
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "update_coach_preferences",
+            status: "draft_review_revision_requested",
+            operation_id: pendingRaw.operation_id ?? null,
+            missing_slots: revisionOutput.state_patch.missing_slots,
+            draft_review_decision: draftReviewDecision,
+          },
+        };
+      }
+      return {
+        content: revisionOutput.ack ??
+          "Je n'ai pas réussi à préparer cette préférence techniquement. Je préfère ne rien appliquer sans confirmation claire.",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "update_coach_preferences",
+          status: revisionOutput.status,
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
+    if (draftReviewDecision.decision !== "approve") {
+      return {
+        content: draftReviewDecision.generated_user_message ?? "",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "update_coach_preferences",
+          status: "draft_review_unclear",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
 
     const { data, error } = await upsertCoachPreferencesFromDraft({
       supabase: args.supabase,
@@ -8010,6 +10712,7 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
           status: "failed",
           operation_id: pendingRaw.operation_id ?? null,
           error: error?.message ?? "missing_upserted_key",
+          draft_review_decision: draftReviewDecision,
         },
       };
     }
@@ -8024,6 +10727,7 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
         status: "executed",
         operation_id: pendingRaw.operation_id ?? null,
         preferences_update_id: data.key,
+        draft_review_decision: draftReviewDecision,
       },
     };
   }
@@ -8032,7 +10736,15 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     return null;
   }
 
-  const output = runUpdateCoachPreferencesIntake({
+  const activeIntake = (
+    nextTempMemory.__active_tool_skill_intake ??
+      nextTempMemory.active_tool_skill_intake
+  ) as any;
+  const activeOperationInput = activeIntake?.operation_type ===
+      "update_coach_preferences"
+    ? activeIntake.operation_input ?? {}
+    : {};
+  const output = await runUpdateCoachPreferencesIntake({
     user_id: args.userId,
     channel: args.channel,
     timezone: args.userTimezone,
@@ -8044,6 +10756,8 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     turn_count: Number(
       (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
     ),
+    operation_input: activeOperationInput,
+    request_id: args.requestId ?? null,
   });
 
   if (output.status === "pending_confirmation" && output.pending_confirmation) {
@@ -8053,6 +10767,8 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
       turn_count: 0,
     };
     delete nextTempMemory.pending_tool_skill_confirmation;
+    delete nextTempMemory.__active_tool_skill_intake;
+    delete nextTempMemory.active_tool_skill_intake;
     return {
       content: output.confirmation?.message ??
         "Tu veux que j'applique cette préférence ?",
@@ -8074,7 +10790,11 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
       operation_type: "update_coach_preferences",
       phase: output.phase,
       missing_slots: output.state_patch.missing_slots,
-      turn_count: 1,
+      operation_input: output.state_patch.operation_input ??
+        activeOperationInput,
+      intake_state: output.state_patch.intake_state ?? null,
+      tool_skill_state: output.state_patch.tool_skill_state ?? null,
+      turn_count: Number(activeIntake?.turn_count ?? 0) + 1,
       updated_at: new Date().toISOString(),
     };
     return {
@@ -8121,6 +10841,7 @@ export async function processMessage(
     whatsappMode?: "onboarding" | "normal";
     evalRunId?: string | null;
     forceBrainTrace?: boolean;
+    enableAdjustPlanCoachGuidance?: boolean;
   },
   opts?: {
     logMessages?: boolean;
@@ -8420,6 +11141,7 @@ export async function processMessage(
     }, "warn");
   }
   let attackKeywordContextOverride = "";
+  let attackKeywordMatchForTurn: AttackKeywordMatch | null = null;
   try {
     const attackKeywordMatch = await loadAttackKeywordMatch({
       supabase,
@@ -8428,6 +11150,7 @@ export async function processMessage(
       runtime: v2Runtime,
     });
     if (attackKeywordMatch) {
+      attackKeywordMatchForTurn = attackKeywordMatch;
       attackKeywordContextOverride = buildAttackKeywordContextOverride({
         match: attackKeywordMatch,
       });
@@ -8471,6 +11194,9 @@ export async function processMessage(
       );
     }
   }
+  const userTime = await getUserTimeContext({ supabase, userId }).catch(() =>
+    null as any
+  );
 
   const currentMessagePlanTarget = resolvePlanItemTargetFromText(
     userMessage,
@@ -8536,10 +11262,10 @@ export async function processMessage(
   let activeOperationIntake = (tempMemory as any)?.active_tool_skill_intake ??
     (tempMemory as any)?.__active_tool_skill_intake ??
     null;
-  const activeOperationIntakeForDispatcher = activeOperationIntake;
   if (
     activeOperationIntake &&
-    (isOperationEscapeMessage(userMessage) ||
+    ((isOperationEscapeMessage(userMessage) &&
+      !isActiveAttackCardKeywordIntake(activeOperationIntake)) ||
       isOperationCorrectionOrSafetyInterruption(userMessage))
   ) {
     tempMemory = { ...(tempMemory ?? {}) };
@@ -8547,10 +11273,15 @@ export async function processMessage(
     delete (tempMemory as any).active_tool_skill_intake;
     activeOperationIntake = null;
   }
+  const activeOperationIntakeForDispatcher = activeOperationIntake;
   let pendingOperationConfirmation =
     (tempMemory as any)?.pending_tool_skill_confirmation ??
       (tempMemory as any)?.__pending_tool_skill_confirmation ??
       null;
+  let pendingOperationConfirmationForGlobalRouting =
+    pendingConfirmationOwnedByToolSkill(pendingOperationConfirmation)
+      ? null
+      : pendingOperationConfirmation;
   const fullAiRequested = meta?.forceRealAi === true ||
     (opts?.messageMetadata as Record<string, unknown> | undefined)
         ?.force_full_ai === true;
@@ -8568,11 +11299,20 @@ export async function processMessage(
       channel,
       active_skill_state: activeSkillState,
       active_tool_skill_intake: activeOperationIntakeForDispatcher,
-      pending_tool_skill_confirmation: pendingOperationConfirmation,
+      pending_tool_skill_confirmation:
+        pendingOperationConfirmationForGlobalRouting,
       active_topic_state: (tempMemory as any)?.memory_v2_active_topic ?? null,
       flow_state_context: {
         channel,
         scope,
+        user_time: userTime
+          ? {
+            user_timezone: userTime.user_timezone,
+            user_local_date: userTime.user_local_date,
+            user_local_datetime: userTime.user_local_datetime,
+            user_local_human: userTime.user_local_human,
+          }
+          : null,
         whatsapp_mode: meta?.whatsappMode ?? null,
         forced_mode: opts?.forceMode ?? null,
         force_onboarding_flow: Boolean(opts?.forceOnboardingFlow),
@@ -8584,8 +11324,19 @@ export async function processMessage(
           id: item?.id,
           title: item?.title,
           status: item?.status,
-          kind: item?.kind,
+          kind: item?.item_type,
           dimension: item?.dimension,
+          cadence_label: item?.cadence_label ?? null,
+          target_reps: item?.target_reps ?? null,
+          current_reps: item?.current_reps ?? null,
+          item_nature: item?.item_nature ?? null,
+          available_this_week: item?.available_this_week ?? false,
+          availability_status: item?.availability_status ?? null,
+          week_scope: item?.week_scope ?? null,
+          source_kind: item?.source_kind ?? null,
+          payload: item?.payload && typeof item.payload === "object"
+            ? item.payload
+            : null,
         })),
       },
       safety_pregate_output: safetyPregateOutput,
@@ -8595,7 +11346,8 @@ export async function processMessage(
       llm_runner: dispatcherLlmRunner,
       model_name: String(
         Deno.env.get("SOPHIA_DISPATCHER_LLM_MODEL") ??
-          "gemini-3-flash-preview",
+          Deno.env.get("GEMINI_FALLBACK_MODEL") ??
+          "gemini-2.5-flash",
       ).trim(),
       on_stats: (stats) => {
         dispatcherV2Stats.push(stats);
@@ -8647,6 +11399,7 @@ export async function processMessage(
       activeSkillState = null;
       activeOperationIntake = null;
       pendingOperationConfirmation = null;
+      pendingOperationConfirmationForGlobalRouting = null;
       await updateUserState(supabase, userId, scope, {
         temp_memory: tempMemory,
       });
@@ -8665,13 +11418,15 @@ export async function processMessage(
       turn_frame: turnFrame,
       active_skill_state: activeSkillState,
       active_tool_skill_intake: activeOperationIntake,
-      pending_tool_skill_confirmation: pendingOperationConfirmation,
+      pending_tool_skill_confirmation:
+        pendingOperationConfirmationForGlobalRouting,
       safety_pregate_risk_band: safetyPregateOutput.risk_band,
     });
     if (
-      pendingOperationConfirmation &&
+      pendingOperationConfirmationForGlobalRouting &&
       routeDecision.reason_code === "confirmation_correction_to_pending" &&
-      detectConfirmationKind({ userMessage, turnFrame }) === "yes"
+      detectConfirmationKind({ userMessage, turnFrame }) === "yes" &&
+      isExplicitPendingApplyConfirmation(userMessage)
     ) {
       routeDecision = {
         ...routeDecision,
@@ -8681,9 +11436,83 @@ export async function processMessage(
         direct_effects_to_run: [],
       };
     }
+    if (isEarlyWeeklyPlanningValidationRequest(userMessage)) {
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        selected_handler: "weekly_planning_locked_until_review",
+        reason_code: "weekly_planning_validation_locked_until_review",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill.adjust_plan_item",
+            reason_code: "weekly_planning_validation_locked_until_review",
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        tool_skill_intents: [],
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      shouldKeepWeeklyAdaptiveReviewInConversation({
+        activeSkillState,
+        tempMemory,
+        routeDecision,
+        turnFrame,
+        userMessage,
+      })
+    ) {
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "conversation_handler",
+        selected_handler: "weekly_adaptive_review_v1",
+        reason_code: "active_weekly_review_kept_in_conversation",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill",
+            reason_code: "active_weekly_review_requires_confirmation_flow",
+          },
+          {
+            path: "product_help",
+            reason_code: "active_weekly_review_requires_branch_decision",
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        tool_skill_intents: [],
+        tool_skill_opportunity: {
+          type: "none",
+          operation_type: null,
+          surface_id: null,
+          confidence_band: "low",
+          should_offer: false,
+          prop_reason: null,
+          source_span: null,
+          target_hint: null,
+          target_status: "none",
+          suggested_question_intent: null,
+          offer_timing: "never",
+          must_not_execute: true,
+        },
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
     if (
       isOperationEscapeMessage(userMessage) &&
-      !pendingOperationConfirmation &&
+      !pendingOperationConfirmationForGlobalRouting &&
       routeDecision.response_owner === "tool_skill" &&
       !hasStrongToolSkillIntent(turnFrame)
     ) {
@@ -8694,6 +11523,34 @@ export async function processMessage(
         reason_code: "operation_escape_to_normal_reply",
         direct_effects_to_run: [],
       };
+    }
+    if (
+      attackKeywordContextOverride &&
+      routeDecision.direct_effects_to_run.includes("track_progress_plan_item")
+    ) {
+      routeDecision = {
+        ...routeDecision,
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "direct_effects.track_progress_plan_item",
+            reason_code: "attack_keyword_trigger_is_not_completion",
+          },
+        ],
+        direct_effects_to_run: routeDecision.direct_effects_to_run.filter((
+          effect,
+        ) => effect !== "track_progress_plan_item"),
+      };
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: turnFrame.direct_effects.filter((effect) =>
+          effect.effect_type !== "track_progress_plan_item"
+        ),
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
     }
     if (routeDecision.direct_effects_to_run.length > 0) {
       try {
@@ -9187,63 +12044,105 @@ export async function processMessage(
     },
   });
 
-  const [trackProgressRuntime] = await Promise.all([
-    maybeTrackProgressParallel({
-      supabase,
-      userId,
-      state,
-      tempMemory,
-      dispatcherSignals,
-      directEffectGateResult,
-      planItemSnapshot,
-      v2Runtime,
-      loggedMessageId,
-      channel,
-    }),
-    maybeLogDefenseCardWinParallel({
-      supabase,
-      userId,
-      dispatcherSignals,
-      v2Runtime,
-      tempMemory,
-    }),
-  ]);
+  const [trackProgressRuntime, weeklyForgottenProgressRuntime] = await Promise
+    .all([
+      maybeTrackProgressParallel({
+        supabase,
+        userId,
+        state,
+        tempMemory,
+        activeSkillState,
+        dispatcherSignals,
+        directEffectGateResult,
+        planItemSnapshot,
+        v2Runtime,
+        loggedMessageId,
+        channel,
+      }),
+      maybeLogWeeklyForgottenProgressParallel({
+        supabase,
+        userId,
+        tempMemory,
+        activeSkillState,
+        v2Runtime,
+        loggedMessageId,
+        userMessage,
+      }),
+      maybeLogDefenseCardWinParallel({
+        supabase,
+        userId,
+        dispatcherSignals,
+        v2Runtime,
+        tempMemory,
+      }),
+    ]);
 
   if (riskScore !== Number((state as any)?.risk_level ?? 0)) {
     await updateUserState(supabase, userId, scope, { risk_level: riskScore });
   }
 
-  const userTime = await getUserTimeContext({ supabase, userId }).catch(() =>
-    null as any
-  );
-
-  const operationRuntime = await maybeRunCreateRecurringReminderOperation({
-    supabase,
-    userId,
-    userMessage,
-    channel,
-    userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+  const weeklyReviewStateForTurn = weeklyAdaptiveReviewStateForTurn({
+    activeSkillState,
     tempMemory,
-    turnFrame,
-    routeDecision,
-    safetyPregateOutput,
-    sourceMessageId: loggedMessageId,
-    requestId: meta?.requestId ?? null,
-  }) ??
-    await maybeRunSelectStatePotionOperation({
-      supabase,
-      userId,
+  });
+  const weeklyReviewBlocksToolSkillRuntime = Boolean(
+    weeklyReviewStateForTurn && routeDecision?.response_owner !== "safety" &&
+      !weeklyReviewAllowsAdjustPlanBridge({
+        routeDecision,
+        turnFrame,
+        userMessage,
+      }),
+  );
+  if (
+    weeklyReviewBlocksToolSkillRuntime &&
+    turnFrame &&
+    routeDecision &&
+    routeDecision.response_owner === "tool_skill"
+  ) {
+    routeDecision = {
+      ...routeDecision,
+      response_owner: "conversation_handler",
+      selected_handler: "weekly_adaptive_review_v1",
+      reason_code: "active_weekly_review_blocks_tool_skill_runtime",
+      direct_effects_to_run: [],
+      blocked_paths: [
+        ...routeDecision.blocked_paths,
+        {
+          path: "tool_skill",
+          reason_code: "active_weekly_review_blocks_tool_skill_runtime",
+        },
+      ],
+    };
+    const updatedTurnFrame: TurnFrame = {
+      ...turnFrame,
+      tool_skill_intents: [],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+    };
+    turnFrame = updatedTurnFrame;
+    dispatcherSignals = dispatcherSignalsFromTurnFrame({
+      turnFrame: updatedTurnFrame,
       userMessage,
-      channel,
-      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
-      tempMemory,
-      turnFrame,
-      routeDecision,
-      safetyPregateOutput,
-      sourceMessageId: loggedMessageId,
-      requestId: meta?.requestId ?? null,
-    }) ??
-    await maybeRunAdjustPlanItemOperation({
+    });
+  }
+
+  const pendingAdjustPlanRuntime = !weeklyReviewBlocksToolSkillRuntime &&
+      isPendingAdjustPlanDraftReview(
+        (tempMemory as any)?.__pending_adjust_plan_draft_review,
+      )
+    ? await maybeRunAdjustPlanItemOperation({
       supabase,
       userId,
       userMessage,
@@ -9258,53 +12157,117 @@ export async function processMessage(
       sourceMessageId: loggedMessageId,
       requestId: meta?.requestId ?? null,
       forceFullAi: fullAiRequested,
-    }) ??
-    await maybeRunPrepareAttackCardOperation({
-      supabase,
-      userId,
-      userMessage,
-      channel,
-      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
-      tempMemory,
-      turnFrame,
-      routeDecision,
-      safetyPregateOutput,
-      sourceMessageId: loggedMessageId,
-      requestId: meta?.requestId ?? null,
-      planSnapshot: { items: planItemSnapshot ?? [] },
-    }) ??
-    await maybeRunPrepareDefenseCardOperation({
-      supabase,
-      userId,
-      userMessage,
-      channel,
-      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
-      tempMemory,
-      turnFrame,
-      routeDecision,
-      safetyPregateOutput,
-      sourceMessageId: loggedMessageId,
-      requestId: meta?.requestId ?? null,
-      planSnapshot: { items: planItemSnapshot ?? [] },
-    }) ??
-    await maybeRunUpdateCoachPreferencesOperation({
-      supabase,
-      userId,
-      userMessage,
-      channel,
-      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
-      tempMemory,
-      turnFrame,
-      routeDecision,
-      safetyPregateOutput,
-      sourceMessageId: loggedMessageId,
-      requestId: meta?.requestId ?? null,
-    });
+      enableAdjustPlanCoachGuidance:
+        meta?.enableAdjustPlanCoachGuidance === true,
+    })
+    : null;
+
+  const operationRuntime = weeklyReviewBlocksToolSkillRuntime
+    ? null
+    : pendingAdjustPlanRuntime ??
+      await maybeRunCreateRecurringReminderOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        v2Runtime,
+        planItemSnapshot,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+      }) ??
+      await maybeRunSelectStatePotionOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+      }) ??
+      await maybeRunAdjustPlanItemOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        history,
+        tempMemory,
+        planItemSnapshot,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        forceFullAi: fullAiRequested,
+        enableAdjustPlanCoachGuidance:
+          meta?.enableAdjustPlanCoachGuidance === true,
+      }) ??
+      await maybeRunPrepareAttackCardOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        planSnapshot: { items: planItemSnapshot ?? [] },
+      }) ??
+      await maybeRunPrepareDefenseCardOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+        planSnapshot: { items: planItemSnapshot ?? [] },
+      }) ??
+      await maybeRunUpdateCoachPreferencesOperation({
+        supabase,
+        userId,
+        userMessage,
+        channel,
+        userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+        tempMemory,
+        turnFrame,
+        routeDecision,
+        safetyPregateOutput,
+        sourceMessageId: loggedMessageId,
+        requestId: meta?.requestId ?? null,
+      });
   if (operationRuntime) {
     const nextMode: AgentMode = "companion";
     const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
     const nextLastInteraction = new Date().toISOString();
-    const nextTempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+    let nextTempMemory = operationRuntime.nextTempMemory ?? tempMemory;
+    nextTempMemory = markWeeklyAdaptiveReviewAdjustPlanApplied({
+      tempMemory: nextTempMemory,
+      weeklyState: weeklyReviewStateForTurn,
+      operationRuntime,
+    });
+    const operationRuntimeContent = ensureVisibleSophiaEmoji(
+      operationRuntime.content,
+    );
+    const operationRuntimeAdditionalContents = (
+      operationRuntime.additionalContents ?? []
+    ).map((content) => ensureVisibleSophiaEmoji(content));
     await updateUserState(supabase, userId, scope, {
       current_mode: nextMode,
       unprocessed_msg_count: nextMsgCount,
@@ -9313,31 +12276,44 @@ export async function processMessage(
     });
 
     if (logMessages) {
-      await logMessage(
-        supabase,
-        userId,
-        scope,
-        "assistant",
-        operationRuntime.content,
-        nextMode,
-        {
-          ...(opts?.messageMetadata ?? {}),
-          channel,
-          request_id: meta?.requestId ?? null,
-          router_decision_v2: {
-            target_mode: targetMode,
-            next_mode: nextMode,
-            risk_score: riskScore,
-            safety_level: dispatcherSignals.safety.level,
-            tool_skill_runtime: operationRuntime.toolSkillRun,
+      const assistantContents = [
+        operationRuntimeContent,
+        ...operationRuntimeAdditionalContents,
+      ].map((content) => String(content ?? "").trim()).filter(Boolean);
+      for (const [index, content] of assistantContents.entries()) {
+        await logMessage(
+          supabase,
+          userId,
+          scope,
+          "assistant",
+          content,
+          nextMode,
+          {
+            ...(opts?.messageMetadata ?? {}),
+            channel,
+            request_id: meta?.requestId ?? null,
+            multi_message_index: index,
+            multi_message_count: assistantContents.length,
+            router_decision_v2: {
+              target_mode: targetMode,
+              next_mode: nextMode,
+              risk_score: riskScore,
+              safety_level: dispatcherSignals.safety.level,
+              tool_skill_runtime: operationRuntime.toolSkillRun,
+            },
           },
-        },
-      );
+        );
+      }
     }
 
     if (turnFrame && routeDecision) {
       try {
         const dispatcherV2Stat = dispatcherV2Stats[0];
+        const effectiveResponseOwner =
+          effectiveResponseOwnerForOperationRuntime({
+            routeDecision,
+            toolSkillRun: operationRuntime.toolSkillRun,
+          });
         await logConversationTurn({
           turn_id: turnFrame.turn_id,
           user_id: userId,
@@ -9349,7 +12325,7 @@ export async function processMessage(
             tokens_in: dispatcherV2Stat?.tokens_in ?? 0,
             tokens_out: dispatcherV2Stat?.tokens_out ?? 0,
             prompt_version: dispatcherV2Stat?.prompt_version ??
-              "dispatcher_v2_prompt_2026_05_s9",
+              "dispatcher_v2_prompt_2026_05_s12",
             model_used: dispatcherV2Stats[0]?.model_name ?? null,
             memory_plan: turnFrame?.memory_plan ??
               DEFAULT_DISPATCHER_MEMORY_PLAN,
@@ -9367,7 +12343,7 @@ export async function processMessage(
           },
           confirmation_token_outcomes: [],
           memory_write_candidates_emitted: 0,
-          response_owner: routeDecision.response_owner,
+          response_owner: effectiveResponseOwner,
           total_latency_ms: Date.now() - turnStartMs,
         }, { supabase });
       } catch (error) {
@@ -9468,7 +12444,8 @@ export async function processMessage(
     }
 
     return {
-      content: operationRuntime.content,
+      content: operationRuntimeContent,
+      additional_contents: operationRuntimeAdditionalContents,
       mode: nextMode,
       tool_execution: operationRuntime.toolExecution,
       executed_tools: operationRuntime.executedTools,
@@ -9546,6 +12523,14 @@ export async function processMessage(
             status: item.status,
             item_type: item.item_type,
             dimension: item.dimension,
+            cadence_label: item.cadence_label ?? null,
+            target_reps: item.target_reps ?? null,
+            current_reps: item.current_reps ?? null,
+            item_nature: item.item_nature ?? null,
+            available_this_week: item.available_this_week ?? false,
+            availability_status: item.availability_status ?? null,
+            week_scope: item.week_scope ?? null,
+            source_kind: item.source_kind ?? null,
           })),
           available_surfaces: registry.surfaces,
           recent_recommendations: [],
@@ -9609,7 +12594,11 @@ export async function processMessage(
       }
       if (
         !suppressOperationRecommendationForVerification &&
-        turnFrame?.tool_skill_opportunity?.should_offer
+        turnFrame?.tool_skill_opportunity?.should_offer &&
+        !routeDecision?.blocked_paths.some((blocked) =>
+          blocked.path === "tool_skill_opportunity" &&
+          blocked.reason_code === "active_flow_blocks_tool_opportunity"
+        )
       ) {
         const opportunitySurfaceLabel =
           turnFrame.tool_skill_opportunity.surface_id
@@ -9666,7 +12655,19 @@ export async function processMessage(
   }
   const injectedContext = [
     opts?.contextOverride,
-    attackKeywordContextOverride || null,
+    buildActivePlanSnapshotAddon({
+      planItemSnapshot,
+      routeDecision,
+      userMessage,
+    }),
+    summarizeWeeklyAdaptiveReviewForAddon(
+      weeklyAdaptiveReviewStateForTurn({ activeSkillState, tempMemory }),
+    ),
+    buildWeeklyTurnSlotAddon({
+      activeSkillState,
+      tempMemory,
+      userMessage,
+    }),
     buildResolvedPlanTargetAddon(tempMemory),
     buildConversationRiskFlowExitAddon(conversationRiskForPersist),
     recommendationToolAddon,
@@ -9677,6 +12678,7 @@ export async function processMessage(
       userMessage,
       recentMessages: recentMessagesForTurnFrame,
     }),
+    attackKeywordContextOverride || null,
   ].filter((value): value is string =>
     typeof value === "string" && value.trim().length > 0
   )
@@ -9876,90 +12878,27 @@ export async function processMessage(
     },
   });
 
-  const forceDeterministicProductLocation =
-    routeDecision?.response_owner === "product_help" &&
-    isAttackCardLocationOrManagementQuestionWithContext({
-      message: userMessage,
-      recentMessages: recentMessagesForTurnFrame,
-    });
-  const forceDeterministicPostCreationVerification =
-    routeDecision?.response_owner === "product_help" &&
-    isAttackCardPostCreationVerificationQuestion({
-      message: userMessage,
-      recentMessages: recentMessagesForTurnFrame,
-    });
-  const forceDeterministicStopReply =
-    conversationRiskForPersist?.should_exit_flows !== true &&
-    routeDecision?.response_owner === "normal_reply" &&
-    /\b(stop|arrete|arrête|c est bon|c'est bon|ne cree rien|ne crée rien|rien d autre|rien d'autre)\b/
-      .test(normalizeRouteText(userMessage));
-  const deterministicRepliesEnabled = (meta?.forceRealAi !== true &&
-    (opts?.messageMetadata as Record<string, unknown> | undefined)
-        ?.force_full_ai !== true) ||
-    forceDeterministicProductLocation ||
-    forceDeterministicPostCreationVerification ||
-    forceDeterministicStopReply;
-  const deterministicConversationReply = deterministicRepliesEnabled
-    ? renderDeterministicSafetyReply({
-      routeDecision,
-      userMessage,
-      turnFrame,
-    }) ??
-      renderDeterministicSkillReply({
-        routeDecision,
-        userMessage,
-        turnFrame,
-        recentMessages: recentMessagesForTurnFrame,
-        userId,
-        activeSkillState,
-        planItemSnapshot,
-        productSurfaces: [],
-        skillOutput: recommendationSkillOutput,
-      }) ??
-      renderDeterministicNormalReply({
-        routeDecision,
-        userMessage,
-        turnFrame,
-      }) ??
-      renderDeterministicConversationHandlerReply({
-        routeDecision,
-        userMessage,
-        recentMessages: recentMessagesForTurnFrame,
-      })
-    : null;
-  const agentOut = deterministicConversationReply
-    ? {
-      responseContent: deterministicConversationReply,
-      nextMode: targetMode,
-      tempMemory,
-      toolExecution: "none",
-      executedTools: [],
-      toolAck: null,
-      outageFallback: false,
-      outageFailedMode: null,
-      outageErrorMessage: null,
-    } as any
-    : await runAgentAndVerify({
-      supabase,
-      userId,
-      scope,
-      channel,
-      userMessage,
-      history,
-      state,
-      context,
-      meta,
-      targetMode,
-      nCandidates: 1,
-      checkupActive,
-      stopCheckup,
-      isPostCheckup,
-      outageTemplate:
-        "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
-      sophiaChatModel: agentModelSelection.model,
-      tempMemory,
-      roadmapContext: opts?.roadmapContext ?? undefined,
-    } as any);
+  const agentOut = await runAgentAndVerify({
+    supabase,
+    userId,
+    scope,
+    channel,
+    userMessage,
+    history,
+    state,
+    context,
+    meta,
+    targetMode,
+    nCandidates: 1,
+    checkupActive,
+    stopCheckup,
+    isPostCheckup,
+    outageTemplate:
+      "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
+    sophiaChatModel: agentModelSelection.model,
+    tempMemory,
+    roadmapContext: opts?.roadmapContext ?? undefined,
+  } as any);
   agentLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0) -
     (contextLatencyMs ?? 0);
   const agentToolExecution = String(agentOut.toolExecution ?? "none") as
@@ -9972,7 +12911,10 @@ export async function processMessage(
     agentToolExecution,
     Array.isArray(agentOut.executedTools) ? agentOut.executedTools : [],
   );
-  const directEffectToolRuntimes = [trackProgressRuntime].filter(Boolean);
+  const directEffectToolRuntimes = [
+    trackProgressRuntime,
+    weeklyForgottenProgressRuntime,
+  ].filter(Boolean);
   const directEffectExecutedTools = directEffectToolRuntimes.flatMap(
     (runtime) =>
       runtime.toolExecution === "success" ? runtime.executedTools : [],
@@ -10006,7 +12948,7 @@ export async function processMessage(
           tokens_in: dispatcherV2Stat?.tokens_in ?? 0,
           tokens_out: dispatcherV2Stat?.tokens_out ?? 0,
           prompt_version: dispatcherV2Stat?.prompt_version ??
-            "dispatcher_v2_prompt_2026_05_s9",
+            "dispatcher_v2_prompt_2026_05_s12",
           model_used: dispatcherV2Stats[0]?.model_name ?? null,
           memory_plan: turnFrame?.memory_plan ??
             DEFAULT_DISPATCHER_MEMORY_PLAN,
@@ -10059,20 +13001,6 @@ export async function processMessage(
   }
 
   let responseContent = String(agentOut.responseContent ?? "").trim();
-  if (deterministicRepliesEnabled) {
-    responseContent = applyEmotionalRepairResponseGuardrail({
-      routeDecision,
-      userMessage,
-      responseContent,
-      recentMessages: recentMessagesForTurnFrame,
-    });
-    responseContent = applyExecutionBreakdownRelationshipRepairGuardrail({
-      routeDecision,
-      userMessage,
-      responseContent,
-      recentMessages: recentMessagesForTurnFrame,
-    });
-  }
   responseContent = enforceRecommendationToolVisibleReply({
     responseContent,
     userMessage,
@@ -10083,6 +13011,11 @@ export async function processMessage(
   });
   responseContent = stripHiddenHtmlComments(responseContent);
   responseContent = stripDeprecatedProductVocabulary(responseContent);
+  if (
+    weeklyAdaptiveReviewStateForTurn({ activeSkillState, tempMemory })
+  ) {
+    responseContent = stripWeeklyInternalVocabulary(responseContent);
+  }
   responseContent = applyExecutionBreakdownBrevityGuard({
     channel,
     routeDecision,
@@ -10095,6 +13028,24 @@ export async function processMessage(
     responseContent,
     contextBlock: memoryV2ActiveContextBlock,
   });
+  responseContent = applyWeeklyForgottenProgressAckGuard({
+    responseContent,
+    tempMemory,
+    loggedMessageId,
+  });
+  responseContent = applyWeeklyRepeatedClarificationGuard({
+    responseContent,
+    userMessage,
+    activeSkillState,
+    tempMemory,
+  });
+  responseContent = applyWeeklyConcreteOrganizationGuard({
+    responseContent,
+    userMessage,
+    activeSkillState,
+    tempMemory,
+  });
+  responseContent = ensureVisibleSophiaEmoji(responseContent);
   const nextMode = agentOut.nextMode;
   const coachingAddonUsed =
     (tempMemory as any)?.__coaching_intervention_addon ??
@@ -10310,6 +13261,13 @@ export async function processMessage(
     mergedTempMemory,
     routeDecision,
   );
+  mergedTempMemory = updateWeeklyAdaptiveReviewStateAfterConversationTurn({
+    tempMemory: mergedTempMemory,
+    activeSkillState,
+    userMessage,
+    responseContent,
+    routeDecision,
+  });
 
   const previousMomentumState = readMomentumStateV2(mergedTempMemory);
   const previousRepairMode = readRepairMode(mergedTempMemory);

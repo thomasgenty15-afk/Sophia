@@ -124,26 +124,42 @@ export async function logConversationTurn(
   }
   if (opts.supabase) {
     const writeClient = await getTraceWriteClient(opts.supabase);
+    const basePayload = {
+      turn_id: trace.turn_id,
+      user_id: trace.user_id,
+      source_message_id: trace.source_message_id,
+      ts: trace.ts,
+      safety_pregate: trace.safety_pregate,
+      dispatcher_run: trace.dispatcher_run,
+      turn_frame: trace.turn_frame,
+      route_decision: trace.route_decision,
+      direct_effects: trace.direct_effects,
+      skill_run: trace.skill_run ?? null,
+      recommendation_tool_run: trace.recommendation_tool_run ?? null,
+      confirmation_token_outcomes: trace.confirmation_token_outcomes,
+      memory_write_candidates_emitted: trace.memory_write_candidates_emitted,
+      response_owner: trace.response_owner,
+      total_latency_ms: trace.total_latency_ms,
+    };
     const { error } = await (writeClient as any)
       .from("conversation_turn_traces")
       .insert({
-        turn_id: trace.turn_id,
-        user_id: trace.user_id,
-        source_message_id: trace.source_message_id,
-        ts: trace.ts,
-        safety_pregate: trace.safety_pregate,
-        dispatcher_run: trace.dispatcher_run,
-        turn_frame: trace.turn_frame,
-        route_decision: trace.route_decision,
-        direct_effects: trace.direct_effects,
-        skill_run: trace.skill_run ?? null,
+        ...basePayload,
         tool_skill_run: trace.tool_skill_run ?? null,
-        recommendation_tool_run: trace.recommendation_tool_run ?? null,
-        confirmation_token_outcomes: trace.confirmation_token_outcomes,
-        memory_write_candidates_emitted: trace.memory_write_candidates_emitted,
-        response_owner: trace.response_owner,
-        total_latency_ms: trace.total_latency_ms,
       });
+    if (
+      error?.code === "PGRST204" &&
+      String(error.message ?? "").includes("tool_skill_run")
+    ) {
+      const { error: legacyError } = await (writeClient as any)
+        .from("conversation_turn_traces")
+        .insert({
+          ...basePayload,
+          operation_flow_run: trace.tool_skill_run ?? null,
+        });
+      if (legacyError) throw legacyError;
+      return;
+    }
     if (error) throw error;
   }
 }

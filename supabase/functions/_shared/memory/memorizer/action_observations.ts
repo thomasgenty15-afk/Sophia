@@ -1,5 +1,9 @@
 import type { AggregationKind } from "../types.v1.ts";
-import type { ActionLinkDecision, ExtractedMemoryItem } from "./types.ts";
+import type {
+  ActionLinkDecision,
+  ExtractedMemoryItem,
+  PlanSignal,
+} from "./types.ts";
 
 export type ActionOccurrenceStatus =
   | "planned"
@@ -24,6 +28,7 @@ export interface ActionOccurrenceSignal {
 export interface ExistingActionObservation {
   memory_item_id: string;
   plan_item_id: string;
+  action_family_key?: string | null;
   content_text?: string | null;
   observation_window_start?: string | null;
   observation_window_end?: string | null;
@@ -35,6 +40,10 @@ export interface ExistingActionObservation {
 function cleanText(value: unknown, fallback = ""): string {
   const text = String(value ?? "").trim();
   return text || fallback;
+}
+
+function uniqueStrings(values: unknown[]): string[] {
+  return [...new Set(values.map((value) => cleanText(value)).filter(Boolean))];
 }
 
 function parseMs(value: unknown): number {
@@ -126,6 +135,94 @@ function observationText(args: {
   return `${args.title} est ${
     statusLabel(cleanText(args.occurrences[0]?.status, "planned"))
   }.`;
+}
+
+function statusFromEntryOutcome(value: unknown): ActionOccurrenceStatus | null {
+  const raw = cleanText(value);
+  if (raw === "completed") return "done";
+  if (raw === "partial") return "partial";
+  if (raw === "missed") return "missed";
+  if (raw === "rescheduled") return "rescheduled";
+  if (raw === "done") return "done";
+  return null;
+}
+
+function entriesFromPlanSignal(signal: PlanSignal): ActionOccurrenceSignal[] {
+  const variant = signal.action_variant &&
+      typeof signal.action_variant === "object"
+    ? signal.action_variant as Record<string, unknown>
+    : {};
+  const entries = Array.isArray(variant.recent_entry_outcomes)
+    ? variant.recent_entry_outcomes
+    : [];
+  return entries.flatMap((entry, index): ActionOccurrenceSignal[] => {
+    const row = entry && typeof entry === "object"
+      ? entry as Record<string, unknown>
+      : {};
+    const status = statusFromEntryOutcome(row.outcome);
+    if (!status) return [];
+    const occurrenceId = cleanText(signal.occurrence_ids?.[index]) ||
+      cleanText(row.occurrence_id) ||
+      cleanText(row.entry_id) ||
+      `${signal.plan_item_id}:${cleanText(row.effective_at) || index}`;
+    return [{
+      id: occurrenceId,
+      plan_item_id: signal.plan_item_id,
+      title: signal.title ?? null,
+      status,
+      week_start_date: cleanText(row.week_start_date) || null,
+      planned_day: cleanText(row.planned_day) || null,
+      validated_at: cleanText(row.effective_at) || null,
+      updated_at: cleanText(row.effective_at) || null,
+      created_at: cleanText(row.created_at) || null,
+    }];
+  });
+}
+
+export function buildStructuredActionObservationItems(args: {
+  source_message_ids: string[];
+  plan_signals: PlanSignal[];
+  source?: string | null;
+  max_items?: number;
+}): ExtractedMemoryItem[] {
+  const sourceMessageIds = uniqueStrings(args.source_message_ids);
+  if (sourceMessageIds.length === 0) return [];
+  const maxItems = Math.max(1, Math.min(20, Number(args.max_items ?? 20)));
+  const items: ExtractedMemoryItem[] = [];
+  const seen = new Set<string>();
+  for (const signal of args.plan_signals) {
+    const planItemId = cleanText(signal.plan_item_id);
+    if (!planItemId) continue;
+    const occurrences = entriesFromPlanSignal(signal);
+    if (occurrences.length === 0) continue;
+    const item = buildActionObservationItem({
+      source_message_ids: sourceMessageIds,
+      plan_item_id: planItemId,
+      title: cleanText(signal.title, "Action"),
+      occurrences,
+      observation_window_start: signal.observation_window_start ?? null,
+      observation_window_end: signal.observation_window_end ?? null,
+    });
+    if (!item) continue;
+    const key = cleanText(item.canonical_key_hint);
+    if (key && seen.has(key)) continue;
+    if (key) seen.add(key);
+    items.push({
+      ...item,
+      metadata: {
+        ...(item.metadata ?? {}),
+        memory_type: "action_execution_observation",
+        source_event_log: true,
+        structured_extraction_source: cleanText(args.source) ||
+          "user_plan_item_entries",
+        plan_item_id: planItemId,
+        action_family_key: signal.action_family_key ?? null,
+        action_variant: signal.action_variant ?? null,
+      },
+    });
+    if (items.length >= maxItems) break;
+  }
+  return items;
 }
 
 export function buildActionObservationItem(args: {
@@ -239,6 +336,7 @@ export function shouldMaterializePossiblePattern(
 
 export function buildPossiblePatternObservation(args: {
   plan_item_id: string;
+  action_family_key?: string | null;
   title?: string | null;
   observations: ExistingActionObservation[];
   iso_week_key: string;
@@ -267,12 +365,16 @@ export function buildPossiblePatternObservation(args: {
     observation_window_end:
       observations[observations.length - 1].observation_window_end ??
         observations[observations.length - 1].created_at ?? null,
-    canonical_key:
-      `action_possible_pattern:${args.plan_item_id}:${args.iso_week_key}`,
+    canonical_key: `action_possible_pattern:${
+      cleanText(args.action_family_key) || args.plan_item_id
+    }:${args.iso_week_key}`,
     metadata: {
+      memory_type: "action_execution_profile",
       observation_role: "possible_pattern",
+      structured_extraction_source: "weekly_adaptive_review_v1",
       source_observation_ids: observations.map((obs) => obs.memory_item_id),
       plan_item_id: args.plan_item_id,
+      action_family_key: cleanText(args.action_family_key) || null,
       iso_week_key: args.iso_week_key,
     },
   };

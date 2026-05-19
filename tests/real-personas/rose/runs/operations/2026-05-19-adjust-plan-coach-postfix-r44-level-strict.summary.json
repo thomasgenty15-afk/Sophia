@@ -1,0 +1,820 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le niveau actuel me semble trop dense cette semaine. Je ne veux pas revoir tout le plan, juste alléger le niveau en gardant le signal de pause comme priorité.",
+    "assistant": "Je comprends que tu souhaites alléger le niveau de cette semaine, tout en gardant le signal de pause comme priorité. Pour cela, quelle habitude ou mission te semble la plus lourde ou chronophage en ce moment ? Par exemple, s'agit-il de l'habitude 'Partager un point positif' ou de la mission 'Cartographier les déclencheurs' ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors du niveau actuel.",
+          "Ignorer la perception de charge du user ou minimiser son ressenti."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer)."
+        ],
+        "warnings": [
+          "Éviter de trivialiser davantage l'habitude 'Partager un point positif' au risque de la rendre inefficace, compte tenu des ajustements déjà effectués.",
+          "Ne pas supprimer 'Cartographier les déclencheurs' sans une discussion approfondie, car cette mission est directement liée à la compréhension des dynamiques de conflit et donc à l'efficacité du 'signal de pause'.",
+          "Ne pas interpréter 'gardant le signal de pause comme priorité' comme une demande d'ajouter une action liée au signal cette semaine, mais plutôt comme une exigence de ne pas compromettre son rôle ou sa mise en œuvre future."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user exprime une surcharge perçue pour le niveau en cours cette semaine, malgré des ajustements récents sur une habitude clé. Il souhaite alléger la charge sans revoir l'ensemble du plan et en maintenant la priorité sur le 'signal de pause', qui est un outil déjà établi et non une action active pour cette semaine spécifique. Le défi est d'identifier la source de cette densité et de proposer un allègement qui ne compromette pas les apprentissages fondamentaux du niveau ni l'importance du 'signal de pause'.",
+        "recommendation": "Guider le sous-skill à sonder la source précise de la densité perçue par le user parmi les actions actives de la semaine. Proposer ensuite des ajustements ciblés sur la charge ou la fréquence des actions identifiées, en veillant à préserver l'intention profonde de chaque élément et la cohérence avec l'objectif du niveau et la priorité du 'signal de pause'.",
+        "options_to_discuss": [
+          "Réduire la fréquence de l'habitude 'Partager un point positif' pour cette semaine (par exemple, de 5 à 2 ou 3 fois).",
+          "Simplifier la mission 'Cartographier les déclencheurs' (par exemple, en demandant de noter un seul déclencheur clé au lieu de plusieurs, ou en réduisant le temps alloué).",
+          "Reporter la mission 'Cartographier les déclencheurs' à la semaine suivante si la charge est trop élevée et que le user est d'accord pour décaler cette observation."
+        ],
+        "questions_to_clarify": [
+          "Quelle est l'action ou l'habitude spécifique qui te semble la plus lourde ou la plus chronophage cette semaine ?",
+          "Comment la priorité du 'signal de pause' se traduit-elle concrètement pour toi cette semaine, étant donné qu'il est déjà mis en place ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors du niveau actuel.",
+        "Ignorer la perception de charge du user ou minimiser son ressenti."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer)."
+      ],
+      "warnings": [
+        "Éviter de trivialiser davantage l'habitude 'Partager un point positif' au risque de la rendre inefficace, compte tenu des ajustements déjà effectués.",
+        "Ne pas supprimer 'Cartographier les déclencheurs' sans une discussion approfondie, car cette mission est directement liée à la compréhension des dynamiques de conflit et donc à l'efficacité du 'signal de pause'.",
+        "Ne pas interpréter 'gardant le signal de pause comme priorité' comme une demande d'ajouter une action liée au signal cette semaine, mais plutôt comme une exigence de ne pas compromettre son rôle ou sa mise en œuvre future."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user exprime une surcharge perçue pour le niveau en cours cette semaine, malgré des ajustements récents sur une habitude clé. Il souhaite alléger la charge sans revoir l'ensemble du plan et en maintenant la priorité sur le 'signal de pause', qui est un outil déjà établi et non une action active pour cette semaine spécifique. Le défi est d'identifier la source de cette densité et de proposer un allègement qui ne compromette pas les apprentissages fondamentaux du niveau ni l'importance du 'signal de pause'.",
+      "recommendation": "Guider le sous-skill à sonder la source précise de la densité perçue par le user parmi les actions actives de la semaine. Proposer ensuite des ajustements ciblés sur la charge ou la fréquence des actions identifiées, en veillant à préserver l'intention profonde de chaque élément et la cohérence avec l'objectif du niveau et la priorité du 'signal de pause'.",
+      "options_to_discuss": [
+        "Réduire la fréquence de l'habitude 'Partager un point positif' pour cette semaine (par exemple, de 5 à 2 ou 3 fois).",
+        "Simplifier la mission 'Cartographier les déclencheurs' (par exemple, en demandant de noter un seul déclencheur clé au lieu de plusieurs, ou en réduisant le temps alloué).",
+        "Reporter la mission 'Cartographier les déclencheurs' à la semaine suivante si la charge est trop élevée et que le user est d'accord pour décaler cette observation."
+      ],
+      "questions_to_clarify": [
+        "Quelle est l'action ou l'habitude spécifique qui te semble la plus lourde ou la plus chronophage cette semaine ?",
+        "Comment la priorité du 'signal de pause' se traduit-elle concrètement pour toi cette semaine, étant donné qu'il est déjà mis en place ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Le plus lourd c'est 'Partager un point positif'. Je pensais aussi raccourcir 'Faire le point sur le signal de pause' à 5 minutes, mais finalement ne touche pas à 'Convenir d'un signal de pause'. Prépare un brouillon sans appliquer.",
+    "assistant": "Tu m'as demandé de préparer un brouillon, et je suis dessus. Pour bien le finaliser, j'ai besoin d'une petite précision sur 'Partager un point positif'. Je vois que cette habitude est prévue 3 jours par semaine en général, mais pour cette semaine, elle est passée à 5 jours. Est-ce cette augmentation temporaire qui la rend si lourde pour toi ? Si on la ramène à 3 jours cette semaine, est-ce que ça te semblerait plus gérable, ou tu penses à un autre type d'allègement ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": "le niveau actuel de cette semaine",
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors du niveau actuel, sauf si explicitement demandé et justifié (comme l'ajustement d'une mission future).",
+          "Ignorer la perception de charge du user ou minimiser son ressenti.",
+          "Trivialiser davantage l'habitude 'Partager un point positif' sans comprendre la cause profonde de la difficulté."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+          "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé."
+        ],
+        "warnings": [
+          "Éviter de trivialiser davantage l'habitude 'Partager un point positif' au risque de la rendre inefficace, compte tenu des ajustements déjà effectués et de la nécessité de comprendre si la surcharge vient de la fréquence ou de l'effort mental malgré la simplification.",
+          "Ne pas supprimer 'Cartographier les déclencheurs' sans une discussion approfondie, car cette mission est directement liée à la compréhension des dynamiques de conflit et donc à l'efficacité du 'signal de pause'.",
+          "S'assurer que l'ajustement de 'Faire le point sur le signal de pause' à 5 minutes est suffisant pour son intention, même si le user l'a demandé."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user confirme la surcharge perçue pour le niveau en cours, identifiant spécifiquement l'habitude 'Partager un point positif' comme la plus lourde, malgré les ajustements récents. Il propose également un ajustement pour une mission future ('Faire le point sur le signal de pause') et réitère la préservation d'une mission passée ('Convenir d'un signal de pause'). Une analyse du plan révèle une divergence entre la fréquence générale de l'habitude 'Partager un point positif' (3 jours/semaine) et sa fréquence spécifique pour la semaine actuelle (5 jours/semaine), ce qui est une source potentielle de la charge ressentie.",
+        "recommendation": "Guider le sous-skill à adresser les demandes explicites du user. Pour 'Faire le point sur le signal de pause', valider l'ajustement de durée. Pour 'Partager un point positif', il est crucial de mettre en lumière la divergence de fréquence entre la définition générale de l'habitude et son override pour la semaine en cours. Proposer d'aligner la fréquence de cette semaine sur la fréquence générale (3 jours/semaine) ou d'explorer une réduction temporaire supplémentaire, tout en préservant l'intention de l'habitude.",
+        "options_to_discuss": [
+          "Aligner la fréquence de l'habitude 'Partager un point positif' pour cette semaine sur sa fréquence générale (3 jours/semaine).",
+          "Proposer une réduction temporaire de la fréquence de 'Partager un point positif' à moins de 3 jours/semaine pour cette semaine uniquement, si 3 jours reste trop lourd.",
+          "Confirmer l'ajustement de la durée de 'Faire le point sur le signal de pause' à 5 minutes."
+        ],
+        "questions_to_clarify": [
+          "Concernant 'Partager un point positif', je vois que l'habitude est définie pour 3 jours/semaine, mais pour cette semaine spécifique, elle est passée à 5 jours. Est-ce cette augmentation temporaire qui rend l'habitude si lourde pour toi ?",
+          "Si nous ramenons 'Partager un point positif' à 3 jours cette semaine, cela te semblerait-il plus gérable, ou envisages-tu une autre forme d'allègement ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors du niveau actuel, sauf si explicitement demandé et justifié (comme l'ajustement d'une mission future).",
+        "Ignorer la perception de charge du user ou minimiser son ressenti.",
+        "Trivialiser davantage l'habitude 'Partager un point positif' sans comprendre la cause profonde de la difficulté."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+        "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé."
+      ],
+      "warnings": [
+        "Éviter de trivialiser davantage l'habitude 'Partager un point positif' au risque de la rendre inefficace, compte tenu des ajustements déjà effectués et de la nécessité de comprendre si la surcharge vient de la fréquence ou de l'effort mental malgré la simplification.",
+        "Ne pas supprimer 'Cartographier les déclencheurs' sans une discussion approfondie, car cette mission est directement liée à la compréhension des dynamiques de conflit et donc à l'efficacité du 'signal de pause'.",
+        "S'assurer que l'ajustement de 'Faire le point sur le signal de pause' à 5 minutes est suffisant pour son intention, même si le user l'a demandé."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user confirme la surcharge perçue pour le niveau en cours, identifiant spécifiquement l'habitude 'Partager un point positif' comme la plus lourde, malgré les ajustements récents. Il propose également un ajustement pour une mission future ('Faire le point sur le signal de pause') et réitère la préservation d'une mission passée ('Convenir d'un signal de pause'). Une analyse du plan révèle une divergence entre la fréquence générale de l'habitude 'Partager un point positif' (3 jours/semaine) et sa fréquence spécifique pour la semaine actuelle (5 jours/semaine), ce qui est une source potentielle de la charge ressentie.",
+      "recommendation": "Guider le sous-skill à adresser les demandes explicites du user. Pour 'Faire le point sur le signal de pause', valider l'ajustement de durée. Pour 'Partager un point positif', il est crucial de mettre en lumière la divergence de fréquence entre la définition générale de l'habitude et son override pour la semaine en cours. Proposer d'aligner la fréquence de cette semaine sur la fréquence générale (3 jours/semaine) ou d'explorer une réduction temporaire supplémentaire, tout en préservant l'intention de l'habitude.",
+      "options_to_discuss": [
+        "Aligner la fréquence de l'habitude 'Partager un point positif' pour cette semaine sur sa fréquence générale (3 jours/semaine).",
+        "Proposer une réduction temporaire de la fréquence de 'Partager un point positif' à moins de 3 jours/semaine pour cette semaine uniquement, si 3 jours reste trop lourd.",
+        "Confirmer l'ajustement de la durée de 'Faire le point sur le signal de pause' à 5 minutes."
+      ],
+      "questions_to_clarify": [
+        "Concernant 'Partager un point positif', je vois que l'habitude est définie pour 3 jours/semaine, mais pour cette semaine spécifique, elle est passée à 5 jours. Est-ce cette augmentation temporaire qui rend l'habitude si lourde pour toi ?",
+        "Si nous ramenons 'Partager un point positif' à 3 jours cette semaine, cela te semblerait-il plus gérable, ou envisages-tu une autre forme d'allègement ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, c'est bien cette charge. Je veux aller plus bas : 'Partager un point positif' à 2 jours cette semaine. Et pour être claire, seulement cette action change ; le signal de pause et le reste ne bougent pas.",
+    "assistant": "Je comprends, je vais reprendre le brouillon en ajustant \"Partager un point positif\" à 2 jours pour cette semaine, et je m'assure que le reste de ton plan, y compris le signal de pause, ne bouge pas. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+          "Ignorer la perception de charge du user ou minimiser son ressenti.",
+          "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+          "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+          "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé (sauf si une demande de durée avait été validée précédemment, ce qui n'est pas le cas ici)."
+        ],
+        "warnings": [
+          "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+          "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user confirme la surcharge perçue pour le niveau en cours et demande explicitement de réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour cette semaine. Il réitère également que seul cet ajustement doit être fait, et que les actions liées au 'signal de pause' ainsi que le reste du plan ne doivent pas être modifiés. Cette demande répond directement à la question précédente sur la source de la charge.",
+        "recommendation": "Guider le sous-skill à appliquer l'ajustement explicite de la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il est crucial de s'assurer que cette modification est temporaire et n'affecte que la fréquence hebdomadaire de cette action, sans modifier sa cadence générale ni aucune autre action du plan, conformément aux instructions du user.",
+        "options_to_discuss": [
+          "Confirmer l'application de la réduction de 'Partager un point positif' à 2 jours pour cette semaine."
+        ],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+        "Ignorer la perception de charge du user ou minimiser son ressenti.",
+        "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+        "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+        "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé (sauf si une demande de durée avait été validée précédemment, ce qui n'est pas le cas ici)."
+      ],
+      "warnings": [
+        "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+        "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user confirme la surcharge perçue pour le niveau en cours et demande explicitement de réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour cette semaine. Il réitère également que seul cet ajustement doit être fait, et que les actions liées au 'signal de pause' ainsi que le reste du plan ne doivent pas être modifiés. Cette demande répond directement à la question précédente sur la source de la charge.",
+      "recommendation": "Guider le sous-skill à appliquer l'ajustement explicite de la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il est crucial de s'assurer que cette modification est temporaire et n'affecte que la fréquence hebdomadaire de cette action, sans modifier sa cadence générale ni aucune autre action du plan, conformément aux instructions du user.",
+      "options_to_discuss": [
+        "Confirmer l'application de la réduction de 'Partager un point positif' à 2 jours pour cette semaine."
+      ],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Montre-moi le brouillon final avant d'appliquer, avec uniquement ce changement : 'Partager un point positif' à 2 jours cette semaine, rien d'autre.",
+    "assistant": "Je te propose d'alléger ton niveau actuel pour cette semaine, comme tu l'as demandé. Voici le brouillon de l'ajustement que je peux appliquer, rien n'est encore enregistré :\n\nJe vais réduire la fréquence de l'habitude \"Partager un point positif\" de 3 jours par semaine à 2 jours cette semaine. Cela devrait t'aider à te sentir moins sous pression et à rendre le niveau plus gérable, tout en conservant l'intention de cultiver le positif.\n\nLe reste de ton plan, y compris les missions \"Convenir d'un signal de pause\" et \"Faire le point sur le signal de pause\", restera inchangé. Le signal de pause demeure une priorité et un outil fondamental. Cet ajustement est temporaire et ne modifie pas la cadence générale de l'habitude au-delà de cette semaine, ni la trajectoire globale de ton plan.\n\nEst-ce que cela te convient ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+          "Ignorer la perception de charge du user ou minimiser son ressenti.",
+          "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+          "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+          "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+          "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+        ],
+        "warnings": [
+          "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+          "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence.",
+          "Ne pas introduire de changements sur les missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni sur 'Cartographier les déclencheurs'."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user demande à visualiser le brouillon final d'un ajustement très spécifique : réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il insiste sur le fait que ce soit le seul changement appliqué et que les actions liées au 'signal de pause' ainsi que le reste du plan doivent rester intacts. C'est une demande de validation avant application.",
+        "recommendation": "Guider le sous-skill à générer un brouillon qui reflète *exactement* la demande du user : l'habitude 'Partager un point positif' est ajustée à 2 jours pour la semaine en cours, et *aucune autre modification* n'est apportée au plan. Il est essentiel de bien communiquer que cet ajustement de fréquence est temporaire pour la semaine.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+        "Ignorer la perception de charge du user ou minimiser son ressenti.",
+        "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+        "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+        "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+        "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+      ],
+      "warnings": [
+        "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+        "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence.",
+        "Ne pas introduire de changements sur les missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni sur 'Cartographier les déclencheurs'."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user demande à visualiser le brouillon final d'un ajustement très spécifique : réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il insiste sur le fait que ce soit le seul changement appliqué et que les actions liées au 'signal de pause' ainsi que le reste du plan doivent rester intacts. C'est une demande de validation avant application.",
+      "recommendation": "Guider le sous-skill à générer un brouillon qui reflète *exactement* la demande du user : l'habitude 'Partager un point positif' est ajustée à 2 jours pour la semaine en cours, et *aucune autre modification* n'est apportée au plan. Il est essentiel de bien communiquer que cet ajustement de fréquence est temporaire pour la semaine.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t05",
+    "status": 409,
+    "ok": false,
+    "user": "Oui, j'accepte. Applique exactement ça : uniquement 'Partager un point positif' à 2 jours cette semaine, et le signal de pause comme le reste restent inchangés.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_decision",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+      "target_title": "Partager un point positif",
+      "missing_slots": [],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+          "Ignorer la perception de charge du user ou minimiser son ressenti.",
+          "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+          "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+          "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+          "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+        ],
+        "warnings": [
+          "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours (via weekly_reps) et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+          "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence.",
+          "Ne pas introduire de changements sur les missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni sur 'Cartographier les déclencheurs'."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user accepte un ajustement et donne une instruction très précise pour l'application : réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours, et insiste sur le fait que c'est le seul changement à appliquer, en préservant explicitement toutes les actions liées au 'signal de pause' et le reste du plan. C'est une demande de validation finale avant exécution.",
+        "recommendation": "Guider le sous-skill à générer un brouillon qui reflète *exactement* la demande du user : l'habitude 'Partager un point positif' est ajustée à 2 jours pour la semaine en cours, et *aucune autre modification* n'est apportée au plan. Il est crucial de bien communiquer que cet ajustement de fréquence est temporaire pour la semaine en cours.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+        "Ignorer la perception de charge du user ou minimiser son ressenti.",
+        "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+        "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+        "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+        "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+      ],
+      "warnings": [
+        "S'assurer que la réduction à 2 jours pour 'Partager un point positif' est bien un ajustement temporaire pour la semaine en cours (via weekly_reps) et ne modifie pas la cadence générale de l'habitude (actuellement 3 jours/semaine).",
+        "Éviter de proposer de modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', car la demande porte uniquement sur la fréquence.",
+        "Ne pas introduire de changements sur les missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni sur 'Cartographier les déclencheurs'."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user accepte un ajustement et donne une instruction très précise pour l'application : réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours, et insiste sur le fait que c'est le seul changement à appliquer, en préservant explicitement toutes les actions liées au 'signal de pause' et le reste du plan. C'est une demande de validation finale avant exécution.",
+      "recommendation": "Guider le sous-skill à générer un brouillon qui reflète *exactement* la demande du user : l'habitude 'Partager un point positif' est ajustée à 2 jours pour la semaine en cours, et *aucune autre modification* n'est apportée au plan. Il est crucial de bien communiquer que cet ajustement de fréquence est temporaire pour la semaine en cours.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t06",
+    "status": 409,
+    "ok": false,
+    "user": "Applique maintenant le brouillon validé : baisse uniquement 'Partager un point positif' à 2 jours cette semaine. Ne modifie aucune autre action.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_decision",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+          "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+          "Ignorer la perception de charge du user ou minimiser son ressenti.",
+          "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+          "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+          "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+          "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+          "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+          "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+          "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+        ],
+        "warnings": [
+          "Ne pas modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', la demande porte uniquement sur la fréquence.",
+          "Ne pas toucher aux missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni à 'Cartographier les déclencheurs', comme explicitement demandé.",
+          "S'assurer que la réduction à 2 jours est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude au-delà de cette semaine."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+        ],
+        "observation": "Le user demande à appliquer un brouillon validé, qui consiste à réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il insiste très clairement sur le fait qu'aucune autre action ne doit être modifiée, en particulier celles liées au 'signal de pause'. C'est une demande d'exécution finale d'un ajustement très précis et contraint.",
+        "recommendation": "Guider le sous-skill à appliquer l'ajustement exactement tel que demandé : modifier la fréquence de 'Partager un point positif' à 2 jours pour la semaine en cours, et s'assurer qu'absolument aucune autre modification n'est apportée au plan. Il est crucial de confirmer que ce changement de fréquence est temporaire et spécifique à cette semaine.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer le 'signal de pause' ou toute action future le concernant.",
+        "Modifier des éléments du plan en dehors de l'habitude 'Partager un point positif' pour cette semaine.",
+        "Ignorer la perception de charge du user ou minimiser son ressenti.",
+        "Trivialiser davantage l'habitude 'Partager un point positif' en modifiant son contenu, la demande étant sur la fréquence."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif global du niveau : 'Désamorcer et recréer de la sécurité'.",
+        "L'existence et l'importance du 'signal de pause' comme outil actif et fondamental dans la relation.",
+        "L'intention sous-jacente de l'habitude 'Partager un point positif' (cultiver le positif).",
+        "L'intention sous-jacente de la mission 'Cartographier les déclencheurs' (comprendre les dynamiques de conflit pour mieux les gérer).",
+        "La mission 'Convenir d'un signal de pause' reste inchangée comme demandé.",
+        "La mission 'Faire le point sur le signal de pause' reste inchangée comme demandé.",
+        "Le principe de ne modifier 'rien d'autre' que la fréquence de l'habitude ciblée."
+      ],
+      "warnings": [
+        "Ne pas modifier le contenu ou l'instruction de l'habitude 'Partager un point positif', la demande porte uniquement sur la fréquence.",
+        "Ne pas toucher aux missions 'Convenir d'un signal de pause' ou 'Faire le point sur le signal de pause', ni à 'Cartographier les déclencheurs', comme explicitement demandé.",
+        "S'assurer que la réduction à 2 jours est bien un ajustement temporaire pour la semaine en cours et ne modifie pas la cadence générale de l'habitude au-delà de cette semaine."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de l'action doit être préservé, son intention maintenue. Un 'pont mini' peut être créé si nécessaire, mais la nature de l'action ne doit pas changer sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible de l'ajustement. La baisse doit être temporaire et non globale. La 'boundary' de fin de niveau doit être respectée, et le 'coeur' du niveau préservé.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence, les prérequis, l'ordre des phases, l'objectif et le questionnaire du plan complet doivent être préservés."
+      ],
+      "observation": "Le user demande à appliquer un brouillon validé, qui consiste à réduire la fréquence de l'habitude 'Partager un point positif' à 2 jours pour la semaine en cours. Il insiste très clairement sur le fait qu'aucune autre action ne doit être modifiée, en particulier celles liées au 'signal de pause'. C'est une demande d'exécution finale d'un ajustement très précis et contraint.",
+      "recommendation": "Guider le sous-skill à appliquer l'ajustement exactement tel que demandé : modifier la fréquence de 'Partager un point positif' à 2 jours pour la semaine en cours, et s'assurer qu'absolument aucune autre modification n'est apportée au plan. Il est crucial de confirmer que ce changement de fréquence est temporaire et spécifique à cette semaine.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r44-level-strict-t06",
+    "trace_error": null
+  }
+]

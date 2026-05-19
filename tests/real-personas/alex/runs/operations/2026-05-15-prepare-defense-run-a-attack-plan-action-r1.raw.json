@@ -1,0 +1,523 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce soir je vais essayer de préparer la zone de déchargement, mais je sens que je risque de repousser parce que ça a l’air bête à faire et je vais me dire “je le ferai plus tard”.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ouais je vois le piège : quand c’est “bête”, ton cerveau le range dans “plus tard” direct… alors que c’est justement ça qui te fait gagner du temps après. 😄\n\nJe te propose qu’on mette “Préparer ta zone de déchargement” dans une Carte d’attaque (juste pour rendre le démarrage plus simple, sans que tu aies à réfléchir au moment où t’es fatigué). Tu veux qu’on l’utilise ? ✅",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "ead29548-3086-4908-b52f-4c928fcbd6c1",
+        "ts": "2026-05-16T14:30:34.442+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "Ce soir"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tonight"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7075,
+          "latency_ms": 68434,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 615,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "ead29548-3086-4908-b52f-4c928fcbd6c1",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "attack_card",
+            "surface_id": "attack_card",
+            "prop_reason": "startup_friction_mentioned",
+            "source_span": "je risque de repousser parce que ça a l’air bête à faire et je vais me dire “je le ferai plus tard”",
+            "target_hint": "Préparer ta zone de déchargement",
+            "offer_timing": "now",
+            "should_offer": true,
+            "target_status": "identified",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "must_not_execute": true,
+            "suggested_question_intent": "offer_attack_card"
+          }
+        },
+        "route_decision": {
+          "reason_code": "normal_reply_default",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "normal_reply",
+          "memory_use_kind": "none",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "startup_friction_mentioned",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.86,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Préparer ta zone de déchargement",
+                "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              },
+              "blocker": {
+                "type": "friction",
+                "reason": "startup_friction_mentioned",
+                "source_span": "je risque de repousser parce que ça a l’air bête à faire et je vais me dire “je le ferai plus tard”"
+              },
+              "desired_attack_angle": "preparer_terrain"
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "dispatcher_opportunity:attack_card:qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t01",
+            "user_facing_offer": "Je vois surtout une friction de lancement pour \"Préparer ta zone de déchargement\". Si tu veux, on peut en faire une petite Carte d'attaque pour rendre le démarrage plus simple.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "normal_reply",
+        "total_latency_ms": 71687,
+        "created_at": "2026-05-16T14:30:34.444877+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Oui, préparons une carte d’attaque pour cette action du plan, mais pas encore en mode validation. Je veux qu’elle m’aide surtout au moment où je repousse en me disant que je le ferai plus tard.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "channel": "web",
+      "scope": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Parfait. On va la viser pile sur ton déclencheur “c’est bête → je le fais plus tard”. 😄\n\nCarte d’attaque (version anti-report)\n- Quand je me dis “je le ferai plus tard”, je fais 2 minutes, pas plus.\n- Je prépare ma zone de déchargement pendant le temps d’un “petit lancement” :\n  1) je sors juste ce qu’il faut pour que ça soit prêt\n  2) je vide/pose une première catégorie (même imparfaite)\n- Objectif de succès = “j’ai commencé”, pas “c’est fini”.\n- Si je veux repousser encore : je repasse à “2 minutes” une fois, puis je choisis d’arrêter ou continuer.\n\nPour que la carte colle à TA situation : tu repousse plutôt parce que c’est “trop petit et pas motivant”, ou parce que “ça me prendra trop de temps” ? 😅",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "source_message_id": "d6811f72-9f75-4614-bfef-c11bb64e2126",
+        "ts": "2026-05-16T14:31:08.121+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 7233,
+          "latency_ms": 3721,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 677,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte de l'action préparer zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s13"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-prepare-defense-card-alex-2026-05-15-run-a-attack-plan-action-r1-t02",
+          "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "contexte de l'action préparer zone de déchargement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "d6811f72-9f75-4614-bfef-c11bb64e2126",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Préparer ta zone de déchargement",
+              "user_intent": "create",
+              "explicitness": "explicit",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "operation_input": {
+                "constraints": [
+                  "pas encore en mode validation",
+                  "aider au moment où je repousse en me disant que je le ferai plus tard"
+                ],
+                "target_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e"
+              }
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "prepare_attack_card",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "tool_skill_intent_start",
+          "selected_handler": "prepare_attack_card"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 6343,
+        "created_at": "2026-05-16T14:31:08.123935+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r10-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En fait c'est tout le rituel du soir contre les grignotages qui me fatigue. Quand je rentre, j'ai l'impression qu'il y a trop de petits choix à faire, donc je finis par lâcher.",
+    "assistant": "Ah ouais… je vois très bien le truc : tu passes une journée “à décider”, puis le soir il faut encore faire 10 micro-choix, et ton cerveau dit stop. 😅\n\nOn va simplifier le rituel en mode “un seul bouton” : pas plus de 1 décision au moment où tu as faim. Concrètement, tu choisis une action fixe qui coupe la vague de grignotage, et ensuite tu ne renégocies plus.\n\nJe te propose de partir sur une Carte d’attaque (surface “Carte d’attaque”) pour te guider sans que tu aies à décider : tu me confirmes que tu veux qu’on l’utilise ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-level-wording-green-r10-t01",
+    "trace_error": null
+  }
+]

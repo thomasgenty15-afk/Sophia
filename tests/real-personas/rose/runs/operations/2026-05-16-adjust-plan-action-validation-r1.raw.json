@@ -1,0 +1,13 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-16-adjust-plan-action-validation-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Je viens de regarder mon plan, et l'action 'Partager un point positif' me met un peu la pression. Six jours par semaine, dans l'état actuel avec mon copain, ça me paraît trop.",
+    "status": 403,
+    "body": {
+      "error": "Forbidden: user is not marked is_test_persona",
+      "request_id": "qa-rose-2026-05-16-adjust-plan-action-validation-r1-t01"
+    }
+  }
+]

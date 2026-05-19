@@ -1,10 +1,13 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { generateWithGemini } from "../../_shared/gemini.ts";
 import {
-  executeDefenseCardAction,
   type DefenseCardActionResult,
+  executeDefenseCardAction,
 } from "../../update-defense-card-v3/index.ts";
-import type { DefenseCardContent, DominantImpulse } from "../../_shared/v2-types.ts";
+import type {
+  DefenseCardContent,
+  DominantImpulse,
+} from "../../_shared/v2-types.ts";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -41,7 +44,8 @@ const DEFENSE_CARD_TOOLS = [
         },
         trigger_id: {
           type: "string",
-          description: "ID du trigger spécifique (null si situation non listée)",
+          description:
+            "ID du trigger spécifique (null si situation non listée)",
         },
       },
       required: ["impulse_id"],
@@ -60,11 +64,13 @@ const DEFENSE_CARD_TOOLS = [
         },
         situation: {
           type: "string",
-          description: "Le TERRAIN: contexte externe (quand, où, avec qui). Ex: 'Pause déjeuner seul au bureau'",
+          description:
+            "Le TERRAIN: contexte externe (quand, où, avec qui). Ex: 'Pause déjeuner seul au bureau'",
         },
         signal: {
           type: "string",
-          description: "Le DÉCLENCHEUR INTERNE observable: pensée automatique, sensation physique ou micro-comportement juste avant la bascule. PAS une émotion vague. Ex: 'je regarde le distributeur machinalement'",
+          description:
+            "Le DÉCLENCHEUR INTERNE observable: pensée automatique, sensation physique ou micro-comportement juste avant la bascule. PAS une émotion vague. Ex: 'je regarde le distributeur machinalement'",
         },
         defense_response: {
           type: "string",
@@ -84,7 +90,9 @@ function buildDefenseCardReviewPrompt(card: DefenseCardContent): string {
   const cardBlock = card.impulses
     .map((imp) => {
       const triggers = imp.triggers
-        .map((t) => `  - [${t.trigger_id}] ${t.situation} → signal: ${t.signal} → défense: ${t.defense_response}`)
+        .map((t) =>
+          `  - [${t.trigger_id}] ${t.situation} → signal: ${t.signal} → défense: ${t.defense_response}`
+        )
         .join("\n");
       return `Pulsion "${imp.label}" (${imp.impulse_id}):\n${triggers}\n  Plan B: ${imp.generic_defense}`;
     })
@@ -105,6 +113,9 @@ ${cardBlock}
 
 ## Règles
 - N'utilise log_defense_win que si l'utilisateur dit EXPLICITEMENT avoir résisté ou surmonté une tentation
+- Tu tutoies toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
+- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
+- Chaque message visible contient au moins 1 emoji naturel; 2 max.
 - Confirme brièvement la victoire: "Bien joué ! Je note cette victoire dans ta carte."
 - N'utilise add_trigger_to_card que si l'utilisateur demande EXPLICITEMENT d'ajouter / noter / mettre sur sa carte cette nouvelle situation, ou s'il confirme clairement une proposition juste avant dans l'historique récent
 - Quand tu ajoutes un trigger, veille à bien séparer la situation (terrain) du signal (déclencheur interne observable)
@@ -178,7 +189,12 @@ export async function checkDefenseCardSignals(
 ): Promise<DefenseCardReviewResult> {
   const cardData = await loadDefenseCard(supabase, userId, transformationId);
   if (!cardData) {
-    return { text: "", executed_tools: [], tool_execution: "none", wins_logged: 0 };
+    return {
+      text: "",
+      executed_tools: [],
+      tool_execution: "none",
+      wins_logged: 0,
+    };
   }
 
   const systemPrompt = buildDefenseCardReviewPrompt(cardData.content);
@@ -214,12 +230,18 @@ export async function checkDefenseCardSignals(
   );
 
   if (typeof response === "string") {
-    return { text: response.trim(), executed_tools: [], tool_execution: "none", wins_logged: 0 };
+    return {
+      text: response.trim(),
+      executed_tools: [],
+      tool_execution: "none",
+      wins_logged: 0,
+    };
   }
 
   if (response && typeof response === "object") {
     const toolName = (response as any)?.tool ?? (response as any)?.name ?? null;
-    const toolArgs = (response as any)?.args ?? (response as any)?.arguments ?? {};
+    const toolArgs = (response as any)?.args ?? (response as any)?.arguments ??
+      {};
 
     if (toolName === "log_defense_win") {
       try {
@@ -240,7 +262,9 @@ export async function checkDefenseCardSignals(
           [],
           "auto",
           {
-            requestId: meta?.requestId ? `${meta.requestId}:followup` : undefined,
+            requestId: meta?.requestId
+              ? `${meta.requestId}:followup`
+              : undefined,
             model,
             source: "sophia-brain:defense_card_review:followup",
             forceRealAi: meta?.forceRealAi,
@@ -251,11 +275,17 @@ export async function checkDefenseCardSignals(
           ? followUp.replace(/\*\*/g, "").trim()
           : "Bien joué ! Je note cette victoire dans ta carte. 💪";
 
-        return { text, executed_tools: ["log_defense_win"], tool_execution: "success", wins_logged: 1 };
+        return {
+          text,
+          executed_tools: ["log_defense_win"],
+          tool_execution: "success",
+          wins_logged: 1,
+        };
       } catch (err) {
         console.error("[defense_card_reviewer] log win failed:", err);
         return {
-          text: "J'ai voulu noter ta victoire mais j'ai eu un souci technique. On en reparle !",
+          text:
+            "J'ai voulu noter ta victoire mais j'ai eu un souci technique. On en reparle !",
           executed_tools: ["log_defense_win"],
           tool_execution: "error",
           wins_logged: 0,
@@ -265,7 +295,12 @@ export async function checkDefenseCardSignals(
 
     if (toolName === "add_trigger_to_card") {
       if (!hasExplicitCardUpdateConsent(message, history)) {
-        return { text: "", executed_tools: [], tool_execution: "none", wins_logged: 0 };
+        return {
+          text: "",
+          executed_tools: [],
+          tool_execution: "none",
+          wins_logged: 0,
+        };
       }
 
       try {
@@ -286,7 +321,9 @@ export async function checkDefenseCardSignals(
           [],
           "auto",
           {
-            requestId: meta?.requestId ? `${meta.requestId}:followup` : undefined,
+            requestId: meta?.requestId
+              ? `${meta.requestId}:followup`
+              : undefined,
             model,
             source: "sophia-brain:defense_card_review:followup",
             forceRealAi: meta?.forceRealAi,
@@ -297,11 +334,17 @@ export async function checkDefenseCardSignals(
           ? followUp.replace(/\*\*/g, "").trim()
           : "C'est noté, j'ai ajouté cette situation à ta carte de défense.";
 
-        return { text, executed_tools: ["add_trigger_to_card"], tool_execution: "success", wins_logged: 0 };
+        return {
+          text,
+          executed_tools: ["add_trigger_to_card"],
+          tool_execution: "success",
+          wins_logged: 0,
+        };
       } catch (err) {
         console.error("[defense_card_reviewer] add trigger failed:", err);
         return {
-          text: "J'ai voulu mettre à jour ta carte mais j'ai eu un souci technique.",
+          text:
+            "J'ai voulu mettre à jour ta carte mais j'ai eu un souci technique.",
           executed_tools: ["add_trigger_to_card"],
           tool_execution: "error",
           wins_logged: 0,
@@ -310,5 +353,10 @@ export async function checkDefenseCardSignals(
     }
   }
 
-  return { text: "", executed_tools: [], tool_execution: "none", wins_logged: 0 };
+  return {
+    text: "",
+    executed_tools: [],
+    tool_execution: "none",
+    wins_logged: 0,
+  };
 }

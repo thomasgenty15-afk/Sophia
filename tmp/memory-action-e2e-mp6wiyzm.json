@@ -1,0 +1,3014 @@
+{
+  "ok": true,
+  "run_id": "memory-action-e2e-mp6wiyzm",
+  "user": {
+    "id": "75d16539-be8f-4729-b20c-092b509cd0d3",
+    "email": "memory-action-e2e-mp6wiyzm@example.com"
+  },
+  "scopes": {
+    "first": "memory-action-e2e-mp6wiyzm-conversation-a",
+    "second": "memory-action-e2e-mp6wiyzm-conversation-b"
+  },
+  "plan_ids": {
+    "cycleId": "eeb41176-6da5-434f-9fb3-323b2712b150",
+    "transformationId": "545e6635-b40f-424f-8d0e-5f9a1a48fd10",
+    "planId": "d000b6b0-96b7-484c-9306-75bf40f35bab",
+    "pushups12": "072d0ad8-024b-4306-9538-e76d193afd53",
+    "stretch8": "647f540d-3e24-48d6-9802-4fd0d9237085",
+    "clara": "025407b2-0d4f-40dd-80de-5ca8f399f212",
+    "pushups16": "9859c74c-ca13-4a79-ad96-f2c0f8c821d9"
+  },
+  "first_conversation": {
+    "turn_count": 22,
+    "turns": [
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-0-attempt-1",
+        "id": "seed_0",
+        "message": "Contexte test: je veux que mes actions gardent leurs apprentissages utiles d'une semaine a l'autre.",
+        "response_text": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+        "response_body": {
+          "content": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-1-attempt-1",
+        "id": "seed_1",
+        "message": "Action active Faire 12 pompes: aujourd'hui j'ai fait les 12 reps, mais la derniere serie etait trop dure.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-2-attempt-1",
+        "id": "seed_2",
+        "message": "Observation d'action pour Faire 12 pompes: je reussis mieux quand je les fais juste apres le petit-dejeuner.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-3-attempt-1",
+        "id": "seed_3",
+        "message": "Pattern d'action pour Faire 12 pompes: garder la premiere serie facile m'evite d'abandonner sur la derniere.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-4-attempt-1",
+        "id": "seed_4",
+        "message": "Action active Etirements 8 minutes: avant le diner ca ne marche pas, je les saute presque toujours.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-5-attempt-1",
+        "id": "seed_5",
+        "message": "Observation d'action pour Etirements 8 minutes: apres la douche du soir, ca passe beaucoup mieux.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-6-attempt-1",
+        "id": "seed_6",
+        "message": "Ne confonds pas les etirements avec les pompes: les pompes sont le matin apres petit-dejeuner, les etirements le soir apres la douche.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-7-attempt-1",
+        "id": "seed_7",
+        "message": "Action active Envoyer un message a Clara: mon blocage est la premiere phrase, pas le contenu du message.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-8-attempt-1",
+        "id": "seed_8",
+        "message": "Pour Clara, si tu dois m'aider plus tard, propose une phrase tres simple et non parfaite.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-9-attempt-1",
+        "id": "seed_9",
+        "message": "Je prefere qu'on me rappelle les apprentissages d'action sous forme concrete, pas comme une motivation generale.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-10-attempt-1",
+        "id": "seed_10",
+        "message": "Aujourd'hui j'ai note que les pompes marchent mieux si mon telephone reste dans la cuisine.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-11-attempt-1",
+        "id": "seed_11",
+        "message": "Pour les etirements, le tapis visible dans la salle de bain aide, mais le vrai declencheur reste la douche.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-12-attempt-1",
+        "id": "seed_12",
+        "message": "Pour l'action Clara, je n'ai pas besoin d'un long plan, juste une premiere ligne envoyable.",
+        "response_text": "Ça marche, on va au plus simple. Pour t'aider à envoyer ce message à Clara, tu préfères : Le texte magique, Preparer le terrain ou un Mot de bascule ?",
+        "response_body": {
+          "content": "Ça marche, on va au plus simple. Pour t'aider à envoyer ce message à Clara, tu préfères : Le texte magique, Preparer le terrain ou un Mot de bascule ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-13-attempt-1",
+        "id": "seed_13",
+        "message": "Quand une habitude augmente en repetitions, je veux garder les memes astuces si la substance de l'action reste la meme.",
+        "response_text": "C'est noté pour les pompes. Pour garder la même approche même si le nombre de répétitions augmente, tu préfères : un Mantra de force, une Ancre visuelle ou Préparer le terrain ?",
+        "response_body": {
+          "content": "C'est noté pour les pompes. Pour garder la même approche même si le nombre de répétitions augmente, tu préfères : un Mantra de force, une Ancre visuelle ou Préparer le terrain ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-14-attempt-1",
+        "id": "seed_14",
+        "message": "Si je parle de Faire 16 pompes la semaine prochaine, tu dois comprendre que c'est la meme famille que Faire 12 pompes.",
+        "response_text": "C'est très clair, on garde la même logique peu importe le nombre de pompes. Pour cette habitude, tu préfères quelle approche : un Mantra de force, une Ancre visuelle ou Préparer le terrain ?",
+        "response_body": {
+          "content": "C'est très clair, on garde la même logique peu importe le nombre de pompes. Pour cette habitude, tu préfères quelle approche : un Mantra de force, une Ancre visuelle ou Préparer le terrain ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-15-attempt-1",
+        "id": "seed_15",
+        "message": "La phrase cle pour Clara pourrait etre: Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.",
+        "response_text": "Voici ton brouillon pour Clara :\n🪄 *Le texte magique* (texte_recadrage)\n« Coucou Clara, je te propose qu'on se cale dix minutes cette semaine. »\nMode d'emploi : Lis ou recopie ce texte dès que tu sens la résistance monter, puis fais le premier geste.\nOn valide la création de cette carte ?",
+        "response_body": {
+          "content": "Voici ton brouillon pour Clara :\n🪄 *Le texte magique* (texte_recadrage)\n« Coucou Clara, je te propose qu'on se cale dix minutes cette semaine. »\nMode d'emploi : Lis ou recopie ce texte dès que tu sens la résistance monter, puis fais le premier geste.\nOn valide la création de cette carte ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-16-attempt-1",
+        "id": "seed_16",
+        "message": "J'ai aussi une idee de lecture sur le design, mais ce n'est pas une action active du plan.",
+        "response_text": "Carrément, bonne idée de lecture pour nourrir le cerveau. 📚  \nPar contre si c’est pas une action active du plan, on la laisse en “inspiration” pour le moment.\n\nTu veux que je te la reformule en une micro-action claire (si jamais tu veux l’activer), ou tu préfères juste la noter telle quelle pour plus tard ? 🙂",
+        "response_body": {
+          "content": "Carrément, bonne idée de lecture pour nourrir le cerveau. 📚  \nPar contre si c’est pas une action active du plan, on la laisse en “inspiration” pour le moment.\n\nTu veux que je te la reformule en une micro-action claire (si jamais tu veux l’activer), ou tu préfères juste la noter telle quelle pour plus tard ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-17-attempt-1",
+        "id": "seed_17",
+        "message": "Mon energie est meilleure le matin, donc les pompes ne doivent pas glisser le soir.",
+        "response_text": "C'est une super observation. Si tu les laisses glisser après 18h, c'est mort, la flemme gagne à tous les coups. 📉\n\nOn reste sur ta stratégie du téléphone qui reste dans la cuisine pour déclencher ça le matin ?\n\nSinon, on valide la carte pour Clara ou tu veux d'abord caler l'approche pour tes pompes (Mantra, Ancre ou Terrain) ?",
+        "response_body": {
+          "content": "C'est une super observation. Si tu les laisses glisser après 18h, c'est mort, la flemme gagne à tous les coups. 📉\n\nOn reste sur ta stratégie du téléphone qui reste dans la cuisine pour déclencher ça le matin ?\n\nSinon, on valide la carte pour Clara ou tu veux d'abord caler l'approche pour tes pompes (Mantra, Ancre ou Terrain) ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-18-attempt-1",
+        "id": "seed_18",
+        "message": "Si je dis juste etirements, pense au moment apres douche plutot qu'a une seance sportive lourde.",
+        "response_text": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+        "response_body": {
+          "content": "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-19-attempt-1",
+        "id": "seed_19",
+        "message": "La difficulte des pompes n'est pas le demarrage, c'est d'aller trop vite sur les premieres reps.",
+        "response_text": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+        "response_body": {
+          "content": "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-20-attempt-1",
+        "id": "seed_20",
+        "message": "L'action Clara est ponctuelle, mais le blocage premiere phrase est reutilisable pour ce genre de relance.",
+        "response_text": "C'est fait. J'ai créé cette carte d'attaque :\n\nMessage pour Clara\nTechnique : Le texte magique\nCoucou Clara, je te propose qu'on se cale dix minutes cette semaine.\n\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+        "response_body": {
+          "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nMessage pour Clara\nTechnique : Le texte magique\nCoucou Clara, je te propose qu'on se cale dix minutes cette semaine.\n\nMode d'emploi : Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "prepare_attack_card"
+          ]
+        }
+      },
+      {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_a-21-attempt-1",
+        "id": "seed_21",
+        "message": "Fin du point action: je veux que ces infos soient rangees dans la memoire d'action, pas seulement dans l'historique brut.",
+        "response_text": "Ok, je te note ça : tu veux que ces infos soient rangées dans la mémoire d’action (pas juste dans l’historique brut). ✅🙂\n\nTu veux que je garde exactement quels éléments comme “mémoire d’action” en priorité : la phrase pour Clara, le déclencheur “téléphone en cuisine”, la règle “pompes matin, pas le soir”, ou tout le fil ?",
+        "response_body": {
+          "content": "Ok, je te note ça : tu veux que ces infos soient rangées dans la mémoire d’action (pas juste dans l’historique brut). ✅🙂\n\nTu veux que je garde exactement quels éléments comme “mémoire d’action” en priorité : la phrase pour Clara, le déclencheur “téléphone en cuisine”, la règle “pompes matin, pas le soir”, ou tout le fil ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 44,
+      "user_messages": 22,
+      "assistant_messages": 22,
+      "turns_total": 22,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 56
+    }
+  },
+  "memorizer": {
+    "ok": true,
+    "request_id": "memory-action-e2e-mp6wiyzm-memorizer-attempt-1",
+    "since_iso": "2026-05-15T11:36:38.434Z",
+    "processed_count": 1,
+    "processed": [
+      {
+        "user_id": "75d16539-be8f-4729-b20c-092b509cd0d3",
+        "timezone": "Europe/Paris",
+        "message_count": 22,
+        "memorizer": {
+          "status": "completed",
+          "reason": null,
+          "processed_message_count": 22,
+          "persisted_count": 9,
+          "extraction_run_id": "76723a5c-dbbd-4d57-a66c-74af1016cd50",
+          "batch_hash": "5649d164de2b2cde53e60a7d57fa4f87200098898ec5a7733662f6d80aaa994b",
+          "write_decision_count": 9,
+          "extraction_run": {
+            "id": "76723a5c-dbbd-4d57-a66c-74af1016cd50",
+            "status": "completed",
+            "trigger_type": "daily_batch",
+            "proposed_item_count": 9,
+            "accepted_item_count": 9,
+            "rejected_item_count": 1,
+            "proposed_entity_count": 3,
+            "accepted_entity_count": 0,
+            "duration_ms": 36727,
+            "error_message": null,
+            "durable_writes": {
+              "active_items": 7,
+              "memory_items": 9,
+              "candidate_items": 2
+            },
+            "pre_filter_skip_count": 0,
+            "statement_as_fact_violation_count": 0,
+            "rejection_reasons": {
+              "other": 1
+            },
+            "write_decision_statuses": {
+              "active": 7,
+              "candidate": 2
+            }
+          }
+        }
+      }
+    ]
+  },
+  "memory_state": {
+    "items": [
+      {
+        "id": "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur souhaite que les apprentissages utiles liés à ses actions soient conservés et appliqués d'une semaine à l'autre.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "statement_role": "preference",
+          "write_decision_reason": "high_confidence_unlinked"
+        },
+        "created_at": "2026-05-15T12:42:31.659452+00:00"
+      },
+      {
+        "id": "dcfddf30-88db-462f-8ad8-cdfe5bc37fc0",
+        "kind": "event",
+        "status": "candidate",
+        "content_text": "L'utilisateur a effectué 12 pompes, mais a trouvé la dernière série trop difficile.",
+        "domain_keys": [
+          "sante.activite_physique"
+        ],
+        "sensitivity_level": "sensitive",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link",
+          "temporal_resolution_raw": "aujourd'hui",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category",
+          "temporal_resolution_timezone": "Europe/Paris",
+          "temporal_resolution_confidence": 0.9
+        },
+        "created_at": "2026-05-15T12:42:31.686293+00:00"
+      },
+      {
+        "id": "8341b393-b5c5-41c6-8742-736d331148ba",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.",
+        "domain_keys": [
+          "habitudes.environnement",
+          "habitudes.execution",
+          "sante.energie"
+        ],
+        "sensitivity_level": "normal",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:pompes_matin",
+          "write_decision_reason": "high_confidence_linked"
+        },
+        "created_at": "2026-05-15T12:42:31.711489+00:00"
+      },
+      {
+        "id": "39dfdc58-1d69-4794-9f35-a44ad62c32be",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+        "domain_keys": [
+          "habitudes.environnement",
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "habit:etirements_soir",
+          "write_decision_reason": "high_confidence_linked"
+        },
+        "created_at": "2026-05-15T12:42:31.728538+00:00"
+      },
+      {
+        "id": "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b",
+        "kind": "action_observation",
+        "status": "active",
+        "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.",
+        "domain_keys": [
+          "habitudes.procrastination",
+          "relations.amitie"
+        ],
+        "sensitivity_level": "sensitive",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "action_family_key": "task:message_clara",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "created_at": "2026-05-15T12:42:31.742798+00:00"
+      },
+      {
+        "id": "d5c94082-707f-44b7-b89b-543381cf02f7",
+        "kind": "fact",
+        "status": "active",
+        "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+        "domain_keys": [
+          "relations.amitie"
+        ],
+        "sensitivity_level": "sensitive",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "created_at": "2026-05-15T12:42:31.750446+00:00"
+      },
+      {
+        "id": "565cffbd-ab27-4e5a-84db-7432f6f78fbf",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "L'utilisateur préfère des rappels d'apprentissage sous forme concrète plutôt que des encouragements motivationnels généraux.",
+        "domain_keys": [
+          "habitudes.execution"
+        ],
+        "sensitivity_level": "normal",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "statement_role": "preference",
+          "write_decision_reason": "high_confidence_unlinked"
+        },
+        "created_at": "2026-05-15T12:42:31.758972+00:00"
+      },
+      {
+        "id": "68fbab27-8a63-41b8-8512-3b607a05597f",
+        "kind": "statement",
+        "status": "active",
+        "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+        "domain_keys": [
+          "habitudes.planification"
+        ],
+        "sensitivity_level": "sensitive",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "statement_role": "instruction",
+          "write_decision_reason": "high_confidence_linked",
+          "sensitivity_promoted_from": "normal",
+          "sensitivity_promotion_reason": "sensitive_content_or_category"
+        },
+        "created_at": "2026-05-15T12:42:31.765984+00:00"
+      },
+      {
+        "id": "6b423c7a-58e7-4f8d-8697-a87e97112ce9",
+        "kind": "fact",
+        "status": "candidate",
+        "content_text": "L'utilisateur a une idée de lecture concernant le design, bien que ce ne soit pas une priorité du plan d'action actuel.",
+        "domain_keys": [
+          "travail.sens"
+        ],
+        "sensitivity_level": "normal",
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "prompt_version": "memory.memorizer.extraction.v1",
+          "write_decision_reason": "ambiguous_link"
+        },
+        "created_at": "2026-05-15T12:42:31.776467+00:00"
+      }
+    ],
+    "actionLinks": [
+      {
+        "id": "d2172147-4191-4c15-b0b5-f7aa73555f92",
+        "memory_item_id": "8341b393-b5c5-41c6-8742-736d331148ba",
+        "plan_item_id": "072d0ad8-024b-4306-9538-e76d193afd53",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.91,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_stem",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 2,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:36:38.434+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:36:56.279+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:37:04.249+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:38:43.674+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T12:42:31.720554+00:00",
+        "memory_items": {
+          "id": "8341b393-b5c5-41c6-8742-736d331148ba",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:pompes_matin",
+            "write_decision_reason": "high_confidence_linked"
+          },
+          "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner."
+        }
+      },
+      {
+        "id": "2a86c7ec-c948-4351-9851-a736e5d56fd3",
+        "memory_item_id": "39dfdc58-1d69-4794-9f35-a44ad62c32be",
+        "plan_item_id": "647f540d-3e24-48d6-9802-4fd0d9237085",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.91,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "title_stem",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 2,
+          "action_variant": {
+            "target_reps": 1,
+            "time_of_day": "evening",
+            "current_reps": 0,
+            "cadence_label": "8 minutes le soir",
+            "scheduled_days": [
+              "tue",
+              "thu",
+              "sun"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "skipped",
+                "entry_kind": "skip",
+                "effective_at": "2026-05-15T12:36:38.434+00:00"
+              },
+              {
+                "outcome": "missed",
+                "entry_kind": "skip",
+                "effective_at": "2026-05-15T12:37:28.524+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "checkin",
+                "effective_at": "2026-05-15T12:37:42.393+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:etirements_soir",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T12:42:31.736579+00:00",
+        "memory_items": {
+          "id": "39dfdc58-1d69-4794-9f35-a44ad62c32be",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "habit:etirements_soir",
+            "write_decision_reason": "high_confidence_linked"
+          },
+          "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère."
+        }
+      },
+      {
+        "id": "607b0eae-2143-4194-b236-eae666e71de8",
+        "memory_item_id": "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b",
+        "plan_item_id": "025407b2-0d4f-40dd-80de-5ca8f399f212",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.81,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "metadata_action_family_key",
+            "alias_token_presence"
+          ],
+          "match_score": 1.45,
+          "action_variant": {
+            "target_reps": 0,
+            "time_of_day": null,
+            "current_reps": 0,
+            "cadence_label": null,
+            "scheduled_days": null,
+            "recent_entry_outcomes": []
+          },
+          "action_family_key": "task:message_clara",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T12:42:31.747666+00:00",
+        "memory_items": {
+          "id": "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b",
+          "kind": "action_observation",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "action_family_key": "task:message_clara",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement."
+        }
+      },
+      {
+        "id": "3cdd98fa-06d1-4274-9ae4-1f882f0fe986",
+        "memory_item_id": "d5c94082-707f-44b7-b89b-543381cf02f7",
+        "plan_item_id": "025407b2-0d4f-40dd-80de-5ca8f399f212",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.75,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "title_token_overlap",
+            "alias_token_overlap"
+          ],
+          "match_score": 1.12,
+          "action_variant": {
+            "target_reps": 0,
+            "time_of_day": null,
+            "current_reps": 0,
+            "cadence_label": null,
+            "scheduled_days": null,
+            "recent_entry_outcomes": []
+          },
+          "action_family_key": "task:message_clara",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T12:42:31.756178+00:00",
+        "memory_items": {
+          "id": "d5c94082-707f-44b7-b89b-543381cf02f7",
+          "kind": "fact",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'"
+        }
+      },
+      {
+        "id": "ced91f94-4ada-4231-9437-a6f43901fc36",
+        "memory_item_id": "68fbab27-8a63-41b8-8512-3b607a05597f",
+        "plan_item_id": "072d0ad8-024b-4306-9538-e76d193afd53",
+        "aggregation_kind": "single_occurrence",
+        "confidence": 0.75,
+        "metadata": {
+          "created_by": "memorizer_v2",
+          "matched_by": [
+            "title_stem",
+            "alias",
+            "has_occurrence"
+          ],
+          "match_score": 1.1,
+          "action_variant": {
+            "target_reps": 12,
+            "time_of_day": "morning",
+            "current_reps": 12,
+            "cadence_label": "12 repetitions, trois fois cette semaine",
+            "scheduled_days": [
+              "mon",
+              "wed",
+              "fri"
+            ],
+            "recent_entry_outcomes": [
+              {
+                "outcome": "done",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:36:38.434+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:36:56.279+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:37:04.249+00:00"
+              },
+              {
+                "outcome": "completed",
+                "entry_kind": "progress",
+                "effective_at": "2026-05-15T12:38:43.674+00:00"
+              }
+            ]
+          },
+          "action_family_key": "habit:pompes_matin",
+          "start_after_item_id": null
+        },
+        "created_at": "2026-05-15T12:42:31.771609+00:00",
+        "memory_items": {
+          "id": "68fbab27-8a63-41b8-8512-3b607a05597f",
+          "kind": "statement",
+          "status": "active",
+          "metadata": {
+            "created_by": "memorizer_v2",
+            "prompt_version": "memory.memorizer.extraction.v1",
+            "statement_role": "instruction",
+            "write_decision_reason": "high_confidence_linked",
+            "sensitivity_promoted_from": "normal",
+            "sensitivity_promotion_reason": "sensitive_content_or_category"
+          },
+          "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces."
+        }
+      }
+    ],
+    "occurrences": [
+      {
+        "id": "5b314bac-a802-405f-b06a-e2770833746a",
+        "memory_item_action_id": "d2172147-4191-4c15-b0b5-f7aa73555f92",
+        "action_occurrence_id": "4a1991e7-2b69-41b5-8c5d-f2f2593cbcbe",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.723281+00:00"
+      },
+      {
+        "id": "7d3b00fe-eff0-4177-b7b6-2063d53ea6b8",
+        "memory_item_action_id": "d2172147-4191-4c15-b0b5-f7aa73555f92",
+        "action_occurrence_id": "2ee1f8c6-3646-4404-aa8f-7979f92495f1",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.723281+00:00"
+      },
+      {
+        "id": "bd633def-b8bd-4ae4-83ef-13b43b837312",
+        "memory_item_action_id": "d2172147-4191-4c15-b0b5-f7aa73555f92",
+        "action_occurrence_id": "fc3a83e0-e54e-4b80-95ac-80dc39df6319",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.723281+00:00"
+      },
+      {
+        "id": "f544885c-bd46-42a5-97ed-a5443a48debb",
+        "memory_item_action_id": "d2172147-4191-4c15-b0b5-f7aa73555f92",
+        "action_occurrence_id": "a95fefca-2021-4830-a97b-66949b9f6257",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.723281+00:00"
+      },
+      {
+        "id": "4a223ddb-e3ae-430b-8ec4-515aa557fd90",
+        "memory_item_action_id": "2a86c7ec-c948-4351-9851-a736e5d56fd3",
+        "action_occurrence_id": "1aadfa55-40da-4e1b-8852-195fe3c8b02c",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.739647+00:00"
+      },
+      {
+        "id": "a3af9fac-370f-4c08-82b5-db8d95a27abb",
+        "memory_item_action_id": "2a86c7ec-c948-4351-9851-a736e5d56fd3",
+        "action_occurrence_id": "325c6119-4399-4208-8978-7a96e894691c",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.739647+00:00"
+      },
+      {
+        "id": "1d546226-9c9b-46fa-bb87-e4f03c8daccd",
+        "memory_item_action_id": "2a86c7ec-c948-4351-9851-a736e5d56fd3",
+        "action_occurrence_id": "8c77d7af-47fa-4b39-bdfb-05e11a161c61",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.739647+00:00"
+      },
+      {
+        "id": "3377f0c3-c2b3-44e9-be5a-231c8d656448",
+        "memory_item_action_id": "ced91f94-4ada-4231-9437-a6f43901fc36",
+        "action_occurrence_id": "fc3a83e0-e54e-4b80-95ac-80dc39df6319",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.773668+00:00"
+      },
+      {
+        "id": "f91c065a-11ee-45f9-81af-28a8a2708afd",
+        "memory_item_action_id": "ced91f94-4ada-4231-9437-a6f43901fc36",
+        "action_occurrence_id": "2ee1f8c6-3646-4404-aa8f-7979f92495f1",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.773668+00:00"
+      },
+      {
+        "id": "d3327248-aa89-47e9-934f-349c8e2587ad",
+        "memory_item_action_id": "ced91f94-4ada-4231-9437-a6f43901fc36",
+        "action_occurrence_id": "4a1991e7-2b69-41b5-8c5d-f2f2593cbcbe",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.773668+00:00"
+      },
+      {
+        "id": "0095091f-f7fb-4575-994a-0d9a507ff397",
+        "memory_item_action_id": "ced91f94-4ada-4231-9437-a6f43901fc36",
+        "action_occurrence_id": "a95fefca-2021-4830-a97b-66949b9f6257",
+        "metadata": {
+          "created_by": "memorizer_v2"
+        },
+        "created_at": "2026-05-15T12:42:31.773668+00:00"
+      }
+    ],
+    "runs": [
+      {
+        "id": "76723a5c-dbbd-4d57-a66c-74af1016cd50",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 9,
+        "accepted_item_count": 9,
+        "rejected_item_count": 1,
+        "metadata": {
+          "cost": {
+            "model_name": "gemini-3-flash-preview",
+            "estimated_llm_calls": 1
+          },
+          "dry_run": false,
+          "durable_writes": {
+            "active_items": 7,
+            "memory_items": 9,
+            "candidate_items": 2
+          },
+          "write_decisions": [
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur souhaite que les apprentissages utiles liés à ses actions soient conservés et appliqués d'une semaine à l'autre.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.conservation_des_apprentissages_action_sur_long_terme",
+                  "event_start_at": null,
+                  "evidence_quote": "je veux que mes actions gardent leurs apprentissages utiles d'une semaine a l'autre.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Conservation des apprentissages d'action sur le long terme",
+                  "source_message_ids": [
+                    "1b9a3aef-15cc-47c3-b99f-089b9271dade"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages utiles liés à ses actions soient conservés et appliqués d'une semaine à l'autre.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.conservation_des_apprentissages_action_sur_long_terme",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que mes actions gardent leurs apprentissages utiles d'une semaine a l'autre.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conservation des apprentissages d'action sur le long terme",
+                    "source_message_ids": [
+                      "1b9a3aef-15cc-47c3-b99f-089b9271dade"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur souhaite que les apprentissages utiles liés à ses actions soient conservés et appliqués d'une semaine à l'autre.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.conservation_des_apprentissages_action_sur_long_terme",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux que mes actions gardent leurs apprentissages utiles d'une semaine a l'autre.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conservation des apprentissages d'action sur le long terme",
+                    "source_message_ids": [
+                      "1b9a3aef-15cc-47c3-b99f-089b9271dade"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "event",
+                  "metadata": {
+                    "temporal_resolution_raw": "aujourd'hui",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category",
+                    "temporal_resolution_timezone": "Europe/Paris",
+                    "temporal_resolution_confidence": 0.9
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "sante.activite_physique"
+                  ],
+                  "content_text": "L'utilisateur a effectué 12 pompes, mais a trouvé la dernière série trop difficile.",
+                  "event_end_at": "2026-05-15T22:00:00.000Z",
+                  "canonical_key": "sante.activite_physique.event.realisation_pompes_avec_difficulte_sur_fin",
+                  "event_start_at": "2026-05-15T12:36:48Z",
+                  "evidence_quote": "aujourd'hui j'ai fait les 12 reps, mais la derniere serie etait trop dure.",
+                  "time_precision": "day",
+                  "entity_mentions": [],
+                  "importance_score": 0.4,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Réalisation de 12 pompes avec difficulté sur la fin",
+                  "source_message_ids": [
+                    "1d3cf34e-e73d-44d7-9c9e-1eed9c42e747"
+                  ],
+                  "sensitivity_categories": [
+                    "health"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 pompes, mais a trouvé la dernière série trop difficile.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_avec_difficulte_sur_fin",
+                    "event_start_at": "2026-05-15T12:36:48Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 reps, mais la derniere serie etait trop dure.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.4,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes avec difficulté sur la fin",
+                    "source_message_ids": [
+                      "1d3cf34e-e73d-44d7-9c9e-1eed9c42e747"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "event",
+                    "metadata": {
+                      "temporal_resolution_raw": "aujourd'hui",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category",
+                      "temporal_resolution_timezone": "Europe/Paris",
+                      "temporal_resolution_confidence": 0.9
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "sante.activite_physique"
+                    ],
+                    "content_text": "L'utilisateur a effectué 12 pompes, mais a trouvé la dernière série trop difficile.",
+                    "event_end_at": "2026-05-15T22:00:00.000Z",
+                    "canonical_key": "sante.activite_physique.event.realisation_pompes_avec_difficulte_sur_fin",
+                    "event_start_at": "2026-05-15T12:36:48Z",
+                    "evidence_quote": "aujourd'hui j'ai fait les 12 reps, mais la derniere serie etait trop dure.",
+                    "time_precision": "day",
+                    "entity_mentions": [],
+                    "importance_score": 0.4,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Réalisation de 12 pompes avec difficulté sur la fin",
+                    "source_message_ids": [
+                      "1d3cf34e-e73d-44d7-9c9e-1eed9c42e747"
+                    ],
+                    "sensitivity_categories": [
+                      "health"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:pompes_matin"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement",
+                    "habitudes.execution",
+                    "sante.energie"
+                  ],
+                  "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_pompes_matin_sans_telephone",
+                  "event_start_at": null,
+                  "evidence_quote": "je reussis mieux quand je les fais juste apres le petit-dejeuner... garder la premiere serie facile m'evite d'abandonner... mon telephone reste dans la cuisine... ne doivent pas glisser le soir... pas d'aller trop vite sur les premieres reps.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Conditions de succès pour les pompes (matin, sans téléphone, rythme lent)",
+                  "source_message_ids": [
+                    "221d2900-6a4b-4642-9d61-b2810db3a1f8",
+                    "aeb141e7-e887-432c-a5ac-dbbcc68a3d87",
+                    "95693701-3034-4013-858b-9cea4de326ae",
+                    "63d92781-7e09-4f7a-87c0-34251ee9f8ad",
+                    "ac3d9864-b124-4867-9774-189eaf57e643"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution",
+                      "sante.energie"
+                    ],
+                    "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_pompes_matin_sans_telephone",
+                    "event_start_at": null,
+                    "evidence_quote": "je reussis mieux quand je les fais juste apres le petit-dejeuner... garder la premiere serie facile m'evite d'abandonner... mon telephone reste dans la cuisine... ne doivent pas glisser le soir... pas d'aller trop vite sur les premieres reps.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les pompes (matin, sans téléphone, rythme lent)",
+                    "source_message_ids": [
+                      "221d2900-6a4b-4642-9d61-b2810db3a1f8",
+                      "aeb141e7-e887-432c-a5ac-dbbcc68a3d87",
+                      "95693701-3034-4013-858b-9cea4de326ae",
+                      "63d92781-7e09-4f7a-87c0-34251ee9f8ad",
+                      "ac3d9864-b124-4867-9774-189eaf57e643"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution",
+                      "sante.energie"
+                    ],
+                    "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_pompes_matin_sans_telephone",
+                    "event_start_at": null,
+                    "evidence_quote": "je reussis mieux quand je les fais juste apres le petit-dejeuner... garder la premiere serie facile m'evite d'abandonner... mon telephone reste dans la cuisine... ne doivent pas glisser le soir... pas d'aller trop vite sur les premieres reps.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les pompes (matin, sans téléphone, rythme lent)",
+                    "source_message_ids": [
+                      "221d2900-6a4b-4642-9d61-b2810db3a1f8",
+                      "aeb141e7-e887-432c-a5ac-dbbcc68a3d87",
+                      "95693701-3034-4013-858b-9cea4de326ae",
+                      "63d92781-7e09-4f7a-87c0-34251ee9f8ad",
+                      "ac3d9864-b124-4867-9774-189eaf57e643"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:pompes_matin"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution",
+                      "sante.energie"
+                    ],
+                    "content_text": "Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_pompes_matin_sans_telephone",
+                    "event_start_at": null,
+                    "evidence_quote": "je reussis mieux quand je les fais juste apres le petit-dejeuner... garder la premiere serie facile m'evite d'abandonner... mon telephone reste dans la cuisine... ne doivent pas glisser le soir... pas d'aller trop vite sur les premieres reps.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les pompes (matin, sans téléphone, rythme lent)",
+                    "source_message_ids": [
+                      "221d2900-6a4b-4642-9d61-b2810db3a1f8",
+                      "aeb141e7-e887-432c-a5ac-dbbcc68a3d87",
+                      "95693701-3034-4013-858b-9cea4de326ae",
+                      "63d92781-7e09-4f7a-87c0-34251ee9f8ad",
+                      "ac3d9864-b124-4867-9774-189eaf57e643"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_stem",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 2,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:36:38.434+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:36:56.279+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:37:04.249+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:38:43.674+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.91,
+                  "plan_item_id": "072d0ad8-024b-4306-9538-e76d193afd53",
+                  "occurrence_ids": [
+                    "fc3a83e0-e54e-4b80-95ac-80dc39df6319",
+                    "a95fefca-2021-4830-a97b-66949b9f6257",
+                    "2ee1f8c6-3646-4404-aa8f-7979f92495f1",
+                    "4a1991e7-2b69-41b5-8c5d-f2f2593cbcbe"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T12:38:43.674+00:00",
+                  "observation_window_start": "2026-05-15T12:36:38.434+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "habit:etirements_soir"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.environnement",
+                    "habitudes.execution"
+                  ],
+                  "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_etirements_soir_apres_douche",
+                  "event_start_at": null,
+                  "evidence_quote": "avant le diner ca ne marche pas... apres la douche du soir, ca passe beaucoup mieux... le vrai declencheur reste la douche... pense au moment apres douche plutot qu'a une seance sportive lourde.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.8,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Conditions de succès pour les étirements (soir après douche, séance légère)",
+                  "source_message_ids": [
+                    "eb4c2a7b-6b51-4de1-87c4-b508876376ae",
+                    "98944b97-cfc0-4206-8b2b-66d1b085c447",
+                    "46ee2ebc-79ac-41ec-9fe8-44ee429d42d0",
+                    "38ecb476-1b30-4984-9d1f-a11c97d31cfc"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:etirements_soir"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_etirements_soir_apres_douche",
+                    "event_start_at": null,
+                    "evidence_quote": "avant le diner ca ne marche pas... apres la douche du soir, ca passe beaucoup mieux... le vrai declencheur reste la douche... pense au moment apres douche plutot qu'a une seance sportive lourde.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les étirements (soir après douche, séance légère)",
+                    "source_message_ids": [
+                      "eb4c2a7b-6b51-4de1-87c4-b508876376ae",
+                      "98944b97-cfc0-4206-8b2b-66d1b085c447",
+                      "46ee2ebc-79ac-41ec-9fe8-44ee429d42d0",
+                      "38ecb476-1b30-4984-9d1f-a11c97d31cfc"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:etirements_soir"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_etirements_soir_apres_douche",
+                    "event_start_at": null,
+                    "evidence_quote": "avant le diner ca ne marche pas... apres la douche du soir, ca passe beaucoup mieux... le vrai declencheur reste la douche... pense au moment apres douche plutot qu'a une seance sportive lourde.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les étirements (soir après douche, séance légère)",
+                    "source_message_ids": [
+                      "eb4c2a7b-6b51-4de1-87c4-b508876376ae",
+                      "98944b97-cfc0-4206-8b2b-66d1b085c447",
+                      "46ee2ebc-79ac-41ec-9fe8-44ee429d42d0",
+                      "38ecb476-1b30-4984-9d1f-a11c97d31cfc"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "habit:etirements_soir"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.environnement",
+                      "habitudes.execution"
+                    ],
+                    "content_text": "Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_etirements_soir_apres_douche",
+                    "event_start_at": null,
+                    "evidence_quote": "avant le diner ca ne marche pas... apres la douche du soir, ca passe beaucoup mieux... le vrai declencheur reste la douche... pense au moment apres douche plutot qu'a une seance sportive lourde.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.8,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Conditions de succès pour les étirements (soir après douche, séance légère)",
+                    "source_message_ids": [
+                      "eb4c2a7b-6b51-4de1-87c4-b508876376ae",
+                      "98944b97-cfc0-4206-8b2b-66d1b085c447",
+                      "46ee2ebc-79ac-41ec-9fe8-44ee429d42d0",
+                      "38ecb476-1b30-4984-9d1f-a11c97d31cfc"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "title_stem",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 2,
+                    "action_variant": {
+                      "target_reps": 1,
+                      "time_of_day": "evening",
+                      "current_reps": 0,
+                      "cadence_label": "8 minutes le soir",
+                      "scheduled_days": [
+                        "tue",
+                        "thu",
+                        "sun"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "skipped",
+                          "entry_kind": "skip",
+                          "effective_at": "2026-05-15T12:36:38.434+00:00"
+                        },
+                        {
+                          "outcome": "missed",
+                          "entry_kind": "skip",
+                          "effective_at": "2026-05-15T12:37:28.524+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "checkin",
+                          "effective_at": "2026-05-15T12:37:42.393+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:etirements_soir",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.91,
+                  "plan_item_id": "647f540d-3e24-48d6-9802-4fd0d9237085",
+                  "occurrence_ids": [
+                    "1aadfa55-40da-4e1b-8852-195fe3c8b02c",
+                    "325c6119-4399-4208-8978-7a96e894691c",
+                    "8c77d7af-47fa-4b39-bdfb-05e11a161c61"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:etirements_soir",
+                  "observation_window_end": "2026-05-15T12:37:42.393+00:00",
+                  "observation_window_start": "2026-05-15T12:36:38.434+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "action_observation",
+                  "metadata": {
+                    "action_family_key": "task:message_clara",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.procrastination",
+                    "relations.amitie"
+                  ],
+                  "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.procrastination.action_observation.blocage_sur_premiere_phrase_des_messages_relance",
+                  "event_start_at": null,
+                  "evidence_quote": "mon blocage est la premiere phrase... propose une phrase tres simple et non parfaite... juste une premiere ligne envoyable... le blocage premiere phrase est reutilisable pour ce genre de relance.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Blocage sur la première phrase des messages de relance",
+                  "source_message_ids": [
+                    "2a7f8fd0-778e-4dde-b705-11b950b9915d",
+                    "e751032b-8585-4f1f-844b-82bf760b297e",
+                    "66ab4f04-64c8-4d72-98c1-5e6bdd5b9b6e",
+                    "e9040a19-2885-4d44-ad61-82cb3e82970f"
+                  ],
+                  "sensitivity_categories": [
+                    "relationship"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "task:message_clara",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.procrastination",
+                      "relations.amitie"
+                    ],
+                    "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.procrastination.action_observation.blocage_sur_premiere_phrase_des_messages_relance",
+                    "event_start_at": null,
+                    "evidence_quote": "mon blocage est la premiere phrase... propose une phrase tres simple et non parfaite... juste une premiere ligne envoyable... le blocage premiere phrase est reutilisable pour ce genre de relance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Blocage sur la première phrase des messages de relance",
+                    "source_message_ids": [
+                      "2a7f8fd0-778e-4dde-b705-11b950b9915d",
+                      "e751032b-8585-4f1f-844b-82bf760b297e",
+                      "66ab4f04-64c8-4d72-98c1-5e6bdd5b9b6e",
+                      "e9040a19-2885-4d44-ad61-82cb3e82970f"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "task:message_clara",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.procrastination",
+                      "relations.amitie"
+                    ],
+                    "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.procrastination.action_observation.blocage_sur_premiere_phrase_des_messages_relance",
+                    "event_start_at": null,
+                    "evidence_quote": "mon blocage est la premiere phrase... propose une phrase tres simple et non parfaite... juste une premiere ligne envoyable... le blocage premiere phrase est reutilisable pour ce genre de relance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Blocage sur la première phrase des messages de relance",
+                    "source_message_ids": [
+                      "2a7f8fd0-778e-4dde-b705-11b950b9915d",
+                      "e751032b-8585-4f1f-844b-82bf760b297e",
+                      "66ab4f04-64c8-4d72-98c1-5e6bdd5b9b6e",
+                      "e9040a19-2885-4d44-ad61-82cb3e82970f"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "action_observation",
+                    "metadata": {
+                      "action_family_key": "task:message_clara",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.procrastination",
+                      "relations.amitie"
+                    ],
+                    "content_text": "Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.procrastination.action_observation.blocage_sur_premiere_phrase_des_messages_relance",
+                    "event_start_at": null,
+                    "evidence_quote": "mon blocage est la premiere phrase... propose une phrase tres simple et non parfaite... juste une premiere ligne envoyable... le blocage premiere phrase est reutilisable pour ce genre de relance.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Blocage sur la première phrase des messages de relance",
+                    "source_message_ids": [
+                      "2a7f8fd0-778e-4dde-b705-11b950b9915d",
+                      "e751032b-8585-4f1f-844b-82bf760b297e",
+                      "66ab4f04-64c8-4d72-98c1-5e6bdd5b9b6e",
+                      "e9040a19-2885-4d44-ad61-82cb3e82970f"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "metadata_action_family_key",
+                      "alias_token_presence"
+                    ],
+                    "match_score": 1.45,
+                    "action_variant": {
+                      "target_reps": 0,
+                      "time_of_day": null,
+                      "current_reps": 0,
+                      "cadence_label": null,
+                      "scheduled_days": null,
+                      "recent_entry_outcomes": []
+                    },
+                    "action_family_key": "task:message_clara",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.811,
+                  "plan_item_id": "025407b2-0d4f-40dd-80de-5ca8f399f212",
+                  "occurrence_ids": [],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "task:message_clara",
+                  "observation_window_end": "2026-05-15T12:36:38.434+00:00",
+                  "observation_window_start": "2026-05-15T12:36:38.434+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 1,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "relations.amitie"
+                  ],
+                  "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+                  "event_end_at": null,
+                  "canonical_key": "relations.amitie.fact.modele_message_pour_clara",
+                  "event_start_at": null,
+                  "evidence_quote": "La phrase cle pour Clara pourrait etre: Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.5,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Modèle de message pour Clara",
+                  "source_message_ids": [
+                    "e663c7a8-d6a0-43a8-8b36-0389c3d7495c"
+                  ],
+                  "sensitivity_categories": [
+                    "relationship"
+                  ],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.amitie"
+                    ],
+                    "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+                    "event_end_at": null,
+                    "canonical_key": "relations.amitie.fact.modele_message_pour_clara",
+                    "event_start_at": null,
+                    "evidence_quote": "La phrase cle pour Clara pourrait etre: Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Modèle de message pour Clara",
+                    "source_message_ids": [
+                      "e663c7a8-d6a0-43a8-8b36-0389c3d7495c"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.amitie"
+                    ],
+                    "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+                    "event_end_at": null,
+                    "canonical_key": "relations.amitie.fact.modele_message_pour_clara",
+                    "event_start_at": null,
+                    "evidence_quote": "La phrase cle pour Clara pourrait etre: Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Modèle de message pour Clara",
+                    "source_message_ids": [
+                      "e663c7a8-d6a0-43a8-8b36-0389c3d7495c"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 1,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "relations.amitie"
+                    ],
+                    "content_text": "La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+                    "event_end_at": null,
+                    "canonical_key": "relations.amitie.fact.modele_message_pour_clara",
+                    "event_start_at": null,
+                    "evidence_quote": "La phrase cle pour Clara pourrait etre: Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.5,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Modèle de message pour Clara",
+                    "source_message_ids": [
+                      "e663c7a8-d6a0-43a8-8b36-0389c3d7495c"
+                    ],
+                    "sensitivity_categories": [
+                      "relationship"
+                    ],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "title_token_overlap",
+                      "alias_token_overlap"
+                    ],
+                    "match_score": 1.12,
+                    "action_variant": {
+                      "target_reps": 0,
+                      "time_of_day": null,
+                      "current_reps": 0,
+                      "cadence_label": null,
+                      "scheduled_days": null,
+                      "recent_entry_outcomes": []
+                    },
+                    "action_family_key": "task:message_clara",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.7516,
+                  "plan_item_id": "025407b2-0d4f-40dd-80de-5ca8f399f212",
+                  "occurrence_ids": [],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "task:message_clara",
+                  "observation_window_end": "2026-05-15T12:36:38.434+00:00",
+                  "observation_window_start": "2026-05-15T12:36:38.434+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_unlinked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "preference"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.execution"
+                  ],
+                  "content_text": "L'utilisateur préfère des rappels d'apprentissage sous forme concrète plutôt que des encouragements motivationnels généraux.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.execution.statement.preference_pour_des_rappels_concrets_motivationnels",
+                  "event_start_at": null,
+                  "evidence_quote": "Je prefere qu'on me rappelle les apprentissages d'action sous forme concrete, pas comme une motivation generale.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.6,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Préférence pour des rappels concrets vs motivationnels",
+                  "source_message_ids": [
+                    "49de2ead-bbd4-4a9f-a69d-8bc337570e69"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur préfère des rappels d'apprentissage sous forme concrète plutôt que des encouragements motivationnels généraux.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.preference_pour_des_rappels_concrets_motivationnels",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere qu'on me rappelle les apprentissages d'action sous forme concrete, pas comme une motivation generale.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour des rappels concrets vs motivationnels",
+                    "source_message_ids": [
+                      "49de2ead-bbd4-4a9f-a69d-8bc337570e69"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "preference"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.execution"
+                    ],
+                    "content_text": "L'utilisateur préfère des rappels d'apprentissage sous forme concrète plutôt que des encouragements motivationnels généraux.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.execution.statement.preference_pour_des_rappels_concrets_motivationnels",
+                    "event_start_at": null,
+                    "evidence_quote": "Je prefere qu'on me rappelle les apprentissages d'action sous forme concrete, pas comme une motivation generale.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.6,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Préférence pour des rappels concrets vs motivationnels",
+                    "source_message_ids": [
+                      "49de2ead-bbd4-4a9f-a69d-8bc337570e69"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "high_confidence_linked",
+              "status": "active",
+              "candidate": {
+                "item": {
+                  "kind": "statement",
+                  "metadata": {
+                    "statement_role": "instruction",
+                    "sensitivity_promoted_from": "normal",
+                    "sensitivity_promotion_reason": "sensitive_content_or_category"
+                  },
+                  "confidence": 0.95,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "habitudes.planification"
+                  ],
+                  "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+                  "event_end_at": null,
+                  "canonical_key": "habitudes.planification.statement.mutualisation_des_apprentissages_par_famille_actions",
+                  "event_start_at": null,
+                  "evidence_quote": "je veux garder les memes astuces si la substance de l'action reste la meme... Faire 16 pompes... c'est la meme famille que Faire 12 pompes.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.7,
+                  "sensitivity_level": "sensitive",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Mutualisation des apprentissages par famille d'actions",
+                  "source_message_ids": [
+                    "19798872-b74e-46b5-a312-6b9cf0ca71ee",
+                    "47d9486f-cf87-423a-a28d-aafb2e3d5e8b"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "instruction",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.mutualisation_des_apprentissages_par_famille_actions",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux garder les memes astuces si la substance de l'action reste la meme... Faire 16 pompes... c'est la meme famille que Faire 12 pompes.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Mutualisation des apprentissages par famille d'actions",
+                    "source_message_ids": [
+                      "19798872-b74e-46b5-a312-6b9cf0ca71ee",
+                      "47d9486f-cf87-423a-a28d-aafb2e3d5e8b"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "instruction",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.mutualisation_des_apprentissages_par_famille_actions",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux garder les memes astuces si la substance de l'action reste la meme... Faire 16 pompes... c'est la meme famille que Faire 12 pompes.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Mutualisation des apprentissages par famille d'actions",
+                    "source_message_ids": [
+                      "19798872-b74e-46b5-a312-6b9cf0ca71ee",
+                      "47d9486f-cf87-423a-a28d-aafb2e3d5e8b"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": {
+                  "item": {
+                    "kind": "statement",
+                    "metadata": {
+                      "statement_role": "instruction",
+                      "sensitivity_promoted_from": "normal",
+                      "sensitivity_promotion_reason": "sensitive_content_or_category"
+                    },
+                    "confidence": 0.95,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "habitudes.planification"
+                    ],
+                    "content_text": "Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+                    "event_end_at": null,
+                    "canonical_key": "habitudes.planification.statement.mutualisation_des_apprentissages_par_famille_actions",
+                    "event_start_at": null,
+                    "evidence_quote": "je veux garder les memes astuces si la substance de l'action reste la meme... Faire 16 pompes... c'est la meme famille que Faire 12 pompes.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.7,
+                    "sensitivity_level": "sensitive",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Mutualisation des apprentissages par famille d'actions",
+                    "source_message_ids": [
+                      "19798872-b74e-46b5-a312-6b9cf0ca71ee",
+                      "47d9486f-cf87-423a-a28d-aafb2e3d5e8b"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "metadata": {
+                    "matched_by": [
+                      "title_stem",
+                      "alias",
+                      "has_occurrence"
+                    ],
+                    "match_score": 1.1,
+                    "action_variant": {
+                      "target_reps": 12,
+                      "time_of_day": "morning",
+                      "current_reps": 12,
+                      "cadence_label": "12 repetitions, trois fois cette semaine",
+                      "scheduled_days": [
+                        "mon",
+                        "wed",
+                        "fri"
+                      ],
+                      "recent_entry_outcomes": [
+                        {
+                          "outcome": "done",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:36:38.434+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:36:56.279+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:37:04.249+00:00"
+                        },
+                        {
+                          "outcome": "completed",
+                          "entry_kind": "progress",
+                          "effective_at": "2026-05-15T12:38:43.674+00:00"
+                        }
+                      ]
+                    },
+                    "action_family_key": "habit:pompes_matin",
+                    "start_after_item_id": null
+                  },
+                  "confidence": 0.748,
+                  "plan_item_id": "072d0ad8-024b-4306-9538-e76d193afd53",
+                  "occurrence_ids": [
+                    "fc3a83e0-e54e-4b80-95ac-80dc39df6319",
+                    "a95fefca-2021-4830-a97b-66949b9f6257",
+                    "2ee1f8c6-3646-4404-aa8f-7979f92495f1",
+                    "4a1991e7-2b69-41b5-8c5d-f2f2593cbcbe"
+                  ],
+                  "aggregation_kind": "single_occurrence",
+                  "action_family_key": "habit:pompes_matin",
+                  "observation_window_end": "2026-05-15T12:38:43.674+00:00",
+                  "observation_window_start": "2026-05-15T12:36:38.434+00:00"
+                },
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            },
+            {
+              "reason": "ambiguous_link",
+              "status": "candidate",
+              "candidate": {
+                "item": {
+                  "kind": "fact",
+                  "metadata": {},
+                  "confidence": 0.9,
+                  "topic_hint": null,
+                  "domain_keys": [
+                    "travail.sens"
+                  ],
+                  "content_text": "L'utilisateur a une idée de lecture concernant le design, bien que ce ne soit pas une priorité du plan d'action actuel.",
+                  "event_end_at": null,
+                  "canonical_key": "travail.sens.fact.interet_pour_une_lecture_sur_design",
+                  "event_start_at": null,
+                  "evidence_quote": "J'ai aussi une idee de lecture sur le design, mais ce n'est pas une action active du plan.",
+                  "time_precision": null,
+                  "entity_mentions": [],
+                  "importance_score": 0.3,
+                  "sensitivity_level": "normal",
+                  "canonical_key_hint": null,
+                  "normalized_summary": "Intérêt pour une lecture sur le design",
+                  "source_message_ids": [
+                    "7bc9dc36-4ba3-41fe-a9c4-93946d26d1b9"
+                  ],
+                  "sensitivity_categories": [],
+                  "requires_user_initiated": false
+                },
+                "dedupe": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.sens"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture concernant le design, bien que ce ne soit pas une priorité du plan d'action actuel.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.sens.fact.interet_pour_une_lecture_sur_design",
+                    "event_start_at": null,
+                    "evidence_quote": "J'ai aussi une idee de lecture sur le design, mais ce n'est pas une action active du plan.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Intérêt pour une lecture sur le design",
+                    "source_message_ids": [
+                      "7bc9dc36-4ba3-41fe-a9c4-93946d26d1b9"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_duplicate_found",
+                  "decision": "create_new"
+                },
+                "status": "accepted_dry_run",
+                "topic_link": {
+                  "item": {
+                    "kind": "fact",
+                    "metadata": {},
+                    "confidence": 0.9,
+                    "topic_hint": null,
+                    "domain_keys": [
+                      "travail.sens"
+                    ],
+                    "content_text": "L'utilisateur a une idée de lecture concernant le design, bien que ce ne soit pas une priorité du plan d'action actuel.",
+                    "event_end_at": null,
+                    "canonical_key": "travail.sens.fact.interet_pour_une_lecture_sur_design",
+                    "event_start_at": null,
+                    "evidence_quote": "J'ai aussi une idee de lecture sur le design, mais ce n'est pas une action active du plan.",
+                    "time_precision": null,
+                    "entity_mentions": [],
+                    "importance_score": 0.3,
+                    "sensitivity_level": "normal",
+                    "canonical_key_hint": null,
+                    "normalized_summary": "Intérêt pour une lecture sur le design",
+                    "source_message_ids": [
+                      "7bc9dc36-4ba3-41fe-a9c4-93946d26d1b9"
+                    ],
+                    "sensitivity_categories": [],
+                    "requires_user_initiated": false
+                  },
+                  "reason": "no_topic_link",
+                  "topic_id": null,
+                  "confidence": 0,
+                  "topic_slug": null,
+                  "relation_type": "about"
+                },
+                "action_link": null,
+                "entity_links": [],
+                "rejection_reason": null
+              }
+            }
+          ],
+          "memorizer_v2_async": true,
+          "pre_filter_skip_count": 0,
+          "rejected_observations": [
+            {
+              "text": "",
+              "reason": "other",
+              "metadata": {},
+              "source_message_ids": [],
+              "existing_memory_item_id": null
+            }
+          ],
+          "persisted_memory_items": [
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.conservation_des_apprentissages_action_sur_long_terme",
+              "memory_item_id": "90cb71d7-4bc6-4155-a056-53cb39fcce2a"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "sante.activite_physique.event.realisation_pompes_avec_difficulte_sur_fin",
+              "memory_item_id": "dcfddf30-88db-462f-8ad8-cdfe5bc37fc0"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_pompes_matin_sans_telephone",
+              "memory_item_id": "8341b393-b5c5-41c6-8742-736d331148ba"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.environnement.action_observation.conditions_succes_pour_les_etirements_soir_apres_douche",
+              "memory_item_id": "39dfdc58-1d69-4794-9f35-a44ad62c32be"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.procrastination.action_observation.blocage_sur_premiere_phrase_des_messages_relance",
+              "memory_item_id": "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b"
+            },
+            {
+              "status": "active",
+              "canonical_key": "relations.amitie.fact.modele_message_pour_clara",
+              "memory_item_id": "d5c94082-707f-44b7-b89b-543381cf02f7"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.execution.statement.preference_pour_des_rappels_concrets_motivationnels",
+              "memory_item_id": "565cffbd-ab27-4e5a-84db-7432f6f78fbf"
+            },
+            {
+              "status": "active",
+              "canonical_key": "habitudes.planification.statement.mutualisation_des_apprentissages_par_famille_actions",
+              "memory_item_id": "68fbab27-8a63-41b8-8512-3b607a05597f"
+            },
+            {
+              "status": "candidate",
+              "canonical_key": "travail.sens.fact.interet_pour_une_lecture_sur_design",
+              "memory_item_id": "6b423c7a-58e7-4f8d-8697-a87e97112ce9"
+            }
+          ],
+          "statement_as_fact_violation_count": 0
+        },
+        "started_at": "2026-05-15T12:41:55.063735+00:00",
+        "finished_at": "2026-05-15T12:42:31.78+00:00"
+      }
+    ]
+  },
+  "persistence_evaluation": {
+    "action_links_total": 5,
+    "pushups_links": 2,
+    "stretch_links": 1,
+    "clara_links": 2,
+    "pushups_family_links": 2,
+    "stretch_family_links": 1,
+    "clara_family_links": 2,
+    "occurrence_links": 11,
+    "wrong_pushups_on_stretch": [],
+    "wrong_stretch_on_pushups": [],
+    "ok": true
+  },
+  "second_conversation": {
+    "turn_count": 6,
+    "turns": [
+      {
+        "id": "trivial_no_memory",
+        "message": "Reponds seulement: OK recu.",
+        "expected_memory": "none_or_empty",
+        "expected_terms": [
+          "ok"
+        ],
+        "forbidden_terms": [
+          "pompes",
+          "etirements",
+          "clara",
+          "douche",
+          "petit-dejeuner"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-trivial_no_memory-attempt-1",
+        "response_text": "OK recu ✅🙂",
+        "response_body": {
+          "content": "OK recu ✅🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "pushups_exact",
+        "message": "Pour mon action Faire 12 pompes, d'apres mes souvenirs memorises uniquement, dis-moi ce qui m'aide concretement sans inventer de conseil.",
+        "expected_memory": "action_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "pompes",
+          "petit-dejeuner",
+          "premiere serie",
+          "facile"
+        ],
+        "forbidden_terms": [
+          "douche",
+          "clara"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-pushups_exact-attempt-1",
+        "response_text": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+        "response_body": {
+          "content": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "pushups_family_crescendo",
+        "message": "Maintenant l'action active est Faire 16 pompes. D'apres mes souvenirs memorises uniquement, qu'est-ce qui m'aide pour cette meme habitude ?",
+        "expected_memory": "action_family",
+        "min_matches": 3,
+        "expected_terms": [
+          "pompes",
+          "petit-dejeuner",
+          "premiere serie",
+          "facile"
+        ],
+        "forbidden_terms": [
+          "etirements",
+          "clara"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-pushups_family_crescendo-attempt-1",
+        "response_text": "D'après tes souvenirs mémorisés uniquement pour cette meme habitude :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+        "response_body": {
+          "content": "D'après tes souvenirs mémorisés uniquement pour cette meme habitude :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "stretch_exact",
+        "message": "Pour Etirements 8 minutes, d'apres mes souvenirs memorises uniquement, dis-moi le bon moment et ce qui aide.",
+        "expected_memory": "action_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "etirements",
+          "douche",
+          "soir",
+          "tapis"
+        ],
+        "forbidden_terms": [
+          "pompes",
+          "clara"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-stretch_exact-attempt-1",
+        "response_text": "D'après tes souvenirs mémorisés uniquement pour Etirements 8 minutes :\n- Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+        "response_body": {
+          "content": "D'après tes souvenirs mémorisés uniquement pour Etirements 8 minutes :\n- Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère.",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "clara_task",
+        "message": "Pour Envoyer un message a Clara, d'apres mes souvenirs memorises uniquement, c'est quoi mon blocage et la meilleure aide ?",
+        "expected_memory": "action_targeted",
+        "min_matches": 3,
+        "expected_terms": [
+          "clara",
+          "premiere phrase",
+          "simple"
+        ],
+        "forbidden_terms": [
+          "pompes",
+          "etirements",
+          "douche"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-clara_task-attempt-1",
+        "response_text": "D'après tes souvenirs mémorisés uniquement pour Envoyer un message a Clara :\n- Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.\n- La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+        "response_body": {
+          "content": "D'après tes souvenirs mémorisés uniquement pour Envoyer un message a Clara :\n- Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.\n- La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      },
+      {
+        "id": "generic_action_words",
+        "message": "J'ai une action active mais je ne dis pas laquelle: donne une reponse courte sans inventer de souvenir precis.",
+        "expected_memory": "light_or_ambiguous",
+        "expected_terms": [],
+        "forbidden_terms": [
+          "petit-dejeuner",
+          "douche",
+          "clara",
+          "premiere phrase"
+        ],
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-generic_action_words-attempt-1",
+        "response_text": "OK je vois le pattern, mais sans que tu me dis quelle action c’est, je ne peux pas inventer de souvenir précis. 😅\n\nLe blocage le plus courant sur une action active, c’est: “je sais quoi faire, mais je repousse parce que ça me paraît lourd/ pas le bon moment”.\nTu veux que je te propose 2 options de blocage à cocher, A ou B ? ✅",
+        "response_body": {
+          "content": "OK je vois le pattern, mais sans que tu me dis quelle action c’est, je ne peux pas inventer de souvenir précis. 😅\n\nLe blocage le plus courant sur une action active, c’est: “je sais quoi faire, mais je repousse parce que ça me paraît lourd/ pas le bon moment”.\nTu veux que je te propose 2 options de blocage à cocher, A ou B ? ✅",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        }
+      }
+    ],
+    "trace_summary": {
+      "messages_total": 12,
+      "user_messages": 6,
+      "assistant_messages": 6,
+      "turns_total": 7,
+      "memorizer_runs_total": 0,
+      "observability_events_total": 37
+    },
+    "evaluations": [
+      {
+        "id": "trivial_no_memory",
+        "expected_memory": "none_or_empty",
+        "matched_terms": [
+          "ok"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "none",
+        "context_need": "minimal",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "action_targets": [],
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "OK recu ✅🙂"
+      },
+      {
+        "id": "pushups_exact",
+        "expected_memory": "action_targeted",
+        "matched_terms": [
+          "pompes",
+          "petit-dejeuner",
+          "premiere serie",
+          "facile"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "broad",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Faire 12 pompes"
+          ],
+          "payload_item_count": 5,
+          "payload_item_ids": [
+            "8341b393-b5c5-41c6-8742-736d331148ba",
+            "68fbab27-8a63-41b8-8512-3b607a05597f",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "d5c94082-707f-44b7-b89b-543381cf02f7",
+            "565cffbd-ab27-4e5a-84db-7432f6f78fbf"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": true
+        },
+        "response_preview": "D'après tes souvenirs mémorisés uniquement pour mon action Faire 12 pompes :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces."
+      },
+      {
+        "id": "pushups_family_crescendo",
+        "expected_memory": "action_family",
+        "matched_terms": [
+          "pompes",
+          "petit-dejeuner",
+          "premiere serie",
+          "facile"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Faire 16 pompes"
+          ],
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "8341b393-b5c5-41c6-8742-736d331148ba",
+            "68fbab27-8a63-41b8-8512-3b607a05597f",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "D'après tes souvenirs mémorisés uniquement pour cette meme habitude :\n- Pour les pompes : l'utilisateur réussit mieux le matin après le petit-déjeuner, avec le téléphone dans la cuisine. Il doit garder la première série facile et ne pas aller trop vite au début pour ne pas abandonner.\n- Les actions de la même famille (ex: 12 pompes et 16 pompes) doivent partager les mêmes apprentissages et astuces."
+      },
+      {
+        "id": "stretch_exact",
+        "expected_memory": "action_targeted",
+        "matched_terms": [
+          "etirements",
+          "douche",
+          "soir",
+          "tapis"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Etirements 8 minutes"
+          ],
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "39dfdc58-1d69-4794-9f35-a44ad62c32be",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "565cffbd-ab27-4e5a-84db-7432f6f78fbf",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "D'après tes souvenirs mémorisés uniquement pour Etirements 8 minutes :\n- Pour les étirements : ils échouent avant le dîner mais fonctionnent après la douche du soir. Le tapis visible aide, mais la douche est le déclencheur principal. Il s'agit d'une séance légère."
+      },
+      {
+        "id": "clara_task",
+        "expected_memory": "action_targeted",
+        "matched_terms": [
+          "clara",
+          "premiere phrase",
+          "simple"
+        ],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "action"
+          ],
+          "action_targets": [
+            "Envoyer un message a Clara"
+          ],
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "D'après tes souvenirs mémorisés uniquement pour Envoyer un message a Clara :\n- Le blocage pour contacter Clara (et pour les relances similaires) est la rédaction de la première phrase. L'utilisateur a besoin d'une proposition simple et envoyable immédiatement.\n- La phrase type pour contacter Clara est : 'Coucou Clara, je te propose qu'on se cale dix minutes cette semaine.'"
+      },
+      {
+        "id": "generic_action_words",
+        "expected_memory": "light_or_ambiguous",
+        "matched_terms": [],
+        "forbidden_hits": [],
+        "semantic_ok": true,
+        "privacy_ok": true,
+        "dispatcher_ok": true,
+        "memory_mode": "light",
+        "context_need": "targeted",
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "topic"
+          ],
+          "action_targets": [],
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        },
+        "response_preview": "OK je vois le pattern, mais sans que tu me dis quelle action c’est, je ne peux pas inventer de souvenir précis. 😅\n\nLe blocage le plus courant sur une action active, c’est: “je sais quoi faire, mais je repousse parce que ça me paraît lourd/ pas le bon moment”.\nTu veux que je te propose 2 options de blocage à cocher, A ou B ? ✅"
+      }
+    ],
+    "traces": {
+      "trivial_no_memory": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-trivial_no_memory-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 888,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [],
+          "action_targets": [],
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        }
+      },
+      "pushups_exact": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-pushups_exact-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Faire 12 pompes",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "facteurs de succès, aides, obstacles passés pour les pompes",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "sante.activite_physique",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "habitudes sportives et ce qui aide",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "broad",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "medium",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1566,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Faire 12 pompes"
+          ],
+          "payload_item_count": 5,
+          "payload_item_ids": [
+            "8341b393-b5c5-41c6-8742-736d331148ba",
+            "68fbab27-8a63-41b8-8512-3b607a05597f",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "d5c94082-707f-44b7-b89b-543381cf02f7",
+            "565cffbd-ab27-4e5a-84db-7432f6f78fbf"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": true
+        }
+      },
+      "pushups_family_crescendo": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-pushups_family_crescendo-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Faire 16 pompes",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "astuces et aides pour les pompes",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "sante.activite_physique",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "habitudes sportives et pompes",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1724,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Faire 16 pompes"
+          ],
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "8341b393-b5c5-41c6-8742-736d331148ba",
+            "68fbab27-8a63-41b8-8512-3b607a05597f",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        }
+      },
+      "stretch_exact": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-stretch_exact-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Etirements 8 minutes",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "moment idéal et aides pour les étirements",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.execution",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "contexte d'exécution étirements",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1332,
+        "active_loader": {
+          "retrieval_mode": "cross_topic_lookup",
+          "requested_scopes": [
+            "global",
+            "action"
+          ],
+          "action_targets": [
+            "Etirements 8 minutes"
+          ],
+          "payload_item_count": 4,
+          "payload_item_ids": [
+            "39dfdc58-1d69-4794-9f35-a44ad62c32be",
+            "90cb71d7-4bc6-4155-a056-53cb39fcce2a",
+            "565cffbd-ab27-4e5a-84db-7432f6f78fbf",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        }
+      },
+      "clara_task": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-clara_task-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "Envoyer un message a Clara",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "blocage aide message Clara",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "Clara",
+              "type": "entity",
+              "priority": "medium",
+              "query_hint": "qui est Clara blocage",
+              "entity_type": "person",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 1846,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "action"
+          ],
+          "action_targets": [
+            "Envoyer un message a Clara"
+          ],
+          "payload_item_count": 2,
+          "payload_item_ids": [
+            "0d629d50-0a81-4f3a-93f9-4a24d5af4c0b",
+            "d5c94082-707f-44b7-b89b-543381cf02f7"
+          ],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        }
+      },
+      "generic_action_words": {
+        "request_id": "memory-action-e2e-mp6wiyzm-conversation_b-generic_action_words-attempt-1",
+        "dispatcher_memory_plan": {
+          "targets": [
+            {
+              "key": "actions actives",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "quelles sont les actions actuellement au statut active dans le plan",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "injected": true,
+        "injection_tokens": 2067,
+        "active_loader": {
+          "retrieval_mode": "topic_continuation",
+          "requested_scopes": [
+            "topic"
+          ],
+          "action_targets": [],
+          "payload_item_count": 0,
+          "payload_item_ids": [],
+          "sensitive_excluded_count": 0,
+          "fallback_used": false
+        }
+      }
+    }
+  },
+  "checks": {
+    "first_conversation_20_plus_turns": true,
+    "memorizer_completed": true,
+    "action_memory_persisted_and_linked": true,
+    "retrieval_dispatcher_all_ok": true,
+    "retrieval_semantic_all_ok": true,
+    "retrieval_no_cross_action_leaks": true
+  }
+}

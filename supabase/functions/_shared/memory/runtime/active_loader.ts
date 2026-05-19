@@ -61,6 +61,7 @@ export interface MemoryV2ActiveLoaderResult {
       event: number;
       global: number;
       action: number;
+      level: number;
       entity: number;
     };
   };
@@ -183,6 +184,38 @@ function classifyPromptMemoryItem(item: MemoryV2Payload["items"][number]): {
 } {
   const text = normalizePromptText(item.content_text);
   const domainKeys = Array.isArray(item.domain_keys) ? item.domain_keys : [];
+  if (item.kind === "action_observation" || item.action_link?.plan_item_id) {
+    const aggregation = String(item.action_link?.aggregation_kind ?? "")
+      .trim();
+    if (
+      aggregation === "possible_pattern" || aggregation === "streak_summary"
+    ) {
+      return {
+        label: "ACTION_FAMILY_PATTERN",
+        instruction:
+          "utilise ce pattern pour l'action meme si la version actuelle a change de reps, cadence ou semaine",
+      };
+    }
+    if (aggregation === "week_summary") {
+      return {
+        label: "ACTION_WEEK_SUMMARY",
+        instruction:
+          "utilise ce bilan de semaine comme contexte recent de l'action ciblee",
+      };
+    }
+    return {
+      label: "ACTION_OCCURRENCE",
+      instruction:
+        "utilise cette observation uniquement pour l'action ciblee ou sa famille d'habitude",
+    };
+  }
+  if (item.metadata?.memory_type === "level_execution_handoff") {
+    return {
+      label: "LEVEL_EXECUTION_HANDOFF",
+      instruction:
+        "utilise ce signal comme contexte faible de transition de niveau; ne le transforme pas en score ou en certitude",
+    };
+  }
   if (
     /\b(ne (ressors|mentionne|parle)|ne pas mentionner|ne ressors pas|conversation neutre|sauf si|uniquement si|que si)\b/
       .test(text)
@@ -225,7 +258,8 @@ function classifyPromptMemoryItem(item: MemoryV2Payload["items"][number]): {
       key === "sante.alimentation" || key === "sante.medical" ||
       key === "sante.douleur"
     ) ||
-    item.sensitivity_level === "sensitive" || item.sensitivity_level === "safety"
+    item.sensitivity_level === "sensitive" ||
+    item.sensitivity_level === "safety"
   ) {
     return {
       label: "SENSITIVE_DIRECT",
@@ -233,7 +267,10 @@ function classifyPromptMemoryItem(item: MemoryV2Payload["items"][number]): {
         "a utiliser seulement si la question le demande clairement; dans ce cas, nomme le souvenir sobrement au lieu de rester vague",
     };
   }
-  if (String(item.kind) === "preference" || /\b(prefere|preference|j aime|je veux)\b/.test(text)) {
+  if (
+    String(item.kind) === "preference" ||
+    /\b(prefere|preference|j aime|je veux)\b/.test(text)
+  ) {
     return {
       label: "PREFERENCE",
       instruction:
@@ -257,6 +294,9 @@ export function formatMemoryV2PayloadForPrompt(
     "- Quand la question demande ce qu'il faut eviter, proposer ou recommander, priorise les lignes marquees CONTRAINTE UTILISATEUR avant les souvenirs generaux.",
     "- Quand une ligne EXECUTION_RULE est chargee, applique-la concretement dans la reponse, avec ses mots importants.",
     "- Pour une demande 'adaptee a moi', 'bon cadre', 'que garder en tete' ou similaire, cite les formulations specifiques des souvenirs charges plutot que de generaliser.",
+    "- Les lignes ACTION_OCCURRENCE concernent l'action exacte; les lignes ACTION_FAMILY_PATTERN restent utiles si l'habitude a change de reps, cadence ou semaine.",
+    "- Si le user demande ce qui l'aide, ce qui marche, son blocage ou le bon moment pour une action, reponds directement depuis les lignes ACTION_* chargees avec les details concrets, sans proposer de programmer un rappel sauf demande explicite d'horaire.",
+    "- Pour une action ciblee, n'ajoute pas de conseils generiques absents des lignes ACTION_* chargees; si un detail n'est pas dans les souvenirs, ne l'invente pas.",
     "- Quand une ligne IDENTITY_FACT repond a une question 'qui est X' ou 'quel lien avec Y', reponds directement avec ce fait.",
     "- Ne deduis jamais le prenom du user depuis un souvenir du type 'X est mon/ma ...'; X est une personne tierce sauf souvenir contraire explicite.",
     "- Quand une ligne SENSITIVE_DIRECT est chargee parce que le user demande explicitement le sujet, nomme le sujet sobrement et rappelle qu'il est sensible si le souvenir le dit.",
@@ -271,6 +311,12 @@ export function formatMemoryV2PayloadForPrompt(
       const classified = classifyPromptMemoryItem(item);
       const tags = [
         classified.label,
+        item.action_link?.action_family_key
+          ? `family=${item.action_link.action_family_key}`
+          : null,
+        item.action_link?.plan_item_id
+          ? `plan_item=${item.action_link.plan_item_id}`
+          : null,
         item.kind,
         item.sensitivity_level ?? "normal",
         item.observed_at ? `observe=${item.observed_at}` : null,
@@ -336,6 +382,7 @@ export async function runMemoryV2ActiveLoader(
         loader_plan_budget: loaderPlan.budget,
         loader_plan_domain_keys: loaderPlan.domain_keys,
         loader_plan_domain_prefixes: loaderPlan.domain_prefixes,
+        loader_plan_action_targets: loaderPlan.action_targets ?? [],
         loader_plan_reason: loaderPlan.reason,
         retrieval_mode: loaderPlan.retrieval_mode,
         retrieval_hints: signals.retrieval_hints,
@@ -372,6 +419,7 @@ export async function runMemoryV2ActiveLoader(
           event: 0,
           global: 0,
           action: 0,
+          level: 0,
           entity: 0,
         },
       },
@@ -492,6 +540,7 @@ export async function runMemoryV2ActiveLoader(
       loader_plan_budget: loaderPlan.budget,
       loader_plan_domain_keys: loaderPlan.domain_keys,
       loader_plan_domain_prefixes: loaderPlan.domain_prefixes,
+      loader_plan_action_targets: loaderPlan.action_targets ?? [],
       loader_plan_reason: loaderPlan.reason,
       retrieval_policy: loaderPlan.retrieval_policy,
       topic_router_skipped: !loaderPlan.requires_topic_router,

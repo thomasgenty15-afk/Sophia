@@ -8,6 +8,7 @@ export type MemoryV2LoaderScope =
   | "event"
   | "global"
   | "action"
+  | "level"
   | "entity";
 
 export type MemoryV2RetrievalPolicy =
@@ -27,10 +28,13 @@ export interface MemoryV2LoaderPlan {
     event_items: number;
     global_items: number;
     action_items: number;
+    level_items: number;
   };
   requested_scopes: MemoryV2LoaderScope[];
   topic_targets: string[];
   event_queries: string[];
+  action_targets?: string[];
+  level_targets?: string[];
   domain_keys: string[];
   domain_prefixes: string[];
   global_keys?: string[];
@@ -52,6 +56,7 @@ type DispatcherPlanLike =
       | Array<{
         type?: string | null;
         key?: string | null;
+        plan_item_id?: string | null;
         query_hint?: string | null;
         retrieval_policy?: string | null;
         expansion_policy?: string | null;
@@ -69,6 +74,7 @@ const BUDGETS: Record<string, MemoryV2LoaderPlan["budget"]> = {
     event_items: 0,
     global_items: 0,
     action_items: 0,
+    level_items: 0,
   },
   small: {
     max_items: 4,
@@ -77,6 +83,7 @@ const BUDGETS: Record<string, MemoryV2LoaderPlan["budget"]> = {
     event_items: 2,
     global_items: 2,
     action_items: 2,
+    level_items: 1,
   },
   medium: {
     max_items: 8,
@@ -85,6 +92,7 @@ const BUDGETS: Record<string, MemoryV2LoaderPlan["budget"]> = {
     event_items: 3,
     global_items: 4,
     action_items: 3,
+    level_items: 1,
   },
   large: {
     max_items: 12,
@@ -93,6 +101,7 @@ const BUDGETS: Record<string, MemoryV2LoaderPlan["budget"]> = {
     event_items: 4,
     global_items: 6,
     action_items: 4,
+    level_items: 2,
   },
 };
 
@@ -233,6 +242,8 @@ function runtimeOverrideForMemoryNone(args: {
     requested_scopes: requestedScopes,
     topic_targets: [],
     event_queries: [],
+    action_targets: [],
+    level_targets: [],
     global_keys: [],
     domain_keys: [],
     domain_prefixes: [],
@@ -263,6 +274,16 @@ export function buildMemoryV2LoaderPlan(args: {
     targets
       .filter((target) => target.type === "event")
       .map((target) => target.query_hint ?? target.key),
+  );
+  const actionTargets = uniq(
+    targets
+      .filter((target) => target.type === "action")
+      .map((target) => target.plan_item_id ?? target.key ?? target.query_hint),
+  );
+  const levelTargets = uniq(
+    targets
+      .filter((target) => target.type === "level")
+      .map((target) => target.key ?? target.query_hint),
   );
   const explicitDomainKeys = uniq(
     targets
@@ -299,6 +320,7 @@ export function buildMemoryV2LoaderPlan(args: {
   if (eventQueries.length > 0) scopes.push("event");
   if (domainKeys.length > 0 || domainPrefixes.length > 0) scopes.push("global");
   if (targets.some((target) => target.type === "action")) scopes.push("action");
+  if (targets.some((target) => target.type === "level")) scopes.push("level");
   if (validEntityTargets.length > 0) scopes.push("entity");
   if (
     targets.some((target) =>
@@ -332,7 +354,9 @@ export function buildMemoryV2LoaderPlan(args: {
       policy,
       signals: args.signals,
     });
-    if (runtimeOverride) return withSafetyOverride(runtimeOverride, args.signals);
+    if (runtimeOverride) {
+      return withSafetyOverride(runtimeOverride, args.signals);
+    }
     return withSafetyOverride(
       {
         enabled: false,
@@ -342,6 +366,8 @@ export function buildMemoryV2LoaderPlan(args: {
         requested_scopes: [],
         topic_targets: [],
         event_queries: [],
+        action_targets: [],
+        level_targets: [],
         domain_keys: [],
         domain_prefixes: [],
         global_keys: [],
@@ -377,6 +403,8 @@ export function buildMemoryV2LoaderPlan(args: {
     requested_scopes: requestedScopes,
     topic_targets: topicTargets,
     event_queries: eventQueries,
+    action_targets: actionTargets,
+    level_targets: levelTargets,
     domain_keys: domainKeys,
     domain_prefixes: domainPrefixes,
     global_keys: domainKeys,

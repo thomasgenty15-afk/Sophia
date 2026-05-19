@@ -19,6 +19,8 @@ import {
   WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT,
 } from "../_shared/weekly_planning_confirmation.ts";
 import {
+  addDaysYmd,
+  currentWeekStartForTimezone,
   WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
   weeklyPlanningDashboardUrl,
 } from "../_shared/weekly_progress_review.ts";
@@ -118,6 +120,83 @@ function normalizeOccurrenceRows(
       actual_day: normalizeDayCodes([String(row.actual_day ?? "")])[0] ?? null,
     };
   });
+}
+
+function localDateTimePartsInTimezone(
+  timezoneRaw: unknown,
+  now = new Date(),
+): { ymd: string; minutes: number } {
+  const timezone = String(timezoneRaw ?? "").trim() || "Europe/Paris";
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(now);
+  const value = (type: string) =>
+    String(parts.find((part) => part.type === type)?.value ?? "");
+  const ymd = `${value("year")}-${value("month")}-${value("day")}`;
+  const hour = Number(value("hour"));
+  const minute = Number(value("minute"));
+  return {
+    ymd,
+    minutes: Math.max(0, hour) * 60 + Math.max(0, minute),
+  };
+}
+
+async function loadUserTimezone(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  const { data, error } = await admin
+    .from("profiles")
+    .select("timezone")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return String((data as { timezone?: string | null } | null)?.timezone ?? "")
+    .trim() || "Europe/Paris";
+}
+
+async function assertWeekPlanningConfirmationAllowed(args: {
+  admin: SupabaseClient;
+  userId: string;
+  weekStartDate: string;
+  now?: Date;
+}) {
+  const timezone = await loadUserTimezone(args.admin, args.userId);
+  const now = args.now ?? new Date();
+  const currentWeekStart = currentWeekStartForTimezone(timezone, now);
+
+  if (args.weekStartDate <= currentWeekStart) return;
+
+  // The next week must not be confirmed before the current week's weekly review
+  // window, otherwise weekly adjustments can invalidate a plan the user just
+  // approved.
+  const unlockLocalDate = addDaysYmd(args.weekStartDate, -1);
+  const localNow = localDateTimePartsInTimezone(timezone, now);
+  const weeklyReviewMinutes = 18 * 60 + 30;
+  const unlocked = localNow.ymd > unlockLocalDate ||
+    (localNow.ymd === unlockLocalDate &&
+      localNow.minutes >= weeklyReviewMinutes);
+
+  if (unlocked) return;
+
+  throw new HabitWeekPlanningError(
+    409,
+    "weekly_planning_locked_until_weekly_review",
+    {
+      week_start_date: args.weekStartDate,
+      timezone,
+      unlock_local_date: unlockLocalDate,
+      unlock_local_time: "18:30",
+      reason:
+        "La semaine suivante ne peut etre confirmee qu'apres le weekly du dimanche soir, ou le lundi matin.",
+    },
+  );
 }
 
 async function upsertOccurrences(
@@ -261,6 +340,35 @@ function getSupabaseEnv() {
     throw new Error("Missing Supabase environment for habit-week-planning-v1");
   }
   return { url, anonKey, serviceRoleKey };
+}
+
+function isLocalSupabaseUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === "127.0.0.1" || host === "localhost" || host === "kong" ||
+      host.startsWith("supabase_");
+  } catch {
+    return false;
+  }
+}
+
+function localInternalSecret(): string {
+  return String(
+    Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? Deno.env.get("SECRET_KEY") ??
+      "",
+  ).trim();
+}
+
+function localInternalUserIdFallback(
+  req: Request,
+  env: { url: string },
+): string | null {
+  if (!isLocalSupabaseUrl(env.url)) return null;
+  const expected = localInternalSecret();
+  const got = String(req.headers.get("x-internal-secret") ?? "").trim();
+  if (!expected || got !== expected) return null;
+  const userId = String(req.headers.get("x-user-id") ?? "").trim();
+  return userId || null;
 }
 
 function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
@@ -1225,7 +1333,9 @@ async function handleRequest(req: Request): Promise<Response> {
     });
     const { data: authData, error: authError } = await userClient.auth
       .getUser();
-    if (authError || !authData?.user) {
+    const authenticatedUserId = authData?.user?.id ??
+      (authError ? localInternalUserIdFallback(req, env) : null);
+    if (!authenticatedUserId) {
       return jsonResponse(
         req,
         { error: "Unauthorized", request_id: requestId },
@@ -1241,12 +1351,12 @@ async function handleRequest(req: Request): Promise<Response> {
     if (body.action === "get_state") {
       const item = await loadHabitItem(
         admin,
-        authData.user.id,
+        authenticatedUserId,
         body.plan_item_id,
       );
       const state = await getState({
         admin,
-        userId: authData.user.id,
+        userId: authenticatedUserId,
         item,
         currentWeekStart: body.current_week_start,
         nextWeekStart: body.next_week_start,
@@ -1257,14 +1367,19 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (body.action === "confirm_week") {
+      await assertWeekPlanningConfirmationAllowed({
+        admin,
+        userId: authenticatedUserId,
+        weekStartDate: body.week_start_date,
+      });
       const item = await loadHabitItem(
         admin,
-        authData.user.id,
+        authenticatedUserId,
         body.plan_item_id,
       );
       const week = await syncWeekPlanning({
         admin,
-        userId: authData.user.id,
+        userId: authenticatedUserId,
         item,
         weekStartDate: body.week_start_date,
         plannedDays: body.planned_days,
@@ -1279,13 +1394,17 @@ async function handleRequest(req: Request): Promise<Response> {
 
     if (body.action === "get_bundle_state") {
       const items = await Promise.all(body.items.map(async (entry) => ({
-        item: await loadHabitItem(admin, authData.user.id, entry.plan_item_id),
+        item: await loadHabitItem(
+          admin,
+          authenticatedUserId,
+          entry.plan_item_id,
+        ),
         preferredDays: entry.preferred_days,
         targetRepsOverride: entry.target_reps_override,
       })));
       const state = await getBundleState({
         admin,
-        userId: authData.user.id,
+        userId: authenticatedUserId,
         weekStartDate: body.week_start_date,
         items,
       });
@@ -1293,14 +1412,23 @@ async function handleRequest(req: Request): Promise<Response> {
     }
 
     if (body.action === "confirm_bundle") {
+      await assertWeekPlanningConfirmationAllowed({
+        admin,
+        userId: authenticatedUserId,
+        weekStartDate: body.week_start_date,
+      });
       const items = await Promise.all(body.items.map(async (entry) => ({
-        item: await loadHabitItem(admin, authData.user.id, entry.plan_item_id),
+        item: await loadHabitItem(
+          admin,
+          authenticatedUserId,
+          entry.plan_item_id,
+        ),
         plannedDays: entry.planned_days,
         targetRepsOverride: entry.target_reps_override,
       })));
       const state = await confirmBundle({
         admin,
-        userId: authData.user.id,
+        userId: authenticatedUserId,
         weekStartDate: body.week_start_date,
         items,
       });
@@ -1309,13 +1437,13 @@ async function handleRequest(req: Request): Promise<Response> {
 
     const item = await loadHabitItem(
       admin,
-      authData.user.id,
+      authenticatedUserId,
       body.plan_item_id,
     );
 
     const validationResult = await validateOccurrence({
       admin,
-      userId: authData.user.id,
+      userId: authenticatedUserId,
       item,
       occurrenceId: body.occurrence_id,
       decision: body.decision,
@@ -1325,7 +1453,7 @@ async function handleRequest(req: Request): Promise<Response> {
     });
     const state = await getState({
       admin,
-      userId: authData.user.id,
+      userId: authenticatedUserId,
       item,
       currentWeekStart: body.current_week_start,
       nextWeekStart: body.next_week_start,

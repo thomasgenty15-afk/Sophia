@@ -167,7 +167,7 @@ async function getReminderWriteClient(
 }
 
 const REMINDER_REQUEST_PREFIX_REGEX =
-  /\b(?:rappelle(?:-|\s)?moi|tu\s+peux\s+me\s+rappeler|peux-tu\s+me\s+rappeler|peux\s+tu\s+me\s+rappeler|tu\s+peux\s+m['’]envoyer\s+un\s+rappel|peux-tu\s+m['’]envoyer\s+un\s+rappel|peux\s+tu\s+m['’]envoyer\s+un\s+rappel|tu\s+peux\s+me\s+faire\s+un\s+rappel|peux-tu\s+me\s+faire\s+un\s+rappel|peux\s+tu\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+m['’]envoyer\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+me\s+faire\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+m['’]envoyer\s+un\s+rappel|envoie(?:-|\s)?moi\s+un\s+rappel|fais(?:-|\s)?moi\s+un\s+rappel|mets(?:-|\s)?moi\s+un\s+rappel|remind\s+me)\b([\s\S]*)$/i;
+  /\b(?:rappelle(?:-|\s)?moi|tu\s+peux\s+me\s+rappeler|peux-tu\s+me\s+rappeler|peux\s+tu\s+me\s+rappeler|tu\s+peux\s+m['’]envoyer\s+un\s+rappel|peux-tu\s+m['’]envoyer\s+un\s+rappel|peux\s+tu\s+m['’]envoyer\s+un\s+rappel|tu\s+peux\s+me\s+faire\s+un\s+rappel|peux-tu\s+me\s+faire\s+un\s+rappel|peux\s+tu\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+m['’]envoyer\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+me\s+faire\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+m['’]envoyer\s+un\s+rappel|envoie(?:-|\s)?moi\s+un\s+rappel|fais(?:-|\s)?moi\s+un\s+rappel|mets(?:-|\s)?moi\s+un\s+rappel|dis(?:-|\s)?moi|préviens(?:-|\s)?moi|previens(?:-|\s)?moi|fais(?:-|\s)?moi\s+signe|remind\s+me)\b([\s\S]*)$/i;
 
 function compactText(value: unknown, maxLen = 240): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -210,6 +210,17 @@ function extractReminderClause(message: string): string {
   return compactText(match?.[1] ?? "");
 }
 
+function isMemoryRecallReminderPhrase(message: string): boolean {
+  const clause = extractReminderClause(message)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+  if (!clause) return false;
+  return /^(ce\s+(?:qui|que|qu['’]|dont)|quoi|comment|pourquoi|le\s+bon|la\s+bonne|les\s+bons?|les\s+bonnes)\b/
+    .test(clause);
+}
+
 function isRecurringReminderRequest(message: string): boolean {
   const text = String(message ?? "").toLowerCase();
   if (!/\brappel|rappelle|remind\b/.test(text)) return false;
@@ -218,14 +229,18 @@ function isRecurringReminderRequest(message: string): boolean {
 
 function hasRecurringCadenceHint(message: string): boolean {
   const text = String(message ?? "").toLowerCase();
-  return /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|tous?\s+les\s+jours|chaque\s+jour|hebdo|hebdomadaire)\b/i
-    .test(text);
+  const weekdaysMentioned = text.match(
+    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)s?\b/g,
+  ) ?? [];
+  return /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|tous?\s+les\s+jours|chaque\s+jour|jours?\s+de\s+semaine|du\s+lundi\s+au\s+vendredi|hebdo|hebdomadaire)\b/i
+    .test(text) || new Set(weekdaysMentioned).size >= 2;
 }
 
 function hasResolvableOneShotTimeHint(message: string): boolean {
   const text = String(message ?? "");
   return /\bdans\s+un\s+quart\s+d['’]heure\b/i.test(text) ||
     /\bdans\s+une\s+demi(?:-|\s)heure\b/i.test(text) ||
+    /\bdans\s+(?:une?|1)\s+(?:minutes?|min|heures?|h|jours?)\b/i.test(text) ||
     /\bdans\s+\d{1,3}\s*(?:minutes?|min|heures?|h|jours?)\b/i.test(text) ||
     /\b(aujourd['’]hui|ce\s+soir|cet\s+apr[eè]s-midi|demain|apr[eè]s-demain)\b/i
       .test(text);
@@ -234,6 +249,7 @@ function hasResolvableOneShotTimeHint(message: string): boolean {
 export function isLikelyOneShotReminderRequest(message: string): boolean {
   const text = compactText(message, 500);
   if (!text) return false;
+  if (isMemoryRecallReminderPhrase(text)) return false;
   const reminderClause = extractReminderClause(text);
   if (reminderClause) return !hasRecurringCadenceHint(reminderClause);
   if (isRecurringReminderRequest(text)) return false;
@@ -536,10 +552,16 @@ function parseScheduledForFromRelativeHint(args: {
   if (minuteMatch) {
     return addMinutes(args.nowIso, Number(minuteMatch[1]));
   }
+  if (/\bdans\s+une?\s+(?:minutes?|min)\b/i.test(text)) {
+    return addMinutes(args.nowIso, 1);
+  }
 
   const hourMatch = text.match(/\bdans\s+(\d{1,2})\s*(?:heures?|h)\b/i);
   if (hourMatch) {
     return addMinutes(args.nowIso, Number(hourMatch[1]) * 60);
+  }
+  if (/\bdans\s+une?\s+(?:heures?|h)\b/i.test(text)) {
+    return addMinutes(args.nowIso, 60);
   }
 
   const dayMatch = text.match(/\bdans\s+(\d{1,2})\s*jours?\b/i);
@@ -571,6 +593,9 @@ function extractReminderInstruction(message: string): string {
     clause.match(
       /\bpour\s+me\s+(?:dire|rappeler|faire\s+penser)(?:\s+de)?\s+(.+)$/i,
     )?.[1] ??
+    clause.match(/\bqu['’]?\s*il\s+faut\s+que\s+je\s+(.+)$/i)?.[1] ??
+    clause.match(/\bqu\s+il\s+faut\s+que\s+je\s+(.+)$/i)?.[1] ??
+    clause.match(/\bil\s+faut\s+que\s+je\s+(.+)$/i)?.[1] ??
     clause.match(/\bd['’]\s*(.+)$/i)?.[1] ??
     clause.match(/\bde\s+(.+)$/i)?.[1] ??
     clause.match(/\bpour\s+(.+)$/i)?.[1] ??
@@ -585,6 +610,7 @@ function extractReminderInstruction(message: string): string {
       .replace(/\bfacon\s+a\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bpour\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/^me\s+bouge\b/i, "me bouger")
       .replace(/\s*,?\s+mais\s+si\b[\s\S]*$/i, "")
       .replace(/\s*,?\s+mais\b[\s\S]*$/i, "")
       .replace(/\b(?:stp|s['’]il te plaît|s'il te plait|please)\b/gi, " ")
@@ -984,6 +1010,9 @@ export async function runCreateOneShotReminderV2(params: {
   db_idempotency_check?: DirectEffectGateInput["db_idempotency_check"];
   write_reminder: CreateOneShotReminderV2Write;
 }): Promise<CreateOneShotReminderV2Outcome> {
+  if (isMemoryRecallReminderPhrase(params.message)) {
+    return { detected: false };
+  }
   const hasDispatcherSignal = params.turn_frame.direct_effects.some((effect) =>
     effect.effect_type === "create_one_shot_reminder"
   );

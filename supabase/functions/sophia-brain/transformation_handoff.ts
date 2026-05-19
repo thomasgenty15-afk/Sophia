@@ -6,15 +6,18 @@ import {
   buildHandoffTransformationSnapshot,
   buildPulseSummaryForHandoff,
   buildTransformationHandoffUserPrompt,
+  type HandoffPlanItemSnapshot,
   parseTransformationHandoffLLMResponse,
   TRANSFORMATION_HANDOFF_SYSTEM_PROMPT,
-  type HandoffPlanItemSnapshot,
   type TransformationHandoffInput,
   type TransformationHandoffPayload,
 } from "../_shared/v2-prompts/transformation-handoff.ts";
 import { logV2Event, V2_EVENT_TYPES } from "../_shared/v2-events.ts";
 import { getPlanItemRuntime } from "../_shared/v2-runtime.ts";
-import { createRendezVous, getRendezVousHistory } from "../_shared/v2-rendez-vous.ts";
+import {
+  createRendezVous,
+  getRendezVousHistory,
+} from "../_shared/v2-rendez-vous.ts";
 import type {
   ConversationPulse,
   UserCycleRow,
@@ -24,8 +27,8 @@ import type {
   UserVictoryLedgerRow,
 } from "../_shared/v2-types.ts";
 import {
-  loadCoachingInterventionTraceWindow,
   type CoachingTraceWindow,
+  loadCoachingInterventionTraceWindow,
 } from "./lib/coaching_intervention_trace.ts";
 
 type HandoffPayloadRecord = Record<string, unknown> | null;
@@ -87,7 +90,9 @@ function asStringArray(value: unknown, max = 12): string[] {
 }
 
 function dedupeStrings(items: string[], max = items.length): string[] {
-  return [...new Set(items.map((item) => String(item ?? "").trim()).filter(Boolean))]
+  return [
+    ...new Set(items.map((item) => String(item ?? "").trim()).filter(Boolean)),
+  ]
     .slice(0, max);
 }
 
@@ -174,7 +179,10 @@ export function buildQuestionnaireContextFromHandoff(args: {
     context.push(`Signal relationnel à garder en tête: ${signal}.`);
   }
 
-  const coachingSummary = truncateText(args.handoff.coaching_memory_summary, 220);
+  const coachingSummary = truncateText(
+    args.handoff.coaching_memory_summary,
+    220,
+  );
   if (coachingSummary) {
     context.push(`Mémoire coaching utile: ${coachingSummary}`);
   }
@@ -245,7 +253,9 @@ export function buildCoachingSnapshotsFromTrace(
     .slice(-12);
 }
 
-function buildMetricSnapshots(metrics: UserMetricRow[]): TransformationHandoffInput["metrics"] {
+function buildMetricSnapshots(
+  metrics: UserMetricRow[],
+): TransformationHandoffInput["metrics"] {
   return metrics.map((metric) => ({
     metric_kind: metric.kind,
     label: metric.title,
@@ -333,14 +343,15 @@ export function extractStoredTransformationHandoff(
     violations: asStringArray(raw.violations, 20),
     questionnaire_context: asStringArray(raw.questionnaire_context, 8),
     pulse_context: {
-      transformation_id:
-        asString(pulseContext?.transformation_id) ?? asString(base?.id) ?? "",
+      transformation_id: asString(pulseContext?.transformation_id) ??
+        asString(base?.id) ?? "",
       title: asString(pulseContext?.title),
       completed_at: asString(pulseContext?.completed_at),
       wins: asStringArray(pulseContext?.wins, 3),
       relational_signals: asStringArray(pulseContext?.relational_signals, 3),
       coaching_memory_summary:
-        asString(pulseContext?.coaching_memory_summary) ?? coachingMemorySummary,
+        asString(pulseContext?.coaching_memory_summary) ??
+          coachingMemorySummary,
     },
     mini_recap: {
       next_transformation_title: asString(miniRecap?.next_transformation_title),
@@ -352,7 +363,8 @@ export function extractStoredTransformationHandoff(
 export function extractQuestionnaireContextFromStoredHandoff(
   handoffPayload: HandoffPayloadRecord,
 ): string[] {
-  return extractStoredTransformationHandoff(handoffPayload)?.questionnaire_context ??
+  return extractStoredTransformationHandoff(handoffPayload)
+    ?.questionnaire_context ??
     [];
 }
 
@@ -479,7 +491,9 @@ async function loadTransformationHandoffContext(args: {
 
   if (planResult.error) throw planResult.error;
   if (victoriesResult.error) throw victoriesResult.error;
-  if (transformationMetricsResult.error) throw transformationMetricsResult.error;
+  if (transformationMetricsResult.error) {
+    throw transformationMetricsResult.error;
+  }
   if (pulseResult.error) throw pulseResult.error;
   if (nextTransformationResult.error) throw nextTransformationResult.error;
 
@@ -495,15 +509,18 @@ async function loadTransformationHandoffContext(args: {
       ...item.recent_entries,
     ] as unknown as Array<Record<string, unknown>>)
   );
-  const victories = ((victoriesResult.data as UserVictoryLedgerRow[] | null) ?? [])
-    .map((row) => ({
-      title: row.title,
-      created_at: row.created_at,
-    }));
+  const victories =
+    ((victoriesResult.data as UserVictoryLedgerRow[] | null) ?? [])
+      .map((row) => ({
+        title: row.title,
+        created_at: row.created_at,
+      }));
   const metrics = buildMetricSnapshots([
     ...((transformationMetricsResult.data as UserMetricRow[] | null) ?? []),
   ]);
-  const pulse = asRecord((pulseResult.data as { payload?: unknown } | null)?.payload) as
+  const pulse = asRecord(
+    (pulseResult.data as { payload?: unknown } | null)?.payload,
+  ) as
     | ConversationPulse
     | null;
   const nextTransformation =
@@ -545,9 +562,8 @@ async function generateStoredTransformationHandoff(args: {
         : undefined,
       userId: args.userId,
       source: "transformation_handoff",
-      model:
-        (args.model ?? Deno.env.get("TRANSFORMATION_HANDOFF_MODEL") ??
-          getGlobalAiModel("gemini-2.5-flash")).trim() || "gemini-2.5-flash",
+      model: (args.model ?? Deno.env.get("TRANSFORMATION_HANDOFF_MODEL") ??
+        getGlobalAiModel("gemini-2.5-flash")).trim() || "gemini-2.5-flash",
     },
   );
 
@@ -605,24 +621,133 @@ async function tryLogTransformationHandoffGenerated(args: {
   stored: StoredTransformationHandoff;
 }): Promise<string | null> {
   try {
-    await logV2Event(args.supabase, V2_EVENT_TYPES.TRANSFORMATION_HANDOFF_GENERATED, {
-      user_id: args.userId,
-      cycle_id: args.cycleId,
-      transformation_id: args.transformationId,
-      reason: "transformation_completed",
-      metadata: {
-        valid: args.stored.valid,
-        wins_count: args.stored.wins.length,
-        supports_count: args.stored.supports_to_keep.length,
-        habits_count: args.stored.habits_in_maintenance.length,
-        failed_techniques_count: args.stored.techniques_that_failed.length,
-        validation_violations: args.stored.violations,
+    await logV2Event(
+      args.supabase,
+      V2_EVENT_TYPES.TRANSFORMATION_HANDOFF_GENERATED,
+      {
+        user_id: args.userId,
+        cycle_id: args.cycleId,
+        transformation_id: args.transformationId,
+        reason: "transformation_completed",
+        metadata: {
+          valid: args.stored.valid,
+          wins_count: args.stored.wins.length,
+          supports_count: args.stored.supports_to_keep.length,
+          habits_count: args.stored.habits_in_maintenance.length,
+          failed_techniques_count: args.stored.techniques_that_failed.length,
+          validation_violations: args.stored.violations,
+        },
       },
-    });
+    );
     return null;
   } catch (error) {
     return eventWarning(V2_EVENT_TYPES.TRANSFORMATION_HANDOFF_GENERATED, error);
   }
+}
+
+export function buildLevelExecutionHandoffMemoryText(args: {
+  transformation: UserTransformationRow;
+  nextTransformation: UserTransformationRow | null;
+  stored: StoredTransformationHandoff;
+}): string {
+  const parts = [
+    args.transformation.title
+      ? `Niveau termine: ${args.transformation.title}.`
+      : "Niveau precedent termine.",
+    ...args.stored.mini_recap.recap_lines.slice(0, 3),
+    args.stored.coaching_memory_summary
+      ? `Signal coaching: ${
+        truncateText(args.stored.coaching_memory_summary, 260)
+      }`
+      : "",
+    args.stored.techniques_that_failed.length > 0
+      ? `A ne pas reproposer tel quel: ${
+        args.stored.techniques_that_failed.slice(0, 3).join(", ")
+      }.`
+      : "",
+    args.nextTransformation?.title
+      ? `Contexte faible pour le niveau suivant: ${args.nextTransformation.title}.`
+      : "",
+  ];
+  return dedupeStrings(parts.filter(Boolean), 8).join(" ");
+}
+
+async function ensureLevelExecutionHandoffMemoryItem(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  cycle: UserCycleRow;
+  transformation: UserTransformationRow;
+  nextTransformation: UserTransformationRow | null;
+  stored: StoredTransformationHandoff;
+  nowIso: string;
+}): Promise<void> {
+  const canonicalKey = `level_execution_handoff:${args.transformation.id}`;
+  const contentText = buildLevelExecutionHandoffMemoryText({
+    transformation: args.transformation,
+    nextTransformation: args.nextTransformation,
+    stored: args.stored,
+  });
+  const metadata = {
+    memory_type: "level_execution_handoff",
+    source: "transformation_handoff",
+    generated_at: args.stored.generated_at,
+    cycle_id: args.cycle.id,
+    previous_level_id: args.transformation.id,
+    previous_transformation_id: args.transformation.id,
+    transformation_id: args.transformation.id,
+    next_level_id: args.nextTransformation?.id ?? null,
+    next_transformation_id: args.nextTransformation?.id ?? null,
+    valid: args.stored.valid,
+    wins: args.stored.wins.slice(0, 3),
+    habits_in_maintenance: args.stored.habits_in_maintenance.slice(0, 8),
+    techniques_that_failed: args.stored.techniques_that_failed.slice(0, 8),
+    relational_signals: args.stored.relational_signals.slice(0, 3),
+  };
+
+  const { data: existing, error: existingError } = await args.supabase
+    .from("memory_items")
+    .select("id")
+    .eq("user_id", args.userId)
+    .eq("canonical_key", canonicalKey)
+    .maybeSingle();
+  if (existingError) throw existingError;
+
+  const patch = {
+    user_id: args.userId,
+    kind: "statement",
+    status: "active",
+    content_text: contentText,
+    normalized_summary: contentText,
+    domain_keys: ["objectifs.transformation", "habitudes.execution"],
+    confidence: 0.72,
+    importance_score: 0.58,
+    sensitivity_level: "normal",
+    sensitivity_categories: [],
+    requires_user_initiated: false,
+    source_scope: "transformation_handoff",
+    source_hash: canonicalKey,
+    observed_at: args.transformation.completed_at ?? args.nowIso,
+    canonical_key: canonicalKey,
+    metadata,
+    updated_at: args.nowIso,
+  };
+
+  if ((existing as { id?: string } | null)?.id) {
+    const { error } = await args.supabase
+      .from("memory_items")
+      .update(patch as never)
+      .eq("id", (existing as { id: string }).id);
+    if (error) throw error;
+    return;
+  }
+
+  const { error } = await args.supabase
+    .from("memory_items")
+    .insert({
+      ...patch,
+      created_at: args.nowIso,
+    } as never);
+  if (error) throw error;
 }
 
 async function ensureTransitionHandoffRendezVous(args: {
@@ -646,7 +771,9 @@ async function ensureTransitionHandoffRendezVous(args: {
   const recapLines = args.stored.mini_recap.recap_lines.length > 0
     ? args.stored.mini_recap.recap_lines
     : [
-      `Transformation terminée: ${args.transformation.title ?? "étape précédente"}.`,
+      `Transformation terminée: ${
+        args.transformation.title ?? "étape précédente"
+      }.`,
     ];
 
   await createRendezVous(
@@ -657,8 +784,7 @@ async function ensureTransitionHandoffRendezVous(args: {
       transformation_id: args.transformation.id,
       kind: "transition_handoff",
       budget_class: "notable",
-      trigger_reason:
-        recapLines[0] ??
+      trigger_reason: recapLines[0] ??
         "Partager un mini recap et ouvrir la transformation suivante.",
       confidence: "high",
       scheduled_for: args.nowIso,
@@ -724,7 +850,9 @@ export async function executeTransformationHandoff(
   assertTransformationCanGenerateHandoff(context.transformation);
 
   let transformation = context.transformation;
-  let stored = extractStoredTransformationHandoff(transformation.handoff_payload);
+  let stored = extractStoredTransformationHandoff(
+    transformation.handoff_payload,
+  );
   let persisted = false;
   const eventWarnings: string[] = [];
 
@@ -763,6 +891,19 @@ export async function executeTransformationHandoff(
     stored,
     nowIso,
   });
+  try {
+    await ensureLevelExecutionHandoffMemoryItem({
+      supabase,
+      userId,
+      cycle: context.cycle,
+      transformation,
+      nextTransformation: context.nextTransformation,
+      stored,
+      nowIso,
+    });
+  } catch (error) {
+    eventWarnings.push(eventWarning("LEVEL_EXECUTION_HANDOFF_MEMORY", error));
+  }
 
   return {
     cycle: context.cycle,

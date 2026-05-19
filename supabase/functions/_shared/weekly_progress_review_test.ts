@@ -2,6 +2,7 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
   addDaysYmd,
+  buildWeeklyPlanningValidationMessage,
   buildWeeklyProgressReviewFromRows,
   buildWeeklyProgressReviewInstruction,
   nextWeekStartForLocalDate,
@@ -13,6 +14,17 @@ Deno.test("weekly date helpers derive week boundaries", () => {
   assertEquals(addDaysYmd("2026-04-27", 6), "2026-05-03");
   assertEquals(weekEndForWeekStart("2026-04-27"), "2026-05-03");
   assertEquals(nextWeekStartForLocalDate("2026-05-02"), "2026-05-04");
+});
+
+Deno.test("weekly planning validation message explains unlock after weekly", () => {
+  const message = buildWeeklyPlanningValidationMessage({
+    nextWeekStartDate: "2026-05-04",
+    dashboardUrl: "https://example.test/dashboard",
+  });
+
+  assertStringIncludes(message, "Le point de fin de semaine est termine");
+  assertStringIncludes(message, "validation de la semaine prochaine");
+  assertStringIncludes(message, "confirmer");
 });
 
 Deno.test("planContentHasPlanifiableWeekStart requires an existing assigned week", () => {

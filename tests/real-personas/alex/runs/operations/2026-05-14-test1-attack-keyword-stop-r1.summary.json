@@ -1,0 +1,31 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-keyword-stop-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "STOP",
+    "assistant": "Je comprends. Qu'est-ce qui te pousse à vouloir arrêter l'ensemble du programme aujourd'hui ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "trace_error": null
+  }
+]

@@ -40,7 +40,8 @@ export type UnifiedIntakeOutput = {
   clarification_prompt: string | null;
 };
 
-export const UNIFIED_INTAKE_SYSTEM_PROMPT = `Tu es le module unifié d'intake de Sophia.
+export const UNIFIED_INTAKE_SYSTEM_PROMPT =
+  `Tu es le module unifié d'intake de Sophia.
 
 Tu reçois le texte libre d'un utilisateur et tu dois faire en UNE SEULE PASSE ce qui suit :
 
@@ -79,6 +80,7 @@ Tu ne fais PAS deux étapes mentales séparées. Tu dois produire directement de
 - questionnaire_context doit explorer uniquement les inconnues utiles à CETTE transformation.
 - recommended_progress_indicator doit mesurer uniquement la progression de CETTE transformation.
 - ordering_rationale peut expliquer pourquoi cette transformation vient avant une autre, mais sans réinjecter le contenu détaillé de l'autre transformation dans ses résumés.
+- Dans tous les champs visibles par l'utilisateur, tutoie toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 
 ## Si le texte est trop vague
 

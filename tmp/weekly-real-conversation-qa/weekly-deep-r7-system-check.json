@@ -1,0 +1,360 @@
+[
+  {
+    "run": "weekly-deep-r7-all_habits_done_mission_missed",
+    "variant": "all_habits_done_mission_missed",
+    "user_id": "d671721e-6a88-43de-82d1-2cc0cb2e3c9d",
+    "expected": "advance",
+    "turns": 6,
+    "http_ok": true,
+    "empty": 0,
+    "response_owners_from_state": [
+      "conversation_handler",
+      "normal_reply"
+    ],
+    "setup_summary": {
+      "planned_count": 6,
+      "done_count": 5,
+      "partial_count": 0,
+      "missed_count": 1,
+      "unanswered_count": 0,
+      "rescheduled_count": 0,
+      "adherence_rate": 0.83
+    },
+    "week_plan_rows": 3,
+    "occurrence_rows": 6,
+    "entry_rows": 6,
+    "future_week_plans": 0,
+    "future_occurrences": 0,
+    "scheduled_statuses": [
+      {
+        "event_context": "weekly_progress_review_v2",
+        "status": "sent",
+        "has_weekly_payload": true
+      }
+    ],
+    "chat_messages": 13,
+    "trace_rows": 6,
+    "response_owners": [
+      "conversation_handler",
+      "normal_reply"
+    ],
+    "direct_effects": 0,
+    "tool_skill_runs": 0,
+    "item_statuses": [
+      {
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "status": "active"
+      },
+      {
+        "title": "Fiche support: repere de fatigue",
+        "dimension": "support",
+        "status": "active"
+      },
+      {
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "status": "active"
+      },
+      {
+        "title": "Respiration de pause",
+        "dimension": "habits",
+        "status": "active"
+      }
+    ],
+    "active_temp_keys": [
+      "__momentum_state_v2",
+      "__active_skill_state",
+      "__conversation_risk_last",
+      "__memory_payload_state_v2",
+      "companion_question_rhythm",
+      "__conversation_risk_history",
+      "__coaching_intervention_history"
+    ]
+  },
+  {
+    "run": "weekly-deep-r7-partial_habits_mission_partial",
+    "variant": "partial_habits_mission_partial",
+    "user_id": "7d61c45c-8c6e-4578-b8cc-eb8249946bc5",
+    "expected": "bridge_week",
+    "turns": 6,
+    "http_ok": true,
+    "empty": 0,
+    "response_owners_from_state": [
+      "conversation_handler",
+      "normal_reply"
+    ],
+    "setup_summary": {
+      "planned_count": 6,
+      "done_count": 2,
+      "partial_count": 2,
+      "missed_count": 2,
+      "unanswered_count": 0,
+      "rescheduled_count": 0,
+      "adherence_rate": 0.5
+    },
+    "week_plan_rows": 3,
+    "occurrence_rows": 6,
+    "entry_rows": 6,
+    "future_week_plans": 0,
+    "future_occurrences": 0,
+    "scheduled_statuses": [
+      {
+        "event_context": "weekly_progress_review_v2",
+        "status": "sent",
+        "has_weekly_payload": true
+      }
+    ],
+    "chat_messages": 13,
+    "trace_rows": 6,
+    "response_owners": [
+      "conversation_handler",
+      "normal_reply"
+    ],
+    "direct_effects": 0,
+    "tool_skill_runs": 0,
+    "item_statuses": [
+      {
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "status": "active"
+      },
+      {
+        "title": "Fiche support: repere de fatigue",
+        "dimension": "support",
+        "status": "active"
+      },
+      {
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "status": "active"
+      },
+      {
+        "title": "Respiration de pause",
+        "dimension": "habits",
+        "status": "active"
+      }
+    ],
+    "active_temp_keys": [
+      "__momentum_state_v2",
+      "__active_skill_state",
+      "__conversation_risk_last",
+      "__memory_payload_state_v2",
+      "companion_question_rhythm",
+      "__conversation_risk_history"
+    ]
+  },
+  {
+    "run": "weekly-deep-r7-none_done",
+    "variant": "none_done",
+    "user_id": "35976548-fe10-4d6b-9dde-fdece3e6c701",
+    "expected": "bridge_week",
+    "turns": 6,
+    "http_ok": true,
+    "empty": 0,
+    "response_owners_from_state": [
+      "conversation_handler"
+    ],
+    "setup_summary": {
+      "planned_count": 6,
+      "done_count": 0,
+      "partial_count": 0,
+      "missed_count": 6,
+      "unanswered_count": 0,
+      "rescheduled_count": 0,
+      "adherence_rate": 0
+    },
+    "week_plan_rows": 3,
+    "occurrence_rows": 6,
+    "entry_rows": 6,
+    "future_week_plans": 0,
+    "future_occurrences": 0,
+    "scheduled_statuses": [
+      {
+        "event_context": "weekly_progress_review_v2",
+        "status": "sent",
+        "has_weekly_payload": true
+      }
+    ],
+    "chat_messages": 13,
+    "trace_rows": 6,
+    "response_owners": [
+      "conversation_handler"
+    ],
+    "direct_effects": 0,
+    "tool_skill_runs": 0,
+    "item_statuses": [
+      {
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "status": "active"
+      },
+      {
+        "title": "Fiche support: repere de fatigue",
+        "dimension": "support",
+        "status": "active"
+      },
+      {
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "status": "active"
+      },
+      {
+        "title": "Respiration de pause",
+        "dimension": "habits",
+        "status": "active"
+      }
+    ],
+    "active_temp_keys": [
+      "__momentum_state_v2",
+      "__suspended_flow_v1",
+      "__active_skill_state",
+      "__active_topic_state_v2",
+      "__conversation_risk_last",
+      "__memory_payload_state_v2",
+      "companion_question_rhythm",
+      "__conversation_risk_history",
+      "__pending_recommendation_operation"
+    ]
+  },
+  {
+    "run": "weekly-deep-r7-no_signal",
+    "variant": "no_signal",
+    "user_id": "11a85ef8-a772-41ef-874e-9f1923f78626",
+    "expected": "repeat_week",
+    "turns": 6,
+    "http_ok": true,
+    "empty": 0,
+    "response_owners_from_state": [
+      "conversation_handler"
+    ],
+    "setup_summary": {
+      "planned_count": 6,
+      "done_count": 0,
+      "partial_count": 0,
+      "missed_count": 0,
+      "unanswered_count": 6,
+      "rescheduled_count": 0,
+      "adherence_rate": 0
+    },
+    "week_plan_rows": 3,
+    "occurrence_rows": 6,
+    "entry_rows": 0,
+    "future_week_plans": 0,
+    "future_occurrences": 0,
+    "scheduled_statuses": [
+      {
+        "event_context": "weekly_progress_review_v2",
+        "status": "sent",
+        "has_weekly_payload": true
+      }
+    ],
+    "chat_messages": 13,
+    "trace_rows": 6,
+    "response_owners": [
+      "conversation_handler"
+    ],
+    "direct_effects": 0,
+    "tool_skill_runs": 0,
+    "item_statuses": [
+      {
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "status": "active"
+      },
+      {
+        "title": "Fiche support: repere de fatigue",
+        "dimension": "support",
+        "status": "active"
+      },
+      {
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "status": "active"
+      },
+      {
+        "title": "Respiration de pause",
+        "dimension": "habits",
+        "status": "active"
+      }
+    ],
+    "active_temp_keys": [
+      "__momentum_state_v2",
+      "__active_skill_state",
+      "__conversation_risk_last",
+      "__memory_payload_state_v2",
+      "companion_question_rhythm",
+      "__conversation_risk_history"
+    ]
+  },
+  {
+    "run": "weekly-deep-r7-not_relevant_level_review",
+    "variant": "not_relevant_level_review",
+    "user_id": "fb7ca687-8bf1-4010-a552-81805041bedf",
+    "expected": "level_review",
+    "turns": 6,
+    "http_ok": true,
+    "empty": 0,
+    "response_owners_from_state": [
+      "conversation_handler"
+    ],
+    "setup_summary": {
+      "planned_count": 6,
+      "done_count": 0,
+      "partial_count": 0,
+      "missed_count": 6,
+      "unanswered_count": 0,
+      "rescheduled_count": 0,
+      "adherence_rate": 0
+    },
+    "week_plan_rows": 3,
+    "occurrence_rows": 6,
+    "entry_rows": 6,
+    "future_week_plans": 0,
+    "future_occurrences": 0,
+    "scheduled_statuses": [
+      {
+        "event_context": "weekly_progress_review_v2",
+        "status": "sent",
+        "has_weekly_payload": true
+      }
+    ],
+    "chat_messages": 13,
+    "trace_rows": 6,
+    "response_owners": [
+      "conversation_handler"
+    ],
+    "direct_effects": 0,
+    "tool_skill_runs": 0,
+    "item_statuses": [
+      {
+        "title": "Convenir d'un signal de pause",
+        "dimension": "missions",
+        "status": "active"
+      },
+      {
+        "title": "Fiche support: repere de fatigue",
+        "dimension": "support",
+        "status": "active"
+      },
+      {
+        "title": "Partager un point positif",
+        "dimension": "habits",
+        "status": "active"
+      },
+      {
+        "title": "Respiration de pause",
+        "dimension": "habits",
+        "status": "active"
+      }
+    ],
+    "active_temp_keys": [
+      "__momentum_state_v2",
+      "__active_skill_state",
+      "__conversation_risk_last",
+      "__memory_payload_state_v2",
+      "companion_question_rhythm",
+      "__conversation_risk_history"
+    ]
+  }
+]

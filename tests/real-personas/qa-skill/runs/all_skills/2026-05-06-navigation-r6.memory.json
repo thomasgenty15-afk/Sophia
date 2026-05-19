@@ -1,0 +1,22 @@
+{
+  "memoryItems": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column memory_items.should_persist_default does not exist"
+    }
+  },
+  "scheduledCheckins": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.topic does not exist"
+    }
+  }
+}

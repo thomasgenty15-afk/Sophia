@@ -1,0 +1,1938 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t01",
+    "user": "Cette semaine j'ai tenu seulement une partie du plan. Une partie de moi se dit qu'il faudrait tout baisser à 1, voire laisser tomber, mais je ne suis pas sûre. Est-ce que c'est vraiment une bonne idée ou juste une réaction de fatigue ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ah je vois très bien le mécanisme. Quand t’es rincé, ton cerveau te dit “coupe tout” pour retrouver un peu de contrôle et d’énergie. Sauf que souvent, baisser à 1 voire tout lâcher, c’est une décision prise par la fatigue, pas par la réalité de ce que tu veux vraiment. 😮‍💨\n\nJe te propose un repère simple (et très action) :\n1) Si tu as quand même avancé, même “seulement une partie”, alors réduire un peu oui, tout arrêter non.\n2) “Laisser tomber” est une option uniquement si tu confirmes un signal clair : tu n’as plus du tout d’élan ET tu ne peux pas tenir même une version mini. Sinon, c’est juste la vague.\n\nConcrètement, pour ta semaine actuelle, ton plan se compose de 2 choses :\n- Convenir d’un signal de pause (mission ponctuelle)\n- Partager un point positif (habitude, 3 jours cette semaine)\n\nDonc, au lieu de tout baisser, je viserais plutôt une règle de survie intelligente :\n- Tu gardes les 2 items, mais tu diminues la charge mentale : tu fais “le plus petit format qui compte” pour chaque.\n  Exemple : pour le signal de pause, tu fais juste une version simple et reproductible (pas “parfait”).\n  Pour le point positif, tu ajustes pour atteindre au moins un minimum réaliste sur la fin de semaine (sans viser l’exploit).\n\nLe vrai test : si demain tu te sens un peu mieux, est-ce que tu veux encore tout lâcher, ou est-ce que tu veux juste respirer ?  \n\nTu veux qu’on tranche avec une version ultra-pratique : tu préfères réduire de façon minimale (continuer les 2 items, mais en format light) ou tu préfères couper franchement un seul des deux ? (A/B) 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "35f1c132-aa9f-4b73-9973-a0383b7de9bf",
+        "ts": "2026-05-17T18:02:50.712+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 10731,
+          "latency_ms": 4383,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 778,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "product_question",
+                "detected": true,
+                "confidence_band": "high"
+              },
+              "demotivation_repair": {
+                "reason": "user_expresses_fatigue_and_desire_to_quit_plan",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "35f1c132-aa9f-4b73-9973-a0383b7de9bf",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "tout baisser à 1, voire laisser tomber",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "l'ensemble du plan actuel",
+                  "status": "identified",
+                  "evidence": [
+                    "tout baisser"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "il faudrait tout baisser à 1, voire laisser tomber"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "reason_code": "tool_skill_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 8960,
+        "created_at": "2026-05-17T18:02:50.71458+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+    "user": "Aide-moi plutôt à réfléchir, sans modifier le plan pour l'instant. J'ai peur de confondre fatigue et vrai besoin d'alléger.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, ta peur est logique. Fatigue et vrai besoin d’allègement se ressemblent, mais tu peux les départager sans toucher au plan pour l’instant. 😮‍💨\n\nFais ce mini-diagnostic (dans ta tête, 2 minutes) :\n1) Si tu “voulais vraiment” alléger parce que ce n’est plus aligné, tu le ressens plutôt comme une baisse de motivation vers le sens, pas juste une baisse d’énergie.\n2) Si c’est la fatigue, tes actions te paraîtront impossibles au départ, mais dès que tu as “démarré un peu”, ça revient (même partiellement).\n3) Si c’est un besoin réel, tu vas sentir un critère clair : trop de charge, trop de friction, ou une contrainte extérieure qui s’est vraiment installée.\n\nPour trancher doucement, on peut aussi prendre un repère simple : “est-ce que j’ai tenu même un peu du plan cette semaine ?” Si oui, c’est souvent un signal que l’énergie est bancale, pas que tout doit disparaître.\n\nTu préfères qu’on parte de ce que tu ressens maintenant (fatigue vs sens), ou d’un exemple concret de journée où tu as hésité ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "a91e2bf0-109d-4ae8-8abb-d575e0ef8f19",
+        "ts": "2026-05-17T18:03:07.793+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11081,
+          "latency_ms": 4048,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 652,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "charge mentale et fatigue niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "distinction fatigue et evitement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "charge mentale et fatigue niveau actuel",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.procrastination",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "distinction fatigue et evitement",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_needs_reflection_on_friction_vs_fatigue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "a91e2bf0-109d-4ae8-8abb-d575e0ef8f19",
+          "tool_skill_intents": [],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "action_looks_too_large",
+                "urgency": "medium",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Convenir d'un signal de pause",
+                    "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Convenir d'un signal de pause",
+                    "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+                  },
+                  "adjustment_type": "reduce"
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Aide-moi plutôt à réfléchir, sans modifier le plan pour l'instant. J'ai peur de confondre fatigue et vrai besoin d'alléger.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "a91e2bf0-109d-4ae8-8abb-d575e0ef8f19"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "tool_skill_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "action_looks_too_large",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "plan_item.reduce",
+            "alternatives": [],
+            "operation_type": "adjust_plan_item",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "adjustment_type": "reduce"
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "adjust_plan_item",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:adjust_plan_item:qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t02",
+            "user_facing_offer": "Je peux te proposer Réduire une action si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 6646,
+        "created_at": "2026-05-17T18:03:07.795523+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+    "user": "Ok, là c'est plus clair: je ne veux pas toucher à tout le niveau. Prépare seulement un brouillon pour alléger Partager un point positif à 2 fois cette semaine, sans l'appliquer.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Parfait : je te prépare juste un brouillon pour alléger “Partager un point positif” à 2 fois cette semaine, sans l’appliquer. 👍🙂\n\nTu préfères un allègement plutôt “format rapide” (moins de temps) ou “moins d’intensité” (moins de réflexion à chaque fois) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "71c2ce72-5efd-4276-baf2-29ce59129cad",
+        "ts": "2026-05-17T18:03:29.037+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11424,
+          "latency_ms": 4806,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 884,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique de l'habitude Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok, là c'est plus clair: je ne veux pas toucher à tout le niveau. Prépare seulement un brouillon pour alléger Partager un point positif à 2 fois cette semaine, ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": "historique de l'habitude Partager un point positif",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Ok, là c'est plus clair: je ne veux pas toucher à tout le niveau. Prépare seulement un brouillon pour alléger Partager un point positif à 2 fois cette semaine, ",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {
+              "execution_breakdown": {
+                "reason": "user_switched_to_plan_adjustment",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "active_skill_continue",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "71c2ce72-5efd-4276-baf2-29ce59129cad",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_action",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "je ne veux pas toucher à tout le niveau",
+                    "Prépare seulement un brouillon pour alléger Partager un point positif"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "supersede_active",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "active_owner": "conversation_skill",
+            "resume_policy": "user_reopens",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "action_looks_too_large",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "plan_item.reduce",
+            "alternatives": [],
+            "operation_type": "adjust_plan_item",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Convenir d'un signal de pause",
+                "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+              },
+              "adjustment_type": "reduce"
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "adjust_plan_item",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:adjust_plan_item:qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t03",
+            "user_facing_offer": "Je peux te proposer Réduire une action si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 7269,
+        "created_at": "2026-05-17T18:03:29.038961+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t04",
+    "user": "Moins d'intensité: juste une phrase simple, même imparfaite. Et toujours seulement 2 fois.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t04",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est entendu. Je note qu'on réduit encore l'intensité pour 'Partager un point positif' : on passe à 2 fois par semaine avec pour seule consigne d'écrire une phrase simple, même imparfaite. Rien n'est encore modifié, est-ce que je peux préparer cette proposition concrète pour ton plan ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t04",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "348c64fc-e4e1-4002-9332-27b66a953778",
+        "ts": "2026-05-17T18:04:01.418+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11499,
+          "latency_ms": 4948,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 768,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t04",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "execution_blocked",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0.6,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "348c64fc-e4e1-4002-9332-27b66a953778",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_action",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "le user cible l'action Partager un point positif"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "evidence": "Le user précise les paramètres de l'allègement (intensité, fréquence) pour le brouillon en cours.",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 18119,
+        "created_at": "2026-05-17T18:04:01.418777+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t05",
+    "user": "Oui, prépare le brouillon concret, mais n'applique pas encore.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus légère et moins stressante. Rien n'est encore appliqué, c'est une proposition avant validation. Je prévois de passer la fréquence à 2 fois par semaine et de simplifier l'attendu : il s'agira d'écrire juste une phrase simple, même imparfaite. Tes autres actions, comme convenir d'un signal de pause ou cartographier les déclencheurs, resteront inchangées. Est-ce que cela te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "97f3e69c-3e5f-4696-a6ed-801090c94abc",
+        "ts": "2026-05-17T18:04:49.438+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12488,
+          "latency_ms": 5155,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 804,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                "type": "action",
+                "priority": "high",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "adjust_plan_item": {
+                "phase": "generation",
+                "active": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0,1,0.6;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1,
+              0.6
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "97f3e69c-3e5f-4696-a6ed-801090c94abc",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_plan_item",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ],
+                  "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+                },
+                "target_granularity": {
+                  "value": "single_action",
+                  "status": "identified",
+                  "evidence": [
+                    "Partager un point positif"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "correction_to_pending",
+            "evidence": "Oui, prépare le brouillon concret, mais n'applique pas encore.",
+            "confidence_band": "high",
+            "intent_clarification": "The user wants to see the draft but explicitly forbids application/execution at this stage."
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "juste une phrase simple, même imparfaite",
+                "target_reps": 2,
+                "cadence_label": "2 jours / semaine"
+              },
+              "title": "Ajustement - Partager un point positif",
+              "confidence": "high",
+              "ack_summary": {
+                "changed": [
+                  "ajustement de \"Partager un point positif\""
+                ],
+                "unchanged": [
+                  "le reste du plan n'est pas touché"
+                ],
+                "confidence": "high",
+                "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                "follow_up_needed": null
+              },
+              "scope_label": "Partager un point positif",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare le brouillon concret, mais n'applique pas encore.",
+                  "Le message fait suite à des ajustements sur l'habitude de partage de points positifs.",
+                  "Moins d'intensité",
+                  "seulement 2 fois",
+                  "Moins d'intensité"
+                ],
+                "confidence": "high",
+                "uncertainty": [],
+                "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                "must_preserve": [
+                  "reprendre Partager un point positif apres la version mini"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "ajuster le plan de facon minimale",
+              "change_rationale": {
+                "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                "success_condition": "L'action redevient faisable.",
+                "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+              },
+              "adjust_plan_result": {
+                "scope": "action",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [],
+                  "user_problem": "L'exercice de partage positif est perçu comme trop lourd, ce qui crée un blocage.",
+                  "expected_effect": "Une reprise de l'action sans culpabilité et une meilleure adhésion à long terme.",
+                  "why_this_change": "Réduire la fréquence à 2 fois par semaine et simplifier l'attendu à une phrase simple diminue la friction immédiate."
+                },
+                "boundaries": {
+                  "explanation": "L'ajustement se limite à modifier la fréquence et la difficulté d'une action spécifique pour lever un blocage local.",
+                  "affected_scope": "L'habitude de partage positif uniquement.",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "Objectif global du plan",
+                    "Missions de communication de crise",
+                    "Structure des exercices de clarification"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Allègement de l'habitude de partage positif pour réduire la friction.",
+                  "changed_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "2 fois par semaine, juste une phrase simple, même imparfaite",
+                      "title": "Partager un point positif",
+                      "before": "3 jours / semaine",
+                      "reason": "Réduire la charge mentale et la pression pour assurer la régularité sans chercher la perfection.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "Cette mission reste prioritaire pour la gestion des conflits et n'est pas impactée par l'allègement de l'habitude."
+                    },
+                    {
+                      "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+                      "kind": "clarification",
+                      "title": "Cartographier les déclencheurs",
+                      "reason": "Cet exercice de réflexion en fin de semaine est maintenu pour soutenir la compréhension du couple."
+                    }
+                  ]
+                },
+                "user_message_brief": "Je te propose de passer le partage positif à 2 fois par semaine avec une consigne simplifiée pour réduire la pression.",
+                "user_message_detailed": "Voici le détail de la modification proposée pour 'Partager un point positif' :\n- Avant : 3 jours / semaine.\n- Après : 2 fois par semaine, avec pour consigne d'écrire juste une phrase simple, même imparfaite.\n- Pourquoi : Pour supprimer le blocage lié à la lourdeur de l'exercice et à la fatigue décisionnelle.\nCe qui ne change pas : Tes missions sur le signal de pause et la cartographie des déclencheurs restent intactes. Mon niveau de confiance est élevé car cela répond directement à ton besoin de moins d'intensité."
+              },
+              "execution_strategy": "patch_existing",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused",
+                "target_reps",
+                "cadence_label"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "J'ai mis à jour ton habitude 'Partager un point positif'. Elle est maintenant programmée 2 fois par semaine et la consigne est simplifiée : juste une phrase simple, même imparfaite. Cela permet de garder l'habitude vivante sans la pression de la perfection. Tes autres missions et exercices restent identiques. Je suis convaincu que cet allègement va t'aider à tenir sur la durée.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster l'habitude 'Partager un point positif' pour qu'elle soit plus légère et moins stressante. Rien n'est encore appliqué, c'est une proposition avant validation. Je prévois de passer la fréquence à 2 fois par semaine et de simplifier l'attendu : il s'agira d'écrire juste une phrase simple, même imparfaite. Tes autres actions, comme convenir d'un signal de pause ou cartographier les déclencheurs, resteront inchangées. Est-ce que cela te convient ?"
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "47a407ea-a22b-4f97-af63-eeee61ee9606",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 25260,
+        "created_at": "2026-05-17T18:04:49.440105+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t06",
+    "user": "Non, finalement ne l'applique pas. Je garde le plan tel quel et je vais juste observer encore une journée.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t06",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ok, je n'applique pas cet ajustement.",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t06",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "a1d3b6af-b4bc-48f2-8913-85eeabd688f4",
+        "ts": "2026-05-17T18:05:10.29+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11384,
+          "latency_ms": 6920,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 699,
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-17-adjust-plan-horizon-r19-ambiguous-postfix-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [],
+            "memory_mode": "none",
+            "context_need": "minimal",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "tiny",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 2.1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": true,
+                "evidence": "non, finalement ne l'applique pas",
+                "contribution": 1.5
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,0,1,0.6,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "repetition_or_correction",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0,
+              1,
+              0.6,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "a1d3b6af-b4bc-48f2-8913-85eeabd688f4",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "Partager un point positif",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "specific_action",
+                  "label": "Partager un point positif",
+                  "status": "identified",
+                  "evidence": [
+                    "contexte de l'ajustement en cours sur cette habitude"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "specific_action",
+                  "status": "identified",
+                  "evidence": [
+                    "le user refuse l'ajustement sur l'action spécifique Partager un point positif"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "specific_action"
+            }
+          ],
+          "confirmation_response": {
+            "kind": "no",
+            "confidence_band": "high"
+          },
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_cancelled",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "47a407ea-a22b-4f97-af63-eeee61ee9606",
+          "selected_handler": "adjust_plan_item",
+          "draft_review_decision": {
+            "decision": "reject",
+            "evidence": [
+              "confirmation_response.kind=no"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 6959,
+        "created_at": "2026-05-17T18:05:10.29114+00:00"
+      },
+      "trace_error": null,
+      "_http_status": 200
+    }
+  }
+]

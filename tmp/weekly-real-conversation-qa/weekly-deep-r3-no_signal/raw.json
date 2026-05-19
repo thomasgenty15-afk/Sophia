@@ -1,0 +1,296 @@
+{
+  "run_id": "weekly-deep-r3-no_signal",
+  "variant": "no_signal",
+  "persona": "qa",
+  "user_id": "66c1484f-0037-4d9c-a208-b19e37c297c3",
+  "email": "qa-weekly-deep-weekly-deep-r3-no_signal@example.com",
+  "scope": "weekly-deep-no_signal-weekly-deep-r3",
+  "created_at": "2026-05-17T16:35:55.200Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-17T16:35:55.201Z",
+      "user": "Je n'ai presque pas repondu aux checkins. Ce n'est pas forcement que tout est rate, c'est surtout que j'ai disparu du suivi. Tu fais quoi avec une semaine comme ca ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ah ouais… disparaître du suivi, c’est pas “tout est raté”, c’est surtout que le système n’a plus accroché. Donc je fais 3 trucs, simples, action-pragmatiques 😅\n\n1) On sépare “performance” et “visibilité”\nUne semaine où tu n’as quasi pas répondu aux check-ins peut venir d’un oubli, d’une fatigue, ou d’un plan trop silencieux. Là, le point à réparer, c’est la connexion au suivi, pas ta valeur.\n\n2) On remet un minimum de preuves (zéro pression)\nOn vise juste 1 ou 2 micro-occurrences à valider, juste pour réactiver la boucle. Pas “rattraper la semaine”, juste “ne pas disparaître de nouveau”.\n\n3) On ajuste la cause probable, pas le symptôme\nTu as des repères côté plan (fatigue/streak à 0, etc.). Là, je regarde ce qui était le plus fragile: le signal de pause / respiration, et surtout “Partager un point positif” ou “respiration de pause” pour te remettre dans le rythme sans effort.\n\nConcrètement, ce que je te propose maintenant: tu peux ouvrir l’habitude correspondante dans Dashboard > Plan, et valider une occurrence (même une seule), pour relancer le suivi. 🙂\n\nTu préfères qu’on relance avec “Respiration de pause” ou avec “Partager un point positif” ? A/B",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r3-no_signal-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "product_help",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r3-no_signal-t01",
+        "user_id": "66c1484f-0037-4d9c-a208-b19e37c297c3",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah ouais… disparaître du suivi, c’est pas “tout est raté”, c’est surtout que le système n’a plus accroché. Donc je fais 3 trucs, simples, action-pragmatiques 😅\n\n1) On sépare “performance” et “visibilité”\nUne semaine où tu n’as quasi pas répondu aux check-ins peut venir d’un oubli, d’une fatigue, ou d’un plan trop silencieux. Là, le point à réparer, c’est la connexion au suivi, pas ta valeur.\n\n2) On remet un minimum de preuves (zéro pression)\nOn vise juste 1 ou 2 micro-occurrences à valider, juste pour réactiver la boucle. Pas “rattraper la semaine”, juste “ne pas disparaître de nouveau”.\n\n3) On ajuste la cause probable, pas le symptôme\nTu as des repères côté plan (fatigue/streak à 0, etc.). Là, je regarde ce qui était le plus fragile: le signal de pause / respiration, et surtout “Partager un point positif” ou “respiration de pause” pour te remettre dans le rythme sans effort.\n\nConcrètement, ce que je te propose maintenant: tu peux ouvrir l’habitude correspondante dans Dashboard > Plan, et valider une occurrence (même une seule), pour relancer le suivi. 🙂\n\nTu préfères qu’on relance avec “Respiration de pause” ou avec “Partager un point positif” ? A/B",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r3-no_signal-t01",
+          "user_id": "66c1484f-0037-4d9c-a208-b19e37c297c3",
+          "source_message_id": "69af1815-a688-429e-83fb-78e7a9d3cf24",
+          "ts": "2026-05-17T16:36:33.079+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8892,
+            "latency_ms": 35042,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 626,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r3-no_signal-t01",
+            "user_id": "66c1484f-0037-4d9c-a208-b19e37c297c3",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "product_help": {
+                  "reason": "L'utilisateur demande explicitement quelle est la politique ou la procédure de Sophia face à une semaine sans suivi.",
+                  "detected": true,
+                  "confidence_band": "high"
+                },
+                "weekly_adaptive_review_v1": {
+                  "reason": "L'utilisateur répond à la question du bilan hebdomadaire sur la cause de l'absence de données.",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "69af1815-a688-429e-83fb-78e7a9d3cf24",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "product_help_inline_resume_active_conversation_skill",
+            "blocked_paths": [
+              {
+                "path": "conversation_skill",
+                "reason_code": "product_help_inline_preserves_active_skill"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "product_help",
+            "memory_use_kind": "none",
+            "selected_handler": "product_help",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "inline_answer_then_resume",
+              "reason_code": "product_help_inline_resume_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "auto_after_answer",
+              "selected_owner": "product_help"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Habitudes: Dans le Plan, ouvre l'habitude. Tu peux valider une occurrence, voir la progression d'ancrage et acceder au planning de semaine si disponible.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand le plan contient des items de dimension habits. Tu peux y valider une occurrence, ouvrir le planning de semaine, voir l'ancrage.\n\nLimites importantes:\n- Ce n'est pas un tracker libre d'habitudes hors plan.\n- Modifier la nature ou le rythme de l'habitude passe par l'ajustement du plan si le planning local ne suffit pas.",
+              "status": "complete",
+              "skill_id": "product_help",
+              "diagnosis": {
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "feature_id": "plan.habits",
+                "feature_label": "Habitudes",
+                "operation_bridge": null
+              },
+              "state_patch": {
+                "summary": "Product help answered for plan.habits."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "how_to",
+              "recommendation_need": {
+                "type": "none",
+                "needed": false,
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present"
+                ]
+              },
+              "operation_suggestions": []
+            },
+            "reason_code": "product_help_inline_resume_active_conversation_skill",
+            "selected_skill_id": "product_help"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "product_help",
+          "total_latency_ms": 37834,
+          "created_at": "2026-05-17T16:36:33.080192+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-17T16:36:33.115Z"
+}

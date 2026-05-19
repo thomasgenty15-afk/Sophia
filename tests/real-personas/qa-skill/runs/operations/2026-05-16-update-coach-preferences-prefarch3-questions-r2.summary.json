@@ -1,0 +1,71 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t01",
+    "user": "Quand tu me donnes tout de suite ton analyse, je traverse le truc trop vite. Aide-moi plutot a le sortir moi-meme, quitte a me faire preciser deux ou trois angles avant de conclure.",
+    "assistant": "Je peux régler ma façon de répondre: Sophia utilisera plus de questions. Tu veux que je l'applique ?",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "safety": {
+        "detected": false,
+        "evidence": [
+          "tout de suite"
+        ],
+        "risk_band": "none",
+        "reason_codes": [
+          "immediacy_now"
+        ],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": true,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "blocked",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t01"
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t02",
+    "user": "Oui, applique ce reglage.",
+    "assistant": "",
+    "status": 502,
+    "trace": {
+      "http_status": 502,
+      "ok": null,
+      "empty_response": null,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": null,
+      "selected_handler": null,
+      "route_selected_handler": null,
+      "route_reason": null,
+      "safety": null,
+      "direct_effects": null,
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": null,
+      "trace_error": null,
+      "trace_id": null
+    }
+  }
+]

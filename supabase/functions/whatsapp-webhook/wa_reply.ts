@@ -110,16 +110,36 @@ export async function replyWithBrain(params: {
     }
   }
   const sendStartedAtMs = Date.now();
-  const sendResp = await sendWhatsAppTextTracked({
-    admin: params.admin,
-    requestId: params.requestId,
-    userId: params.userId,
-    toE164: params.fromE164,
-    body: visibleReply,
-    purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
-    isProactive: false,
-    replyToWaMessageId: params.replyToWaMessageId ?? null,
-  });
+  const additionalVisibleReplies =
+    Array.isArray((brain as any).additional_contents)
+      ? (brain as any).additional_contents
+        .map((content: unknown) => String(content ?? "").trim())
+        .filter(Boolean)
+        .map((content: string) =>
+          polishWhatsAppVisibleReply(content, params.inboundText)
+        )
+      : [];
+  const repliesToSend = [visibleReply, ...additionalVisibleReplies].filter(
+    Boolean,
+  );
+  const sendResults = [];
+  for (const [index, body] of repliesToSend.entries()) {
+    sendResults.push(
+      await sendWhatsAppTextTracked({
+        admin: params.admin,
+        requestId: params.requestId,
+        userId: params.userId,
+        toE164: params.fromE164,
+        body,
+        purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
+        isProactive: false,
+        replyToWaMessageId: index === 0
+          ? params.replyToWaMessageId ?? null
+          : null,
+      }),
+    );
+  }
+  const sendResp = sendResults[0] ?? null;
   console.log(`[whatsapp-webhook] trace ${
     JSON.stringify({
       request_id: params.requestId,
@@ -132,22 +152,29 @@ export async function replyWithBrain(params: {
   const outId = sendResp?.messages?.[0]?.id ?? null;
   const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
   const insertAssistantStartedAtMs = Date.now();
-  await params.admin.from("chat_messages").insert({
-    user_id: params.userId,
-    scope,
-    role: "assistant",
-    content: visibleReply,
-    agent_used: brain.mode,
-    metadata: {
-      channel: "whatsapp",
-      wa_outbound_message_id: outId,
-      outbound_tracking_id: outboundTrackingId,
-      is_proactive: false,
-      reply_to_wa_message_id: params.replyToWaMessageId ?? null,
-      purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
-      has_hidden_fil_rouge: Boolean(parsed.note),
-    },
-  });
+  for (const [index, content] of repliesToSend.entries()) {
+    const result = sendResults[index] ?? null;
+    await params.admin.from("chat_messages").insert({
+      user_id: params.userId,
+      scope,
+      role: "assistant",
+      content,
+      agent_used: brain.mode,
+      metadata: {
+        channel: "whatsapp",
+        wa_outbound_message_id: result?.messages?.[0]?.id ?? null,
+        outbound_tracking_id: result?.outbound_tracking_id ?? null,
+        is_proactive: false,
+        reply_to_wa_message_id: index === 0
+          ? params.replyToWaMessageId ?? null
+          : null,
+        purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
+        has_hidden_fil_rouge: index === 0 && Boolean(parsed.note),
+        multi_message_index: index,
+        multi_message_count: repliesToSend.length,
+      },
+    });
+  }
   console.log(`[whatsapp-webhook] trace ${
     JSON.stringify({
       request_id: params.requestId,

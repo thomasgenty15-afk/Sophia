@@ -1,0 +1,284 @@
+{
+  "run_id": "phase2-real-20260515-green-5",
+  "created_at": "2026-05-15T18:21:12.705Z",
+  "supabase_url": "http://127.0.0.1:54321",
+  "auth": {
+    "user_id": "475a3740-7b09-4da8-8ca4-dbebf97e29d5",
+    "email": "qa-phase2-phase2-real-20260515-green-5@example.com",
+    "password": "Qa1!627634f5-0def-470b-a917-9fc19de0d06b"
+  },
+  "scenarios": {
+    "s1-action-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-5-s1-action-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Pour Session focus courte, souvenirs mémorisés uniquement : qu'est-ce qui aide au démarrage ?",
+          "assistant": "Oui. Pour Session focus courte, ce qui ressort est simple :\n- Tu démarres mieux quand tu ouvres directement un fichier déjà prêt et que tu lances un minuteur de 12 minutes.\n- Quand la cible augmente, garder un démarrage sous 15 minutes évite que l'habitude devienne intimidante.\nDonc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement.",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": "matched_active_plan_item",
+              "status": "identified",
+              "detected": true,
+              "action_type": "habit",
+              "action_title": "Session focus courte",
+              "plan_item_id": "f7dd43b3-2924-4f36-a38d-d652b464db7a",
+              "expansion_policy": "exact_then_action_family_recent",
+              "action_family_key": "habit:session_focus"
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "f7dd43b3-2924-4f36-a38d-d652b464db7a",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte démarrage aide",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "f7dd43b3-2924-4f36-a38d-d652b464db7a",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "Session focus courte",
+                  "expansion_policy": "exact_then_action_family_recent",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_asking_for_startup_help_on_specific_action",
+              "source_span": "qu'est-ce qui aide au démarrage ?",
+              "target_hint": "Session focus courte",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    },
+    "s2-level-memory": {
+      "turns": [
+        {
+          "turn": 1,
+          "request_id": "phase2-real-20260515-green-5-s2-level-memory-t01",
+          "status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "user": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+          "assistant": "Ok, je garde en tête ce que tu avais déjà installé au niveau d’avant, et je m’en sers comme base pour ne pas te faire repartir de zéro. Concrètement, là tout de suite, ce que je dois garder en tête c’est :\n\n- Une trajectoire orientée discipline/action (pas juste “réfléchir”, mais avancer).\n- Un ton bienveillant mais direct, plutôt court, et sans trop de questions.\n- Tes repères de traction de la semaine : “Bloquer les créneaux de la semaine”, “Session focus courte”, “Marche de decompression”, et “Clarifier le premier pas du dossier”.\n\nEt pour que je sois hyper juste sur le handoff : quand tu dis “nouveau niveau”, c’est lequel (sujet/objectif exact) ? 😊",
+          "trace": {
+            "response_owner": "normal_reply",
+            "selected_handler": null,
+            "reason_code": "normal_reply_default",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "level_reference": {
+              "reason": "level_transition_reference",
+              "status": "transition",
+              "detected": true,
+              "expansion_policy": "include_level_execution_handoff"
+            },
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "current_level",
+                  "type": "level",
+                  "priority": "high",
+                  "query_hint": "handoff from previous level",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "transition",
+                  "type": "level",
+                  "priority": "medium",
+                  "query_hint": "Je commence un nouveau niveau. D'après le handoff du niveau précédent, qu'est-ce que tu dois garder en tête ?",
+                  "expansion_policy": "include_level_execution_handoff",
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "memory_loader": null,
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "self_reminder",
+              "surface_id": "dashboard.reminders",
+              "prop_reason": "user_formulates_useful_self_reminder",
+              "source_span": "garder en tete ?",
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": "create_recurring_reminder",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_self_reminder"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "active_skill_state": null,
+            "executed_tools": [],
+            "pending_confirmation": null
+          }
+        }
+      ]
+    }
+  },
+  "seed": {
+    "cycle_id": "e8c96a70-bcc8-4cbc-b96c-d110f0111ef0",
+    "previous_transformation_id": "dfc2a815-f84d-4175-98b8-f60c24330f21",
+    "transformation_id": "55337710-cca8-4b61-b19e-2655978ba805",
+    "plan_id": "3968ecd4-3d3b-472c-9be0-552c2c40b51c",
+    "focus_item_id": "f7dd43b3-2924-4f36-a38d-d652b464db7a",
+    "focus_previous_item_id": "6a1503fb-c777-4d1f-ac08-33a96a7b728d",
+    "walk_item_id": "76e6838a-a9f3-4666-9905-ae21c0d46a2e",
+    "mission_item_id": "3abf9750-4d3c-414f-98d6-55d8e3ce6b68",
+    "clarification_item_id": "a51d2e23-6bf0-4c79-bf3f-bcd86dafb51a",
+    "items": [
+      {
+        "id": "f7dd43b3-2924-4f36-a38d-d652b464db7a",
+        "title": "Session focus courte",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:session_focus"
+      },
+      {
+        "id": "76e6838a-a9f3-4666-9905-ae21c0d46a2e",
+        "title": "Marche de decompression",
+        "kind": "habit",
+        "dimension": "habits",
+        "action_family_key": "habit:marche_decompression"
+      },
+      {
+        "id": "3abf9750-4d3c-414f-98d6-55d8e3ce6b68",
+        "title": "Bloquer les creneaux de la semaine",
+        "kind": "task",
+        "dimension": "missions",
+        "action_family_key": null
+      },
+      {
+        "id": "a51d2e23-6bf0-4c79-bf3f-bcd86dafb51a",
+        "title": "Clarifier le premier pas du dossier",
+        "kind": "task",
+        "dimension": "clarifications",
+        "action_family_key": null
+      }
+    ],
+    "memory_items": [
+      {
+        "id": "bc8733e7-2abc-48a3-94f6-008250ed24bd",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_exact:f7dd43b3-2924-4f36-a38d-d652b464db7a",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "a5653fea-443f-4930-bdc7-445f6896a80f",
+        "kind": "action_observation",
+        "canonical_key": "qa_action_family:habit:session_focus",
+        "metadata": {
+          "memory_type": "action_execution_profile",
+          "source": "phase2_real_qa_seed"
+        }
+      },
+      {
+        "id": "21ae3722-3c92-46b6-976c-9be053b6ba8a",
+        "kind": "statement",
+        "canonical_key": "level_execution_handoff:dfc2a815-f84d-4175-98b8-f60c24330f21",
+        "metadata": {
+          "memory_type": "level_execution_handoff",
+          "source": "phase2_real_qa_seed",
+          "previous_level_id": "dfc2a815-f84d-4175-98b8-f60c24330f21",
+          "previous_transformation_id": "dfc2a815-f84d-4175-98b8-f60c24330f21",
+          "next_level_id": "55337710-cca8-4b61-b19e-2655978ba805",
+          "next_transformation_id": "55337710-cca8-4b61-b19e-2655978ba805"
+        }
+      }
+    ]
+  }
+}

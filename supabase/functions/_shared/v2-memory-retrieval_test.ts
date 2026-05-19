@@ -143,16 +143,9 @@ Deno.test("classifyMemoryScope: relational keyword 'préfère'", () => {
   assertEquals(result.scope, "relational");
 });
 
-Deno.test("classifyMemoryScope: cycle keyword 'north star'", () => {
+Deno.test("classifyMemoryScope: cycle keyword 'objectif global'", () => {
   const result = classifyMemoryScope({
-    content: "mon north star c'est de retrouver confiance",
-  });
-  assertEquals(result.scope, "cycle");
-});
-
-Deno.test("classifyMemoryScope: cycle keyword 'étoile polaire'", () => {
-  const result = classifyMemoryScope({
-    content: "mon étoile polaire a changé",
+    content: "mon objectif global c'est de retrouver confiance",
   });
   assertEquals(result.scope, "cycle");
 });

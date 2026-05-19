@@ -1,6 +1,9 @@
-import type { DispatcherMemoryPlan } from "../contracts/turn_frame.v1.ts";
+import type {
+  DispatcherMemoryPlan,
+  DispatcherResearchSignal,
+} from "../contracts/turn_frame.v1.ts";
 
-export type { DispatcherMemoryPlan };
+export type { DispatcherMemoryPlan, DispatcherResearchSignal };
 
 export type DispatcherModelTierHint = "lite" | "standard" | "deep";
 
@@ -8,13 +11,7 @@ export type DispatcherSignals = {
   safety: { level: "NONE" | "SENTRY"; confidence: number };
   interrupt: { kind: "NONE" | "EXPLICIT_STOP" | "BORED"; confidence: number };
   risk_score: number;
-  needs_research: {
-    detected: boolean;
-    value?: boolean;
-    query?: string | null;
-    domain_hint?: string | null;
-    confidence?: number;
-  };
+  needs_research: DispatcherResearchSignal;
   checkup_intent: {
     detected: boolean;
     confidence?: number;
@@ -95,7 +92,9 @@ export async function analyzeSignalsV2(
   const safetyDetected =
     /\b(suicide|me suicider|mourir|me faire du mal|j'en peux plus|jen peux plus)\b/
       .test(text);
-  const explicitStop = /\b(stop|arrete|arrête|pause|laisse tomber)\b/.test(text);
+  const explicitStop = /\b(stop|arrete|arrête|pause|laisse tomber)\b/.test(
+    text,
+  );
   return {
     signals: {
       ...DEFAULT_SIGNALS,

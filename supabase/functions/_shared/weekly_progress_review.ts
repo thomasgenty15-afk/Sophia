@@ -329,7 +329,9 @@ function dailyEvidenceForOccurrence(
       return entry.plan_item_id === occurrence.plan_item_id;
     })
     .sort((left, right) =>
-      String(right.created_at ?? "").localeCompare(String(left.created_at ?? ""))
+      String(right.created_at ?? "").localeCompare(
+        String(left.created_at ?? ""),
+      )
     );
   const match = dailyEntries[0];
   if (!match) return null;
@@ -726,7 +728,7 @@ export async function loadWeeklyProgressReview(
         .in("status", ["active", "in_maintenance", "stalled"]),
       supabase
         .from("user_habit_week_plans")
-        .select("plan_item_id,status,planned_days,default_days,confirmed_at")
+        .select("plan_item_id,status,confirmed_at")
         .eq("user_id", params.userId)
         .eq("week_start_date", weekStartDate),
       supabase
@@ -820,5 +822,5 @@ export function buildWeeklyPlanningValidationMessage(args: {
   nextWeekStartDate: string;
   dashboardUrl: string;
 }): string {
-  return `Ton planning de la semaine prochaine est pret a valider. Tu peux le verifier ici: ${args.dashboardUrl}`;
+  return `Le point de fin de semaine est termine, donc la validation de la semaine prochaine est disponible. Tu peux verifier l'organisation proposee et la confirmer ici: ${args.dashboardUrl}`;
 }

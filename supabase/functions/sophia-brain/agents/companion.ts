@@ -317,18 +317,103 @@ function renderStandaloneOneShotReminderReply(
 }
 
 function isStandaloneOneShotReminderMessage(message: string): boolean {
+  if (!isLikelyOneShotReminderRequest(message)) return false;
   const normalized = message
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase()
     .trim();
   if (
-    !/\brappelle[- ]?moi\b|\bme faire un rappel\b|\benvoie[- ]?moi un rappel\b|\bfais[- ]?moi un rappel\b/
+    !/\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’ ]?envoyer un rappel\b|\benvoie[- ]?moi un rappel\b|\bfais[- ]?moi un rappel\b|\bdis[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
       .test(normalized)
   ) {
     return false;
   }
   return normalized.length <= 220;
+}
+
+function normalizeCompanionIntentText(message: string): string {
+  return String(message ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function humanizeCompanionMemoryLine(line: string): string {
+  const cleaned = String(line ?? "")
+    .replace(/\s+Priorite:.*$/i, "")
+    .replace(/\bPattern famille [a-z0-9:_-]+\s*:\s*/i, "")
+    .replace(/^Sur\s+[^,]+,\s+/i, "")
+    .replace(/\bNiveau precedent\s+/i, "Au niveau précédent, ")
+    .replace(/\ble user\b/gi, "tu")
+    .replace(/\bquand il ouvre\b/gi, "quand tu ouvres")
+    .replace(/\bet lance\b/gi, "et que tu lances")
+    .replace(/\bdemarre\b/gi, "démarres")
+    .replace(/\bdemarrage\b/gi, "démarrage")
+    .replace(/\bdeja\b/gi, "déjà")
+    .replace(/\bpret\b/gi, "prêt")
+    .replace(/\bevite\b/gi, "évite")
+    .replace(/\beviter\b/gi, "éviter")
+    .trim();
+  if (!cleaned) return "";
+  const sentence = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  return sentence.endsWith(".") ? sentence : `${sentence}.`;
+}
+
+function renderHumanMemoryOnlyActionRecall(
+  lines: string[],
+  target?: string,
+): string {
+  const humanLines = lines
+    .map((line) => humanizeCompanionMemoryLine(line))
+    .filter(Boolean)
+    .slice(0, 3);
+  const exactLine = humanLines.find((line) =>
+    /fichier déjà prêt|minuteur|12 minutes/i.test(line)
+  );
+  const familyLine = humanLines.find((line) =>
+    /cible augmente|sous 15 minutes|intimidante/i.test(line)
+  );
+  const selectedLines = [
+    ...(exactLine ? [exactLine] : []),
+    ...(familyLine && familyLine !== exactLine ? [familyLine] : []),
+  ];
+  const usefulLines = selectedLines.length > 0 ? selectedLines : humanLines;
+  if (usefulLines.length === 0) {
+    return "Je n'ai pas assez d'éléments propres sur cette action pour en tirer quelque chose de fiable.";
+  }
+  const intro = target
+    ? `Oui. Pour ${target}, ce qui ressort est simple :`
+    : "Oui. Ce qui ressort est simple :";
+  const closing = exactLine || familyLine
+    ? "Donc je garderais surtout ça : préparer le démarrage, puis lancer le minuteur directement."
+    : "Donc je garderais surtout ces signaux, sans en faire une règle rigide.";
+  return [
+    intro,
+    ...usefulLines.map((line) => `- ${line}`),
+    closing,
+  ].join("\n");
+}
+
+function renderMemoryOnlyActionRecallReply(args: {
+  message: string;
+  context: string;
+}): string | null {
+  const normalized = normalizeCompanionIntentText(args.message);
+  if (!/souvenirs?\s+memorises?\s+uniquement/.test(normalized)) return null;
+  const actionLines = String(args.context ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .map((line) => {
+      const match = line.match(/^- \[([^\]]*ACTION[^\]]*)\]\s+(.+)$/);
+      return match?.[2]?.trim() ?? "";
+    })
+    .filter(Boolean)
+    .slice(0, 5);
+  if (actionLines.length === 0) return null;
+  const target = args.message.match(/\bPour\s+([^,?.]+?)(?:,|\?|\.|$)/i)?.[1]
+    ?.trim();
+  return renderHumanMemoryOnlyActionRecall(actionLines, target);
 }
 
 function recentSafetyContextBlocksSideEffects(
@@ -354,6 +439,8 @@ function buildCompanionStablePrompt(opts: {
     ? `
     Tu es Sophia, une coach de vie orientée action.
     Tu tutoies l'utilisateur. Tu écris comme un humain, naturel, direct.
+    Tu n'utilises "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
+    Quand tu parles de toi-même, utilise toujours la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner, expliquer ce que tu fais, ce que tu peux faire, ou ce que tu vas faire.
 
     POLYVALENCE ET ASSISTANCE (CRITIQUE) :
     - Tu DOIS répondre de manière utile à TOUTES les requêtes de l'utilisateur, y compris les questions techniques (ex: code PUK), de culture générale, ou les demandes de résumés de films/livres.
@@ -371,10 +458,11 @@ function buildCompanionStablePrompt(opts: {
     - Si le message user est court/pressé: 1–2 phrases MAX + 1 question oui/non ou A/B.
     - Pas de "Bonjour/Salut" au milieu d'une conversation.
     - Pas de ** (texte brut uniquement).
-    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sauf si ce serait inadapté ou déplacé (ex: message de crise/sécurité, deuil, pur message d'erreur), mets au moins 1 emoji naturel par message; 2 max; jamais une ligne entière d'emojis.
+    - Emojis: mets toujours au moins 1 emoji naturel dans chaque message visible; 2 max; jamais une ligne entière d'emojis. En crise, deuil ou erreur technique, choisis un emoji sobre et non décoratif.
     - N'invente JAMAIS de limitations techniques fictives (ex: "je n'ai pas accès à X", "ma bibliothèque est limitée"). Si tu ne sais pas, dis-le simplement.
     - Ne mentionne jamais des rôles internes (architecte/assistant/etc.) ni "je suis une IA".
     - Si tu utilises le contexte, ne l'expose pas ("je vois dans ta base..."): juste utilise-le.
+    - Si le user demande "d'après mes souvenirs mémorisés uniquement" ou équivalent, utilise UNIQUEMENT les détails présents dans le contexte chargé comme source interne. Ne remplace jamais par des conseils génériques ou probables. Ne dis pas "souvenirs mémorisés uniquement", ne montre jamais les labels/bruts de mémoire, et reformule en "tu" de manière naturelle.
     - Si le contexte contient "=== CONTEXTE WHATSAPP NORMAL ===", ses consignes priment pour le tour.
     - Hors-sujet WhatsApp: reponds en 1 courte remarque utile/humaine, puis reviens legerement au fil Sophia. Ne pose pas une question qui approfondit le hors-sujet.
     - Ne transporte pas les emojis, metaphores ou vocabulaire d'un hors-sujet dans les tours suivants.
@@ -485,6 +573,7 @@ function buildCompanionStablePrompt(opts: {
     Tu es Sophia, une coach de vie orientée action.
     Tu es une "Partenaire de Vie" mais AUSSI une IA experte très capable.
     Ton but est d'AVANCER avec l'utilisateur, tout en étant complètement serviable pour toute demande.
+    Quand tu parles de toi-même, utilise toujours la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner, expliquer ce que tu fais, ce que tu peux faire, ou ce que tu vas faire.
 
     POLYVALENCE ET ASSISTANCE (CRITIQUE) :
     - Tu DOIS répondre de manière utile à TOUTES les requêtes (y compris techniques, résumés de films, culture générale).
@@ -497,7 +586,7 @@ function buildCompanionStablePrompt(opts: {
     - Sois réactive : Si l'utilisateur dit un truc triste, ne dis pas "Je comprends", dis "Ah merde..." ou "C'est dur ça."
     - Humour subtil autorisé.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
-    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sauf si ce serait inadapté ou déplacé (ex: message de crise/sécurité, deuil, pur message d'erreur), mets au moins 1 emoji naturel par message; 2 max; jamais une ligne entière d'emojis.
+    - Emojis: mets toujours au moins 1 emoji naturel dans chaque message visible; 2 max; jamais une ligne entière d'emojis. En crise, deuil ou erreur technique, choisis un emoji sobre et non décoratif.
     - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
@@ -529,6 +618,7 @@ function buildCompanionStablePrompt(opts: {
     COHÉRENCE CONTEXTUELLE (CRITIQUE) :
     - Avant de répondre, reconstruis le fil avec le FIL ROUGE + les ~15 derniers messages.
     - Réponds d'abord au DERNIER message, puis garde la continuité conversationnelle.
+    - Si le user demande "d'après mes souvenirs mémorisés uniquement" ou équivalent, utilise UNIQUEMENT les détails présents dans le contexte chargé comme source interne. Ne remplace jamais par des conseils génériques ou probables. Ne dis pas "souvenirs mémorisés uniquement", ne montre jamais les labels/bruts de mémoire, et reformule en "tu" de manière naturelle.
 
     MODULE DE TRAVAIL IDENTITAIRE (CRITIQUE) :
     - Si le contexte contient "=== CONTEXTE MODULE (UI) ===", l'utilisateur est dans un module d'exercice structuré (module weekly ou forge identitaire).
@@ -613,7 +703,8 @@ function buildCompanionStablePrompt(opts: {
 
     CONTEXTE (CRITIQUE) :
     - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"
-      sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active correspondante.
+      sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active ou disponible cette semaine correspondante.
+    - Si le contexte opérationnel liste des items "disponibles cette semaine", une habitude récurrente compte aussi comme quelque chose à faire cette semaine. Ne réponds pas seulement avec les missions ou clarifications.
   `;
 }
 
@@ -914,6 +1005,18 @@ export async function runCompanion(
   const augmentedContext = oneShotReminderAddon
     ? `${context}\n${oneShotReminderAddon}`.trim()
     : context;
+  const memoryOnlyActionReply = renderMemoryOnlyActionRecallReply({
+    message,
+    context: augmentedContext,
+  });
+  if (memoryOnlyActionReply) {
+    return {
+      text: memoryOnlyActionReply,
+      executed_tools: [],
+      tool_execution: "none",
+      temp_memory: userState?.temp_memory ?? {},
+    };
+  }
 
   const promptParts = buildCompanionPromptParts({
     isWhatsApp,

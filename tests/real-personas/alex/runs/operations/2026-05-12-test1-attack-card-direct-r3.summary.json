@@ -1,0 +1,108 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-direct-r3-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Fais-moi une carte d attaque pour lancer mon sas de dechargement ce soir.",
+    "assistant": "Je te propose de creer une carte d'attaque courte pour lancer mon sas de dechargement ce soir.: Fais la version 4 minutes de \"lancer mon sas de dechargement ce soir.\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - lancer mon sas de dechargement ce soir.",
+          "technique": "minimum_version",
+          "instruction": "Fais la version 4 minutes de \"lancer mon sas de dechargement ce soir.\", assez petite pour ne pas negocier.",
+          "target_label": "lancer mon sas de dechargement ce soir.",
+          "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose de creer une carte d'attaque courte pour lancer mon sas de dechargement ce soir.: Fais la version 4 minutes de \"lancer mon sas de dechargement ce soir.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "2be94e24-3929-4795-b32a-09f6f03f3a74",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-direct-r3-t02",
+    "status": 200,
+    "ok": true,
+    "user": "oui vas-y",
+    "assistant": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - lancer mon sas de dechargement ce soir.\" : Fais la version 4 minutes de \"lancer mon sas de dechargement ce soir.\", assez petite pour ne pas negocier.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "2be94e24-3929-4795-b32a-09f6f03f3a74",
+      "attack_card_id": "12972864-00f0-47ec-b030-98b659730ce5",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

@@ -80,7 +80,9 @@ function fallbackLabel(trigger: ImpulseTrigger, index: number): string {
   return `Situation ${index + 1}`;
 }
 
-function keywordIcon(trigger: ImpulseTrigger): typeof ILLUSTRATION_ICONS[number] {
+function keywordIcon(
+  trigger: ImpulseTrigger,
+): typeof ILLUSTRATION_ICONS[number] {
   const haystack = [
     trigger.label,
     trigger.situation,
@@ -91,13 +93,17 @@ function keywordIcon(trigger: ImpulseTrigger): typeof ILLUSTRATION_ICONS[number]
 
   if (/(nuit|soir|lit|sommeil|dorm|reveil)/.test(haystack)) return "moon";
   if (/(livre|lecture|book)/.test(haystack)) return "book";
-  if (/(telephone|t[ée]l[ée]phone|ecran|serie|scroll|portable)/.test(haystack)) return "phone_off";
+  if (
+    /(telephone|t[ée]l[ée]phone|ecran|serie|scroll|portable)/.test(haystack)
+  ) return "phone_off";
   if (/(respir|souffle|4-7-8|coherence)/.test(haystack)) return "breath";
   if (/(lever|sortir|piece|porte|quitter)/.test(haystack)) return "door";
   if (/(the|infusion|tisane|boisson chaude)/.test(haystack)) return "tea";
   if (/(eau|verre d'eau)/.test(haystack)) return "water";
   if (/(bureau|travail|ordi|ordinateur|mail)/.test(haystack)) return "desk";
-  if (/(frigo|placard|manger|grignot|cuisine|assiette)/.test(haystack)) return "plate";
+  if (/(frigo|placard|manger|grignot|cuisine|assiette)/.test(haystack)) {
+    return "plate";
+  }
   if (/(marche|marcher|pas|escalier)/.test(haystack)) return "steps";
   if (/(coeur|relation|amour|conflit)/.test(haystack)) return "heart";
   if (/(matin|aube|reveil calme|demarrage)/.test(haystack)) return "sunrise";
@@ -108,34 +114,90 @@ function keywordIcon(trigger: ImpulseTrigger): typeof ILLUSTRATION_ICONS[number]
 function fallbackPalette(icon: typeof ILLUSTRATION_ICONS[number]) {
   switch (icon) {
     case "moon":
-      return { palette: ["#102542", "#2c5f8a", "#7db7ff"], accent: "#facc15", scene: "nuit calme" };
+      return {
+        palette: ["#102542", "#2c5f8a", "#7db7ff"],
+        accent: "#facc15",
+        scene: "nuit calme",
+      };
     case "book":
-      return { palette: ["#4c1d95", "#7c3aed", "#ddd6fe"], accent: "#f59e0b", scene: "lecture refuge" };
+      return {
+        palette: ["#4c1d95", "#7c3aed", "#ddd6fe"],
+        accent: "#f59e0b",
+        scene: "lecture refuge",
+      };
     case "phone_off":
-      return { palette: ["#111827", "#334155", "#94a3b8"], accent: "#f97316", scene: "ecran mis a distance" };
+      return {
+        palette: ["#111827", "#334155", "#94a3b8"],
+        accent: "#f97316",
+        scene: "ecran mis a distance",
+      };
     case "breath":
-      return { palette: ["#0f766e", "#14b8a6", "#99f6e4"], accent: "#f8fafc", scene: "souffle qui revient" };
+      return {
+        palette: ["#0f766e", "#14b8a6", "#99f6e4"],
+        accent: "#f8fafc",
+        scene: "souffle qui revient",
+      };
     case "door":
-      return { palette: ["#78350f", "#b45309", "#fde68a"], accent: "#f8fafc", scene: "porte de sortie" };
+      return {
+        palette: ["#78350f", "#b45309", "#fde68a"],
+        accent: "#f8fafc",
+        scene: "porte de sortie",
+      };
     case "tea":
-      return { palette: ["#7c2d12", "#ea580c", "#fed7aa"], accent: "#fff7ed", scene: "pause chaude" };
+      return {
+        palette: ["#7c2d12", "#ea580c", "#fed7aa"],
+        accent: "#fff7ed",
+        scene: "pause chaude",
+      };
     case "water":
-      return { palette: ["#0c4a6e", "#0284c7", "#bae6fd"], accent: "#eff6ff", scene: "eau qui recentre" };
+      return {
+        palette: ["#0c4a6e", "#0284c7", "#bae6fd"],
+        accent: "#eff6ff",
+        scene: "eau qui recentre",
+      };
     case "desk":
-      return { palette: ["#1f2937", "#475569", "#cbd5e1"], accent: "#60a5fa", scene: "bureau recadre" };
+      return {
+        palette: ["#1f2937", "#475569", "#cbd5e1"],
+        accent: "#60a5fa",
+        scene: "bureau recadre",
+      };
     case "plate":
-      return { palette: ["#365314", "#65a30d", "#d9f99d"], accent: "#fef3c7", scene: "rituel alimentaire calme" };
+      return {
+        palette: ["#365314", "#65a30d", "#d9f99d"],
+        accent: "#fef3c7",
+        scene: "rituel alimentaire calme",
+      };
     case "heart":
-      return { palette: ["#831843", "#db2777", "#fbcfe8"], accent: "#fff1f2", scene: "coeur apaise" };
+      return {
+        palette: ["#831843", "#db2777", "#fbcfe8"],
+        accent: "#fff1f2",
+        scene: "coeur apaise",
+      };
     case "sunrise":
-      return { palette: ["#7c2d12", "#fb7185", "#fde68a"], accent: "#fff7ed", scene: "nouveau depart" };
+      return {
+        palette: ["#7c2d12", "#fb7185", "#fde68a"],
+        accent: "#fff7ed",
+        scene: "nouveau depart",
+      };
     case "steps":
-      return { palette: ["#312e81", "#4f46e5", "#c7d2fe"], accent: "#eef2ff", scene: "mouvement qui relance" };
+      return {
+        palette: ["#312e81", "#4f46e5", "#c7d2fe"],
+        accent: "#eef2ff",
+        scene: "mouvement qui relance",
+      };
     case "shield":
-      return { palette: ["#14532d", "#16a34a", "#bbf7d0"], accent: "#f0fdf4", scene: "protection active" };
+      return {
+        palette: ["#14532d", "#16a34a", "#bbf7d0"],
+        accent: "#f0fdf4",
+        scene: "protection active",
+      };
     case "spark":
     default:
-      return { palette: ["#92400e", "#f59e0b", "#fde68a"], accent: "#fff7ed", scene: "etincelle de reprise" };
+      return {
+        palette: ["#92400e", "#f59e0b", "#fde68a"],
+        accent: "#fff7ed",
+        scene: "etincelle de reprise",
+      };
   }
 }
 
@@ -149,7 +211,10 @@ function fallbackIllustration(trigger: ImpulseTrigger) {
 
 function cleanDifficultyText(value: string): string {
   return value
-    .replace(/^(ici|la vraie difficulte|ce qui sera difficile|ce qui va etre difficile)\s*[:,]?\s*/i, "")
+    .replace(
+      /^(ici|la vraie difficulte|ce qui sera difficile|ce qui va etre difficile)\s*[:,]?\s*/i,
+      "",
+    )
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -171,10 +236,14 @@ function fallbackDifficultyPreview(trigger: ImpulseTrigger): string {
   return "Ne pas laisser la resistance prendre toute la place.";
 }
 
-function fallbackDifficultyMapSummary(impulses: DefenseCardContent["impulses"]): string | null {
+function fallbackDifficultyMapSummary(
+  impulses: DefenseCardContent["impulses"],
+): string | null {
   const previews = impulses
     .flatMap((impulse) => impulse.triggers)
-    .map((trigger) => cleanDifficultyText(String(trigger.difficulty_preview ?? "")))
+    .map((trigger) =>
+      cleanDifficultyText(String(trigger.difficulty_preview ?? ""))
+    )
     .filter(Boolean)
     .slice(0, 3);
 
@@ -192,68 +261,130 @@ function normalizeEnrichedContent(
 
   return {
     impulses: sourceImpulses.map((impulse, impulseIndex) => ({
-      impulse_id: String(impulse.impulse_id).trim() || original.impulses[impulseIndex]?.impulse_id || `impulse-${impulseIndex + 1}`,
-      label: String(impulse.label).trim() || original.impulses[impulseIndex]?.label || `Impulse ${impulseIndex + 1}`,
-      generic_defense:
-        String(impulse.generic_defense).trim() || original.impulses[impulseIndex]?.generic_defense || "",
+      impulse_id: String(impulse.impulse_id).trim() ||
+        original.impulses[impulseIndex]?.impulse_id ||
+        `impulse-${impulseIndex + 1}`,
+      label: String(impulse.label).trim() ||
+        original.impulses[impulseIndex]?.label || `Impulse ${impulseIndex + 1}`,
+      generic_defense: String(impulse.generic_defense).trim() ||
+        original.impulses[impulseIndex]?.generic_defense || "",
       triggers: impulse.triggers.map((trigger, triggerIndex) => {
-        const originalTrigger = original.impulses[impulseIndex]?.triggers[triggerIndex];
+        const originalTrigger = original.impulses[impulseIndex]
+          ?.triggers[triggerIndex];
         const merged: ImpulseTrigger = {
-          trigger_id: String(trigger.trigger_id).trim() || originalTrigger?.trigger_id || `trigger-${impulseIndex + 1}-${triggerIndex + 1}`,
-          label: String(trigger.label).trim() || fallbackLabel(originalTrigger ?? trigger, triggerIndex),
-          difficulty_preview:
-            cleanDifficultyText(String(trigger.difficulty_preview ?? "").trim()) ||
-            cleanDifficultyText(String(originalTrigger?.difficulty_preview ?? "").trim()) ||
+          trigger_id: String(trigger.trigger_id).trim() ||
+            originalTrigger?.trigger_id ||
+            `trigger-${impulseIndex + 1}-${triggerIndex + 1}`,
+          label: String(trigger.label).trim() ||
+            fallbackLabel(originalTrigger ?? trigger, triggerIndex),
+          difficulty_preview: cleanDifficultyText(
+            String(trigger.difficulty_preview ?? "").trim(),
+          ) ||
+            cleanDifficultyText(
+              String(originalTrigger?.difficulty_preview ?? "").trim(),
+            ) ||
             fallbackDifficultyPreview(originalTrigger ?? trigger),
-          situation: String(trigger.situation).trim() || String(originalTrigger?.situation ?? "").trim(),
-          signal: String(trigger.signal).trim() || String(originalTrigger?.signal ?? "").trim(),
-          defense_response: String(trigger.defense_response).trim() || String(originalTrigger?.defense_response ?? "").trim(),
-          plan_b:
-            String(trigger.plan_b ?? "").trim() ||
+          situation: String(trigger.situation).trim() ||
+            String(originalTrigger?.situation ?? "").trim(),
+          signal: String(trigger.signal).trim() ||
+            String(originalTrigger?.signal ?? "").trim(),
+          defense_response: String(trigger.defense_response).trim() ||
+            String(originalTrigger?.defense_response ?? "").trim(),
+          plan_b: String(trigger.plan_b ?? "").trim() ||
             String(originalTrigger?.plan_b ?? "").trim() ||
-            String(original.impulses[impulseIndex]?.generic_defense ?? "").trim(),
-          illustration: trigger.illustration ?? originalTrigger?.illustration ?? fallbackIllustration(originalTrigger ?? trigger),
+            String(original.impulses[impulseIndex]?.generic_defense ?? "")
+              .trim(),
+          illustration: trigger.illustration ?? originalTrigger?.illustration ??
+            fallbackIllustration(originalTrigger ?? trigger),
         };
         if (!merged.label) merged.label = fallbackLabel(merged, triggerIndex);
-        if (!merged.illustration) merged.illustration = fallbackIllustration(merged);
+        if (!merged.illustration) {
+          merged.illustration = fallbackIllustration(merged);
+        }
         return merged;
       }),
     })),
-    difficulty_map_summary:
-      cleanDifficultyText(String(enriched?.difficulty_map_summary ?? "").trim()) ||
-      cleanDifficultyText(String(original.difficulty_map_summary ?? "").trim()) ||
+    difficulty_map_summary: cleanDifficultyText(
+      String(enriched?.difficulty_map_summary ?? "").trim(),
+    ) ||
+      cleanDifficultyText(
+        String(original.difficulty_map_summary ?? "").trim(),
+      ) ||
       fallbackDifficultyMapSummary(
         sourceImpulses.map((impulse, impulseIndex) => ({
-          impulse_id: String(impulse.impulse_id).trim() || original.impulses[impulseIndex]?.impulse_id || `impulse-${impulseIndex + 1}`,
-          label: String(impulse.label).trim() || original.impulses[impulseIndex]?.label || `Impulse ${impulseIndex + 1}`,
-          generic_defense:
-            String(impulse.generic_defense).trim() || original.impulses[impulseIndex]?.generic_defense || "",
+          impulse_id: String(impulse.impulse_id).trim() ||
+            original.impulses[impulseIndex]?.impulse_id ||
+            `impulse-${impulseIndex + 1}`,
+          label: String(impulse.label).trim() ||
+            original.impulses[impulseIndex]?.label ||
+            `Impulse ${impulseIndex + 1}`,
+          generic_defense: String(impulse.generic_defense).trim() ||
+            original.impulses[impulseIndex]?.generic_defense || "",
           triggers: impulse.triggers.map((trigger, triggerIndex) => ({
-            trigger_id: String(trigger.trigger_id).trim() || original.impulses[impulseIndex]?.triggers[triggerIndex]?.trigger_id || `trigger-${impulseIndex + 1}-${triggerIndex + 1}`,
-            label: String(trigger.label).trim() || fallbackLabel(original.impulses[impulseIndex]?.triggers[triggerIndex] ?? trigger, triggerIndex),
-            difficulty_preview:
-              cleanDifficultyText(String(trigger.difficulty_preview ?? "").trim()) ||
-              cleanDifficultyText(String(original.impulses[impulseIndex]?.triggers[triggerIndex]?.difficulty_preview ?? "").trim()) ||
-              fallbackDifficultyPreview(original.impulses[impulseIndex]?.triggers[triggerIndex] ?? trigger),
-            situation: String(trigger.situation).trim() || String(original.impulses[impulseIndex]?.triggers[triggerIndex]?.situation ?? "").trim(),
-            signal: String(trigger.signal).trim() || String(original.impulses[impulseIndex]?.triggers[triggerIndex]?.signal ?? "").trim(),
-            defense_response: String(trigger.defense_response).trim() || String(original.impulses[impulseIndex]?.triggers[triggerIndex]?.defense_response ?? "").trim(),
-            plan_b:
-              String(trigger.plan_b ?? "").trim() ||
-              String(original.impulses[impulseIndex]?.triggers[triggerIndex]?.plan_b ?? "").trim() ||
-              String(original.impulses[impulseIndex]?.generic_defense ?? "").trim(),
+            trigger_id: String(trigger.trigger_id).trim() ||
+              original.impulses[impulseIndex]?.triggers[triggerIndex]
+                ?.trigger_id ||
+              `trigger-${impulseIndex + 1}-${triggerIndex + 1}`,
+            label: String(trigger.label).trim() ||
+              fallbackLabel(
+                original.impulses[impulseIndex]?.triggers[triggerIndex] ??
+                  trigger,
+                triggerIndex,
+              ),
+            difficulty_preview: cleanDifficultyText(
+              String(trigger.difficulty_preview ?? "").trim(),
+            ) ||
+              cleanDifficultyText(
+                String(
+                  original.impulses[impulseIndex]?.triggers[triggerIndex]
+                    ?.difficulty_preview ?? "",
+                ).trim(),
+              ) ||
+              fallbackDifficultyPreview(
+                original.impulses[impulseIndex]?.triggers[triggerIndex] ??
+                  trigger,
+              ),
+            situation: String(trigger.situation).trim() ||
+              String(
+                original.impulses[impulseIndex]?.triggers[triggerIndex]
+                  ?.situation ?? "",
+              ).trim(),
+            signal: String(trigger.signal).trim() ||
+              String(
+                original.impulses[impulseIndex]?.triggers[triggerIndex]
+                  ?.signal ?? "",
+              ).trim(),
+            defense_response: String(trigger.defense_response).trim() ||
+              String(
+                original.impulses[impulseIndex]?.triggers[triggerIndex]
+                  ?.defense_response ?? "",
+              ).trim(),
+            plan_b: String(trigger.plan_b ?? "").trim() ||
+              String(
+                original.impulses[impulseIndex]?.triggers[triggerIndex]
+                  ?.plan_b ?? "",
+              ).trim() ||
+              String(original.impulses[impulseIndex]?.generic_defense ?? "")
+                .trim(),
           })),
         })),
       ),
     review: {
-      decision: enriched?.decision === "allow_with_fixes" ? "allow_with_fixes" : "allow",
-      reason_short: String(enriched?.reason_short ?? "Carte relue en mode permissif.").trim().slice(0, 180),
+      decision: enriched?.decision === "allow_with_fixes"
+        ? "allow_with_fixes"
+        : "allow",
+      reason_short: String(
+        enriched?.reason_short ?? "Carte relue en mode permissif.",
+      ).trim().slice(0, 180),
       checked_at: new Date().toISOString(),
     },
   };
 }
 
-function buildEnrichmentPrompt(content: DefenseCardContent, context?: DefenseCardEnrichmentContext): string {
+function buildEnrichmentPrompt(
+  content: DefenseCardContent,
+  context?: DefenseCardEnrichmentContext,
+): string {
   const cardBlock = content.impulses
     .map((impulse) => {
       const triggers = impulse.triggers
@@ -261,11 +392,16 @@ function buildEnrichmentPrompt(content: DefenseCardContent, context?: DefenseCar
           [
             `- trigger_id: ${trigger.trigger_id}`,
             `  label: ${String(trigger.label ?? "").trim() || "(a creer)"}`,
-            `  difficulty_preview: ${String(trigger.difficulty_preview ?? "").trim() || "(a creer)"}`,
+            `  difficulty_preview: ${
+              String(trigger.difficulty_preview ?? "").trim() || "(a creer)"
+            }`,
             `  situation: ${trigger.situation}`,
             `  signal: ${trigger.signal}`,
             `  defense_response: ${trigger.defense_response}`,
-            `  plan_b: ${String(trigger.plan_b ?? impulse.generic_defense ?? "").trim() || "(a creer)"}`,
+            `  plan_b: ${
+              String(trigger.plan_b ?? impulse.generic_defense ?? "").trim() ||
+              "(a creer)"
+            }`,
           ].join("\n")
         )
         .join("\n");
@@ -278,15 +414,20 @@ function buildEnrichmentPrompt(content: DefenseCardContent, context?: DefenseCar
     .join("\n\n");
 
   return [
-    context?.transformation_title ? `Transformation: ${context.transformation_title}` : null,
-    context?.transformation_summary ? `Resume: ${context.transformation_summary}` : null,
+    context?.transformation_title
+      ? `Transformation: ${context.transformation_title}`
+      : null,
+    context?.transformation_summary
+      ? `Resume: ${context.transformation_summary}`
+      : null,
     "",
     "Carte actuelle:",
     cardBlock,
   ].filter(Boolean).join("\n");
 }
 
-const ENRICHMENT_SYSTEM_PROMPT = `Tu relis une carte de defense d'une app de coaching.
+const ENRICHMENT_SYSTEM_PROMPT =
+  `Tu relis une carte de defense d'une app de coaching.
 
 Objectifs:
 1. verifier l'ethique avec un filtre TRES permissif
@@ -308,6 +449,7 @@ Politique ethique:
 Regles de rendu:
 - Garde la structure existante et les ids.
 - Le label de chaque trigger doit etre court, concret, memorisable.
+- Dans tous les champs visibles par l'utilisateur, tutoie toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 - \`difficulty_preview\` doit etre UNE phrase courte autonome qui nomme la difficulte a anticiper.
 - Ne commence jamais \`difficulty_preview\` par "Ici", "Ce qui va etre difficile" ou une formule meta.
 - Garde la structure produit explicite: situation = Le moment, signal = Le piege, defense_response = Mon geste, plan_b = Plan B.
@@ -380,7 +522,10 @@ export async function reviewAndEnrichDefenseCard(
       },
     );
 
-    const cleaned = String(raw ?? "").replace(/```json\s*/gi, "").replace(/```\s*/g, "").trim();
+    const cleaned = String(raw ?? "").replace(/```json\s*/gi, "").replace(
+      /```\s*/g,
+      "",
+    ).trim();
     const parsed = EnrichmentSchema.parse(JSON.parse(cleaned));
 
     if (parsed.decision === "block") {
@@ -389,7 +534,10 @@ export async function reviewAndEnrichDefenseCard(
 
     return normalizeEnrichedContent(content, parsed);
   } catch (error) {
-    if (error instanceof Error && error.message === "__DEFENSE_CARD_ETHICS_BLOCK__") {
+    if (
+      error instanceof Error &&
+      error.message === "__DEFENSE_CARD_ETHICS_BLOCK__"
+    ) {
       throw error;
     }
     console.warn("[defense-card-enrichment] fallback enrichment:", error);

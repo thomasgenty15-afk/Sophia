@@ -49,9 +49,44 @@ Deno.test("write policy uses candidate for grey confidence and requires_user_ini
   );
   assertEquals(
     decideInitialWriteStatus(candidate({
-      item: { ...candidate().item, requires_user_initiated: true },
+      item: {
+        ...candidate().item,
+        confidence: 0.7,
+        requires_user_initiated: true,
+      },
     })).reason,
     "requires_user_initiated",
+  );
+});
+
+Deno.test("write policy activates high-confidence unlinked durable memories", () => {
+  const unlinked = candidate({
+    item: { ...candidate().item, confidence: 0.75, importance_score: 0.6 },
+    topic_link: {
+      ...candidate().topic_link!,
+      topic_id: null,
+      topic_slug: null,
+      confidence: 0,
+      reason: "no_topic_link",
+    },
+  });
+  assertEquals(decideInitialWriteStatus(unlinked).status, "active");
+  assertEquals(decideInitialWriteStatus(unlinked).reason, "high_confidence_unlinked");
+
+  const guarded = candidate({
+    item: { ...candidate().item, requires_user_initiated: true },
+    topic_link: {
+      ...candidate().topic_link!,
+      topic_id: null,
+      topic_slug: null,
+      confidence: 0,
+      reason: "no_topic_link",
+    },
+  });
+  assertEquals(decideInitialWriteStatus(guarded).status, "active");
+  assertEquals(
+    decideInitialWriteStatus(guarded).reason,
+    "high_confidence_user_initiated_guarded",
   );
 });
 

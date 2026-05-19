@@ -12,7 +12,6 @@ Deno.test("inferOperationFromSource maps known families", () => {
   assertEquals(inferOperationFromSource("sophia-brain:topic_initial_synthesis").operation_family, "memorizer");
   assertEquals(inferOperationFromSource("sophia-brain:synthesizer").operation_family, "memorizer");
   assertEquals(inferOperationFromSource("sophia-brain:companion").operation_family, "message_generation");
-  assertEquals(inferOperationFromSource("sophia-brain:investigator").operation_family, "message_generation");
   assertEquals(inferOperationFromSource("sophia-brain:firefighter").operation_family, "message_generation");
   assertEquals(inferOperationFromSource("sophia-brain:sentry").operation_family, "message_generation");
   assertEquals(inferOperationFromSource("scheduled_checkins:dynamic_whatsapp").operation_family, "scheduling");

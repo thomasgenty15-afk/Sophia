@@ -1,0 +1,236 @@
+{
+  "connection": {
+    "persona": "qa-skill",
+    "connection_name": "product_help_dashboard_dashhelp1_c4_initiatives-preferences-base",
+    "user_id": "48fa06f4-df35-41d8-8552-556e9b75ec9a",
+    "scope": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2"
+  },
+  "target": {
+    "key": "coach.question_tendency",
+    "value": "high",
+    "user": "Quand tu me donnes tout de suite ton analyse, je traverse le truc trop vite. Aide-moi plutot a le sortir moi-meme, quitte a me faire preciser deux ou trois angles avant de conclure."
+  },
+  "before": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "after": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "restore": {
+    "status": 204,
+    "ok": true
+  },
+  "restored": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Normale",
+          "value": "normal"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-16T19:05:44.602464+00:00",
+        "last_source_message_id": null
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "8ab9756e-ef61-41cd-86da-6a17040c48f1",
+        "role": "user",
+        "content": "Quand tu me donnes tout de suite ton analyse, je traverse le truc trop vite. Aide-moi plutot a le sortir moi-meme, quitte a me faire preciser deux ou trois angles avant de conclure.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T19:05:44.779202+00:00"
+      },
+      {
+        "id": "80b8b149-5102-4b0b-9e83-25277cc78e70",
+        "role": "assistant",
+        "content": "Je peux régler ma façon de répondre: Sophia utilisera plus de questions. Tu veux que je l'applique ?",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "patch": {
+                    "coach.question_tendency": "high"
+                  },
+                  "reason": "Quand tu me donnes tout de suite ton analyse, je traverse le truc trop vite. Aide-moi plutot a le sortir moi-meme, quitte a me faire preciser deux ou trois angles avant de conclure.",
+                  "summary": "Sophia utilisera plus de questions."
+                },
+                "output_schema": "coach_preferences_patch_draft_v1",
+                "operation_type": "update_coach_preferences",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je peux régler ma façon de répondre: Sophia utilisera plus de questions. Tu veux que je l'applique ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "b1c65a13-7842-4a48-a63e-c17df1385a17",
+              "selected_handler": "update_coach_preferences"
+            }
+          }
+        },
+        "created_at": "2026-05-16T19:05:57.588325+00:00"
+      },
+      {
+        "id": "7c2d49a5-f0d9-4e92-bc04-9356fc138ce1",
+        "role": "user",
+        "content": "Oui, applique ce reglage.",
+        "metadata": {
+          "request_id": "qa-update-coach-preferences-2026-05-16-prefarch3-questions-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T19:05:57.642587+00:00"
+      }
+    ]
+  },
+  "cleanup": {
+    "chat_messages": {
+      "status": 204,
+      "ok": true
+    },
+    "user_profile_facts": {
+      "status": 204,
+      "ok": true
+    },
+    "auth_user": {
+      "status": 200,
+      "ok": true
+    }
+  }
+}

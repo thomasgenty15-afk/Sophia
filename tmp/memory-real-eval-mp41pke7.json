@@ -1,0 +1,2297 @@
+{
+  "ok": true,
+  "run_id": "memory-real-eval-mp41pke7",
+  "user": {
+    "id": "bdbeb1c6-061b-459e-aa7d-251a80085f28",
+    "email": "memory-real-eval-mp41pke7@example.com"
+  },
+  "trigger_summary": {
+    "processed_count": 1,
+    "message_count": 28,
+    "memorizer": {
+      "status": "completed",
+      "reason": null,
+      "processed_message_count": 28,
+      "persisted_count": 17,
+      "extraction_run_id": "231401e6-c6b2-48ad-9f3a-8115f8043947",
+      "batch_hash": "a4f24ddc273c0469cf951e68127de134ec7ac0b43ec13c8a96ebac72cfc7419b",
+      "write_decision_count": 17,
+      "extraction_run": {
+        "id": "231401e6-c6b2-48ad-9f3a-8115f8043947",
+        "status": "completed",
+        "trigger_type": "daily_batch",
+        "proposed_item_count": 17,
+        "accepted_item_count": 17,
+        "rejected_item_count": 9,
+        "proposed_entity_count": 5,
+        "accepted_entity_count": 0,
+        "duration_ms": 41706,
+        "error_message": null,
+        "durable_writes": {
+          "active_items": 15,
+          "memory_items": 17,
+          "candidate_items": 2
+        },
+        "pre_filter_skip_count": 2,
+        "statement_as_fact_violation_count": 0,
+        "rejection_reasons": {
+          "smart_pre_filter": 2,
+          "L'utilisateur a explicitement demandé de ne pas mémoriser cela comme un trait stable, mais comme un ressenti ponctuel.": 1,
+          "event_missing_date": 4,
+          "missing_sensitive_tag": 2
+        },
+        "write_decision_statuses": {
+          "active": 15,
+          "candidate": 2
+        }
+      }
+    }
+  },
+  "extraction_run": {
+    "id": "231401e6-c6b2-48ad-9f3a-8115f8043947",
+    "status": "completed",
+    "proposed_item_count": 17,
+    "accepted_item_count": 17,
+    "rejected_item_count": 9,
+    "proposed_entity_count": 5,
+    "accepted_entity_count": 0,
+    "duration_ms": 41706,
+    "error_message": null,
+    "rejected_observations": [
+      {
+        "text": "Karim est mon manager, pas mon associe.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "Je veux mesurer mes progres sur une semaine, pas sur une journee isolee.",
+        "reason": "smart_pre_filter"
+      },
+      {
+        "text": "",
+        "reason": "L'utilisateur a explicitement demandé de ne pas mémoriser cela comme un trait stable, mais comme un ressenti ponctuel.",
+        "metadata": {},
+        "source_message_ids": [
+          "80db9707-cdb6-4ded-a914-dcd496a39ebb"
+        ],
+        "existing_memory_item_id": null
+      },
+      {
+        "text": "A marché 27 minutes après le dîner hier soir pour réduire la pression.",
+        "reason": "event_missing_date",
+        "metadata": {
+          "issues": [
+            {
+              "code": "event_missing_date",
+              "message": "event requires event_start_at and time_precision",
+              "item_index": 3
+            }
+          ]
+        },
+        "source_message_ids": [
+          "dcf63028-ca9a-4b92-95e9-ec72deaf5ee3"
+        ]
+      },
+      {
+        "text": "Consomme parfois du cannabis le soir pour évacuer la pression.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "invalid sensitivity category: addictions.cannabis",
+              "item_index": 9
+            }
+          ]
+        },
+        "source_message_ids": [
+          "d619738a-f645-4a79-afbe-a541d6439dd7"
+        ]
+      },
+      {
+        "text": "Ne pas évoquer le cannabis dans des contextes neutres comme la marche ou le travail.",
+        "reason": "missing_sensitive_tag",
+        "metadata": {
+          "issues": [
+            {
+              "code": "missing_sensitive_tag",
+              "message": "invalid sensitivity category: addictions.cannabis",
+              "item_index": 10
+            }
+          ]
+        },
+        "source_message_ids": [
+          "00472177-0e63-4cb5-af05-440aac6762e8"
+        ]
+      },
+      {
+        "text": "A reporté une tâche importante avant-hier matin par manque de clarté sur le point de départ.",
+        "reason": "event_missing_date",
+        "metadata": {
+          "issues": [
+            {
+              "code": "event_missing_date",
+              "message": "event requires event_start_at and time_precision",
+              "item_index": 12
+            }
+          ]
+        },
+        "source_message_ids": [
+          "7656064e-7b83-4359-a98f-84b12c191508"
+        ]
+      },
+      {
+        "text": "A eu une discussion tendue avec sa mère dimanche soir concernant son rythme de travail.",
+        "reason": "event_missing_date",
+        "metadata": {
+          "issues": [
+            {
+              "code": "event_missing_date",
+              "message": "event requires event_start_at and time_precision",
+              "item_index": 17
+            }
+          ]
+        },
+        "source_message_ids": [
+          "c55d4016-ce3c-490a-8b2a-b16f3875f22b"
+        ]
+      },
+      {
+        "text": "A annulé une session de code aujourd'hui par épuisement, mais a clarifié la prochaine action.",
+        "reason": "event_missing_date",
+        "metadata": {
+          "issues": [
+            {
+              "code": "event_missing_date",
+              "message": "event requires event_start_at and time_precision",
+              "item_index": 22
+            }
+          ]
+        },
+        "source_message_ids": [
+          "eee5f67d-bc80-4981-809c-eab72401bb83"
+        ]
+      }
+    ],
+    "write_decisions": [
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.carriere",
+              "travail.performance"
+            ],
+            "content_text": "Travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+            "event_end_at": null,
+            "canonical_key": "travail.carriere.fact.developpement_projet_sophia_coaching_whatsapp",
+            "event_start_at": null,
+            "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Développement du projet Sophia (coaching WhatsApp)",
+            "source_message_ids": [
+              "353591a9-eff9-4537-a8ef-9bb4b778dee1"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere",
+                "travail.performance"
+              ],
+              "content_text": "Travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.fact.developpement_projet_sophia_coaching_whatsapp",
+              "event_start_at": null,
+              "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Développement du projet Sophia (coaching WhatsApp)",
+              "source_message_ids": [
+                "353591a9-eff9-4537-a8ef-9bb4b778dee1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.carriere",
+                "travail.performance"
+              ],
+              "content_text": "Travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+              "event_end_at": null,
+              "canonical_key": "travail.carriere.fact.developpement_projet_sophia_coaching_whatsapp",
+              "event_start_at": null,
+              "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Développement du projet Sophia (coaching WhatsApp)",
+              "source_message_ids": [
+                "353591a9-eff9-4537-a8ef-9bb4b778dee1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme",
+              "travail.performance"
+            ],
+            "content_text": "Objectif principal du mois : rendre Sophia plus fiable sur le suivi quotidien, les bilans et les relances.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.objectif_mensuel_fiabilite_suivi_quotidien_sophia",
+            "event_start_at": null,
+            "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif mensuel : fiabilité du suivi quotidien de Sophia",
+            "source_message_ids": [
+              "c68ed978-6292-44ae-aad1-91bf31dd77a0"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "Objectif principal du mois : rendre Sophia plus fiable sur le suivi quotidien, les bilans et les relances.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_mensuel_fiabilite_suivi_quotidien_sophia",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif mensuel : fiabilité du suivi quotidien de Sophia",
+              "source_message_ids": [
+                "c68ed978-6292-44ae-aad1-91bf31dd77a0"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "Objectif principal du mois : rendre Sophia plus fiable sur le suivi quotidien, les bilans et les relances.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_mensuel_fiabilite_suivi_quotidien_sophia",
+              "event_start_at": null,
+              "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif mensuel : fiabilité du suivi quotidien de Sophia",
+              "source_message_ids": [
+                "c68ed978-6292-44ae-aad1-91bf31dd77a0"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.procrastination",
+              "habitudes.execution"
+            ],
+            "content_text": "Procrastine quand l'action est floue ; a besoin d'actions minuscules et concrètes.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.procrastination.statement.besoin_actions_concretes_pour_eviter_procrastination",
+            "event_start_at": null,
+            "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Besoin d'actions concrètes pour éviter la procrastination",
+            "source_message_ids": [
+              "9024b4af-72bc-4fa0-ad8e-72acaf6a4dfc"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination",
+                "habitudes.execution"
+              ],
+              "content_text": "Procrastine quand l'action est floue ; a besoin d'actions minuscules et concrètes.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.procrastination.statement.besoin_actions_concretes_pour_eviter_procrastination",
+              "event_start_at": null,
+              "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin d'actions concrètes pour éviter la procrastination",
+              "source_message_ids": [
+                "9024b4af-72bc-4fa0-ad8e-72acaf6a4dfc"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.procrastination",
+                "habitudes.execution"
+              ],
+              "content_text": "Procrastine quand l'action est floue ; a besoin d'actions minuscules et concrètes.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.procrastination.statement.besoin_actions_concretes_pour_eviter_procrastination",
+              "event_start_at": null,
+              "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin d'actions concrètes pour éviter la procrastination",
+              "source_message_ids": [
+                "9024b4af-72bc-4fa0-ad8e-72acaf6a4dfc"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "action_without_confirmed_plan_item",
+        "status": "candidate",
+        "candidate": {
+          "item": {
+            "kind": "action_observation",
+            "metadata": {},
+            "confidence": 0.9,
+            "topic_hint": null,
+            "domain_keys": [
+              "sante.sommeil",
+              "addictions.ecrans"
+            ],
+            "content_text": "Dort mal depuis deux semaines en cas de scroll après minuit, particulièrement après avoir codé tard.",
+            "event_end_at": null,
+            "canonical_key": "sante.sommeil.action_observation.impact_negatif_scroll_tardif_sur_sommeil",
+            "event_start_at": null,
+            "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Impact négatif du scroll tardif sur le sommeil",
+            "source_message_ids": [
+              "d2cd893d-68db-4453-a4ef-1876c7eeed7b"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "action_observation",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "addictions.ecrans"
+              ],
+              "content_text": "Dort mal depuis deux semaines en cas de scroll après minuit, particulièrement après avoir codé tard.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.action_observation.impact_negatif_scroll_tardif_sur_sommeil",
+              "event_start_at": null,
+              "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Impact négatif du scroll tardif sur le sommeil",
+              "source_message_ids": [
+                "d2cd893d-68db-4453-a4ef-1876c7eeed7b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "action_observation",
+              "metadata": {},
+              "confidence": 0.9,
+              "topic_hint": null,
+              "domain_keys": [
+                "sante.sommeil",
+                "addictions.ecrans"
+              ],
+              "content_text": "Dort mal depuis deux semaines en cas de scroll après minuit, particulièrement après avoir codé tard.",
+              "event_end_at": null,
+              "canonical_key": "sante.sommeil.action_observation.impact_negatif_scroll_tardif_sur_sommeil",
+              "event_start_at": null,
+              "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Impact négatif du scroll tardif sur le sommeil",
+              "source_message_ids": [
+                "d2cd893d-68db-4453-a4ef-1876c7eeed7b"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.conflits",
+              "psychologie.emotions"
+            ],
+            "content_text": "Son manager Karim lui met une forte pression en réunion, ce qui provoque un sentiment d'humiliation.",
+            "event_end_at": null,
+            "canonical_key": "travail.conflits.fact.pression_humiliation_ressenties_avec_manager_karim",
+            "event_start_at": null,
+            "evidence_quote": "Au travail, mon manager Karim me met une grosse pression en reunion et je me sens parfois humilie.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Pression et humiliation ressenties avec le manager Karim",
+            "source_message_ids": [
+              "3e4bc9bb-cfae-4a75-b1b2-3b5fef02e4db"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.conflits",
+                "psychologie.emotions"
+              ],
+              "content_text": "Son manager Karim lui met une forte pression en réunion, ce qui provoque un sentiment d'humiliation.",
+              "event_end_at": null,
+              "canonical_key": "travail.conflits.fact.pression_humiliation_ressenties_avec_manager_karim",
+              "event_start_at": null,
+              "evidence_quote": "Au travail, mon manager Karim me met une grosse pression en reunion et je me sens parfois humilie.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Pression et humiliation ressenties avec le manager Karim",
+              "source_message_ids": [
+                "3e4bc9bb-cfae-4a75-b1b2-3b5fef02e4db"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.conflits",
+                "psychologie.emotions"
+              ],
+              "content_text": "Son manager Karim lui met une forte pression en réunion, ce qui provoque un sentiment d'humiliation.",
+              "event_end_at": null,
+              "canonical_key": "travail.conflits.fact.pression_humiliation_ressenties_avec_manager_karim",
+              "event_start_at": null,
+              "evidence_quote": "Au travail, mon manager Karim me met une grosse pression en reunion et je me sens parfois humilie.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Pression et humiliation ressenties avec le manager Karim",
+              "source_message_ids": [
+                "3e4bc9bb-cfae-4a75-b1b2-3b5fef02e4db"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.famille",
+              "habitudes.reprise_apres_echec"
+            ],
+            "content_text": "Nadia est sa sœur et l'aide à relativiser lors de rechutes.",
+            "event_end_at": null,
+            "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes",
+            "event_start_at": null,
+            "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes",
+            "source_message_ids": [
+              "d5f7360c-3d7d-4a9f-8045-9f82e518ac8c"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "habitudes.reprise_apres_echec"
+              ],
+              "content_text": "Nadia est sa sœur et l'aide à relativiser lors de rechutes.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes",
+              "event_start_at": null,
+              "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes",
+              "source_message_ids": [
+                "d5f7360c-3d7d-4a9f-8045-9f82e518ac8c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "habitudes.reprise_apres_echec"
+              ],
+              "content_text": "Nadia est sa sœur et l'aide à relativiser lors de rechutes.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.nadia_sœur_aide_relativiser_les_rechutes",
+              "event_start_at": null,
+              "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Nadia (sœur) aide à relativiser les rechutes",
+              "source_message_ids": [
+                "d5f7360c-3d7d-4a9f-8045-9f82e518ac8c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.limites",
+              "sante.energie"
+            ],
+            "content_text": "Préfère un ton franc mais doux et des réponses courtes/directes en cas de fatigue.",
+            "event_end_at": null,
+            "canonical_key": "relations.limites.statement.preference_communication_directe_douce_cas_fatigue",
+            "event_start_at": null,
+            "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue... les reponses courtes et directes m'aident plus",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préférence de communication directe et douce en cas de fatigue",
+            "source_message_ids": [
+              "963eb372-0b67-4dca-97ed-c52ccbc0f586",
+              "2a589dec-5c03-48ed-b825-e45c56d0bb25"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites",
+                "sante.energie"
+              ],
+              "content_text": "Préfère un ton franc mais doux et des réponses courtes/directes en cas de fatigue.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.preference_communication_directe_douce_cas_fatigue",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue... les reponses courtes et directes m'aident plus",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence de communication directe et douce en cas de fatigue",
+              "source_message_ids": [
+                "963eb372-0b67-4dca-97ed-c52ccbc0f586",
+                "2a589dec-5c03-48ed-b825-e45c56d0bb25"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.limites",
+                "sante.energie"
+              ],
+              "content_text": "Préfère un ton franc mais doux et des réponses courtes/directes en cas de fatigue.",
+              "event_end_at": null,
+              "canonical_key": "relations.limites.statement.preference_communication_directe_douce_cas_fatigue",
+              "event_start_at": null,
+              "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue... les reponses courtes et directes m'aident plus",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence de communication directe et douce en cas de fatigue",
+              "source_message_ids": [
+                "963eb372-0b67-4dca-97ed-c52ccbc0f586",
+                "2a589dec-5c03-48ed-b825-e45c56d0bb25"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "boundary"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.identite",
+              "psychologie.emotions"
+            ],
+            "content_text": "L'expression 'je suis nul' est une émotion passagère et non un fait identitaire.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.identite.statement.interpretation_suis_nul_comme_emotion_temporaire",
+            "event_start_at": null,
+            "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Interprétation de 'je suis nul' comme émotion temporaire",
+            "source_message_ids": [
+              "b450e0fe-234f-44a6-ad12-c7ebb7b6446a"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.identite",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'expression 'je suis nul' est une émotion passagère et non un fait identitaire.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.identite.statement.interpretation_suis_nul_comme_emotion_temporaire",
+              "event_start_at": null,
+              "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Interprétation de 'je suis nul' comme émotion temporaire",
+              "source_message_ids": [
+                "b450e0fe-234f-44a6-ad12-c7ebb7b6446a"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "boundary"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.identite",
+                "psychologie.emotions"
+              ],
+              "content_text": "L'expression 'je suis nul' est une émotion passagère et non un fait identitaire.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.identite.statement.interpretation_suis_nul_comme_emotion_temporaire",
+              "event_start_at": null,
+              "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Interprétation de 'je suis nul' comme émotion temporaire",
+              "source_message_ids": [
+                "b450e0fe-234f-44a6-ad12-c7ebb7b6446a"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme",
+              "sante.activite_physique"
+            ],
+            "content_text": "Vise trois marches par semaine, sans culpabiliser en cas d'échec.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.objectif_marches_hebdomadaires_sans_pression",
+            "event_start_at": null,
+            "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Objectif de 3 marches hebdomadaires sans pression",
+            "source_message_ids": [
+              "865ffcad-e30d-49c6-b48b-ca14f7dd3da9"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "sante.activite_physique"
+              ],
+              "content_text": "Vise trois marches par semaine, sans culpabiliser en cas d'échec.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_marches_hebdomadaires_sans_pression",
+              "event_start_at": null,
+              "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif de 3 marches hebdomadaires sans pression",
+              "source_message_ids": [
+                "865ffcad-e30d-49c6-b48b-ca14f7dd3da9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "sante.activite_physique"
+              ],
+              "content_text": "Vise trois marches par semaine, sans culpabiliser en cas d'échec.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.objectif_marches_hebdomadaires_sans_pression",
+              "event_start_at": null,
+              "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Objectif de 3 marches hebdomadaires sans pression",
+              "source_message_ids": [
+                "865ffcad-e30d-49c6-b48b-ca14f7dd3da9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.execution",
+              "habitudes.planification"
+            ],
+            "content_text": "Exécute mieux les tâches lorsqu'elles sont présentées sous forme de plan en trois étapes visibles.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes",
+            "event_start_at": null,
+            "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Efficacité accrue avec des plans en 3 étapes",
+            "source_message_ids": [
+              "49885c45-f0ea-42d4-b8a7-d260017c192c"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution",
+                "habitudes.planification"
+              ],
+              "content_text": "Exécute mieux les tâches lorsqu'elles sont présentées sous forme de plan en trois étapes visibles.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes",
+              "event_start_at": null,
+              "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Efficacité accrue avec des plans en 3 étapes",
+              "source_message_ids": [
+                "49885c45-f0ea-42d4-b8a7-d260017c192c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.execution",
+                "habitudes.planification"
+              ],
+              "content_text": "Exécute mieux les tâches lorsqu'elles sont présentées sous forme de plan en trois étapes visibles.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.execution.statement.efficacite_accrue_avec_des_plans_etapes",
+              "event_start_at": null,
+              "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Efficacité accrue avec des plans en 3 étapes",
+              "source_message_ids": [
+                "49885c45-f0ea-42d4-b8a7-d260017c192c"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "psychologie.peur_echec",
+              "psychologie.estime_de_soi"
+            ],
+            "content_text": "Éprouve de la difficulté à demander de l'aide, l'associant à une forme de faiblesse.",
+            "event_end_at": null,
+            "canonical_key": "psychologie.peur_echec.fact.peur_demander_aide_percue_comme_une_faiblesse",
+            "event_start_at": null,
+            "evidence_quote": "J'ai peur de demander de l'aide parce que j'ai l'impression que ca me rend faible.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Peur de demander de l'aide perçue comme une faiblesse",
+            "source_message_ids": [
+              "3275349f-3ecc-4598-8935-b7051ee84f29"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.peur_echec",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Éprouve de la difficulté à demander de l'aide, l'associant à une forme de faiblesse.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.peur_echec.fact.peur_demander_aide_percue_comme_une_faiblesse",
+              "event_start_at": null,
+              "evidence_quote": "J'ai peur de demander de l'aide parce que j'ai l'impression que ca me rend faible.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Peur de demander de l'aide perçue comme une faiblesse",
+              "source_message_ids": [
+                "3275349f-3ecc-4598-8935-b7051ee84f29"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "psychologie.peur_echec",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Éprouve de la difficulté à demander de l'aide, l'associant à une forme de faiblesse.",
+              "event_end_at": null,
+              "canonical_key": "psychologie.peur_echec.fact.peur_demander_aide_percue_comme_une_faiblesse",
+              "event_start_at": null,
+              "evidence_quote": "J'ai peur de demander de l'aide parce que j'ai l'impression que ca me rend faible.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Peur de demander de l'aide perçue comme une faiblesse",
+              "source_message_ids": [
+                "3275349f-3ecc-4598-8935-b7051ee84f29"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement",
+              "sante.activite_physique"
+            ],
+            "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone",
+            "event_start_at": null,
+            "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone",
+            "source_message_ids": [
+              "c6b7b645-b815-4e9b-a2c4-df7684e4013d"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone",
+              "event_start_at": null,
+              "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone",
+              "source_message_ids": [
+                "c6b7b645-b815-4e9b-a2c4-df7684e4013d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "sante.activite_physique"
+              ],
+              "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.statement.routine_matinale_eau_douche_marche_puis_telephone",
+              "event_start_at": null,
+              "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Routine matinale : eau, douche, marche, puis téléphone",
+              "source_message_ids": [
+                "c6b7b645-b815-4e9b-a2c4-df7684e4013d"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "travail.charge",
+              "psychologie.motivation"
+            ],
+            "content_text": "En cas de surcharge, préfère une proposition de réduction de pression plutôt qu'un nouveau challenge.",
+            "event_end_at": null,
+            "canonical_key": "travail.charge.statement.besoin_reduction_pression_cas_surcharge",
+            "event_start_at": null,
+            "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Besoin de réduction de pression en cas de surcharge",
+            "source_message_ids": [
+              "41f273e4-16ff-4412-891f-648ddff47110"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.charge",
+                "psychologie.motivation"
+              ],
+              "content_text": "En cas de surcharge, préfère une proposition de réduction de pression plutôt qu'un nouveau challenge.",
+              "event_end_at": null,
+              "canonical_key": "travail.charge.statement.besoin_reduction_pression_cas_surcharge",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin de réduction de pression en cas de surcharge",
+              "source_message_ids": [
+                "41f273e4-16ff-4412-891f-648ddff47110"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "travail.charge",
+                "psychologie.motivation"
+              ],
+              "content_text": "En cas de surcharge, préfère une proposition de réduction de pression plutôt qu'un nouveau challenge.",
+              "event_end_at": null,
+              "canonical_key": "travail.charge.statement.besoin_reduction_pression_cas_surcharge",
+              "event_start_at": null,
+              "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Besoin de réduction de pression en cas de surcharge",
+              "source_message_ids": [
+                "41f273e4-16ff-4412-891f-648ddff47110"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "fact",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "relations.famille",
+              "psychologie.estime_de_soi"
+            ],
+            "content_text": "Sa mère critique souvent sa discipline, ce qui active des doutes chez lui.",
+            "event_end_at": null,
+            "canonical_key": "relations.famille.fact.critiques_maternelles_sur_discipline_generant_doute",
+            "event_start_at": null,
+            "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Critiques maternelles sur la discipline générant du doute",
+            "source_message_ids": [
+              "84265e84-2bbb-4675-bfb6-a5832314a0aa"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Sa mère critique souvent sa discipline, ce qui active des doutes chez lui.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.critiques_maternelles_sur_discipline_generant_doute",
+              "event_start_at": null,
+              "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Critiques maternelles sur la discipline générant du doute",
+              "source_message_ids": [
+                "84265e84-2bbb-4675-bfb6-a5832314a0aa"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "fact",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "relations.famille",
+                "psychologie.estime_de_soi"
+              ],
+              "content_text": "Sa mère critique souvent sa discipline, ce qui active des doutes chez lui.",
+              "event_end_at": null,
+              "canonical_key": "relations.famille.fact.critiques_maternelles_sur_discipline_generant_doute",
+              "event_start_at": null,
+              "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Critiques maternelles sur la discipline générant du doute",
+              "source_message_ids": [
+                "84265e84-2bbb-4675-bfb6-a5832314a0aa"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "action_without_confirmed_plan_item",
+        "status": "candidate",
+        "candidate": {
+          "item": {
+            "kind": "action_observation",
+            "metadata": {},
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.environnement",
+              "habitudes.execution"
+            ],
+            "content_text": "Préparer ses affaires la veille augmente significativement la probabilité de faire la marche matinale.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.environnement.action_observation.preparation_veille_favorise_marche_matinale",
+            "event_start_at": null,
+            "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.8,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préparation la veille favorise la marche matinale",
+            "source_message_ids": [
+              "9657e690-f231-449c-90bd-e7a3f04c8461"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "action_observation",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "habitudes.execution"
+              ],
+              "content_text": "Préparer ses affaires la veille augmente significativement la probabilité de faire la marche matinale.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.action_observation.preparation_veille_favorise_marche_matinale",
+              "event_start_at": null,
+              "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation la veille favorise la marche matinale",
+              "source_message_ids": [
+                "9657e690-f231-449c-90bd-e7a3f04c8461"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "action_observation",
+              "metadata": {},
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.environnement",
+                "habitudes.execution"
+              ],
+              "content_text": "Préparer ses affaires la veille augmente significativement la probabilité de faire la marche matinale.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.environnement.action_observation.preparation_veille_favorise_marche_matinale",
+              "event_start_at": null,
+              "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.8,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préparation la veille favorise la marche matinale",
+              "source_message_ids": [
+                "9657e690-f231-449c-90bd-e7a3f04c8461"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "goal"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "objectifs.court_terme",
+              "travail.performance"
+            ],
+            "content_text": "Le projet Sophia est la priorité absolue par rapport aux autres idées de produits pour les semaines à venir.",
+            "event_end_at": null,
+            "canonical_key": "objectifs.court_terme.statement.priorite_absolue_projet_sophia",
+            "event_start_at": null,
+            "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.9,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Priorité absolue au projet Sophia",
+            "source_message_ids": [
+              "6dba89a3-a1a9-40d8-87e0-10ab1aff87f1"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "Le projet Sophia est la priorité absolue par rapport aux autres idées de produits pour les semaines à venir.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.priorite_absolue_projet_sophia",
+              "event_start_at": null,
+              "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Priorité absolue au projet Sophia",
+              "source_message_ids": [
+                "6dba89a3-a1a9-40d8-87e0-10ab1aff87f1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "goal"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "objectifs.court_terme",
+                "travail.performance"
+              ],
+              "content_text": "Le projet Sophia est la priorité absolue par rapport aux autres idées de produits pour les semaines à venir.",
+              "event_end_at": null,
+              "canonical_key": "objectifs.court_terme.statement.priorite_absolue_projet_sophia",
+              "event_start_at": null,
+              "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.9,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Priorité absolue au projet Sophia",
+              "source_message_ids": [
+                "6dba89a3-a1a9-40d8-87e0-10ab1aff87f1"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      },
+      {
+        "reason": "high_confidence_linked",
+        "status": "active",
+        "candidate": {
+          "item": {
+            "kind": "statement",
+            "metadata": {
+              "statement_role": "preference"
+            },
+            "confidence": 1,
+            "topic_hint": null,
+            "domain_keys": [
+              "habitudes.planification"
+            ],
+            "content_text": "Souhaite que les bilans hebdomadaires mettent en évidence les patterns plutôt que de simples listes d'actions.",
+            "event_end_at": null,
+            "canonical_key": "habitudes.planification.statement.preference_pour_analyse_patterns_dans_les_bilans_hebdo",
+            "event_start_at": null,
+            "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+            "time_precision": null,
+            "entity_mentions": [],
+            "importance_score": 0.7,
+            "sensitivity_level": "normal",
+            "canonical_key_hint": null,
+            "normalized_summary": "Préférence pour l'analyse de patterns dans les bilans hebdo",
+            "source_message_ids": [
+              "9efadbb7-a8b3-40cc-a460-def7800a05b9"
+            ],
+            "sensitivity_categories": [],
+            "requires_user_initiated": false
+          },
+          "dedupe": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "Souhaite que les bilans hebdomadaires mettent en évidence les patterns plutôt que de simples listes d'actions.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.preference_pour_analyse_patterns_dans_les_bilans_hebdo",
+              "event_start_at": null,
+              "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour l'analyse de patterns dans les bilans hebdo",
+              "source_message_ids": [
+                "9efadbb7-a8b3-40cc-a460-def7800a05b9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "no_duplicate_found",
+            "decision": "create_new"
+          },
+          "status": "accepted_dry_run",
+          "topic_link": {
+            "item": {
+              "kind": "statement",
+              "metadata": {
+                "statement_role": "preference"
+              },
+              "confidence": 1,
+              "topic_hint": null,
+              "domain_keys": [
+                "habitudes.planification"
+              ],
+              "content_text": "Souhaite que les bilans hebdomadaires mettent en évidence les patterns plutôt que de simples listes d'actions.",
+              "event_end_at": null,
+              "canonical_key": "habitudes.planification.statement.preference_pour_analyse_patterns_dans_les_bilans_hebdo",
+              "event_start_at": null,
+              "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees.",
+              "time_precision": null,
+              "entity_mentions": [],
+              "importance_score": 0.7,
+              "sensitivity_level": "normal",
+              "canonical_key_hint": null,
+              "normalized_summary": "Préférence pour l'analyse de patterns dans les bilans hebdo",
+              "source_message_ids": [
+                "9efadbb7-a8b3-40cc-a460-def7800a05b9"
+              ],
+              "sensitivity_categories": [],
+              "requires_user_initiated": false
+            },
+            "reason": "active_topic_context",
+            "topic_id": "e62aad9f-3fa0-49b9-aca4-69ef31ac0b39",
+            "confidence": 0.76,
+            "topic_slug": "projet_sophia",
+            "relation_type": "about"
+          },
+          "action_link": null,
+          "entity_links": [],
+          "rejection_reason": null
+        }
+      }
+    ]
+  },
+  "counts": {
+    "input_user_messages": 28,
+    "persisted_items": 17,
+    "active_items": 15,
+    "candidate_items": 2
+  },
+  "expectation_checks": {
+    "project_sophia": true,
+    "procrastination_floue": true,
+    "walk_event": false,
+    "sleep_scrolling": true,
+    "karim_manager": true,
+    "tania_ex_not_sister": false,
+    "cannabis_sensitive": false,
+    "self_blame_not_fact": true,
+    "do_not_memorize_indecis_trait": true,
+    "weekly_patterns": true
+  },
+  "memory_items": [
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "travail.carriere",
+        "travail.performance"
+      ],
+      "content_text": "Travaille sur le projet Sophia, une application de coaching WhatsApp avec mémoire longue.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "je travaille sur un projet qui s'appelle Sophia, une app de coaching WhatsApp avec memoire longue."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme",
+        "travail.performance"
+      ],
+      "content_text": "Objectif principal du mois : rendre Sophia plus fiable sur le suivi quotidien, les bilans et les relances.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Mon objectif principal ce mois-ci est de rendre Sophia plus fiable sur le suivi quotidien, surtout les bilans et les relances WhatsApp."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.procrastination",
+        "habitudes.execution"
+      ],
+      "content_text": "Procrastine quand l'action est floue ; a besoin d'actions minuscules et concrètes.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je procrastine beaucoup quand la prochaine action est floue; si tu me proposes une action, elle doit etre minuscule et concrete."
+    },
+    {
+      "kind": "action_observation",
+      "status": "candidate",
+      "sensitivity_level": "normal",
+      "confidence": 0.9,
+      "domain_keys": [
+        "sante.sommeil",
+        "addictions.ecrans"
+      ],
+      "content_text": "Dort mal depuis deux semaines en cas de scroll après minuit, particulièrement après avoir codé tard.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Depuis deux semaines, je dors mal quand je scrolle apres minuit, surtout les soirs ou je code tard."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "travail.conflits",
+        "psychologie.emotions"
+      ],
+      "content_text": "Son manager Karim lui met une forte pression en réunion, ce qui provoque un sentiment d'humiliation.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Au travail, mon manager Karim me met une grosse pression en reunion et je me sens parfois humilie."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.famille",
+        "habitudes.reprise_apres_echec"
+      ],
+      "content_text": "Nadia est sa sœur et l'aide à relativiser lors de rechutes.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Nadia est ma soeur et elle m'aide a relativiser quand je dramatise une rechute."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.limites",
+        "sante.energie"
+      ],
+      "content_text": "Préfère un ton franc mais doux et des réponses courtes/directes en cas de fatigue.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je prefere que Sophia me parle franchement mais sans ton dur quand je suis fatigue... les reponses courtes et directes m'aident plus"
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "psychologie.identite",
+        "psychologie.emotions"
+      ],
+      "content_text": "L'expression 'je suis nul' est une émotion passagère et non un fait identitaire.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand je dis 'je suis nul', c'est une emotion du moment, pas un fait sur mon identite."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme",
+        "sante.activite_physique"
+      ],
+      "content_text": "Vise trois marches par semaine, sans culpabiliser en cas d'échec.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'aimerais garder trois marches par semaine, mais sans culpabiliser si j'en rate une."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.execution",
+        "habitudes.planification"
+      ],
+      "content_text": "Exécute mieux les tâches lorsqu'elles sont présentées sous forme de plan en trois étapes visibles.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Quand Sophia me donne un plan en trois etapes visibles, j'execute mieux."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "psychologie.peur_echec",
+        "psychologie.estime_de_soi"
+      ],
+      "content_text": "Éprouve de la difficulté à demander de l'aide, l'associant à une forme de faiblesse.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'ai peur de demander de l'aide parce que j'ai l'impression que ca me rend faible."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.environnement",
+        "sante.activite_physique"
+      ],
+      "content_text": "Routine matinale idéale : eau, douche, 10 minutes de marche, puis téléphone.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Ma routine ideale du matin: eau, douche, dix minutes de marche, puis seulement ensuite ouvrir le telephone."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "travail.charge",
+        "psychologie.motivation"
+      ],
+      "content_text": "En cas de surcharge, préfère une proposition de réduction de pression plutôt qu'un nouveau challenge.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Si je suis en surcharge, il faut me proposer une reduction de pression plutot qu'un challenge."
+    },
+    {
+      "kind": "fact",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "relations.famille",
+        "psychologie.estime_de_soi"
+      ],
+      "content_text": "Sa mère critique souvent sa discipline, ce qui active des doutes chez lui.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Ma mere me critique souvent sur ma discipline, et ca active beaucoup de doute."
+    },
+    {
+      "kind": "action_observation",
+      "status": "candidate",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.environnement",
+        "habitudes.execution"
+      ],
+      "content_text": "Préparer ses affaires la veille augmente significativement la probabilité de faire la marche matinale.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "J'ai remarque que preparer mes affaires la veille rend la marche du matin beaucoup plus probable."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "objectifs.court_terme",
+        "travail.performance"
+      ],
+      "content_text": "Le projet Sophia est la priorité absolue par rapport aux autres idées de produits pour les semaines à venir.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Le projet Sophia est prioritaire par rapport aux autres idees produit pour les prochaines semaines."
+    },
+    {
+      "kind": "statement",
+      "status": "active",
+      "sensitivity_level": "normal",
+      "confidence": 1,
+      "domain_keys": [
+        "habitudes.planification"
+      ],
+      "content_text": "Souhaite que les bilans hebdomadaires mettent en évidence les patterns plutôt que de simples listes d'actions.",
+      "event_start_at": null,
+      "time_precision": null,
+      "topic_links": [
+        {
+          "slug": "projet_sophia",
+          "confidence": 0.76,
+          "reason": null
+        }
+      ],
+      "evidence_quote": "Je veux que les bilans hebdo me montrent les patterns, pas seulement une liste d'actions faites ou ratees."
+    }
+  ]
+}

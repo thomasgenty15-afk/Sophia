@@ -11,7 +11,12 @@ import type {
   KnownMemoryItem,
   KnownTopic,
   MemorizerMessage,
+  PlanSignal,
 } from "../_shared/memory/memorizer/types.ts";
+import {
+  actionFamilyAliases,
+  buildActionFamilyKey,
+} from "../_shared/memory/action_family.ts";
 
 const DEFAULT_USER_LIMIT = 100;
 const DEFAULT_HOURS = 30;
@@ -202,6 +207,112 @@ async function loadKnownMemoryItems(
   return (data ?? []) as KnownMemoryItem[];
 }
 
+function numericOrNull(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function stringArrayOrNull(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.map((entry) => String(entry ?? "").trim()).filter(Boolean);
+}
+
+async function loadPlanSignals(args: {
+  admin: any;
+  user_id: string;
+  since_iso: string;
+}): Promise<PlanSignal[]> {
+  const { data: items, error } = await args.admin
+    .from("user_plan_items")
+    .select(
+      "id,title,kind,dimension,status,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,start_after_item_id,payload,updated_at,activated_at",
+    )
+    .eq("user_id", args.user_id)
+    .in("status", ["active", "in_maintenance"])
+    .limit(80);
+  if (error) throw error;
+  const planItems = Array.isArray(items) ? items : [];
+  if (planItems.length === 0) return [];
+
+  const ids = planItems.map((item: any) => String(item.id ?? "")).filter(Boolean);
+  const { data: entries, error: entriesError } = await args.admin
+    .from("user_plan_item_entries")
+    .select("id,plan_item_id,outcome,entry_kind,effective_at,created_at,metadata")
+    .eq("user_id", args.user_id)
+    .gte("effective_at", args.since_iso)
+    .in("plan_item_id", ids)
+    .order("effective_at", { ascending: true })
+    .limit(200);
+  if (entriesError) throw entriesError;
+
+  const entriesByItem = new Map<string, any[]>();
+  for (const entry of entries ?? []) {
+    const planItemId = String(entry.plan_item_id ?? "").trim();
+    if (!planItemId) continue;
+    const list = entriesByItem.get(planItemId) ?? [];
+    list.push(entry);
+    entriesByItem.set(planItemId, list);
+  }
+
+  return planItems.map((item: any): PlanSignal => {
+    const payload = item.payload && typeof item.payload === "object"
+      ? item.payload as Record<string, unknown>
+      : {};
+    const action_family_key = buildActionFamilyKey({
+      id: item.id,
+      title: item.title,
+      kind: item.kind,
+      dimension: item.dimension,
+      start_after_item_id: item.start_after_item_id,
+      payload,
+    });
+    const itemEntries = entriesByItem.get(String(item.id)) ?? [];
+    const occurrenceIds = itemEntries
+      .map((entry) => String(entry.id ?? "").trim())
+      .filter(Boolean);
+    const start = itemEntries[0]?.effective_at ?? item.activated_at ??
+      item.updated_at ?? null;
+    const end = itemEntries[itemEntries.length - 1]?.effective_at ?? start;
+    return {
+      plan_item_id: String(item.id),
+      title: String(item.title ?? ""),
+      kind: item.kind ?? null,
+      dimension: item.dimension ?? null,
+      status: item.status ?? null,
+      action_family_key,
+      aliases: actionFamilyAliases({
+        id: item.id,
+        title: item.title,
+        kind: item.kind,
+        dimension: item.dimension,
+        start_after_item_id: item.start_after_item_id,
+        payload,
+      }),
+      target_reps: numericOrNull(item.target_reps),
+      current_reps: numericOrNull(item.current_reps),
+      cadence_label: item.cadence_label ?? null,
+      scheduled_days: stringArrayOrNull(item.scheduled_days),
+      time_of_day: item.time_of_day ?? null,
+      start_after_item_id: item.start_after_item_id ?? null,
+      action_variant: {
+        target_reps: numericOrNull(item.target_reps),
+        current_reps: numericOrNull(item.current_reps),
+        cadence_label: item.cadence_label ?? null,
+        scheduled_days: stringArrayOrNull(item.scheduled_days),
+        time_of_day: item.time_of_day ?? null,
+        recent_entry_outcomes: itemEntries.map((entry) => ({
+          outcome: entry.outcome ?? null,
+          entry_kind: entry.entry_kind ?? null,
+          effective_at: entry.effective_at ?? null,
+        })).slice(-8),
+      },
+      occurrence_ids: occurrenceIds,
+      observation_window_start: start,
+      observation_window_end: end,
+    };
+  });
+}
+
 async function loadExtractionRunSummary(
   admin: any,
   extractionRunId: string | null | undefined,
@@ -269,6 +380,7 @@ async function runDailyMemorizerForUser(args: {
   admin: any;
   user_id: string;
   messages: MemorizerMessage[];
+  since_iso: string;
 }) {
   if (args.messages.length === 0) {
     return {
@@ -281,11 +393,17 @@ async function runDailyMemorizerForUser(args: {
 
   const knownTopics = await loadKnownTopics(args.admin, args.user_id);
   const knownItems = await loadKnownMemoryItems(args.admin, args.user_id);
+  const planSignals = await loadPlanSignals({
+    admin: args.admin,
+    user_id: args.user_id,
+    since_iso: args.since_iso,
+  });
   logDailyMemorizer("user_context_loaded", {
     user_id: args.user_id,
     message_count: args.messages.length,
     known_topics_count: knownTopics.length,
     known_memory_items_count: knownItems.length,
+    plan_signal_count: planSignals.length,
   });
   const result = await runMemorizerAsyncIfEnabled(
     new SupabaseMemorizerRepository(args.admin),
@@ -294,6 +412,7 @@ async function runDailyMemorizerForUser(args: {
       messages: args.messages,
       known_topics: knownTopics,
       existing_memory_items: knownItems,
+      plan_signals: planSignals,
       active_topic: knownTopics[0] ?? null,
       trigger_type: "daily_batch",
     },
@@ -400,6 +519,7 @@ Deno.serve(async (req) => {
         admin,
         user_id: user.id,
         messages,
+        since_iso: sinceIso,
       });
       logDailyMemorizer("user_completed", {
         request_id: requestId,

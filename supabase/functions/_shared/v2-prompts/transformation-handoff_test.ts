@@ -108,7 +108,7 @@ function makeInput(
       { technique_key: "micro_commitment", created_at: "2026-03-12T10:00:00Z", outcome: "negative" },
     ],
     metrics: [
-      { metric_kind: "north_star", label: "Séances hebdomadaires", current_value: 2.5, target_value: 3 },
+      { metric_kind: "progress_marker", label: "Séances hebdomadaires", current_value: 2.5, target_value: 3 },
     ],
     pulse_summary: null,
     ...overrides,
@@ -462,7 +462,7 @@ Deno.test("buildUserPrompt: includes transformation and items data", () => {
   assert(prompt.includes("item-1"));
   assert(prompt.includes("item-2"));
   assert(prompt.includes("Première séance de sport"));
-  assert(prompt.includes("north_star"));
+  assert(prompt.includes("progress_marker"));
 });
 
 Deno.test("buildUserPrompt: includes coaching snapshots", () => {

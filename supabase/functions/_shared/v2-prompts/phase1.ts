@@ -35,7 +35,9 @@ function containsDirectVouvoiement(value: string): boolean {
   if (!/\bvous\b/.test(normalized)) return false;
 
   const hasCollectiveCoupleContext =
-    /\b(ensemble|a deux|tous les deux|toutes les deux|entre vous)\b/.test(normalized) ||
+    /\b(ensemble|a deux|tous les deux|toutes les deux|entre vous)\b/.test(
+      normalized,
+    ) ||
     /\b(couple|relation|partenaire|conjoint|conjointe|tensions|disputes|desaccords|complicite)\b/
       .test(normalized);
   if (hasCollectiveCoupleContext) return false;
@@ -43,7 +45,8 @@ function containsDirectVouvoiement(value: string): boolean {
   return true;
 }
 
-export const PHASE1_DEEP_WHY_SYSTEM_PROMPT = `Tu écris les questions de "pourquoi profond" pour Sophia.
+export const PHASE1_DEEP_WHY_SYSTEM_PROMPT =
+  `Tu écris les questions de "pourquoi profond" pour Sophia.
 
 Objectif:
 - générer exactement 4 questions
@@ -56,7 +59,7 @@ Règles:
 - une seule question par item
 - formulation simple, humaine, concrète
 - tu t'adresses directement à la personne en tutoiement, tout le temps, sans aucune exception
-- n'utilise jamais le vouvoiement, ni dans les questions, ni dans les suggestions de réponse
+- n'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
 - emploie systématiquement "tu", "ton", "ta", "tes"
 - pas de jargon thérapeutique
 - pas de "pourquoi veux-tu changer ?" générique
@@ -104,8 +107,12 @@ export function buildPhase1DeepWhyUserPrompt(
 
 - Titre: ${context.transformation_title}
 - Résumé: ${context.transformation_summary}
-- Objectif du premier niveau de plan du plan (niveau de plan 2 affiché): ${context.phase_1_objective ?? "Non précisé"}
-- Heartbeat du premier niveau de plan du plan (niveau de plan 2 affiché): ${context.phase_1_heartbeat ?? "Non précisé"}
+- Objectif du premier niveau de plan du plan (niveau de plan 2 affiché): ${
+    context.phase_1_objective ?? "Non précisé"
+  }
+- Heartbeat du premier niveau de plan du plan (niveau de plan 2 affiché): ${
+    context.phase_1_heartbeat ?? "Non précisé"
+  }
 - Définition de réussite: ${context.success_definition ?? "Non précisée"}
 - Contrainte principale: ${context.main_constraint ?? "Non précisée"}
 
@@ -155,7 +162,9 @@ export function validatePhase1DeepWhyOutput(
     const question = String(row.question ?? "").trim();
     const suggestedAnswers = Array.isArray(row.suggested_answers)
       ? row.suggested_answers
-        .filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
+        .filter((entry): entry is string =>
+          typeof entry === "string" && entry.trim().length > 0
+        )
         .map((entry) => entry.trim())
       : [];
     if (!id) issues.push(`question[${index}] missing id`);
@@ -170,9 +179,12 @@ export function validatePhase1DeepWhyOutput(
       issues.push(`question[${index}] must have exactly 2 suggested_answers`);
     }
     if (suggestedAnswers.some((entry) => containsDirectVouvoiement(entry))) {
-      issues.push(`question[${index}] suggested_answers must use tutoiement only`);
+      issues.push(
+        `question[${index}] suggested_answers must use tutoiement only`,
+      );
     }
-    return id && question && suggestedAnswers.length === 2 && id === expectedIds[index]
+    return id && question && suggestedAnswers.length === 2 &&
+        id === expectedIds[index]
       ? [{ id, question, suggested_answers: suggestedAnswers }]
       : [];
   });
@@ -184,7 +196,8 @@ export function validatePhase1DeepWhyOutput(
   };
 }
 
-export const PHASE1_STORY_SYSTEM_PROMPT = `Tu aides Sophia a preparer "Ton histoire" pour la phase 1.
+export const PHASE1_STORY_SYSTEM_PROMPT =
+  `Tu aides Sophia a preparer "Ton histoire" pour la phase 1.
 
 Objectif:
 - générer une histoire narrative, incarnée et mémorable
@@ -291,22 +304,35 @@ export function buildPhase1StoryUserPrompt(args: {
 - Titre: ${args.context.transformation_title}
 - Résumé: ${args.context.transformation_summary}
 - Prenom: ${args.context.user_first_name ?? "Non precise"}
-- Age: ${args.context.user_age != null ? `${args.context.user_age} ans` : "Non precise"}
+- Age: ${
+    args.context.user_age != null
+      ? `${args.context.user_age} ans`
+      : "Non precise"
+  }
 - Genre: ${args.context.user_gender ?? "Non precise"}
-- Objectif du premier niveau de plan du plan (niveau de plan 2 affiché): ${args.context.phase_1_objective ?? "Non précisé"}
-- Heartbeat du premier niveau de plan du plan (niveau de plan 2 affiché): ${args.context.phase_1_heartbeat ?? "Non précisé"}
-- Nombre exact de niveaux dans le plan de cette transformation: ${args.context.plan_levels_count ?? "Non precise"}
+- Objectif du premier niveau de plan du plan (niveau de plan 2 affiché): ${
+    args.context.phase_1_objective ?? "Non précisé"
+  }
+- Heartbeat du premier niveau de plan du plan (niveau de plan 2 affiché): ${
+    args.context.phase_1_heartbeat ?? "Non précisé"
+  }
+- Nombre exact de niveaux dans le plan de cette transformation: ${
+    args.context.plan_levels_count ?? "Non precise"
+  }
 - Définition de réussite: ${args.context.success_definition ?? "Non précisée"}
 - Contrainte principale: ${args.context.main_constraint ?? "Non précisée"}
 
 ## Contexte éventuel de continuité
 
 - Découpage multi-parties de la transformation: ${
-  args.context.journey_part_number != null && args.context.journey_total_parts === 2
-    ? `${args.context.journey_part_number} / 2`
-    : "Aucun decoupage en 2 parties a mentionner"
-}
-- Indication de continuité factuelle: ${args.context.journey_continuation_hint ?? "Aucune"}
+    args.context.journey_part_number != null &&
+      args.context.journey_total_parts === 2
+      ? `${args.context.journey_part_number} / 2`
+      : "Aucun decoupage en 2 parties a mentionner"
+  }
+- Indication de continuité factuelle: ${
+    args.context.journey_continuation_hint ?? "Aucune"
+  }
 - Partie juste avant, si elle existe déjà et est accomplie:
 ${args.context.previous_completed_transformation ?? "Aucune"}
 
@@ -353,14 +379,20 @@ export function validatePhase1StoryOutput(
 
   const detailQuestions = Array.isArray(root?.detail_questions)
     ? root?.detail_questions
-      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .filter((item): item is string =>
+        typeof item === "string" && item.trim().length > 0
+      )
     : [];
   const storyPromptHints = Array.isArray(root?.story_prompt_hints)
     ? root?.story_prompt_hints
-      .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      .filter((item): item is string =>
+        typeof item === "string" && item.trim().length > 0
+      )
     : [];
   const introText = typeof root?.intro === "string" ? root.intro.trim() : "";
-  const keyTakeaway = typeof root?.key_takeaway === "string" ? root.key_takeaway.trim() : "";
+  const keyTakeaway = typeof root?.key_takeaway === "string"
+    ? root.key_takeaway.trim()
+    : "";
   const storyText = typeof root?.story === "string" ? root.story.trim() : "";
   const validPrincipleKeys = new Set<Phase1StoryPrincipleKey>([
     "ikigai",
@@ -377,47 +409,59 @@ export function validatePhase1StoryOutput(
     "fudoshin",
   ]);
   const principleKeysSeen = new Set<Phase1StoryPrincipleKey>();
-  const principleSections: Phase1StoryPrincipleSection[] = Array.isArray(root?.principle_sections)
-    ? root.principle_sections.flatMap((item, index) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) {
-        issues.push(`principle_sections[${index}] must be an object`);
-        return [];
-      }
-      const row = item as Record<string, unknown>;
-      const principleKey = String(row.principle_key ?? "").trim() as Phase1StoryPrincipleKey;
-      const title = String(row.title ?? "").trim();
-      const meaning = String(row.meaning ?? "").trim();
-      const inYourStory = String(row.in_your_story ?? "").trim();
-      const concreteExample = String(row.concrete_example ?? "").trim();
-      if (!validPrincipleKeys.has(principleKey)) {
-        issues.push(`principle_sections[${index}] has invalid principle_key`);
-        return [];
-      }
-      if (principleKeysSeen.has(principleKey)) {
-        issues.push(`principle_sections[${index}] duplicates principle_key ${principleKey}`);
-        return [];
-      }
-      principleKeysSeen.add(principleKey);
-      if (!title) issues.push(`principle_sections[${index}] missing title`);
-      if (!meaning) issues.push(`principle_sections[${index}] missing meaning`);
-      if (!inYourStory) issues.push(`principle_sections[${index}] missing in_your_story`);
-      if (!concreteExample) issues.push(`principle_sections[${index}] missing concrete_example`);
-      if (!title || !meaning || !inYourStory || !concreteExample) return [];
-      return [{
-        principle_key: principleKey,
-        title,
-        meaning,
-        in_your_story: inYourStory,
-        concrete_example: concreteExample,
-      }];
-    })
-    : [];
+  const principleSections: Phase1StoryPrincipleSection[] =
+    Array.isArray(root?.principle_sections)
+      ? root.principle_sections.flatMap((item, index) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) {
+          issues.push(`principle_sections[${index}] must be an object`);
+          return [];
+        }
+        const row = item as Record<string, unknown>;
+        const principleKey = String(row.principle_key ?? "")
+          .trim() as Phase1StoryPrincipleKey;
+        const title = String(row.title ?? "").trim();
+        const meaning = String(row.meaning ?? "").trim();
+        const inYourStory = String(row.in_your_story ?? "").trim();
+        const concreteExample = String(row.concrete_example ?? "").trim();
+        if (!validPrincipleKeys.has(principleKey)) {
+          issues.push(`principle_sections[${index}] has invalid principle_key`);
+          return [];
+        }
+        if (principleKeysSeen.has(principleKey)) {
+          issues.push(
+            `principle_sections[${index}] duplicates principle_key ${principleKey}`,
+          );
+          return [];
+        }
+        principleKeysSeen.add(principleKey);
+        if (!title) issues.push(`principle_sections[${index}] missing title`);
+        if (!meaning) {
+          issues.push(`principle_sections[${index}] missing meaning`);
+        }
+        if (!inYourStory) {
+          issues.push(`principle_sections[${index}] missing in_your_story`);
+        }
+        if (!concreteExample) {
+          issues.push(`principle_sections[${index}] missing concrete_example`);
+        }
+        if (!title || !meaning || !inYourStory || !concreteExample) return [];
+        return [{
+          principle_key: principleKey,
+          title,
+          meaning,
+          in_your_story: inYourStory,
+          concrete_example: concreteExample,
+        }];
+      })
+      : [];
 
   if (detailQuestions.length > 0) {
     issues.push("ready_to_generate requires an empty detail_questions array");
   }
   if (!introText) issues.push("ready_to_generate requires a non-empty intro");
-  if (!keyTakeaway) issues.push("ready_to_generate requires a non-empty key_takeaway");
+  if (!keyTakeaway) {
+    issues.push("ready_to_generate requires a non-empty key_takeaway");
+  }
   if (!storyText) issues.push("ready_to_generate requires a non-empty story");
   if (principleSections.length !== 5) {
     issues.push("ready_to_generate requires exactly 5 principle_sections");

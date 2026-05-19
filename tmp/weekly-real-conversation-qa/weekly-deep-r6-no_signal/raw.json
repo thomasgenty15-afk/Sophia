@@ -1,0 +1,1401 @@
+{
+  "run_id": "weekly-deep-r6-no_signal",
+  "variant": "no_signal",
+  "persona": "qa",
+  "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+  "email": "qa-weekly-deep-weekly-deep-r6-no_signal@example.com",
+  "scope": "weekly-deep-no_signal-weekly-deep-r6",
+  "created_at": "2026-05-17T18:03:57.127Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-17T18:03:57.128Z",
+      "user": "Je n'ai presque pas repondu aux checkins. Ce n'est pas forcement que tout est rate, j'ai surtout disparu du suivi. Tu fais quoi avec une semaine comme ca ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ah oui, là on est clairement en “signal faible”, pas en “résultat nul”. Si tu as disparu du suivi, je ne peux pas conclure que tes habitudes/efforts ont baissé: je dois d’abord comprendre pourquoi les checkins n’ont pas été vus ou déclenchés. 😕\n\nDonc pour une semaine comme ça, je fais 2 choses, direct :\n1) On considère la performance comme non-interprétable (on ne décide pas “avancer” sur des données manquantes).\n2) On choisit la version la plus simple et la plus fiable pour la semaine suivante, pour que tu re-rentres dans la boucle sans pression.\n\nDu coup, pour savoir si on “répète” ou si on “bridgage”, j’ai besoin d’une précision :\nTu as disparu du suivi surtout parce que tu étais débordé(e) / sans énergie, ou parce que le suivi était trop facile à ignorer (oubli/absence de rappel/ça te revenait pas) ?  \nA) débordé / énergie  \nB) oubli / pas de rappel / suivi invisible pour toi",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r6-no_signal-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r6-no_signal-t01",
+        "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah oui, là on est clairement en “signal faible”, pas en “résultat nul”. Si tu as disparu du suivi, je ne peux pas conclure que tes habitudes/efforts ont baissé: je dois d’abord comprendre pourquoi les checkins n’ont pas été vus ou déclenchés. 😕\n\nDonc pour une semaine comme ça, je fais 2 choses, direct :\n1) On considère la performance comme non-interprétable (on ne décide pas “avancer” sur des données manquantes).\n2) On choisit la version la plus simple et la plus fiable pour la semaine suivante, pour que tu re-rentres dans la boucle sans pression.\n\nDu coup, pour savoir si on “répète” ou si on “bridgage”, j’ai besoin d’une précision :\nTu as disparu du suivi surtout parce que tu étais débordé(e) / sans énergie, ou parce que le suivi était trop facile à ignorer (oubli/absence de rappel/ça te revenait pas) ?  \nA) débordé / énergie  \nB) oubli / pas de rappel / suivi invisible pour toi",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r6-no_signal-t01",
+          "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+          "source_message_id": "aea1956f-5114-4c28-ad5f-5ab04ae05097",
+          "ts": "2026-05-17T18:04:08.08+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8889,
+            "latency_ms": 7796,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 568,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r6-no_signal-t01",
+            "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_clarification_question",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "aea1956f-5114-4c28-ad5f-5ab04ae05097",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 10917,
+          "created_at": "2026-05-17T18:04:08.08162+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-17T18:04:44.492Z",
+      "user": "B, suivi invisible et oubli. Donc je veux repeter pour recuperer du signal, pas avancer sur des donnees manquantes.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "OK, je note: suivi invisible + oublis, donc pas une “baisse”, juste un manque de signal. 👍\n\nOn part sur une semaine répétée pour récupérer des checkins fiables (même rythme, mais on vise surtout la présence au suivi).\n\nPour verrouiller ça, tu veux plutôt A) réparer le déclenchement/visibilité du suivi, ou B) mettre une mini-routine d’“auto-check” pour éviter l’oubli ? 😊",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r6-no_signal-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r6-no_signal-t02",
+        "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "OK, je note: suivi invisible + oublis, donc pas une “baisse”, juste un manque de signal. 👍\n\nOn part sur une semaine répétée pour récupérer des checkins fiables (même rythme, mais on vise surtout la présence au suivi).\n\nPour verrouiller ça, tu veux plutôt A) réparer le déclenchement/visibilité du suivi, ou B) mettre une mini-routine d’“auto-check” pour éviter l’oubli ? 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r6-no_signal-t02",
+          "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+          "source_message_id": "3857f691-c7b1-454f-a1c8-41eabc7267e4",
+          "ts": "2026-05-17T18:04:52.413+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9179,
+            "latency_ms": 6084,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 574,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r6-no_signal-t02",
+            "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "3857f691-c7b1-454f-a1c8-41eabc7267e4",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 7857,
+          "created_at": "2026-05-17T18:04:52.415591+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-17T18:05:35.758Z",
+      "user": "A, reparer la visibilite du suivi. Est-ce que cette repetition demande ma confirmation explicite ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui. Comme on est sur une reprise “repeat week” faute de signal fiable, tout ajustement de plan lié doit passer par ta confirmation explicite. ✅\n\nTu veux que je te propose un texte prêt à valider (avec la cause possible : oubli de check, semaine empêchée, ou plan trop dur) ou tu préfères qu’on clarifie ça juste en 1 question ? 🤔",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r6-no_signal-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r6-no_signal-t03",
+        "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui. Comme on est sur une reprise “repeat week” faute de signal fiable, tout ajustement de plan lié doit passer par ta confirmation explicite. ✅\n\nTu veux que je te propose un texte prêt à valider (avec la cause possible : oubli de check, semaine empêchée, ou plan trop dur) ou tu préfères qu’on clarifie ça juste en 1 question ? 🤔",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r6-no_signal-t03",
+          "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+          "source_message_id": "caa582b3-eda3-46a3-b1e5-a7bc329fae4d",
+          "ts": "2026-05-17T18:05:39.739+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9314,
+            "latency_ms": 2838,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 597,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r6-no_signal-t03",
+            "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.9,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "caa582b3-eda3-46a3-b1e5-a7bc329fae4d",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_handoff_requested",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "product_help",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "skill_handoff_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "auto_after_answer",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Ajustement du plan: L'ajustement du plan sert quand le plan ne colle plus: trop lourd, trop leger, mal place, invalide par une nouvelle information ou plus adapte.\n\nComment l'utiliser: Dans le Plan, utilise le panneau Ajuster le plan. Le user explique ce qui ne va pas ou ce qu'il faut modifier; j'analyse puis je propose une modification du plan. Le changement ne se fait pas directement au niveau de la carte action.\n\nCe que ca apporte:\n- Corrige le plan sans repartir de zero.\n- Remplace les anciennes actions directes sur item comme supprimer, desactiver ou signaler blocage.\n\nSi tu veux vraiment le faire, ce n'est pas product_help qui execute: il faut passer par le flow adjust_plan, avec confirmation.",
+              "status": "complete",
+              "skill_id": "product_help",
+              "diagnosis": {
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "feature_id": "plan.adjustment",
+                "feature_label": "Ajustement du plan",
+                "operation_bridge": {
+                  "trigger_phrases": [
+                    "ajuste mon plan",
+                    "modifie cette action",
+                    "ce plan est trop lourd",
+                    "cette mission ne colle plus",
+                    "il faut adapter la suite"
+                  ],
+                  "skill_or_operation": "adjust_plan",
+                  "requires_confirmation": true
+                }
+              },
+              "state_patch": {
+                "summary": "Product help answered for plan.adjustment."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "explain",
+              "recommendation_need": {
+                "type": "none",
+                "needed": false,
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present"
+                ]
+              },
+              "operation_suggestions": [
+                {
+                  "reason": "product_help_operation_bridge_available",
+                  "urgency": "medium",
+                  "operation_type": "adjust_plan_item",
+                  "confidence_band": "medium",
+                  "source_skill_id": "product_help",
+                  "operation_input_hint": {},
+                  "requires_user_consent": true
+                }
+              ]
+            },
+            "reason_code": "skill_handoff_requested",
+            "selected_skill_id": "product_help"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": {
+            "stats": null,
+            "recommendation": {
+              "reason": "product_help_operation_bridge_available",
+              "timing": "now",
+              "decision": "recommend_operation",
+              "cta_style": "soft",
+              "confidence": 0.72,
+              "surface_id": "plan_item.reduce",
+              "alternatives": [],
+              "operation_type": "adjust_plan_item",
+              "operation_input": {},
+              "do_not_recommend": [],
+              "executor_tool_id": "adjust_plan_item",
+              "requires_consent": true,
+              "recommendation_id": "skill:product_help:adjust_plan_item:weekly-deep-r6-no_signal-t03",
+              "user_facing_offer": "Je peux te proposer Réduire une action si tu veux passer par le flow propre.",
+              "presentation_level": 2
+            }
+          },
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 3927,
+          "created_at": "2026-05-17T18:05:39.740301+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-17T18:06:23.135Z",
+      "user": "Clarifie juste en une question. Je ne veux pas un patch maintenant.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok, une question : aujourd’hui, la cause la plus probable de ton “suivi invisible” c’est plutôt l’oubli de check, ou plutôt un souci de visibilité/déclenchement du suivi (notification/accès) ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r6-no_signal-t04",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r6-no_signal-t04",
+        "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, une question : aujourd’hui, la cause la plus probable de ton “suivi invisible” c’est plutôt l’oubli de check, ou plutôt un souci de visibilité/déclenchement du suivi (notification/accès) ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r6-no_signal-t04",
+          "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+          "source_message_id": "779e1a13-f84e-4c4d-a038-221cde81dd96",
+          "ts": "2026-05-17T18:06:27.655+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9432,
+            "latency_ms": 3028,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 565,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r6-no_signal-t04",
+            "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "product_help": {
+                  "reason": "user_chooses_clarification_option_over_patch_proposal",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6,1.9;decay=0.55;recovery=0",
+                  "contribution": 1
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "779e1a13-f84e-4c4d-a038-221cde81dd96",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "product_help",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Plan: Le Plan est l'espace principal d'execution d'une transformation active. Il montre les niveaux, les semaines, les elements du plan et l'avancement.\n\nComment l'utiliser: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nCe que ca apporte:\n- Donne une vue claire de ce qui est a faire maintenant.\n- Evite de melanger les actions du moment avec toute la transformation.",
+              "status": "complete",
+              "skill_id": "product_help",
+              "diagnosis": {
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "feature_id": "dashboard.plan",
+                "feature_label": "Plan",
+                "operation_bridge": null
+              },
+              "state_patch": {
+                "summary": "Product help answered for dashboard.plan."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "explain",
+              "recommendation_need": {
+                "type": "none",
+                "needed": false,
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present"
+                ]
+              },
+              "operation_suggestions": []
+            },
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "product_help"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 4477,
+          "created_at": "2026-05-17T18:06:27.656325+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-17T18:07:52.302Z",
+      "user": "Plutot souci de visibilite. Si je ne reponds pas au weekly, la validation de la semaine suivante attend bien lundi matin ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui, en gros: si tu ne réponds pas au weekly, la validation de la semaine suivante ne peut pas “se faire” sur la base de ton retour, donc elle attend le lundi matin (ou le moment prévu) avec ton signal.\n\nPour que ça soit clair sans stress: tu veux que lundi matin, on considère ta semaine comme “à valider quand même” si tu n’as rien renvoyé, ou tu préfères que ce soit “non interprétable” tant que tu n’as pas répondu ? 😊",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-r6-no_signal-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-r6-no_signal-t05",
+        "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+        "channel": "web",
+        "scope": "weekly-deep-no_signal-weekly-deep-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, en gros: si tu ne réponds pas au weekly, la validation de la semaine suivante ne peut pas “se faire” sur la base de ton retour, donc elle attend le lundi matin (ou le moment prévu) avec ton signal.\n\nPour que ça soit clair sans stress: tu veux que lundi matin, on considère ta semaine comme “à valider quand même” si tu n’as rien renvoyé, ou tu préfères que ce soit “non interprétable” tant que tu n’as pas répondu ? 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-r6-no_signal-t05",
+          "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+          "source_message_id": "1ae7eb5f-cfb6-428c-8dcd-de96d84f2a1d",
+          "ts": "2026-05-17T18:08:04.467+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9484,
+            "latency_ms": 10754,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 621,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "product.weekly_review_logic",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "fonctionnement validation semaine et weekly",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-r6-no_signal-t05",
+            "user_id": "fdecacc9-165b-4733-a51e-eb4d784ff5ef",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "product.weekly_review_logic",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "fonctionnement validation semaine et weekly",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "product_help": {
+                  "reason": "user_asks_about_weekly_validation_timing_and_product_logic",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2.1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6,1.9,2;decay=0.55;recovery=0",
+                  "contribution": 1.1
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9,
+                2
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "1ae7eb5f-cfb6-428c-8dcd-de96d84f2a1d",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "product_help",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+              "status": "complete",
+              "skill_id": "product_help",
+              "diagnosis": {
+                "locations": [
+                  "Dashboard > Plan"
+                ],
+                "feature_id": "dashboard.plan",
+                "feature_label": "Plan",
+                "operation_bridge": null
+              },
+              "state_patch": {
+                "summary": "Product help answered for dashboard.plan."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "how_to",
+              "recommendation_need": {
+                "type": "none",
+                "needed": false,
+                "urgency": "none",
+                "constraints": [
+                  "product_help_does_not_execute_operations",
+                  "operation_bridge_requires_confirmation_when_present"
+                ]
+              },
+              "operation_suggestions": []
+            },
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "product_help"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 12103,
+          "created_at": "2026-05-17T18:08:04.469719+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-17T18:08:04.511Z"
+}

@@ -22,4 +22,11 @@ export type RouteDecision = {
   memory_used_for_route: boolean;
   memory_item_ids_used_for_route: string[];
   memory_use_kind: MemoryUseKind;
+  active_flow_arbitration?: {
+    decision: string;
+    active_owner: string;
+    selected_owner: string;
+    resume_policy: string;
+    reason_code: string;
+  };
 };

@@ -149,7 +149,9 @@ function buildRoadmapReviewSystemPrompt(
 
   const signals: string[] = [];
   if (args.previousTransformationSummary) {
-    signals.push(`Dernière transformation terminée\n${args.previousTransformationSummary}`);
+    signals.push(
+      `Dernière transformation terminée\n${args.previousTransformationSummary}`,
+    );
   }
   if (args.calibrationSummary) {
     signals.push(`Calibrage initial disponible\n${args.calibrationSummary}`);
@@ -165,7 +167,11 @@ function buildRoadmapReviewSystemPrompt(
   return `Tu es Sophia en mode revue de roadmap. L'utilisateur voit sa roadmap de transformations personnelles et peut te demander de la modifier.
 
 ## Contexte
-${args.isFirstOnboarding ? "C'est le premier onboarding de l'utilisateur. Il vient de découvrir son parcours." : "L'utilisateur a terminé une transformation et revoit son parcours pour la suite."}
+${
+    args.isFirstOnboarding
+      ? "C'est le premier onboarding de l'utilisateur. Il vient de découvrir son parcours."
+      : "L'utilisateur a terminé une transformation et revoit son parcours pour la suite."
+  }
 
 ## Roadmap actuelle
 ${roadmapBlock}
@@ -182,6 +188,9 @@ Quand tu modifies la roadmap, l'utilisateur voit les changements instantanément
 
 ## Règles
 - Tutoie l'utilisateur, sois empathique et directe
+- N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
+- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
+- Chaque message visible contient au moins 1 emoji naturel; 2 max.
 - Si l'utilisateur veut changer l'ordre, utilise reorder_transformations avec TOUS les IDs (pas seulement ceux qui bougent)
 - Si l'utilisateur mentionne un nouveau sujet, propose de l'ajouter avec add_transformation
 - Si l'utilisateur dit qu'un sujet n'est plus pertinent, propose de le supprimer avec remove_transformation
@@ -240,7 +249,9 @@ function formatRecentHistory(history: any[]): string | null {
     .slice(-6)
     .map((item) => {
       const role = item?.role === "assistant" ? "Sophia" : "Utilisateur";
-      const content = typeof item?.content === "string" ? item.content.trim() : "";
+      const content = typeof item?.content === "string"
+        ? item.content.trim()
+        : "";
       if (!content) return null;
       return `${role}: ${content}`;
     })
@@ -296,7 +307,7 @@ function formatCalibrationSummary(
     probableDrivers ? `- Facteur probable dominant: ${probableDrivers}` : null,
     priorAttempts ? `- Tentatives passées: ${priorAttempts}` : null,
     selfConfidence != null && Number.isInteger(selfConfidence) &&
-        selfConfidence >= 1 && selfConfidence <= 5
+      selfConfidence >= 1 && selfConfidence <= 5
       ? `- Confiance initiale: ${selfConfidence}/5`
       : null,
     successIndicator && successIndicator !== priorityGoal
@@ -311,9 +322,10 @@ function formatConversationPulseSummary(
   payload: Record<string, unknown>,
 ): string | null {
   const lines: string[] = [];
-  const messagesLast72hCount = typeof payload.messages_last_72h_count === "number"
-    ? payload.messages_last_72h_count
-    : null;
+  const messagesLast72hCount =
+    typeof payload.messages_last_72h_count === "number"
+      ? payload.messages_last_72h_count
+      : null;
   if (messagesLast72hCount != null) {
     lines.push(`- Messages sur 72h: ${messagesLast72hCount}`);
   }
@@ -345,7 +357,9 @@ function formatConversationPulseSummary(
     }
   }
 
-  const events = Array.isArray(payload.event_memories) ? payload.event_memories : [];
+  const events = Array.isArray(payload.event_memories)
+    ? payload.event_memories
+    : [];
   const eventSummary = events
     .map((eventItem) => {
       if (!eventItem || typeof eventItem !== "object") return null;
@@ -381,17 +395,20 @@ async function loadRoadmapReviewContext(
     .maybeSingle();
   if (cycleError) throw cycleError;
   if (!cycleRow) {
-    throw new Error(`Cycle ${cycleId} not found or not owned by user ${userId}`);
+    throw new Error(
+      `Cycle ${cycleId} not found or not owned by user ${userId}`,
+    );
   }
 
-  const { data: transformationRows, error: transformationError } = await supabase
-    .from("user_transformations")
-    .select(
-      "id, title, priority_order, status, user_summary, internal_summary, completion_summary, questionnaire_answers, questionnaire_schema, handoff_payload, completed_at",
-    )
-    .eq("cycle_id", cycleId)
-    .neq("status", "cancelled")
-    .order("priority_order", { ascending: true });
+  const { data: transformationRows, error: transformationError } =
+    await supabase
+      .from("user_transformations")
+      .select(
+        "id, title, priority_order, status, user_summary, internal_summary, completion_summary, questionnaire_answers, questionnaire_schema, handoff_payload, completed_at",
+      )
+      .eq("cycle_id", cycleId)
+      .neq("status", "cancelled")
+      .order("priority_order", { ascending: true });
 
   if (transformationError) {
     throw transformationError;
@@ -565,10 +582,11 @@ export async function runRoadmapReview(
   const effectiveTransformations = loadedContext.transformations.length > 0
     ? loadedContext.transformations
     : roadmapContext.transformations;
-  const previousTransformationSummary = loadedContext.previousTransformationSummary ??
-    (roadmapContext.previousTransformation?.title
-      ? `Titre: ${roadmapContext.previousTransformation.title}`
-      : null);
+  const previousTransformationSummary =
+    loadedContext.previousTransformationSummary ??
+      (roadmapContext.previousTransformation?.title
+        ? `Titre: ${roadmapContext.previousTransformation.title}`
+        : null);
 
   const systemPrompt = buildRoadmapReviewSystemPrompt({
     transformations: effectiveTransformations,
@@ -616,7 +634,8 @@ export async function runRoadmapReview(
   // Tool call response
   if (response && typeof response === "object") {
     const toolName = (response as any)?.tool ?? (response as any)?.name ?? null;
-    const toolArgs = (response as any)?.args ?? (response as any)?.arguments ?? {};
+    const toolArgs = (response as any)?.args ?? (response as any)?.arguments ??
+      {};
 
     if (toolName && roadmapContext.cycleId) {
       try {
@@ -648,7 +667,9 @@ export async function runRoadmapReview(
           [],
           "auto",
           {
-            requestId: meta?.requestId ? `${meta.requestId}:followup` : undefined,
+            requestId: meta?.requestId
+              ? `${meta.requestId}:followup`
+              : undefined,
             model,
             source: "sophia-brain:roadmap_review:followup",
             forceRealAi: meta?.forceRealAi,
@@ -666,7 +687,8 @@ export async function runRoadmapReview(
         };
       } catch (err) {
         console.error("[RoadmapReview] Tool execution failed:", err);
-        const errorMessage = String((err as Error)?.message ?? err ?? "").trim();
+        const errorMessage = String((err as Error)?.message ?? err ?? "")
+          .trim();
         return {
           text: errorMessage
             ? `Je n'ai pas pu appliquer ce changement pour le moment: ${errorMessage}`
@@ -678,8 +700,7 @@ export async function runRoadmapReview(
     }
 
     // Fallback: extract text if present
-    const maybeText =
-      (response as any)?.text ??
+    const maybeText = (response as any)?.text ??
       (response as any)?.message ??
       null;
     if (typeof maybeText === "string" && maybeText.trim()) {
@@ -692,7 +713,8 @@ export async function runRoadmapReview(
   }
 
   return {
-    text: "Je suis là pour t'aider à ajuster ton parcours. Qu'est-ce que tu voudrais modifier ?",
+    text:
+      "Je suis là pour t'aider à ajuster ton parcours. Qu'est-ce que tu voudrais modifier ?",
     executed_tools: [],
     tool_execution: "none",
   };

@@ -1,0 +1,56 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Le truc autour de mon environnement dans le plan me bloque. Je veux pas l enlever, mais la marche d entree est trop grosse pour aujourd hui.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose de créer une version « mini » de 5 minutes pour ton action de nettoyage de l'environnement. L'idée est de réduire la pression pour aujourd'hui sans pour autant abandonner ton objectif initial. Rien n'est encore appliqué à ton plan : c'est une proposition pour faciliter ton démarrage. Concrètement, cela permet de créer un petit pont de 5 minutes pour lancer le mouvement, tout en gardant l'action complète de nettoyage disponible juste après. Tes autres habitudes, comme le choix d'aliments bruts, ne seront pas impactées. Est-ce que cette approche te convient ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Avant de valider, je veux que ce soit plus precis : 1 minute seulement, sur la table visible, puis le nettoyage complet juste apres.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-toolskill-action-real-manual-r3",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je prévois deux ajustements : la création d'une version 'mini' de 5 minutes pour amorcer le mouvement et le maintien de l'action originale en tant que point de reprise. Ce qui ne bouge pas, ce sont tes autres priorités alimentaires et la structure de ta journée. Mon niveau de confiance est élevé car cela répond directement à la difficulté de la marche d'entrée tout en préservant ton intention de ranger ton espace.",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": null,
+      "trace_error": null
+    }
+  }
+]

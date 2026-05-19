@@ -189,8 +189,17 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   const { admin, userId } = params;
   const source = safeTrim(params.source);
   const isWatcherCheckin = source === "trigger-watcher-batch";
+  const isDailyActionReview = source.startsWith(
+    "process-checkins:daily_action_review",
+  );
+  const isWeeklyAdaptiveReview = source.startsWith(
+    "process-checkins:weekly_adaptive_review",
+  );
   const eventContext = clampText(params.eventContext, 180);
-  const instruction = clampText(params.instruction ?? "", 500);
+  const instruction = clampText(
+    params.instruction ?? "",
+    isDailyActionReview || isWeeklyAdaptiveReview ? 1_800 : 500,
+  );
   const watcherScopeSnapshot = isWatcherCheckin
     ? await fetchCheckinExclusionSnapshot({ admin, userId })
     : null;
@@ -201,7 +210,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
         watcherScopeSnapshot,
       )
       : (params.eventGrounding ?? ""),
-    320,
+    isDailyActionReview || isWeeklyAdaptiveReview ? 1_600 : 320,
   );
 
   const { data: prof } = await admin
@@ -269,20 +278,38 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
           max_items: 6,
           max_entities: 0,
           topic_items: 0,
-          event_items: 2,
-          global_items: 4,
-          action_items: 0,
+          event_items: isDailyActionReview || isWeeklyAdaptiveReview ? 0 : 2,
+          global_items: isDailyActionReview
+            ? 0
+            : isWeeklyAdaptiveReview
+            ? 2
+            : 4,
+          action_items: isDailyActionReview || isWeeklyAdaptiveReview ? 4 : 0,
+          level_items: isWeeklyAdaptiveReview ? 1 : 0,
         },
-        requested_scopes: ["global", "event"],
+        requested_scopes: isDailyActionReview
+          ? ["action"]
+          : isWeeklyAdaptiveReview
+          ? ["action", "level", "global"]
+          : ["global", "event"],
         topic_targets: [],
         event_queries: [],
+        action_targets: isDailyActionReview || isWeeklyAdaptiveReview
+          ? retrievalQuery.split(/\s+/).slice(0, 80)
+          : [],
         domain_keys: [],
         domain_prefixes: [],
         retrieval_policy: "semantic_first",
         requires_topic_router: false,
         dispatcher_memory_plan_applied: true,
-        dispatcher_memory_mode: "broad",
-        dispatcher_context_need: "scheduled_checkin",
+        dispatcher_memory_mode: isDailyActionReview || isWeeklyAdaptiveReview
+          ? "targeted"
+          : "broad",
+        dispatcher_context_need: isDailyActionReview
+          ? "daily_action_review"
+          : isWeeklyAdaptiveReview
+          ? "weekly_adaptive_review"
+          : "scheduled_checkin",
       },
     });
     memoryContextBlock = formatMemoryV2PayloadForPrompt(payload);
@@ -300,6 +327,8 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     "- 1 message court (2–6 lignes), texte brut, pas de markdown.",
     "- 1 question MAX.",
     "- Naturel, chaleureux, tutoiement.",
+    '- Tu tutoies toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
+    '- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"), jamais "Sophia".',
     "- N'annonce jamais que c'est un 'check-in' et ne commence jamais par 'Petit check-in', 'Mini check-in' ou équivalent.",
     "- Le corps du message doit rester naturel MEME si une courte salutation type 'Hello !' est ajoutée juste avant au moment de l'envoi.",
     "- Donc le message doit fonctionner aussi SANS salutation: commence par une phrase autonome, jamais par 'Toi,', 'Et', 'D'ailleurs', 'Du coup', ou un simple connecteur.",

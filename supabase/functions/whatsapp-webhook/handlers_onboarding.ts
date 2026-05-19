@@ -136,19 +136,25 @@ function inferQuestionPreference(raw: unknown) {
 
 function coachPreferenceLabel(key: string, value: string): string {
   if (key === "coach.tone") {
-    return value === "mix"
+    return value === "warm_direct" || value === "bienveillant_ferme"
+      ? "Bienveillant ferme"
+      : value === "mix"
       ? "Mix doux/direct"
-      : value === "doux"
+      : value === "soft" || value === "doux"
       ? "Doux"
       : "Très direct";
   }
   if (key === "coach.challenge_level") {
-    return value === "eleve" ? "Élevé" : value === "leger" ? "Léger" : "Modéré";
+    return value === "high" || value === "eleve"
+      ? "Élevé"
+      : value === "low" || value === "leger"
+      ? "Léger"
+      : "Modéré";
   }
   if (key === "coach.question_tendency") {
-    return value === "peu_de_questions"
+    return value === "low" || value === "peu_de_questions"
       ? "Peu de questions"
-      : value === "tres_questionnant"
+      : value === "high" || value === "tres_questionnant"
       ? "Très questionnant"
       : "Normal";
   }
@@ -174,7 +180,7 @@ async function persistCoachPreferenceViaOperation(params: {
   const requestedPatch = { [params.key]: params.value } as Partial<
     Record<CoachPreferenceKey, string>
   >;
-  const operation = runUpdateCoachPreferencesIntake({
+  const operation = await runUpdateCoachPreferencesIntake({
     user_id: params.userId,
     channel: "whatsapp",
     timezone: "Europe/Paris",

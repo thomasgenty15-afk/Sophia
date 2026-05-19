@@ -1,0 +1,48 @@
+{
+  "run_id": "weekly-qa-r11-shift-partial_habits_mission_partial",
+  "variant": "partial_shift_week",
+  "persona": "paul",
+  "user_id": "f5cf0b28-a2da-4bb9-b6a7-78eafe476d50",
+  "email": "qa-weekly-deep-weekly-qa-r11-shift-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r11-shift",
+  "created_at": "2026-05-19T15:46:50.027Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-19T15:46:50.033Z",
+      "user": "Je l'ai vecue en deux parties : debut OK, puis grosse fatigue jeudi/vendredi. J'ai fait les habitudes partiellement et la mission du signal de pause est commencee mais pas finie. Je veux juste decaler sur une semaine plus legere, pas changer le niveau.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r11-shift-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "OPENAI_API_KEY missing",
+        "request_id": "weekly-qa-r11-shift-partial_habits_mission_partial-t01",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "gemini",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    }
+  ],
+  "updated_at": "2026-05-19T15:48:36.222Z"
+}

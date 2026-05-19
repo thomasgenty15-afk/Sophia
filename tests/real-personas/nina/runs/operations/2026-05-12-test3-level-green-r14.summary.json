@@ -1,0 +1,77 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r14-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le niveau actuel autour du grignotage du soir me paraît trop dense. Je ne veux pas refaire tout le programme, juste rendre ce bloc plus respirable cette semaine.",
+    "assistant": "C'est compris, on va alléger ce bloc pour la semaine. Pour rendre ça plus respirable, est-ce que tu préfères qu'on simplifie certaines actions (comme la préparation des alternatives ou le décodage des envies) ou qu'on réduise la liste pour se concentrer sur l'essentiel ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.adjustment_type",
+        "current_level.reason"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r14-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r14-t02",
+    "status": 500,
+    "ok": null,
+    "user": "Simplifie surtout la préparation des alternatives et le choix du brut. Je veux éviter d'avoir à cuisiner ou décider à 21h. Le décodage des envies et le nettoyage, je préfère les garder comme ils sont.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "safety_pregate": null,
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": null,
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-level-green-r14-t02",
+    "trace_error": null
+  }
+]

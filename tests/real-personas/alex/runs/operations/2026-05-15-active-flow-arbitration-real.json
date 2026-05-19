@@ -1,0 +1,2093 @@
+{
+  "generated_at": "2026-05-15T15:12:32.557Z",
+  "results": [
+    {
+      "id": "attack_product_help_resume",
+      "goal": "Pendant prepare_attack_card, product_help explicite doit repondre inline puis reprendre le flow.",
+      "scope": "qa-active-flow-attack_product_help_resume-1778857812284-1",
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_product_help_resume-1778857812284-1-t01",
+          "user": "Je veux une carte d'attaque pour le sas du soir, quand je dois ouvrir le carnet et que je tourne autour.",
+          "assistant": "C'est noté pour le sas de déchargement. Pour t'aider à ouvrir ce carnet sans hésiter, quelle approche te tente le plus ?\n\n1. Le texte magique (à relire pour arrêter de négocier)\n2. Ancre visuelle (un signal physique sur le carnet)\n3. Mot de bascule (un mot à m'envoyer pour déclencher l'action)",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Je veux une carte d'attaque pour le sas du soir, quand je dois ouvrir le carnet et que je tourne autour.",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour le sas de déchargement. Pour t'aider à ouvrir ce carnet sans hésiter, quelle approche te tente le plus ?\n\n1. Le texte magique (à relire pour arrêter de négocier)\n2. Ancre visuelle (un signal physique sur le carnet)\n3. Mot de bascule (un mot à m'envoyer pour déclencher l'action)",
+                "known_slots": {
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Faire le sas de déchargement",
+                    "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "plan_item",
+                      "title": "Faire le sas de déchargement",
+                      "status": "identified",
+                      "evidence": [
+                        "sas du soir",
+                        "ouvrir le carnet"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                    },
+                    "blocker": {
+                      "type": "avoidance",
+                      "evidence": [
+                        "tourne autour"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "ambiguous",
+                      "options": [
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                          "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                          "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                          "recommended": true,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Ancre visuelle",
+                          "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                          "example": "Une phrase collée sur la couverture du carnet.",
+                          "description": "Un repere visuel simple, avec une phrase associee.",
+                          "recommended": false,
+                          "technique_key": "ancre_visuelle"
+                        },
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                          "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                          "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                          "recommended": true,
+                          "technique_key": "pre_engagement"
+                        }
+                      ],
+                      "evidence": [
+                        "tourne autour",
+                        "quand je dois ouvrir le carnet"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour le sas de déchargement. Pour t'aider à ouvrir ce carnet sans hésiter, quelle approche te tente le plus ?\n\n1. Le texte magique (à relire pour arrêter de négocier)\n2. Ancre visuelle (un signal physique sur le carnet)\n3. Mot de bascule (un mot à m'envoyer pour déclencher l'action)"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                      "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                      "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                      "recommended": true,
+                      "technique_key": "texte_recadrage"
+                    },
+                    {
+                      "title": "Ancre visuelle",
+                      "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                      "example": "Une phrase collée sur la couverture du carnet.",
+                      "description": "Un repere visuel simple, avec une phrase associee.",
+                      "recommended": false,
+                      "technique_key": "ancre_visuelle"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                      "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                      "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                      "recommended": true,
+                      "technique_key": "pre_engagement"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                    "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                    "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                    "example": "Une phrase collée sur la couverture du carnet.",
+                    "description": "Un repere visuel simple, avec une phrase associee.",
+                    "recommended": false,
+                    "technique_key": "ancre_visuelle"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                    "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                    "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                    "recommended": true,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_product_help_resume-1778857812284-1-t02",
+          "user": "Au fait, je les retrouve ou les cartes d'attaque dans le dashboard ?",
+          "assistant": "Tu les trouveras dans l'onglet 'Cartes d'attaque' de ton dashboard. 😉\n\nPour ton sas de déchargement, quelle option te tente le plus : Le texte magique, Ancre visuelle ou Mot de bascule ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "product_help",
+            "selected_handler": "product_help",
+            "reason_code": "product_help_inline_resume_active_tool_skill",
+            "active_flow_arbitration": {
+              "decision": "inline_answer_then_resume",
+              "reason_code": "product_help_inline_resume_active_tool_skill",
+              "active_owner": "tool_skill",
+              "resume_policy": "auto_after_answer",
+              "selected_owner": "product_help"
+            },
+            "blocked_paths": [
+              {
+                "path": "tool_skills",
+                "reason_code": "product_help_inline_preserves_active_tool_skill"
+              },
+              {
+                "path": "track_progress_plan_item",
+                "reason_code": "target_missing"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "Tu les trouveras dans l'onglet 'Cartes d'attaque' de ton dashboard. 😉\n\nPour ton sas de déchargement, quelle option te tente le plus : Le texte magique, Ancre visuelle ou Mot de bascule ?",
+                "known_slots": {
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Faire le sas de déchargement",
+                    "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "plan_item",
+                      "title": "Faire le sas de déchargement",
+                      "status": "identified",
+                      "evidence": [
+                        "structured_operation_input"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                    },
+                    "blocker": {
+                      "type": "avoidance",
+                      "evidence": [
+                        "L'utilisateur pose une question sur l'interface au lieu de choisir une technique."
+                      ],
+                      "confidence": 0.8
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "ambiguous",
+                      "options": [
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                          "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                          "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                          "recommended": true,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Ancre visuelle",
+                          "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                          "example": "Une phrase collée sur la couverture du carnet.",
+                          "description": "Un repere visuel simple, avec une phrase associee.",
+                          "recommended": false,
+                          "technique_key": "ancre_visuelle"
+                        },
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                          "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                          "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                          "recommended": true,
+                          "technique_key": "pre_engagement"
+                        }
+                      ],
+                      "evidence": [
+                        "tourne autour",
+                        "quand je dois ouvrir le carnet"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "Tu les trouveras dans l'onglet 'Cartes d'attaque' de ton dashboard. 😉\n\nPour ton sas de déchargement, quelle option te tente le plus : Le texte magique, Ancre visuelle ou Mot de bascule ?"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                      "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                      "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                      "recommended": true,
+                      "technique_key": "texte_recadrage"
+                    },
+                    {
+                      "title": "Ancre visuelle",
+                      "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                      "example": "Une phrase collée sur la couverture du carnet.",
+                      "description": "Un repere visuel simple, avec une phrase associee.",
+                      "recommended": false,
+                      "technique_key": "ancre_visuelle"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                      "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                      "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                      "recommended": true,
+                      "technique_key": "pre_engagement"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Idéal pour arrêter de négocier avec soi-même quand on tourne autour du carnet.",
+                    "example": "Un texte de 3 lignes qui te rappelle pourquoi tu fais ce sas.",
+                    "description": "Un texte court a relire ou recopier quand la resistance monte.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Pour créer un signal physique fort qui déclenche l'ouverture du carnet.",
+                    "example": "Une phrase collée sur la couverture du carnet.",
+                    "description": "Un repere visuel simple, avec une phrase associee.",
+                    "recommended": false,
+                    "technique_key": "ancre_visuelle"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Si tu sens que tu vas esquiver, tu m'envoies le mot et on bascule dans l'action.",
+                    "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                    "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                    "recommended": true,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "product_help_inline_resume_active_tool_skill",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_product_help_resume-1778857812284-1-t03",
+          "user": "Ok merci. Pour la carte, fais plutot un signal tres court, pas un long texte.",
+          "assistant": "Ça marche, on part sur un Mot de bascule. Quel mot court et percutant veux-tu m'envoyer pour déclencher ton sas ? (Évite : ZEN, STOP, SAS, BASCULE...)",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "activation_keyword",
+                "needed": true,
+                "reason": "structured_ai_missing_activation_keyword",
+                "status": "missing",
+                "question": "Ça marche, on part sur un Mot de bascule. Quel mot court et percutant veux-tu m'envoyer pour déclencher ton sas ? (Évite : ZEN, STOP, SAS, BASCULE...)",
+                "known_slots": {
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Faire le sas de déchargement",
+                    "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                  },
+                  "technique": "pre_engagement",
+                  "intake_state": {
+                    "target": {
+                      "kind": "plan_item",
+                      "title": "Faire le sas de déchargement",
+                      "status": "identified",
+                      "evidence": [
+                        "structured_operation_input"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+                    },
+                    "blocker": {
+                      "type": "avoidance",
+                      "evidence": [
+                        "L'utilisateur a clarifié son besoin de brièveté."
+                      ],
+                      "confidence": 0.7
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": "pre_engagement",
+                      "status": "identified",
+                      "options": [
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Parfait pour un signal très court qui déclenche l'action sans texte long.",
+                          "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                          "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                          "recommended": true,
+                          "technique_key": "pre_engagement"
+                        }
+                      ],
+                      "evidence": [
+                        "fais plutot un signal tres court, pas un long texte"
+                      ],
+                      "confidence": "high",
+                      "fit_warning": null,
+                      "explicitly_requested": true
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "keyword_intake",
+                    "missing_slots": [
+                      "activation_keyword"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "Ça marche, on part sur un Mot de bascule. Quel mot court et percutant veux-tu m'envoyer pour déclencher ton sas ? (Évite : ZEN, STOP, SAS, BASCULE...)"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Parfait pour un signal très court qui déclenche l'action sans texte long.",
+                      "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                      "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                      "recommended": true,
+                      "technique_key": "pre_engagement"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Parfait pour un signal très court qui déclenche l'action sans texte long.",
+                    "example": "M'envoyer un mot court quand tu hésites devant le carnet.",
+                    "description": "Un mot-cle memorisable et un mini protocole de bascule.",
+                    "recommended": true,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "activation_keyword"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "attack_execution_breakdown_no_switch",
+      "goal": "Pendant prepare_attack_card, un signal execution_breakdown ne doit pas voler le flow.",
+      "scope": "qa-active-flow-attack_execution_breakdown_no_switch-1778857845704-2",
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_execution_breakdown_no_switch-1778857845704-2-t01",
+          "user": "Fais moi une carte d'attaque pour lancer la marche du soir, le demarrage me bloque.",
+          "assistant": "C'est noté pour la marche du soir. Pour t'aider à débloquer le démarrage, quelle approche te tente le plus ?\n\n1. Preparer le terrain (ex: préparer tes chaussures à l'avance)\n2. Mot de bascule (un mot court à m'envoyer pour déclencher l'action)\n3. Mantra de force (une phrase pour te mettre en mouvement)",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Fais moi une carte d'attaque pour lancer la marche du soir, le demarrage me bloque.",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour la marche du soir. Pour t'aider à débloquer le démarrage, quelle approche te tente le plus ?\n\n1. Preparer le terrain (ex: préparer tes chaussures à l'avance)\n2. Mot de bascule (un mot court à m'envoyer pour déclencher l'action)\n3. Mantra de force (une phrase pour te mettre en mouvement)",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "Marche du soir",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "Marche du soir",
+                      "status": "identified",
+                      "evidence": [
+                        "lancer la marche du soir"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "evidence": [
+                        "le demarrage me bloque"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "ambiguous",
+                      "options": [
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Idéal pour lever le blocage du démarrage en préparant tes affaires à l'avance.",
+                          "example": "Exemple: tes chaussures et ta veste prêtes devant la porte.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": true,
+                          "technique_key": "preparer_terrain"
+                        },
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Efficace si tu hésites au moment de sortir : tu m'envoies le mot et tu y vas.",
+                          "example": "Exemple: m'envoyer un mot court quand tu sens que tu vas esquiver.",
+                          "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                          "recommended": false,
+                          "technique_key": "pre_engagement"
+                        },
+                        {
+                          "title": "Mantra de force",
+                          "reason": "Pour te donner l'impulsion mentale nécessaire pour franchir le pas de la porte.",
+                          "example": "Exemple: une phrase courte qui te remet dans ton axe.",
+                          "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                          "recommended": false,
+                          "technique_key": "mantra_force"
+                        }
+                      ],
+                      "evidence": [
+                        "le demarrage me bloque"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour la marche du soir. Pour t'aider à débloquer le démarrage, quelle approche te tente le plus ?\n\n1. Preparer le terrain (ex: préparer tes chaussures à l'avance)\n2. Mot de bascule (un mot court à m'envoyer pour déclencher l'action)\n3. Mantra de force (une phrase pour te mettre en mouvement)"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Idéal pour lever le blocage du démarrage en préparant tes affaires à l'avance.",
+                      "example": "Exemple: tes chaussures et ta veste prêtes devant la porte.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": true,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Efficace si tu hésites au moment de sortir : tu m'envoies le mot et tu y vas.",
+                      "example": "Exemple: m'envoyer un mot court quand tu sens que tu vas esquiver.",
+                      "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                      "recommended": false,
+                      "technique_key": "pre_engagement"
+                    },
+                    {
+                      "title": "Mantra de force",
+                      "reason": "Pour te donner l'impulsion mentale nécessaire pour franchir le pas de la porte.",
+                      "example": "Exemple: une phrase courte qui te remet dans ton axe.",
+                      "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                      "recommended": false,
+                      "technique_key": "mantra_force"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Idéal pour lever le blocage du démarrage en préparant tes affaires à l'avance.",
+                    "example": "Exemple: tes chaussures et ta veste prêtes devant la porte.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": true,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Efficace si tu hésites au moment de sortir : tu m'envoies le mot et tu y vas.",
+                    "example": "Exemple: m'envoyer un mot court quand tu sens que tu vas esquiver.",
+                    "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                    "recommended": false,
+                    "technique_key": "pre_engagement"
+                  },
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Pour te donner l'impulsion mentale nécessaire pour franchir le pas de la porte.",
+                    "example": "Exemple: une phrase courte qui te remet dans ton axe.",
+                    "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                    "recommended": false,
+                    "technique_key": "mantra_force"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_execution_breakdown_no_switch-1778857845704-2-t02",
+          "user": "En vrai c'est surtout que la premiere etape est floue et trop grosse.",
+          "assistant": "Marche du soir : Terrain prêt\nTechnique : Préparer le terrain\nAction : Sortir tes baskets et les poser devant la porte dès maintenant.\nPrépare tes baskets à l'avance pour que le départ soit sans effort.\nOn valide ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "draft": {
+                "draft": {
+                  "title": "Marche du soir : Terrain prêt",
+                  "technique": "preparer_terrain",
+                  "instruction": "Prépare l'environnement pour supprimer la friction du départ.",
+                  "mode_emploi": "Prépare tes baskets à l'avance pour que le départ soit sans effort.",
+                  "target_label": "Marche du soir",
+                  "why_it_helps": "Quand l'environnement est prêt, le cerveau n'a plus besoin de décider, il n'a qu'à suivre.",
+                  "generated_asset": "Sortir tes baskets et les poser devant la porte dès maintenant.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Supprime la friction du choix",
+                    "Rend le départ automatique",
+                    "Clarifie la première étape"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Marche du soir : Terrain prêt\nTechnique : Préparer le terrain\nAction : Sortir tes baskets et les poser devant la porte dès maintenant.\nPrépare tes baskets à l'avance pour que le départ soit sans effort.\nOn valide ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_tool_skill_continue",
+              "operation_id": "e78afb39-8022-4920-8afc-91d18a2720e1",
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_execution_breakdown_no_switch-1778857845704-2-t03",
+          "user": "Oui, garde l'idee d'un premier geste minuscule.",
+          "assistant": "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "pending_confirmation",
+            "selected_handler": "execute_confirmed",
+            "reason_code": "confirmation_yes",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "confirmation_yes",
+              "active_owner": "pending_confirmation",
+              "resume_policy": "after_confirmation",
+              "selected_owner": "pending_confirmation"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "error": "duplicate key value violates unique constraint \"user_attack_cards_one_out_of_plan_per_cycle_idx\"",
+              "status": "failed",
+              "reason_code": "confirmation_yes",
+              "operation_id": "e78afb39-8022-4920-8afc-91d18a2720e1",
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "adjust_plan_reminder_supersede",
+      "goal": "Pendant adjust_plan, une demande explicite de reminder recurrent doit prendre le dessus.",
+      "scope": "qa-active-flow-adjust_plan_reminder_supersede-1778857877663-3",
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-adjust_plan_reminder_supersede-1778857877663-3-t01",
+          "user": "Je veux alleger mon plan du soir, il y a trop d'actions dans le bloc.",
+          "assistant": "Tu veux ajuster une action precise, le niveau actuel, ou le plan dans son ensemble ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Je veux alleger mon plan du soir, il y a trop d'actions dans le bloc.",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "plan_item_id": null,
+              "target_title": null,
+              "missing_slots": [
+                "scope"
+              ],
+              "selected_handler": "adjust_plan_item"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-adjust_plan_reminder_supersede-1778857877663-3-t02",
+          "user": "En fait avant d'ajuster, programme moi plutot un rappel tous les soirs pour me rappeler l'action principale.",
+          "assistant": "Tu veux ajuster une action precise, le niveau actuel, ou le plan dans son ensemble ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "adjust_plan_item",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [
+              {
+                "path": "track_progress_plan_item",
+                "reason_code": "target_missing"
+              }
+            ],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "En fait avant d'ajuster, programme moi plutot un rappel tous les soirs pour me rappeler l'action principale.",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "reason_code": "active_tool_skill_continue",
+              "plan_item_id": null,
+              "target_title": null,
+              "missing_slots": [
+                "scope"
+              ],
+              "selected_handler": "adjust_plan_item"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-adjust_plan_reminder_supersede-1778857877663-3-t03",
+          "user": "20h30 tous les soirs.",
+          "assistant": "Je te propose de créer ce rappel récurrent : \"20h30\", tous les jours à 20:30. Tu veux que je le crée ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "create_recurring_reminder",
+            "reason_code": "explicit_tool_intent_supersedes_active",
+            "active_flow_arbitration": {
+              "decision": "suspend_active",
+              "reason_code": "explicit_tool_intent_supersedes_active",
+              "active_owner": "tool_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "20h30 tous les soirs.",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "create_recurring_reminder",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "draft": {
+                "draft": {
+                  "time": "20:30",
+                  "title": "Rappel récurrent : 20h30",
+                  "message": "20h30",
+                  "timezone": "Europe/Paris",
+                  "frequency": "daily",
+                  "destination": "base_de_vie",
+                  "related_plan_item_id": null
+                },
+                "output_schema": "recurring_reminder_draft_v1",
+                "operation_type": "create_recurring_reminder",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose de créer ce rappel récurrent : \"20h30\", tous les jours à 20:30. Tu veux que je le crée ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "explicit_tool_intent_supersedes_active",
+              "operation_id": "21d23056-1e80-499b-87bf-54e2c5ff3c22",
+              "selected_handler": "create_recurring_reminder"
+            },
+            "skill_run": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "attack_opportunity_defer",
+      "goal": "Pendant prepare_attack_card, une opportunite reminder non explicite doit etre differée, pas switcher.",
+      "scope": "qa-active-flow-attack_opportunity_defer-1778857877917-4",
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_opportunity_defer-1778857877917-4-t01",
+          "user": "Prepare une carte d'attaque pour faire la session focus du matin.",
+          "assistant": "C'est noté pour ta session focus du matin. Quelle approche préfères-tu pour t'aider à démarrer ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Prepare une carte d'attaque pour faire la session focus du matin.",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour ta session focus du matin. Quelle approche préfères-tu pour t'aider à démarrer ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "session focus du matin",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "session focus du matin",
+                      "status": "identified",
+                      "evidence": [
+                        "Prepare une carte d'attaque pour faire la session focus du matin"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "evidence": [
+                        "session focus"
+                      ],
+                      "confidence": 0.7
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [
+                        {
+                          "title": "Meditation de 5 minutes",
+                          "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                          "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                          "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                          "recommended": true,
+                          "technique_key": "visualisation_matinale"
+                        },
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                          "example": "Telephone loin, carnet pret, premier geste visible.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": false,
+                          "technique_key": "preparer_terrain"
+                        },
+                        {
+                          "title": "Mantra de force",
+                          "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                          "example": "Une phrase courte qui te remet dans ton axe.",
+                          "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                          "recommended": false,
+                          "technique_key": "mantra_force"
+                        }
+                      ],
+                      "evidence": [],
+                      "confidence": "low",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour ta session focus du matin. Quelle approche préfères-tu pour t'aider à démarrer ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Meditation de 5 minutes",
+                      "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                      "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                      "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                      "recommended": true,
+                      "technique_key": "visualisation_matinale"
+                    },
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                      "example": "Telephone loin, carnet pret, premier geste visible.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": false,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Mantra de force",
+                      "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                      "example": "Une phrase courte qui te remet dans ton axe.",
+                      "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                      "recommended": false,
+                      "technique_key": "mantra_force"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Meditation de 5 minutes",
+                    "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                    "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                    "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                    "recommended": true,
+                    "technique_key": "visualisation_matinale"
+                  },
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                    "example": "Telephone loin, carnet pret, premier geste visible.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": false,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                    "example": "Une phrase courte qui te remet dans ton axe.",
+                    "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                    "recommended": false,
+                    "technique_key": "mantra_force"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_opportunity_defer-1778857877917-4-t02",
+          "user": "Ce serait bien d'avoir un rappel un jour, mais la je veux surtout finir cette carte.",
+          "assistant": "Entendu, on se concentre sur la carte. Pour ta session focus du matin, quelle approche préfères-tu ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "Entendu, on se concentre sur la carte. Pour ta session focus du matin, quelle approche préfères-tu ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "session focus du matin",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "session focus du matin",
+                      "status": "identified",
+                      "evidence": [
+                        "session focus du matin"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "evidence": [
+                        "session focus"
+                      ],
+                      "confidence": 0.7
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "missing",
+                      "options": [
+                        {
+                          "title": "Meditation de 5 minutes",
+                          "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                          "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                          "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                          "recommended": true,
+                          "technique_key": "visualisation_matinale"
+                        },
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                          "example": "Telephone loin, carnet pret, premier geste visible.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": false,
+                          "technique_key": "preparer_terrain"
+                        },
+                        {
+                          "title": "Mantra de force",
+                          "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                          "example": "Une phrase courte qui te remet dans ton axe.",
+                          "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                          "recommended": false,
+                          "technique_key": "mantra_force"
+                        }
+                      ],
+                      "evidence": [],
+                      "confidence": "low",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "Entendu, on se concentre sur la carte. Pour ta session focus du matin, quelle approche préfères-tu ?\n\n- Meditation de 5 minutes\n- Preparer le terrain\n- Mantra de force"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Meditation de 5 minutes",
+                      "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                      "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                      "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                      "recommended": true,
+                      "technique_key": "visualisation_matinale"
+                    },
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                      "example": "Telephone loin, carnet pret, premier geste visible.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": false,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Mantra de force",
+                      "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                      "example": "Une phrase courte qui te remet dans ton axe.",
+                      "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                      "recommended": false,
+                      "technique_key": "mantra_force"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Meditation de 5 minutes",
+                    "reason": "Idéal pour se projeter sereinement dans une session de concentration intense dès le matin.",
+                    "example": "Une visualisation rapide du moment ou tu fais l'action sans debat.",
+                    "description": "Rendre le comportement plus familier avant que la resistance apparaisse.",
+                    "recommended": true,
+                    "technique_key": "visualisation_matinale"
+                  },
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Parfait pour éliminer les distractions (téléphone, onglets ouverts) avant de commencer.",
+                    "example": "Telephone loin, carnet pret, premier geste visible.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": false,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Mantra de force",
+                    "reason": "Utile pour se mettre dans un état d'esprit déterminé avant de s'attaquer à une tâche complexe.",
+                    "example": "Une phrase courte qui te remet dans ton axe.",
+                    "description": "Installer plus de force interieure face a l'action, avant le moment difficile.",
+                    "recommended": false,
+                    "technique_key": "mantra_force"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "active_tool_skill_continue",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-attack_opportunity_defer-1778857877917-4-t03",
+          "user": "Choisis la version la plus simple.",
+          "assistant": "Focus Matinal Sans Friction\nTechnique: Préparer le terrain\nTéléphone dans une autre pièce, carnet ouvert à la bonne page, et gourde d'eau remplie.\nInstalle ce setup ce soir pour n'avoir qu'à t'asseoir et commencer demain.\nOn valide et on crée la carte ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "draft": {
+                "draft": {
+                  "title": "Focus Matinal Sans Friction",
+                  "technique": "preparer_terrain",
+                  "instruction": "Mets en place ton environnement dès maintenant pour demain matin.",
+                  "mode_emploi": "Installe ce setup ce soir pour n'avoir qu'à t'asseoir et commencer demain.",
+                  "target_label": "session focus du matin",
+                  "why_it_helps": "En retirant les obstacles physiques, tu bypasses la résistance mentale du matin.",
+                  "generated_asset": "Téléphone dans une autre pièce, carnet ouvert à la bonne page, et gourde d'eau remplie.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Élimine les distractions visuelles",
+                    "Réduit la charge mentale du démarrage"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Focus Matinal Sans Friction\nTechnique: Préparer le terrain\nTéléphone dans une autre pièce, carnet ouvert à la bonne page, et gourde d'eau remplie.\nInstalle ce setup ce soir pour n'avoir qu'à t'asseoir et commencer demain.\nOn valide et on crée la carte ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_tool_skill_continue",
+              "operation_id": "547b337b-58e7-4f60-a528-e4b496dc1e7a",
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        }
+      ]
+    },
+    {
+      "id": "pending_confirmation_product_help",
+      "goal": "Pendant une confirmation pending, product_help explicite doit repondre inline sans annuler la confirmation.",
+      "scope": "qa-active-flow-pending_confirmation_product_help-1778857918207-5",
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-pending_confirmation_product_help-1778857918207-5-t01",
+          "user": "Fais moi une carte d'attaque pour ouvrir le dossier administratif sans repousser.",
+          "assistant": "C'est noté pour le dossier administratif. Pour t'aider à ne pas repousser, quelle approche te semble la plus efficace ?\n\n1. Preparer le terrain (pour réduire la friction avant de commencer)\n2. Le texte magique (un court texte à relire quand tu commences à négocier)\n3. Mot de bascule (un mot simple à m'envoyer si tu sens que tu vas esquiver)",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "tool_skill_intent_start",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Fais moi une carte d'attaque pour ouvrir le dossier administratif sans repousser.",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high"
+              }
+            ],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "execution_blocked",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "broad",
+              "context_need": "broad",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "medium",
+              "reasoning_complexity": "medium"
+            },
+            "operation_flow_run": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour le dossier administratif. Pour t'aider à ne pas repousser, quelle approche te semble la plus efficace ?\n\n1. Preparer le terrain (pour réduire la friction avant de commencer)\n2. Le texte magique (un court texte à relire quand tu commences à négocier)\n3. Mot de bascule (un mot simple à m'envoyer si tu sens que tu vas esquiver)",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "Ouvrir le dossier administratif",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "Ouvrir le dossier administratif",
+                      "status": "identified",
+                      "evidence": [
+                        "ouvrir le dossier administratif sans repousser"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "procrastination",
+                      "evidence": [
+                        "sans repousser"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "ambiguous",
+                      "options": [
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Idéal pour rendre le premier pas (ouvrir le dossier) inévitable.",
+                          "example": "Exemple: téléphone loin, dossier déjà sur le bureau.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": true,
+                          "technique_key": "preparer_terrain"
+                        },
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Efficace si tu sens que tu vas te trouver des excuses pour ne pas l'ouvrir.",
+                          "example": "Exemple: un texte de 3 lignes à relire quand tu commences à négocier.",
+                          "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                          "recommended": false,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Mot de bascule",
+                          "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager auprès de moi.",
+                          "example": "Exemple: envoyer BASCULE quand tu sens que tu vas esquiver.",
+                          "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                          "recommended": false,
+                          "technique_key": "pre_engagement"
+                        }
+                      ],
+                      "evidence": [
+                        "sans repousser"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour le dossier administratif. Pour t'aider à ne pas repousser, quelle approche te semble la plus efficace ?\n\n1. Preparer le terrain (pour réduire la friction avant de commencer)\n2. Le texte magique (un court texte à relire quand tu commences à négocier)\n3. Mot de bascule (un mot simple à m'envoyer si tu sens que tu vas esquiver)"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Idéal pour rendre le premier pas (ouvrir le dossier) inévitable.",
+                      "example": "Exemple: téléphone loin, dossier déjà sur le bureau.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": true,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Le texte magique",
+                      "reason": "Efficace si tu sens que tu vas te trouver des excuses pour ne pas l'ouvrir.",
+                      "example": "Exemple: un texte de 3 lignes à relire quand tu commences à négocier.",
+                      "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                      "recommended": false,
+                      "technique_key": "texte_recadrage"
+                    },
+                    {
+                      "title": "Mot de bascule",
+                      "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager auprès de moi.",
+                      "example": "Exemple: envoyer BASCULE quand tu sens que tu vas esquiver.",
+                      "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                      "recommended": false,
+                      "technique_key": "pre_engagement"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Idéal pour rendre le premier pas (ouvrir le dossier) inévitable.",
+                    "example": "Exemple: téléphone loin, dossier déjà sur le bureau.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": true,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Efficace si tu sens que tu vas te trouver des excuses pour ne pas l'ouvrir.",
+                    "example": "Exemple: un texte de 3 lignes à relire quand tu commences à négocier.",
+                    "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                    "recommended": false,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager auprès de moi.",
+                    "example": "Exemple: envoyer BASCULE quand tu sens que tu vas esquiver.",
+                    "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+                    "recommended": false,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-pending_confirmation_product_help-1778857918207-5-t02",
+          "user": "Choisis toi la technique et propose la carte.",
+          "assistant": "Carte : Dossier Prêt\nTechnique : Préparer le terrain\nAction : Pose le dossier ouvert sur ton bureau et éloigne ton téléphone.\nMode d'emploi : Installe ce setup maintenant pour que le démarrage soit automatique tout à l'heure.\nOn valide cette carte ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "reason_code": "active_tool_skill_continue",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "draft": {
+                "draft": {
+                  "title": "Dossier Prêt",
+                  "technique": "preparer_terrain",
+                  "instruction": "Prépare ton espace de travail pour rendre l'action inévitable.",
+                  "mode_emploi": "Installe ce setup maintenant pour que le démarrage soit automatique tout à l'heure.",
+                  "target_label": "Ouvrir le dossier administratif",
+                  "why_it_helps": "En préparant le terrain, tu n'as plus à décider de commencer, l'environnement le fait pour toi.",
+                  "generated_asset": "Pose le dossier ouvert sur ton bureau et éloigne ton téléphone.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Supprime la friction du démarrage",
+                    "Rend l'action visible",
+                    "Élimine les distractions"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Carte : Dossier Prêt\nTechnique : Préparer le terrain\nAction : Pose le dossier ouvert sur ton bureau et éloigne ton téléphone.\nMode d'emploi : Installe ce setup maintenant pour que le démarrage soit automatique tout à l'heure.\nOn valide cette carte ?"
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_tool_skill_continue",
+              "operation_id": "064c7145-c34b-402b-a6e0-a7e7329005f3",
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-pending_confirmation_product_help-1778857918207-5-t03",
+          "user": "Avant que je dise oui, c'est ou que je pourrai retrouver cette carte apres ?",
+          "assistant": "Tu pourras la retrouver facilement dans le dossier administratif, section cartes/ressources : elle est enregistrée là où tu as lancé la carte. 🙂\n\nTu veux que je te guide pour retrouver “Carte : Dossier Prêt” dans le dashboard, ou tu préfères que je te dise juste le chemin exact en 1 ligne ?",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "pending_confirmation",
+            "selected_handler": "wait_for_confirmation",
+            "reason_code": "confirmation_unknown",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "confirmation_unknown",
+              "active_owner": "pending_confirmation",
+              "resume_policy": "after_confirmation",
+              "selected_owner": "pending_confirmation"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "reason_code": "confirmation_unknown",
+              "selected_handler": "wait_for_confirmation"
+            },
+            "skill_run": null
+          }
+        },
+        {
+          "turn": 4,
+          "status": 200,
+          "ok": true,
+          "request_id": "qa-active-flow-pending_confirmation_product_help-1778857918207-5-t04",
+          "user": "Oui cree-la.",
+          "assistant": "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
+          "trace_error": null,
+          "qa_diagnostic": null,
+          "trace": {
+            "response_owner": "pending_confirmation",
+            "selected_handler": "execute_confirmed",
+            "reason_code": "confirmation_yes",
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "confirmation_yes",
+              "active_owner": "pending_confirmation",
+              "resume_policy": "after_confirmation",
+              "selected_owner": "pending_confirmation"
+            },
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            },
+            "skill_signals": {},
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "operation_flow_run": {
+              "error": "duplicate key value violates unique constraint \"user_attack_cards_one_out_of_plan_per_cycle_idx\"",
+              "status": "failed",
+              "reason_code": "confirmation_yes",
+              "operation_id": "064c7145-c34b-402b-a6e0-a7e7329005f3",
+              "selected_handler": "prepare_attack_card"
+            },
+            "skill_run": null
+          }
+        }
+      ]
+    }
+  ]
+}

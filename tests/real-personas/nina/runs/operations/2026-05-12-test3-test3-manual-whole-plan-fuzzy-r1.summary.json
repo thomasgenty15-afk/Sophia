@@ -1,0 +1,381 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je crois que ça ne va pas le programme en ce moment. Avec le boulot je me sens vite en retard et ça me donne envie de lâcher.",
+    "assistant": "Ah mince… quand le boulot te met en mode “retard”, c’est normal que ton cerveau te dise “on abandonne, au moins ça sera simple”. 😕 Mais ça ne veut pas dire que tu es incapable: juste que le programme n’est pas calibré pour ce moment.\n\nL’idée maintenant, c’est pas de “tenir comme d’habitude”. C’est de réduire la casse.\n1) On garde l’intention du programme, mais on le rend minuscule pour que tu ne te fasses pas exploser par le rythme boulot.\n2) On vise un “minimum vital” (genre 5-10 minutes) plutôt que la séance complète.\n3) On évite le piège mental: “si je ne fais pas tout, c’est mort”. Non. Si tu fais le minimum, tu restes dans le jeu.\n\nDis-moi juste: quand tu dis “en retard”, tu parles de quoi précisément (ne pas faire tes missions, rattraper des habitudes, ou juste te sentir en retard dans ta journée) ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "le programme",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "operation_intent_start",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "C'est surtout que dans le programme tout arrive trop vite. Je fais déjà beaucoup au boulot, et dès que je vois la suite prévue j'ai l'impression d'être en décalage.",
+    "assistant": "Ah ouais… c’est exactement le piège: ton cerveau n’est pas en train de “penser”, il anticipe la surcharge et te met direct en mode rattrapage. Et quand on voit “la suite” dans le programme, ça sonne comme une course, pas comme une aide. 😕  \n\nOn peut régler ça sans te rajouter de pression. L’axe, c’est de réduire le rythme pour que le programme colle à ton énergie actuelle: moins d’items “à enchaîner”, et des missions plus petites pour que tu puisses avancer même quand le boulot te pompe.\n\nJe te propose un ajustement dans le programme: tu veux que je le fasse, ou tu préfères juste qu’on en parle et tu me dis ce qui te semble le plus lourd (A: les missions s’enchaînent, B: le volume total, C: la fréquence) ? 😊",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Missions: Dans le Plan, ouvre la semaine ou le niveau actif, trouve la mission, puis valide-la quand elle est faite.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand le plan contient des items de dimension missions. Tu peux y consulter la mission, voir les ressources liees si elles existent, marquer comme fait.\n\nLimites importantes:\n- Le user ne cree pas ou ne supprime pas directement une mission depuis la carte.\n- Si la mission n'est plus adaptee, passer par l'ajustement du plan.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "plan.missions",
+          "feature_label": "Missions",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for plan.missions."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": {
+      "stats": null,
+      "recommendation": {
+        "reason": "program_pace_too_fast",
+        "timing": "now",
+        "decision": "recommend_operation",
+        "cta_style": "soft",
+        "confidence": 0.86,
+        "surface_id": "plan_item.reduce",
+        "alternatives": [],
+        "operation_type": "adjust_plan_item",
+        "operation_input": {
+          "scope": {
+            "kind": "personal_action",
+            "title": "le programme"
+          },
+          "reason": "program_pace_too_fast",
+          "target": {
+            "kind": "personal_action",
+            "title": "le programme"
+          },
+          "adjustment_type": "reduce"
+        },
+        "do_not_recommend": [],
+        "executor_tool_id": "adjust_plan_item",
+        "requires_consent": true,
+        "recommendation_id": "dispatcher_opportunity:plan_adjustment:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t02",
+        "user_facing_offer": "Je vois un possible problème de fit avec le plan pour \"le programme\". Si tu veux, on peut regarder un ajustement sans l'appliquer sans ton accord.",
+        "presentation_level": 2
+      }
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Fais-le. C'est surtout A et B : les missions s'enchaînent trop vite et le volume total me fait décrocher.",
+    "assistant": "J'ai inséré une étape de 5 minutes pour nettoyer ton environnement direct avant de passer à l'action complète. Comme les missions s'enchaînaient un peu trop vite, ce démarrage express permet de créer un élan immédiat sans te mettre la pression. L'action initiale n'est pas supprimée : elle reste prévue dans ton planning et reprendra sa place dès que ce premier petit pas sera franchi. Je suis très confiante sur le fait que ce format court va débloquer la situation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "réduire le rythme et le volume (missions s'enchaînent trop vite)",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed_from_recommendation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "588976d2-e676-4a38-b045-4943a1757a10",
+      "plan_patch_id": "0e93909b-93ac-4909-ada4-25acad5b81da",
+      "selected_handler": "adjust_plan_item",
+      "recommendation_id": "dispatcher_opportunity:plan_adjustment:qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t02",
+      "bridge_plan_item_id": "d7dffcef-1cd0-48cd-a19c-3c11ae303a4d"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Attends, ce n'est pas clair. Qu'est-ce qui a précisément changé ? Donne-moi deux exemples concrets, parce que je parlais du rythme et du volume, pas seulement de nettoyer.",
+    "assistant": "Est-ce que tu serais d'accord pour que l'on commence par une version plus légère de l'action de nettoyage ? Cela permettrait de débloquer la situation sans toucher au reste de ton programme.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "rythme et volume du programme",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "instruction": "Version claire: Nettoyer ton environnement direct"
+          },
+          "title": "Ajustement - Nettoyer ton environnement direct",
+          "confidence": "high",
+          "ack_summary": {
+            "changed": [
+              "ajustement de \"Nettoyer ton environnement direct\""
+            ],
+            "unchanged": [
+              "le reste du plan n'est pas touché"
+            ],
+            "confidence": "high",
+            "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+            "follow_up_needed": null
+          },
+          "scope_label": "Nettoyer ton environnement direct",
+          "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+          "decision_basis": {
+            "evidence": [
+              "Attends, ce n'est pas clair. Qu'est-ce qui a précisément changé ? Donne-moi deux exemples concrets, parce que je parlais du rythme et du volume, pas seulement de nettoyer.",
+              "operation_input.scope",
+              "message.clarify",
+              "message.too_vague"
+            ],
+            "confidence": "high",
+            "uncertainty": [],
+            "user_problem": "Nettoyer ton environnement direct bloque parce que l'entree est trop lourde.",
+            "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+            "must_preserve": [
+              "intention du plan",
+              "reprendre Nettoyer ton environnement direct apres la version mini"
+            ]
+          },
+          "adjustment_type": "clarify",
+          "proposed_change": "rendre l'action plus concrete",
+          "change_rationale": {
+            "why_this_change": "Ajuster \"Nettoyer ton environnement direct\" traite le blocage identifié sans changer le reste du plan.",
+            "success_condition": "L'action redevient faisable.",
+            "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+          },
+          "adjust_plan_result": {
+            "scope": "action",
+            "rationale": {
+              "confidence": "high",
+              "missing_info": [],
+              "user_problem": "L'action de nettoyage est perçue comme trop lourde ou vague, ce qui bloque la progression.",
+              "expected_effect": "Réduction de la friction locale et reprise de l'activité.",
+              "why_this_change": "Créer un pont plus petit permet de lancer la dynamique sans supprimer l'intention d'origine."
+            },
+            "boundaries": {
+              "explanation": "Le changement se limite à découper une action intimidante en deux étapes, sans modifier les autres priorités.",
+              "affected_scope": "Action spécifique de nettoyage",
+              "global_plan_impact": "none",
+              "explicitly_not_affected": [
+                "Objectif global",
+                "Autres actions du plan",
+                "Structure complète du plan"
+              ]
+            },
+            "applied_change": {
+              "summary": "Création d'une version allégée de l'action de nettoyage pour réduire la friction.",
+              "changed_items": [
+                {
+                  "id": null,
+                  "kind": "action",
+                  "after": "Version mini : Ranger uniquement le bureau ou le plan de travail immédiat",
+                  "title": "Nettoyer ton environnement direct",
+                  "before": "Nettoyer ton environnement direct (vague)",
+                  "reason": "Réduire la charge mentale initiale en proposant un point d'entrée concret."
+                },
+                {
+                  "id": null,
+                  "kind": "action",
+                  "after": "Reportée à la suite de la version mini",
+                  "title": "Action complète de nettoyage",
+                  "before": "Prévue immédiatement",
+                  "reason": "Garder l'ambition initiale tout en créant une étape intermédiaire."
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": null,
+                  "kind": "plan",
+                  "title": "Structure globale du plan",
+                  "reason": "L'ajustement est local et ne remet pas en cause la direction générale."
+                }
+              ]
+            },
+            "user_message_brief": "J'ai simplifié l'action de nettoyage pour la rendre plus concrète.",
+            "user_message_detailed": "Pour éviter le blocage, j'ai remplacé l'action initiale par une version réduite focalisée sur ton environnement immédiat, tout en conservant l'action complète pour la suite."
+          },
+          "execution_strategy": "patch_existing",
+          "allowed_patch_fields": [
+            "difficulty",
+            "duration_minutes",
+            "instruction",
+            "paused"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "J'ai transformé l'action de nettoyage en une étape plus accessible pour faciliter ton démarrage. Concrètement, j'ai créé une version simplifiée qui sert de pont, tout en gardant l'action complète pour plus tard. Par exemple, au lieu d'un grand ménage, on se concentre sur une zone immédiate, et j'ai précisé l'objectif pour qu'il soit moins intimidant. Le reste de ton plan reste identique car l'objectif final ne change pas. Je suis convaincue que ce petit ajustement va t'aider à avancer sans te sentir submergé.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Est-ce que tu serais d'accord pour que l'on commence par une version plus légère de l'action de nettoyage ? Cela permettrait de débloquer la situation sans toucher au reste de ton programme."
+      },
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "f23d13e4-e0dd-4bc3-81d2-86edc6e9c1a4",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-manual-whole-plan-fuzzy-r1-t04",
+    "trace_error": null
+  }
+]

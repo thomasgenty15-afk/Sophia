@@ -1,0 +1,2449 @@
+{
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "df6a2d8c-c579-47c2-a207-41496d3793ab",
+        "title": "Version mini - Version mini - Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Action pont vers \"Version mini - Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:25:29.836Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r3-t04",
+            "operation_id": "b42c3859-78dd-4f2a-bb1a-2bf9709b56ab",
+            "plan_patch_id": "c3a61e53-c95d-4b85-b9fd-628c2dad002e",
+            "source_message_id": "21ccff56-e8d8-4b7e-81c6-06a8faa11fdf",
+            "source_plan_item_id": "9858935b-4954-4a28-9c4c-7bc661d7c83e",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Version mini - Version mini - Nettoyer ton environnement direct",
+              "scope_label": "Version mini - Version mini - Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Version mini - Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Version mini - Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:25:29.836Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r3-t04",
+            "operation_id": "b42c3859-78dd-4f2a-bb1a-2bf9709b56ab",
+            "plan_patch_id": "c3a61e53-c95d-4b85-b9fd-628c2dad002e",
+            "source_message_id": "21ccff56-e8d8-4b7e-81c6-06a8faa11fdf"
+          }
+        },
+        "updated_at": "2026-05-13T00:25:29.836+00:00"
+      },
+      {
+        "id": "3e5bb9b0-04a3-4dba-ae84-558fce80044c",
+        "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:23:31.759Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-nuanced-r1-t04",
+            "operation_id": "eae573e3-9cf7-473a-bf8d-423b4ea36a48",
+            "plan_patch_id": "11ca278d-0120-4516-82df-36dedd14d282",
+            "source_message_id": "1bc547c2-21ed-4259-8d26-9d61033d7ec5",
+            "source_plan_item_id": "35abdc18-4ac9-4942-967b-06a9591304c2",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:51:45.628Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+              "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+              "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+              "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+              "scope_label": "Version mini - Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:23:31.759Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-nuanced-r1-t04",
+            "operation_id": "eae573e3-9cf7-473a-bf8d-423b4ea36a48",
+            "plan_patch_id": "11ca278d-0120-4516-82df-36dedd14d282",
+            "source_message_id": "1bc547c2-21ed-4259-8d26-9d61033d7ec5"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+            "deferred_at": "2026-05-12T21:51:45.628Z",
+            "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+            "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+            "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82",
+            "bridge_plan_item_id": "2992044f-e486-4b8a-b635-cf22984a5582"
+          }
+        },
+        "updated_at": "2026-05-13T00:23:31.759+00:00"
+      },
+      {
+        "id": "35abdc18-4ac9-4942-967b-06a9591304c2",
+        "title": "Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-12T22:12:41.561Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+            "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+            "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+            "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8",
+            "source_plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:51:45.628Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+              "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+              "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+              "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+                "scope_label": "Version mini - Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:23:31.759Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-nuanced-r1-t04",
+              "operation_id": "eae573e3-9cf7-473a-bf8d-423b4ea36a48",
+              "plan_patch_id": "11ca278d-0120-4516-82df-36dedd14d282",
+              "source_message_id": "1bc547c2-21ed-4259-8d26-9d61033d7ec5"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T22:12:41.561Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+            "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+            "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+            "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-plan-nuanced-r1-t04",
+            "deferred_at": "2026-05-13T00:23:31.759Z",
+            "operation_id": "eae573e3-9cf7-473a-bf8d-423b4ea36a48",
+            "plan_patch_id": "11ca278d-0120-4516-82df-36dedd14d282",
+            "source_message_id": "1bc547c2-21ed-4259-8d26-9d61033d7ec5",
+            "bridge_plan_item_id": "3e5bb9b0-04a3-4dba-ae84-558fce80044c"
+          }
+        },
+        "updated_at": "2026-05-13T00:23:31.767393+00:00"
+      },
+      {
+        "id": "9858935b-4954-4a28-9c4c-7bc661d7c83e",
+        "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:14:41.850Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r2-t05",
+            "operation_id": "e8a5beca-671b-47a8-9401-0062f37f5abd",
+            "plan_patch_id": "c38b4125-ccba-41da-9c6a-7548507b06c5",
+            "source_message_id": "842cf651-82e1-4b94-b1c3-5df182c19087",
+            "source_plan_item_id": "5fb09f32-a144-408c-9dbd-947869c7decd",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Version mini - Version mini - Nettoyer ton environnement direct",
+                "scope_label": "Version mini - Version mini - Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Version mini - Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Version mini - Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:25:29.836Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r3-t04",
+              "operation_id": "b42c3859-78dd-4f2a-bb1a-2bf9709b56ab",
+              "plan_patch_id": "c3a61e53-c95d-4b85-b9fd-628c2dad002e",
+              "source_message_id": "21ccff56-e8d8-4b7e-81c6-06a8faa11fdf"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+              "scope_label": "Version mini - Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:14:41.850Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r2-t05",
+            "operation_id": "e8a5beca-671b-47a8-9401-0062f37f5abd",
+            "plan_patch_id": "c38b4125-ccba-41da-9c6a-7548507b06c5",
+            "source_message_id": "842cf651-82e1-4b94-b1c3-5df182c19087"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r3-t04",
+            "deferred_at": "2026-05-13T00:25:29.836Z",
+            "operation_id": "b42c3859-78dd-4f2a-bb1a-2bf9709b56ab",
+            "plan_patch_id": "c3a61e53-c95d-4b85-b9fd-628c2dad002e",
+            "source_message_id": "21ccff56-e8d8-4b7e-81c6-06a8faa11fdf",
+            "bridge_plan_item_id": "df6a2d8c-c579-47c2-a207-41496d3793ab"
+          }
+        },
+        "updated_at": "2026-05-13T00:25:29.847158+00:00"
+      },
+      {
+        "id": "5fb09f32-a144-408c-9dbd-947869c7decd",
+        "title": "Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-12T21:41:08.379Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+            "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+            "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+            "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39",
+            "source_plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+                "scope_label": "Version mini - Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:14:41.850Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r2-t05",
+              "operation_id": "e8a5beca-671b-47a8-9401-0062f37f5abd",
+              "plan_patch_id": "c38b4125-ccba-41da-9c6a-7548507b06c5",
+              "source_message_id": "842cf651-82e1-4b94-b1c3-5df182c19087"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T21:41:08.379Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+            "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+            "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+            "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r2-t05",
+            "deferred_at": "2026-05-13T00:14:41.850Z",
+            "operation_id": "e8a5beca-671b-47a8-9401-0062f37f5abd",
+            "plan_patch_id": "c38b4125-ccba-41da-9c6a-7548507b06c5",
+            "source_message_id": "842cf651-82e1-4b94-b1c3-5df182c19087",
+            "bridge_plan_item_id": "9858935b-4954-4a28-9c4c-7bc661d7c83e"
+          }
+        },
+        "updated_at": "2026-05-13T00:14:41.86188+00:00"
+      },
+      {
+        "id": "054f758e-2611-4a29-896b-c81169c4620d",
+        "title": "Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:19:41.669Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r5-t02",
+            "operation_id": "1497f5cb-680b-49e4-8c9c-5fbee2789b4e",
+            "plan_patch_id": "f5c978da-9c61-4570-9d2f-b137cf237830",
+            "source_message_id": "c562c297-a3db-410e-bebc-313190b30b89",
+            "source_plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:51:45.628Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+              "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+              "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+              "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T22:12:41.561Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+              "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+              "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+              "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:19:41.669Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r5-t02",
+            "operation_id": "1497f5cb-680b-49e4-8c9c-5fbee2789b4e",
+            "plan_patch_id": "f5c978da-9c61-4570-9d2f-b137cf237830",
+            "source_message_id": "c562c297-a3db-410e-bebc-313190b30b89"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+            "deferred_at": "2026-05-12T22:12:41.561Z",
+            "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+            "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+            "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8",
+            "bridge_plan_item_id": "35abdc18-4ac9-4942-967b-06a9591304c2"
+          }
+        },
+        "updated_at": "2026-05-13T00:19:41.669+00:00"
+      },
+      {
+        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "title": "Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:51:45.628Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+              "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+              "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+              "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T22:12:41.561Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-real-r1-t02",
+              "operation_id": "2ca25604-1a0c-4a21-a3f7-1f25a7e2ac62",
+              "plan_patch_id": "7d141965-815a-4c74-a9bf-6e28c98ae2ee",
+              "source_message_id": "066a99ae-7609-4079-8e1f-04210b0d8da8"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:19:41.669Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r5-t02",
+              "operation_id": "1497f5cb-680b-49e4-8c9c-5fbee2789b4e",
+              "plan_patch_id": "f5c978da-9c61-4570-9d2f-b137cf237830",
+              "source_message_id": "c562c297-a3db-410e-bebc-313190b30b89"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "adjustment_type": "reduce",
+              "proposed_change": "reduire l'action a une version minimale",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T21:21:15.647Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+            "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+            "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+            "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r5-t02",
+            "deferred_at": "2026-05-13T00:19:41.669Z",
+            "operation_id": "1497f5cb-680b-49e4-8c9c-5fbee2789b4e",
+            "plan_patch_id": "f5c978da-9c61-4570-9d2f-b137cf237830",
+            "source_message_id": "c562c297-a3db-410e-bebc-313190b30b89",
+            "bridge_plan_item_id": "054f758e-2611-4a29-896b-c81169c4620d"
+          }
+        },
+        "updated_at": "2026-05-13T00:19:41.68132+00:00"
+      },
+      {
+        "id": "62e5f2d3-2282-4001-96cc-791cd25c261c",
+        "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:20:58.366Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r1-t04",
+            "operation_id": "5dab9138-0c32-4ce1-a5e0-7ce8c19f5771",
+            "plan_patch_id": "fc437f58-0b2b-4a80-88a7-3b75a363f0c0",
+            "source_message_id": "349240a3-d90a-4a45-bdc7-b4be95961aa7",
+            "source_plan_item_id": "c26a7a69-8255-4be2-814d-a7160425d7a2",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+              "scope_label": "Version mini - Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:20:58.366Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r1-t04",
+            "operation_id": "5dab9138-0c32-4ce1-a5e0-7ce8c19f5771",
+            "plan_patch_id": "fc437f58-0b2b-4a80-88a7-3b75a363f0c0",
+            "source_message_id": "349240a3-d90a-4a45-bdc7-b4be95961aa7"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+            "deferred_at": "2026-05-12T21:41:08.379Z",
+            "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+            "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+            "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39",
+            "bridge_plan_item_id": "5fb09f32-a144-408c-9dbd-947869c7decd"
+          }
+        },
+        "updated_at": "2026-05-13T00:20:58.366+00:00"
+      },
+      {
+        "id": "c26a7a69-8255-4be2-814d-a7160425d7a2",
+        "title": "Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-12T21:49:44.206Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+            "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+            "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+            "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23",
+            "source_plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+                "scope_label": "Version mini - Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:20:58.366Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r1-t04",
+              "operation_id": "5dab9138-0c32-4ce1-a5e0-7ce8c19f5771",
+              "plan_patch_id": "fc437f58-0b2b-4a80-88a7-3b75a363f0c0",
+              "source_message_id": "349240a3-d90a-4a45-bdc7-b4be95961aa7"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T21:49:44.206Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+            "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+            "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+            "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r1-t04",
+            "deferred_at": "2026-05-13T00:20:58.366Z",
+            "operation_id": "5dab9138-0c32-4ce1-a5e0-7ce8c19f5771",
+            "plan_patch_id": "fc437f58-0b2b-4a80-88a7-3b75a363f0c0",
+            "source_message_id": "349240a3-d90a-4a45-bdc7-b4be95961aa7",
+            "bridge_plan_item_id": "62e5f2d3-2282-4001-96cc-791cd25c261c"
+          }
+        },
+        "updated_at": "2026-05-13T00:20:58.375557+00:00"
+      },
+      {
+        "id": "b349c117-b548-4b11-8a49-e69f5acf81fc",
+        "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-13T00:22:43.951Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r2-t04",
+            "operation_id": "2d1fb971-f0f4-49b3-b5a3-574804a8c39f",
+            "plan_patch_id": "20fbc80c-6fc4-4983-9aa0-21630401d5d4",
+            "source_message_id": "4fe6a71e-851e-4e91-89e1-d36b9620d6f9",
+            "source_plan_item_id": "2992044f-e486-4b8a-b635-cf22984a5582",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+              "scope_label": "Version mini - Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-13T00:22:43.951Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r2-t04",
+            "operation_id": "2d1fb971-f0f4-49b3-b5a3-574804a8c39f",
+            "plan_patch_id": "20fbc80c-6fc4-4983-9aa0-21630401d5d4",
+            "source_message_id": "4fe6a71e-851e-4e91-89e1-d36b9620d6f9"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+            "deferred_at": "2026-05-12T21:49:44.206Z",
+            "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+            "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+            "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23",
+            "bridge_plan_item_id": "c26a7a69-8255-4be2-814d-a7160425d7a2"
+          }
+        },
+        "updated_at": "2026-05-13T00:22:43.951+00:00"
+      },
+      {
+        "id": "2992044f-e486-4b8a-b635-cf22984a5582",
+        "title": "Version mini - Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-001"
+          },
+          "operation_bridge": {
+            "kind": "reduction_bridge",
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "created_at": "2026-05-12T21:51:45.628Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+            "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+            "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+            "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82",
+            "source_plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+            "resume_original_after_completion": true
+          },
+          "operation_adjustments": [
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire l'action a une version minimale",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:21:15.647Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-reduce-r1-t03",
+              "operation_id": "8d0134d6-a09c-4d8f-9f1d-d9533ca60d61",
+              "plan_patch_id": "4d74625c-230b-44ad-8f87-1ec7079e1cef",
+              "source_message_id": "0462657d-bbd0-4f9e-9dad-a9e835a8e67d"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:41:08.379Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r1-t04",
+              "operation_id": "f07581bd-bf41-44cb-8cdc-eb08b1671d7f",
+              "plan_patch_id": "b725d582-858e-4512-8f91-d91bb92fbf4d",
+              "source_message_id": "3848cae2-d2b4-47cd-be4c-e36599354d39"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Nettoyer ton environnement direct",
+                "scope_label": "Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-12T21:49:44.206Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r4-t02",
+              "operation_id": "715f0f1f-d7ef-4e45-920f-13d2fad0f7b4",
+              "plan_patch_id": "ec6cb5af-eed9-45b4-bbb7-04a5f3735846",
+              "source_message_id": "93e4158f-d075-4e93-98a5-0228e2cb9a23"
+            },
+            {
+              "draft": {
+                "patch": {
+                  "difficulty": "low",
+                  "duration_minutes": 5
+                },
+                "title": "Ajustement - Version mini - Nettoyer ton environnement direct",
+                "scope_label": "Version mini - Nettoyer ton environnement direct",
+                "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+                "bridge_action": {
+                  "title": "Version mini - Version mini - Nettoyer ton environnement direct",
+                  "description": "Action pont vers \"Version mini - Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                  "source_relation": "bridge_to_original_action",
+                  "resume_original_after_completion": true
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+                "execution_strategy": "bridge_action",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused"
+                ]
+              },
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "applied_at": "2026-05-13T00:22:43.951Z",
+              "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r2-t04",
+              "operation_id": "2d1fb971-f0f4-49b3-b5a3-574804a8c39f",
+              "plan_patch_id": "20fbc80c-6fc4-4983-9aa0-21630401d5d4",
+              "source_message_id": "4fe6a71e-851e-4e91-89e1-d36b9620d6f9"
+            }
+          ],
+          "active_operation_adjustment": {
+            "draft": {
+              "patch": {
+                "difficulty": "low",
+                "duration_minutes": 5
+              },
+              "title": "Ajustement - Nettoyer ton environnement direct",
+              "scope_label": "Nettoyer ton environnement direct",
+              "why_it_helps": "La version mini sert de pont: elle allege l'entree sans effacer l'action de depart.",
+              "bridge_action": {
+                "title": "Version mini - Nettoyer ton environnement direct",
+                "description": "Action pont vers \"Nettoyer ton environnement direct\" : faire une version de 5 minutes, assez petite pour relancer le mouvement avant de reprendre l'action initiale.",
+                "source_relation": "bridge_to_original_action",
+                "resume_original_after_completion": true
+              },
+              "adjustment_type": "reduce",
+              "proposed_change": "creer une action pont plus petite avant de reprendre l'action initiale",
+              "execution_strategy": "bridge_action",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused"
+              ]
+            },
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "applied_at": "2026-05-12T21:51:45.628Z",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-adjust-plan-bridge-r5-t02",
+            "operation_id": "f0127f1c-491a-4768-bb44-8764e24a84d0",
+            "plan_patch_id": "4e82fa06-dad0-478b-b148-5afa29dd9c50",
+            "source_message_id": "72a4cc8c-d0c7-44cb-84ab-e94212befc82"
+          },
+          "deferred_by_operation_bridge": {
+            "patch": {
+              "difficulty": "low",
+              "duration_minutes": 5
+            },
+            "reason": "reduced_action_bridge_created",
+            "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-nuanced-r2-t04",
+            "deferred_at": "2026-05-13T00:22:43.951Z",
+            "operation_id": "2d1fb971-f0f4-49b3-b5a3-574804a8c39f",
+            "plan_patch_id": "20fbc80c-6fc4-4983-9aa0-21630401d5d4",
+            "source_message_id": "4fe6a71e-851e-4e91-89e1-d36b9620d6f9",
+            "bridge_plan_item_id": "b349c117-b548-4b11-8a49-e69f5acf81fc"
+          }
+        },
+        "updated_at": "2026-05-13T00:22:43.960352+00:00"
+      },
+      {
+        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "title": "Faire le choix du brut",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "description": "Si tu as faim entre les repas, choisis un aliment brut (fruit, poignée d'amandes) au lieu d'un produit transformé. Si tu n'as pas faim, ne prends rien.",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "6 jours / semaine",
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-habits-001"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      },
+      {
+        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+        "title": "Décoder ton envie de grignoter",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "description": "Prends 2 minutes lors d'une forte envie de sucre ou de gras pour identifier ce qui se joue vraiment (stress, fatigue, ennui).",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_required",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-clarifications-001"
+          },
+          "clarification_details": {
+            "type": "one_shot",
+            "intro": "La prochaine fois que l'envie de grignoter te prend, fais une pause avant d'agir. L'objectif est de comprendre le déclencheur.",
+            "sections": [
+              {
+                "id": "trigger_emotion",
+                "label": "Que ressens-tu juste avant cette envie ?",
+                "input_type": "list",
+                "helper_text": "Note les émotions ou sensations physiques dominantes.",
+                "placeholder": "Fatigue, stress du travail, ennui..."
+              },
+              {
+                "id": "real_need",
+                "label": "De quoi as-tu réellement besoin à cet instant ?",
+                "input_type": "text",
+                "helper_text": "Souvent, le sucre masque un autre besoin.",
+                "placeholder": "Faire une pause, souffler, m'étirer..."
+              }
+            ],
+            "save_label": "Enregistrer l'observation"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      },
+      {
+        "id": "23f34398-87ae-4388-80b4-786989faac97",
+        "title": "Préparer tes alternatives d'avance",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "description": "Achète et prépare des collations saines (fruits lavés, oléagineux en petits pots) pour qu'elles soient plus faciles à attraper que les produits industriels.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "cards_status": "not_started",
+        "payload": {
+          "_generation": {
+            "temp_id": "gen-p1-missions-002"
+          }
+        },
+        "updated_at": "2026-05-06T14:12:26.926+00:00"
+      }
+    ]
+  },
+  "system_runtime_snapshots": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "d1906aa6-e816-49fb-8c36-2792fbb7a851",
+        "role": "user",
+        "content": "Le truc des placards me bloque un peu. J'ai pas envie de l'enlever, mais là c'est trop massif pour démarrer.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:59:01.425319+00:00"
+      },
+      {
+        "id": "f900d674-8b7c-454f-9f60-1263979c4538",
+        "role": "assistant",
+        "content": "Ah je vois très bien le blocage. T’as pas “trop gros”, t’as “trop engageant” pour démarrer. Et quand on a l’impression que ça va demander tout le paquet, le cerveau dit non merci 😅\n\nOn peut contourner sans enlever “définitivement”. Le but c’est juste de rendre ça démarrable, pas de tout faire.\n\nOption 1 (ultra safe) : mini-placard\nTu ne touches qu’une zone ridicule : une seule étagère OU un seul coin OU juste les objets qui sont visibles de ta place.\nStop dès que tu as une victoire propre.\n\nOption 2 : “rendre léger” sans retirer\nSi le placard te semble trop massif à vider, fais plutôt du tri de surface : \ngarder 1 zone “je laisse”, 1 zone “je range plus tard”, 1 zone “à sortir du placard” (même si tu mets la zone “à sortir” juste sur une chaise pour l’instant).\n\nOption 3 : date mentale\nTu t’autorises à ne faire que 10 minutes, et tu arrêtes même si t’es en forme. Le démarrage gagne, le reste suit après.\n\nDis-moi juste : c’est quoi le plus vrai dans ton blocage ?\nA) “J’ai peur d’avoir à tout enlever”\nB) “Je sais pas par où commencer”\nC) “Je suis fatigué / ça me paraît trop tôt”\nD) “J’ai peur de toucher à des affaires qui comptent” 😬",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T00:59:11.574727+00:00"
+      },
+      {
+        "id": "70416239-d9d6-476a-a1ce-2a67c02be7d0",
+        "role": "user",
+        "content": "Oui vas-y, mais garde l'idée que je dois quand même le reprendre après.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:59:12.332839+00:00"
+      },
+      {
+        "id": "18f2f90c-59f7-420b-bbb5-c24019e31e34",
+        "role": "assistant",
+        "content": "OK, vas-y, version mini, et tu reprends après. ✅🙂\n\nConcrètement pour les placards: tu choisis une micro-zone “finissable en 7 minutes” (une seule étagère, ou juste un coin), tu fais un tri simple en 3 tas: garder / déplacer / poubelle-recycler. Et le soir (ou quand tu veux), tu reprends exactement là où tu t’es arrêtée, sans “tout refaire”.\n\nTu veux que ta micro-zone soit plutôt: A une étagère, B un coin, ou C juste la partie la plus visible ?",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T00:59:16.800169+00:00"
+      },
+      {
+        "id": "76886009-84ba-404b-82c6-cc93b611dccc",
+        "role": "user",
+        "content": "Tu as mis quoi exactement à la place ?",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:59:17.564753+00:00"
+      },
+      {
+        "id": "9c08cb3e-e3a9-41a8-b87b-9d5c0768455b",
+        "role": "assistant",
+        "content": "Je te remets la logique exacte, mais sur ton “mini-placard” (le seul truc que je veux que tu touches) : tu fais 3 tas, et tu ne fais que des remplacements temporaires.\n\n1) Garder : tout ce qui a une place “normale” et que tu sais utiliser. Tu le remets à sa place, sans débat.\n2) Déplacer : ce qui est dans le mauvais coin pour toi (trop rarement, ou pas pour ce placard). Tu le mets ailleurs, dans une zone “pause” (un bac/sac/dans le couloir) pour reprendre après.\n3) Poubelle-recycler : ce qui est mort / doublon / emballage vide / truc que tu ne revois jamais. Direct dehors, sans négociation.\n\nDu coup “à la place”, concrètement tu crées juste de l’espace :\n- avant : étagère “remplie”\n- après : une étagère “organisée en 2-3 catégories max”, et le reste est soit déplacé (bac de reprise), soit sorti.\n\nPour que je te dise pile quoi mettre où: tu fais le mini-placard sur une seule étagère ou sur un coin ? 🙂",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T00:59:29.861933+00:00"
+      },
+      {
+        "id": "483fda4e-6831-4e97-8c33-907e91ef4c6d",
+        "role": "user",
+        "content": "Et l'ancien truc, il est passé où dans le plan ?",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:59:30.601106+00:00"
+      },
+      {
+        "id": "8677f543-d035-4bea-8fdb-5e368af99394",
+        "role": "assistant",
+        "content": "Bonne question 🙂 Et je te réponds cash : le dashboard Plan n’est pas un journal libre où on “rajoute” ou “retrouve” un ancien truc à volonté.\n\nCe que tu peux faire pour vérifier où ça se trouve :\n- Dashboard > Plan\n- Tu sélectionnes une transformation dans la colonne de gauche\n- Tu ouvres l’onglet Plan\n- Là, tu regardes le niveau actif, les semaines, et les éléments “missions/habitudes/clarifications” et elements à venir\n\nMais si tu parles d’un bilan hebdo : lui, il ne se saisit pas dans le Plan. Il se fait par message WhatsApp le dimanche.\n\nTu parles de “l’ancien truc” qui a été remplacé dans le cadre des placards (mini-placard / reprise après), ou d’un autre item ? 😅",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T00:59:36.722691+00:00"
+      },
+      {
+        "id": "e43d219f-d0f7-4d31-a09a-79e3494fffde",
+        "role": "user",
+        "content": "Résume-moi juste le changement, version courte.",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:59:37.471579+00:00"
+      },
+      {
+        "id": "c0433fea-c7af-40c5-b52a-5031706b7fc2",
+        "role": "assistant",
+        "content": "Le changement “mini-placard”, c’est : tu fais un petit tri sur une micro-zone finissable, tu remets/places provisoirement, puis tu reprends plus tard exactement au même endroit, sans refaire tout le massif. 😄\n\nTu veux une version encore plus courte (en 1 phrase) ou tu préfères “check-list 3 lignes” ?",
+        "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-fuzzy-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-13T00:59:44.621166+00:00"
+      }
+    ]
+  }
+}

@@ -7,7 +7,6 @@ import {
   type AttackCardDraftV1,
   type AttackTechniqueKey,
 } from "./generator.ts";
-import type { PrepareAttackCardOperationOutput } from "./intake.ts";
 import {
   type AttackCardSlotFiller,
   fillAttackCardSlotsWithAi,
@@ -21,6 +20,93 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
+
+export type PrepareAttackCardOperationOutput = {
+  operation_type: "prepare_attack_card";
+  status:
+    | "ask_question"
+    | "pending_confirmation"
+    | "draft_review_decision"
+    | "cancelled"
+    | "fallback_dashboard"
+    | "invalid_recommendation_payload"
+    | "blocked_by_safety";
+  source: "direct_user_request" | "recommendation_tool";
+  phase:
+    | "target_resolution"
+    | "technique_selection"
+    | "generation"
+    | "confirmation"
+    | "exit";
+  draft?: AttackCardDraftV1;
+  confirmation?: {
+    required: boolean;
+    message: string;
+    actions: ["yes", "no"];
+  };
+  next_question?: {
+    needed: boolean;
+    slot: "target" | "technique" | "activation_keyword";
+    status: "missing" | "ambiguous" | "candidate_needs_confirmation";
+    reason: string;
+    question?: string;
+    candidates?: Array<{
+      kind: "plan_item";
+      plan_item_id: string;
+      title: string;
+      confidence: number;
+      matched_tokens: string[];
+      reason: string;
+    }>;
+    candidate?: {
+      kind: "plan_item";
+      plan_item_id: string;
+      title: string;
+      confidence: number;
+      matched_tokens: string[];
+      reason: string;
+    };
+    technique_options?: Array<{
+      technique_key: AttackTechniqueKey;
+      title: string;
+      description: string;
+      reason: string;
+      example: string;
+      recommended?: boolean;
+    }>;
+    activation_keyword_options?: string[];
+    known_slots?: Record<string, unknown>;
+  };
+  pending_confirmation?: Record<string, unknown>;
+  ack?: string;
+  readiness: {
+    ready_to_generate: boolean;
+    fallback_to_dashboard: boolean;
+    invalid_recommendation_payload: boolean;
+    missing_required_slots: string[];
+    reason: string;
+  };
+  state_patch: {
+    summary: string;
+    phase: string;
+    missing_slots: string[];
+    turn_count_increment: 1;
+    operation_input?: Record<string, unknown> | null;
+    intake_state?: unknown;
+    tool_skill_state?: unknown;
+    draft_review_decision?: {
+      decision:
+        | "approve"
+        | "reject"
+        | "revise"
+        | "explain"
+        | "topic_change"
+        | "unclear";
+      confidence: AttackCardConfidence;
+      evidence: string[];
+    };
+  };
+};
 
 export type AttackCardDraftGeneratorInput = {
   user_id: string;
@@ -529,6 +615,9 @@ function normalizeDraft(
   if (!title || !generatedAsset || !instruction || !confirmationMessage) {
     throw new Error("attack_card_draft_required_text_missing");
   }
+  if (!confirmationMessage.includes(generatedAsset)) {
+    throw new Error("attack_card_confirmation_message_draft_mismatch");
+  }
   const definition = ATTACK_TECHNIQUES[technique];
   return {
     operation_type: "prepare_attack_card",
@@ -566,6 +655,12 @@ export async function generateAttackCardDraftWithAi(
     "Le brouillon doit être court, utilisable sur WhatsApp, et cohérent avec la technique choisie.",
     "Ne change jamais la technique ni la cible données par l'état structuré.",
     "Le message de confirmation doit être user-ready et demander validation avant création.",
+    'Tu tutoies toujours l\'utilisateur dans confirmation_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
+    'Quand confirmation_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    "Le message de confirmation doit montrer le contenu utile de la carte, pas seulement dire qu'un brouillon existe.",
+    "Il doit inclure le titre, la technique, generated_asset EXACTEMENT tel qu'il est dans draft.generated_asset, le mode d'emploi en une phrase, puis une question courte de validation.",
+    "Ne paraphrase jamais generated_asset dans confirmation_message: copie-colle strictement la même chaîne.",
+    "Pour WhatsApp, reste compact: 4 à 7 lignes maximum, pas de longue explication.",
   ].join("\n");
   const userPrompt = JSON.stringify({
     task: "generate_prepare_attack_card_draft",
@@ -674,6 +769,7 @@ export async function runPrepareAttackCardAiIntake(input: {
   }
   if (!filled) return technicalFailure("ai_slot_filler_unavailable", source);
 
+  const draftReviewDecision = filled.draft_review_decision;
   let state = mergeState(initialState, {
     ...filled.state_patch,
     current_step: filled.current_step,
@@ -693,6 +789,37 @@ export async function runPrepareAttackCardAiIntake(input: {
     state,
     input.operation_input ?? null,
   );
+  if (draftReviewDecision && draftReviewDecision.decision !== "revise") {
+    return {
+      operation_type: "prepare_attack_card",
+      status: "draft_review_decision",
+      source,
+      phase: "confirmation",
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: `draft_review_${draftReviewDecision.decision}`,
+      },
+      state_patch: {
+        summary:
+          "Attack card draft validation sub-skill classified the user response.",
+        phase: "confirmation",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        draft_review_decision: draftReviewDecision,
+        tool_skill_state: toolSkillState({
+          status: "awaiting_user_confirmation",
+          state,
+          missing: [],
+          summary: "Attack card draft validation classified the user response.",
+        }),
+      },
+    };
+  }
   if (missing.length > 0) {
     if (!state.generated_user_message) {
       return technicalFailure("ai_slot_question_missing", source);

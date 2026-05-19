@@ -1,5 +1,6 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
+import { runActiveFlowArbitrator } from "./active_flow_arbitrator.ts";
 import { runSkillRouter } from "./skill_router.ts";
 import { runToolSkillRouter } from "./tool_skill_router.ts";
 
@@ -12,6 +13,11 @@ export function runConversationRouters(input: {
 }): RouteDecision {
   const skill = runSkillRouter(input);
   const toolSkill = runToolSkillRouter(input);
+  const arbitration = runActiveFlowArbitrator({
+    ...input,
+    skill,
+    tool_skill: toolSkill,
+  });
   const directEffectBlockedPaths = input.turn_frame.direct_effects
     .filter((effect) => effect.target_status !== "identified")
     .map((effect) => ({
@@ -29,9 +35,17 @@ export function runConversationRouters(input: {
   const blockedPaths = [
     ...skill.blocked_paths,
     ...toolSkill.blocked_paths,
+    ...arbitration.blocked_paths,
     ...directEffectBlockedPaths,
     ...routeHintBlockedPaths,
   ];
+  const arbitrationForRoute = {
+    decision: arbitration.decision,
+    active_owner: arbitration.active_owner,
+    selected_owner: arbitration.selected_owner,
+    resume_policy: arbitration.resume_policy,
+    reason_code: arbitration.reason_code,
+  };
   const runnableDirectEffects = input.turn_frame.direct_effects
     .filter((effect) => effect.target_status === "identified")
     .map((effect) => effect.effect_type);
@@ -46,6 +60,114 @@ export function runConversationRouters(input: {
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (arbitration.selected_owner === "product_help") {
+    return {
+      route_version: "v1",
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (
+    arbitration.selected_owner === "tool_skill" &&
+    (arbitration.decision === "supersede_active" ||
+      arbitration.decision === "suspend_active") &&
+    arbitration.selected_handler
+  ) {
+    return {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: arbitration.selected_handler,
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (
+    arbitration.selected_owner === "conversation_skill" &&
+    (arbitration.decision === "supersede_active" ||
+      arbitration.decision === "suspend_active") &&
+    arbitration.selected_handler
+  ) {
+    return {
+      route_version: "v1",
+      response_owner: "conversation_handler",
+      selected_handler: arbitration.selected_handler,
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (
+    arbitration.selected_owner === "conversation_skill" &&
+    (arbitration.decision === "continue_active" ||
+      arbitration.decision === "defer_incoming" ||
+      arbitration.decision === "inline_answer_then_resume") &&
+    arbitration.selected_handler
+  ) {
+    return {
+      route_version: "v1",
+      response_owner: "conversation_handler",
+      selected_handler: arbitration.selected_handler,
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (
+    arbitration.decision === "abandon_active" &&
+    arbitration.selected_owner === "normal_reply"
+  ) {
+    return {
+      route_version: "v1",
+      response_owner: "normal_reply",
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
+    };
+  }
+  if (
+    arbitration.selected_owner === "tool_skill" &&
+    (arbitration.decision === "continue_active" ||
+      arbitration.decision === "defer_incoming") &&
+    arbitration.selected_handler
+  ) {
+    return {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: arbitration.selected_handler,
+      blocked_paths: blockedPaths,
+      direct_effects_to_run: runnableDirectEffects,
+      reason_code: arbitration.reason_code,
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (
@@ -57,11 +179,12 @@ export function runConversationRouters(input: {
       response_owner: "pending_confirmation",
       selected_handler: toolSkill.status,
       blocked_paths: blockedPaths,
-      direct_effects_to_run: [],
+      direct_effects_to_run: runnableDirectEffects,
       reason_code: toolSkill.reason_code,
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (
@@ -82,11 +205,12 @@ export function runConversationRouters(input: {
           },
         ]
         : blockedPaths,
-      direct_effects_to_run: [],
+      direct_effects_to_run: runnableDirectEffects,
       reason_code: skill.reason_code,
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (toolSkill.status === "wait_for_confirmation") {
@@ -95,11 +219,12 @@ export function runConversationRouters(input: {
       response_owner: "pending_confirmation",
       selected_handler: toolSkill.status,
       blocked_paths: blockedPaths,
-      direct_effects_to_run: [],
+      direct_effects_to_run: runnableDirectEffects,
       reason_code: toolSkill.reason_code,
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (
@@ -120,6 +245,7 @@ export function runConversationRouters(input: {
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (toolSkill.status === "start" || toolSkill.status === "continue") {
@@ -128,11 +254,12 @@ export function runConversationRouters(input: {
       response_owner: "tool_skill",
       selected_handler: toolSkill.operation_type,
       blocked_paths: blockedPaths,
-      direct_effects_to_run: [],
+      direct_effects_to_run: runnableDirectEffects,
       reason_code: toolSkill.reason_code,
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   if (skill.status !== "none") {
@@ -146,6 +273,7 @@ export function runConversationRouters(input: {
       memory_used_for_route: false,
       memory_item_ids_used_for_route: [],
       memory_use_kind: "none",
+      active_flow_arbitration: arbitrationForRoute,
     };
   }
   return {
@@ -157,5 +285,6 @@ export function runConversationRouters(input: {
     memory_used_for_route: false,
     memory_item_ids_used_for_route: [],
     memory_use_kind: "none",
+    active_flow_arbitration: arbitrationForRoute,
   };
 }

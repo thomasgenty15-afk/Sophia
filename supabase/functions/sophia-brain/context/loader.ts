@@ -1442,7 +1442,7 @@ function formatMomentumBlockersAddon(tempMemory: any): string {
     lines.map((line) => `  - ${line}\n`).join("") +
     `- Si un blocker est déjà connu, ne repose pas la question depuis zéro.\n` +
     `- Utilise ce contexte pour confirmer, nuancer ou préparer une redirection dashboard si un ajustement d'action devient nécessaire.\n` +
-    `- Rappel produit: dans le chat, Sophia peut comprendre, clarifier et aider l'exécution. Elle ne crée pas, ne modifie pas et ne reconfigure pas une action dans le chat.\n`
+    `- Rappel produit à formuler en première personne si nécessaire: dans le chat, je peux comprendre, clarifier et aider l'exécution. Je ne crée pas, ne modifie pas et ne reconfigure pas une action dans le chat.\n`
   );
 }
 
@@ -1457,7 +1457,7 @@ export function formatDashboardRedirectAddon(addon: any): string {
     `- Intention détectée: ${intentText}.\n` +
     `- Cet add-on sert à orienter vers le dashboard V2 réel, sans exécution dans le chat.\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
-    `- Règle produit forte: dans le chat, Sophia peut clarifier le besoin et aider l'exécution. Les changements de plan se font dans le dashboard.\n` +
+    `- Règle produit forte à formuler en première personne si nécessaire: dans le chat, je peux clarifier le besoin et aider l'exécution. Les changements de plan se font dans le dashboard.\n` +
     `- Anti-répétition: ne répète jamais la même redirection dashboard sur 2 tours consécutifs.\n` +
     `- Si la redirection vient d'être donnée, continue sur le contenu (paramètres, clarifications) sans renvoyer encore vers l'UI.\n` +
     `- Guide dashboard: parle seulement des surfaces produit explicitement connues. Ne mentionne pas d'ancienne surface supprimée.\n` +
@@ -1846,7 +1846,7 @@ function formatDashboardRecurringReminderIntentAddon(addon: any): string {
     `- Anti-répétition: n'enchaîne pas la même redirection dashboard sur des messages consécutifs.\n` +
     `- Si la redirection vient d'être faite, continue la discussion sur le rendez-vous (heure/jours/message) sans re-rediriger immédiatement.\n` +
     `- Si besoin, précise les paramètres configurables: mode (daily/weekly/custom), days, time, timezone, channel (app/whatsapp), start_date, end_date, pause, message.\n` +
-    `- Règle de choix: si Sophia doit venir vers le user à un moment précis, c'est un Rendez-vous, pas une Action Personnelle.\n` +
+    `- Règle de choix à formuler en première personne si nécessaire: si je dois venir vers le user à un moment précis, c'est un Rendez-vous, pas une Action Personnelle.\n` +
     `- Demande seulement l'info manquante critique avant redirection si la demande est ambiguë.\n` +
     `- Interdiction de programmer/éditer un rendez-vous depuis le chat: toute création/modification se fait dans le dashboard.\n` +
     (fromBilan

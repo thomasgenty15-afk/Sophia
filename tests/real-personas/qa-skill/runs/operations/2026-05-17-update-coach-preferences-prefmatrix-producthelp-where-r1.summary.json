@@ -1,0 +1,40 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-where-r1-t01",
+    "user": "Où est-ce que je peux changer ton style de réponse et le nombre de questions que tu me poses dans l'app ?",
+    "assistant": "Tu peux changer mon style de réponse et la fréquence de mes questions depuis le dashboard.\n\nVa dans Dashboard > Preferences, puis ajuste :\n- le ton,\n- le niveau de challenge,\n- la tendance à poser des questions,\net sauvegarde. 🙂",
+    "status": 200,
+    "trace": {
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_selected_handler": "product_help",
+      "route_reason": "skill_entry_signal",
+      "safety": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "direct_effects": [],
+      "operation": null,
+      "pending_confirmation": null,
+      "memory_plan": null,
+      "executed_tools": [],
+      "tool_execution": "none",
+      "trace_error": null,
+      "trace_id": "qa-update-coach-preferences-2026-05-17-prefmatrix-producthelp-where-r1-t01"
+    }
+  }
+]

@@ -62,6 +62,7 @@ export type DispatcherMemoryTargetType =
   | "topic"
   | "event"
   | "action"
+  | "level"
   | "entity"
   | "domain_key"
   | "domain_prefix";
@@ -90,6 +91,39 @@ export type DispatcherMemoryPlan = {
   }>;
   retrieval_policy: DispatcherMemoryRetrievalPolicy;
   plan_confidence?: number;
+};
+
+export type DispatcherActionReference = {
+  detected: boolean;
+  status: "none" | "identified" | "ambiguous" | "family_only";
+  plan_item_id?: string | null;
+  action_title?: string | null;
+  action_family_key?: string | null;
+  action_type?: "habit" | "mission" | "clarification" | "other" | null;
+  expansion_policy?:
+    | "exact_action_only"
+    | "exact_then_action_family_recent"
+    | "none"
+    | null;
+  reason?: string | null;
+};
+
+export type DispatcherLevelReference = {
+  detected: boolean;
+  status: "none" | "current_level" | "previous_level" | "transition" | "global";
+  level_id?: string | null;
+  transformation_id?: string | null;
+  expansion_policy?: "include_level_execution_handoff" | "none" | null;
+  reason?: string | null;
+};
+
+export type DispatcherResearchSignal = {
+  detected: boolean;
+  value?: boolean;
+  query?: string | null;
+  domain_hint?: string | null;
+  confidence?: number;
+  reason?: string | null;
 };
 
 export type ConversationRiskMatrixRow = {
@@ -162,6 +196,10 @@ export type TurnFrame = {
     operation_type: string;
     explicitness: Explicitness;
     target_hint?: string;
+    operation_input?: Record<string, unknown>;
+    payload_hint?: Record<string, unknown>;
+    adjust_plan_scope?: "specific_action" | "current_level" | "whole_plan";
+    rejected_operations?: string[];
     confidence_band: ConfidenceBand;
     ambiguity: Ambiguity;
     user_intent:
@@ -189,6 +227,11 @@ export type TurnFrame = {
       { detected: boolean; confidence_band: ConfidenceBand; reason?: string }
     >;
   };
+
+  needs_research?: DispatcherResearchSignal;
+
+  action_reference?: DispatcherActionReference;
+  level_reference?: DispatcherLevelReference;
 
   memory_plan: DispatcherMemoryPlan;
 };

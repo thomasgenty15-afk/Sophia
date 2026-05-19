@@ -1,0 +1,26 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-rose-2026-05-15-run-b-free-context-rose-r1-t01",
+    "status": 403,
+    "ok": null,
+    "user": "Je remarque un truc en dehors de mon plan officiel : quand je rentre le soir, si je garde mon téléphone près du canapé, je me fais aspirer par le scroll et ça finit par une envie de snack. Le mettre à charger dans l’entrée serait peut-être une bonne protection.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-rose-2026-05-15-run-b-free-context-rose-r1-t01",
+    "trace_error": null
+  }
+]

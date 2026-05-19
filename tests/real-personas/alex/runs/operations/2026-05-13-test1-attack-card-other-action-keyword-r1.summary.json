@@ -1,0 +1,375 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-other-action-keyword-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux une carte d'attaque pour reperer les pieges de l'hypervigilance. Quand je pars en alerte et que je scanne tout, il me faut un mot de secours tres court.",
+    "assistant": "Pour Mot de bascule, il me faut ton mot declencheur avant de creer la carte. Choisis un mot court lie a ton probleme avec l'action. Je peux te proposer ANCRE, STOP, PÊCHE, ou tu peux en donner un autre.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "activation_keyword",
+        "needed": true,
+        "reason": "pre_engagement_keyword_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Repérer les pièges de l'hypervigilance",
+            "plan_item_id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835"
+          },
+          "technique": "pre_engagement",
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "utile quand il faut un signal de bascule rapide",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un mot-cle a envoyer quand le moment devient fragile.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "transforme l'environnement en rappel concret",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un repere visible qui te rappelle de demarrer.",
+              "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+              "recommended": false,
+              "technique_key": "ancre_visuelle"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ],
+          "technique_signal_text": "Je veux une carte d'attaque pour reperer les pieges de l'hypervigilance. Quand je pars en alerte et que je scanne tout, il me faut un mot de secours tres court.",
+          "activation_keyword_options": [
+            "ANCRE",
+            "STOP",
+            "PÊCHE"
+          ],
+          "occupied_activation_keywords": [
+            {
+              "activation_keyword": "SAS",
+              "activation_keyword_normalized": "sas"
+            },
+            {
+              "activation_keyword": "PAUSE",
+              "activation_keyword_normalized": "pause"
+            },
+            {
+              "activation_keyword": "BASCULE",
+              "activation_keyword_normalized": "bascule"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "utile quand il faut un signal de bascule rapide",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un mot-cle a envoyer quand le moment devient fragile.",
+            "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Ancre visuelle",
+            "reason": "transforme l'environnement en rappel concret",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un repere visible qui te rappelle de demarrer.",
+            "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+            "recommended": false,
+            "technique_key": "ancre_visuelle"
+          },
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          }
+        ],
+        "activation_keyword_options": [
+          "ANCRE",
+          "STOP",
+          "PÊCHE"
+        ]
+      },
+      "reason_code": "normal_reply_default",
+      "missing_slots": [
+        "activation_keyword"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-other-action-keyword-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux PAUSE comme mot.",
+    "assistant": "PAUSE est deja utilise comme mot de bascule. Pour Mot de bascule, il me faut ton mot declencheur avant de creer la carte. Choisis un mot court lie a ton probleme avec l'action. Je peux te proposer ANCRE, STOP, PÊCHE, ou tu peux en donner un autre.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "activation_keyword",
+        "needed": true,
+        "reason": "pre_engagement_keyword_already_used",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Repérer les pièges de l'hypervigilance",
+            "plan_item_id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835"
+          },
+          "technique": "pre_engagement",
+          "technique_options": [
+            {
+              "title": "Mot de bascule",
+              "reason": "utile quand il faut un signal de bascule rapide",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un mot-cle a envoyer quand le moment devient fragile.",
+              "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+              "recommended": true,
+              "technique_key": "pre_engagement"
+            },
+            {
+              "title": "Ancre visuelle",
+              "reason": "transforme l'environnement en rappel concret",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un repere visible qui te rappelle de demarrer.",
+              "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+              "recommended": false,
+              "technique_key": "ancre_visuelle"
+            },
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": false,
+              "technique_key": "preparer_terrain"
+            }
+          ],
+          "activation_keyword": "PAUSE",
+          "technique_signal_text": "Je veux une carte d'attaque pour reperer les pieges de l'hypervigilance. Quand je pars en alerte et que je scanne tout, il me faut un mot de secours tres court.\nJe veux PAUSE comme mot.",
+          "activation_keyword_options": [
+            "ANCRE",
+            "STOP",
+            "PÊCHE"
+          ],
+          "rejected_activation_keyword": "PAUSE",
+          "occupied_activation_keywords": [
+            {
+              "activation_keyword": "SAS",
+              "activation_keyword_normalized": "sas"
+            },
+            {
+              "activation_keyword": "PAUSE",
+              "activation_keyword_normalized": "pause"
+            },
+            {
+              "activation_keyword": "BASCULE",
+              "activation_keyword_normalized": "bascule"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Mot de bascule",
+            "reason": "utile quand il faut un signal de bascule rapide",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un mot-cle a envoyer quand le moment devient fragile.",
+            "description": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+            "recommended": true,
+            "technique_key": "pre_engagement"
+          },
+          {
+            "title": "Ancre visuelle",
+            "reason": "transforme l'environnement en rappel concret",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": un repere visible qui te rappelle de demarrer.",
+            "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+            "recommended": false,
+            "technique_key": "ancre_visuelle"
+          },
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"Repérer les pièges de l'hypervigilance\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": false,
+            "technique_key": "preparer_terrain"
+          }
+        ],
+        "activation_keyword_options": [
+          "ANCRE",
+          "STOP",
+          "PÊCHE"
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "activation_keyword"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-other-action-keyword-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Ok prends ANCRE.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Repérer les pièges de l'hypervigilance",
+          "technique": "pre_engagement",
+          "instruction": "Envoie le mot de bascule quand tu sens que tu vas eviter \"Repérer les pièges de l'hypervigilance\".",
+          "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.",
+          "target_label": "Repérer les pièges de l'hypervigilance",
+          "why_it_helps": "Avoir un mot simple a envoyer quand le moment devient fragile.",
+          "generated_asset": "Mot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.",
+          "technique_title": "Mot de bascule",
+          "supporting_points": [],
+          "activation_keyword": "ANCRE"
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nMot de bascule\nMot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.\n\nMode d'emploi: Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "e7fb7457-02cc-4d1b-8444-54e1728ffd55",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-other-action-keyword-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui cree-la.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nCarte d'attaque - Repérer les pièges de l'hypervigilance\nTechnique : Mot de bascule\nMot-cle: ANCRE. Quand tu l'envoies, Sophia t'aide a revenir au premier geste de Repérer les pièges de l'hypervigilance.\n\nMode d'emploi : Envoie seulement ce mot quand tu sens que tu peux craquer; Sophia reprend le contexte.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Elle ne se modifie pas directement; si elle ne convient plus, on peut en preparer une nouvelle version apres confirmation.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes",
+      "operation_id": "e7fb7457-02cc-4d1b-8444-54e1728ffd55",
+      "attack_card_id": "81340b70-49a0-45f4-a459-208557a1c3ea",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

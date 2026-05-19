@@ -59,6 +59,51 @@ Deno.test("routeTopic switches on explicit work topic for scenario 03", async ()
   assertEquals(routed.active_topic_slug, "travail_manager");
 });
 
+Deno.test("routeTopic boosts named topic identity tokens", async () => {
+  const msg =
+    "Je repars sur le voyage dont je t'ai parle. Tu peux me rappeler les points importants sur Lisbonne ?";
+  const signals = detectMemorySignals(msg);
+  const routed = await routeTopic({
+    message: msg,
+    retrieval_mode: signals.retrieval_mode,
+    signals,
+    active_topic: { id: "t1", slug: "famille_lina", title: "Famille Lina" },
+    candidate_topics: [{
+      id: "t2",
+      slug: "voyage_lisbonne",
+      title: "Voyage a Lisbonne",
+      search_doc: "preparation voyage lisbonne juin aeroport hebergement",
+    }],
+  });
+  assertEquals(routed.decision, "switch");
+  assertEquals(routed.active_topic_slug, "voyage_lisbonne");
+});
+
+Deno.test("routeTopic switches when candidate clearly beats sticky active topic", async () => {
+  const msg =
+    "Hier je me sentais vraiment pas bien, j'avais super mal dormi et aujourd'hui je suis vide.\n\nAu boulot, mon manager m'a encore humilie en reunion, ca me met une pression enorme.";
+  const signals = detectMemorySignals(msg);
+  const routed = await routeTopic({
+    message: msg,
+    retrieval_mode: signals.retrieval_mode,
+    signals,
+    active_topic: {
+      id: "t1",
+      slug: "sommeil_energie",
+      title: "Sommeil / Energie",
+      search_doc: "sommeil dormi fatigue energie vide hier mal dormi",
+    },
+    candidate_topics: [{
+      id: "t2",
+      slug: "travail_manager",
+      title: "Travail / Manager",
+      search_doc: "travail manager reunion collegue humilie pression deadline",
+    }],
+  });
+  assertEquals(routed.decision, "switch");
+  assertEquals(routed.active_topic_slug, "travail_manager");
+});
+
 Deno.test("routeTopic calls LLM only in grey zone", async () => {
   let calls = 0;
   const signals = detectMemorySignals("je suis encore partage");

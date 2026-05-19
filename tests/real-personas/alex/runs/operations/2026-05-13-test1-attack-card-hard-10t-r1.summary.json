@@ -1,0 +1,703 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Bon fais-moi une attaque pour l'action la, le truc du soir. Je sais pas, debrouille-toi, j'ai pas envie d'expliquer.",
+    "assistant": "Il me manque l'action exacte à viser. Je peux viser \"Faire le sas de déchargement\" / \"Préparer ta zone de déchargement\" / \"Repérer les pièges de l'hypervigilance\", ou une autre action si ce n'est pas ça.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_missing",
+        "status": "missing",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.68,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "pas"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Préparer ta zone de déchargement",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.48,
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+            "matched_tokens": [
+              "pas",
+              "toi"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Repérer les pièges de l'hypervigilance",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.18,
+            "plan_item_id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+            "matched_tokens": [
+              "envie"
+            ]
+          }
+        ]
+      },
+      "reason_code": "operation_intent_start",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Mais je viens de te le dire, l'action active du soir quoi. Le sas, pas le bilan ni ton truc de zone. Fais l'attaque la-dessus.",
+    "assistant": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Preparer le terrain (recommandee): option simple pour faciliter le demarrage. Exemple pour \"Bilan et ajustement du sas\": preparer l'environnement avant le moment critique.\n2. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"Bilan et ajustement du sas\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "attack_technique_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f"
+          },
+          "technique_options": [
+            {
+              "title": "Preparer le terrain",
+              "reason": "option simple pour faciliter le demarrage",
+              "example": "Exemple pour \"Bilan et ajustement du sas\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"Bilan et ajustement du sas\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Preparer le terrain",
+            "reason": "option simple pour faciliter le demarrage",
+            "example": "Exemple pour \"Bilan et ajustement du sas\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "option utile si la resistance est surtout mentale",
+            "example": "Exemple pour \"Bilan et ajustement du sas\": un texte court a relire quand tu negocies avec toi-meme.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ]
+      },
+      "reason_code": "active_tool_skill_continue",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Non mais tu lis ? PAS bilan. Je parle de Faire le sas de dechargement. Et le probleme c'est que je negocie avec moi-meme et je me raconte des excuses.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire \"Bilan et ajustement du sas\", ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Bilan et ajustement du sas",
+          "technique": "texte_recadrage",
+          "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire \"Bilan et ajustement du sas\", puis fais seulement le premier geste.",
+          "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+          "target_label": "Bilan et ajustement du sas",
+          "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+          "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire \"Bilan et ajustement du sas\", ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+          "technique_title": "Le texte magique",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire \"Bilan et ajustement du sas\", ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "d1e37060-6d5b-46cb-b435-e0ab2ae962e6",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Non. Surtout pas. T'as encore mis Bilan. Je veux Faire le sas de dechargement, l'action active, celle ou je prends le carnet le soir.",
+    "assistant": "Quelle technique d'attaque tu veux utiliser ?\n\n1. Preparer le terrain (recommandee): retire la friction avant le moment d'action. Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.\n2. Le texte magique: option utile si la resistance est surtout mentale. Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.\n\nReponds avec le nom ou le numero.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "technique",
+        "needed": true,
+        "reason": "attack_technique_missing",
+        "status": "missing",
+        "known_slots": {
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "technique_options": [
+            {
+              "title": "Preparer le terrain",
+              "reason": "retire la friction avant le moment d'action",
+              "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "option utile si la resistance est surtout mentale",
+              "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            }
+          ]
+        },
+        "technique_options": [
+          {
+            "title": "Preparer le terrain",
+            "reason": "retire la friction avant le moment d'action",
+            "example": "Exemple pour \"Faire le sas de déchargement\": preparer l'environnement avant le moment critique.",
+            "description": "Retirer de la friction avant que le moment d'action arrive.",
+            "recommended": true,
+            "technique_key": "preparer_terrain"
+          },
+          {
+            "title": "Le texte magique",
+            "reason": "option utile si la resistance est surtout mentale",
+            "example": "Exemple pour \"Faire le sas de déchargement\": un texte court a relire quand tu negocies avec toi-meme.",
+            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+            "recommended": false,
+            "technique_key": "texte_recadrage"
+          }
+        ]
+      },
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "d1e37060-6d5b-46cb-b435-e0ab2ae962e6",
+      "missing_slots": [
+        "technique"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Je sais pas moi. Pas un truc de terrain, le truc contre mes excuses et ma negociation. Tu choisis pas au hasard non plus.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Prepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Prepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nPrepare l'environnement de \"Faire le sas de déchargement\" pendant 2 minutes, sans obligation d'aller plus loin.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "b0c34267-c2e3-4742-945f-91320af04c51",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Non, encore non. Je viens de dire pas terrain. Mets le texte magique, celui pour arreter de negocier avec l'idee de faire le sas.",
+    "assistant": "J'hésite entre \"Faire le sas de déchargement\" / \"Bilan et ajustement du sas\". Dis-moi laquelle viser.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_ambiguous",
+        "status": "ambiguous",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.5,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "sas"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "reason": "close_partial_plan_item_matches",
+            "confidence": 0.33,
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+            "matched_tokens": [
+              "sas"
+            ]
+          }
+        ]
+      },
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "b0c34267-c2e3-4742-945f-91320af04c51",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t07",
+    "status": 200,
+    "ok": true,
+    "user": "La premiere. Faire le sas. Et garde le texte magique, pas autre chose.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "texte_recadrage",
+          "instruction": "Relis ce texte au moment ou tu negocies avec l'idee de faire le sas de déchargement, puis fais seulement le premier geste.",
+          "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+          "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+          "technique_title": "Le texte magique",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "27cc68d7-40a2-4a14-8e7e-530283fcd496",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t08",
+    "status": 200,
+    "ok": true,
+    "user": "Bof. C'est trop vague. Ajoute que le premier geste c'est ouvrir le carnet et noter une ligne, pas ton blabla general.",
+    "assistant": "Il me manque l'action exacte à viser. Je peux viser \"Faire le sas de déchargement\" / \"Préparer ta zone de déchargement\" / \"Bilan et ajustement du sas\", ou une autre action si ce n'est pas ça.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "slot_state": {
+        "slot": "target",
+        "needed": true,
+        "reason": "target_missing",
+        "status": "missing",
+        "candidates": [
+          {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.84,
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+            "matched_tokens": [
+              "carnet",
+              "noter",
+              "pas",
+              "est"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Préparer ta zone de déchargement",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.62,
+            "plan_item_id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+            "matched_tokens": [
+              "carnet",
+              "pas",
+              "que"
+            ]
+          },
+          {
+            "kind": "plan_item",
+            "title": "Bilan et ajustement du sas",
+            "reason": "ranked_plan_item_suggestion_by_message_and_plan_context",
+            "confidence": 0.2,
+            "plan_item_id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+            "matched_tokens": [
+              "est",
+              "que",
+              "carnet"
+            ]
+          }
+        ]
+      },
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "27cc68d7-40a2-4a14-8e7e-530283fcd496",
+      "missing_slots": [
+        "target"
+      ],
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 9,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t09",
+    "status": 200,
+    "ok": true,
+    "user": "Mais c'est fou, c'est toujours la meme action : Faire le sas de dechargement. Texte magique. Premier geste : ouvrir le carnet et noter une ligne.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "texte_recadrage",
+          "instruction": "Version minuscule : ouvrir le carnet, puis Faire le sas de dechargement. Texte magique. Premier geste : ouvrir le carnet, puis noter une ligne.",
+          "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+          "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.",
+          "technique_title": "Le texte magique",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "e2fbbe8f-d388-4806-86fd-9429307ff7e3",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 10,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-hard-10t-r1-t10",
+    "status": 200,
+    "ok": true,
+    "user": "Oui vas-y cree-la, tant pis. Mais franchement elle aurait du garder ouvrir le carnet.",
+    "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nCarte d'attaque - Faire le sas de déchargement\nTechnique : Le texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance.\n\nMode d'emploi : Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la modifier ou l'imprimer.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "prepare_attack_card"
+    ],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "execute_confirmed",
+    "route_reason_code": "confirmation_yes_with_adjustment",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "prepare_attack_card"
+      }
+    ],
+    "operation_flow_run": {
+      "status": "executed",
+      "reason_code": "confirmation_yes_with_adjustment",
+      "operation_id": "e2fbbe8f-d388-4806-86fd-9429307ff7e3",
+      "attack_card_id": "9c5f3a62-a401-457b-b1b6-555ae4d20d7f",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

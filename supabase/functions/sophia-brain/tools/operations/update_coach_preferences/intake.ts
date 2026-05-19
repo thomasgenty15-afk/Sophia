@@ -8,9 +8,25 @@ import {
   type CoachPreferenceKey,
 } from "../_shared/operation_payload_builder.ts";
 import {
+  reviewToolSkillDraftWithAi,
+  type ToolSkillDraftReviewDecision,
+} from "../_shared/draft_review.ts";
+import {
   type CoachPreferencesPatchDraftV1,
+  normalizeCoachPreferenceValue,
   runCoachPreferencesPatchBuilder,
 } from "./generator.ts";
+import {
+  fillCoachPreferencesSlotsWithAi,
+  type CoachPreferencesSlotFiller,
+  type CoachPreferencesSlotFillerOutput,
+} from "./slot_filler.ts";
+import type {
+  CoachPreferenceConfidence,
+  CoachPreferenceIntakeState,
+  CoachPreferenceStep,
+  CoachPreferenceToolSkillState,
+} from "./workflow.ts";
 
 export type UpdateCoachPreferencesOperationOutput = {
   operation_type: "update_coach_preferences";
@@ -32,50 +48,298 @@ export type UpdateCoachPreferencesOperationOutput = {
     phase: string;
     missing_slots: string[];
     turn_count_increment: 1;
+    operation_input?: Record<string, unknown> | null;
+    intake_state?: CoachPreferenceIntakeState;
+    tool_skill_state?: CoachPreferenceToolSkillState;
   };
 };
 
-function normalize(text: string): string {
-  return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+export function reviewUpdateCoachPreferencesDraft(input: {
+  message: string;
+  previous_draft: unknown;
+  operation_input?: Record<string, unknown> | null;
+  recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
+  request_id?: string | null;
+}): Promise<ToolSkillDraftReviewDecision | null> {
+  return reviewToolSkillDraftWithAi({
+    operation_type: "update_coach_preferences",
+    message: input.message,
+    previous_draft: input.previous_draft,
+    operation_input: input.operation_input,
+    recent_messages: input.recent_messages,
+    request_id: input.request_id,
+  });
 }
 
-function inferPatch(text: string): Partial<Record<CoachPreferenceKey, string>> {
-  const normalized = normalize(text);
-  if (/moins de questions|pose-moi moins|moins question/.test(normalized)) {
-    return { "coach.question_tendency": "peu_de_questions" };
+function confidence(value: unknown): CoachPreferenceConfidence {
+  const raw = String(value ?? "").trim();
+  return raw === "high" || raw === "medium" || raw === "low" ? raw : "low";
+}
+
+function objectValue(value: unknown): Record<string, unknown> | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => String(item ?? "").trim()).filter(Boolean)
+    : [];
+}
+
+function normalizeKey(value: unknown): CoachPreferenceKey | null {
+  const raw = String(value ?? "").trim();
+  return raw === "coach.tone" || raw === "coach.challenge_level" ||
+      raw === "coach.question_tendency"
+    ? raw
+    : null;
+}
+
+function normalizeStep(value: unknown): CoachPreferenceStep {
+  const raw = String(value ?? "").trim();
+  return [
+      "preference_resolution",
+      "draft_generation",
+      "draft_validation",
+      "confirmation",
+    ].includes(raw)
+    ? raw as CoachPreferenceStep
+    : "preference_resolution";
+}
+
+function defaultState(): CoachPreferenceIntakeState {
+  return {
+    skill_id: "update_coach_preferences",
+    current_step: "preference_resolution",
+    preference: {
+      status: "missing",
+      key: null,
+      confidence: "low",
+      evidence: [],
+    },
+    desired_value: {
+      status: "missing",
+      value: null,
+      confidence: "low",
+      evidence: [],
+    },
+    reason: {
+      evidence: [],
+      confidence: "low",
+    },
+    constraints: [],
+    missing_slots: ["preference"],
+    confidence: "low",
+    generated_user_message: null,
+  };
+}
+
+function stateFromStructuredPatch(
+  patch: unknown,
+): Partial<CoachPreferenceIntakeState> {
+  const root = objectValue(patch);
+  if (!root) return {};
+  const entries = Object.entries(root);
+  if (entries.length !== 1) return {};
+  const [rawKey, rawValue] = entries[0];
+  const key = normalizeKey(rawKey);
+  if (!key) return {};
+  const value = normalizeCoachPreferenceValue(key, rawValue);
+  if (!value) return {};
+  return {
+    preference: {
+      status: "identified",
+      key,
+      confidence: "high",
+      evidence: ["structured_operation_input"],
+    },
+    desired_value: {
+      status: "identified",
+      value,
+      confidence: "high",
+      evidence: ["structured_operation_input"],
+    },
+    missing_slots: [],
+    confidence: "high",
+    current_step: "draft_generation",
+  };
+}
+
+function stateFromOperationInput(
+  operationInput?: Record<string, unknown> | null,
+): CoachPreferenceIntakeState {
+  const input = operationInput ?? {};
+  const existing = objectValue(input.intake_state);
+  return mergeState(defaultState(), {
+    ...(existing ?? {}),
+    ...stateFromStructuredPatch(input.requested_patch ?? input.patch),
+  });
+}
+
+function mergeState(
+  base: CoachPreferenceIntakeState,
+  patch: unknown,
+): CoachPreferenceIntakeState {
+  const root = objectValue(patch);
+  if (!root) return base;
+  const next: CoachPreferenceIntakeState = {
+    ...base,
+    preference: { ...base.preference },
+    desired_value: { ...base.desired_value },
+    reason: { ...base.reason },
+    constraints: [...base.constraints],
+    missing_slots: [...base.missing_slots],
+  };
+  const preference = objectValue(root.preference);
+  if (preference) {
+    const status = preference.status === "identified" ||
+        preference.status === "ambiguous" || preference.status === "missing"
+      ? preference.status
+      : "missing";
+    const key = normalizeKey(preference.key);
+    next.preference = {
+      status: status === "identified" && !key ? "missing" : status,
+      key,
+      confidence: confidence(preference.confidence),
+      evidence: stringArray(preference.evidence),
+    };
   }
-  if (/questionne-moi plus|plus de questions/.test(normalized)) {
-    return { "coach.question_tendency": "tres_questionnant" };
+  const desiredValue = objectValue(root.desired_value);
+  if (desiredValue) {
+    const status = desiredValue.status === "identified" ||
+        desiredValue.status === "ambiguous" ||
+        desiredValue.status === "missing"
+      ? desiredValue.status
+      : "missing";
+    const key = next.preference.key;
+    const value = key
+      ? normalizeCoachPreferenceValue(key, desiredValue.value)
+      : null;
+    next.desired_value = {
+      status: status === "identified" && !value ? "missing" : status,
+      value,
+      confidence: confidence(desiredValue.confidence),
+      evidence: stringArray(desiredValue.evidence),
+    };
   }
-  if (/plus direct|sois direct|tres direct/.test(normalized)) {
-    return { "coach.tone": "tres_direct" };
+  const reason = objectValue(root.reason);
+  if (reason) {
+    next.reason = {
+      evidence: stringArray(reason.evidence),
+      confidence: confidence(reason.confidence),
+    };
   }
-  if (/plus doux|doucement|reponds doucement/.test(normalized)) {
-    return { "coach.tone": "doux" };
+  if (Array.isArray(root.constraints)) {
+    next.constraints = stringArray(root.constraints);
   }
-  if (/challenge-moi plus|challenge davantage/.test(normalized)) {
-    return { "coach.challenge_level": "eleve" };
+  if (Array.isArray(root.missing_slots)) {
+    next.missing_slots = stringArray(root.missing_slots);
+  }
+  if (root.current_step) next.current_step = normalizeStep(root.current_step);
+  if (root.generated_user_message !== undefined) {
+    next.generated_user_message = root.generated_user_message == null
+      ? null
+      : String(root.generated_user_message).trim() || null;
+  }
+  next.confidence = confidence(root.confidence);
+  return next;
+}
+
+function requiredMissingSlots(state: CoachPreferenceIntakeState): string[] {
+  const missing = [];
+  if (state.preference.status !== "identified" || !state.preference.key) {
+    missing.push("preference");
   }
   if (
-    /moins de pression|challenge moins|vas-y plus doucement/.test(normalized)
+    state.preference.status === "identified" &&
+    (state.desired_value.status !== "identified" || !state.desired_value.value)
   ) {
-    return { "coach.challenge_level": "leger" };
+    missing.push("desired_value");
   }
-  return {};
+  return missing;
 }
 
-export function runUpdateCoachPreferencesIntake(input: {
+function nextStepForMissing(missing: string[]): CoachPreferenceStep {
+  return missing.length ? "preference_resolution" : "draft_generation";
+}
+
+function requestedPatchFromState(
+  state: CoachPreferenceIntakeState,
+): Partial<Record<CoachPreferenceKey, string>> | null {
+  if (
+    state.preference.status !== "identified" || !state.preference.key ||
+    state.desired_value.status !== "identified" || !state.desired_value.value
+  ) return null;
+  return { [state.preference.key]: state.desired_value.value };
+}
+
+function operationInputFromState(
+  state: CoachPreferenceIntakeState,
+  operationInput?: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const patch = requestedPatchFromState(state);
+  return {
+    ...(operationInput ?? {}),
+    intake_state: state,
+    ...(patch ? { requested_patch: patch } : {}),
+  };
+}
+
+function toolSkillState(args: {
+  status: CoachPreferenceToolSkillState["status"];
+  state: CoachPreferenceIntakeState;
+  missing: string[];
+  summary: string;
+}): CoachPreferenceToolSkillState {
+  return {
+    skill_id: "update_coach_preferences",
+    status: args.status,
+    current_step: args.state.current_step,
+    intake_state: args.state,
+    missing_slots: args.missing,
+    confidence: args.state.confidence,
+    conversation_summary: args.summary,
+  };
+}
+
+function technicalFailure(
+  reason: string,
+  source: "direct_user_request" | "recommendation_tool",
+): UpdateCoachPreferencesOperationOutput {
+  return {
+    operation_type: "update_coach_preferences",
+    status: source === "recommendation_tool"
+      ? "invalid_recommendation_payload"
+      : "fallback_dashboard",
+    source,
+    phase: "exit",
+    ack:
+      "Je n'ai pas réussi à modifier cette préférence techniquement. Je préfère m'arrêter plutôt que deviner à ta place.",
+    state_patch: {
+      summary: `Coach preferences structured AI flow stopped: ${reason}.`,
+      phase: "exit",
+      missing_slots: [],
+      turn_count_increment: 1,
+    },
+  };
+}
+
+export async function runUpdateCoachPreferencesIntake(input: {
   user_id: string;
   channel: ConversationChannel;
   timezone: string;
   message: string;
   source?: "direct_user_request" | "recommendation_tool";
   trigger_message_id: string;
+  request_id?: string | null;
   safety_pregate_risk_band: RiskBand;
   turn_count?: number;
   operation_input?: Record<string, unknown> | null;
+  recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   current_preferences?: Partial<Record<CoachPreferenceKey, string>>;
-}): UpdateCoachPreferencesOperationOutput {
+  slot_filler?: CoachPreferencesSlotFiller;
+}): Promise<UpdateCoachPreferencesOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
     input.safety_pregate_risk_band === "medium" ||
@@ -95,12 +359,61 @@ export function runUpdateCoachPreferencesIntake(input: {
       },
     };
   }
-  const requestedPatch = (input.operation_input?.requested_patch ??
-    input.operation_input?.patch ??
-    inferPatch(input.message)) as Partial<Record<CoachPreferenceKey, string>>;
-  const missing = Object.keys(requestedPatch).length === 0
-    ? ["preference"]
-    : [];
+
+  const initialState = stateFromOperationInput(input.operation_input);
+  const structuredPatch = requestedPatchFromState(initialState);
+  const hasStructuredPatchInput = Boolean(
+    objectValue(
+      input.operation_input?.requested_patch ?? input.operation_input?.patch,
+    ) && structuredPatch,
+  );
+  const slotFiller = input.slot_filler ?? fillCoachPreferencesSlotsWithAi;
+  let filled: CoachPreferencesSlotFillerOutput | null = hasStructuredPatchInput
+    ? {
+      current_step: "draft_generation" as const,
+      state_patch: {},
+      missing_slots: [] as string[],
+      confidence: initialState.confidence,
+      generated_user_message: null,
+      evidence: ["structured_operation_input"],
+    }
+    : null;
+  if (!filled) {
+    try {
+      filled = await slotFiller({
+        user_id: input.user_id,
+        request_id: input.request_id,
+        message: input.message,
+        recent_messages: input.recent_messages,
+        current_state: initialState,
+        operation_input: input.operation_input ?? null,
+        current_preferences: input.current_preferences ?? {},
+      });
+    } catch {
+      return technicalFailure("ai_slot_filler_error", source);
+    }
+  }
+  if (!filled) return technicalFailure("ai_slot_filler_unavailable", source);
+
+  let state = mergeState(initialState, {
+    ...filled.state_patch,
+    current_step: filled.current_step,
+    missing_slots: filled.missing_slots,
+    confidence: filled.confidence,
+    generated_user_message: filled.generated_user_message ??
+      (filled.state_patch as any)?.generated_user_message,
+  });
+  const missing = requiredMissingSlots(state);
+  state = {
+    ...state,
+    current_step: nextStepForMissing(missing),
+    missing_slots: missing,
+  };
+  const operationInput = operationInputFromState(
+    state,
+    input.operation_input ?? null,
+  );
+
   if (missing.length > 0) {
     if (source === "recommendation_tool") {
       return {
@@ -109,28 +422,25 @@ export function runUpdateCoachPreferencesIntake(input: {
         source,
         phase: "exit",
         state_patch: {
-          summary: "Recommendation payload missing preference patch.",
+          summary:
+            "Recommendation payload missing structured coach preference slots.",
           phase: "exit",
           missing_slots: missing,
           turn_count_increment: 1,
+          operation_input: operationInput,
+          intake_state: state,
+          tool_skill_state: toolSkillState({
+            status: "fallback",
+            state,
+            missing,
+            summary:
+              "Structured AI intake rejected incomplete coach preference recommendation.",
+          }),
         },
       };
     }
-    if ((input.turn_count ?? 0) >= 1) {
-      return {
-        operation_type: "update_coach_preferences",
-        status: "fallback_dashboard",
-        source,
-        phase: "exit",
-        ack:
-          "Je n'ai pas assez d'infos pour changer cette preference depuis le chat. Tu peux la regler dans ton espace sur sophia-coach.ai.",
-        state_patch: {
-          summary: "Coach preferences fallback dashboard.",
-          phase: "exit",
-          missing_slots: missing,
-          turn_count_increment: 1,
-        },
-      };
+    if (!state.generated_user_message) {
+      return technicalFailure("ai_slot_question_missing", source);
     }
     return {
       operation_type: "update_coach_preferences",
@@ -139,17 +449,34 @@ export function runUpdateCoachPreferencesIntake(input: {
       phase: "preference_resolution",
       next_question: {
         needed: true,
-        question:
-          "Tu veux changer quoi precisement: mon ton, mon niveau de challenge, ou le nombre de questions ?",
-        reason: "preference_missing",
+        question: state.generated_user_message,
+        reason: `structured_ai_missing_${missing[0]}`,
       },
       state_patch: {
-        summary: "Coach preferences intake needs target preference.",
-        phase: "preference_resolution",
+        summary:
+          "Coach preferences structured AI intake needs user clarification.",
+        phase: state.current_step,
         missing_slots: missing,
         turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "collecting",
+          state,
+          missing,
+          summary:
+            "Structured AI intake is collecting coach preference slots.",
+        }),
       },
     };
+  }
+
+  const requestedPatch = requestedPatchFromState(state);
+  if (!requestedPatch) {
+    return technicalFailure(
+      "structured_ai_contract_incomplete_after_gate",
+      source,
+    );
   }
   const request = buildOperationDraftRequest({
     operation_type: "update_coach_preferences",
@@ -165,9 +492,14 @@ export function runUpdateCoachPreferencesIntake(input: {
   };
   request.current_preferences = input.current_preferences ?? {};
   request.requested_patch = requestedPatch;
-  const draft = runCoachPreferencesPatchBuilder(
-    buildCoachPreferencesPayload(request),
-  );
+  let draft: CoachPreferencesPatchDraftV1;
+  try {
+    draft = runCoachPreferencesPatchBuilder(
+      buildCoachPreferencesPayload(request),
+    );
+  } catch {
+    return technicalFailure("coach_preferences_draft_builder_error", source);
+  }
   return {
     operation_type: "update_coach_preferences",
     status: "pending_confirmation",
@@ -185,13 +517,22 @@ export function runUpdateCoachPreferencesIntake(input: {
       source,
       summary: draft.draft.summary,
       draft,
+      intake_state: state,
       expires_after_turns: 2,
     },
     state_patch: {
-      summary: "Coach preferences draft generated.",
+      summary: "Coach preferences draft generated by structured AI flow.",
       phase: "confirmation",
       missing_slots: [],
       turn_count_increment: 1,
+      operation_input: operationInput,
+      intake_state: state,
+      tool_skill_state: toolSkillState({
+        status: "awaiting_user_confirmation",
+        state,
+        missing: [],
+        summary: "Structured AI draft is awaiting user confirmation.",
+      }),
     },
   };
 }

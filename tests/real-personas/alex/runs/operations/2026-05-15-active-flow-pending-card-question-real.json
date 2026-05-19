@@ -1,0 +1,95 @@
+{
+  "generated_at": "2026-05-15T15:14:19.340Z",
+  "scope": "qa-active-flow-pending-card-question-1778858026403",
+  "results": [
+    {
+      "turn": 1,
+      "status": 200,
+      "ok": true,
+      "user": "Fais moi une carte d'attaque pour ouvrir le dossier administratif sans repousser.",
+      "assistant": "C'est noté pour le dossier administratif. Quelle approche préfères-tu pour ne pas repousser ?\n\n1. Preparer le terrain (réduire la friction)\n2. Le texte magique (pour arrêter de négocier)\n3. Mot de bascule (un mot court à m'envoyer si tu bloques)",
+      "raw_error": null,
+      "route": {
+        "owner": "tool_skill",
+        "handler": "prepare_attack_card",
+        "reason": "tool_skill_intent_start",
+        "arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "blocked": []
+      }
+    },
+    {
+      "turn": 2,
+      "status": 200,
+      "ok": true,
+      "user": "Choisis toi la technique et propose la carte.",
+      "assistant": "Carte: Dossier Administratif\nTechnique: Préparer le terrain\nAction: Pose le dossier sur ton bureau, sors ton stylo et éteins ton téléphone.\nMode d'emploi: Prépare ces éléments maintenant pour que l'action devienne automatique tout à l'heure.\n\nOn valide ?",
+      "raw_error": null,
+      "route": {
+        "owner": "tool_skill",
+        "handler": "prepare_attack_card",
+        "reason": "active_tool_skill_continue",
+        "arbitration": {
+          "decision": "continue_active",
+          "reason_code": "active_tool_skill_continue",
+          "active_owner": "tool_skill",
+          "resume_policy": "none",
+          "selected_owner": "tool_skill"
+        },
+        "blocked": []
+      }
+    },
+    {
+      "turn": 3,
+      "status": 200,
+      "ok": true,
+      "user": "Avant que je dise oui, c'est ou que je pourrai retrouver cette carte apres ?",
+      "assistant": "Tu la retrouves dans Dashboard > Ressources > Cartes d'attaque du plan.\n\nCherche la carte liee a l'action concernee. Tu peux la consulter et l'utiliser. Si c'est une carte Mot de bascule, seul le mot peut etre remplace depuis Ressources; pour changer le contexte, la technique ou le contenu, on prepare une nouvelle carte apres confirmation.",
+      "raw_error": null,
+      "route": {
+        "owner": "product_help",
+        "handler": "product_help",
+        "reason": "product_help_inline_resume_pending_confirmation",
+        "arbitration": {
+          "decision": "inline_answer_then_resume",
+          "reason_code": "product_help_inline_resume_pending_confirmation",
+          "active_owner": "pending_confirmation",
+          "resume_policy": "after_confirmation",
+          "selected_owner": "product_help"
+        },
+        "blocked": [
+          {
+            "path": "pending_confirmation",
+            "reason_code": "product_help_inline_preserves_pending_confirmation"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 4,
+      "status": 200,
+      "ok": true,
+      "user": "Oui cree-la.",
+      "assistant": "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
+      "raw_error": null,
+      "route": {
+        "owner": "pending_confirmation",
+        "handler": "execute_confirmed",
+        "reason": "confirmation_yes",
+        "arbitration": {
+          "decision": "continue_active",
+          "reason_code": "confirmation_yes",
+          "active_owner": "pending_confirmation",
+          "resume_policy": "after_confirmation",
+          "selected_owner": "pending_confirmation"
+        },
+        "blocked": []
+      }
+    }
+  ]
+}

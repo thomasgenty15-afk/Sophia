@@ -870,6 +870,7 @@ Deno.serve(async (req) => {
           isCheckinLater,
           actionId,
           inboundText: msg.text ?? "",
+          inboundChatMessageId: insertedIn?.id ?? null,
         });
         logWebhookTrace({
           requestId,

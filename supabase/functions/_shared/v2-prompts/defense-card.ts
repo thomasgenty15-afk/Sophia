@@ -1,10 +1,15 @@
-import type { DefenseCardContent, DominantImpulse, ImpulseTrigger } from "../v2-types.ts";
+import type {
+  DefenseCardContent,
+  DominantImpulse,
+  ImpulseTrigger,
+} from "../v2-types.ts";
 
 // ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
 
-export const DEFENSE_CARD_SYSTEM_PROMPT = `Tu es un expert en psychologie comportementale et en gestion des pulsions.
+export const DEFENSE_CARD_SYSTEM_PROMPT =
+  `Tu es un expert en psychologie comportementale et en gestion des pulsions.
 Tu dois générer une "Carte de Défense" qui aide l'utilisateur à gérer ses pulsions dominantes dans le cadre de sa transformation personnelle.
 
 La carte doit rester SIMPLE et directement utilisable.
@@ -58,6 +63,7 @@ Exemples:
 
 ## Règles
 - Les pulsions sont DÉDUITES du contexte (free text, questionnaire, type de transformation). Ne demande JAMAIS au user quelles sont ses pulsions.
+- Tutoie toujours l'utilisateur dans les champs visibles. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 - Les réponses défensives doivent être ultra concrètes et faciles (ex: "boire un grand verre d'eau", "sortir prendre l'air 2 min", "noter la pulsion dans les notes du tel").
 - Le ton est direct mais bienveillant, pas paternaliste.
 - Les situations doivent être spécifiques au profil du user quand le contexte le permet.
@@ -124,10 +130,14 @@ export type DefenseCardGenerationInput = {
   };
 };
 
-export function buildDefenseCardUserPrompt(input: DefenseCardGenerationInput): string {
+export function buildDefenseCardUserPrompt(
+  input: DefenseCardGenerationInput,
+): string {
   const sections: string[] = [];
 
-  sections.push(`## Transformation\nTitre: ${input.transformation_title}\nRésumé: ${input.user_summary}`);
+  sections.push(
+    `## Transformation\nTitre: ${input.transformation_title}\nRésumé: ${input.user_summary}`,
+  );
   sections.push(
     "## Cadre strict\nNe génère des pulsions que pour cette transformation précise. N'anticipe pas les transformations suivantes et n'élargis pas à tout le cycle.",
   );
@@ -136,25 +146,36 @@ export function buildDefenseCardUserPrompt(input: DefenseCardGenerationInput): s
     const lines = [
       `- Action cible: ${input.action_context.item_title}`,
       `- Type d'action: ${input.action_context.item_kind}`,
-      `- Description: ${input.action_context.item_description ?? "Non précisée"}`,
+      `- Description: ${
+        input.action_context.item_description ?? "Non précisée"
+      }`,
       `- Niveau du plan: ${input.action_context.phase_label ?? "Non précisé"}`,
       `- Moment: ${input.action_context.time_of_day ?? "Non précisé"}`,
       `- Cadence: ${input.action_context.cadence_label ?? "Non précisée"}`,
-      `- Ce qui doit être protégé maintenant: ${input.action_context.activation_hint ?? "L'exécution de cette action au bon moment."}`,
+      `- Ce qui doit être protégé maintenant: ${
+        input.action_context.activation_hint ??
+          "L'exécution de cette action au bon moment."
+      }`,
     ];
     sections.push(
-      `## Focus action courante\n${lines.join("\n")}\n\nGénère la carte de défense pour aider l'utilisateur à faire CETTE action, maintenant. Ne génère pas une carte pour le problème final ou pour une étape future du plan.`,
+      `## Focus action courante\n${
+        lines.join("\n")
+      }\n\nGénère la carte de défense pour aider l'utilisateur à faire CETTE action, maintenant. Ne génère pas une carte pour le problème final ou pour une étape future du plan.`,
     );
   }
 
   if (input.focus_context) {
-    sections.push(`## Matiere focale deja cristallisee sur la transformation active\n${input.focus_context}`);
+    sections.push(
+      `## Matiere focale deja cristallisee sur la transformation active\n${input.focus_context}`,
+    );
   }
 
   if (input.questionnaire_answers) {
     const entries = Object.entries(input.questionnaire_answers)
       .filter(([, v]) => v != null && v !== "")
-      .map(([k, v]) => `- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`)
+      .map(([k, v]) =>
+        `- ${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`
+      )
       .slice(0, 12);
     if (entries.length > 0) {
       sections.push(`## Réponses au questionnaire\n${entries.join("\n")}`);
@@ -163,22 +184,34 @@ export function buildDefenseCardUserPrompt(input: DefenseCardGenerationInput): s
 
   const calibrationLines: string[] = [];
   if (input.calibration.struggle_duration) {
-    calibrationLines.push(`- Ancienneté du problème: ${input.calibration.struggle_duration}`);
+    calibrationLines.push(
+      `- Ancienneté du problème: ${input.calibration.struggle_duration}`,
+    );
   }
   if (input.calibration.main_blocker) {
-    calibrationLines.push(`- Blocage principal: ${input.calibration.main_blocker}`);
+    calibrationLines.push(
+      `- Blocage principal: ${input.calibration.main_blocker}`,
+    );
   }
   if (input.calibration.perceived_difficulty) {
-    calibrationLines.push(`- Difficulté perçue: ${input.calibration.perceived_difficulty}`);
+    calibrationLines.push(
+      `- Difficulté perçue: ${input.calibration.perceived_difficulty}`,
+    );
   }
   if (input.calibration.probable_drivers) {
-    calibrationLines.push(`- Facteur probable dominant: ${input.calibration.probable_drivers}`);
+    calibrationLines.push(
+      `- Facteur probable dominant: ${input.calibration.probable_drivers}`,
+    );
   }
   if (input.calibration.prior_attempts) {
-    calibrationLines.push(`- Tentatives passées: ${input.calibration.prior_attempts}`);
+    calibrationLines.push(
+      `- Tentatives passées: ${input.calibration.prior_attempts}`,
+    );
   }
   if (input.calibration.self_confidence != null) {
-    calibrationLines.push(`- Confiance: ${input.calibration.self_confidence}/5`);
+    calibrationLines.push(
+      `- Confiance: ${input.calibration.self_confidence}/5`,
+    );
   }
   if (calibrationLines.length > 0) {
     sections.push(`## Calibrage\n${calibrationLines.join("\n")}`);
@@ -186,10 +219,14 @@ export function buildDefenseCardUserPrompt(input: DefenseCardGenerationInput): s
 
   const strategyLines: string[] = [];
   if (input.plan_strategy.identity_shift) {
-    strategyLines.push(`- Changement d'identité: ${input.plan_strategy.identity_shift}`);
+    strategyLines.push(
+      `- Changement d'identité: ${input.plan_strategy.identity_shift}`,
+    );
   }
   if (input.plan_strategy.core_principle) {
-    strategyLines.push(`- Principe directeur: ${input.plan_strategy.core_principle}`);
+    strategyLines.push(
+      `- Principe directeur: ${input.plan_strategy.core_principle}`,
+    );
   }
   if (strategyLines.length > 0) {
     sections.push(`## Stratégie du plan\n${strategyLines.join("\n")}`);
@@ -215,17 +252,33 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function validateTrigger(raw: unknown, index: number, impulseIndex: number): string[] {
+function validateTrigger(
+  raw: unknown,
+  index: number,
+  impulseIndex: number,
+): string[] {
   const issues: string[] = [];
   if (!isPlainObject(raw)) {
-    issues.push(`impulses[${impulseIndex}].triggers[${index}] is not an object`);
+    issues.push(
+      `impulses[${impulseIndex}].triggers[${index}] is not an object`,
+    );
     return issues;
   }
-  if (!isNonEmptyString(raw.trigger_id)) issues.push(`triggers[${index}].trigger_id missing`);
-  if (!isNonEmptyString(raw.situation)) issues.push(`triggers[${index}].situation missing`);
-  if (!isNonEmptyString(raw.signal)) issues.push(`triggers[${index}].signal missing`);
-  if (!isNonEmptyString(raw.defense_response)) issues.push(`triggers[${index}].defense_response missing`);
-  if (!isNonEmptyString(raw.plan_b)) issues.push(`triggers[${index}].plan_b missing`);
+  if (!isNonEmptyString(raw.trigger_id)) {
+    issues.push(`triggers[${index}].trigger_id missing`);
+  }
+  if (!isNonEmptyString(raw.situation)) {
+    issues.push(`triggers[${index}].situation missing`);
+  }
+  if (!isNonEmptyString(raw.signal)) {
+    issues.push(`triggers[${index}].signal missing`);
+  }
+  if (!isNonEmptyString(raw.defense_response)) {
+    issues.push(`triggers[${index}].defense_response missing`);
+  }
+  if (!isNonEmptyString(raw.plan_b)) {
+    issues.push(`triggers[${index}].plan_b missing`);
+  }
   if (
     raw.label !== undefined &&
     raw.label !== null &&
@@ -245,7 +298,9 @@ function cleanDefenseCardText(value: string): string {
 }
 
 function deriveTriggerLabel(raw: Record<string, unknown>): string {
-  const explicit = typeof raw.label === "string" ? cleanDefenseCardText(raw.label) : "";
+  const explicit = typeof raw.label === "string"
+    ? cleanDefenseCardText(raw.label)
+    : "";
   if (explicit) return explicit;
 
   const situation = cleanDefenseCardText(String(raw.situation ?? ""));
@@ -257,7 +312,9 @@ function deriveTriggerLabel(raw: Record<string, unknown>): string {
   if (shortSituation && shortSituation.length <= 56) return shortSituation;
   if (shortSignal && shortSignal.length <= 56) return shortSignal;
   if (shortSituation && shortSignal) {
-    return `${shortSituation.slice(0, 28).trimEnd()} / ${shortSignal.slice(0, 24).trimEnd()}`;
+    return `${shortSituation.slice(0, 28).trimEnd()} / ${
+      shortSignal.slice(0, 24).trimEnd()
+    }`;
   }
   return "Situation a surveiller";
 }
@@ -268,8 +325,12 @@ function validateImpulse(raw: unknown, index: number): string[] {
     issues.push(`impulses[${index}] is not an object`);
     return issues;
   }
-  if (!isNonEmptyString(raw.impulse_id)) issues.push(`impulses[${index}].impulse_id missing`);
-  if (!isNonEmptyString(raw.label)) issues.push(`impulses[${index}].label missing`);
+  if (!isNonEmptyString(raw.impulse_id)) {
+    issues.push(`impulses[${index}].impulse_id missing`);
+  }
+  if (!isNonEmptyString(raw.label)) {
+    issues.push(`impulses[${index}].label missing`);
+  }
 
   if (!Array.isArray(raw.triggers) || raw.triggers.length === 0) {
     issues.push(`impulses[${index}].triggers must be non-empty array`);
@@ -330,7 +391,9 @@ export function validateDefenseCardOutput(raw: unknown): {
           label: deriveTriggerLabel(t),
           situation: cleanDefenseCardText(String(t.situation).trim()),
           signal: cleanDefenseCardText(String(t.signal).trim()),
-          defense_response: cleanDefenseCardText(String(t.defense_response).trim()),
+          defense_response: cleanDefenseCardText(
+            String(t.defense_response).trim(),
+          ),
           plan_b: cleanDefenseCardText(String(t.plan_b).trim()),
         })),
       })),

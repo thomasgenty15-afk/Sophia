@@ -11,13 +11,13 @@ import type {
   PlanAdjustmentContext,
   PlanBlueprint,
   PlanContentItem,
-  PlanTypeClassificationV1,
   PlanContentV2,
   PlanContentV3,
   PlanDimension,
-  PlanLevelWeek,
   PlanItemKind,
+  PlanLevelWeek,
   PlanPhase,
+  PlanTypeClassificationV1,
   SupportFunction,
   SupportMode,
   TrackingType,
@@ -93,7 +93,9 @@ export type PlanGenerationInput = {
   previous_transformation_summary?: string | null;
   previous_transformation_success_definition?: string | null;
   previous_transformation_completion_summary?: string | null;
-  previous_transformation_questionnaire_answers?: Record<string, unknown> | null;
+  previous_transformation_questionnaire_answers?:
+    | Record<string, unknown>
+    | null;
   previous_transformation_questionnaire_schema?: Record<string, unknown> | null;
   previous_transformation_plan_preview?: PlanContentV3 | null;
   /** Position courante dans un parcours multi-parties si applicable. */
@@ -367,29 +369,42 @@ export function buildPlanGenerationUserPrompt(
     profileLines.push(`- Âge : ${input.user_age} ans`);
   }
   if (input.user_gender) profileLines.push(`- Genre : ${input.user_gender}`);
-  profileLines.push(`- Durée de référence actuelle : ${input.duration_months} mois`);
+  profileLines.push(
+    `- Durée de référence actuelle : ${input.duration_months} mois`,
+  );
 
   const profileBlock = profileLines.join("\n");
 
   const answersBlock = Object.keys(input.questionnaire_answers).length > 0
     ? `\n\n## Réponses au questionnaire sur mesure\n\n${
-      formatAnswers(input.questionnaire_answers, input.questionnaire_schema ?? null)
+      formatAnswers(
+        input.questionnaire_answers,
+        input.questionnaire_schema ?? null,
+      )
     }`
     : "";
 
   const calibrationLines = [
     `- Ancienneté du problème : ${input.struggle_duration ?? "Non renseignée"}`,
-    `- Métrique principale : ${input.metric_label ?? "Non renseignée"}${input.metric_unit ? ` (${input.metric_unit})` : ""}`,
+    `- Métrique principale : ${input.metric_label ?? "Non renseignée"}${
+      input.metric_unit ? ` (${input.metric_unit})` : ""
+    }`,
     `- Mode de mesure : ${input.metric_measurement_mode ?? "Non renseigné"}`,
     `- Direction attendue : ${input.metric_direction ?? "Non renseignée"}`,
-    `- Valeur de départ : ${input.metric_baseline_text ?? input.starting_point ?? "Non renseignée"}`,
-    `- Valeur cible : ${input.metric_target_text ?? input.success_indicator ?? "Non renseignée"}`,
+    `- Valeur de départ : ${
+      input.metric_baseline_text ?? input.starting_point ?? "Non renseignée"
+    }`,
+    `- Valeur cible : ${
+      input.metric_target_text ?? input.success_indicator ?? "Non renseignée"
+    }`,
     `- Blocage principal : ${input.main_blocker ?? "Non renseigné"}`,
     `- Critère subjectif de réussite : ${
       input.priority_goal ?? "Non renseigné"
     }`,
     `- Difficulté perçue : ${input.perceived_difficulty ?? "Non renseignée"}`,
-    `- Facteur probable dominant : ${input.probable_drivers ?? "Non renseigné"}`,
+    `- Facteur probable dominant : ${
+      input.probable_drivers ?? "Non renseigné"
+    }`,
   ];
   if (input.prior_attempts) {
     calibrationLines.push(`- Tentatives passées : ${input.prior_attempts}`);
@@ -492,13 +507,19 @@ function extractQuestionDescriptors(
       : "";
     if (!id || !question) continue;
 
-    const rawOptions = Array.isArray(candidate.options) ? candidate.options : [];
-    const options = rawOptions.flatMap((option): PromptQuestionOptionDescriptor[] => {
-      if (!isRecord(option)) return [];
-      const optionId = typeof option.id === "string" ? option.id.trim() : "";
-      const label = typeof option.label === "string" ? option.label.trim() : "";
-      return optionId && label ? [{ id: optionId, label }] : [];
-    });
+    const rawOptions = Array.isArray(candidate.options)
+      ? candidate.options
+      : [];
+    const options = rawOptions.flatMap(
+      (option): PromptQuestionOptionDescriptor[] => {
+        if (!isRecord(option)) return [];
+        const optionId = typeof option.id === "string" ? option.id.trim() : "";
+        const label = typeof option.label === "string"
+          ? option.label.trim()
+          : "";
+        return optionId && label ? [{ id: optionId, label }] : [];
+      },
+    );
 
     questions.set(id, { id, question, options });
   }
@@ -523,7 +544,9 @@ function decodeAnswerToken(
     return otherText || "Autre";
   }
 
-  const matchedOption = descriptor?.options.find((option) => option.id === trimmed);
+  const matchedOption = descriptor?.options.find((option) =>
+    option.id === trimmed
+  );
   return matchedOption?.label ?? trimmed;
 }
 
@@ -545,7 +568,9 @@ function formatSingleAnswer(
       return `**${label}** : []`;
     }
 
-    return `**${label}** :\n${decodedValues.map((item) => `  - ${item}`).join("\n")}`;
+    return `**${label}** :\n${
+      decodedValues.map((item) => `  - ${item}`).join("\n")
+    }`;
   }
 
   const decodedValue = decodeAnswerToken(value, descriptor) ?? String(value);
@@ -584,8 +609,12 @@ function summarizePreviousPlanForPrompt(plan: PlanContentV3): string {
   return [
     `- Titre : ${plan.title}`,
     `- Durée totale : ${plan.duration_months} mois`,
-    plan.primary_metric?.label ? `- Métrique principale : ${plan.primary_metric.label}` : null,
-    plan.progression_logic ? `- Logique de progression : ${plan.progression_logic}` : null,
+    plan.primary_metric?.label
+      ? `- Métrique principale : ${plan.primary_metric.label}`
+      : null,
+    plan.progression_logic
+      ? `- Logique de progression : ${plan.progression_logic}`
+      : null,
     "",
     phaseBlocks,
     blueprintLevels
@@ -843,7 +872,7 @@ Tu reçois une transformation cristallisée (titre, synthèses, contraintes), le
 ## Voix et adresse
 
 - Tous les textes destinés à l'utilisateur doivent être rédigés en **tutoiement**.
-- N'utilise jamais le vouvoiement dans les champs user-facing du plan.
+- N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 - Cela inclut notamment : \`title\`, \`user_summary\`, \`inspiration_narrative\`, les \`title\` de phases, les \`phase_objective\`, les \`rationale\`, les \`heartbeat.title\`, ainsi que les \`title\` et \`description\` des items.
 
 ## Architecture du plan V3
@@ -1640,23 +1669,34 @@ export function buildPlanGenerationV3UserPrompt(
 
   const answersBlock = Object.keys(input.questionnaire_answers).length > 0
     ? `\n\n## Réponses au questionnaire sur mesure\n\n${
-      formatAnswers(input.questionnaire_answers, input.questionnaire_schema ?? null)
+      formatAnswers(
+        input.questionnaire_answers,
+        input.questionnaire_schema ?? null,
+      )
     }`
     : "";
 
   const calibrationLines = [
     `- Ancienneté du problème : ${input.struggle_duration ?? "Non renseignée"}`,
-    `- Métrique principale : ${input.metric_label ?? "Non renseignée"}${input.metric_unit ? ` (${input.metric_unit})` : ""}`,
+    `- Métrique principale : ${input.metric_label ?? "Non renseignée"}${
+      input.metric_unit ? ` (${input.metric_unit})` : ""
+    }`,
     `- Mode de mesure : ${input.metric_measurement_mode ?? "Non renseigné"}`,
     `- Direction attendue : ${input.metric_direction ?? "Non renseignée"}`,
-    `- Valeur de départ : ${input.metric_baseline_text ?? input.starting_point ?? "Non renseignée"}`,
-    `- Valeur cible : ${input.metric_target_text ?? input.success_indicator ?? "Non renseignée"}`,
+    `- Valeur de départ : ${
+      input.metric_baseline_text ?? input.starting_point ?? "Non renseignée"
+    }`,
+    `- Valeur cible : ${
+      input.metric_target_text ?? input.success_indicator ?? "Non renseignée"
+    }`,
     `- Blocage principal : ${input.main_blocker ?? "Non renseigné"}`,
     `- Critère subjectif de réussite : ${
       input.priority_goal ?? "Non renseigné"
     }`,
     `- Difficulté perçue : ${input.perceived_difficulty ?? "Non renseignée"}`,
-    `- Facteur probable dominant : ${input.probable_drivers ?? "Non renseigné"}`,
+    `- Facteur probable dominant : ${
+      input.probable_drivers ?? "Non renseigné"
+    }`,
   ];
   if (input.prior_attempts) {
     calibrationLines.push(`- Tentatives passées : ${input.prior_attempts}`);
@@ -1682,57 +1722,65 @@ ${summarizePreviousPlanForPrompt(input.previous_plan_preview)}`
     : "";
   const previousTransformationAnswers =
     input.previous_transformation_questionnaire_answers &&
-      Object.keys(input.previous_transformation_questionnaire_answers).length > 0
+      Object.keys(input.previous_transformation_questionnaire_answers).length >
+        0
       ? formatAnswers(
         input.previous_transformation_questionnaire_answers,
         input.previous_transformation_questionnaire_schema ?? null,
       )
       : null;
-  const previousTransformationBlock =
-    input.previous_transformation_title ||
+  const previousTransformationBlock = input.previous_transformation_title ||
       input.previous_transformation_summary ||
       input.previous_transformation_success_definition ||
       input.previous_transformation_completion_summary ||
       input.previous_transformation_plan_preview ||
       previousTransformationAnswers
-      ? `\n\n## Héritage de la partie précédente
+    ? `\n\n## Héritage de la partie précédente
 
 - Titre : ${input.previous_transformation_title ?? "Non renseigné"}
 - Résumé : ${input.previous_transformation_summary ?? "Non renseigné"}
-- Définition de réussite visée : ${input.previous_transformation_success_definition ?? "Non renseignée"}
-- Bilan / completion summary : ${input.previous_transformation_completion_summary ?? "Non renseigné"}${
-        previousTransformationAnswers
-          ? `\n\n### Réponses au questionnaire de la partie précédente\n\n${previousTransformationAnswers}`
-          : ""
-      }${
-        input.previous_transformation_plan_preview
-          ? `\n\n### Plan de la partie précédente à prendre en compte\n\n${
-            summarizePreviousPlanForPrompt(input.previous_transformation_plan_preview)
-          }`
-          : ""
-      }
+- Définition de réussite visée : ${
+      input.previous_transformation_success_definition ?? "Non renseignée"
+    }
+- Bilan / completion summary : ${
+      input.previous_transformation_completion_summary ?? "Non renseigné"
+    }${
+      previousTransformationAnswers
+        ? `\n\n### Réponses au questionnaire de la partie précédente\n\n${previousTransformationAnswers}`
+        : ""
+    }${
+      input.previous_transformation_plan_preview
+        ? `\n\n### Plan de la partie précédente à prendre en compte\n\n${
+          summarizePreviousPlanForPrompt(
+            input.previous_transformation_plan_preview,
+          )
+        }`
+        : ""
+    }
 
 Tu dois t'appuyer explicitement sur cet héritage pour dessiner la partie suivante : conserve ce qui a aidé, retire ce qui a moins bien servi, et fais progresser le plan au lieu de repartir de zéro.`
-      : "";
+    : "";
   const journeyPartNumber = input.journey_part_number ?? null;
   const journeyTotalParts = input.journey_total_parts ?? null;
-  const isSecondPartContinuation =
-    journeyPartNumber != null &&
+  const isSecondPartContinuation = journeyPartNumber != null &&
     journeyTotalParts != null &&
     journeyPartNumber >= 2 &&
     journeyTotalParts >= 2;
   const continuityBlock =
-    journeyPartNumber != null || journeyTotalParts != null || input.journey_continuation_hint
+    journeyPartNumber != null || journeyTotalParts != null ||
+      input.journey_continuation_hint
       ? `\n\n## Contexte de continuité du parcours
 
-- Partie courante : ${journeyPartNumber ?? "Non renseignée"} / ${journeyTotalParts ?? "Non renseigné"}
+- Partie courante : ${journeyPartNumber ?? "Non renseignée"} / ${
+        journeyTotalParts ?? "Non renseigné"
+      }
 - Indication de continuité : ${input.journey_continuation_hint ?? "Aucune"}
 
 ${
-  isSecondPartContinuation
-    ? "IMPORTANT : tu génères une partie de continuité, pas un redémarrage. Le premier niveau généré ne doit PAS reformuler un baby step de reprise du type « pas encore de cible directe », « préparer le terrain », ou un micro-levier d'entrée trop prudent. Il doit assumer les acquis de la partie précédente et attaquer directement la suite logique du travail déjà engagé."
-    : "S'il s'agit de la première partie ou d'un plan standalone, garde la logique normale de progressivité et de premier niveau très accessible."
-}`
+        isSecondPartContinuation
+          ? "IMPORTANT : tu génères une partie de continuité, pas un redémarrage. Le premier niveau généré ne doit PAS reformuler un baby step de reprise du type « pas encore de cible directe », « préparer le terrain », ou un micro-levier d'entrée trop prudent. Il doit assumer les acquis de la partie précédente et attaquer directement la suite logique du travail déjà engagé."
+          : "S'il s'agit de la première partie ou d'un plan standalone, garde la logique normale de progressivité et de premier niveau très accessible."
+      }`
       : "";
 
   const validationFeedback = Array.isArray(input.system_validation_feedback)
@@ -1759,7 +1807,9 @@ Rappels :
     `- Fuseau utilisateur : ${input.user_timezone ?? "Non renseigné"}`,
     `- Date locale actuelle : ${input.user_local_date ?? "Non renseignée"}`,
     `- Repère calendaire local : ${input.user_local_human ?? "Non renseigné"}`,
-    `- Semaine locale en cours : ${input.anchor_week_start ?? "?"} -> ${input.anchor_week_end ?? "?"}`,
+    `- Semaine locale en cours : ${input.anchor_week_start ?? "?"} -> ${
+      input.anchor_week_end ?? "?"
+    }`,
     `- Jours restants dans cette semaine : ${
       typeof input.days_remaining_in_anchor_week === "number"
         ? input.days_remaining_in_anchor_week
@@ -1782,24 +1832,54 @@ Rappels :
 - Type détecté : ${classification.type_key}
 - Confiance : ${classification.confidence}
 - Durée crédible : ${classification.duration_guidance.min_months} à ${classification.duration_guidance.max_months} mois (défaut ${classification.duration_guidance.default_months})
-- Niveau de longueur attendu : ${classification.transformation_length_level ?? "Non renseigné"} / 6
-- Fourchette de phases attendue : ${classification.recommended_phase_count
-      ? `${classification.recommended_phase_count.min} à ${classification.recommended_phase_count.max}`
-      : "Non renseignée"}
-- Rythme conseillé en fallback uniquement si aucun pace user n'est fourni : ${classification.intensity_profile?.pace ?? "Non renseigné"}
-- Ajustement d'intensité en fallback : ${classification.intensity_profile?.rationale ?? "Non renseigné"}
-- Structure recommandée : ${classification.journey_strategy?.mode ?? "single_transformation"}
-- Durée totale estimée du parcours : ${classification.journey_strategy?.total_estimated_duration_months ?? classification.duration_guidance.default_months} mois
-- Raison du découpage : ${classification.journey_strategy?.rationale ?? "Aucune"}
-- Transformation 1 : ${classification.journey_strategy?.transformation_1_title ?? "Transformation courante"}
-- Objectif associé 1 : ${classification.journey_strategy?.transformation_1_goal ?? "Non renseigné"}
-- Transformation 2 : ${classification.journey_strategy?.transformation_2_title ?? "Aucune"}
-- Objectif associé 2 : ${classification.journey_strategy?.transformation_2_goal ?? "Aucun"}
-- Notes de sequencing : ${classification.sequencing_notes?.join(" | ") || "Aucune"}
+- Niveau de longueur attendu : ${
+      classification.transformation_length_level ?? "Non renseigné"
+    } / 6
+- Fourchette de phases attendue : ${
+      classification.recommended_phase_count
+        ? `${classification.recommended_phase_count.min} à ${classification.recommended_phase_count.max}`
+        : "Non renseignée"
+    }
+- Rythme conseillé en fallback uniquement si aucun pace user n'est fourni : ${
+      classification.intensity_profile?.pace ?? "Non renseigné"
+    }
+- Ajustement d'intensité en fallback : ${
+      classification.intensity_profile?.rationale ?? "Non renseigné"
+    }
+- Structure recommandée : ${
+      classification.journey_strategy?.mode ?? "single_transformation"
+    }
+- Durée totale estimée du parcours : ${
+      classification.journey_strategy?.total_estimated_duration_months ??
+        classification.duration_guidance.default_months
+    } mois
+- Raison du découpage : ${
+      classification.journey_strategy?.rationale ?? "Aucune"
+    }
+- Transformation 1 : ${
+      classification.journey_strategy?.transformation_1_title ??
+        "Transformation courante"
+    }
+- Objectif associé 1 : ${
+      classification.journey_strategy?.transformation_1_goal ?? "Non renseigné"
+    }
+- Transformation 2 : ${
+      classification.journey_strategy?.transformation_2_title ?? "Aucune"
+    }
+- Objectif associé 2 : ${
+      classification.journey_strategy?.transformation_2_goal ?? "Aucun"
+    }
+- Notes de sequencing : ${
+      classification.sequencing_notes?.join(" | ") || "Aucune"
+    }
 - Styles de plan : ${classification.plan_style.join(", ") || "Aucun"}
-- Métriques naturelles : ${classification.recommended_metrics.join(", ") || "Aucune"}
+- Métriques naturelles : ${
+      classification.recommended_metrics.join(", ") || "Aucune"
+    }
 - Framings à éviter : ${classification.framing_to_avoid.join(", ") || "Aucun"}
-- Premiers pas typiques : ${classification.first_steps_examples.join(", ") || "Aucun"}`
+- Premiers pas typiques : ${
+      classification.first_steps_examples.join(", ") || "Aucun"
+    }`
     : "";
 
   const constraintsBlock = [
@@ -1853,6 +1933,7 @@ Rappels importants :
 - \`duration_guidance\` et \`journey_strategy\` restent des garde-fous utiles, mais ils ne doivent pas annuler un \`user_requested_pace\` explicite
 - si la classification recommande deux transformations, tu dois generer uniquement la premiere tranche, coherente avec \`transformation_1_title\` et \`transformation_1_goal\`
 - écris tous les textes user-facing en tutoiement
+- n'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
 - retourne aussi un \`plan_blueprint\` léger pour l'ensemble des niveaux restants : objectif global, liste des niveaux futurs, intention de chaque niveau, durée estimée
 - \`plan_blueprint.levels\` doit contenir uniquement les niveaux FUTURS, donc il ne doit jamais répéter le niveau courant détaillé dans \`current_level_runtime\`
 - \`plan_blueprint.estimated_levels_count\` n'est pas une estimation libre : il doit être exactement égal à \`plan_blueprint.levels.length\`
@@ -1933,8 +2014,13 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-function isStringArray(value: unknown, options?: { min?: number; max?: number }): value is string[] {
-  if (!Array.isArray(value) || value.some((entry) => !isNonEmptyString(entry))) {
+function isStringArray(
+  value: unknown,
+  options?: { min?: number; max?: number },
+): value is string[] {
+  if (
+    !Array.isArray(value) || value.some((entry) => !isNonEmptyString(entry))
+  ) {
     return false;
   }
   if (options?.min != null && value.length < options.min) return false;
@@ -1942,7 +2028,9 @@ function isStringArray(value: unknown, options?: { min?: number; max?: number })
   return true;
 }
 
-function isClarificationExerciseType(value: unknown): value is "one_shot" | "recurring" {
+function isClarificationExerciseType(
+  value: unknown,
+): value is "one_shot" | "recurring" {
   return value === "one_shot" || value === "recurring";
 }
 
@@ -1972,7 +2060,9 @@ function validateClarificationPayload(
   }
 
   if (!isClarificationExerciseType(details.type)) {
-    issues.push(`item ${tempId} clarification_details.type must be "one_shot" or "recurring"`);
+    issues.push(
+      `item ${tempId} clarification_details.type must be "one_shot" or "recurring"`,
+    );
   }
   if (!isNonEmptyString(details.intro)) {
     issues.push(`item ${tempId} clarification_details.intro is required`);
@@ -1982,23 +2072,34 @@ function validateClarificationPayload(
     details.save_label !== undefined &&
     !isNonEmptyString(details.save_label)
   ) {
-    issues.push(`item ${tempId} clarification_details.save_label must be a non-empty string or null`);
+    issues.push(
+      `item ${tempId} clarification_details.save_label must be a non-empty string or null`,
+    );
   }
-  if (!Array.isArray(details.sections) || details.sections.length < 1 || details.sections.length > 4) {
-    issues.push(`item ${tempId} clarification_details.sections must contain 1-4 sections`);
+  if (
+    !Array.isArray(details.sections) || details.sections.length < 1 ||
+    details.sections.length > 4
+  ) {
+    issues.push(
+      `item ${tempId} clarification_details.sections must contain 1-4 sections`,
+    );
     return issues;
   }
 
   const seenSectionIds = new Set<string>();
   for (const section of details.sections) {
     if (!isPlainObject(section)) {
-      issues.push(`item ${tempId} clarification_details.sections entries must be objects`);
+      issues.push(
+        `item ${tempId} clarification_details.sections entries must be objects`,
+      );
       continue;
     }
     if (!isNonEmptyString(section.id)) {
       issues.push(`item ${tempId} clarification section id is required`);
     } else if (seenSectionIds.has(section.id)) {
-      issues.push(`item ${tempId} clarification section id "${section.id}" is duplicated`);
+      issues.push(
+        `item ${tempId} clarification section id "${section.id}" is duplicated`,
+      );
     } else {
       seenSectionIds.add(section.id);
     }
@@ -2013,14 +2114,18 @@ function validateClarificationPayload(
       section.placeholder !== undefined &&
       !isNonEmptyString(section.placeholder)
     ) {
-      issues.push(`item ${tempId} clarification section placeholder must be a non-empty string or null`);
+      issues.push(
+        `item ${tempId} clarification section placeholder must be a non-empty string or null`,
+      );
     }
     if (
       section.helper_text !== null &&
       section.helper_text !== undefined &&
       !isNonEmptyString(section.helper_text)
     ) {
-      issues.push(`item ${tempId} clarification section helper_text must be a non-empty string or null`);
+      issues.push(
+        `item ${tempId} clarification section helper_text must be a non-empty string or null`,
+      );
     }
   }
 
@@ -2047,23 +2152,30 @@ function validateWeekItemAssignmentsStructure(
     if (
       assignment.weekly_reps !== null &&
       assignment.weekly_reps !== undefined &&
-      (!Number.isInteger(assignment.weekly_reps) || Number(assignment.weekly_reps) < 0)
+      (!Number.isInteger(assignment.weekly_reps) ||
+        Number(assignment.weekly_reps) < 0)
     ) {
-      issues.push(`${contextLabel} item_assignments.weekly_reps must be an integer >= 0 or null`);
+      issues.push(
+        `${contextLabel} item_assignments.weekly_reps must be an integer >= 0 or null`,
+      );
     }
     if (
       assignment.weekly_description_override !== null &&
       assignment.weekly_description_override !== undefined &&
       !isNonEmptyString(assignment.weekly_description_override)
     ) {
-      issues.push(`${contextLabel} item_assignments.weekly_description_override must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} item_assignments.weekly_description_override must be a non-empty string or null`,
+      );
     }
     if (
       assignment.weekly_cadence_label !== null &&
       assignment.weekly_cadence_label !== undefined &&
       !isNonEmptyString(assignment.weekly_cadence_label)
     ) {
-      issues.push(`${contextLabel} item_assignments.weekly_cadence_label must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} item_assignments.weekly_cadence_label must be a non-empty string or null`,
+      );
     }
   }
   return issues;
@@ -2105,33 +2217,43 @@ function validateLevelWeeks(
       week.focus !== undefined &&
       !isNonEmptyString(week.focus)
     ) {
-      issues.push(`${contextLabel} week focus must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} week focus must be a non-empty string or null`,
+      );
     }
     if (
       week.weekly_target_value !== null &&
       week.weekly_target_value !== undefined &&
-      (!Number.isFinite(Number(week.weekly_target_value)) || Number(week.weekly_target_value) < 0)
+      (!Number.isFinite(Number(week.weekly_target_value)) ||
+        Number(week.weekly_target_value) < 0)
     ) {
-      issues.push(`${contextLabel} weekly_target_value must be a finite number >= 0 or null`);
+      issues.push(
+        `${contextLabel} weekly_target_value must be a finite number >= 0 or null`,
+      );
     }
     if (
       week.weekly_target_label !== null &&
       week.weekly_target_label !== undefined &&
       !isNonEmptyString(week.weekly_target_label)
     ) {
-      issues.push(`${contextLabel} weekly_target_label must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} weekly_target_label must be a non-empty string or null`,
+      );
     }
     if (
       week.progression_note !== null &&
       week.progression_note !== undefined &&
       !isNonEmptyString(week.progression_note)
     ) {
-      issues.push(`${contextLabel} progression_note must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} progression_note must be a non-empty string or null`,
+      );
     }
     if (
       week.action_focus !== null &&
       week.action_focus !== undefined &&
-      (!Array.isArray(week.action_focus) || !week.action_focus.every((entry) => isNonEmptyString(entry)))
+      (!Array.isArray(week.action_focus) ||
+        !week.action_focus.every((entry) => isNonEmptyString(entry)))
     ) {
       issues.push(`${contextLabel} action_focus must be a string[] or null`);
     }
@@ -2140,11 +2262,15 @@ function validateLevelWeeks(
       week.reps_summary !== undefined &&
       !isNonEmptyString(week.reps_summary)
     ) {
-      issues.push(`${contextLabel} reps_summary must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} reps_summary must be a non-empty string or null`,
+      );
     }
     issues.push(...validateWeekItemAssignmentsStructure(
       week.item_assignments,
-      `${contextLabel} week ${Number.isInteger(order) && order > 0 ? order : "unknown"}`,
+      `${contextLabel} week ${
+        Number.isInteger(order) && order > 0 ? order : "unknown"
+      }`,
     ));
     if (
       !Array.isArray(week.mission_days) ||
@@ -2157,7 +2283,9 @@ function validateLevelWeeks(
       week.success_signal !== undefined &&
       !isNonEmptyString(week.success_signal)
     ) {
-      issues.push(`${contextLabel} success_signal must be a non-empty string or null`);
+      issues.push(
+        `${contextLabel} success_signal must be a non-empty string or null`,
+      );
     }
   }
 
@@ -2188,11 +2316,15 @@ function validateWeekAssignmentsAgainstPhase(args: {
   for (let index = 0; index < args.weeks.length; index += 1) {
     const week = args.weeks[index];
     if (!isPlainObject(week)) continue;
-    const assignments = Array.isArray(week.item_assignments) ? week.item_assignments : [];
+    const assignments = Array.isArray(week.item_assignments)
+      ? week.item_assignments
+      : [];
     const weekLabel = `${args.contextLabel} week ${index + 1}`;
 
     if (assignments.length === 0) {
-      issues.push(`${weekLabel} item_assignments must contain at least one item`);
+      issues.push(
+        `${weekLabel} item_assignments must contain at least one item`,
+      );
       continue;
     }
 
@@ -2200,10 +2332,14 @@ function validateWeekAssignmentsAgainstPhase(args: {
     let hasNonHabit = false;
 
     for (const assignment of assignments) {
-      if (!isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)) continue;
+      if (!isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)) {
+        continue;
+      }
       const item = phaseItemsById.get(assignment.temp_id);
       if (!item) {
-        issues.push(`${weekLabel} references unknown temp_id "${assignment.temp_id}"`);
+        issues.push(
+          `${weekLabel} references unknown temp_id "${assignment.temp_id}"`,
+        );
         continue;
       }
 
@@ -2233,19 +2369,25 @@ function validateWeekAssignmentsAgainstPhase(args: {
           assignment.weekly_reps !== null &&
           assignment.weekly_reps !== undefined
         ) {
-          issues.push(`${weekLabel} weekly_reps is only allowed for habit items`);
+          issues.push(
+            `${weekLabel} weekly_reps is only allowed for habit items`,
+          );
         }
         if (
           assignment.weekly_description_override !== null &&
           assignment.weekly_description_override !== undefined
         ) {
-          issues.push(`${weekLabel} weekly_description_override is only allowed for habit items`);
+          issues.push(
+            `${weekLabel} weekly_description_override is only allowed for habit items`,
+          );
         }
         if (
           assignment.weekly_cadence_label !== null &&
           assignment.weekly_cadence_label !== undefined
         ) {
-          issues.push(`${weekLabel} weekly_cadence_label is only allowed for habit items`);
+          issues.push(
+            `${weekLabel} weekly_cadence_label is only allowed for habit items`,
+          );
         }
       }
     }
@@ -2265,34 +2407,46 @@ function validateWeekAssignmentsAgainstPhase(args: {
     if (isPlainObject(onlyWeek) && Array.isArray(onlyWeek.item_assignments)) {
       const assignedDimensions = new Set<string>();
       for (const assignment of onlyWeek.item_assignments) {
-        if (!isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)) continue;
+        if (
+          !isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)
+        ) continue;
         const item = phaseItemsById.get(assignment.temp_id);
         if (item && typeof item.dimension === "string") {
           assignedDimensions.add(item.dimension);
         }
       }
       if (!assignedDimensions.has("habits")) {
-        issues.push(`${args.contextLabel} single-week level must contain at least one habit`);
+        issues.push(
+          `${args.contextLabel} single-week level must contain at least one habit`,
+        );
       }
       if (!assignedDimensions.has("missions")) {
-        issues.push(`${args.contextLabel} single-week level must contain at least one mission`);
+        issues.push(
+          `${args.contextLabel} single-week level must contain at least one mission`,
+        );
       }
       if (!assignedDimensions.has("clarifications")) {
-        issues.push(`${args.contextLabel} single-week level must contain at least one clarification`);
+        issues.push(
+          `${args.contextLabel} single-week level must contain at least one clarification`,
+        );
       }
     }
   }
 
   for (const [tempId, count] of nonHabitUsage.entries()) {
     if (count > 1) {
-      issues.push(`${args.contextLabel} item "${tempId}" is duplicated across multiple weeks; missions and clarifications should be assigned only where needed`);
+      issues.push(
+        `${args.contextLabel} item "${tempId}" is duplicated across multiple weeks; missions and clarifications should be assigned only where needed`,
+      );
     }
   }
 
   for (const [tempId, reps] of habitWeeklyReps.entries()) {
     for (let index = 1; index < reps.length; index += 1) {
       if (reps[index] < reps[index - 1]) {
-        issues.push(`${args.contextLabel} habit "${tempId}" weekly_reps must be non-decreasing`);
+        issues.push(
+          `${args.contextLabel} habit "${tempId}" weekly_reps must be non-decreasing`,
+        );
         break;
       }
     }
@@ -2306,12 +2460,16 @@ function validateWeekAssignmentsAgainstPhase(args: {
       let firstWeekHasClarification = false;
 
       for (const assignment of firstWeek.item_assignments) {
-        if (!isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)) continue;
+        if (
+          !isPlainObject(assignment) || !isNonEmptyString(assignment.temp_id)
+        ) continue;
         const item = phaseItemsById.get(assignment.temp_id);
         if (!item || typeof item.dimension !== "string") continue;
         if (item.dimension === "habits") firstWeekHasHabit = true;
         if (item.dimension === "missions") firstWeekHasMission = true;
-        if (item.dimension === "clarifications") firstWeekHasClarification = true;
+        if (item.dimension === "clarifications") {
+          firstWeekHasClarification = true;
+        }
       }
 
       const setupMissionWeeks = args.phaseItems
@@ -2344,14 +2502,18 @@ function validateWeekAssignmentsAgainstPhase(args: {
 }
 
 function normalizeHeuristicText(value: unknown): string {
-  return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  return String(value ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 }
 
 function looksLikeSetupMission(item: Record<string, unknown>): boolean {
-  const haystack = `${normalizeHeuristicText(item.title)} ${normalizeHeuristicText(item.description)}`;
-  return /prepar|organis|mettre en place|installer|terrain|ranger|tri|nettoy|placard|frigo|cuisine|bureau|environnement|retir|cacher|carafe|mug|sortir|poser|materiel|repere/.test(
-    haystack,
-  );
+  const haystack = `${normalizeHeuristicText(item.title)} ${
+    normalizeHeuristicText(item.description)
+  }`;
+  return /prepar|organis|mettre en place|installer|terrain|ranger|tri|nettoy|placard|frigo|cuisine|bureau|environnement|retir|cacher|carafe|mug|sortir|poser|materiel|repere/
+    .test(
+      haystack,
+    );
 }
 
 function getPhaseMaxItems(phase: Record<string, unknown>): number {
@@ -2376,7 +2538,9 @@ function validatePlanBlueprint(
 
   const count = Number(blueprint.estimated_levels_count);
   if (!Number.isInteger(count) || count < 0) {
-    issues.push("plan_blueprint.estimated_levels_count must be an integer >= 0");
+    issues.push(
+      "plan_blueprint.estimated_levels_count must be an integer >= 0",
+    );
   }
 
   if (!Array.isArray(blueprint.levels)) {
@@ -2384,7 +2548,9 @@ function validatePlanBlueprint(
     return issues;
   }
   if (Number.isInteger(count) && count !== blueprint.levels.length) {
-    issues.push("plan_blueprint.estimated_levels_count must equal plan_blueprint.levels.length");
+    issues.push(
+      "plan_blueprint.estimated_levels_count must equal plan_blueprint.levels.length",
+    );
   }
 
   const seenPhaseIds = new Set<string>();
@@ -2420,15 +2586,22 @@ function validatePlanBlueprint(
     }
 
     const durationWeeks = Number(level.estimated_duration_weeks);
-    if (!Number.isInteger(durationWeeks) || durationWeeks < 1 || durationWeeks > 12) {
-      issues.push("plan_blueprint estimated_duration_weeks must be an integer between 1 and 12");
+    if (
+      !Number.isInteger(durationWeeks) || durationWeeks < 1 ||
+      durationWeeks > 12
+    ) {
+      issues.push(
+        "plan_blueprint estimated_duration_weeks must be an integer between 1 and 12",
+      );
     }
     if (
       level.preview_summary !== null &&
       level.preview_summary !== undefined &&
       !isNonEmptyString(level.preview_summary)
     ) {
-      issues.push("plan_blueprint preview_summary must be a non-empty string or null");
+      issues.push(
+        "plan_blueprint preview_summary must be a non-empty string or null",
+      );
     }
   }
 
@@ -2440,11 +2613,16 @@ function validateBlueprintAgainstCurrentLevel(args: {
   runtime: unknown;
 }): string[] {
   const issues: string[] = [];
-  if (!isPlainObject(args.blueprint) || !Array.isArray(args.blueprint.levels) || !isPlainObject(args.runtime)) {
+  if (
+    !isPlainObject(args.blueprint) || !Array.isArray(args.blueprint.levels) ||
+    !isPlainObject(args.runtime)
+  ) {
     return issues;
   }
 
-  const runtimePhaseId = isNonEmptyString(args.runtime.phase_id) ? args.runtime.phase_id : null;
+  const runtimePhaseId = isNonEmptyString(args.runtime.phase_id)
+    ? args.runtime.phase_id
+    : null;
   const runtimeOrder = Number(args.runtime.level_order);
   if (!Number.isInteger(runtimeOrder) || runtimeOrder < 1) {
     return issues;
@@ -2454,12 +2632,16 @@ function validateBlueprintAgainstCurrentLevel(args: {
     if (!isPlainObject(level)) continue;
 
     if (runtimePhaseId && level.phase_id === runtimePhaseId) {
-      issues.push("plan_blueprint must not include the current_level_runtime phase");
+      issues.push(
+        "plan_blueprint must not include the current_level_runtime phase",
+      );
     }
 
     const order = Number(level.level_order);
     if (Number.isInteger(order) && order <= runtimeOrder) {
-      issues.push("plan_blueprint levels must all be strictly after current_level_runtime.level_order");
+      issues.push(
+        "plan_blueprint levels must all be strictly after current_level_runtime.level_order",
+      );
     }
   }
 
@@ -2492,8 +2674,12 @@ function validateCurrentLevelRuntime(
   }
 
   const durationWeeks = Number(runtime.duration_weeks);
-  if (!Number.isInteger(durationWeeks) || durationWeeks < 1 || durationWeeks > 12) {
-    issues.push("current_level_runtime.duration_weeks must be an integer between 1 and 12");
+  if (
+    !Number.isInteger(durationWeeks) || durationWeeks < 1 || durationWeeks > 12
+  ) {
+    issues.push(
+      "current_level_runtime.duration_weeks must be an integer between 1 and 12",
+    );
   }
   if (!Array.isArray(runtime.maintained_foundation)) {
     issues.push("current_level_runtime.maintained_foundation must be an array");
@@ -2514,18 +2700,27 @@ function validateCurrentLevelRuntime(
       : NaN;
     const weekTargets = Array.isArray(runtime.weeks)
       ? runtime.weeks
-        .map((week) => isPlainObject(week) ? Number(week.weekly_target_value) : NaN)
+        .map((week) =>
+          isPlainObject(week) ? Number(week.weekly_target_value) : NaN
+        )
         .filter((value) => Number.isFinite(value))
       : [];
     if (weekTargets.length > 0) {
       for (let index = 1; index < weekTargets.length; index += 1) {
         if (weekTargets[index] < weekTargets[index - 1]) {
-          issues.push("current_level_runtime weekly_target_value must be cumulative and non-decreasing");
+          issues.push(
+            "current_level_runtime weekly_target_value must be cumulative and non-decreasing",
+          );
           break;
         }
       }
-      if (Number.isFinite(heartbeatTarget) && weekTargets[weekTargets.length - 1] !== heartbeatTarget) {
-        issues.push("current_level_runtime last weekly_target_value must equal heartbeat.target");
+      if (
+        Number.isFinite(heartbeatTarget) &&
+        weekTargets[weekTargets.length - 1] !== heartbeatTarget
+      ) {
+        issues.push(
+          "current_level_runtime last weekly_target_value must equal heartbeat.target",
+        );
       }
     }
   } else if (
@@ -2533,7 +2728,9 @@ function validateCurrentLevelRuntime(
     runtime.weeks !== null &&
     (!Array.isArray(runtime.weeks) || runtime.weeks.length < 1)
   ) {
-    issues.push("current_level_runtime.weeks must be omitted or contain at least one week");
+    issues.push(
+      "current_level_runtime.weeks must be omitted or contain at least one week",
+    );
   }
 
   return issues;
@@ -2615,12 +2812,18 @@ export function validatePlanV3Output(
       primaryMetric.baseline_value !== undefined &&
       !isNonEmptyString(primaryMetric.baseline_value)
     ) {
-      issues.push("primary_metric.baseline_value must be a non-empty string or null");
+      issues.push(
+        "primary_metric.baseline_value must be a non-empty string or null",
+      );
     }
     if (!isNonEmptyString(primaryMetric.success_target)) {
       issues.push("primary_metric.success_target must be a non-empty string");
     }
-    if (!VALID_PRIMARY_METRIC_MODES.has(String(primaryMetric.measurement_mode ?? ""))) {
+    if (
+      !VALID_PRIMARY_METRIC_MODES.has(
+        String(primaryMetric.measurement_mode ?? ""),
+      )
+    ) {
       issues.push("primary_metric.measurement_mode is invalid");
     }
   }
@@ -2634,16 +2837,24 @@ export function validatePlanV3Output(
         issues.push("metadata.phase_1_preview must be an object when provided");
       } else {
         if (!isNonEmptyString(phase1Preview.title)) {
-          issues.push("metadata.phase_1_preview.title must be a non-empty string");
+          issues.push(
+            "metadata.phase_1_preview.title must be a non-empty string",
+          );
         }
         if (!isNonEmptyString(phase1Preview.rationale)) {
-          issues.push("metadata.phase_1_preview.rationale must be a non-empty string");
+          issues.push(
+            "metadata.phase_1_preview.rationale must be a non-empty string",
+          );
         }
         if (!isNonEmptyString(phase1Preview.phase_objective)) {
-          issues.push("metadata.phase_1_preview.phase_objective must be a non-empty string");
+          issues.push(
+            "metadata.phase_1_preview.phase_objective must be a non-empty string",
+          );
         }
         if (!isNonEmptyString(phase1Preview.heartbeat)) {
-          issues.push("metadata.phase_1_preview.heartbeat must be a non-empty string");
+          issues.push(
+            "metadata.phase_1_preview.heartbeat must be a non-empty string",
+          );
         }
       }
     }
@@ -2656,7 +2867,9 @@ export function validatePlanV3Output(
       const phaseReasoning = adjustmentContext.phase_reasoning;
 
       if (!isPlainObject(globalReasoning)) {
-        issues.push("metadata.plan_adjustment_context.global_reasoning must be an object");
+        issues.push(
+          "metadata.plan_adjustment_context.global_reasoning must be an object",
+        );
       } else {
         if (!isNonEmptyString(globalReasoning.main_problem_model)) {
           issues.push(
@@ -2673,12 +2886,19 @@ export function validatePlanV3Output(
             "metadata.plan_adjustment_context.global_reasoning.why_not_faster_initially must be a non-empty string",
           );
         }
-        if (!isStringArray(globalReasoning.acceleration_signals, { min: 2, max: 5 })) {
+        if (
+          !isStringArray(globalReasoning.acceleration_signals, {
+            min: 2,
+            max: 5,
+          })
+        ) {
           issues.push(
             "metadata.plan_adjustment_context.global_reasoning.acceleration_signals must contain 2-5 non-empty strings",
           );
         }
-        if (!isStringArray(globalReasoning.slowdown_signals, { min: 2, max: 5 })) {
+        if (
+          !isStringArray(globalReasoning.slowdown_signals, { min: 2, max: 5 })
+        ) {
           issues.push(
             "metadata.plan_adjustment_context.global_reasoning.slowdown_signals must contain 2-5 non-empty strings",
           );
@@ -2686,13 +2906,22 @@ export function validatePlanV3Output(
       }
 
       if (!Array.isArray(phaseReasoning)) {
-        issues.push("metadata.plan_adjustment_context.phase_reasoning must be an array");
+        issues.push(
+          "metadata.plan_adjustment_context.phase_reasoning must be an array",
+        );
       } else {
-        const normalizedPhaseReasoning = phaseReasoning.filter((entry) => isPlainObject(entry));
+        const normalizedPhaseReasoning = phaseReasoning.filter((entry) =>
+          isPlainObject(entry)
+        );
         if (normalizedPhaseReasoning.length !== phaseReasoning.length) {
-          issues.push("metadata.plan_adjustment_context.phase_reasoning entries must be objects");
+          issues.push(
+            "metadata.plan_adjustment_context.phase_reasoning entries must be objects",
+          );
         }
-        if (Array.isArray(plan.phases) && phaseReasoning.length !== plan.phases.length) {
+        if (
+          Array.isArray(plan.phases) &&
+          phaseReasoning.length !== plan.phases.length
+        ) {
           issues.push(
             "metadata.plan_adjustment_context.phase_reasoning must have one entry per phase",
           );
@@ -2840,7 +3069,9 @@ export function validatePlanV3Output(
       phase.phase_order !== i + 1
     ) {
       issues.push(
-        `phase ${phaseLabel} phase_order should be ${i + 1}, got ${phase.phase_order}`,
+        `phase ${phaseLabel} phase_order should be ${
+          i + 1
+        }, got ${phase.phase_order}`,
       );
     }
 
@@ -2860,10 +3091,13 @@ export function validatePlanV3Output(
     if (
       phase.duration_weeks !== null &&
       phase.duration_weeks !== undefined &&
-      (!Number.isInteger(phase.duration_weeks) || Number(phase.duration_weeks) < 1 ||
+      (!Number.isInteger(phase.duration_weeks) ||
+        Number(phase.duration_weeks) < 1 ||
         Number(phase.duration_weeks) > 12)
     ) {
-      issues.push(`phase ${phaseLabel} duration_weeks must be an integer between 1 and 12`);
+      issues.push(
+        `phase ${phaseLabel} duration_weeks must be an integer between 1 and 12`,
+      );
     }
     if (!isNonEmptyString(phase.what_this_phase_targets)) {
       issues.push(`phase ${phaseLabel} missing what_this_phase_targets`);
@@ -2904,14 +3138,18 @@ export function validatePlanV3Output(
         hb.current !== null &&
         hb.current !== undefined
       ) {
-        issues.push(`phase ${phaseLabel} heartbeat current must be number or null`);
+        issues.push(
+          `phase ${phaseLabel} heartbeat current must be number or null`,
+        );
       }
       if (
         typeof hb.target !== "number" ||
         !Number.isFinite(hb.target) ||
         hb.target < 0
       ) {
-        issues.push(`phase ${phaseLabel} heartbeat target must be a non-negative number`);
+        issues.push(
+          `phase ${phaseLabel} heartbeat target must be a non-negative number`,
+        );
       }
       if (!VALID_TRACKING_MODES.has(hb.tracking_mode as string)) {
         issues.push(
@@ -2925,7 +3163,9 @@ export function validatePlanV3Output(
         weeks: phase.weeks,
         contextLabel: `phase ${phaseLabel}`,
         phaseItems: Array.isArray(phase.items)
-          ? phase.items.filter((item): item is Record<string, unknown> => isPlainObject(item))
+          ? phase.items.filter((item): item is Record<string, unknown> =>
+            isPlainObject(item)
+          )
           : [],
       }));
     }
@@ -2933,7 +3173,9 @@ export function validatePlanV3Output(
     // Items
     const items = phase.items;
     const phaseMaxItems = getPhaseMaxItems(phase);
-    if (!Array.isArray(items) || items.length < 1 || items.length > phaseMaxItems) {
+    if (
+      !Array.isArray(items) || items.length < 1 || items.length > phaseMaxItems
+    ) {
       issues.push(
         `phase ${phaseLabel} must have 1-${phaseMaxItems} items (got ${
           Array.isArray(items) ? items.length : typeof items
@@ -2962,7 +3204,9 @@ export function validatePlanV3Output(
         const phaseNumber = Number(phaseNumberRaw);
         if (phaseNumber !== i + 1) {
           issues.push(
-            `item ${tempId} temp_id phase number ${phaseNumber} does not match phase_order ${i + 1}`,
+            `item ${tempId} temp_id phase number ${phaseNumber} does not match phase_order ${
+              i + 1
+            }`,
           );
         }
         if (item.dimension !== dimensionFromId) {
@@ -3028,7 +3272,9 @@ export function validatePlanV3Output(
       if (cond === null || cond === undefined) {
         hasActiveItem = true;
       } else if (!isPlainObject(cond)) {
-        issues.push(`item ${tempId} activation_condition must be an object or null`);
+        issues.push(
+          `item ${tempId} activation_condition must be an object or null`,
+        );
       } else if (cond.type === "immediate") {
         hasActiveItem = true;
       }
@@ -3080,8 +3326,13 @@ export function validatePlanV3Output(
   const adjustmentContext = isPlainObject(plan.metadata)
     ? (plan.metadata as Record<string, unknown>).plan_adjustment_context
     : null;
-  if (isPlainObject(adjustmentContext) && Array.isArray(adjustmentContext.phase_reasoning)) {
-    const phaseReasoning = adjustmentContext.phase_reasoning.filter((entry) => isPlainObject(entry));
+  if (
+    isPlainObject(adjustmentContext) &&
+    Array.isArray(adjustmentContext.phase_reasoning)
+  ) {
+    const phaseReasoning = adjustmentContext.phase_reasoning.filter((entry) =>
+      isPlainObject(entry)
+    );
     for (let i = 0; i < phaseReasoning.length; i++) {
       const reasoning = phaseReasoning[i];
       const matchingPhase = phases[i] as Record<string, unknown> | undefined;
@@ -3149,7 +3400,9 @@ export function validatePlanV3Output(
         weeks: currentLevelRuntime.weeks,
         contextLabel: "current_level_runtime",
         phaseItems: Array.isArray(runtimePhase.items)
-          ? runtimePhase.items.filter((item): item is Record<string, unknown> => isPlainObject(item))
+          ? runtimePhase.items.filter((item): item is Record<string, unknown> =>
+            isPlainObject(item)
+          )
           : [],
       }));
     }

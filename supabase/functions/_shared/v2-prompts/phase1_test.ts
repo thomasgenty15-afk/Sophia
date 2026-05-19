@@ -1,6 +1,10 @@
 import { assert } from "jsr:@std/assert@1";
 
-import { buildPhase1StoryUserPrompt, PHASE1_STORY_SYSTEM_PROMPT } from "./phase1.ts";
+import {
+  buildPhase1StoryUserPrompt,
+  PHASE1_STORY_SYSTEM_PROMPT,
+  validatePhase1DeepWhyOutput,
+} from "./phase1.ts";
 
 Deno.test("PHASE1_STORY_SYSTEM_PROMPT forbids invented act framing", () => {
   assert(
@@ -69,4 +73,91 @@ Deno.test("buildPhase1StoryUserPrompt hides continuity framing outside a two-par
   });
 
   assert(prompt.includes("Découpage multi-parties de la transformation: Aucun decoupage en 2 parties a mentionner"));
+});
+
+Deno.test("validatePhase1DeepWhyOutput allows collective couple vous", () => {
+  const result = validatePhase1DeepWhyOutput({
+    deep_why_questions: [
+      {
+        id: "importance_now",
+        question:
+          "Qu'est-ce qui te fait dire que c'est le moment ou jamais de retrouver cette complicité dans ton couple ?",
+        suggested_answers: [
+          "Je sens qu'on s'éloigne et je veux protéger ce qu'on a construit ensemble.",
+          "Je veux retrouver une manière plus douce de se parler au quotidien.",
+        ],
+      },
+      {
+        id: "daily_pain",
+        question:
+          "Comment ce climat de tension pèse-t-il concrètement sur tes journées et sur ton moral ?",
+        suggested_answers: [
+          "Je rentre avec la boule au ventre et ça m'épuise avant même la soirée.",
+          "Je me sens seule alors qu'on partage encore la même vie.",
+        ],
+      },
+      {
+        id: "past_blocker",
+        question:
+          "Qu'est-ce qui a fait que tes précédentes tentatives pour apaiser les choses ont échoué ?",
+        suggested_answers: [
+          "J'ai peur qu'en abordant les vrais problèmes, on déclenche une crise.",
+          "Je n'ai pas réussi à ouvrir le dialogue sans qu'on se braque.",
+        ],
+      },
+      {
+        id: "success_state",
+        question:
+          "Une fois que vous saurez désamorcer les tensions ensemble, qu'est-ce qui changera concrètement dans ton sentiment de sécurité ?",
+        suggested_answers: [
+          "Je me sentirais soulagée de pouvoir exprimer un désaccord sans craindre une explosion.",
+          "On retrouverait des moments de rire sans que chaque mot soit pesé.",
+        ],
+      },
+    ],
+  });
+
+  assert(result.valid, result.issues.join(", "));
+});
+
+Deno.test("validatePhase1DeepWhyOutput still rejects direct vouvoiement", () => {
+  const result = validatePhase1DeepWhyOutput({
+    deep_why_questions: [
+      {
+        id: "importance_now",
+        question: "Qu'est-ce qui vous donne envie de changer maintenant ?",
+        suggested_answers: [
+          "Je veux retrouver de l'élan dans ma vie.",
+          "Je sens que c'est important pour mon avenir.",
+        ],
+      },
+      {
+        id: "daily_pain",
+        question: "Comment ce problème pèse-t-il sur tes journées ?",
+        suggested_answers: [
+          "Je me sens fatigué avant même de commencer.",
+          "Je perds confiance quand je vois que rien ne change.",
+        ],
+      },
+      {
+        id: "past_blocker",
+        question: "Qu'est-ce qui t'a bloqué dans tes tentatives précédentes ?",
+        suggested_answers: [
+          "J'ai manqué d'énergie au moment de tenir.",
+          "Je ne savais pas par où commencer.",
+        ],
+      },
+      {
+        id: "success_state",
+        question: "Qu'est-ce qui te ferait sentir vraiment soulagé une fois ce cap franchi ?",
+        suggested_answers: [
+          "Je me sentirais plus stable dans mon quotidien.",
+          "Je pourrais avancer sans me sentir constamment en retard.",
+        ],
+      },
+    ],
+  });
+
+  assert(!result.valid);
+  assert(result.issues.some((issue) => issue.includes("question[0] must use tutoiement only")));
 });

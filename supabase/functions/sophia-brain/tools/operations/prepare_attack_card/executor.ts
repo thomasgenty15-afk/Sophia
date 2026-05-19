@@ -11,6 +11,14 @@ export type PrepareAttackCardExecutorOutcome =
   }
   | { status: "blocked"; reason_code: string; ack: string };
 
+function attackCardResourceLabel(target: {
+  kind: "plan_item" | "personal_action";
+}): string {
+  return target.kind === "personal_action"
+    ? "Ressources > Cartes d'attaque"
+    : "Ressources > Cartes d'attaque du plan";
+}
+
 export async function executePrepareAttackCard(input: {
   operation_id: string;
   user_id: string;
@@ -72,6 +80,6 @@ export async function executePrepareAttackCard(input: {
     status: "executed",
     attack_card_id: written.attack_card_id,
     ack:
-      `C'est fait. J'ai cree une carte d'attaque pour ${input.target.title} : ${input.draft.draft.generated_asset}. Tu peux la retrouver dans Ressources > Cartes d'attaque du plan pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.`,
+      `C'est fait. J'ai cree une carte d'attaque pour ${input.target.title} : ${input.draft.draft.generated_asset}. Tu peux la retrouver dans ${attackCardResourceLabel(input.target)} pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.`,
   };
 }

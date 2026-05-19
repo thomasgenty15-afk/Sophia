@@ -1,292 +1,217 @@
-import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   createConfirmationToken,
   hasConsumedConfirmationTokenForTest,
   resetConsumedConfirmationTokensForTest,
 } from "../../../confirmation/confirmation_token.ts";
+import { runPrepareDefenseCardAiIntake } from "./ai_intake.ts";
 import { executePrepareDefenseCard } from "./executor.ts";
-import { runPrepareDefenseCardIntake } from "./intake.ts";
+import {
+  readyDefenseCardStatePatch,
+  structuredDefenseCardDraftGenerator,
+  structuredDefenseCardSlotFiller,
+} from "./test_helpers.ts";
 
-const SECRET = "s6-test-secret";
+const SECRET = "s5-test-secret";
 
-Deno.test("prepare_defense_card pipeline covers 5 scenarios and differs from attack drafts", async () => {
-  const scenarios = [
-    {
-      message: "cree une carte de defense pour quand j'ai envie de fumer",
-      expected: "pending_confirmation",
-    },
-    {
-      message:
-        "cree une carte de defense pour ne pas sauter ma marche quand il pleut",
-      plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
-      expected: "pending_confirmation",
-    },
-    {
-      message: "cree-moi une carte de defense",
-      expected: "ask_question",
-    },
-    {
-      message: "recommendation",
-      source: "recommendation_tool" as const,
-      operation_input: {
-        attachment: { kind: "free_risk_context", title: "envie de fumer" },
-        risk_situation: { label: "envie de fumer" },
+Deno.test("prepare_defense_card AI flow only advances from structured slots", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "fais une carte de defense pour ma marche quand je rentre fatigue",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-no-fallback",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredDefenseCardSlotFiller({
+      attachment: {
+        status: "missing",
+        confidence: "low",
+        evidence: ["AI did not identify attachment"],
       },
-      expected: "pending_confirmation",
-    },
-    {
-      message: "recommendation",
-      source: "recommendation_tool" as const,
-      operation_input: {
-        attachment: { kind: "free_risk_context", title: "envie" },
+      risk_situation: {
+        status: "missing",
+        confidence: "low",
+        evidence: ["AI did not identify risk"],
       },
-      expected: "invalid_recommendation_payload",
-    },
-  ];
-  for (const scenario of scenarios) {
-    resetConsumedConfirmationTokensForTest();
-    const output = runPrepareDefenseCardIntake({
-      user_id: "u1",
-      channel: "whatsapp",
-      timezone: "Europe/Paris",
-      message: scenario.message,
-      source: scenario.source,
-      operation_input: scenario.operation_input,
-      plan_snapshot: scenario.plan_snapshot,
-      trigger_message_id: `m-${scenario.expected}`,
-      safety_pregate_risk_band: "none",
-    });
-    assertEquals(output.status, scenario.expected, scenario.message);
-    if (output.status === "ask_question") {
-      assertEquals((output.next_question as any)?.question, undefined);
-    }
-    if (output.status === "pending_confirmation") {
-      assertEquals(
-        output.draft?.draft.defense_response.includes("4 minutes"),
-        false,
-      );
-      const token = await createConfirmationToken({
-        user_id: "u1",
-        operation_id: String(output.pending_confirmation?.operation_id),
-        operation_type: "prepare_defense_card",
-        draft: output.draft,
-        source_message_id: "yes",
-        pending_confirmation_id: "pending",
-        secret: SECRET,
-      });
-      const executed = await executePrepareDefenseCard({
-        operation_id: String(output.pending_confirmation?.operation_id),
-        user_id: "u1",
-        draft: output.draft!,
-        token,
-        safety_pregate_risk_band: "none",
-        pending_confirmation_lookup: async () => ({ consumed: false }),
-        token_consumption_check: async (tokenId) =>
-          hasConsumedConfirmationTokenForTest(tokenId),
-        write_defense_card: async () => ({ defense_card_id: "defense" }),
-        secret: SECRET,
-      });
-      assertEquals(executed.status, "executed");
-      assertEquals(
-        executed.ack.includes("Ressources > Cartes de defense"),
-        true,
-      );
-      assertEquals(
-        executed.ack.includes("l'ajuster depuis la plateforme"),
-        true,
-      );
-      assertEquals(executed.ack.includes("Depuis le chat"), true);
-      assertEquals(executed.ack.includes("sophia-coach.ai"), false);
-    }
-  }
+    }, ["attachment", "risk_situation"]),
+    draft_generator: structuredDefenseCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "ask_question");
+  assertEquals(output.state_patch.missing_slots, [
+    "attachment",
+    "risk_situation",
+    "trigger",
+    "defense_goal",
+  ]);
+  assertEquals(
+    (output.state_patch.intake_state as any)?.attachment.status,
+    "missing",
+  );
+  assertEquals(
+    (output.state_patch.operation_input as any)?.attachment,
+    undefined,
+  );
 });
 
-Deno.test("prepare_defense_card blocks safety and no-token writes", async () => {
-  const safety = runPrepareDefenseCardIntake({
+Deno.test("prepare_defense_card AI flow drafts from structured state and executor writes only after token", async () => {
+  resetConsumedConfirmationTokensForTest();
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
     timezone: "Europe/Paris",
-    message: "je veux me faire du mal, carte de defense",
-    trigger_message_id: "m-safety",
-    safety_pregate_risk_band: "critical",
-  });
-  assertEquals(safety.status, "blocked_by_safety");
-  const ready = runPrepareDefenseCardIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message: "cree une carte de defense pour quand j'ai envie de fumer",
-    trigger_message_id: "m-ready",
+    message: "ok fais une carte pour ce moment de risque",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-ready",
     safety_pregate_risk_band: "none",
+    slot_filler: structuredDefenseCardSlotFiller(readyDefenseCardStatePatch()),
+    draft_generator: structuredDefenseCardDraftGenerator,
   });
-  if (ready.status !== "pending_confirmation") {
-    throw new Error("expected_pending");
-  }
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.target_label, "marche");
+  assertEquals(
+    (output.pending_confirmation as any)?.intake_state?.attachment.plan_item_id,
+    "walk",
+  );
+  assertEquals(
+    output.confirmation?.message,
+    [
+      "Voici ta carte de défense :",
+      "Le moment : je rentre fatigue et je pars scroller",
+      "Le piège : moment de risque identifié",
+      "Mon geste : Je pose le telephone loin de moi et j'attends 10 minutes avant de decider.",
+      "Plan B : Si ca ne suffit pas, je reduis les degats et je reprends au prochain moment stable.",
+      "On valide ?",
+    ].join("\n"),
+  );
+
   let writes = 0;
   const blocked = await executePrepareDefenseCard({
-    operation_id: String(ready.pending_confirmation?.operation_id),
+    operation_id: String(output.pending_confirmation?.operation_id),
     user_id: "u1",
-    draft: ready.draft!,
+    draft: output.draft!,
     safety_pregate_risk_band: "none",
     pending_confirmation_lookup: async () => ({ consumed: false }),
     token_consumption_check: async () => false,
     write_defense_card: async () => {
       writes++;
-      return { defense_card_id: "bad" };
+      return { defense_card_id: "defense" };
     },
     secret: SECRET,
   });
   assertEquals(blocked.status, "blocked");
   assertEquals(writes, 0);
+
+  const token = await createConfirmationToken({
+    user_id: "u1",
+    operation_id: String(output.pending_confirmation?.operation_id),
+    operation_type: "prepare_defense_card",
+    draft: output.draft,
+    source_message_id: "yes-defense",
+    pending_confirmation_id: "pending-defense",
+    secret: SECRET,
+  });
+  const executed = await executePrepareDefenseCard({
+    operation_id: String(output.pending_confirmation?.operation_id),
+    user_id: "u1",
+    draft: output.draft!,
+    token,
+    safety_pregate_risk_band: "none",
+    pending_confirmation_lookup: async () => ({ consumed: false }),
+    token_consumption_check: async (tokenId) =>
+      hasConsumedConfirmationTokenForTest(tokenId),
+    write_defense_card: async () => ({ defense_card_id: "defense-1" }),
+    secret: SECRET,
+  });
+  assertEquals(executed.status, "executed");
+  assertStringIncludes(executed.ack, "Ressources > Cartes de defense");
+  assertStringIncludes(executed.ack, "l'ajuster depuis la plateforme");
 });
 
-Deno.test("prepare_defense_card resolves fuzzy attachments and uses structured slots", () => {
-  const planSnapshot = {
-    items: [
-      { id: "sas", title: "Faire le sas de déchargement" },
-      { id: "zone", title: "Préparer ta zone de déchargement" },
-      { id: "sleep", title: "Préparer le rituel de sommeil" },
-    ],
-  };
-
-  const fuzzy = runPrepareDefenseCardIntake({
+Deno.test("prepare_defense_card AI flow stops on slot filler failure without regex fallback", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
     timezone: "Europe/Paris",
-    message:
-      "Crée une carte de défense pour ne pas sauter mon sas de dechargement quand je suis fatigue",
-    trigger_message_id: "m-defense-fuzzy",
+    message: "fais une carte de defense pour ma marche quand je rentre fatigue",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-ai-failure",
     safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
+    slot_filler: async () => null,
+    draft_generator: structuredDefenseCardDraftGenerator,
   });
-  assertEquals(fuzzy.status, "pending_confirmation");
-  assertEquals(
-    (fuzzy.pending_confirmation?.attachment as any)?.plan_item_id,
-    "sas",
-  );
 
-  const vague = runPrepareDefenseCardIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message: "Crée une carte de défense parce que je risque de commander",
-    trigger_message_id: "m-defense-vague",
-    safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
-  });
-  assertEquals(vague.status, "ask_question");
-  assertEquals((vague.next_question as any)?.question, undefined);
-  assertEquals((vague.next_question as any)?.slot, "attachment");
-
-  const candidate = runPrepareDefenseCardIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message: "Crée une défense pour le sommeil quand je scroll",
-    trigger_message_id: "m-defense-candidate",
-    safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
-  });
-  assertEquals(candidate.status, "ask_question");
-  assertEquals(
-    (candidate.next_question as any)?.status,
-    "candidate_needs_confirmation",
-  );
-  assertEquals(
-    (candidate.next_question as any)?.candidate?.plan_item_id,
-    "sleep",
-  );
-  assertEquals((candidate.next_question as any)?.question, undefined);
-
-  const correction = runPrepareDefenseCardIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message:
-      "Non pas de preparer la zone, je parle du sas de dechargement, pour ne pas le sauter quand je fatigue",
-    trigger_message_id: "m-defense-correction",
-    safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
-  });
-  assertEquals(correction.status, "pending_confirmation");
-  assertEquals(
-    (correction.pending_confirmation?.attachment as any)?.plan_item_id,
-    "sas",
-  );
+  assertEquals(output.status, "fallback_dashboard");
+  assertEquals(output.readiness.reason, "ai_slot_filler_unavailable");
+  assertEquals(output.state_patch.missing_slots, []);
 });
 
-Deno.test("prepare_defense_card checks attack-vs-defense fit and keeps corrections", () => {
-  const planSnapshot = {
-    items: [
-      { id: "sas", title: "Faire le sas de déchargement" },
-      { id: "zone", title: "Préparer ta zone de déchargement" },
-    ],
-  };
-
-  const attackLike = runPrepareDefenseCardIntake({
+Deno.test("prepare_defense_card AI flow keeps deterministic safety and DB guards", async () => {
+  const safety = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
     timezone: "Europe/Paris",
-    message:
-      "Fais une carte de défense pour préparer ma zone carnet stylo avant le soir.",
-    trigger_message_id: "m-defense-fit",
-    safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
+    message: "je veux me faire du mal, fais une carte",
+    trigger_message_id: "m-defense-safety",
+    safety_pregate_risk_band: "critical",
+    slot_filler: structuredDefenseCardSlotFiller(readyDefenseCardStatePatch()),
+    draft_generator: structuredDefenseCardDraftGenerator,
   });
-  assertEquals(attackLike.status, "ask_question");
-  assertEquals(attackLike.next_question?.slot, "tool_fit");
-  assertEquals(
-    attackLike.next_question?.known_slots?.tool_fit_warning?.includes(
-      "carte d'attaque",
+  assertEquals(safety.status, "blocked_by_safety");
+
+  const invalidAttachment = await runPrepareDefenseCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "ok fais une carte pour ça",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-invalid-target",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredDefenseCardSlotFiller(
+      readyDefenseCardStatePatch({ planItemId: "missing-id" }),
     ),
-    true,
-  );
+    draft_generator: structuredDefenseCardDraftGenerator,
+  });
+  assertEquals(invalidAttachment.status, "fallback_dashboard");
+  assertEquals(invalidAttachment.readiness.reason, "ai_slot_question_missing");
+});
 
-  const riskReady = runPrepareDefenseCardIntake({
+Deno.test("prepare_defense_card AI flow lets AI decide attack-vs-defense fit", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
     timezone: "Europe/Paris",
-    message:
-      "Crée une carte de défense pour Faire le sas de déchargement quand je risque de rallumer le téléphone après le sas.",
-    trigger_message_id: "m-defense-risk",
+    message: "fais un outil pour demarrer ma marche",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-tool-fit",
     safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
+    slot_filler: structuredDefenseCardSlotFiller({
+      tool_fit: {
+        status: "attack_better",
+        reason: "Le user parle de demarrer, pas d'un moment de rechute.",
+        confidence: "high",
+        evidence: ["structured fit"],
+      },
+      attachment: {
+        status: "identified",
+        kind: "plan_item",
+        plan_item_id: "walk",
+        title: "marche",
+        confidence: "high",
+        evidence: ["structured attachment"],
+      },
+      generated_user_message:
+        "Là ça ressemble plutôt à une carte d'attaque pour démarrer. Tu veux bien ça, ou une défense pour un moment de dérapage ?",
+    }, ["tool_fit"]),
+    draft_generator: structuredDefenseCardDraftGenerator,
   });
-  assertEquals(riskReady.status, "pending_confirmation");
-  assertEquals(
-    (riskReady.pending_confirmation?.attachment as any)?.plan_item_id,
-    "sas",
-  );
-  assertEquals(
-    riskReady.draft?.draft.risk_situation,
-    "rallumer l'ecran dans le moment fragile",
-  );
 
-  const corrected = runPrepareDefenseCardIntake({
-    user_id: "u1",
-    channel: "whatsapp",
-    timezone: "Europe/Paris",
-    message:
-      "Non, le risque c'est plutôt quand je suis fatigué, et je veux quitter la pièce 3 minutes.",
-    trigger_message_id: "m-defense-corrected",
-    safety_pregate_risk_band: "none",
-    plan_snapshot: planSnapshot,
-    operation_input: {
-      attachment: riskReady.pending_confirmation?.attachment,
-      risk_situation: riskReady.pending_confirmation?.risk_situation,
-    },
-  });
-  assertEquals(corrected.status, "pending_confirmation");
-  assertEquals(
-    (corrected.pending_confirmation?.attachment as any)?.plan_item_id,
-    "sas",
-  );
-  assertEquals(
-    corrected.draft?.draft.risk_situation,
-    "fatigue qui fragilise l'action",
-  );
-  assertEquals(
-    corrected.draft?.draft.defense_response.includes("quitter la pièce"),
-    true,
-  );
+  assertEquals(output.status, "ask_question");
+  assertEquals(output.next_question?.slot, "tool_fit");
+  assertStringIncludes(output.next_question?.question ?? "", "carte d'attaque");
 });

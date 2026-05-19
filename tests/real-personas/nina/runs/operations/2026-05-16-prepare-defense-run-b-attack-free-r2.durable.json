@@ -1,0 +1,672 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "0def4ca5-e937-48c3-94aa-b43aeb51ef3c",
+        "plan_item_id": null,
+        "status": "active",
+        "source": "system",
+        "scope_kind": "out_of_plan",
+        "transformation_id": null,
+        "cycle_id": "8db01557-6c1c-43bc-a2b9-31940eeeae20",
+        "content": {
+          "impulses": [
+            {
+              "label": "Scroll et snack",
+              "triggers": [
+                {
+                  "label": "Transition retour maison",
+                  "plan_b": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+                  "signal": "La pensée 'je mérite une pause' avec le téléphone en main",
+                  "situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+                  "trigger_id": "f1f02bf3-a400-468a-9d3c-aa4a21fe0c6e",
+                  "illustration": null,
+                  "defense_response": "Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau",
+                  "difficulty_preview": "Casse la boucle scroll-snack en éloignant la source de distraction."
+                }
+              ],
+              "impulse_id": "a162a95c-1c6b-4114-85a5-500bd3683300",
+              "generic_defense": "Éloigner le téléphone"
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Transition retour maison",
+              "plan_b": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+              "signal": "La pensée 'je mérite une pause' avec le téléphone en main",
+              "trigger": "S'asseoir avec le téléphone",
+              "situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+              "target_label": "Snacking automatique",
+              "why_it_helps": "Casse la boucle scroll-snack en éloignant la source de distraction.",
+              "fallback_plan": "Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau",
+              "impulse_label": "Scroll et snack",
+              "risk_situation": "Juste après avoir enlevé mes chaussures, avant de m’asseoir",
+              "generic_defense": "Éloigner le téléphone",
+              "defense_response": "Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau"
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, avant de m’asseoir\nLe piège : La pensée 'je mérite une pause' avec le téléphone en main\nMon geste : Poser le téléphone au chargeur dans l’entrée et prendre un verre d’eau\nPlan B : Si téléphone déjà en main : se lever, le charger dans l’entrée sans ouvrir d’appli, revenir avec un verre d’eau\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "free_risk_context",
+            "title": "Retour à la maison et téléphone sur le canapé",
+            "plan_item_id": null
+          },
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r12-t06",
+          "operation_id": "47478979-44fe-42d2-9675-f08aa52fff2d",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Transition canapé après retour maison",
+            "description": "L'utilisateur s'apprête à s'asseoir sur le canapé avec son téléphone juste après être rentré et avoir enlevé ses chaussures. La pensée 'je mérite une pause' l'embarque, puis les vidéos enchaînées rendent le snack automatique.",
+            "timing_hint": "juste après avoir enlevé mes chaussures, avant de m’asseoir",
+            "context_hint": "Assis sur le canapé, téléphone en main"
+          },
+          "source_message_id": "ad12d013-20c8-471d-9bb6-22fd91670f28"
+        },
+        "generated_at": "2026-05-15T18:52:28.702+00:00",
+        "last_updated_at": "2026-05-15T18:52:28.702+00:00"
+      },
+      {
+        "id": "643e623d-97ee-48cb-a970-6fcd32521873",
+        "plan_item_id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "status": "active",
+        "source": "system",
+        "scope_kind": "transformation",
+        "transformation_id": null,
+        "cycle_id": "8db01557-6c1c-43bc-a2b9-31940eeeae20",
+        "content": {
+          "impulses": [
+            {
+              "label": "Snack automatique",
+              "triggers": [
+                {
+                  "label": "Pause canapé sans scroll",
+                  "plan_b": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+                  "signal": "La sensation de pause méritée et l'envie de scroller.",
+                  "situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+                  "trigger_id": "1688d93a-64a7-4f20-9b74-4e4b3cef9144",
+                  "illustration": null,
+                  "defense_response": "Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé.",
+                  "difficulty_preview": "Casser l'automatisme du scroll pour éviter le snack réflexe."
+                }
+              ],
+              "impulse_id": "bef1c1a5-628e-4d2b-9d96-5e961012a4cc",
+              "generic_defense": "Mettre le téléphone hors de portée."
+            }
+          ],
+          "difficulty_map_summary": null
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Pause canapé sans scroll",
+              "plan_b": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+              "signal": "La sensation de pause méritée et l'envie de scroller.",
+              "trigger": "Pause méritée + scroll",
+              "situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+              "target_label": "Faire le choix du brut",
+              "why_it_helps": "Casser l'automatisme du scroll pour éviter le snack réflexe.",
+              "fallback_plan": "Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.",
+              "impulse_label": "Snack automatique",
+              "risk_situation": "Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.",
+              "generic_defense": "Mettre le téléphone hors de portée.",
+              "defense_response": "Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé."
+            },
+            "output_schema": "defense_card_draft_v1",
+            "operation_type": "prepare_defense_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ta carte de défense :\nLe moment : Juste après avoir enlevé mes chaussures, en allant m’asseoir sur le canapé.\nLe piège : La sensation de pause méritée et l'envie de scroller.\nMon geste : Téléphone au chargeur dans l’entrée avant de m’asseoir, verre d’eau au canapé.\nPlan B : Si je l’ai déjà en main, je me lève, je le charge dans l’entrée, puis je reviens avec l’eau.\nOn valide ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "attachment": {
+            "kind": "plan_item",
+            "title": "Faire le choix du brut",
+            "plan_item_id": "eb9df535-b6e9-40d9-af57-effafdc2f662"
+          },
+          "request_id": "qa-prepare-defense-card-nina-2026-05-15-run-b-free-context-r5-t07",
+          "operation_id": "5ce33a5f-d5fe-4d50-8cad-f0946acd58d2",
+          "operation_type": "prepare_defense_card",
+          "risk_situation": {
+            "label": "Pause méritée + scroll",
+            "description": "S'asseoir sur le canapé juste après avoir enlevé ses chaussures, déclenchant l'automatisme du scroll et du snack.",
+            "timing_hint": "Juste après avoir enlevé les chaussures, en allant s'asseoir",
+            "context_hint": "Canapé / Entrée"
+          },
+          "source_message_id": "5029da01-4263-4fbe-b7bf-d022498a64b5"
+        },
+        "generated_at": "2026-05-15T18:07:14.335+00:00",
+        "last_updated_at": "2026-05-15T18:07:14.335+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a751731a-3832-4bea-a707-c72170fd15a0",
+        "title": "Nettoyer ton environnement direct",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fais le tour de tes placards et de ton espace de travail. Retire ou cache les produits transformés qui te tentent le plus en cas de stress.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": "Action ponctuelle à réaliser une seule fois pour assainir l'espace.",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-14T17:33:10.37736+00:00"
+      },
+      {
+        "id": "eb9df535-b6e9-40d9-af57-effafdc2f662",
+        "title": "Faire le choix du brut",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "pending",
+        "cards_status": "ready",
+        "defense_card_id": "643e623d-97ee-48cb-a970-6fcd32521873",
+        "attack_card_id": null,
+        "description": "option brute décidée pendant la préparation du dimanche",
+        "target_reps": 6,
+        "current_reps": 0,
+        "cadence_label": "3 jours par semaine",
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T18:44:55.963941+00:00"
+      },
+      {
+        "id": "7ed21c74-e2ad-4ffb-85d9-5d204d72bbcf",
+        "title": "Décoder ton envie de grignoter",
+        "dimension": "clarifications",
+        "kind": "framework",
+        "status": "pending",
+        "cards_status": "not_required",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "est-ce que j’ai vraiment faim, ou est-ce que je cherche à calmer ma fatigue ou mon stress ?",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T18:44:55.955331+00:00"
+      },
+      {
+        "id": "23f34398-87ae-4388-80b4-786989faac97",
+        "title": "Préparer tes alternatives d'avance",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "description": "Fixé au dimanche à 16h, aucune préparation le soir.",
+        "target_reps": null,
+        "current_reps": null,
+        "cadence_label": null,
+        "time_of_day": "anytime",
+        "updated_at": "2026-05-15T13:54:28.720386+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "f701a082-8800-4782-974b-21ce974ddee7",
+        "role": "user",
+        "content": "Je vois un petit levier qui n’est pas dans mon plan officiel : après le dîner, si je garde le téléphone avec moi en allant au canapé, je scrolle et l’envie de grignoter revient. Je pourrais le déposer dans l’entrée avant de m’asseoir.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:50:48.242122+00:00"
+      },
+      {
+        "id": "665051b5-9ad9-41c5-8a8c-ca7ae3968141",
+        "role": "assistant",
+        "content": "Ah oui, je vois très bien le piège : téléphone + canapé = mode “grignotage automatique” 😅 Alors que déposer le tel dans l’entrée, c’est hyper concret et immédiat.\n\nTu veux qu’on utilise la Carte de defense (surface “Carte de defense”) pour verrouiller ce moment après le dîner / canapé ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-05-16T14:50:56.09566+00:00"
+      },
+      {
+        "id": "b69c7c77-ba20-43ef-b402-7d27a1ddba39",
+        "role": "user",
+        "content": "Je préfère une carte d’attaque libre, justement. Pas rattachée au plan : l’idée est d’attaquer le décor avant le canapé, avec “téléphone posé dans l’entrée”.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:51:05.260168+00:00"
+      },
+      {
+        "id": "f1dd7e7f-46f3-4df9-8495-0edbaef4247b",
+        "role": "assistant",
+        "content": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "technique",
+                "needed": true,
+                "reason": "structured_ai_missing_technique",
+                "status": "missing",
+                "question": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?",
+                "known_slots": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "Attaquer le décor avant le canapé",
+                    "plan_item_id": null
+                  },
+                  "intake_state": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "Attaquer le décor avant le canapé",
+                      "status": "identified",
+                      "evidence": [
+                        "attaquer le décor avant le canapé",
+                        "Pas rattachée au plan"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "evidence": [
+                        "attaquer le décor avant le canapé"
+                      ],
+                      "confidence": 0.7
+                    },
+                    "skill_id": "prepare_attack_card",
+                    "technique": {
+                      "value": null,
+                      "status": "ambiguous",
+                      "options": [
+                        {
+                          "title": "Preparer le terrain",
+                          "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                          "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                          "description": "Retirer de la friction avant que le moment d'action arrive.",
+                          "recommended": true,
+                          "technique_key": "preparer_terrain"
+                        },
+                        {
+                          "title": "Ancre visuelle",
+                          "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                          "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                          "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                          "recommended": false,
+                          "technique_key": "ancre_visuelle"
+                        }
+                      ],
+                      "evidence": [
+                        "téléphone posé dans l'entrée"
+                      ],
+                      "confidence": "medium",
+                      "fit_warning": null,
+                      "explicitly_requested": false
+                    },
+                    "confidence": "high",
+                    "constraints": [
+                      "téléphone posé dans l'entrée"
+                    ],
+                    "current_step": "technique_selection",
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "activation_keyword": {
+                      "value": null,
+                      "status": "not_applicable",
+                      "options": [],
+                      "evidence": [],
+                      "confidence": "low",
+                      "rejected_value": null
+                    },
+                    "generated_user_message": "C'est noté pour cette attaque libre : attaquer le décor avant de t'installer au canapé. Pour ton téléphone dans l'entrée, est-ce que tu veux partir sur la technique 'Preparer le terrain' ou préfères-tu une 'Ancre visuelle' ?"
+                  },
+                  "technique_options": [
+                    {
+                      "title": "Preparer le terrain",
+                      "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                      "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                      "description": "Retirer de la friction avant que le moment d'action arrive.",
+                      "recommended": true,
+                      "technique_key": "preparer_terrain"
+                    },
+                    {
+                      "title": "Ancre visuelle",
+                      "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                      "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                      "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                      "recommended": false,
+                      "technique_key": "ancre_visuelle"
+                    }
+                  ]
+                },
+                "technique_options": [
+                  {
+                    "title": "Preparer le terrain",
+                    "reason": "Ton idée de poser le téléphone dans l'entrée est un micro-setup parfait pour ne pas être tenté une fois à l'intérieur.",
+                    "example": "Téléphone posé dans l'entrée dès ton arrivée.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": true,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Le téléphone dans l'entrée peut servir de signal visuel pour déclencher ton action sur le décor.",
+                    "example": "Une petite note à côté du téléphone pour te rappeler ton objectif.",
+                    "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                    "recommended": false,
+                    "technique_key": "ancre_visuelle"
+                  }
+                ],
+                "activation_keyword_options": []
+              },
+              "missing_slots": [
+                "technique"
+              ],
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:51:23.300506+00:00"
+      },
+      {
+        "id": "817bee21-95d8-4789-9aba-8d4bf3d3e6c3",
+        "role": "user",
+        "content": "Préparer le terrain. Le moment précis, c’est quand je quitte la cuisine après avoir débarrassé : si le téléphone est encore dans ma main à ce moment-là, je l’emmène au canapé.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:51:32.513725+00:00"
+      },
+      {
+        "id": "e80d1af9-4257-4937-a0ce-620ec5ae7d20",
+        "role": "assistant",
+        "content": "Voici ton brouillon : *Le sas de la cuisine*\nTechnique : Préparer le terrain\nDès que la cuisine est propre, le téléphone reste loin du canapé.\nPose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.\nOn valide cette carte ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Le sas de la cuisine",
+                  "technique": "preparer_terrain",
+                  "instruction": "Pose ton téléphone dans une autre pièce dès que tu as fini de débarrasser.",
+                  "mode_emploi": "Pose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.",
+                  "target_label": "Attaquer le décor avant le canapé",
+                  "why_it_helps": "Cela supprime la friction du choix en éloignant la tentation avant d'arriver dans la zone de repos.",
+                  "generated_asset": "Dès que la cuisine est propre, le téléphone reste loin du canapé.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Évite la tentation immédiate une fois assis.",
+                    "Crée une rupture physique avec l'écran."
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ton brouillon : *Le sas de la cuisine*\nTechnique : Préparer le terrain\nDès que la cuisine est propre, le téléphone reste loin du canapé.\nPose ton téléphone hors de portée dès que tu quittes la cuisine, avant de t'installer.\nOn valide cette carte ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "a2be78d0-5e4c-4a21-9a3e-61bc19d4c86d",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:52:16.394298+00:00"
+      },
+      {
+        "id": "40027089-13a3-417c-9a4a-81bc67a0635e",
+        "role": "user",
+        "content": "Pas “cuisine propre”, ça met trop de condition. Remplace par : “quand je sors de la cuisine”. Et précise le vide-poche de l’entrée, près des clés, pas juste hors de portée.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:52:25.4908+00:00"
+      },
+      {
+        "id": "b0a8398c-6814-4bf8-a2ad-d046a9c50a2b",
+        "role": "assistant",
+        "content": "Voici ton nouveau brouillon :\n\n*Attaquer le décor avant le canapé*\nTechnique : Préparer le terrain\nAsset : Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.\nDès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.\n\nÇa te convient pour créer la carte ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 0,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Attaquer le décor avant le canapé",
+                  "technique": "preparer_terrain",
+                  "instruction": "Pose ton téléphone dans le vide-poche de l'entrée, près des clés, dès que tu sors de la cuisine.",
+                  "mode_emploi": "Dès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.",
+                  "target_label": "Attaquer le décor avant le canapé",
+                  "why_it_helps": "En retirant la distraction principale avant d'arriver au salon, tu élimines la friction qui t'empêche d'attaquer le décor.",
+                  "generated_asset": "Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Élimine la tentation du téléphone avant le salon",
+                    "Crée une rupture physique avec la distraction",
+                    "Rend l'action sur le décor plus fluide"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici ton nouveau brouillon :\n\n*Attaquer le décor avant le canapé*\nTechnique : Préparer le terrain\nAsset : Téléphone au vide-poche (entrée, près des clés) dès la sortie de cuisine.\nDès que tu sors de la cuisine, dépose ton téléphone à l'endroit prévu avant d'aller vers le salon.\n\nÇa te convient pour créer la carte ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "3d4f8e62-419a-4937-8fae-710d9b6435a6",
+              "selected_handler": "prepare_attack_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "a2be78d0-5e4c-4a21-9a3e-61bc19d4c86d"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:52:47.227881+00:00"
+      },
+      {
+        "id": "018decce-a8ea-450b-aa26-9a3311c36d2f",
+        "role": "user",
+        "content": "Oui, le contenu est bon. Fais juste le titre plus court : “Téléphone au vide-poche”. Après ça je pourrai valider.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:52:55.954979+00:00"
+      },
+      {
+        "id": "a80a53f7-cb81-46f1-8530-46ebb7ff8315",
+        "role": "assistant",
+        "content": "Titre : Téléphone au vide-poche\nTechnique : Préparer le terrain\nAction : Téléphone au vide-poche de l’entrée, près des clés.\nPrépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\nEst-ce que ça te convient pour créer ta carte ?",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Téléphone au vide-poche",
+                  "technique": "preparer_terrain",
+                  "instruction": "Pose ton téléphone dans le vide-poche dès que tu sors de la cuisine.",
+                  "mode_emploi": "Prépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.",
+                  "target_label": "Attaquer le décor avant le canapé",
+                  "why_it_helps": "Cela retire la friction en éloignant la distraction principale avant d'atteindre la zone de repos.",
+                  "generated_asset": "Téléphone au vide-poche de l’entrée, près des clés.",
+                  "technique_title": "Préparer le terrain",
+                  "supporting_points": [
+                    "Réduit la tentation du canapé",
+                    "Crée une barrière physique avec l'écran"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Titre : Téléphone au vide-poche\nTechnique : Préparer le terrain\nAction : Téléphone au vide-poche de l’entrée, près des clés.\nPrépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\nEst-ce que ça te convient pour créer ta carte ?"
+              },
+              "status": "pending_confirmation_updated",
+              "operation_id": "4b33ddc5-fa76-445f-a01c-8c9b908d1bed",
+              "selected_handler": "prepare_attack_card",
+              "draft_review_decision": null,
+              "previous_operation_id": "3d4f8e62-419a-4937-8fae-710d9b6435a6"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:53:13.798818+00:00"
+      },
+      {
+        "id": "7168d3cf-2977-48b3-832b-2f520ed373aa",
+        "role": "user",
+        "content": "Oui, crée cette carte d’attaque libre.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-16T14:53:23.175997+00:00"
+      },
+      {
+        "id": "7b145877-5f0d-4452-9568-26b0f481364c",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé cette carte d'attaque :\n\nTéléphone au vide-poche\nTechnique : Préparer le terrain\nTéléphone au vide-poche de l’entrée, près des clés.\n\nMode d'emploi : Prépare le terrain en sortant de la cuisine, puis laisse l'environnement t'aider à démarrer.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.",
+        "scope": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-nina-2026-05-16-run-b-attack-free-r2-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "status": "executed",
+              "operation_id": "4b33ddc5-fa76-445f-a01c-8c9b908d1bed",
+              "attack_card_id": "02733893-6b0c-4dc9-be2e-a03ee1a63609",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-16T14:53:36.26374+00:00"
+      }
+    ]
+  }
+}

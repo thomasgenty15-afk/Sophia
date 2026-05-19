@@ -325,7 +325,7 @@ Deno.test("extractStructuredCalibrationFields works with direct _system_* keys f
   );
 });
 
-Deno.test("extractStructuredCalibrationFields still supports legacy calibration keys", () => {
+Deno.test("extractStructuredCalibrationFields still supports older calibration keys", () => {
   const result = extractStructuredCalibrationFields(
     {
       _system_struggle_duration: "Plus de 3 ans",

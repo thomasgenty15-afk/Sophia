@@ -61,10 +61,10 @@ Deno.test("dispatcher adapter overrides memory none for sensitive high-emotion t
   assertEquals(out.requires_topic_router, true);
 });
 
-Deno.test("dispatcher adapter maps targeted topic and event scopes", () => {
+Deno.test("dispatcher adapter maps light topic and event scopes", () => {
   const out = buildMemoryV2LoaderPlan({
     memory_plan: plan({
-      memory_mode: "targeted",
+      memory_mode: "light",
       context_need: "targeted",
       context_budget_tier: "medium",
       targets: [
@@ -96,7 +96,7 @@ Deno.test("dispatcher adapter maps targeted topic and event scopes", () => {
   assertEquals(out.budget.max_items, 8);
 });
 
-Deno.test("dispatcher adapter maps global inventory to cross-topic lookup", () => {
+Deno.test("dispatcher adapter maps domain prefix inventory to cross-topic lookup", () => {
   const out = buildMemoryV2LoaderPlan({
     memory_plan: plan({
       response_intent: "inventory",
@@ -104,7 +104,7 @@ Deno.test("dispatcher adapter maps global inventory to cross-topic lookup", () =
       context_need: "dossier",
       context_budget_tier: "large",
       targets: [{
-        type: "global_theme",
+        type: "domain_prefix",
         key: "psychologie",
         priority: "high",
         retrieval_policy: "taxonomy_first",
@@ -117,8 +117,94 @@ Deno.test("dispatcher adapter maps global inventory to cross-topic lookup", () =
   assertEquals(out.retrieval_mode, "cross_topic_lookup");
   assertEquals(out.requested_scopes.includes("global"), true);
   assertEquals(out.requested_scopes.includes("topic"), false);
-  assertEquals(out.global_keys, ["psychologie"]);
+  assertEquals(out.domain_prefixes, ["psychologie"]);
+  assertEquals(out.domain_keys.includes("psychologie.peur_echec"), true);
   assertEquals(out.requires_topic_router, false);
+});
+
+Deno.test("dispatcher adapter maps exact domain key to cross-topic lookup", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({
+      memory_mode: "broad",
+      context_need: "targeted",
+      context_budget_tier: "medium",
+      targets: [{
+        type: "domain_key",
+        key: "relations.famille",
+        retrieval_policy: "taxonomy_first",
+      }],
+    }),
+    signals: detectMemorySignals(
+      "Tu te souviens de mes histoires familiales ?",
+    ),
+  });
+  assertEquals(out.retrieval_mode, "cross_topic_lookup");
+  assertEquals(out.requested_scopes, ["global"]);
+  assertEquals(out.domain_keys, ["relations.famille"]);
+  assertEquals(out.requires_topic_router, false);
+});
+
+Deno.test("dispatcher adapter maps level target to level scope and budget", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({
+      memory_mode: "light",
+      context_need: "targeted",
+      context_budget_tier: "small",
+      targets: [{
+        type: "level",
+        key: "transition",
+        expansion_policy: "include_level_execution_handoff",
+        retrieval_policy: "semantic_first",
+      }],
+    }),
+    signals: detectMemorySignals("On commence le nouveau niveau."),
+  });
+
+  assertEquals(out.enabled, true);
+  assertEquals(out.requested_scopes.includes("level"), true);
+  assertEquals(out.level_targets, ["transition"]);
+  assertEquals(out.budget.level_items, 1);
+});
+
+Deno.test("dispatcher adapter maps action target to action scope", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({
+      memory_mode: "light",
+      context_need: "targeted",
+      context_budget_tier: "small",
+      targets: [{
+        type: "action",
+        key: "walk",
+        query_hint: "marche",
+        expansion_policy: "exact_then_action_family_recent",
+        retrieval_policy: "semantic_first",
+      }],
+    }),
+    signals: detectMemorySignals("J'ai fait ma marche."),
+  });
+
+  assertEquals(out.enabled, true);
+  assertEquals(out.requested_scopes.includes("action"), true);
+  assertEquals(out.action_targets, ["walk"]);
+});
+
+Deno.test("dispatcher adapter rejects invalid domain and entity targets", () => {
+  const out = buildMemoryV2LoaderPlan({
+    memory_plan: plan({
+      memory_mode: "broad",
+      context_need: "targeted",
+      targets: [
+        { type: "domain_key", key: "psychologie.fake" },
+        { type: "domain_prefix", key: "finance" },
+        { type: "entity", key: "alien" },
+      ],
+    }),
+    signals: detectMemorySignals("Hello"),
+  });
+  assertEquals(out.domain_keys, []);
+  assertEquals(out.domain_prefixes, []);
+  assertEquals(out.requested_scopes.includes("global"), false);
+  assertEquals(out.requested_scopes.includes("entity"), false);
 });
 
 Deno.test("dispatcher adapter lets safety override memory none", () => {

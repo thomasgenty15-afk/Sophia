@@ -1,0 +1,74 @@
+{
+  "generated_at": "2026-05-15T15:07:09.359Z",
+  "scope": "qa-active-flow-adjust-supersede-no-stop-1778857628521",
+  "results": [
+    {
+      "turn": 1,
+      "status": 200,
+      "ok": true,
+      "user": "Ajuste mon plan: reduis la marche du soir, elle est trop lourde et je veux une version plus simple.",
+      "assistant": "Tu veux ajuster une action precise, le niveau actuel, ou le plan dans son ensemble ?",
+      "raw_error": null,
+      "route": {
+        "owner": "tool_skill",
+        "handler": "adjust_plan_item",
+        "reason": "tool_skill_intent_start",
+        "arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "blocked": []
+      }
+    },
+    {
+      "turn": 2,
+      "status": 200,
+      "ok": true,
+      "user": "En fait programme plutot un rappel tous les soirs a 20h30 pour marcher.",
+      "assistant": "Je te propose de créer ce rappel récurrent : \"En fait programme plutot un rappel pour marcher\", tous les jours à 20:30. Tu veux que je le crée ?",
+      "raw_error": null,
+      "route": {
+        "owner": "tool_skill",
+        "handler": "create_recurring_reminder",
+        "reason": "explicit_tool_intent_supersedes_active",
+        "arbitration": {
+          "decision": "suspend_active",
+          "reason_code": "explicit_tool_intent_supersedes_active",
+          "active_owner": "tool_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "blocked": [
+          {
+            "path": "track_progress_plan_item",
+            "reason_code": "target_missing"
+          }
+        ]
+      }
+    },
+    {
+      "turn": 3,
+      "status": 200,
+      "ok": true,
+      "user": "Oui cree le rappel.",
+      "assistant": "C'est fait. J'ai créé le rappel récurrent: \"En fait programme plutot un rappel pour marcher\" à 20:30, tous les jours.",
+      "raw_error": null,
+      "route": {
+        "owner": "pending_confirmation",
+        "handler": "execute_confirmed",
+        "reason": "confirmation_yes",
+        "arbitration": {
+          "decision": "continue_active",
+          "reason_code": "confirmation_yes",
+          "active_owner": "pending_confirmation",
+          "resume_policy": "after_confirmation",
+          "selected_owner": "pending_confirmation"
+        },
+        "blocked": []
+      }
+    }
+  ]
+}

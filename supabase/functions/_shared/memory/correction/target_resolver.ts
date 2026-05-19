@@ -31,7 +31,9 @@ function lexicalScore(message: string, item: CorrectionMemoryItem): number {
   if (!left.size || !right.size) return 0;
   let overlap = 0;
   for (const token of left) if (right.has(token)) overlap++;
-  return overlap / Math.max(left.size, right.size);
+  const broadSimilarity = overlap / Math.max(left.size, right.size);
+  const hintCoverage = overlap / Math.min(left.size, right.size);
+  return Math.max(broadSimilarity, hintCoverage * 0.86);
 }
 
 function confirmationPrompt(item: CorrectionMemoryItem): string {

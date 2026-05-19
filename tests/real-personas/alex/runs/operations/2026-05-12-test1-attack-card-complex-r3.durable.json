@@ -1,0 +1,315 @@
+{
+  "user_attack_cards": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "3603063e-712e-4c41-a70c-6a9367534703",
+        "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "status": "active",
+        "content": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "techniques": [
+            {
+              "technique_key": "operation_attack_card",
+              "generated_result": {
+                "title": "Carte d'attaque - Faire le sas de déchargement",
+                "technique": "minimum_version",
+                "instruction": "Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+                "target_label": "Faire le sas de déchargement",
+                "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+              }
+            }
+          ],
+          "target_label": "Faire le sas de déchargement",
+          "operation_draft": {
+            "title": "Carte d'attaque - Faire le sas de déchargement",
+            "technique": "minimum_version",
+            "instruction": "Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - Faire le sas de déchargement",
+              "technique": "minimum_version",
+              "instruction": "Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+              "target_label": "Faire le sas de déchargement",
+              "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de creer une carte d'attaque courte pour Faire le sas de déchargement: Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "plan_item",
+            "title": "Faire le sas de déchargement",
+            "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t03",
+          "operation_id": "3d6b1988-1342-48ec-a708-f85ce681e2ae",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "d33e807c-e8d8-41ed-9c40-20bed19954c3"
+        },
+        "generated_at": "2026-05-13T00:12:06.733+00:00",
+        "last_updated_at": "2026-05-13T00:12:06.733+00:00"
+      },
+      {
+        "id": "12972864-00f0-47ec-b030-98b659730ce5",
+        "plan_item_id": null,
+        "status": "active",
+        "content": {
+          "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "techniques": [
+            {
+              "technique_key": "operation_attack_card",
+              "generated_result": {
+                "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "technique": "minimum_version",
+                "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+                "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+                "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+              }
+            }
+          ],
+          "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+          "operation_draft": {
+            "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "technique": "minimum_version",
+            "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+            "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Carte d'attaque - ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "technique": "minimum_version",
+              "instruction": "Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier.",
+              "target_label": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+              "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose de creer une carte d'attaque courte pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.: Fais la version 4 minutes de \"ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+          },
+          "source": "sophia_brain_operation_flow",
+          "target": {
+            "kind": "personal_action",
+            "title": "ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+            "plan_item_id": null
+          },
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r1-t03",
+          "operation_id": "6f3961ea-305c-41eb-a739-0f1982a374dc",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "9de02f35-0b14-4f5e-a9ed-f6de0a268179"
+        },
+        "generated_at": "2026-05-12T21:17:15.741+00:00",
+        "last_updated_at": "2026-05-12T21:17:15.741+00:00"
+      }
+    ]
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "a6da07a3-55f0-463c-8ed0-c1d5a7f7961e",
+        "title": "Préparer ta zone de déchargement",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "active",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T13:45:51.10963+00:00"
+      },
+      {
+        "id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1",
+        "title": "Faire le sas de déchargement",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "cards_status": "ready",
+        "attack_card_id": "3603063e-712e-4c41-a70c-6a9367534703",
+        "updated_at": "2026-05-13T00:12:06.739782+00:00"
+      },
+      {
+        "id": "8d321c6c-ce4b-440f-b7b1-69e1a17ff835",
+        "title": "Repérer les pièges de l'hypervigilance",
+        "dimension": "clarifications",
+        "kind": "exercise",
+        "status": "pending",
+        "cards_status": "not_required",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      },
+      {
+        "id": "793bdd4a-c2fb-40fa-b972-e58b8659658f",
+        "title": "Bilan et ajustement du sas",
+        "dimension": "missions",
+        "kind": "task",
+        "status": "pending",
+        "cards_status": "not_started",
+        "attack_card_id": null,
+        "updated_at": "2026-05-06T06:23:51.281+00:00"
+      }
+    ]
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "85b207a1-904f-425c-bc39-3109a4bd9a88",
+        "role": "user",
+        "content": "J'ai besoin que tu me fasses une carte d'attaque pour ce soir, pour demarrer le truc du sommeil, mais je veux pas que ca devienne une nouvelle tache.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:11:32.828992+00:00"
+      },
+      {
+        "id": "2a7d277c-ec22-431b-8c45-cdd437651d14",
+        "role": "assistant",
+        "content": "Il me manque l'action à viser. Donne-moi l'action ou décris-la en une phrase.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "ask_question",
+              "slot_state": {
+                "slot": "target",
+                "needed": true,
+                "reason": "target_missing",
+                "status": "missing"
+              },
+              "missing_slots": [
+                "target"
+              ],
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-13T00:11:35.212769+00:00"
+      },
+      {
+        "id": "436dfa92-4418-4048-b082-507f7733e9f7",
+        "role": "user",
+        "content": "Je parle du sas de dechargement. C'est le moment ou j'ouvre le carnet. Je veux une carte tres petite: deux minutes, poser le telephone loin, ouvrir le carnet, ecrire une ligne.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:11:45.641378+00:00"
+      },
+      {
+        "id": "10908ff9-3e0e-4885-b82e-67a811bc3a22",
+        "role": "assistant",
+        "content": "Je te propose de creer une carte d'attaque courte pour Faire le sas de déchargement: Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier. Tu veux que je la cree ?",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "draft": {
+                "draft": {
+                  "title": "Carte d'attaque - Faire le sas de déchargement",
+                  "technique": "minimum_version",
+                  "instruction": "Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+                  "target_label": "Faire le sas de déchargement",
+                  "why_it_helps": "La carte baisse la friction de demarrage sans augmenter la difficulte."
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Je te propose de creer une carte d'attaque courte pour Faire le sas de déchargement: Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier. Tu veux que je la cree ?"
+              },
+              "status": "pending_confirmation",
+              "operation_id": "3d6b1988-1342-48ec-a708-f85ce681e2ae",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-13T00:11:48.0837+00:00"
+      },
+      {
+        "id": "d33e807c-e8d8-41ed-9c40-20bed19954c3",
+        "role": "user",
+        "content": "Oui vas-y, cree cette carte d'attaque dans Sophia.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-05-13T00:11:59.619761+00:00"
+      },
+      {
+        "id": "796944fb-9eed-4f8c-b8fd-85de7f417934",
+        "role": "assistant",
+        "content": "C'est fait. J'ai créé la carte d'attaque \"Carte d'attaque - Faire le sas de déchargement\" : Fais la version 4 minutes de \"Faire le sas de déchargement\", assez petite pour ne pas negocier.",
+        "scope": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-operation-suggestion-test1-alex-2026-05-12-attack-card-complex-r3-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "operation_runtime": {
+              "status": "executed",
+              "operation_id": "3d6b1988-1342-48ec-a708-f85ce681e2ae",
+              "attack_card_id": "3603063e-712e-4c41-a70c-6a9367534703",
+              "selected_handler": "prepare_attack_card"
+            }
+          }
+        },
+        "created_at": "2026-05-13T00:12:06.748593+00:00"
+      }
+    ]
+  }
+}

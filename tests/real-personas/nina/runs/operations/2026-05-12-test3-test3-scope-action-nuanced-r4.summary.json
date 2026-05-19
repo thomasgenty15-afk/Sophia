@@ -1,0 +1,273 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Le truc des placards dans mon plan me paraît beaucoup trop gros. Je veux le réduire, mais pas en faire un truc ridicule qui ne sert à rien.",
+    "assistant": "Tu veux plutot reduire, clarifier, remplacer, reequilibrer, ou mettre en pause cette action ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "placards / Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "ask_question",
+      "reason_code": "operation_intent_start",
+      "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0",
+      "target_title": "Nettoyer ton environnement direct",
+      "missing_slots": [
+        "specific_plan_item.adjustment_type"
+      ],
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui applique, mais garde bien l'idée que c'est juste un pont, pas une suppression de l'action d'origine.",
+    "assistant": "Ok, on garde l’idée “pont” : on ne supprime pas l’action d’origine, on la rend juste plus petite et plus faisable, histoire que ça serve vraiment sans te frustrer. 😄\n\nTu veux que le “pont” dure 1 jour, 3 jours, ou 1 semaine ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Donc l'action de base reste bien prévue après ? Je ne veux pas perdre le vrai rangement.",
+    "assistant": "Oui : l’idée “pont” ne remplace pas le vrai rangement, c’est juste une version mini pour te remettre en mouvement, puis l’action “Nettoyer ton environnement direct” reste bien derrière. 😊\n\nTu préfères que le pont couvre quoi : un placard précis (plus ciblé) ou juste 10 minutes sur “le coin le plus visible” ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [
+      {
+        "ambiguity": "none",
+        "target_hint": "Nettoyer ton environnement direct",
+        "user_intent": "adjust",
+        "explicitness": "explicit",
+        "operation_type": "adjust_plan_item",
+        "confidence_band": "high"
+      }
+    ],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Et si finalement je trouve la version mini encore trop légère, je pourrai l'augmenter après ?",
+    "assistant": "Oui, totalement. L’idée du “pont”, c’est de démarrer sans se cramer, puis tu peux monter progressivement après, quand tu verras que ça te sert. 😄\n\nPour l’augmenter, tu penses plutôt à quoi : plus de temps, plus d’étapes, ou un placard plus large ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": null,
+    "direct_effects": [],
+    "operation_flow_run": {
+      "reason_code": "active_tool_skill_continue",
+      "selected_handler": "adjust_plan_item"
+    },
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Ok, résume-moi juste ce qui a changé dans mon plan, sans me refaire tout un coaching.",
+    "assistant": "Ok. Depuis le début, on a juste cadré l’idée “pont” : tu n’as pas supprimé l’action de base, “Nettoyer ton environnement direct” reste bien prévue après, et on a cherché une version mini plus petite et plus faisable pour démarrer sans te frustrer. 😊\n\nConcrètement, ce qui change côté rythme, c’est la version mini que tu fais au début (plus ciblée / plus courte), et ensuite tu enchaînes sur le vrai rangement.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "operation_intents": [],
+    "skill_run": {
+      "output": {
+        "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+        "status": "complete",
+        "skill_id": "product_help",
+        "diagnosis": {
+          "locations": [
+            "Dashboard > Plan"
+          ],
+          "feature_id": "dashboard.plan",
+          "feature_label": "Plan",
+          "operation_bridge": null
+        },
+        "state_patch": {
+          "summary": "Product help answered for dashboard.plan."
+        },
+        "memory_trace": {
+          "correction_detected": false,
+          "memory_item_ids_used": [],
+          "memory_used_for_response": false,
+          "correction_target_item_ids": []
+        },
+        "response_intent": "how_to",
+        "recommendation_need": {
+          "type": "none",
+          "needed": false,
+          "urgency": "none",
+          "constraints": [
+            "product_help_does_not_execute_operations",
+            "operation_bridge_requires_confirmation_when_present"
+          ]
+        },
+        "operation_suggestions": []
+      },
+      "reason_code": "skill_entry_signal",
+      "selected_skill_id": "product_help"
+    },
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "recommendation_tool_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-action-nuanced-r4-t05",
+    "trace_error": null
+  }
+]

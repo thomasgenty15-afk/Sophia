@@ -6,6 +6,7 @@ import type {
   DispatcherMemoryPlan,
   DispatcherMemoryRetrievalPolicy,
   DispatcherMemoryTargetType,
+  DispatcherResearchSignal,
   RiskBand,
   ToolSkillOpportunity,
   TurnFrame,
@@ -14,6 +15,7 @@ import {
   DOMAIN_KEYS_V1,
   DOMAIN_PREFIXES_V1,
 } from "../../_shared/memory/domain_keys.ts";
+import { buildActionFamilyKey } from "../../_shared/memory/action_family.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 import type { SafetyPregateOutput } from "../safety/safety_pregate.ts";
 import {
@@ -69,6 +71,23 @@ function riskMax(a: RiskBand, b: RiskBand): RiskBand {
     a;
 }
 
+function looksLikeOneShotReminderRequest(text: string): boolean {
+  const hasReminderVerb =
+    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’]envoyer un rappel\b|\bdis[- ]?moi\b|\bpréviens[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
+      .test(text);
+  if (!hasReminderVerb) return false;
+  const weekdaysMentioned = text.match(
+    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)s?\b/g,
+  ) ?? [];
+  if (
+    /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|hebdo|hebdomadaire|jours?\s+de\s+semaine|du\s+lundi\s+au\s+vendredi)\b/
+      .test(text) ||
+    new Set(weekdaysMentioned).size >= 2
+  ) return false;
+  return /\b\d{1,2}h(?:\d{2})?\b|\bdemain\b|\baujourd['’]hui\b|\bce soir\b|\bapr[eè]s-demain\b|\bdans\s+(?:une?|un|1|\d{1,3})\s*(?:minutes?|min|heures?|h|jours?)\b|\bdans\s+un\s+quart\s+d['’]heure\b|\bdans\s+une\s+demi[- ]?heure\b/
+    .test(text);
+}
+
 function estimateTokens(text: string): number {
   return Math.ceil(String(text ?? "").length / 4);
 }
@@ -94,6 +113,24 @@ function isReviewDataCaptureMessage(text: string, recentText = ""): boolean {
     /\b(qu'est-ce qui s'est passe|qu’est-ce qui s’est passé|est-ce que tu as fait|check du soir|daily_action_review|daily review)\b/
       .test(recentText);
   return (reviewContext && noteOnly) || dailyStatusAnswer;
+}
+
+function isActionMemoryRecallOrConfirmation(
+  text: string,
+  recentText = "",
+): boolean {
+  const combined = `${text}\n${recentText}`;
+  const actionMemoryAsk =
+    /\b(souvenir|souvenirs|memorise|memorises|mémoire|memoire|ce que tu sais|sais deja|sais déjà|detail concret|détail concret|pas de conseils generiques|pas de conseils génériques)\b/
+      .test(combined) &&
+    /\b(action|session focus|habitude|mission|clarification|demarrage|démarrage)\b/
+      .test(combined);
+  const simpleConfirmation =
+    /\b(tu confirmes|confirme|c'est bien ca|c est bien ca|donc je dois|je garde|pas changer|ne pas changer)\b/
+      .test(text) &&
+    /\b(action|session focus|habitude|mission|clarification|technique|fichier|minuteur)\b/
+      .test(combined);
+  return actionMemoryAsk || simpleConfirmation;
 }
 
 function confidence(high = true): ConfidenceBand {
@@ -125,6 +162,15 @@ const DEFAULT_TOOL_SKILL_OPPORTUNITY: ToolSkillOpportunity = {
   suggested_question_intent: null,
   offer_timing: "never",
   must_not_execute: true,
+};
+
+const DEFAULT_RESEARCH_SIGNAL: DispatcherResearchSignal = {
+  detected: false,
+  value: false,
+  query: null,
+  domain_hint: null,
+  confidence: 0,
+  reason: null,
 };
 
 const CONVERSATION_RISK_THRESHOLD = 8;
@@ -228,7 +274,9 @@ function buildConversationRiskFlowExitContext(args: {
   reasonCodes: string[];
 }): ConversationRisk["flow_exit_context"] {
   if (!args.shouldExitFlows) return null;
-  const toolSkillSnapshot = compactFlowSnapshot(args.input.active_tool_skill_intake);
+  const toolSkillSnapshot = compactFlowSnapshot(
+    args.input.active_tool_skill_intake,
+  );
   const skillSnapshot = compactFlowSnapshot(args.input.active_skill_state);
   const pendingSnapshot = args.input.pending_tool_skill_confirmation ?? null;
   const activeToolSkillType = stringField(
@@ -374,9 +422,11 @@ function evaluateConversationRisk(input: RunDispatcherInput): ConversationRisk {
       weight: 10,
       contribution: previousContribution,
       evidence: previousScores.length
-        ? `${previousScores.join(",")};decay=${
-          CONVERSATION_RISK_HISTORY_DECAY
-        };recovery=${repairTurn ? CONVERSATION_RISK_RECOVERY_BONUS : 0}`
+        ? `${
+          previousScores.join(",")
+        };decay=${CONVERSATION_RISK_HISTORY_DECAY};recovery=${
+          repairTurn ? CONVERSATION_RISK_RECOVERY_BONUS : 0
+        }`
         : null,
     },
   ];
@@ -409,16 +459,41 @@ function evaluateConversationRisk(input: RunDispatcherInput): ConversationRisk {
 }
 
 function mentionsProductSurface(text: string): boolean {
-  return /\bpotion|carte|ressource|resources|sophia|dashboard|tableau de bord|mon espace|espace sophia|espace|plan|mission|habitude|clarification|inspiration|initiative|preference|preferences|coach|base de vie|niveau|semaine|transformation|cloture|transition\b/
+  return /\bpotion|carte|ressource|resources|sophia|dashboard|tableau de bord|mon espace|espace sophia|espace|interface|agenda|calendrier|planning|notification|notifications|rappel|rappels|reminder|reminders|plan|mission|habitude|clarification|inspiration|initiative|preference|preferences|coach|base de vie|niveau|semaine|transformation|cloture|transition\b/
     .test(text);
 }
 
 function asksProductExplanation(text: string): boolean {
-  return /\bc[' ]?est quoi\b|\ba quoi sert\b|\bsert a quoi\b|\bcomment je\b|\bcomment\b|\bexplique\b|\bexpliquer\b|\bquelle partie\b|\bo[uù] est\b|\bou est\b|\bou creer\b|\bou retrouver\b|\bvois\b.*\bou\b|\bvoir\b.*\bou\b|\bca va ou\b|\bça va où\b|\bdois[- ]?je\b|\best[- ]?ce que\b|\bje peux\b|\bon est d[' ]?accord\b|\bdifference\b|\bquelle difference\b|\bca change quoi\b|\bquelles infos\b|\bquoi utiliser\b|\bquand je\b|\bsi je veux\b|\bce suivi\b|\bsuivi 7 jours\b|\bc[' ]?est une\b|\bc[' ]?est un\b|\bliee\b|\bliée\b|\bgeneration\b|\bgénération\b|\bpiege\b|\bpiège\b|\bderaille\b|\bdéraille\b|\breponse maintenant\b|\bréponse maintenant\b|\bautre chose\b|\bmodification du plan\b|\bremplace\b|\bprogramme\b|\brecap\b/
+  return /\bc[' ]?est quoi\b|\bc[' ]?est o[uù]\b|\ba quoi sert\b|\bsert a quoi\b|\bcomment je\b|\bcomment\b|\bexplique\b|\bexpliquer\b|\bquestion produit\b|\bquelle partie\b|\bo[uù] est\b|\bou est\b|\bo[uù] est[- ]?ce que\b|\bou est[- ]?ce que\b|\bou creer\b|\bou retrouver\b|\bo[uù]\b.{0,40}\bretrouve\b|\bretrouve\b.{0,40}\bo[uù]\b|\bvois\b.*\bou\b|\bvoir\b.*\bou\b|\bca va ou\b|\bça va où\b|\bdois[- ]?je\b|\best[- ]?ce que\b|\bje peux\b|\bon est d[' ]?accord\b|\bdifference\b|\bquelle difference\b|\bca change quoi\b|\bquelles infos\b|\bquoi utiliser\b|\bquand je\b|\bsi je veux\b|\bce suivi\b|\bsuivi 7 jours\b|\bc[' ]?est une\b|\bc[' ]?est un\b|\bliee\b|\bliée\b|\bgeneration\b|\bgénération\b|\bpiege\b|\bpiège\b|\bderaille\b|\bdéraille\b|\breponse maintenant\b|\bréponse maintenant\b|\bautre chose\b|\bmodification du plan\b|\bremplace\b|\brecap\b/
     .test(text);
 }
 
+function asksAboutPlanRuntimeContent(text: string): boolean {
+  const asksCurrentWork =
+    /\bcette semaine\b|\baujourd['’ ]?hui\b|\bmaintenant\b|\baction actuelle\b|\bniveau actuel\b|\bce niveau\b/
+      .test(text) &&
+    /\bje (dois|suis censee|suis cens[eé]e|suis supposee|suis suppos[eé]e)\b|\ba faire\b|\bfaire quoi\b|\bquoi faire\b|\bprevu\b|\bpr[eé]vu\b|\bcens[eé]e faire\b|\bsuppos[eé]e faire\b/
+      .test(text);
+  const asksItemCadence =
+    /\btous les jours\b|\bchaque jour\b|\bquotidien\b|\bquotidienne\b|\bquotidiennement\b|\b[aà] refaire\b|\bune fois\b|\bponctuel\b|\bponctuelle\b|\bcombien de fois\b|\bquelle frequence\b|\bquelle fréquence\b/
+      .test(text) &&
+    /\baction\b|\bmission\b|\bhabitude\b|\bnettoyer\b|\benvironnement\b|\bchoix du brut\b|\bgrignoter\b|\balternatives\b|\bplan\b/
+      .test(text);
+  return asksCurrentWork || asksItemCadence;
+}
+
+function asksLevelExecutionHandoff(text: string): boolean {
+  return (
+    /\bnouveau niveau\b|\bniveau precedent\b|\bniveau précédent\b|\btransition\b|\bhandoff\b|\bce qui a marche avant\b|\bce qui a marché avant\b|\bgarder en tete\b|\bgarder en tête\b/
+      .test(text) &&
+    /\bniveau\b|\btransition\b|\bhandoff\b|\bavant\b|\bprecedent\b|\bprécédent\b/
+      .test(text)
+  );
+}
+
 function detectsProductHelpQuestion(text: string, recentText = ""): boolean {
+  if (asksAboutPlanRuntimeContent(text)) return false;
+  if (asksLevelExecutionHandoff(text)) return false;
   const recentProductContext = mentionsProductSurface(recentText) &&
     /\belle\b|\bil\b|\bca\b|\bça\b|\bce suivi\b|\bsuivi\b|\bhistoire\b|\bces cartes\b|\bla suite\b|\bapres\b|\bensuite\b|\brecap\b|\bdifference\b|\bou\b|\bcomment\b|\best[- ]?ce\b|\bje peux\b/
       .test(text);
@@ -438,18 +513,6 @@ function isExplicitAttackCardOperationRequest(
   if (
     /\b(ok|oui|vas[- ]?y|go)\b.{0,20}\b(fais|cree|crée|prepare|prépare|utilise|lance)[- ]?(le|la)?\b/
       .test(text) && /\bcarte d['’ ]?attaque\b/.test(recentText)
-  ) return true;
-  return false;
-}
-
-function isExplicitPlanAdjustmentOperationRequest(text: string): boolean {
-  if (
-    /\b(ajuste|ajuster|modifie|modifier|change|changer|adapte|adapter|reduis|réduis|replanifie|replanifier|decale|décale|recale|recaler)\b.{0,80}\b(plan|semaine|mission|habitude|clarification|action|marche|sas|routine|target|objectif)\b/
-      .test(text)
-  ) return true;
-  if (
-    /\b(plan|semaine|mission|habitude|clarification|action|marche|sas|routine|target|objectif)\b.{0,80}\b(ajuste|ajuster|modifie|modifier|change|changer|adapte|adapter|reduis|réduis|replanifie|replanifier|decale|décale|recale|recaler)\b/
-      .test(text)
   ) return true;
   return false;
 }
@@ -509,7 +572,7 @@ function normalizeModelTier(
 function normalizeTargetType(raw: unknown): DispatcherMemoryTargetType | null {
   const value = String(raw ?? "").trim();
   return value === "topic" || value === "event" || value === "action" ||
-      value === "entity" || value === "domain_key" ||
+      value === "level" || value === "entity" || value === "domain_key" ||
       value === "domain_prefix"
     ? value
     : null;
@@ -608,7 +671,13 @@ function inferDomainMemoryTarget(text: string) {
   return null;
 }
 
-function inferMemoryPlan(message: string): DispatcherMemoryPlan {
+function inferMemoryPlan(
+  message: string,
+  references?: {
+    action_reference?: TurnFrame["action_reference"];
+    level_reference?: TurnFrame["level_reference"];
+  },
+): DispatcherMemoryPlan {
   const raw = String(message ?? "");
   const text = normalize(raw);
   const dense = raw.length > 280;
@@ -653,12 +722,47 @@ function inferMemoryPlan(message: string): DispatcherMemoryPlan {
       retrieval_policy: "semantic_first",
     });
   }
+  const actionReference = references?.action_reference;
+  if (
+    actionReference?.detected &&
+    (actionReference.status === "identified" ||
+      actionReference.status === "family_only")
+  ) {
+    targets.push({
+      type: "action",
+      key: actionReference.plan_item_id ??
+        actionReference.action_family_key ??
+        "action_observation",
+      query_hint: actionReference.action_title ?? raw.slice(0, 160),
+      expansion_policy: actionReference.expansion_policy ?? null,
+      retrieval_policy: "semantic_first",
+      priority: "high",
+    });
+  }
+  const levelReference = references?.level_reference;
+  if (
+    levelReference?.detected &&
+    levelReference.expansion_policy === "include_level_execution_handoff"
+  ) {
+    targets.push({
+      type: "level",
+      key: levelReference.level_id ??
+        levelReference.transformation_id ??
+        levelReference.status,
+      query_hint: raw.slice(0, 160),
+      expansion_policy: "include_level_execution_handoff",
+      retrieval_policy: "semantic_first",
+      priority: "medium",
+    });
+  }
   const hasTaxonomy = targets.some((target) =>
     target.type === "domain_key" || target.type === "domain_prefix"
   );
+  const hasReferenceTarget = Boolean(actionReference?.detected) ||
+    Boolean(levelReference?.detected);
   const memoryMode = asksInventory
     ? "broad"
-    : dense || asksRecall || targets.length > 0
+    : dense || asksRecall || targets.length > 0 || hasReferenceTarget
     ? "light"
     : "none";
   return {
@@ -721,6 +825,191 @@ function sanitizeMemoryPlan(
         Number(candidate.plan_confidence ?? fallback.plan_confidence ?? 0.7),
       ),
     ),
+  };
+}
+
+function activeReviewSkillId(input: RunDispatcherInput): string | null {
+  const skillId = String((input.active_skill_state as any)?.skill_id ?? "")
+    .trim();
+  return skillId === "daily_action_review_v1" ||
+      skillId === "weekly_adaptive_review_v1"
+    ? skillId
+    : null;
+}
+
+function explicitReviewExitRequested(input: RunDispatcherInput): boolean {
+  if (!activeReviewSkillId(input)) return false;
+  const text = normalize(input.user_message);
+  return /\boublie (le )?bilan\b|\b(arrete|arrête|stop|pause) (le )?bilan\b|\bplus tard pour (le )?bilan\b|\bje veux parler de\b.+\bmaintenant\b|\bsors? du bilan\b/
+    .test(text);
+}
+
+function suppressActionAndLevelMemoryDuringReview(
+  plan: DispatcherMemoryPlan,
+  input: RunDispatcherInput,
+): DispatcherMemoryPlan {
+  const skillId = activeReviewSkillId(input);
+  if (!skillId || explicitReviewExitRequested(input)) return plan;
+  const targets = (plan.targets ?? []).filter((target) =>
+    target.type !== "action" && target.type !== "level"
+  );
+  const nextMode = targets.length === 0 && plan.memory_mode === "light"
+    ? "none"
+    : plan.memory_mode;
+  return {
+    ...plan,
+    memory_mode: nextMode,
+    context_need: nextMode === "none" ? "minimal" : plan.context_need,
+    context_budget_tier: nextMode === "none"
+      ? "tiny"
+      : plan.context_budget_tier,
+    targets,
+    plan_confidence: Math.min(plan.plan_confidence ?? 0.7, 0.75),
+  };
+}
+
+function suppressReferencesDuringReview(
+  input: RunDispatcherInput,
+  actionReference: TurnFrame["action_reference"],
+  levelReference: TurnFrame["level_reference"],
+): {
+  action_reference: TurnFrame["action_reference"];
+  level_reference: TurnFrame["level_reference"];
+} {
+  if (!activeReviewSkillId(input) || explicitReviewExitRequested(input)) {
+    return {
+      action_reference: actionReference,
+      level_reference: levelReference,
+    };
+  }
+  return {
+    action_reference: {
+      detected: false,
+      status: "none",
+      expansion_policy: "none",
+      reason: "review_skill_owns_action_context",
+    },
+    level_reference: {
+      detected: false,
+      status: "none",
+      expansion_policy: "none",
+      reason: "review_skill_owns_level_context",
+    },
+  };
+}
+
+function suppressConcurrentRoutingDuringReview(
+  input: RunDispatcherInput,
+  turnFrame: TurnFrame,
+): TurnFrame {
+  if (!activeReviewSkillId(input) || explicitReviewExitRequested(input)) {
+    return turnFrame;
+  }
+  return {
+    ...turnFrame,
+    direct_effects: [],
+    tool_skill_opportunity: DEFAULT_TOOL_SKILL_OPPORTUNITY,
+  };
+}
+
+function mergeReferenceMemoryTargets(
+  plan: DispatcherMemoryPlan,
+  fallback: DispatcherMemoryPlan,
+): DispatcherMemoryPlan {
+  const required = (fallback.targets ?? []).filter((target) =>
+    target.type === "action" || target.type === "level"
+  );
+  if (required.length === 0) return plan;
+  const existing = new Set(
+    (plan.targets ?? []).map((target) =>
+      `${target.type}:${target.key}:${target.query_hint ?? ""}`
+    ),
+  );
+  const merged = [...(plan.targets ?? [])];
+  for (const target of required) {
+    const key = `${target.type}:${target.key}:${target.query_hint ?? ""}`;
+    if (existing.has(key)) continue;
+    existing.add(key);
+    merged.push(target);
+  }
+  if (merged.length === plan.targets.length) return plan;
+  return {
+    ...plan,
+    memory_mode: plan.memory_mode === "none" ? "light" : plan.memory_mode,
+    context_need: plan.context_need === "minimal"
+      ? "targeted"
+      : plan.context_need,
+    context_budget_tier: plan.context_budget_tier === "tiny"
+      ? "small"
+      : plan.context_budget_tier,
+    targets: merged,
+  };
+}
+
+function objectRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : undefined;
+}
+
+function sanitizeToolSkillIntent(
+  raw: unknown,
+): TurnFrame["tool_skill_intents"][number] | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const intent = raw as any;
+  const operationType = String(intent.operation_type ?? "").trim();
+  if (!operationType) return null;
+  const explicitnessRaw = String(intent.explicitness ?? "").trim();
+  const explicitness: TurnFrame["tool_skill_intents"][number]["explicitness"] =
+    explicitnessRaw === "explicit" || explicitnessRaw === "implied" ||
+      explicitnessRaw === "weak"
+      ? explicitnessRaw
+      : "explicit";
+  const confidenceRaw = String(intent.confidence_band ?? "").trim();
+  const confidenceBand:
+    TurnFrame["tool_skill_intents"][number]["confidence_band"] =
+      confidenceRaw === "low" || confidenceRaw === "medium" ||
+        confidenceRaw === "high" || confidenceRaw === "critical"
+        ? confidenceRaw
+        : "low";
+  const ambiguityRaw = String(intent.ambiguity ?? "").trim();
+  const ambiguity: TurnFrame["tool_skill_intents"][number]["ambiguity"] =
+    ambiguityRaw === "none" || ambiguityRaw === "target_ambiguous" ||
+      ambiguityRaw === "intent_ambiguous" || ambiguityRaw === "both"
+      ? ambiguityRaw
+      : "none";
+  const userIntentRaw = String(intent.user_intent ?? "").trim();
+  const userIntent: TurnFrame["tool_skill_intents"][number]["user_intent"] =
+    userIntentRaw === "create" || userIntentRaw === "update" ||
+      userIntentRaw === "adjust" || userIntentRaw === "select" ||
+      userIntentRaw === "explain_only" || userIntentRaw === "none"
+      ? userIntentRaw
+      : operationType === "adjust_plan_item"
+      ? "adjust"
+      : operationType === "select_state_potion"
+      ? "select"
+      : "create";
+  const adjustPlanScopeRaw = String(intent.adjust_plan_scope ?? "").trim();
+  const adjustPlanScope = adjustPlanScopeRaw === "specific_action" ||
+      adjustPlanScopeRaw === "current_level" ||
+      adjustPlanScopeRaw === "whole_plan"
+    ? adjustPlanScopeRaw
+    : undefined;
+  const rejectedOperations = Array.isArray(intent.rejected_operations)
+    ? intent.rejected_operations.map((item: unknown) => String(item).trim())
+      .filter(Boolean)
+    : undefined;
+  return {
+    operation_type: operationType,
+    explicitness,
+    target_hint: String(intent.target_hint ?? "").trim() || undefined,
+    operation_input: objectRecord(intent.operation_input),
+    payload_hint: objectRecord(intent.payload_hint),
+    adjust_plan_scope: adjustPlanScope,
+    rejected_operations: rejectedOperations,
+    confidence_band: confidenceBand,
+    ambiguity,
+    user_intent: userIntent,
   };
 }
 
@@ -871,6 +1160,9 @@ function sanitizeToolSkillOpportunity(args: {
 function findPlanTarget(planSnapshot: unknown, message: string): {
   id?: string;
   title?: string;
+  kind?: string | null;
+  dimension?: string | null;
+  action_family_key?: string | null;
   ambiguous: boolean;
 } {
   const items = Array.isArray((planSnapshot as any)?.items)
@@ -885,6 +1177,19 @@ function findPlanTarget(planSnapshot: unknown, message: string): {
     return {
       id: String(matches[0].id ?? ""),
       title: String(matches[0].title ?? ""),
+      kind: matches[0].kind ?? null,
+      dimension: matches[0].dimension ?? null,
+      action_family_key: buildActionFamilyKey({
+        id: matches[0].id ?? null,
+        title: matches[0].title ?? null,
+        kind: matches[0].kind ?? null,
+        dimension: matches[0].dimension ?? null,
+        start_after_item_id: matches[0].start_after_item_id ?? null,
+        payload: matches[0].payload &&
+            typeof matches[0].payload === "object"
+          ? matches[0].payload
+          : null,
+      }),
       ambiguous: false,
     };
   }
@@ -925,6 +1230,96 @@ function progressStatusFromText(
     return "completed";
   }
   return null;
+}
+
+function actionTypeFromTarget(target: ReturnType<typeof findPlanTarget>):
+  | "habit"
+  | "mission"
+  | "clarification"
+  | "other"
+  | null {
+  const dimension = String(target.dimension ?? "").trim();
+  const kind = String(target.kind ?? "").trim();
+  if (dimension === "habits" || kind === "habit") return "habit";
+  if (dimension === "missions" || kind === "mission" || kind === "task") {
+    return "mission";
+  }
+  if (dimension === "clarifications" || kind === "clarification") {
+    return "clarification";
+  }
+  return target.id ? "other" : null;
+}
+
+function buildActionReference(args: {
+  target: ReturnType<typeof findPlanTarget>;
+  text: string;
+}): NonNullable<TurnFrame["action_reference"]> {
+  if (activeTextMentionsPlanAction(args.text) && args.target.id) {
+    const actionType = actionTypeFromTarget(args.target);
+    return {
+      detected: true,
+      status: args.target.action_family_key ? "identified" : "family_only",
+      plan_item_id: args.target.id,
+      action_title: args.target.title ?? null,
+      action_family_key: args.target.action_family_key ?? null,
+      action_type: actionType,
+      expansion_policy: actionType === "habit"
+        ? "exact_then_action_family_recent"
+        : "exact_action_only",
+      reason: "matched_active_plan_item",
+    };
+  }
+  if (args.target.ambiguous) {
+    return {
+      detected: true,
+      status: "ambiguous",
+      expansion_policy: "none",
+      reason: "multiple_plan_items_match",
+    };
+  }
+  return {
+    detected: false,
+    status: "none",
+    expansion_policy: "none",
+    reason: null,
+  };
+}
+
+function activeTextMentionsPlanAction(text: string): boolean {
+  return /\b(action|habitude|mission|clarification|plan|fait|faite|pas fait|pas faite|rate|raté|ratée|bloque|bloqué|bloquee|bloquée|avance|avancé|termine|terminé|souvenir|souvenirs|memoire|mémoire|demarrage|démarrage)\b/
+    .test(text);
+}
+
+function buildLevelReference(
+  text: string,
+): NonNullable<TurnFrame["level_reference"]> {
+  if (
+    /\b(niveau precedent|niveau précédent|niveau d'avant|niveau d’avant|transition|nouveau niveau|prochain niveau)\b/
+      .test(text)
+  ) {
+    return {
+      detected: true,
+      status: "transition",
+      expansion_policy: "include_level_execution_handoff",
+      reason: "level_transition_reference",
+    };
+  }
+  if (
+    /\b(niveau|objectif principal|plan global|semaine prochaine)\b/.test(text)
+  ) {
+    return {
+      detected: true,
+      status: "current_level",
+      expansion_policy: "include_level_execution_handoff",
+      reason: "level_reference",
+    };
+  }
+  return {
+    detected: false,
+    status: "none",
+    expansion_policy: "none",
+    reason: null,
+  };
 }
 
 function targetStatusFromPlanTarget(target: {
@@ -1120,6 +1515,12 @@ function classifyConfirmation(
 ): TurnFrame["confirmation_response"] {
   const text = normalize(message).trim();
   if (
+    /\b(avant que je dise oui|avant de dire oui|avant que je valide|avant de valider|avant que je confirme|avant de confirmer|si je dis oui|si je valide|si je confirme|dis moi d abord|explique moi d abord|montre moi d abord|je veux voir avant|avant d appliquer|avant que tu appliques)\b/
+      .test(text)
+  ) {
+    return { kind: "unknown", confidence_band: "low" };
+  }
+  if (
     /^(non|no|stop|annule|pas maintenant|non merci|bof|mouais)\b/.test(text) ||
     /\b(ne le fais pas|ne cree pas|ne crée pas|annule)\b/.test(text)
   ) {
@@ -1226,12 +1627,78 @@ function detectsCoachPreferenceUpdate(text: string): boolean {
 
 function isExplicitRecurringReminderRequest(text: string): boolean {
   const hasReminderVerb =
-    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bmets[- ]?moi\b|\bprogramme[- ]?moi\b|\bcree\b|\bcr[ée]e\b|\bcr[ée]er\b/
+    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bfais\s+(?:le|ce|un)\s+rappel\b|\bfaire\s+(?:le|ce|un)\s+rappel\b|\bmets[- ]?moi\b|\bmettre un rappel\b|\bprogramme[- ]?moi\b|\bprogrammer\b|\bprogramme\b|\bplanifie\b|\bplanifier\b|\bparametre\b|\bparamètre\b|\bparametrer\b|\bparamétrer\b|\bcree\b|\bcr[ée]e\b|\bcr[ée]er\b|\benvoie[- ]?moi\b|\benvoies[- ]?moi\b|\bm['’ ]?envoyer\b|\bme l['’ ]?envoyer\b|\benvoyer\b/
       .test(text);
   const hasRecurringCadence =
-    /\brappel recurrent\b|\brappel récurrent\b|\bsoutien recurrent\b|\bsoutien récurrent\b|\btous les jours\b|\bchaque jour\b|\btous les soirs\b|\bchaque soir\b|\btous les matins\b|\bchaque matin\b|\bchaque semaine\b|\btoutes les semaines\b|\bchaque lundi\b|\bchaque mardi\b|\bchaque mercredi\b|\bchaque jeudi\b|\bchaque vendredi\b|\bchaque samedi\b|\bchaque dimanche\b/
+    /\brappel recurrent\b|\brappel récurrent\b|\bsoutien recurrent\b|\bsoutien récurrent\b|\btous les jours\b|\bchaque jour\b|\btous les soirs\b|\bchaque soir\b|\btous les matins\b|\bchaque matin\b|\bjours de semaine\b|\bjour de semaine\b|\bdu lundi au vendredi\b|\bchaque semaine\b|\btoutes les semaines\b|\btous les lundis\b|\btous les mardis\b|\btous les mercredis\b|\btous les jeudis\b|\btous les vendredis\b|\btous les samedis\b|\btous les dimanches\b|\bchaque lundi\b|\bchaque mardi\b|\bchaque mercredi\b|\bchaque jeudi\b|\bchaque vendredi\b|\bchaque samedi\b|\bchaque dimanche\b/
       .test(text);
-  return hasReminderVerb && hasRecurringCadence;
+  const weekdaysMentioned = text.match(
+    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)s?\b/g,
+  ) ?? [];
+  const hasRecurringWeekdayList = new Set(weekdaysMentioned).size >= 2 &&
+    /\b\d{1,2}\s*h(?:\s*\d{2})?\b|\b\d{1,2}:\d{2}\b/.test(text);
+  const hasSingleWeekdaySchedule =
+    /\ble\s+(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/
+      .test(text) &&
+    /\b\d{1,2}\s*h(?:\s*\d{2})?\b|\b\d{1,2}:\d{2}\b/.test(text);
+  return hasReminderVerb &&
+    (hasRecurringCadence || hasRecurringWeekdayList ||
+      hasSingleWeekdaySchedule);
+}
+
+function clamp01(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(1, n));
+}
+
+function inferResearchSignal(message: string): DispatcherResearchSignal {
+  const raw = String(message ?? "").trim();
+  const text = normalize(raw);
+  const explicitResearch =
+    /\b(cherche|recherche|verifie|v[eé]rifie|regarde sur internet|internet|web|google|source|sources|actualite|actu|news|derniere nouvelle|dernieres nouvelles|dernier|derniere|recent|recente|a jour|mise a jour|prix actuel|aujourd'hui)\b/
+      .test(text);
+  if (!explicitResearch) return DEFAULT_RESEARCH_SIGNAL;
+  return {
+    detected: true,
+    value: true,
+    query: raw.slice(0, 180),
+    domain_hint: null,
+    confidence: 0.7,
+    reason: "heuristic_explicit_research_request",
+  };
+}
+
+function sanitizeResearchSignal(
+  raw: unknown,
+  fallback: DispatcherResearchSignal,
+  fallbackQuery: string,
+): DispatcherResearchSignal {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return fallback;
+  const signal = raw as Record<string, unknown>;
+  const explicitValue = typeof signal.value === "boolean";
+  const confidenceRaw = clamp01(
+    signal.confidence,
+    signal.detected === true ? 0.7 : 0,
+  );
+  const value = explicitValue
+    ? signal.value === true
+    : signal.detected === true && confidenceRaw >= 0.55;
+  const detected = signal.detected === true || value;
+  const confidence = confidenceRaw;
+  const query = String(signal.query ?? "").trim() ||
+    (value ? fallbackQuery.trim() : "");
+  const domainHint = String(signal.domain_hint ?? "").trim();
+  const reason = String(signal.reason ?? "").trim();
+  if (!detected && !value) return DEFAULT_RESEARCH_SIGNAL;
+  return {
+    detected,
+    value,
+    query: query ? query.slice(0, 180) : null,
+    domain_hint: domainHint ? domainHint.slice(0, 30) : null,
+    confidence,
+    reason: reason ? reason.slice(0, 120) : null,
+  };
 }
 
 function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
@@ -1243,8 +1710,16 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
   const suppressNonExplicitOpportunity = isReviewDataCaptureMessage(
     text,
     recentText,
-  );
+  ) || isActionMemoryRecallOrConfirmation(text, recentText);
   const target = findPlanTarget(input.plan_snapshot, message);
+  const rawActionReference = buildActionReference({ target, text });
+  const rawLevelReference = buildLevelReference(text);
+  const { action_reference: actionReference, level_reference: levelReference } =
+    suppressReferencesDuringReview(
+      input,
+      rawActionReference,
+      rawLevelReference,
+    );
   const safetyRisk = input.safety_pregate_output.risk_band;
   const conversationRisk = evaluateConversationRisk(input);
   const turnFrame: TurnFrame = {
@@ -1262,7 +1737,16 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     tool_skill_intents: [],
     tool_skill_opportunity: DEFAULT_TOOL_SKILL_OPPORTUNITY,
     skill_signals: {},
-    memory_plan: inferMemoryPlan(message),
+    needs_research: inferResearchSignal(message),
+    action_reference: actionReference,
+    level_reference: levelReference,
+    memory_plan: suppressActionAndLevelMemoryDuringReview(
+      inferMemoryPlan(message, {
+        action_reference: actionReference,
+        level_reference: levelReference,
+      }),
+      input,
+    ),
   };
 
   if (input.pending_tool_skill_confirmation) {
@@ -1284,10 +1768,7 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     turnFrame.safety.evidence.push(message.slice(0, 160));
   }
 
-  if (
-    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b/.test(text) &&
-    /\b\d{1,2}h\b|\bdemain\b|\bce soir\b|\bdans \d+/.test(text)
-  ) {
+  if (looksLikeOneShotReminderRequest(text)) {
     turnFrame.direct_effects.push({
       effect_type: "create_one_shot_reminder",
       explicitness: "explicit",
@@ -1397,14 +1878,19 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
       .test(text) &&
     !/\b(c'est quoi|c est quoi|a quoi|à quoi|explique|difference|différence|ou est|où est|ou sont|où sont|retrouve|trouver|modifier|imprimer)\b/
       .test(text);
-  const adjustPlanSignal = isExplicitPlanAdjustmentOperationRequest(text) ||
-    /\bstructure du programme\b|\bprogramme entier\b|\btout le programme\b|\breduction globale du programme\b|\bréduction globale du programme\b|\bcadence globale\b|\bvolume global\b/
+  const adjustPlanSignal =
+    /\b(ajuste|ajuster|modifie|modifier|adapte|adapter|change|changer|revois|revoir|reduis|réduis|reduit|réduit|alleger|alléger|allege|allège|simplifie|simplifier|rends plus simple|rendre plus simple)\b/
+      .test(
+        text,
+      ) &&
+    /\b(plan|action|marche|niveau|bloc|semaine|programme|rituel|routine|charge|soir|matin)\b/
       .test(text);
   const adjustPlanExecutionRequested = adjustPlanSignal &&
     !/\b(comment|difference|différence|c est quoi|c'est quoi|a quoi|à quoi|explique|expliquer|quelle partie|ou est|où est|retrouver|quand je|si je veux)\b/
       .test(text);
   const asksProductHelp = !explicitAttackCardCreationRequest &&
     !adjustPlanExecutionRequested &&
+    !asksLevelExecutionHandoff(text) &&
     (detectsProductHelpQuestion(text, recentText) ||
       productNavigationQuestion);
   if (asksProductHelp) {
@@ -1425,15 +1911,10 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     : !asksProductHelp && /\bpotion\b/.test(text) &&
         /\bchoisis|active|selectionne\b/.test(text)
     ? "select_state_potion"
-    : /\brappel recurrent\b|\brappel récurrent\b|\bsoutien recurrent\b|\bsoutien récurrent\b|\brappel quotidien\b|\brituel quotidien\b|\broutine quotidienne\b|\bhabitude quotidienne\b|\btous les jours\b|\bchaque jour\b|\btous les soirs\b|\bchaque soir\b|\bchaque lundi\b|\bchaque mardi\b|\bchaque mercredi\b|\bchaque jeudi\b|\bchaque vendredi\b|\bchaque samedi\b|\bchaque dimanche\b/
-        .test(
-          text,
-        ) ||
-        /\b(mets[- ]?moi|programme[- ]?moi)\b.*\b(rituel|routine|habitude|rappel)\b/
-          .test(text)
-    ? "create_recurring_reminder"
     : !asksProductHelp && detectsCoachPreferenceUpdate(text)
     ? "update_coach_preferences"
+    : !asksProductHelp && isExplicitRecurringReminderRequest(text)
+    ? "create_recurring_reminder"
     : null;
 
   if (operation) {
@@ -1475,7 +1956,7 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     turnFrame.skill_signals = {};
   }
 
-  return turnFrame;
+  return suppressConcurrentRoutingDuringReview(input, turnFrame);
 }
 
 function sanitizeLlmTurnFrame(
@@ -1496,19 +1977,60 @@ function sanitizeLlmTurnFrame(
   const suppressNonExplicitOpportunity = isReviewDataCaptureMessage(
     text,
     recentText,
-  );
+  ) || isActionMemoryRecallOrConfirmation(text, recentText);
   const productHelpQuestion = detectsProductHelpQuestion(text, recentText);
-  const operationIntents = rawToolSkillIntents.filter((intent: any) => {
-    if (productHelpQuestion) return false;
-    if (intent?.operation_type === "prepare_attack_card") {
-      return isExplicitAttackCardOperationRequest(text, recentText);
+  const reviewSkillActive = Boolean(activeReviewSkillId(input)) &&
+    !explicitReviewExitRequested(input);
+  const operationIntents = rawToolSkillIntents
+    .map(sanitizeToolSkillIntent)
+    .filter(
+      (intent: ReturnType<typeof sanitizeToolSkillIntent>): intent is TurnFrame[
+        "tool_skill_intents"
+      ][number] => {
+        if (!intent) return false;
+        if (productHelpQuestion && intent.user_intent === "explain_only") {
+          return false;
+        }
+        if (intent.operation_type === "adjust_plan_item") {
+          return intent.confidence_band !== "low" &&
+            intent.user_intent === "adjust";
+        }
+        if (intent.operation_type === "prepare_attack_card") {
+          return intent.confidence_band !== "low" &&
+            intent.user_intent !== "explain_only" &&
+            isExplicitAttackCardOperationRequest(text, recentText);
+        }
+        if (intent.operation_type !== "create_recurring_reminder") return true;
+        return isExplicitRecurringReminderRequest(text);
+      },
+    );
+  if (
+    !operationIntents.some((
+      intent: TurnFrame["tool_skill_intents"][number],
+    ) => intent.operation_type === "create_recurring_reminder")
+  ) {
+    for (const fallbackIntent of fallback.tool_skill_intents) {
+      if (
+        fallbackIntent.operation_type === "create_recurring_reminder" &&
+        fallbackIntent.explicitness === "explicit" &&
+        fallbackIntent.confidence_band !== "low" &&
+        isExplicitRecurringReminderRequest(text)
+      ) {
+        operationIntents.push(fallbackIntent);
+      }
     }
-    if (intent?.operation_type === "adjust_plan_item") {
-      return isExplicitPlanAdjustmentOperationRequest(text);
-    }
-    if (intent?.operation_type !== "create_recurring_reminder") return true;
-    return isExplicitRecurringReminderRequest(text);
-  });
+  }
+  const routedOperationIntents = reviewSkillActive
+    ? operationIntents.filter((
+      intent: TurnFrame["tool_skill_intents"][number],
+    ) =>
+      intent.explicitness === "explicit" &&
+      (intent.confidence_band === "high" ||
+        intent.confidence_band === "critical") &&
+      intent.ambiguity === "none" &&
+      intent.user_intent !== "explain_only"
+    )
+    : operationIntents;
   const safetyRisk = riskMax(
     input.safety_pregate_output.risk_band,
     raw?.safety?.risk_band ?? fallback.safety.risk_band,
@@ -1542,7 +2064,7 @@ function sanitizeLlmTurnFrame(
       fallbackEntry.product_help?.detected === true ||
       detectsStabilizedConcreteRequest(text)
     );
-  const skillSignals = shouldSuppressStickyEmotionalEntry
+  const skillSignalsWithoutStickyEmotional = shouldSuppressStickyEmotionalEntry
     ? {
       ...rawSkillSignals,
       entry: {
@@ -1551,6 +2073,43 @@ function sanitizeLlmTurnFrame(
       },
     }
     : rawSkillSignals;
+  const shouldSuppressExecutionSkillForMemoryRecall =
+    suppressNonExplicitOpportunity &&
+    rawSkillSignals.entry?.execution_breakdown?.detected === true &&
+    isActionMemoryRecallOrConfirmation(text, recentText);
+  const skillSignalsWithoutMemoryRecallSkill =
+    shouldSuppressExecutionSkillForMemoryRecall
+      ? {
+        ...skillSignalsWithoutStickyEmotional,
+        entry: {
+          ...(skillSignalsWithoutStickyEmotional.entry ?? {}),
+          execution_breakdown: undefined,
+        },
+      }
+      : skillSignalsWithoutStickyEmotional;
+  const shouldSuppressProductHelpForExplicitOperation =
+    rawSkillSignals.entry?.product_help?.detected === true &&
+    !productHelpQuestion &&
+    operationIntents.some((intent: TurnFrame["tool_skill_intents"][number]) =>
+      intent.explicitness === "explicit" &&
+      (intent.confidence_band === "high" ||
+        intent.confidence_band === "critical") &&
+      intent.user_intent !== "explain_only"
+    );
+  const shouldSuppressProductHelpForLevelMemory =
+    rawSkillSignals.entry?.product_help?.detected === true &&
+    fallback.level_reference?.detected === true &&
+    asksLevelExecutionHandoff(text);
+  const skillSignals = shouldSuppressProductHelpForExplicitOperation ||
+      shouldSuppressProductHelpForLevelMemory
+    ? {
+      ...skillSignalsWithoutMemoryRecallSkill,
+      entry: {
+        ...(skillSignalsWithoutMemoryRecallSkill.entry ?? {}),
+        product_help: undefined,
+      },
+    }
+    : skillSignalsWithoutMemoryRecallSkill;
   const fallbackConversationRisk = fallback.conversation_risk ??
     evaluateConversationRisk(input);
 
@@ -1569,22 +2128,29 @@ function sanitizeLlmTurnFrame(
         : fallback.safety.evidence,
     },
     conversation_risk: fallbackConversationRisk,
-    direct_effects: Array.isArray(raw?.direct_effects)
-      ? (fallbackConversationRisk.should_exit_flows ? [] : raw.direct_effects)
+    direct_effects: fallbackConversationRisk.should_exit_flows ||
+        reviewSkillActive
+      ? []
+      : Array.isArray(raw?.direct_effects)
+      ? raw.direct_effects
       : fallback.direct_effects,
     tool_skill_intents: fallbackConversationRisk.should_exit_flows
       ? []
-      : operationIntents,
+      : routedOperationIntents,
     tool_skill_opportunity: sanitizeToolSkillOpportunity({
       raw: fallbackConversationRisk.should_exit_flows
+        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
+        : reviewSkillActive
         ? DEFAULT_TOOL_SKILL_OPPORTUNITY
         : raw?.tool_skill_opportunity,
       fallback: fallbackConversationRisk.should_exit_flows
         ? DEFAULT_TOOL_SKILL_OPPORTUNITY
+        : reviewSkillActive
+        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
         : fallback.tool_skill_opportunity,
       operationIntents: fallbackConversationRisk.should_exit_flows
         ? []
-        : operationIntents,
+        : routedOperationIntents,
       safetyRisk,
       hasPendingOrActiveFlow: Boolean(
         input.pending_tool_skill_confirmation ||
@@ -1596,7 +2162,36 @@ function sanitizeLlmTurnFrame(
     skill_signals: fallbackConversationRisk.should_exit_flows
       ? {}
       : skillSignals,
-    memory_plan: sanitizeMemoryPlan(raw?.memory_plan, fallback.memory_plan),
+    needs_research: fallbackConversationRisk.should_exit_flows
+      ? DEFAULT_RESEARCH_SIGNAL
+      : sanitizeResearchSignal(
+        raw?.needs_research,
+        fallback.needs_research ?? DEFAULT_RESEARCH_SIGNAL,
+        input.user_message,
+      ),
+    action_reference: fallbackConversationRisk.should_exit_flows
+      ? {
+        detected: false,
+        status: "none",
+        expansion_policy: "none",
+        reason: "conversation_risk_flow_exit",
+      }
+      : fallback.action_reference,
+    level_reference: fallbackConversationRisk.should_exit_flows
+      ? {
+        detected: false,
+        status: "none",
+        expansion_policy: "none",
+        reason: "conversation_risk_flow_exit",
+      }
+      : fallback.level_reference,
+    memory_plan: suppressActionAndLevelMemoryDuringReview(
+      mergeReferenceMemoryTargets(
+        sanitizeMemoryPlan(raw?.memory_plan, fallback.memory_plan),
+        fallback.memory_plan,
+      ),
+      input,
+    ),
   };
 }
 

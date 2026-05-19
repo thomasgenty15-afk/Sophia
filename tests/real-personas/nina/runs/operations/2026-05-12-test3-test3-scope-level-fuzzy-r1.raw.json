@@ -1,0 +1,1034 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t01",
+    "auth_method": "get-jwt.sh",
+    "user": "Ce niveau me paraît mal calibré. Je ne veux pas tout casser, mais ça me tombe dessus dès que je le regarde.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t01",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Ouf… je vois le truc : dès que tu “regardes”, ça déclenche direct une pression, donc ton niveau te paraît agressif ou mal taillé. 😕 On va éviter de tout casser, mais on va le rendre supportable.\n\nJe te propose un ajustement doux en 2 étapes : on baisse la barre pour que ce niveau redevienne juste “faisable”, puis on le remonte petit à petit une fois que ton corps dit oui.\n\nTu parles de quel “niveau” exactement : le tien (ton exigence), ou un réglage/étape d’un outil/exercice ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t01",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "6620d829-a0cd-4486-bc43-1dc9649d648e",
+        "ts": "2026-05-13T00:59:54.899+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 2907,
+          "latency_ms": 6600,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 333,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficulté d'exécution et calibration",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "plan_calibration",
+                "type": "topic",
+                "priority": "low",
+                "query_hint": "ajustements précédents du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t01",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "difficulté d'exécution et calibration",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "plan_calibration",
+                "type": "topic",
+                "priority": "low",
+                "query_hint": "ajustements précédents du plan",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "execution_breakdown": {
+                "reason": "user_feels_overwhelmed_by_task_calibration",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "target_item_fuzzy",
+              "target_hint": "niveau mal calibré",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "6620d829-a0cd-4486-bc43-1dc9649d648e",
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [
+            {
+              "path": "operations",
+              "reason_code": "target_item_fuzzy"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "On ne cherche pas encore la solution parfaite. On cherche le point exact ou ca bloque: demarrage, energie, flou, peur, ou environnement.",
+            "status": "continue",
+            "skill_id": "execution_breakdown",
+            "diagnosis": {
+              "stage": "diagnosis",
+              "blocker_candidates": [
+                "flou",
+                "energie",
+                "friction_demarrage"
+              ]
+            },
+            "state_patch": {
+              "summary": "Execution blocker diagnosis in progress."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "diagnose_blocker",
+            "recommendation_need": {
+              "type": "execution_repair",
+              "needed": true,
+              "urgency": "medium",
+              "constraints": [
+                "understand_before_solution"
+              ]
+            },
+            "operation_suggestions": [
+              {
+                "reason": "clear_execution_block_can_use_attack_card",
+                "urgency": "medium",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "medium",
+                "source_skill_id": "execution_breakdown",
+                "operation_input_hint": {
+                  "scope": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "target": {
+                    "kind": "plan_item",
+                    "title": "Nettoyer ton environnement direct",
+                    "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+                  },
+                  "blocker": {
+                    "type": "execution_block"
+                  }
+                },
+                "requires_user_consent": true
+              }
+            ],
+            "memory_write_candidates": [
+              {
+                "kind": "statement",
+                "scope_hint": "session",
+                "content_text": "Ce niveau me paraît mal calibré. Je ne veux pas tout casser, mais ça me tombe dessus dès que je le regarde.",
+                "confidence_band": "medium",
+                "sensitivity_level": 1,
+                "evidence_source_ids": [
+                  "6620d829-a0cd-4486-bc43-1dc9649d648e"
+                ],
+                "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                "should_persist_default": false,
+                "anti_identity_freeze_checked": true
+              }
+            ]
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "execution_breakdown"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t01",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 9511,
+        "created_at": "2026-05-13T00:59:54.901098+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t02",
+    "auth_method": "get-jwt.sh",
+    "user": "Pour ce niveau, c'est surtout parce que mes soirées sont déjà prises et j'ai peu d'énergie. Je veux garder une priorité claire et alléger autour.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t02",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je te propose d'ajuster le niveau actuel: alleger la charge du niveau actuel sans supprimer l'intention. Tu veux que je l'applique ?",
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t02",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "7dcd3e16-e936-4a3a-9632-5c48ce829456",
+        "ts": "2026-05-13T01:00:03.317+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3108,
+          "latency_ms": 7648,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 336,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie le soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "soirées déjà prises",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t02",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie le soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.planification",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "soirées déjà prises",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "user_clarifying_friction_factors_energy_and_time",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "target_ambiguous",
+              "target_hint": "alléger le plan et garder une priorité",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "7dcd3e16-e936-4a3a-9632-5c48ce829456",
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "active_skill_continue",
+          "blocked_paths": [
+            {
+              "path": "operations",
+              "reason_code": "target_ambiguous"
+            }
+          ],
+          "route_version": "v1",
+          "response_owner": "conversation_handler",
+          "memory_use_kind": "none",
+          "selected_handler": "execution_breakdown",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "current_level",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write"
+                ],
+                "reason_type": "bad_fit",
+                "reason_change": "energy_low",
+                "load_adjustment": "lighter",
+                "level_adjustment": "reduce_load"
+              },
+              "title": "Ajustement - niveau actuel",
+              "scope_label": "niveau actuel",
+              "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+              "adjustment_type": "reduce",
+              "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+              "execution_strategy": "level_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "level_adjustment",
+                "load_adjustment",
+                "focus_adjustment",
+                "reason_type",
+                "reason_change",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je te propose d'ajuster le niveau actuel: alleger la charge du niveau actuel sans supprimer l'intention. Tu veux que je l'applique ?"
+          },
+          "status": "pending_confirmation",
+          "reason_code": "active_skill_continue",
+          "operation_id": "cebbd784-cc3e-4ce0-99ad-fc1f283a1317",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "conversation_handler",
+        "total_latency_ms": 7688,
+        "created_at": "2026-05-13T01:00:03.318507+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t03",
+    "auth_method": "get-jwt.sh",
+    "user": "Ok applique cette logique au niveau, sans prétendre que chaque action est déjà réécrite une par une.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t03",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "J'ai préparé l'ajustement du niveau actuel : alleger la charge du niveau actuel sans supprimer l'intention. Je ne dis pas que chaque action a été modifiée automatiquement.",
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t03",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "d6cde225-bc05-4bd8-ab09-0ab2feb50d14",
+        "ts": "2026-05-13T01:00:10.33+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3797,
+          "latency_ms": 6205,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 245,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie le soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t03",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie le soir",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "confirmation_of_adjustment_strategy",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "d6cde225-bc05-4bd8-ab09-0ab2feb50d14",
+          "confirmation_response": {
+            "kind": "yes",
+            "confidence_band": "high"
+          }
+        },
+        "route_decision": {
+          "reason_code": "confirmation_yes",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "pending_confirmation",
+          "memory_use_kind": "none",
+          "selected_handler": "execute_confirmed",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "operation_flow_run": {
+          "status": "executed",
+          "reason_code": "confirmation_yes",
+          "operation_id": "cebbd784-cc3e-4ce0-99ad-fc1f283a1317",
+          "plan_patch_id": "1a34cfc2-1079-40a0-9ef0-1d3ee0a29a34",
+          "selected_handler": "adjust_plan_item",
+          "bridge_plan_item_id": null
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "pending_confirmation",
+        "total_latency_ms": 6269,
+        "created_at": "2026-05-13T01:00:10.331986+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t04",
+    "auth_method": "get-jwt.sh",
+    "user": "Donc l'idée c'est bien de préserver le coeur du niveau et de baisser la charge autour ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t04",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui, exactement. L’idée c’est de garder le “cœur” (l’intention / l’effet utile) et d’alléger tout ce qui te tombe dessus le soir ou te grignote l’énergie. 😌\n\nOn fait ça sans casser: on réduit la charge, et on ne touche au fond que si ça reste cohérent.\n\nTu veux qu’on vise plutôt “moins de volume” ou “plus doux dans le timing” ? ✅",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t04",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "67f43f2b-2d07-4aca-af09-c6e60abb39b4",
+        "ts": "2026-05-13T01:00:21.291+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3262,
+          "latency_ms": 8820,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 339,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie et soirées occupées",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "stratégie d'allègement de charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t04",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sante.energie",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "manque d'énergie et soirées occupées",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "habitudes.execution",
+                "type": "domain_key",
+                "priority": "medium",
+                "query_hint": "stratégie d'allègement de charge",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {
+              "execution_breakdown": {
+                "reason": "validation de la stratégie d'allègement de charge pour débloquer l'exécution",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            }
+          },
+          "direct_effects": [],
+          "operation_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "niveau actuel",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high"
+            }
+          ],
+          "source_message_id": "67f43f2b-2d07-4aca-af09-c6e60abb39b4",
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "operation_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "operation_flow",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "operation_flow_run": {
+          "reason_code": "operation_intent_start",
+          "selected_handler": "adjust_plan_item"
+        },
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "clear_execution_block_can_use_attack_card",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.72,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "scope": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "target": {
+                "kind": "plan_item",
+                "title": "Nettoyer ton environnement direct",
+                "plan_item_id": "a751731a-3832-4bea-a707-c72170fd15a0"
+              },
+              "blocker": {
+                "type": "execution_block"
+              }
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "skill:execution_breakdown:prepare_attack_card:qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t04",
+            "user_facing_offer": "Je peux te proposer Carte d'attaque si tu veux passer par le flow propre.",
+            "presentation_level": 2
+          }
+        },
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "operation_flow",
+        "total_latency_ms": 10226,
+        "created_at": "2026-05-13T01:00:21.293372+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Résume-moi ce qui a été décidé pour ce niveau.",
+    "status": 502,
+    "body": {
+      "message": "An invalid response was received from the upstream server"
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t05",
+    "auth_method": "get-jwt.sh",
+    "user": "Résume-moi ce qui a été décidé pour ce niveau.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t05",
+      "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+      "channel": "web",
+      "scope": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Oui. On a décidé de préserver le “cœur” du niveau (l’intention / l’effet utile), et d’alléger la charge autour pour que ça ne te tombe pas dessus le soir quand tu as moins d’énergie. 😌\n\nConcrètement : on baisse le niveau pour qu’il redevienne faisable, puis on le remontera petit à petit seulement si ça reste cohérent (sans casser ce qui compte). ✅\n\nTu veux un résumé “ultra court” en 2 lignes, ou plutôt une version “avec les critères” (ce qu’on considère comme trop lourd) ?",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t05",
+        "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+        "source_message_id": "da8407cf-5d47-4437-b7ab-5ff886128274",
+        "ts": "2026-05-13T01:06:17.649+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 3367,
+          "latency_ms": 6390,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 254,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "ajustement_niveau",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "décision d'alléger la charge du niveau en gardant le coeur de l'intention",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s8"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-operation-suggestion-test3-nina-2026-05-12-test3-scope-level-fuzzy-r1-t05",
+          "user_id": "e5630c78-447e-452c-b7d6-e4b475cd22fd",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "ajustement_niveau",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "décision d'alléger la charge du niveau en gardant le coeur de l'intention",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {
+              "product_help": {
+                "reason": "user_asking_for_summary_of_decisions_regarding_plan_level_adjustment",
+                "detected": true,
+                "confidence_band": "high"
+              }
+            },
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "operation_intents": [],
+          "source_message_id": "da8407cf-5d47-4437-b7ab-5ff886128274",
+          "confirmation_response": null
+        },
+        "route_decision": {
+          "reason_code": "skill_entry_signal",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "product_help",
+          "memory_use_kind": "none",
+          "selected_handler": "product_help",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": {
+          "output": {
+            "reply": "Plan: Dans le dashboard, selectionne une transformation dans la colonne de gauche puis ouvre l'onglet Plan. Tu y vois le niveau actif, les semaines, les missions, habitudes, clarifications et elements a venir. Les bilans hebdomadaires ne se saisissent pas dans le Plan: ils se font par message WhatsApp le dimanche pour faire le point sur la semaine. Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.\n\nOu ca se trouve:\n- Dashboard > Plan: Quand une transformation active existe. Tu peux y consulter le niveau actif, ouvrir les semaines, valider certains elements.\n\nLimites importantes:\n- Ce n'est pas un journal libre d'actions ou de bilans.\n- Il n'existe pas d'endroit pour ajouter librement une action dans le dashboard.",
+            "status": "complete",
+            "skill_id": "product_help",
+            "diagnosis": {
+              "locations": [
+                "Dashboard > Plan"
+              ],
+              "feature_id": "dashboard.plan",
+              "feature_label": "Plan",
+              "operation_bridge": null
+            },
+            "state_patch": {
+              "summary": "Product help answered for dashboard.plan."
+            },
+            "memory_trace": {
+              "correction_detected": false,
+              "memory_item_ids_used": [],
+              "memory_used_for_response": false,
+              "correction_target_item_ids": []
+            },
+            "response_intent": "how_to",
+            "recommendation_need": {
+              "type": "none",
+              "needed": false,
+              "urgency": "none",
+              "constraints": [
+                "product_help_does_not_execute_operations",
+                "operation_bridge_requires_confirmation_when_present"
+              ]
+            },
+            "operation_suggestions": []
+          },
+          "reason_code": "skill_entry_signal",
+          "selected_skill_id": "product_help"
+        },
+        "operation_flow_run": null,
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "product_help",
+        "total_latency_ms": 7835,
+        "created_at": "2026-05-13T01:06:17.65066+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

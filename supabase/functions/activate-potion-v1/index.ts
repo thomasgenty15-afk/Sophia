@@ -22,6 +22,7 @@ import {
 } from "../_shared/v2-potions.ts";
 import { getRequestContext } from "../_shared/request_context.ts";
 import { loadLabScopeContext } from "../_shared/v2-lab-context.ts";
+import { loadPotionBaseContext } from "../_shared/potion-base-context.ts";
 import type {
   LabScopeKind,
   PotionType,
@@ -73,6 +74,13 @@ async function activatePotion(args: {
     transformationId: args.transformationId,
     scopeKind: args.scopeKind,
   });
+  const baseContext = await loadPotionBaseContext({
+    admin,
+    userId: args.userId,
+    potionType: args.potionType,
+    transformationId: args.transformationId,
+    scopeKind: args.scopeKind,
+  });
   const definition = getPotionDefinition(args.potionType);
   const issues = validatePotionAnswers(definition, args.answers, args.freeText);
   if (issues.length > 0) {
@@ -86,6 +94,7 @@ async function activatePotion(args: {
     POTION_SYSTEM_PROMPT,
     buildPotionActivationPrompt({
       context,
+      baseContext,
       definition,
       answers: args.answers,
       freeText: args.freeText,

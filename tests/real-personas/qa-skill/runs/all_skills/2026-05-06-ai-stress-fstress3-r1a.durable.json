@@ -1,0 +1,176 @@
+{
+  "memory_items": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column memory_items.should_persist_default does not exist"
+    }
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29",
+        "title": "marche",
+        "status": "active",
+        "tracking_type": "boolean",
+        "updated_at": "2026-05-06T09:30:00+00:00"
+      },
+      {
+        "id": "4ba841c3-e228-46d6-845f-181f9f43b395",
+        "title": "Préparer la présentation client",
+        "status": "active",
+        "tracking_type": "milestone",
+        "updated_at": "2026-05-06T09:30:00+00:00"
+      },
+      {
+        "id": "95673e79-35a3-4df1-9208-d0989739ad00",
+        "title": "Envoyer le mail de cadrage",
+        "status": "active",
+        "tracking_type": "boolean",
+        "updated_at": "2026-05-06T09:30:00+00:00"
+      }
+    ]
+  },
+  "user_plan_item_entries": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "759c987c-6d20-4ec3-9880-924eeb19d7f8",
+        "plan_item_id": "839bb3e3-f514-49bd-ad50-94cddeaf1f29",
+        "entry_kind": "checkin",
+        "outcome": "completed",
+        "value_numeric": 0,
+        "effective_at": "2026-05-06T18:37:26.055+00:00",
+        "metadata": {
+          "source": "router_parallel_tracking_v2",
+          "channel": "web",
+          "status_hint": "completed",
+          "source_message_id": "35813e8b-45c0-4d06-88fd-1b0888417bd2"
+        },
+        "created_at": "2026-05-06T18:37:26.055+00:00"
+      }
+    ]
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "85fc5c9a-0278-477c-9098-bda58cf1e22f",
+        "status": "pending",
+        "scheduled_for": "2026-05-08T10:00:00+00:00",
+        "event_context": "one_shot_reminder:verifier_juste_le_creneau_de_marche",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de vérifier juste le créneau de marche.",
+          "parse_source": "strict_absolute",
+          "request_text": "Rappelle-moi après-demain à 11h de vérifier juste le créneau de marche.",
+          "parse_details": {
+            "now_utc": "2026-05-06T18:53:21.326Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 2,
+            "local_time_hhmm": "11:00",
+            "scheduled_for_utc": "2026-05-08T09:00:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier juste le créneau de marche.",
+          "reminder_instruction": "vérifier juste le créneau de marche"
+        },
+        "created_at": "2026-05-06T18:53:21.327964+00:00"
+      },
+      {
+        "id": "6a143994-a74e-4625-95fe-2bdc8672da1a",
+        "status": "pending",
+        "scheduled_for": "2026-05-08T09:00:00+00:00",
+        "event_context": "one_shot_reminder:verifier_juste_le_creneau_de_marche",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de vérifier juste le créneau de marche.",
+          "parse_source": "strict_absolute",
+          "request_text": "Rappelle-moi après-demain à 11h de vérifier juste le créneau de marche.",
+          "parse_details": {
+            "now_utc": "2026-05-06T18:53:21.283Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 2,
+            "local_time_hhmm": "11:00",
+            "scheduled_for_utc": "2026-05-08T09:00:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: vérifier juste le créneau de marche.",
+          "reminder_instruction": "vérifier juste le créneau de marche"
+        },
+        "created_at": "2026-05-06T18:53:21.2925+00:00"
+      },
+      {
+        "id": "2328bd55-3f5a-41ae-8490-1e19b8ba110a",
+        "status": "pending",
+        "scheduled_for": "2026-05-07T08:00:00+00:00",
+        "event_context": "one_shot_reminder:refaire_juste_dix_minutes_de_marche_pas_un_truc_recurrent",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de refaire juste dix minutes de marche, pas un truc récurrent.",
+          "parse_source": "strict_absolute",
+          "request_text": "Rappelle-moi demain à 09h de refaire juste dix minutes de marche, pas un truc récurrent.",
+          "parse_details": {
+            "now_utc": "2026-05-06T18:37:49.110Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 1,
+            "local_time_hhmm": "09:00",
+            "scheduled_for_utc": "2026-05-07T07:00:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: refaire juste dix minutes de marche, pas un truc récurrent.",
+          "reminder_instruction": "refaire juste dix minutes de marche, pas un truc récurrent"
+        },
+        "created_at": "2026-05-06T18:37:49.111969+00:00"
+      },
+      {
+        "id": "8e6b7b9c-5067-4a17-bc0b-8ae570f60fa2",
+        "status": "pending",
+        "scheduled_for": "2026-05-07T07:00:00+00:00",
+        "event_context": "one_shot_reminder:refaire_juste_dix_minutes_de_marche_pas_un_truc_recurrent",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de refaire juste dix minutes de marche, pas un truc récurrent.",
+          "parse_source": "strict_absolute",
+          "request_text": "Rappelle-moi demain à 09h de refaire juste dix minutes de marche, pas un truc récurrent.",
+          "parse_details": {
+            "now_utc": "2026-05-06T18:37:49.074Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 1,
+            "local_time_hhmm": "09:00",
+            "scheduled_for_utc": "2026-05-07T07:00:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: refaire juste dix minutes de marche, pas un truc récurrent.",
+          "reminder_instruction": "refaire juste dix minutes de marche, pas un truc récurrent"
+        },
+        "created_at": "2026-05-06T18:37:49.08108+00:00"
+      }
+    ]
+  },
+  "user_recurring_reminders": {
+    "status": 400,
+    "ok": false,
+    "body": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_recurring_reminders.schedule does not exist"
+    }
+  }
+}

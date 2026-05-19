@@ -2,6 +2,7 @@ import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
 
 import {
   buildCoachingSnapshotsFromTrace,
+  buildLevelExecutionHandoffMemoryText,
   buildMiniRecapFromHandoff,
   buildQuestionnaireContextFromHandoff,
   extractConversationPulseHandoffSummary,
@@ -9,7 +10,10 @@ import {
   extractStoredTransformationHandoff,
   type StoredTransformationHandoff,
 } from "./transformation_handoff.ts";
-import type { HandoffPlanItemSnapshot, TransformationHandoffPayload } from "../_shared/v2-prompts/transformation-handoff.ts";
+import type {
+  HandoffPlanItemSnapshot,
+  TransformationHandoffPayload,
+} from "../_shared/v2-prompts/transformation-handoff.ts";
 import type { CoachingTraceWindow } from "./lib/coaching_intervention_trace.ts";
 
 const PLAN_ITEMS: HandoffPlanItemSnapshot[] = [
@@ -197,7 +201,9 @@ Deno.test("stored handoff extractors expose downstream summaries", () => {
   };
 
   const stored = extractStoredTransformationHandoff(payload);
-  const questionnaireContext = extractQuestionnaireContextFromStoredHandoff(payload);
+  const questionnaireContext = extractQuestionnaireContextFromStoredHandoff(
+    payload,
+  );
   const pulseSummary = extractConversationPulseHandoffSummary(payload);
 
   assertEquals(stored?.generated_at, "2026-03-20T12:00:00Z");
@@ -206,4 +212,24 @@ Deno.test("stored handoff extractors expose downstream summaries", () => {
   ]);
   assertEquals(pulseSummary?.transformation_id, "transfo-1");
   assertEquals(pulseSummary?.wins, HANDOFF.wins);
+});
+
+Deno.test("level execution handoff memory text stays compact and transition-oriented", () => {
+  const text = buildLevelExecutionHandoffMemoryText({
+    transformation: {
+      id: "transfo-1",
+      title: "Reprendre du souffle",
+      completed_at: "2026-03-20T12:00:00Z",
+    } as any,
+    nextTransformation: {
+      id: "transfo-2",
+      title: "Remettre du rythme",
+    } as any,
+    stored: makeStored(),
+  });
+
+  assertStringIncludes(text, "Niveau termine: Reprendre du souffle.");
+  assertStringIncludes(text, "Contexte faible pour le niveau suivant");
+  assertStringIncludes(text, "Remettre du rythme");
+  assertStringIncludes(text, "micro_commitment");
 });

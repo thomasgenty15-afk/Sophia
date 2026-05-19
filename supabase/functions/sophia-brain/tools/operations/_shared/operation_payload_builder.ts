@@ -134,6 +134,15 @@ export type PotionSessionSelectorInput = {
     related_plan_item_id?: string | null;
     topic_hint?: string | null;
   };
+  details?: {
+    required_question_ids: string[];
+    answers: Array<{
+      question_id: string;
+      label: string;
+      answer: string;
+      evidence: string[];
+    }>;
+  };
   constraints: string[];
   forbidden: string[];
 };
@@ -154,6 +163,20 @@ export type RecurringReminderBuilderInput = {
   destination: {
     value: "current_plan" | "base_de_vie";
     related_plan_item_id?: string | null;
+    target_kind?: "none" | "transformation" | "plan_item" | "action_family";
+    target_plan_item_id?: string | null;
+    target_action_family_key?: string | null;
+    target_generated_temp_id?: string | null;
+    target_binding_policy?:
+      | "none"
+      | "snapshot"
+      | "live_action"
+      | "live_action_family";
+    target_lifecycle_policy?:
+      | "independent"
+      | "while_target_active"
+      | "while_family_in_current_plan";
+    target_label?: string | null;
   };
   constraints: string[];
   forbidden: string[];
@@ -261,10 +284,38 @@ export type PlanAdjustmentGeneratorInput = {
     uncertainty: string[];
     must_preserve: string[];
   };
+  coaching_guidance?: {
+    scope: "action" | "level" | "whole_plan";
+    observation: string;
+    recommendation: string;
+    warnings: string[];
+    options_to_discuss: string[];
+    questions_to_clarify: string[];
+    preserve: string[];
+    avoid: string[];
+    guidelines: string[];
+    confidence: "low" | "medium" | "high";
+  } | null;
   materialization_candidates?: Array<{
     id: string;
     title: string;
     description?: string | null;
+    status?: string | null;
+    dimension?: string | null;
+    kind?: string | null;
+    item_type?: string | null;
+    item_nature?: string | null;
+    tracking_type?: string | null;
+    cadence_label?: string | null;
+    target_reps?: number | null;
+    current_reps?: number | null;
+    weekly_reps?: number | null;
+    weekly_cadence_label?: string | null;
+    availability_status?: string | null;
+    available_this_week?: boolean | null;
+    source_kind?: string | null;
+    clarification_type?: string | null;
+    clarification_section_labels?: string[];
   }>;
   allowed_patch_fields: string[];
   forbidden_patch_fields: string[];
@@ -518,6 +569,7 @@ export function buildPlanAdjustmentPayload(
     reason_change?: PlanAdjustmentGeneratorInput["reason_change"];
     change_target?: PlanAdjustmentGeneratorInput["change_target"];
     decision_basis?: PlanAdjustmentGeneratorInput["decision_basis"];
+    coaching_guidance?: PlanAdjustmentGeneratorInput["coaching_guidance"];
     materialization_candidates?: PlanAdjustmentGeneratorInput[
       "materialization_candidates"
     ];
@@ -555,6 +607,7 @@ export function buildPlanAdjustmentPayload(
     reason_change: request.reason_change,
     change_target: request.change_target,
     decision_basis: request.decision_basis,
+    coaching_guidance: request.coaching_guidance ?? null,
     materialization_candidates: request.materialization_candidates ?? [],
     allowed_patch_fields: request.allowed_patch_fields,
     forbidden_patch_fields: request.forbidden_patch_fields ?? [

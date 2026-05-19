@@ -32,6 +32,7 @@ import {
   listMorningNudgeEventContexts,
 } from "../sophia-brain/momentum_morning_nudge.ts";
 import {
+  addDaysYmd,
   buildWeeklyPlanningValidationMessage,
   buildWeeklyProgressReviewFallbackMessage,
   buildWeeklyProgressReviewGrounding,
@@ -40,7 +41,6 @@ import {
   hasPlanifiableWeekStart,
   loadWeeklyProgressReview,
   localWeekdayForTimezone,
-  nextWeekStartForLocalDate,
   WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT,
   WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
   weeklyPlanningDashboardUrl,
@@ -228,6 +228,50 @@ async function cancelFutureWeeklyCheckins(params: {
   if (error) throw error;
 }
 
+async function cancelFutureWeeklyPlanningCheckins(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  nowIso: string;
+  untilIso?: string | null;
+}): Promise<void> {
+  let query = params.supabaseAdmin
+    .from("scheduled_checkins")
+    .delete()
+    .eq("user_id", params.userId)
+    .eq("event_context", WEEKLY_PLANNING_VALIDATION_PROMPT_EVENT_CONTEXT)
+    .in("status", MORNING_PENDING_STATUSES)
+    .gte("scheduled_for", params.nowIso);
+
+  if (params.untilIso) {
+    query = query.lt("scheduled_for", params.untilIso);
+  }
+
+  const { error } = await query;
+  if (error) throw error;
+}
+
+async function cancelFutureWeeklyProgressReviewCheckins(params: {
+  supabaseAdmin: ReturnType<typeof createClient>;
+  userId: string;
+  nowIso: string;
+  untilIso?: string | null;
+}): Promise<void> {
+  let query = params.supabaseAdmin
+    .from("scheduled_checkins")
+    .delete()
+    .eq("user_id", params.userId)
+    .eq("event_context", WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT)
+    .in("status", MORNING_PENDING_STATUSES)
+    .gte("scheduled_for", params.nowIso);
+
+  if (params.untilIso) {
+    query = query.lt("scheduled_for", params.untilIso);
+  }
+
+  const { error } = await query;
+  if (error) throw error;
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
@@ -335,13 +379,14 @@ Deno.serve(async (req) => {
         userId,
       ).catch(() => null);
       const allowsMorning = allowsContactWindow(relationPreferences, "morning");
-      const allowsAfternoon = allowsContactWindow(
-        relationPreferences,
-        "afternoon",
-      );
       const allowsEvening = allowsContactWindow(relationPreferences, "evening");
       if (!allowsMorning) {
         await cancelFutureMorningCheckins({
+          supabaseAdmin,
+          userId,
+          nowIso,
+        });
+        await cancelFutureWeeklyPlanningCheckins({
           supabaseAdmin,
           userId,
           nowIso,
@@ -353,15 +398,20 @@ Deno.serve(async (req) => {
           userId,
           nowIso,
         });
+        await cancelFutureWeeklyProgressReviewCheckins({
+          supabaseAdmin,
+          userId,
+          nowIso,
+        });
       }
-      if (!allowsAfternoon && !allowsEvening) {
+      if (!allowsMorning && !allowsEvening) {
         await cancelFutureWeeklyCheckins({
           supabaseAdmin,
           userId,
           nowIso,
         });
       }
-      if (!allowsMorning && !allowsAfternoon && !allowsEvening) {
+      if (!allowsMorning && !allowsEvening) {
         skipped++;
         continue;
       }
@@ -406,8 +456,11 @@ Deno.serve(async (req) => {
       const localWeekday = localWeekdayForTimezone(timezone, now);
       const siteUrl = getSiteUrl();
       const dashboardUrl = weeklyPlanningDashboardUrl(siteUrl);
-      const shouldTryWeeklyPlanningPrompt = allowsAfternoon &&
-        localWeekday === "sat";
+      // Planning validation must happen after the Sunday weekly review window.
+      // Monday morning is the fallback when the user did not resolve it during
+      // the weekly conversation.
+      const shouldTryWeeklyPlanningPrompt = allowsMorning &&
+        localWeekday === "mon";
       const shouldTryWeeklyProgressReview = allowsEvening &&
         localWeekday === "sun";
       const hasAnyCandidate = (allowsMorning &&
@@ -624,43 +677,44 @@ Deno.serve(async (req) => {
 
       if (shouldTryWeeklyPlanningPrompt) {
         const localDate = todaySchedule.local_date;
-        const nextWeekStartDate = nextWeekStartForLocalDate(localDate);
-        const nextWeekReview = await loadWeeklyProgressReview(
+        const targetWeekStartDate = currentWeekStartForTimezone(timezone, now);
+        const targetWeekReview = await loadWeeklyProgressReview(
           supabaseAdmin as any,
           {
             userId,
             timezone,
-            weekStartDate: nextWeekStartDate,
+            weekStartDate: targetWeekStartDate,
             now,
             dashboardUrl,
           },
         );
-        const nextWeekConfirmedPlanCount = nextWeekReview.transformations
+        const targetWeekConfirmedPlanCount = targetWeekReview.transformations
           .reduce(
             (sum, transformation) =>
               sum +
               transformation.summary.planned_count,
             0,
           );
-        if (nextWeekConfirmedPlanCount > 0) {
+        if (targetWeekConfirmedPlanCount > 0) {
           continue;
         }
-        const hasNextPlanifiableWeek = await hasPlanifiableWeekStart(
+        const hasTargetPlanifiableWeek = await hasPlanifiableWeekStart(
           supabaseAdmin as any,
           {
             userId,
-            weekStartDate: nextWeekStartDate,
+            weekStartDate: targetWeekStartDate,
           },
         );
-        if (!hasNextPlanifiableWeek) {
+        if (!hasTargetPlanifiableWeek) {
           continue;
         }
+        const reviewedWeekStartDate = addDaysYmd(targetWeekStartDate, -7);
         const currentReview = await loadWeeklyProgressReview(
           supabaseAdmin as any,
           {
             userId,
             timezone,
-            weekStartDate: currentWeekStartForTimezone(timezone, now),
+            weekStartDate: reviewedWeekStartDate,
             now,
             dashboardUrl,
           },
@@ -679,7 +733,7 @@ Deno.serve(async (req) => {
           now,
         });
         const draftMessage = buildWeeklyPlanningValidationMessage({
-          nextWeekStartDate,
+          nextWeekStartDate: targetWeekStartDate,
           dashboardUrl,
         });
         const { error: weeklyPlanningErr } = await supabaseAdmin
@@ -696,7 +750,8 @@ Deno.serve(async (req) => {
                 version: 1,
                 timezone,
                 local_date: localDate,
-                next_week_start_date: nextWeekStartDate,
+                next_week_start_date: targetWeekStartDate,
+                unlocked_after_weekly_review: true,
                 dashboard_url: dashboardUrl,
                 generated_at: nowIso,
               },

@@ -1,11 +1,22 @@
 import type {
   DryRunCandidate,
+  ExtractedCorrection,
   MemoryExtractionRunRow,
   MessageProcessingRow,
   PersistedMemoryWrite,
   WriteDecision,
+  KnownMemoryItem,
 } from "./types.ts";
 import { maxSensitivityLevel } from "../compaction/sensitivity.ts";
+import {
+  deleteMemoryItem,
+  hideMemoryItem,
+  invalidateMemoryItem,
+  SupabaseCorrectionRepository,
+  supersedeMemoryItem,
+} from "../correction/operations.ts";
+import { resolveCorrectionTarget } from "../correction/target_resolver.ts";
+import type { CorrectionOperationResult } from "../correction/types.ts";
 
 export interface MemorizerPersistRepository {
   findExtractionRun(args: {
@@ -32,6 +43,18 @@ export interface MemorizerPersistRepository {
     extraction_run_id: string;
     decisions: WriteDecision[];
   }): Promise<PersistedMemoryWrite[]>;
+  applyCorrections?(args: {
+    user_id: string;
+    extraction_run_id: string;
+    corrections: ExtractedCorrection[];
+    known_memory_items: KnownMemoryItem[];
+    persisted: PersistedMemoryWrite[];
+  }): Promise<Array<CorrectionOperationResult | {
+    operation_type: string;
+    status: "skipped";
+    reason: string;
+    target_hint: string;
+  }>>;
   estimateMemoryCostForUserDay?(
     userId: string,
     sinceIso: string,
@@ -269,7 +292,11 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
             aggregation_kind: candidate.action_link.aggregation_kind,
             confidence: candidate.action_link.confidence,
             extraction_run_id: args.extraction_run_id,
-            metadata: { created_by: "memorizer_v2" },
+            metadata: {
+              created_by: "memorizer_v2",
+              ...(candidate.action_link.metadata ?? {}),
+              action_family_key: candidate.action_link.action_family_key ?? null,
+            },
           })
           .select("id")
           .single();
@@ -299,6 +326,242 @@ export class SupabaseMemorizerRepository implements MemorizerPersistRepository {
     }
     return persisted;
   }
+
+  async applyCorrections(args: {
+    user_id: string;
+    extraction_run_id: string;
+    corrections: ExtractedCorrection[];
+    known_memory_items: KnownMemoryItem[];
+    persisted: PersistedMemoryWrite[];
+  }): Promise<Array<CorrectionOperationResult | {
+    operation_type: string;
+    status: "skipped";
+    reason: string;
+    target_hint: string;
+  }>> {
+    if (args.corrections.length === 0) return [];
+    const repo = new SupabaseCorrectionRepository(this.supabase);
+    const results: Array<CorrectionOperationResult | {
+      operation_type: string;
+      status: "skipped";
+      reason: string;
+      target_hint: string;
+    }> = [];
+    const mutatedItemIds = new Set<string>();
+    for (const correction of args.corrections) {
+      const resolution = resolveCorrectionTarget({
+        user_message: correction.target_hint,
+        candidates: args.known_memory_items.map((item) => ({
+          ...item,
+          user_id: args.user_id,
+          status: item.status ?? "active",
+          topic_ids: item.topic_ids ?? undefined,
+        })),
+      });
+      const resolvedTarget = resolution.target_item_id &&
+          !mutatedItemIds.has(resolution.target_item_id)
+        ? resolution.target_item_id
+        : null;
+      const fallbackTarget = selectCorrectionTargetFallback(
+        resolution.candidates,
+        mutatedItemIds,
+      );
+      const targetItemId = resolvedTarget ?? fallbackTarget?.item_id ??
+        null;
+      if (!targetItemId || (resolution.needs_confirmation && !fallbackTarget)) {
+        results.push({
+          operation_type: correction.operation_type,
+          status: "skipped",
+          reason: resolution.reason || "target_needs_confirmation",
+          target_hint: correction.target_hint,
+        });
+        continue;
+      }
+      const source_message_id = correction.source_message_ids[0] ?? null;
+      const reason = correction.reason ?? correction.target_hint;
+      if (correction.operation_type === "supersede") {
+        const replacement = selectCorrectionReplacement({
+          correction,
+          target_item_id: targetItemId,
+          persisted: args.persisted,
+        });
+        if (!replacement) {
+          results.push(await invalidateMemoryItem(repo, {
+            user_id: args.user_id,
+            item_id: targetItemId,
+            reason,
+            source_message_id,
+            extraction_run_id: args.extraction_run_id,
+          }));
+          continue;
+        }
+        results.push(await supersedeMemoryItem(repo, {
+          user_id: args.user_id,
+          item_id: targetItemId,
+          replacement_item_id: replacement.memory_item_id,
+          reason,
+          source_message_id,
+          extraction_run_id: args.extraction_run_id,
+        }));
+        mutatedItemIds.add(targetItemId);
+        for (const conflict of selectRelatedCorrectionConflicts({
+          correction,
+          target_item_id: targetItemId,
+          replacement,
+          known_memory_items: args.known_memory_items,
+          mutated_item_ids: mutatedItemIds,
+        })) {
+          results.push(await supersedeMemoryItem(repo, {
+            user_id: args.user_id,
+            item_id: conflict.id,
+            replacement_item_id: replacement.memory_item_id,
+            reason: `${reason} (related_conflict)`,
+            source_message_id,
+            extraction_run_id: args.extraction_run_id,
+          }));
+          mutatedItemIds.add(conflict.id);
+        }
+        continue;
+      }
+      if (correction.operation_type === "invalidate") {
+        results.push(await invalidateMemoryItem(repo, {
+          user_id: args.user_id,
+          item_id: targetItemId,
+          reason,
+          source_message_id,
+          extraction_run_id: args.extraction_run_id,
+        }));
+        mutatedItemIds.add(targetItemId);
+        continue;
+      }
+      if (correction.operation_type === "hide") {
+        results.push(await hideMemoryItem(repo, {
+          user_id: args.user_id,
+          item_id: targetItemId,
+          reason,
+          source_message_id,
+          extraction_run_id: args.extraction_run_id,
+        }));
+        mutatedItemIds.add(targetItemId);
+        continue;
+      }
+      if (correction.operation_type === "delete") {
+        results.push(await deleteMemoryItem(repo, {
+          user_id: args.user_id,
+          item_id: targetItemId,
+          reason,
+          source_message_id,
+          extraction_run_id: args.extraction_run_id,
+        }));
+        mutatedItemIds.add(targetItemId);
+      }
+    }
+    return results;
+  }
+}
+
+function normalizeCorrectionText(input: unknown): string {
+  return String(input ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^\p{Letter}\p{Number}\s._:-]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function correctionTokenScore(left: string, right: string): number {
+  const leftTokens = new Set(
+    normalizeCorrectionText(left).split(/\s+/).filter((token) => token.length > 2),
+  );
+  const rightTokens = new Set(
+    normalizeCorrectionText(right).split(/\s+/).filter((token) => token.length > 2),
+  );
+  if (!leftTokens.size || !rightTokens.size) return 0;
+  let overlap = 0;
+  for (const token of leftTokens) {
+    if (rightTokens.has(token)) overlap += 1;
+  }
+  return overlap / Math.max(leftTokens.size, rightTokens.size);
+}
+
+function correctionTokenSet(input: string): Set<string> {
+  return new Set(
+    normalizeCorrectionText(input).split(/\s+/).filter((token) => token.length > 2),
+  );
+}
+
+function correctionTokenOverlap(left: Set<string>, right: Set<string>): number {
+  let overlap = 0;
+  for (const token of left) {
+    if (right.has(token)) overlap += 1;
+  }
+  return overlap;
+}
+
+function selectCorrectionTargetFallback(
+  candidates: Array<{ item_id: string; score: number; reason: string }>,
+  excludeItemIds: Set<string>,
+): { item_id: string; score: number; reason: string } | null {
+  const available = candidates.filter((candidate) =>
+    !excludeItemIds.has(candidate.item_id)
+  );
+  const best = available[0] ?? null;
+  if (!best || best.score < 0.5) return null;
+  const second = available[1] ?? null;
+  if (second && best.score - second.score < 0.15) return null;
+  return best;
+}
+
+function selectRelatedCorrectionConflicts(args: {
+  correction: ExtractedCorrection;
+  target_item_id: string;
+  replacement: PersistedMemoryWrite;
+  known_memory_items: KnownMemoryItem[];
+  mutated_item_ids: Set<string>;
+}): KnownMemoryItem[] {
+  const staleTokens = correctionTokenSet(args.correction.target_hint);
+  const replacementTokens = correctionTokenSet(
+    `${args.replacement.candidate.item.content_text} ${
+      args.replacement.candidate.item.normalized_summary ?? ""
+    }`,
+  );
+  if (staleTokens.size === 0 || replacementTokens.size === 0) return [];
+  return args.known_memory_items.filter((item) => {
+    if (item.id === args.target_item_id) return false;
+    if (item.id === args.replacement.memory_item_id) return false;
+    if (args.mutated_item_ids.has(item.id)) return false;
+    if ((item.status ?? "active") !== "active") return false;
+    const itemTokens = correctionTokenSet(
+      `${item.content_text} ${item.normalized_summary ?? ""}`,
+    );
+    const staleOverlap = correctionTokenOverlap(staleTokens, itemTokens);
+    const replacementOverlap = correctionTokenOverlap(
+      replacementTokens,
+      itemTokens,
+    );
+    return staleOverlap >= 2 && replacementOverlap >= 2;
+  });
+}
+
+function selectCorrectionReplacement(args: {
+  correction: ExtractedCorrection;
+  target_item_id: string;
+  persisted: PersistedMemoryWrite[];
+}): PersistedMemoryWrite | null {
+  const query = `${args.correction.target_hint} ${args.correction.reason ?? ""}`;
+  const ranked = args.persisted
+    .filter((row) => row.memory_item_id !== args.target_item_id)
+    .filter((row) => row.status === "active")
+    .map((row) => ({
+      row,
+      score: correctionTokenScore(
+        query,
+        `${row.candidate.item.content_text} ${row.candidate.item.normalized_summary ?? ""}`,
+      ),
+    }))
+    .sort((a, b) => b.score - a.score);
+  return ranked[0]?.row ?? null;
 }
 
 export interface CompleteDryRunInput {
@@ -376,6 +639,7 @@ export interface CompleteAsyncMemorizerInput {
   duration_ms: number;
   decisions: WriteDecision[];
   persisted: PersistedMemoryWrite[];
+  correction_results?: unknown[];
   rejected_observations: unknown[];
   accepted_entity_count: number;
   proposed_entity_count: number;
@@ -414,6 +678,7 @@ export function buildAsyncMemorizerCompletionPatch(
         status: row.status,
         canonical_key: row.candidate.item.canonical_key,
       })),
+      correction_results: input.correction_results ?? [],
       rejected_observations: input.rejected_observations,
       pre_filter_skip_count: preFilterSkipCount,
       statement_as_fact_violation_count:

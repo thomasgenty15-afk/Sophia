@@ -1,14 +1,14 @@
-import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 
 /** Phase de la machine à état sentry */
-export type SentryPhase = "acute" | "confirming" | "resolved"
+export type SentryPhase = "acute" | "confirming" | "resolved";
 
 /** Contexte de la machine à état sentry passé par le router */
 export interface SentryFlowContext {
-  phase: SentryPhase
-  turnCount: number
-  safetyConfirmed: boolean
-  externalHelpMentioned: boolean
+  phase: SentryPhase;
+  turnCount: number;
+  safetyConfirmed: boolean;
+  externalHelpMentioned: boolean;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -17,11 +17,11 @@ export interface SentryFlowContext {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function buildPhaseAddon(flowContext?: SentryFlowContext): string {
-  const phase = flowContext?.phase ?? "acute"
-  const turnCount = flowContext?.turnCount ?? 0
-  const safetyConfirmed = flowContext?.safetyConfirmed ?? false
-  const externalHelpMentioned = flowContext?.externalHelpMentioned ?? false
-  
+  const phase = flowContext?.phase ?? "acute";
+  const turnCount = flowContext?.turnCount ?? 0;
+  const safetyConfirmed = flowContext?.safetyConfirmed ?? false;
+  const externalHelpMentioned = flowContext?.externalHelpMentioned ?? false;
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 1: ACUTE - Danger potentiel actif
   // ─────────────────────────────────────────────────────────────────────────────
@@ -29,7 +29,9 @@ function buildPhaseAddon(flowContext?: SentryFlowContext): string {
     return `
 ═══════════════════════════════════════════════════════════════════════════════
 PHASE ACTUELLE: ACUTE (Danger potentiel actif)
-Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${safetyConfirmed ? "OUI" : "NON"} | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
+Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${
+      safetyConfirmed ? "OUI" : "NON"
+    } | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
 ═══════════════════════════════════════════════════════════════════════════════
 
 ⚠️ CECI EST UNE SITUATION DE CRISE VITALE POTENTIELLE ⚠️
@@ -86,9 +88,9 @@ Cette phase peut durer 2-4 tours. On reste ici tant que :
 - L'utilisateur n'a pas confirmé être en sécurité physique
 - Un moyen de se faire du mal est potentiellement accessible
 - L'aide externe n'a pas été contactée ou quelqu'un n'est pas présent
-`
+`;
   }
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 2: CONFIRMING - Danger écarté, vérification sécurité
   // ─────────────────────────────────────────────────────────────────────────────
@@ -96,7 +98,9 @@ Cette phase peut durer 2-4 tours. On reste ici tant que :
     return `
 ═══════════════════════════════════════════════════════════════════════════════
 PHASE ACTUELLE: CONFIRMING (Vérification de sécurité)
-Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${safetyConfirmed ? "OUI" : "NON"} | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
+Tour ${turnCount + 1} sur cette phase | Sécurité confirmée: ${
+      safetyConfirmed ? "OUI" : "NON"
+    } | Aide externe: ${externalHelpMentioned ? "OUI" : "NON"}
 ═══════════════════════════════════════════════════════════════════════════════
 
 OBJECTIF DE CETTE PHASE:
@@ -138,9 +142,9 @@ CE QU'IL FAUT ÉVITER:
 TRANSITION APRÈS SÉCURISATION:
 Si le danger vital est écarté mais qu'une détresse émotionnelle persiste,
 la conversation peut revenir vers un accompagnement conversationnel standard.
-`
+`;
   }
-  
+
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 3: RESOLVED - Sécurisé, passation
   // ─────────────────────────────────────────────────────────────────────────────
@@ -180,29 +184,33 @@ CE QU'IL FAUT ÉVITER:
 • Faire des recommandations non sollicitées
 • Être trop jovial
 • Disparaître brutalement
-`
+`;
   }
-  
+
   // Fallback
-  return ""
+  return "";
 }
 
 // SENTRY (Le Guetteur) - Safety escalation with a short, personalized message.
 export async function runSentry(
   message: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
-  flowContext?: SentryFlowContext
+  meta?: {
+    requestId?: string;
+    forceRealAi?: boolean;
+    channel?: "web" | "whatsapp";
+    model?: string;
+  },
+  flowContext?: SentryFlowContext,
 ): Promise<string> {
-  const m = (message ?? "").toString().trim()
-  
-  // Build phase-specific addon
-  const phaseAddon = buildPhaseAddon(flowContext)
+  const m = (message ?? "").toString().trim();
 
-  const fallback =
-    "Là, je veux pas prendre de risque.\n\n" +
+  // Build phase-specific addon
+  const phaseAddon = buildPhaseAddon(flowContext);
+
+  const fallback = "Là, je veux pas prendre de risque.\n\n" +
     "Si tu as du mal à respirer, une douleur dans la poitrine, un malaise, ou si tu te sens en danger: appelle le 15 (SAMU) ou le 112 maintenant.\n\n" +
     "Si tu te sens en danger de te faire du mal: appelle le 3114 (Prévention Suicide) ou le 112.\n\n" +
-    "Tu es seul là tout de suite ?"
+    "Tu es seul là tout de suite ?";
 
   try {
     const systemPrompt = `
@@ -221,10 +229,12 @@ OBJECTIF GÉNÉRAL:
 
 FORMAT:
 - Français, tutoiement.
+- Tu tutoies toujours l'utilisateur. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
+- Quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"). N'écris jamais "Sophia" pour te désigner.
 - Texte brut uniquement (pas de **).
 - 4 à 8 lignes max.
 - 1 question max à la fin.
-- Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
+- Emojis: au moins 1 emoji naturel et sobre par message visible; 2 max; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
 - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
 
 RÈGLES ABSOLUES:
@@ -232,17 +242,25 @@ RÈGLES ABSOLUES:
 - Si intention de suicide / automutilation: recommande 3114 ou 112 maintenant.
 - Ne JAMAIS minimiser, ne JAMAIS promettre.
 - Évite "je suis une IA".
-  `.trim()
+  `.trim();
 
-    const out = await generateWithGemini(systemPrompt, m || "Aide-moi.", 0.2, false, [], "auto", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:sentry",
-      forceRealAi: meta?.forceRealAi,
-    })
-    if (typeof out !== "string" || !out.trim()) return fallback
-    return out.replace(/\*\*/g, "").trim()
+    const out = await generateWithGemini(
+      systemPrompt,
+      m || "Aide-moi.",
+      0.2,
+      false,
+      [],
+      "auto",
+      {
+        requestId: meta?.requestId,
+        model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+        source: "sophia-brain:sentry",
+        forceRealAi: meta?.forceRealAi,
+      },
+    );
+    if (typeof out !== "string" || !out.trim()) return fallback;
+    return out.replace(/\*\*/g, "").trim();
   } catch {
-    return fallback
+    return fallback;
   }
 }

@@ -1,0 +1,550 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t01",
+    "user": "J'aimerais préparer une carte d'attaque pour m'aider à faire mon sas de déchargement ce soir.",
+    "status": 200,
+    "response": {
+      "content": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t01",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "443ddfb8-ea1f-4e24-8678-f86617ab9ae2",
+      "ts": "2026-05-14T17:15:40.319+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [
+          "ce soir"
+        ],
+        "risk_band": "none",
+        "reason_codes": [
+          "immediacy_tonight"
+        ],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": true,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 4390,
+        "latency_ms": 2788,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 519,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t01",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {}
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 0,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [],
+          "context_summary": null,
+          "previous_scores": [],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "443ddfb8-ea1f-4e24-8678-f86617ab9ae2",
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "sas de déchargement",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high",
+            "operation_input": {
+              "target_title": "Faire le sas de déchargement",
+              "target_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            }
+          }
+        ],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "tool_skill_intent_start",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "status": "ask_question",
+        "slot_state": {
+          "slot": "technique",
+          "needed": true,
+          "reason": "structured_ai_missing_technique",
+          "status": "missing",
+          "question": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?",
+          "known_slots": {
+            "target": {
+              "kind": "plan_item",
+              "title": "Faire le sas de déchargement",
+              "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+            },
+            "intake_state": {
+              "target": {
+                "kind": "plan_item",
+                "title": "Faire le sas de déchargement",
+                "status": "identified",
+                "evidence": [
+                  "faire mon sas de déchargement ce soir"
+                ],
+                "confidence": "high",
+                "plan_item_id": "dd9f0b76-7571-4f1f-a8ca-b086e0e806d1"
+              },
+              "blocker": {
+                "type": "friction",
+                "evidence": [
+                  "m'aider à faire mon sas"
+                ],
+                "confidence": 0.7
+              },
+              "skill_id": "prepare_attack_card",
+              "technique": {
+                "value": null,
+                "status": "ambiguous",
+                "options": [
+                  {
+                    "title": "Préparer le terrain",
+                    "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+                    "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+                    "description": "Retirer de la friction avant que le moment d'action arrive.",
+                    "recommended": true,
+                    "technique_key": "preparer_terrain"
+                  },
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+                    "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+                    "description": "Un texte court à relire quand la résistance monte.",
+                    "recommended": false,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Mot de bascule",
+                    "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+                    "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+                    "description": "Un mot simple à envoyer quand le moment devient fragile.",
+                    "recommended": false,
+                    "technique_key": "pre_engagement"
+                  }
+                ],
+                "evidence": [],
+                "confidence": "low",
+                "fit_warning": null,
+                "explicitly_requested": false
+              },
+              "confidence": "medium",
+              "constraints": [],
+              "current_step": "technique_selection",
+              "missing_slots": [
+                "technique"
+              ],
+              "activation_keyword": {
+                "value": null,
+                "status": "not_applicable",
+                "options": [],
+                "evidence": [],
+                "confidence": "low",
+                "rejected_value": null
+              },
+              "generated_user_message": "C'est noté pour ton sas de déchargement. Pour t'aider ce soir, tu préfères quoi : préparer ton environnement à l'avance (Préparer le terrain), avoir un texte court à relire si tu hésites (Texte magique), ou un mot-clé à m'envoyer si tu sens que tu vas zapper (Mot de bascule) ?"
+            },
+            "technique_options": [
+              {
+                "title": "Préparer le terrain",
+                "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+                "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+                "description": "Retirer de la friction avant que le moment d'action arrive.",
+                "recommended": true,
+                "technique_key": "preparer_terrain"
+              },
+              {
+                "title": "Le texte magique",
+                "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+                "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+                "description": "Un texte court à relire quand la résistance monte.",
+                "recommended": false,
+                "technique_key": "texte_recadrage"
+              },
+              {
+                "title": "Mot de bascule",
+                "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+                "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+                "description": "Un mot simple à envoyer quand le moment devient fragile.",
+                "recommended": false,
+                "technique_key": "pre_engagement"
+              }
+            ]
+          },
+          "technique_options": [
+            {
+              "title": "Préparer le terrain",
+              "reason": "Idéal pour s'assurer que ton carnet est déjà prêt et ton téléphone loin avant l'heure H.",
+              "example": "Carnet ouvert sur le bureau, téléphone dans une autre pièce dès 21h.",
+              "description": "Retirer de la friction avant que le moment d'action arrive.",
+              "recommended": true,
+              "technique_key": "preparer_terrain"
+            },
+            {
+              "title": "Le texte magique",
+              "reason": "Utile si tu as tendance à négocier avec toi-même pour rester sur les écrans.",
+              "example": "Un rappel de pourquoi ce sas est vital pour ton sommeil.",
+              "description": "Un texte court à relire quand la résistance monte.",
+              "recommended": false,
+              "technique_key": "texte_recadrage"
+            },
+            {
+              "title": "Mot de bascule",
+              "reason": "Parfait si tu as besoin d'un signal rapide pour t'engager à lâcher les écrans.",
+              "example": "M'envoyer un mot court quand tu sens que tu vas esquiver le sas.",
+              "description": "Un mot simple à envoyer quand le moment devient fragile.",
+              "recommended": false,
+              "technique_key": "pre_engagement"
+            }
+          ],
+          "activation_keyword_options": []
+        },
+        "reason_code": "tool_skill_intent_start",
+        "missing_slots": [
+          "technique"
+        ],
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 17612,
+      "created_at": "2026-05-14T17:15:40.326555+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t02",
+    "user": "Texte magique. Le problème c'est que je commence à me raconter que je le ferai plus tard et je finis par scroller.",
+    "status": 200,
+    "response": {
+      "content": "Voici ton Texte Magique pour ton sas de déchargement ce soir. Il est conçu pour couper court à l'envie de scroller et à la procrastination. On valide ?",
+      "mode": "companion",
+      "tool_execution": "blocked",
+      "executed_tools": []
+    },
+    "trace": {
+      "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t02",
+      "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+      "source_message_id": "953a6f37-7da4-4dbc-8488-2ff0d5037050",
+      "ts": "2026-05-14T17:16:19.257+00:00",
+      "safety_pregate": {
+        "detected": false,
+        "evidence": [],
+        "risk_band": "none",
+        "reason_codes": [],
+        "allow_side_effects": true,
+        "layer_contributions": {
+          "lexical": false,
+          "heuristic": false,
+          "dispatcher_llm": false
+        }
+      },
+      "dispatcher_run": {
+        "tokens_in": 6860,
+        "latency_ms": 2947,
+        "model_used": "gemini-3-flash-preview",
+        "tokens_out": 495,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "prompt_version": "dispatcher_v2_prompt_2026_05_s10"
+      },
+      "turn_frame": {
+        "safety": {
+          "evidence": [],
+          "risk_band": "low",
+          "reason_codes": []
+        },
+        "channel": "whatsapp",
+        "turn_id": "qa-operation-suggestion-test1-alex-2026-05-14-attack-card-ai-simple-r4-t02",
+        "user_id": "9e165f02-6314-403b-8f01-27c0485c4aa2",
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "low"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {},
+          "lifecycle": {
+            "prepare_attack_card": {
+              "reason": "user_selected_technique_and_provided_context",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          }
+        },
+        "direct_effects": [],
+        "conversation_risk": {
+          "score": 1,
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "weight": 3.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "weight": 2.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "anger_or_profanity",
+              "weight": 2,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "repetition_or_correction",
+              "weight": 1.5,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "typographic_intensity",
+              "weight": 0.7,
+              "detected": false,
+              "evidence": null,
+              "contribution": 0
+            },
+            {
+              "signal": "active_flow_pressure",
+              "weight": 1,
+              "detected": true,
+              "evidence": "active_skill_or_operation_state",
+              "contribution": 1
+            },
+            {
+              "signal": "previous_risk",
+              "weight": 10,
+              "detected": false,
+              "evidence": "0;decay=0.55;recovery=0",
+              "contribution": 0
+            }
+          ],
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "context_summary": null,
+          "previous_scores": [
+            0
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "source_message_id": "953a6f37-7da4-4dbc-8488-2ff0d5037050",
+        "tool_skill_intents": [],
+        "confirmation_response": null,
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        }
+      },
+      "route_decision": {
+        "reason_code": "active_tool_skill_continue",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": []
+      },
+      "direct_effects": [],
+      "skill_run": null,
+      "operation_flow_run": {
+        "draft": {
+          "draft": {
+            "title": "Sas de déchargement : Le Texte Magique",
+            "technique": "texte_recadrage",
+            "instruction": "Lis ce texte dès que tu sens l'envie de scroller ou de remettre à plus tard.",
+            "mode_emploi": "Lis ou recopie ce texte au moment où tu sens la résistance monter, puis fais le premier geste sans réfléchir.",
+            "target_label": "Faire le sas de déchargement",
+            "why_it_helps": "Ce texte court permet de faire baisser le combat intérieur quand tu commences à négocier avec toi-même.",
+            "generated_asset": "Attendre ne rendra pas la tâche plus facile, seulement ma soirée plus lourde. Je pose mon téléphone maintenant. Je fais mon sas de 5 minutes. Je serai fier de moi dans 10 minutes.",
+            "technique_title": "Le texte magique",
+            "supporting_points": [
+              "Casser la négociation mentale immédiate",
+              "Éviter le piège du scroll infini",
+              "Libérer l'esprit pour la suite de la soirée"
+            ],
+            "activation_keyword": null
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ton Texte Magique pour ton sas de déchargement ce soir. Il est conçu pour couper court à l'envie de scroller et à la procrastination. On valide ?"
+        },
+        "status": "pending_confirmation",
+        "reason_code": "active_tool_skill_continue",
+        "operation_id": "882e5ba8-430f-442c-bb59-8be8f88167ea",
+        "selected_handler": "prepare_attack_card"
+      },
+      "recommendation_tool_run": null,
+      "confirmation_token_outcomes": [],
+      "memory_write_candidates_emitted": 0,
+      "response_owner": "tool_skill",
+      "total_latency_ms": 15832,
+      "created_at": "2026-05-14T17:16:19.266232+00:00"
+    },
+    "error": null,
+    "trace_error": null
+  }
+]

@@ -1,0 +1,207 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai fait le sas de déchargement hier soir, mais j'ai tourné autour 45 minutes avant d'ouvrir le carnet. J'aimerais éviter ce marchandage ce soir.",
+    "assistant": "Ah ouais… 45 minutes à négocier avec toi-même, je vois très bien le truc 😅 Bonne nouvelle: tu as déjà fait le sas, donc le “bout” est là. Le défi ce soir c’est juste de réduire le délai de lancement.\n\nOn peut cadrer ça en mode très simple: dès que tu t’assois, tu fais une micro-entrée de 2 minutes (sans “réfléchir” ni “préparer”), puis seulement après tu ouvres le carnet. L’objectif n’est pas de tout faire, c’est de casser le marchandage.\n\nTu veux qu’on utilise une Carte d'attaque “Faire le sas de déchargement” pour rendre le démarrage ultra fluide ce soir ? 😊 (oui/non)",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "track_progress_plan_item"
+    ],
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason_code": "skill_entry_signal",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "ce soir"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_tonight"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "track_progress_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r2-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, partons sur une carte d'attaque pour ce démarrage du sas, surtout le moment où je dois ouvrir le carnet.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : ouvrir le carnet.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "operation_intent_start",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "preparer_terrain",
+          "instruction": "Version minuscule : ouvrir le carnet.",
+          "mode_emploi": "Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Retirer de la friction avant que le moment d'action arrive.",
+          "generated_asset": "Version minuscule : ouvrir le carnet.",
+          "technique_title": "Preparer le terrain",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nPreparer le terrain\nVersion minuscule : ouvrir le carnet.\n\nMode d'emploi: Prepare le terrain avant le moment vise, puis laisse l'environnement t'aider a demarrer.\n\nTu veux que je cree cette carte ?"
+      },
+      "source": "recommendation_tool",
+      "status": "pending_confirmation",
+      "reason_code": "operation_intent_start",
+      "operation_id": "80b10be4-9316-410d-8da5-d99724e4f837",
+      "selected_handler": "prepare_attack_card",
+      "recommendation_id": "dispatcher_opportunity:attack_card:qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r2-t01"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r2-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Corrige avant de créer: je veux un texte magique court contre le marchandage, avec ouvrir le carnet, écrire une seule ligne, puis décider seulement après si je continue.",
+    "assistant": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet. Contraintes: avant de créer: je veux un texte magique court, après si je continue.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "operation_flow",
+    "selected_handler": "prepare_attack_card",
+    "route_reason_code": "confirmation_correction_to_pending",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "draft": {
+        "draft": {
+          "title": "Carte d'attaque - Faire le sas de déchargement",
+          "technique": "texte_recadrage",
+          "instruction": "Version minuscule : ouvrir le carnet. Contraintes: avant de créer: je veux un texte magique court, après si je continue.",
+          "mode_emploi": "Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.",
+          "target_label": "Faire le sas de déchargement",
+          "why_it_helps": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+          "generated_asset": "Je n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet. Contraintes: avant de créer: je veux un texte magique court, après si je continue.",
+          "technique_title": "Le texte magique",
+          "supporting_points": []
+        },
+        "output_schema": "attack_card_draft_v1",
+        "operation_type": "prepare_attack_card",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je te propose cette carte d'attaque avant de la creer.\n\nLe texte magique\nJe n'ai pas besoin de negocier avec l'idee de faire le sas de déchargement, ni de me raconter des excuses a son sujet. Je fais juste le premier geste maintenant, assez petit pour passer la resistance. Mon premier geste: ouvrir le carnet. Contraintes: avant de créer: je veux un texte magique court, après si je continue.\n\nMode d'emploi: Lis ou recopie ce texte au moment ou tu sens la resistance monter, puis fais le premier geste.\n\nTu veux que je cree cette carte ?"
+      },
+      "status": "pending_confirmation_updated",
+      "reason_code": "confirmation_correction_to_pending",
+      "operation_id": "d6033b06-5a20-4027-b9a3-5aabcb57ab2b",
+      "selected_handler": "prepare_attack_card",
+      "previous_operation_id": "80b10be4-9316-410d-8da5-d99724e4f837"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-operation-suggestion-test1-alex-2026-05-13-attack-card-opportunity-signal-10t-r2-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Stop, annule cette carte pour ce run intermédiaire, je veux repartir proprement après.",
+    "assistant": "Ok, je ne crée pas cette carte d'attaque.",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "pending_confirmation",
+    "selected_handler": "cancel",
+    "route_reason_code": "confirmation_no",
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "operation_flow_run": {
+      "status": "cancelled",
+      "reason_code": "confirmation_no",
+      "operation_id": "d6033b06-5a20-4027-b9a3-5aabcb57ab2b",
+      "selected_handler": "prepare_attack_card"
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "memory_plan": null,
+    "trace_error": null
+  }
+]

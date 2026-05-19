@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CalendarDays,
   CheckCircle2,
@@ -180,6 +180,10 @@ function addDay(date: Date, days: number): Date {
   return copy;
 }
 
+function formatYmdUtc(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
 function dayCodeFromUtc(date: Date): DayCode {
   const day = date.getUTCDay();
   if (day === 0) return "sun";
@@ -195,6 +199,48 @@ function getAllowedDaysForWeek(startDate: string, endDate: string): DayCode[] {
     cursor = addDay(cursor, 1);
   }
   return days;
+}
+
+function getLocalDateTimePartsInTimezone(
+  timezone: string,
+  now = new Date(),
+): { ymd: string; minutes: number } | null {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    }).formatToParts(now);
+    const value = (type: string) =>
+      parts.find((part) => part.type === type)?.value ?? "";
+    const hour = Number(value("hour"));
+    const minute = Number(value("minute"));
+    return {
+      ymd: `${value("year")}-${value("month")}-${value("day")}`,
+      minutes: Math.max(0, hour) * 60 + Math.max(0, minute),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function isNextWeekPlanningUnlocked(
+  weekCalendar: NonNullable<ReturnType<typeof getPlanWeekCalendar>>,
+  timezone: string,
+): boolean {
+  const unlockLocalDate = formatYmdUtc(
+    addDay(dateFromYmdUtc(weekCalendar.anchorWeekStart), -1),
+  );
+  const localNow = getLocalDateTimePartsInTimezone(timezone);
+  if (!localNow) return false;
+  const weeklyReviewMinutes = 18 * 60 + 30;
+  return localNow.ymd > unlockLocalDate ||
+    (localNow.ymd === unlockLocalDate &&
+      localNow.minutes >= weeklyReviewMinutes);
 }
 
 function weeklyTargetForItem(
@@ -498,11 +544,16 @@ function ActivePhase({
   const currentWeekOrder =
     weekEntries.find((entry) => entry.status === "current")
       ?.week.week_order ?? null;
-  const canPlanWeek = (entry: (typeof weekEntries)[number]) =>
+  const canPlanWeek = useCallback((entry: (typeof weekEntries)[number]) =>
     entry.status === "current" ||
     (entry.status === "upcoming" &&
       currentWeekOrder != null &&
-      entry.week.week_order === currentWeekOrder + 1);
+      entry.week.week_order === currentWeekOrder + 1 &&
+      entry.weekCalendar != null &&
+      scheduleAnchor != null &&
+      isNextWeekPlanningUnlocked(entry.weekCalendar, scheduleAnchor.timezone)),
+    [currentWeekOrder, scheduleAnchor],
+  );
 
   useEffect(() => {
     const planningEntries = weekEntries.filter((entry) =>
@@ -576,7 +627,7 @@ function ActivePhase({
     return () => {
       cancelled = true;
     };
-  }, [weekEntries, currentWeekOrder]);
+  }, [weekEntries, canPlanWeek]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] md:p-8">

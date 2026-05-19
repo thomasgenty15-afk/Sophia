@@ -79,7 +79,7 @@ const targetedTopicPlan = {
   response_intent: "support",
   reasoning_complexity: "medium",
   context_need: "targeted",
-  memory_mode: "targeted",
+  memory_mode: "light",
   model_tier_hint: "standard",
   context_budget_tier: "medium",
   targets: [{
@@ -188,6 +188,14 @@ Deno.test("prompt formatter hides ids and exposes usable memory", () => {
     modules: {},
     metrics: {
       load_ms: 1,
+      loaded_scope_counts: {
+        topic: 1,
+        event: 0,
+        global: 0,
+        action: 0,
+        level: 0,
+        entity: 0,
+      },
       sensitive_excluded_count: 0,
       invalid_injection_simulated_count: 0,
       fallback_used: false,

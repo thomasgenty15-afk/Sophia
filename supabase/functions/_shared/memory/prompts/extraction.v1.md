@@ -36,7 +36,10 @@ Regles dures :
    - Si aucun ne correspond, laisse [] et ajoute proposed_domain_key dans metadata.
 7. Pour kind=event, event_start_at est obligatoire.
    Utilise les resolutions temporelles fournies, ne devine jamais une date.
-8. Pour kind=action_observation, link a plan_item_id si present dans le contexte.
+8. Pour une observation, aide, blocage, declencheur, preference d'execution ou bilan qui concerne une action active presente dans `plan_signals`, choisis `kind=action_observation`.
+   - Cela vaut aussi pour une action ponctuelle de type task (ex: envoyer un message a quelqu'un) si le souvenir aidera a refaire/debloquer cette action ou sa famille.
+   - Ne classe pas ce cas en `statement` seulement parce que la phrase ressemble a une preference ou instruction.
+   - Le link a plan_item_id est fait ensuite par le systeme si l'action est identifiable.
 9. Tu marques sensitivity_level :
    - safety : detresse, crise, ideation, danger pour soi/autrui
    - sensitive : addiction, sante mentale, intimite, famille, finances, auto-jugement dur
@@ -162,9 +165,11 @@ Le LLM ne propose PAS `action_link`. Il indique seulement dans le contenu de l'i
 C'est le linker deterministe cote systeme qui :
 
 1. detecte `kind = 'action_observation'` ;
-2. recupere les `plan_signals` deja injectes dans le contexte LLM (plan_item_id, occurrence_ids, dates) ;
+2. recupere les `plan_signals` deja injectes dans le contexte LLM (plan_item_id, action_family_key, variante de l'action, occurrence_ids, dates) ;
 3. construit la row `memory_item_actions` avec :
    - `plan_item_id` (depuis le contexte) ;
+   - `metadata.action_family_key` pour relier les variantes hebdomadaires d'une meme habitude ;
+   - `metadata.action_variant` (reps, cadence, jours, moment) ;
    - `observation_window_start/end` (depuis les dates resolues) ;
    - `aggregation_kind` (depuis `metadata.observation_role`) ;
 4. ajoute les rows `memory_item_action_occurrences` pour chaque occurrence_id present.

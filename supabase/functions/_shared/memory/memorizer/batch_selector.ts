@@ -36,6 +36,27 @@ function mentionsKnownEntity(content: string, aliases: string[]): boolean {
   });
 }
 
+function hasCanonicalStructuredExtraction(message: MemorizerMessage): boolean {
+  const metadata = message.metadata && typeof message.metadata === "object"
+    ? message.metadata as Record<string, unknown>
+    : {};
+  const source = String(
+    metadata.structured_extraction_source ??
+      metadata.source ??
+      metadata.chat_capability ??
+      "",
+  ).trim();
+  const daily = metadata.daily_action_review_v1 &&
+      typeof metadata.daily_action_review_v1 === "object"
+    ? metadata.daily_action_review_v1 as Record<string, unknown>
+    : null;
+  return source === "daily_action_review_v1" ||
+    source === "daily_action_review" ||
+    source === "daily_action_review_clarification" ||
+    source === "action_evening_review_v2" ||
+    Boolean(daily?.structured_extraction_id);
+}
+
 export function classifyAntiNoise(
   message: MemorizerMessage,
   aliases: string[] = [],
@@ -45,6 +66,9 @@ export function classifyAntiNoise(
 } {
   if (message.role !== "user") {
     return { skip: true, reason: "non_user_message" };
+  }
+  if (hasCanonicalStructuredExtraction(message)) {
+    return { skip: false, reason: null };
   }
   const normalized = normalizeText(message.content);
   const wordCount = normalized.split(/\s+/).filter(Boolean).length;

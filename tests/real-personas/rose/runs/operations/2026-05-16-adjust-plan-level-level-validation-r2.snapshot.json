@@ -1,0 +1,2409 @@
+{
+  "persona": "rose",
+  "run_id": "level-validation-r2",
+  "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+  "scope": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r2",
+  "plans": [
+    {
+      "id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "status": "active",
+      "version": 1,
+      "title": "Retrouver l'harmonie dans mon couple",
+      "content": {
+        "title": "Retrouver l'harmonie dans mon couple",
+        "phases": [
+          {
+            "items": [
+              {
+                "kind": "task",
+                "title": "Convenir d'un signal de pause",
+                "payload": {},
+                "temp_id": "gen-p1-missions-001",
+                "dimension": "missions",
+                "description": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 1,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "habit",
+                "title": "Partager un point positif",
+                "payload": {},
+                "temp_id": "gen-p1-habits-001",
+                "dimension": "habits",
+                "description": "Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire, même très simple (un merci pour la logistique, un compliment).",
+                "target_reps": 6,
+                "time_of_day": "evening",
+                "support_mode": null,
+                "cadence_label": "6 jours / semaine",
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 2,
+                "support_function": null,
+                "activation_condition": null
+              },
+              {
+                "kind": "framework",
+                "title": "Cartographier les déclencheurs",
+                "payload": {
+                  "clarification_details": {
+                    "type": "one_shot",
+                    "intro": "L'objectif est d'observer ce qui déclenche les tensions (argent, famille, intimité) sans en discuter à chaud avec lui.",
+                    "sections": [
+                      {
+                        "id": "main_triggers",
+                        "label": "Quels sujets ont créé de la friction cette semaine ?",
+                        "input_type": "categorized_list",
+                        "helper_text": "Note le sujet précis et sa catégorie globale.",
+                        "placeholder": "Sujet|Catégorie (ex: Argent, Famille...)"
+                      },
+                      {
+                        "id": "escalation_point",
+                        "label": "À quel moment précis la discussion a-t-elle basculé ?",
+                        "input_type": "textarea",
+                        "helper_text": "Identifie le point de bascule vers la défensive.",
+                        "placeholder": "Quand il a dit que... / Quand j'ai senti que..."
+                      }
+                    ],
+                    "save_label": "Enregistrer mes observations"
+                  }
+                },
+                "temp_id": "gen-p1-clarifications-001",
+                "dimension": "clarifications",
+                "description": "Prends 5 minutes en fin de semaine pour noter à froid ce qui a fait monter la pression, sans chercher à le résoudre tout de suite.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 3,
+                "support_function": null,
+                "activation_condition": {
+                  "type": "after_item_completion",
+                  "depends_on": [
+                    "gen-p1-missions-001"
+                  ]
+                }
+              },
+              {
+                "kind": "task",
+                "title": "Faire le point sur le signal de pause",
+                "payload": {},
+                "temp_id": "gen-p1-missions-002",
+                "dimension": "missions",
+                "description": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                "target_reps": null,
+                "time_of_day": "anytime",
+                "support_mode": null,
+                "cadence_label": null,
+                "tracking_type": "boolean",
+                "scheduled_days": null,
+                "activation_order": 4,
+                "support_function": null,
+                "activation_condition": {
+                  "type": "after_habit_traction",
+                  "depends_on": [
+                    "gen-p1-habits-001"
+                  ],
+                  "min_completions": 5
+                }
+              }
+            ],
+            "title": "Désamorcer et recréer de la sécurité",
+            "phase_id": "phase-1",
+            "heartbeat": {
+              "unit": "jours/semaine",
+              "title": "Jours avec une interaction positive",
+              "target": 6,
+              "current": null,
+              "tracking_mode": "inferred"
+            },
+            "rationale": "Ce premier niveau de plan vise à stopper l'escalade. Quand la fatigue et la défensive dominent, chercher à tout résoudre d'un coup ne fait qu'aggraver les choses.",
+            "phase_order": 1,
+            "why_this_now": "Parce qu'on ne peut pas discuter sereinement des vrais sujets tant que le climat n'est pas sécurisé.",
+            "phase_objective": "Mettre en place un filet de sécurité pour éviter que les tensions n'explosent et réintroduire des interactions neutres et positives.",
+            "duration_guidance": "3 semaines",
+            "phase_metric_target": "Pas encore de cible directe sur le nombre de disputes ; ce niveau de plan prépare le terrain en visant 6 jours par semaine avec une interaction positive intentionnelle.",
+            "how_this_phase_works": "On installe une règle de pause en cas de tension et on force un petit moment positif quotidien pour adoucir le quotidien.",
+            "maintained_foundation": [],
+            "what_this_phase_targets": "La boucle d'attaque/repli qui s'enclenche lors des désaccords."
+          }
+        ],
+        "version": 3,
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "phase_1_preview": {
+            "title": "Comprendre votre dynamique",
+            "heartbeat": "Dynamique clarifiée",
+            "rationale": "Ici, tu ne changes encore rien à vos interactions. Tu prends du recul sur l'histoire de votre couple et tu mets au clair ce qui te donne envie de vous battre pour cette relation.",
+            "phase_objective": "Te donner une base solide pour la suite : savoir d'où partent vraiment ces tensions, ce que tu veux retrouver, et avoir une raison claire à laquelle te raccrocher quand le dialogue sera difficile."
+          },
+          "schedule_anchor": {
+            "version": 1,
+            "timezone": "Europe/Paris",
+            "week_starts_on": "monday",
+            "anchor_week_end": "2026-05-17",
+            "generated_at_utc": "2026-05-12T16:44:08.371Z",
+            "anchor_local_date": "2026-05-12",
+            "anchor_week_start": "2026-05-11",
+            "anchor_local_human": "mardi 12 mai 2026 à 18:44",
+            "anchor_display_start": "2026-05-12",
+            "is_partial_anchor_week": true,
+            "days_remaining_in_anchor_week": 6
+          },
+          "plan_adjustment_context": {
+            "phase_reasoning": [
+              {
+                "phase_id": "phase-1",
+                "phase_order": 1,
+                "role_in_plan": "Stopper l'hémorragie émotionnelle et recréer un minimum de sécurité relationnelle.",
+                "why_before_next": "Tant que la boucle d'escalade n'est pas cassée, aucune technique de communication avancée ne fonctionnera.",
+                "slowdown_signals": [
+                  "Le mot de pause est utilisé comme une arme pour fuir la discussion",
+                  "La rancœur empêche de trouver un point positif par jour"
+                ],
+                "user_signals_used": [
+                  "Le blocage principal est la défensive et l'épuisement",
+                  "Les disputes s'enveniment vite",
+                  "Le dialogue calme est possible quand l'un attaque et l'autre se replie (dynamique déséquilibrée)"
+                ],
+                "acceleration_signals": [
+                  "Le climat à la maison s'allège visiblement",
+                  "Les petits accrochages ne se transforment plus en grosses disputes"
+                ],
+                "prerequisite_for_next_phase": "Être capable de stopper une discussion qui s'envenime sans que l'autre ne le prenne comme une attaque."
+              }
+            ],
+            "global_reasoning": {
+              "sequencing_logic": "On commence par créer un filet de sécurité (time-out) et réinjecter du positif. Une fois le terrain apaisé, on pourra travailler sur l'expression des besoins profonds.",
+              "slowdown_signals": [
+                "Le partenaire refuse ou ignore le signal de pause",
+                "L'épuisement est trop fort pour trouver du positif",
+                "Les disputes éclatent avant même de pouvoir dire pause"
+              ],
+              "main_problem_model": "Les désaccords dégénèrent rapidement à cause de l'épuisement et d'une posture défensive (attaque/repli), ce qui empêche toute résolution de fond.",
+              "acceleration_signals": [
+                "Le signal de pause est utilisé et respecté naturellement",
+                "Les interactions positives redeviennent spontanées",
+                "La personne se sent moins sur la défensive au quotidien"
+              ],
+              "why_not_faster_initially": "Vouloir crever l'abcès immédiatement sur des sujets lourds (argent, famille) sans filet de sécurité mènerait à une nouvelle dispute épuisante."
+            }
+          }
+        },
+        "strategy": {
+          "core_principle": null,
+          "identity_shift": null,
+          "main_constraint": "Ne jamais forcer le dialogue à chaud quand l'un des deux est épuisé ou sur la défensive.",
+          "success_definition": "Le couple parvient à désamorcer les tensions avant l'escalade et retrouve des moments de complicité réguliers."
+        },
+        "user_summary": "Cette transformation va t'aider à sortir de la boucle des disputes et de l'épuisement. Nous allons d'abord sécuriser vos échanges pour éviter l'escalade, avant de réapprendre à communiquer sur vos vrais besoins.",
+        "plan_blueprint": {
+          "levels": [
+            {
+              "title": "Apprendre à exprimer ses besoins",
+              "phase_id": "phase-2",
+              "intention": "Remplacer les reproches par l'expression de ses propres besoins (le 'Je' vs le 'Tu').",
+              "level_order": 2,
+              "preview_summary": "Une fois le climat sécurisé, on apprend à aborder les sujets sensibles sans déclencher la défensive de l'autre.",
+              "estimated_duration_weeks": 4
+            },
+            {
+              "title": "Consolider la complicité et l'équilibre",
+              "phase_id": "phase-3",
+              "intention": "Ancrer les nouvelles habitudes de communication et recréer des moments de connexion pure.",
+              "level_order": 3,
+              "preview_summary": "Quand les disputes sont rares, on se concentre sur ce qui nourrit le couple positivement au quotidien.",
+              "estimated_duration_weeks": 4
+            }
+          ],
+          "global_objective": "Retrouver une relation apaisée, complice et constructive.",
+          "estimated_levels_count": 2
+        },
+        "primary_metric": {
+          "unit": "disputes/semaine",
+          "label": "Nombre de disputes ou grosses tensions par semaine",
+          "baseline_value": "1 disputes par semaine",
+          "success_target": "6 disputes par semaine",
+          "measurement_mode": "absolute_value"
+        },
+        "duration_months": 3,
+        "journey_context": null,
+        "global_objective": "Le couple parvient à désamorcer les tensions avant l'escalade et retrouve des moments de complicité réguliers.",
+        "internal_summary": "L'utilisatrice fait face à des conflits réguliers avec une dynamique d'attaque/repli et une forte défensive. Le plan vise une désescalade immédiate via des règles de time-out et des micro-interactions positives, avant d'aborder les déclencheurs profonds (argent, famille, intimité) dans les niveaux suivants.",
+        "timeline_summary": "En 3 mois, tu vas passer d'un climat défensif à une communication apaisée, en commençant par stopper l'escalade des conflits.",
+        "key_understanding": "Avant de pouvoir résoudre les problèmes de fond, il faut d'abord recréer un climat de sécurité émotionnelle en cassant la boucle de l'escalade verbale.",
+        "progression_logic": "On commence par stopper l'hémorragie en instaurant une règle de pause et en réintroduisant du positif. Ensuite, on apprendra à exprimer ses besoins sans s'attaquer, puis on consolidera votre complicité.",
+        "situation_context": "Tu traverses une période de tensions régulières avec ton copain, où la fatigue et la position défensive bloquent souvent la communication et te laissent démunie.",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+        "mechanism_analysis": "Quand un sujet sensible est abordé, l'épuisement et la défensive prennent le dessus. L'un attaque, l'autre se replie, ce qui empêche de désamorcer la situation, nourrit l'impuissance et fait disparaître les moments de complicité.",
+        "current_level_runtime": {
+          "title": "Désamorcer et recréer de la sécurité",
+          "weeks": [
+            {
+              "focus": "Définir comment arrêter une dispute avant qu'elle n'aille trop loin.",
+              "title": "Poser les règles d'urgence",
+              "week_order": 1,
+              "action_focus": [
+                "Valider le signal de pause avec ton partenaire",
+                "Trouver 3 occasions de partager un point positif"
+              ],
+              "mission_days": [
+                "mercredi"
+              ],
+              "reps_summary": "3 jours",
+              "success_signal": "Vous avez un accord clair sur comment stopper une escalade.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-missions-001"
+                },
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 3,
+                  "weekly_cadence_label": "3 jours cette semaine",
+                  "weekly_description_override": "Trouve 3 moments cette semaine pour exprimer une gratitude ou un point positif simple."
+                }
+              ],
+              "progression_note": "Semaine courte pour démarrer : on pose la règle de la pause et on commence doucement à réintroduire du positif.",
+              "weekly_target_label": "3 jours avec une interaction positive",
+              "weekly_target_value": 3
+            },
+            {
+              "focus": "Augmenter le positif et repérer ce qui fait vraiment mal à froid.",
+              "title": "Observer sans attaquer",
+              "week_order": 2,
+              "action_focus": [
+                "Tenir l'habitude positive presque tous les jours",
+                "Noter les déclencheurs de la semaine sans lancer de débat"
+              ],
+              "mission_days": [
+                "dimanche"
+              ],
+              "reps_summary": "5 jours",
+              "success_signal": "Le climat à la maison semble un peu moins lourd et électrique.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 5,
+                  "weekly_cadence_label": "5 jours cette semaine",
+                  "weekly_description_override": "Passe à 5 jours cette semaine. Le positif doit commencer à prendre plus de place que la logistique."
+                },
+                {
+                  "temp_id": "gen-p1-clarifications-001"
+                }
+              ],
+              "progression_note": "On intensifie l'habitude positive pour adoucir le quotidien, et on observe les déclencheurs de loin.",
+              "weekly_target_label": "5 jours avec une interaction positive",
+              "weekly_target_value": 5
+            },
+            {
+              "focus": "Faire de l'interaction positive une norme et vérifier que la pause fonctionne.",
+              "title": "Consolider la sécurité",
+              "week_order": 3,
+              "action_focus": [
+                "Maintenir le positif au quotidien",
+                "Faire le point sur l'efficacité de votre signal de pause"
+              ],
+              "mission_days": [
+                "jeudi"
+              ],
+              "reps_summary": "6 jours",
+              "success_signal": "Vous arrivez à stopper une dispute avant l'épuisement.",
+              "item_assignments": [
+                {
+                  "temp_id": "gen-p1-habits-001",
+                  "weekly_reps": 6,
+                  "weekly_cadence_label": "6 jours cette semaine",
+                  "weekly_description_override": "Vise 6 jours cette semaine. L'expression de gratitude doit devenir un réflexe naturel."
+                },
+                {
+                  "temp_id": "gen-p1-missions-002"
+                }
+              ],
+              "progression_note": "On atteint le rythme de croisière sur le positif et on fait un bilan concret sur votre gestion des tensions.",
+              "weekly_target_label": "6 jours avec une interaction positive",
+              "weekly_target_value": 6
+            }
+          ],
+          "phase_id": "phase-1",
+          "heartbeat": {
+            "unit": "jours/semaine",
+            "title": "Jours avec une interaction positive",
+            "target": 6,
+            "current": null,
+            "tracking_mode": "inferred"
+          },
+          "rationale": "On commence par stopper l'escalade. Quand la fatigue domine, chercher à tout résoudre d'un coup ne fait qu'aggraver les choses.",
+          "level_order": 1,
+          "review_focus": [
+            "Le signal de pause est-il respecté ?",
+            "L'apport de positif quotidien semble-t-il naturel ou forcé ?"
+          ],
+          "why_this_now": "Parce qu'on ne peut pas discuter sereinement des vrais sujets tant que le climat n'est pas sécurisé.",
+          "duration_weeks": 3,
+          "phase_objective": "Mettre en place un filet de sécurité pour éviter que les tensions n'explosent et réintroduire des interactions neutres.",
+          "phase_metric_target": "Pas encore de cible directe sur le nombre de disputes ; ce niveau de plan prépare le terrain en visant 6 jours par semaine avec une interaction positive intentionnelle.",
+          "how_this_phase_works": "On installe une règle de pause en cas de tension et on force un petit moment positif quotidien pour adoucir le quotidien.",
+          "maintained_foundation": [],
+          "what_this_phase_targets": "La boucle d'attaque/repli qui s'enclenche lors des désaccords."
+        },
+        "inspiration_narrative": "Imagine pouvoir aborder un désaccord sans que le ton monte, en sachant que vous êtes dans la même équipe. Les soirées redeviennent légères, la communication est fluide, et vous retrouvez cette complicité qui vous unissait. Vous avez les outils pour vous écouter sans vous blesser."
+      },
+      "generation_attempts": 1,
+      "last_generation_reason": "initial_generation",
+      "activated_at": "2026-05-12T16:44:08.371+00:00",
+      "completed_at": null,
+      "archived_at": null,
+      "created_at": "2026-05-12T16:42:16.197+00:00",
+      "updated_at": "2026-05-12T16:44:08.423891+00:00",
+      "generation_feedback": null,
+      "generation_input_snapshot": {
+        "mode": "preview",
+        "cycle": {
+          "id": "a9200dab-44c5-4626-b916-16a5f241d305",
+          "status": "ready_for_plan",
+          "requested_pace": "normal",
+          "gender_snapshot": "female",
+          "raw_intake_text": "Alors ca fait plusieurs semaine que je m'engueule avec mon copain, et je sais pas trop comment faire pour que ça aille mieux.",
+          "birth_date_snapshot": "1994-07-12",
+          "validated_structure": {
+            "stage": "validated",
+            "version": 1,
+            "analyzed_at": "2026-05-12T16:38:29.973Z",
+            "validated_at": "2026-05-12T16:38:29.973Z",
+            "deferred_aspects": [],
+            "validated_groups": [
+              {
+                "aspects": [
+                  {
+                    "label": "Disputes récurrentes en couple",
+                    "raw_excerpt": "ca fait plusieurs semaine que je m'engueule avec mon copain",
+                    "source_rank": 1
+                  },
+                  {
+                    "label": "Sentiment d'impuissance face à la situation",
+                    "raw_excerpt": "je sais pas trop comment faire pour que ça aille mieux",
+                    "source_rank": 2
+                  }
+                ],
+                "group_label": "Apaisement de la relation de couple"
+              }
+            ],
+            "uncertain_aspects": [],
+            "provisional_groups": [
+              {
+                "group_label": "Apaisement de la relation de couple",
+                "aspect_ranks": [
+                  1,
+                  2
+                ],
+                "grouping_rationale": "C'est l'unique sujet abordé par l'utilisatrice et il génère une détresse immédiate nécessitant une prise en charge prioritaire."
+              }
+            ],
+            "needs_clarification": false,
+            "clarification_prompt": null,
+            "transformation_previews": [
+              {
+                "title": "Retrouver l'harmonie dans mon couple",
+                "recommended_order": 1,
+                "source_group_index": 1,
+                "recommended_progress_indicator": "Niveau d'apaisement ressenti dans la relation (sur 10) ou nombre de jours sans conflit"
+              }
+            ]
+          }
+        },
+        "version": 1,
+        "llm_input": {
+          "title": "Retrouver l'harmonie dans mon couple",
+          "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+          "user_age": 31,
+          "metric_unit": "disputes par semaine",
+          "user_gender": "female",
+          "main_blocker": "opt_defensive | opt_exhaustion",
+          "metric_label": "Nombre de disputes ou grosses tensions par semaine",
+          "user_summary": "Tu traverses une période de tensions avec ton copain et tu te sens démunie pour améliorer la situation. Cette transformation t'accompagnera pour renouer le dialogue et comprendre l'origine des disputes. L'objectif est de t'aider à retrouver une relation plus apaisée et constructive.",
+          "priority_goal": "opt_safety | opt_complicity",
+          "user_timezone": "Europe/Paris",
+          "prior_attempts": null,
+          "starting_point": "1 disputes par semaine",
+          "anchor_week_end": "2026-05-17",
+          "main_constraint": null,
+          "self_confidence": null,
+          "user_local_date": "2026-05-12",
+          "internal_summary": "L'utilisatrice traverse une période de tensions et de disputes régulières avec son partenaire depuis plusieurs semaines. Elle exprime un sentiment d'impuissance face à cette situation. Elle ne sait pas comment inverser la dynamique actuelle pour que les choses s'améliorent. L'objectif de cette transformation est de restaurer la communication et d'identifier les sources de conflit. Il s'agira également de travailler sur la gestion des émotions lors des désaccords afin de retrouver un climat serein dans le couple.",
+          "metric_direction": "decrease",
+          "probable_drivers": "opt_comm | opt_needs",
+          "user_local_human": "mardi 12 mai 2026 à 18:42",
+          "anchor_week_start": "2026-05-11",
+          "struggle_duration": "opt_months",
+          "success_indicator": "6 disputes par semaine",
+          "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+          "metric_target_text": "6 disputes par semaine",
+          "success_definition": null,
+          "journey_part_number": null,
+          "journey_total_parts": null,
+          "metric_target_value": 6,
+          "user_requested_pace": "normal",
+          "metric_baseline_text": "1 disputes par semaine",
+          "perceived_difficulty": "opt_hard",
+          "questionnaire_schema": {
+            "version": 1,
+            "metadata": {
+              "design_principle": "court_adapte_utile_et_mesurable",
+              "measurement_hints": {
+                "unit": "disputes par semaine",
+                "direction": "decrease",
+                "rationale": "La fréquence des disputes est une métrique comportementale simple, directement liée à la qualité du climat de couple et exploitable pour suivre l'amélioration dans un plan d'action.",
+                "confidence": 0.88,
+                "metric_key": "disputes_per_week",
+                "metric_label": "Nombre de disputes ou grosses tensions par semaine",
+                "target_prompt": "À quel niveau idéal veux-tu arriver d'ici la suite : combien de disputes ou grosses tensions par semaine te sembleraient normales et gérables ?",
+                "baseline_prompt": "Aujourd'hui, combien de disputes ou grosses tensions avez-vous en moyenne par semaine dans votre couple ?",
+                "measurement_mode": "absolute_value",
+                "suggested_target_value": null
+              }
+            },
+            "questions": [
+              {
+                "id": "sys_q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Des sujets de désaccord qui reviennent souvent"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "La fatigue ou la charge mentale du quotidien"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Une communication qui se dégrade vite dès qu'on parle d'un sujet sensible"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Des besoins affectifs ou relationnels qui ne sont pas assez exprimés"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "L'évitement des discussions importantes"
+                  }
+                ],
+                "question": "Qu'est-ce qui alimente le plus les tensions dans votre couple en ce moment ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 facteurs principaux.",
+                "placeholder": "Précise un autre facteur si besoin",
+                "capture_goal": "_system_probable_drivers",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q2",
+                "kind": "number",
+                "unit": "disputes par semaine",
+                "options": [],
+                "question": "Aujourd'hui, combien de disputes ou grosses tensions avez-vous en moyenne par semaine dans votre couple ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Metrice choisie automatiquement : Nombre de disputes ou grosses tensions par semaine.",
+                "placeholder": "Entre une valeur numerique en disputes par semaine",
+                "capture_goal": "_system_metric_baseline",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q3",
+                "kind": "number",
+                "unit": "disputes par semaine",
+                "options": [],
+                "question": "À quel niveau idéal veux-tu arriver d'ici la suite : combien de disputes ou grosses tensions par semaine te sembleraient normales et gérables ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Entre la cible numerique la plus juste pour nombre de disputes ou grosses tensions par semaine.",
+                "placeholder": "Entre une valeur numerique en disputes par semaine",
+                "capture_goal": "_system_metric_target",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quand on parle d'organisation du quotidien"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quand l'un se sent critiqué ou incompris"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Quand on est fatigués, stressés ou pressés"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Quand un sujet sensible revient encore et encore"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Quand on essaie de parler calmement mais ça dérape"
+                  }
+                ],
+                "question": "Dans quels moments les tensions montent-elles le plus souvent entre vous ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 3 situations.",
+                "placeholder": "Ajoute un autre moment si c'est important",
+                "capture_goal": "Identifier les contextes de déclenchement les plus utiles pour un plan concret.",
+                "max_selections": 3,
+                "suggested_value": null
+              },
+              {
+                "id": "q2",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Faire une pause avant de répondre"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Parler par écrit ou plus posément"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Revenir au sujet plus tard, à froid"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Commencer par dire ce qu'on ressent plutôt que ce qu'on reproche"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avoir un cadre clair pour discuter sans s'interrompre"
+                  }
+                ],
+                "question": "Quand une dispute commence, qu'est-ce qui aide le plus à éviter qu'elle s'envenime ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 leviers.",
+                "placeholder": "Précise un autre levier si besoin",
+                "capture_goal": "Repérer les leviers de désescalade utiles pour construire des actions réalistes.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "q3",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le matin"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "En fin d'après-midi"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "En soirée"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Le week-end"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Ça dépend beaucoup des jours"
+                  }
+                ],
+                "question": "À quel moment de la journée le dialogue avec ton copain est-il le plus souvent possible et le plus calme ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Pour repérer le meilleur créneau de discussion.",
+                "placeholder": null,
+                "capture_goal": "Identifier le meilleur moment pour planifier des échanges utiles et réduire les conflits.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q4",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "On n'arrive plus à s'écouter vraiment"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "L'émotion prend trop vite le dessus"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "On évite la discussion pour ne pas empirer"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "On reste coincés sur les mêmes reproches"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "On ne sait pas par quoi commencer pour réparer"
+                  }
+                ],
+                "question": "Quand les tensions montent dans votre couple, qu'est-ce qui bloque le plus pour en sortir ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 blocages.",
+                "placeholder": "Précise un autre blocage si besoin",
+                "capture_goal": "_system_main_blocker",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q5",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "On se parle avec plus de calme et de respect"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Les disputes deviennent rares et se résolvent mieux"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "On comprend mieux ce qui déclenche nos conflits"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "On arrive à exprimer nos besoins sans exploser"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "L'ambiance du couple redevient sereine au quotidien"
+                  }
+                ],
+                "question": "Si cette transformation réussit vraiment, qu'est-ce qui te ferait dire : “oui, notre couple a retrouvé un vrai équilibre” ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 signes de réussite.",
+                "placeholder": "Décris ton vrai critère de réussite si aucun choix ne colle parfaitement",
+                "capture_goal": "_system_priority_goal_subjective",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q6",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quelques semaines"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quelques mois"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "1 à 2 ans"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plus de 3 ans"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Aussi loin que je me souvienne"
+                  }
+                ],
+                "question": "Depuis combien de temps les tensions dans votre couple durent-elles ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis la durée qui s'en rapproche le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_struggle_duration",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q7",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Très facile"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Plutôt facile"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Moyen"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plutôt difficile"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Très difficile"
+                  }
+                ],
+                "question": "Aujourd'hui, à quel point te semble-t-il difficile de retrouver une relation apaisée et constructive ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis le niveau qui te ressemble le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_perceived_difficulty",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q8",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Qu'est-ce que tu as déjà mis en place aujourd'hui pour essayer d'apaiser les tensions dans ton couple ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Même si c'est partiel, irrégulier ou pas encore très concluant.",
+                "placeholder": "Ex. essayer de parler quand on est calmes, prendre du recul, éviter certains sujets, proposer un moment pour discuter...",
+                "capture_goal": "_system_existing_efforts",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q9",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Derniere verif avant qu'on ferme le carnet d'enquete : est-ce qu'on a rate un truc important ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Tu peux corriger, préciser ou ajouter ce qui compte vraiment.",
+                "placeholder": "Ex. un sujet sensible, une contrainte, un contexte particulier, ou juste un détail utile",
+                "capture_goal": "_system_open_context",
+                "max_selections": null,
+                "suggested_value": null
+              }
+            ],
+            "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+          },
+          "metric_baseline_value": 1,
+          "previous_plan_preview": null,
+          "questionnaire_answers": {
+            "q1": [
+              "opt_money",
+              "opt_family",
+              "opt_intimacy"
+            ],
+            "q2": [
+              "opt_fluid",
+              "opt_logistics_only"
+            ],
+            "q3": [
+              "opt_attack",
+              "opt_withdraw"
+            ],
+            "sys_q1": [
+              "opt_comm",
+              "opt_needs"
+            ],
+            "sys_q2": "1",
+            "sys_q3": "6",
+            "sys_q4": [
+              "opt_defensive",
+              "opt_exhaustion"
+            ],
+            "sys_q5": [
+              "opt_safety",
+              "opt_complicity"
+            ],
+            "sys_q6": "opt_months",
+            "sys_q7": "opt_hard"
+          },
+          "regeneration_feedback": null,
+          "is_partial_anchor_week": true,
+          "metric_measurement_mode": "absolute_value",
+          "plan_type_classification": {
+            "type_key": "relationships_social",
+            "confidence": 0.95,
+            "plan_style": [
+              "empathique",
+              "apaisant",
+              "pédagogique"
+            ],
+            "framing_to_avoid": [
+              "reproches envers le partenaire",
+              "vouloir tout résoudre en une seule discussion",
+              "forcer le dialogue quand l'autre n'est pas prêt"
+            ],
+            "journey_strategy": {
+              "mode": "single_transformation",
+              "rationale": "Le problème est identifié sur un axe clair (communication et gestion des conflits) et date de quelques mois. Une seule transformation structurée permet de couvrir l'apaisement, la compréhension des mécanismes et la consolidation.",
+              "transformation_1_goal": "Réduire la fréquence des tensions et instaurer des outils de communication non-violente pour sortir de l'impuissance.",
+              "transformation_2_goal": null,
+              "transformation_1_title": "Restaurer le dialogue et l'apaisement",
+              "transformation_2_title": null,
+              "total_estimated_duration_months": 3
+            },
+            "sequencing_notes": [
+              "Phase 1 : Désescalade immédiate et observation des déclencheurs sans confrontation.",
+              "Phase 2 : Introduction de techniques d'expression des besoins (le 'Je' vs le 'Tu').",
+              "Phase 3 : Reconnexion positive et rituels de complicité pour stabiliser l'équilibre."
+            ],
+            "duration_guidance": {
+              "max_months": 4,
+              "min_months": 2,
+              "default_months": 3
+            },
+            "intensity_profile": {
+              "pace": "steady",
+              "rationale": "Le climat relationnel est perçu comme difficile et fragile. Une approche progressive est nécessaire pour restaurer la sécurité émotionnelle avant d'aborder les sujets de fond."
+            },
+            "recommended_metrics": [
+              "Nombre de tensions ou disputes par semaine",
+              "Sentiment de sécurité émotionnelle lors des échanges"
+            ],
+            "first_steps_examples": [
+              "Identifier les 3 principaux déclencheurs de disputes cette semaine",
+              "Pratiquer la pause de 5 minutes dès que le ton monte",
+              "Exprimer une gratitude ou un point positif par jour au partenaire"
+            ],
+            "split_metric_guidance": null,
+            "recommended_phase_count": {
+              "max": 5,
+              "min": 3
+            },
+            "transformation_length_level": 3
+          },
+          "journey_continuation_hint": null,
+          "system_validation_feedback": null,
+          "days_remaining_in_anchor_week": 6,
+          "previous_transformation_title": null,
+          "previous_transformation_summary": null,
+          "previous_transformation_plan_preview": null,
+          "previous_transformation_completion_summary": null,
+          "previous_transformation_success_definition": null,
+          "previous_transformation_questionnaire_schema": null,
+          "previous_transformation_questionnaire_answers": null
+        },
+        "generated_at": "2026-05-12T16:42:16.197Z",
+        "transformation": {
+          "id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+          "title": "Retrouver l'harmonie dans mon couple",
+          "status": "pending",
+          "user_summary": "Tu traverses une période de tensions avec ton copain et tu te sens démunie pour améliorer la situation. Cette transformation t'accompagnera pour renouer le dialogue et comprendre l'origine des disputes. L'objectif est de t'aider à retrouver une relation plus apaisée et constructive.",
+          "onboarding_v2": {
+            "is_manual": false,
+            "recommended_order": 1,
+            "selection_context": null,
+            "ordering_rationale": "C'est l'unique sujet abordé par l'utilisatrice et il génère une détresse immédiate nécessitant une prise en charge prioritaire.",
+            "source_group_index": 1,
+            "professional_support": null,
+            "questionnaire_context": [
+              "Fréquence et intensité des disputes récentes",
+              "Sujets déclencheurs récurrents des conflits",
+              "Qualité de la communication en dehors des moments de tension",
+              "Besoins non satisfaits au sein de la relation"
+            ],
+            "plan_type_classification": {
+              "type_key": "relationships_social",
+              "confidence": 0.95,
+              "plan_style": [
+                "empathique",
+                "apaisant",
+                "pédagogique"
+              ],
+              "framing_to_avoid": [
+                "reproches envers le partenaire",
+                "vouloir tout résoudre en une seule discussion",
+                "forcer le dialogue quand l'autre n'est pas prêt"
+              ],
+              "journey_strategy": {
+                "mode": "single_transformation",
+                "rationale": "Le problème est identifié sur un axe clair (communication et gestion des conflits) et date de quelques mois. Une seule transformation structurée permet de couvrir l'apaisement, la compréhension des mécanismes et la consolidation.",
+                "transformation_1_goal": "Réduire la fréquence des tensions et instaurer des outils de communication non-violente pour sortir de l'impuissance.",
+                "transformation_2_goal": null,
+                "transformation_1_title": "Restaurer le dialogue et l'apaisement",
+                "transformation_2_title": null,
+                "total_estimated_duration_months": 3
+              },
+              "sequencing_notes": [
+                "Phase 1 : Désescalade immédiate et observation des déclencheurs sans confrontation.",
+                "Phase 2 : Introduction de techniques d'expression des besoins (le 'Je' vs le 'Tu').",
+                "Phase 3 : Reconnexion positive et rituels de complicité pour stabiliser l'équilibre."
+              ],
+              "duration_guidance": {
+                "max_months": 4,
+                "min_months": 2,
+                "default_months": 3
+              },
+              "intensity_profile": {
+                "pace": "steady",
+                "rationale": "Le climat relationnel est perçu comme difficile et fragile. Une approche progressive est nécessaire pour restaurer la sécurité émotionnelle avant d'aborder les sujets de fond."
+              },
+              "recommended_metrics": [
+                "Nombre de tensions ou disputes par semaine",
+                "Sentiment de sécurité émotionnelle lors des échanges"
+              ],
+              "first_steps_examples": [
+                "Identifier les 3 principaux déclencheurs de disputes cette semaine",
+                "Pratiquer la pause de 5 minutes dès que le ton monte",
+                "Exprimer une gratitude ou un point positif par jour au partenaire"
+              ],
+              "split_metric_guidance": null,
+              "recommended_phase_count": {
+                "max": 5,
+                "min": 3
+              },
+              "transformation_length_level": 3
+            },
+            "recommended_progress_indicator": "Niveau d'apaisement ressenti dans la relation (sur 10) ou nombre de jours sans conflit"
+          },
+          "priority_order": 1,
+          "main_constraint": null,
+          "internal_summary": "L'utilisatrice traverse une période de tensions et de disputes régulières avec son partenaire depuis plusieurs semaines. Elle exprime un sentiment d'impuissance face à cette situation. Elle ne sait pas comment inverser la dynamique actuelle pour que les choses s'améliorent. L'objectif de cette transformation est de restaurer la communication et d'identifier les sources de conflit. Il s'agira également de travailler sur la gestion des émotions lors des désaccords afin de retrouver un climat serein dans le couple.",
+          "success_definition": null,
+          "questionnaire_schema": {
+            "version": 1,
+            "metadata": {
+              "design_principle": "court_adapte_utile_et_mesurable",
+              "measurement_hints": {
+                "unit": "disputes par semaine",
+                "direction": "decrease",
+                "rationale": "La fréquence des disputes est une métrique comportementale simple, directement liée à la qualité du climat de couple et exploitable pour suivre l'amélioration dans un plan d'action.",
+                "confidence": 0.88,
+                "metric_key": "disputes_per_week",
+                "metric_label": "Nombre de disputes ou grosses tensions par semaine",
+                "target_prompt": "À quel niveau idéal veux-tu arriver d'ici la suite : combien de disputes ou grosses tensions par semaine te sembleraient normales et gérables ?",
+                "baseline_prompt": "Aujourd'hui, combien de disputes ou grosses tensions avez-vous en moyenne par semaine dans votre couple ?",
+                "measurement_mode": "absolute_value",
+                "suggested_target_value": null
+              }
+            },
+            "questions": [
+              {
+                "id": "sys_q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Des sujets de désaccord qui reviennent souvent"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "La fatigue ou la charge mentale du quotidien"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Une communication qui se dégrade vite dès qu'on parle d'un sujet sensible"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Des besoins affectifs ou relationnels qui ne sont pas assez exprimés"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "L'évitement des discussions importantes"
+                  }
+                ],
+                "question": "Qu'est-ce qui alimente le plus les tensions dans votre couple en ce moment ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 facteurs principaux.",
+                "placeholder": "Précise un autre facteur si besoin",
+                "capture_goal": "_system_probable_drivers",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q2",
+                "kind": "number",
+                "unit": "disputes par semaine",
+                "options": [],
+                "question": "Aujourd'hui, combien de disputes ou grosses tensions avez-vous en moyenne par semaine dans votre couple ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Metrice choisie automatiquement : Nombre de disputes ou grosses tensions par semaine.",
+                "placeholder": "Entre une valeur numerique en disputes par semaine",
+                "capture_goal": "_system_metric_baseline",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q3",
+                "kind": "number",
+                "unit": "disputes par semaine",
+                "options": [],
+                "question": "À quel niveau idéal veux-tu arriver d'ici la suite : combien de disputes ou grosses tensions par semaine te sembleraient normales et gérables ?",
+                "required": true,
+                "max_value": null,
+                "min_value": 0,
+                "allow_other": false,
+                "helper_text": "Entre la cible numerique la plus juste pour nombre de disputes ou grosses tensions par semaine.",
+                "placeholder": "Entre une valeur numerique en disputes par semaine",
+                "capture_goal": "_system_metric_target",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "q1",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quand on parle d'organisation du quotidien"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quand l'un se sent critiqué ou incompris"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Quand on est fatigués, stressés ou pressés"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Quand un sujet sensible revient encore et encore"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Quand on essaie de parler calmement mais ça dérape"
+                  }
+                ],
+                "question": "Dans quels moments les tensions montent-elles le plus souvent entre vous ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 3 situations.",
+                "placeholder": "Ajoute un autre moment si c'est important",
+                "capture_goal": "Identifier les contextes de déclenchement les plus utiles pour un plan concret.",
+                "max_selections": 3,
+                "suggested_value": null
+              },
+              {
+                "id": "q2",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Faire une pause avant de répondre"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Parler par écrit ou plus posément"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Revenir au sujet plus tard, à froid"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Commencer par dire ce qu'on ressent plutôt que ce qu'on reproche"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Avoir un cadre clair pour discuter sans s'interrompre"
+                  }
+                ],
+                "question": "Quand une dispute commence, qu'est-ce qui aide le plus à éviter qu'elle s'envenime ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 leviers.",
+                "placeholder": "Précise un autre levier si besoin",
+                "capture_goal": "Repérer les leviers de désescalade utiles pour construire des actions réalistes.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "q3",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Le matin"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "En fin d'après-midi"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "En soirée"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Le week-end"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Ça dépend beaucoup des jours"
+                  }
+                ],
+                "question": "À quel moment de la journée le dialogue avec ton copain est-il le plus souvent possible et le plus calme ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Pour repérer le meilleur créneau de discussion.",
+                "placeholder": null,
+                "capture_goal": "Identifier le meilleur moment pour planifier des échanges utiles et réduire les conflits.",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q4",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "On n'arrive plus à s'écouter vraiment"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "L'émotion prend trop vite le dessus"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "On évite la discussion pour ne pas empirer"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "On reste coincés sur les mêmes reproches"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "On ne sait pas par quoi commencer pour réparer"
+                  }
+                ],
+                "question": "Quand les tensions montent dans votre couple, qu'est-ce qui bloque le plus pour en sortir ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 blocages.",
+                "placeholder": "Précise un autre blocage si besoin",
+                "capture_goal": "_system_main_blocker",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q5",
+                "kind": "multiple_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "On se parle avec plus de calme et de respect"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Les disputes deviennent rares et se résolvent mieux"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "On comprend mieux ce qui déclenche nos conflits"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "On arrive à exprimer nos besoins sans exploser"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "L'ambiance du couple redevient sereine au quotidien"
+                  }
+                ],
+                "question": "Si cette transformation réussit vraiment, qu'est-ce qui te ferait dire : “oui, notre couple a retrouvé un vrai équilibre” ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": true,
+                "helper_text": "Choisis jusqu'à 2 signes de réussite.",
+                "placeholder": "Décris ton vrai critère de réussite si aucun choix ne colle parfaitement",
+                "capture_goal": "_system_priority_goal_subjective",
+                "max_selections": 2,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q6",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Quelques semaines"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Quelques mois"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "1 à 2 ans"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plus de 3 ans"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Aussi loin que je me souvienne"
+                  }
+                ],
+                "question": "Depuis combien de temps les tensions dans votre couple durent-elles ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis la durée qui s'en rapproche le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_struggle_duration",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q7",
+                "kind": "single_choice",
+                "unit": null,
+                "options": [
+                  {
+                    "id": "opt_1",
+                    "label": "Très facile"
+                  },
+                  {
+                    "id": "opt_2",
+                    "label": "Plutôt facile"
+                  },
+                  {
+                    "id": "opt_3",
+                    "label": "Moyen"
+                  },
+                  {
+                    "id": "opt_4",
+                    "label": "Plutôt difficile"
+                  },
+                  {
+                    "id": "opt_5",
+                    "label": "Très difficile"
+                  }
+                ],
+                "question": "Aujourd'hui, à quel point te semble-t-il difficile de retrouver une relation apaisée et constructive ?",
+                "required": true,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Choisis le niveau qui te ressemble le plus.",
+                "placeholder": null,
+                "capture_goal": "_system_perceived_difficulty",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q8",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Qu'est-ce que tu as déjà mis en place aujourd'hui pour essayer d'apaiser les tensions dans ton couple ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Même si c'est partiel, irrégulier ou pas encore très concluant.",
+                "placeholder": "Ex. essayer de parler quand on est calmes, prendre du recul, éviter certains sujets, proposer un moment pour discuter...",
+                "capture_goal": "_system_existing_efforts",
+                "max_selections": null,
+                "suggested_value": null
+              },
+              {
+                "id": "sys_q9",
+                "kind": "text",
+                "unit": null,
+                "options": [],
+                "question": "Derniere verif avant qu'on ferme le carnet d'enquete : est-ce qu'on a rate un truc important ?",
+                "required": false,
+                "max_value": null,
+                "min_value": null,
+                "allow_other": false,
+                "helper_text": "Tu peux corriger, préciser ou ajouter ce qui compte vraiment.",
+                "placeholder": "Ex. un sujet sensible, une contrainte, un contexte particulier, ou juste un détail utile",
+                "capture_goal": "_system_open_context",
+                "max_selections": null,
+                "suggested_value": null
+              }
+            ],
+            "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+          },
+          "questionnaire_answers": {
+            "q1": [
+              "opt_money",
+              "opt_family",
+              "opt_intimacy"
+            ],
+            "q2": [
+              "opt_fluid",
+              "opt_logistics_only"
+            ],
+            "q3": [
+              "opt_attack",
+              "opt_withdraw"
+            ],
+            "sys_q1": [
+              "opt_comm",
+              "opt_needs"
+            ],
+            "sys_q2": "1",
+            "sys_q3": "6",
+            "sys_q4": [
+              "opt_defensive",
+              "opt_exhaustion"
+            ],
+            "sys_q5": [
+              "opt_safety",
+              "opt_complicity"
+            ],
+            "sys_q6": "opt_months",
+            "sys_q7": "opt_hard"
+          }
+        },
+        "force_regenerate": false,
+        "calibration_fields": {
+          "metric_unit": "disputes par semaine",
+          "main_blocker": "opt_defensive | opt_exhaustion",
+          "metric_label": "Nombre de disputes ou grosses tensions par semaine",
+          "priority_goal": "opt_safety | opt_complicity",
+          "prior_attempts": null,
+          "starting_point": "1 disputes par semaine",
+          "self_confidence": null,
+          "metric_direction": "decrease",
+          "probable_drivers": "opt_comm | opt_needs",
+          "struggle_duration": "opt_months",
+          "success_indicator": "6 disputes par semaine",
+          "metric_target_text": "6 disputes par semaine",
+          "metric_target_value": 6,
+          "metric_baseline_text": "1 disputes par semaine",
+          "perceived_difficulty": "opt_hard",
+          "metric_baseline_value": 1,
+          "metric_measurement_mode": "absolute_value"
+        },
+        "user_requested_pace": "normal",
+        "regeneration_feedback": null,
+        "plan_type_classification": {
+          "type_key": "relationships_social",
+          "confidence": 0.95,
+          "plan_style": [
+            "empathique",
+            "apaisant",
+            "pédagogique"
+          ],
+          "framing_to_avoid": [
+            "reproches envers le partenaire",
+            "vouloir tout résoudre en une seule discussion",
+            "forcer le dialogue quand l'autre n'est pas prêt"
+          ],
+          "journey_strategy": {
+            "mode": "single_transformation",
+            "rationale": "Le problème est identifié sur un axe clair (communication et gestion des conflits) et date de quelques mois. Une seule transformation structurée permet de couvrir l'apaisement, la compréhension des mécanismes et la consolidation.",
+            "transformation_1_goal": "Réduire la fréquence des tensions et instaurer des outils de communication non-violente pour sortir de l'impuissance.",
+            "transformation_2_goal": null,
+            "transformation_1_title": "Restaurer le dialogue et l'apaisement",
+            "transformation_2_title": null,
+            "total_estimated_duration_months": 3
+          },
+          "sequencing_notes": [
+            "Phase 1 : Désescalade immédiate et observation des déclencheurs sans confrontation.",
+            "Phase 2 : Introduction de techniques d'expression des besoins (le 'Je' vs le 'Tu').",
+            "Phase 3 : Reconnexion positive et rituels de complicité pour stabiliser l'équilibre."
+          ],
+          "duration_guidance": {
+            "max_months": 4,
+            "min_months": 2,
+            "default_months": 3
+          },
+          "intensity_profile": {
+            "pace": "steady",
+            "rationale": "Le climat relationnel est perçu comme difficile et fragile. Une approche progressive est nécessaire pour restaurer la sécurité émotionnelle avant d'aborder les sujets de fond."
+          },
+          "recommended_metrics": [
+            "Nombre de tensions ou disputes par semaine",
+            "Sentiment de sécurité émotionnelle lors des échanges"
+          ],
+          "first_steps_examples": [
+            "Identifier les 3 principaux déclencheurs de disputes cette semaine",
+            "Pratiquer la pause de 5 minutes dès que le ton monte",
+            "Exprimer une gratitude ou un point positif par jour au partenaire"
+          ],
+          "split_metric_guidance": null,
+          "recommended_phase_count": {
+            "max": 5,
+            "min": 3
+          },
+          "transformation_length_level": 3
+        },
+        "preserve_active_transformation_id": null
+      }
+    }
+  ],
+  "user_plan_items": [
+    {
+      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "active",
+      "title": "Convenir d'un signal de pause",
+      "description": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+      "tracking_type": "boolean",
+      "activation_order": 1,
+      "activation_condition": null,
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": null,
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-missions-001"
+        }
+      },
+      "created_at": "2026-05-12T16:44:08.371+00:00",
+      "updated_at": "2026-05-16T14:52:11.372774+00:00",
+      "activated_at": "2026-05-12T16:44:08.371+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started",
+      "cards_generated_at": null
+    },
+    {
+      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+      "dimension": "habits",
+      "kind": "habit",
+      "status": "active",
+      "title": "Partager un point positif",
+      "description": "une phrase simple, sans chercher à faire joli",
+      "tracking_type": "boolean",
+      "activation_order": 2,
+      "activation_condition": null,
+      "current_habit_state": "active_building",
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": 3,
+      "current_reps": 0,
+      "cadence_label": "3 jours / semaine",
+      "scheduled_days": null,
+      "time_of_day": "evening",
+      "start_after_item_id": null,
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-habits-001"
+        },
+        "operation_adjustments": [
+          {
+            "draft": {
+              "patch": {
+                "difficulty": "medium",
+                "instruction": "une phrase simple, sans chercher à faire joli",
+                "target_reps": 3,
+                "cadence_label": "3 jours / semaine"
+              },
+              "title": "Ajustement - Partager un point positif",
+              "confidence": "high",
+              "ack_summary": {
+                "changed": [
+                  "ajustement de \"Partager un point positif\""
+                ],
+                "unchanged": [
+                  "le reste du plan n'est pas touché"
+                ],
+                "confidence": "high",
+                "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                "follow_up_needed": null
+              },
+              "scope_label": "Partager un point positif",
+              "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+              "decision_basis": {
+                "evidence": [
+                  "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+                  "Partager un point positif",
+                  "rebalance",
+                  "me met un peu la pression",
+                  "ça me paraît trop"
+                ],
+                "confidence": "high",
+                "uncertainty": [],
+                "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+                "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                "must_preserve": [
+                  "reprendre Partager un point positif apres la version mini"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "ajuster le plan de facon minimale",
+              "change_rationale": {
+                "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+                "success_condition": "L'action redevient faisable.",
+                "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+              },
+              "adjust_plan_result": {
+                "scope": "action",
+                "rationale": {
+                  "confidence": "high",
+                  "missing_info": [],
+                  "user_problem": "L'habitude actuelle génère de la pression et semble trop lourde à exécuter quotidiennement.",
+                  "expected_effect": "Une meilleure adhésion à l'habitude grâce à une barrière à l'entrée plus basse.",
+                  "why_this_change": "L'ajustement répond directement à la demande de baisse de fréquence et de simplification du contenu."
+                },
+                "boundaries": {
+                  "explanation": "Le changement se limite à l'ajustement d'une habitude pour la rendre plus soutenable, sans modifier la direction générale du plan.",
+                  "affected_scope": "habitude spécifique",
+                  "global_plan_impact": "none",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "missions ponctuelles",
+                    "structure du plan"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Réduction de la fréquence et simplification de la consigne pour l'habitude de gratitude afin de lever la pression.",
+                  "changed_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "after": "3 fois par semaine. Une phrase simple, sans chercher à faire joli.",
+                      "title": "Partager un point positif",
+                      "before": "6 jours / semaine. Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire.",
+                      "reason": "Réduire la friction et la fatigue décisionnelle en limitant la fréquence et l'exigence de forme.",
+                      "capability": "change_action_frequency"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "title": "Convenir d'un signal de pause",
+                      "reason": "Cette mission ponctuelle est essentielle pour la gestion des tensions et n'ajoute pas de charge quotidienne récurrente."
+                    }
+                  ]
+                },
+                "user_message_brief": "J'ai réduit la fréquence de ton habitude à 3 fois par semaine avec une consigne simplifiée.",
+                "user_message_detailed": "Pour répondre à ton besoin de moins de pression, j'ai modifié l'action 'Partager un point positif' : elle passe de 6 à 3 fois par semaine. La consigne est désormais : 'une phrase simple, sans chercher à faire joli'. Les autres éléments de ton plan, comme la mission sur le signal de pause, restent inchangés car ils ne participent pas à cette fatigue quotidienne."
+              },
+              "execution_strategy": "patch_existing",
+              "allowed_patch_fields": [
+                "difficulty",
+                "duration_minutes",
+                "instruction",
+                "paused",
+                "target_reps",
+                "cadence_label"
+              ]
+            },
+            "patch": {
+              "difficulty": "medium",
+              "instruction": "une phrase simple, sans chercher à faire joli",
+              "target_reps": 3,
+              "cadence_label": "3 jours / semaine"
+            },
+            "applied_at": "2026-05-16T14:20:15.894Z",
+            "request_id": "qa-rose-2026-05-16-adjust-plan-action-validation-r4-t06",
+            "operation_id": "a3262339-0648-40f6-953d-362dba77ca67",
+            "plan_patch_id": "d0692661-8234-4aac-b6e8-f03fcc4b1f9f",
+            "source_message_id": "acb44fd7-acfa-4889-94ce-46282b01a547"
+          }
+        ],
+        "active_operation_adjustment": {
+          "draft": {
+            "patch": {
+              "difficulty": "medium",
+              "instruction": "une phrase simple, sans chercher à faire joli",
+              "target_reps": 3,
+              "cadence_label": "3 jours / semaine"
+            },
+            "title": "Ajustement - Partager un point positif",
+            "confidence": "high",
+            "ack_summary": {
+              "changed": [
+                "ajustement de \"Partager un point positif\""
+              ],
+              "unchanged": [
+                "le reste du plan n'est pas touché"
+              ],
+              "confidence": "high",
+              "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+              "follow_up_needed": null
+            },
+            "scope_label": "Partager un point positif",
+            "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+            "decision_basis": {
+              "evidence": [
+                "Je préfère finalement 3 fois par semaine, mais avec la même règle: une phrase simple, sans chercher à faire joli. Tu peux ajuster le brouillon comme ça ?",
+                "Partager un point positif",
+                "rebalance",
+                "me met un peu la pression",
+                "ça me paraît trop"
+              ],
+              "confidence": "high",
+              "uncertainty": [],
+              "user_problem": "Partager un point positif bloque parce que l'entree est trop lourde.",
+              "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+              "must_preserve": [
+                "reprendre Partager un point positif apres la version mini"
+              ]
+            },
+            "adjustment_type": "rebalance",
+            "proposed_change": "ajuster le plan de facon minimale",
+            "change_rationale": {
+              "why_this_change": "Ajuster \"Partager un point positif\" traite le blocage identifié sans changer le reste du plan.",
+              "success_condition": "L'action redevient faisable.",
+              "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+            },
+            "adjust_plan_result": {
+              "scope": "action",
+              "rationale": {
+                "confidence": "high",
+                "missing_info": [],
+                "user_problem": "L'habitude actuelle génère de la pression et semble trop lourde à exécuter quotidiennement.",
+                "expected_effect": "Une meilleure adhésion à l'habitude grâce à une barrière à l'entrée plus basse.",
+                "why_this_change": "L'ajustement répond directement à la demande de baisse de fréquence et de simplification du contenu."
+              },
+              "boundaries": {
+                "explanation": "Le changement se limite à l'ajustement d'une habitude pour la rendre plus soutenable, sans modifier la direction générale du plan.",
+                "affected_scope": "habitude spécifique",
+                "global_plan_impact": "none",
+                "explicitly_not_affected": [
+                  "objectif global",
+                  "missions ponctuelles",
+                  "structure du plan"
+                ]
+              },
+              "applied_change": {
+                "summary": "Réduction de la fréquence et simplification de la consigne pour l'habitude de gratitude afin de lever la pression.",
+                "changed_items": [
+                  {
+                    "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                    "kind": "habit",
+                    "after": "3 fois par semaine. Une phrase simple, sans chercher à faire joli.",
+                    "title": "Partager un point positif",
+                    "before": "6 jours / semaine. Chaque jour, exprime une gratitude ou souligne un point positif auprès de ton partenaire.",
+                    "reason": "Réduire la friction et la fatigue décisionnelle en limitant la fréquence et l'exigence de forme.",
+                    "capability": "change_action_frequency"
+                  }
+                ],
+                "preserved_items": [
+                  {
+                    "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                    "kind": "action",
+                    "title": "Convenir d'un signal de pause",
+                    "reason": "Cette mission ponctuelle est essentielle pour la gestion des tensions et n'ajoute pas de charge quotidienne récurrente."
+                  }
+                ]
+              },
+              "user_message_brief": "J'ai réduit la fréquence de ton habitude à 3 fois par semaine avec une consigne simplifiée.",
+              "user_message_detailed": "Pour répondre à ton besoin de moins de pression, j'ai modifié l'action 'Partager un point positif' : elle passe de 6 à 3 fois par semaine. La consigne est désormais : 'une phrase simple, sans chercher à faire joli'. Les autres éléments de ton plan, comme la mission sur le signal de pause, restent inchangés car ils ne participent pas à cette fatigue quotidienne."
+            },
+            "execution_strategy": "patch_existing",
+            "allowed_patch_fields": [
+              "difficulty",
+              "duration_minutes",
+              "instruction",
+              "paused",
+              "target_reps",
+              "cadence_label"
+            ]
+          },
+          "patch": {
+            "difficulty": "medium",
+            "instruction": "une phrase simple, sans chercher à faire joli",
+            "target_reps": 3,
+            "cadence_label": "3 jours / semaine"
+          },
+          "applied_at": "2026-05-16T14:20:15.894Z",
+          "request_id": "qa-rose-2026-05-16-adjust-plan-action-validation-r4-t06",
+          "operation_id": "a3262339-0648-40f6-953d-362dba77ca67",
+          "plan_patch_id": "d0692661-8234-4aac-b6e8-f03fcc4b1f9f",
+          "source_message_id": "acb44fd7-acfa-4889-94ce-46282b01a547"
+        }
+      },
+      "created_at": "2026-05-12T16:44:08.371+00:00",
+      "updated_at": "2026-05-16T14:52:11.379283+00:00",
+      "activated_at": "2026-05-12T16:44:08.371+00:00",
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started",
+      "cards_generated_at": null
+    },
+    {
+      "id": "07f63c87-82fb-471b-8d90-0848e5b06026",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+      "dimension": "clarifications",
+      "kind": "framework",
+      "status": "pending",
+      "title": "Cartographier les déclencheurs",
+      "description": "Prends 5 minutes en fin de semaine pour noter à froid ce qui a fait monter la pression, sans chercher à le résoudre tout de suite.",
+      "tracking_type": "boolean",
+      "activation_order": 3,
+      "activation_condition": {
+        "type": "after_item_completion",
+        "depends_on": [
+          "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+        ]
+      },
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-clarifications-001"
+        },
+        "clarification_details": {
+          "type": "one_shot",
+          "intro": "L'objectif est d'observer ce qui déclenche les tensions (argent, famille, intimité) sans en discuter à chaud avec lui.",
+          "sections": [
+            {
+              "id": "main_triggers",
+              "label": "Quels sujets ont créé de la friction cette semaine ?",
+              "input_type": "categorized_list",
+              "helper_text": "Note le sujet précis et sa catégorie globale.",
+              "placeholder": "Sujet|Catégorie (ex: Argent, Famille...)"
+            },
+            {
+              "id": "escalation_point",
+              "label": "À quel moment précis la discussion a-t-elle basculé ?",
+              "input_type": "textarea",
+              "helper_text": "Identifie le point de bascule vers la défensive.",
+              "placeholder": "Quand il a dit que... / Quand j'ai senti que..."
+            }
+          ],
+          "save_label": "Enregistrer mes observations"
+        }
+      },
+      "created_at": "2026-05-12T16:44:08.371+00:00",
+      "updated_at": "2026-05-12T16:44:08.371+00:00",
+      "activated_at": null,
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_required",
+      "cards_generated_at": null
+    },
+    {
+      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+      "dimension": "missions",
+      "kind": "task",
+      "status": "pending",
+      "title": "Faire le point sur le signal de pause",
+      "description": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+      "tracking_type": "boolean",
+      "activation_order": 4,
+      "activation_condition": {
+        "type": "after_habit_traction",
+        "depends_on": [
+          "9dd77821-b33c-45b3-be5c-ae2766549a6c"
+        ],
+        "min_completions": 5
+      },
+      "current_habit_state": null,
+      "support_mode": null,
+      "support_function": null,
+      "target_reps": null,
+      "current_reps": null,
+      "cadence_label": null,
+      "scheduled_days": null,
+      "time_of_day": "anytime",
+      "start_after_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+      "payload": {
+        "_generation": {
+          "temp_id": "gen-p1-missions-002"
+        }
+      },
+      "created_at": "2026-05-12T16:44:08.371+00:00",
+      "updated_at": "2026-05-12T16:44:08.371+00:00",
+      "activated_at": null,
+      "completed_at": null,
+      "phase_id": "phase-1",
+      "phase_order": 1,
+      "defense_card_id": null,
+      "attack_card_id": null,
+      "cards_status": "not_started",
+      "cards_generated_at": null
+    }
+  ],
+  "chat_messages": [],
+  "user_chat_states": [],
+  "system_runtime_snapshots": [
+    {
+      "id": "7ac0ab7b-f440-444f-969e-17265ad22f4a",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": null,
+      "transformation_id": null,
+      "snapshot_type": "plan_generated_v2",
+      "payload": {
+        "kind": "plan_adjustment_patch",
+        "draft": {
+          "draft": {
+            "patch": {
+              "confidence": "medium",
+              "scope_kind": "current_level",
+              "constraints": [
+                "no_pressure",
+                "minimal_patch",
+                "preserve_plan_intent",
+                "no_schedule_day_change",
+                "ask_confirmation_before_write",
+                "sans changer l'objectif global",
+                "version plus légère",
+                "2 jours / semaine",
+                "une phrase neutre",
+                "choisir un mot ou un geste simple en 5 minutes",
+                "quand ça se présente naturellement",
+                "moment libre",
+                "pas de créneau",
+                "affected_item:Partager un point positif",
+                "affected_item:Convenir d'un signal de pause"
+              ],
+              "reason_type": "context_changed",
+              "change_target": "global_load",
+              "reason_change": "context_changed",
+              "load_adjustment": "lighter",
+              "level_adjustment": "reduce_load"
+            },
+            "title": "Ajustement - Désamorcer et recréer de la sécurité",
+            "confidence": "medium",
+            "ack_summary": {
+              "changed": [
+                "niveau actuel: charge ajustée vers \"lighter\"",
+                "cible de changement: global_load"
+              ],
+              "unchanged": [
+                "le cœur du niveau reste préservé",
+                "chaque action n'est pas réécrite automatiquement"
+              ],
+              "confidence": "medium",
+              "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+              "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+            },
+            "scope_label": "Désamorcer et recréer de la sécurité",
+            "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+            "decision_basis": {
+              "evidence": [
+                "Rends aussi le moment libre. Je ne veux pas choisir de créneau : deux jours par semaine, quand ça se présente naturellement.",
+                "Le niveau entier sur la sécurité",
+                "reduce",
+                "global_load"
+              ],
+              "confidence": "medium",
+              "uncertainty": [
+                "actions exactes du niveau a choisir pour une modification fine"
+              ],
+              "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+              "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+              "must_preserve": [
+                "coeur du niveau"
+              ]
+            },
+            "adjustment_type": "reduce",
+            "proposed_change": "alleger la charge du niveau actuel sans supprimer l'intention",
+            "change_rationale": {
+              "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+              "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+              "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+            },
+            "adjust_plan_result": {
+              "scope": "level",
+              "rationale": {
+                "confidence": "medium",
+                "missing_info": [
+                  "Le moment exact où l'utilisateur se sent le plus disponible pour ces micro-actions."
+                ],
+                "user_problem": "Le niveau actuel est ressenti comme trop lourd ou trop rigide par rapport au contexte présent.",
+                "expected_effect": "Une reprise de l'action avec moins de résistance et une meilleure intégration dans le flux naturel de la semaine.",
+                "why_this_change": "Réduire la fréquence et simplifier les consignes permet de maintenir l'engagement sans générer de culpabilité ou de fatigue décisionnelle."
+              },
+              "boundaries": {
+                "explanation": "L'ajustement se concentre sur la réduction de la friction immédiate sans modifier la trajectoire long terme.",
+                "affected_scope": "niveau actuel uniquement",
+                "global_plan_impact": "none",
+                "explicitly_not_affected": [
+                  "objectif global",
+                  "structure complète du plan"
+                ]
+              },
+              "applied_change": {
+                "summary": "Allègement de la charge du niveau actuel par la réduction de fréquence et la simplification des consignes pour deux actions clés.",
+                "changed_items": [
+                  {
+                    "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                    "kind": "habit",
+                    "after": "2 jours / semaine, une phrase neutre, quand ça se présente naturellement",
+                    "title": "Partager un point positif",
+                    "before": "3 jours / semaine, une phrase simple",
+                    "reason": "Réduire la fréquence et supprimer la contrainte de créneau pour diminuer la charge mentale.",
+                    "capability": "change_action_frequency"
+                  },
+                  {
+                    "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                    "kind": "action",
+                    "after": "choisir un mot ou un geste simple en 5 minutes, moment libre sans créneau",
+                    "title": "Convenir d'un signal de pause",
+                    "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste...",
+                    "reason": "Simplifier l'action pour qu'elle soit rapide et s'intègre naturellement dans votre emploi du temps.",
+                    "capability": "modify_existing_action"
+                  }
+                ],
+                "preserved_items": [
+                  {
+                    "id": null,
+                    "kind": "plan",
+                    "title": "Objectif global de sécurité",
+                    "reason": "L'intention de fond du plan doit rester stable malgré l'ajustement du niveau."
+                  }
+                ]
+              },
+              "user_message_brief": "J'ai allégé ton niveau actuel pour le rendre plus flexible et moins prenant cette semaine.",
+              "user_message_detailed": "Pour répondre à ton besoin de légèreté, j'ai modifié deux points :\n- L'habitude 'Partager un point positif' passe de 3 à 2 jours par semaine, avec une consigne simplifiée à une phrase neutre sans créneau fixe pour que ce soit plus naturel.\n- La mission 'Convenir d'un signal de pause' est raccourcie à un format de 5 minutes à faire quand vous voulez.\nLe reste de ton plan reste identique pour préserver ton objectif de sécurité. Mon niveau de confiance est bon car cela respecte tes contraintes de temps et de flexibilité."
+            },
+            "execution_strategy": "level_adjustment",
+            "allowed_patch_fields": [
+              "scope_kind",
+              "level_adjustment",
+              "load_adjustment",
+              "focus_adjustment",
+              "reason_type",
+              "reason_change",
+              "change_target",
+              "confidence",
+              "constraints"
+            ]
+          },
+          "output_schema": "plan_adjustment_draft_v1",
+          "operation_type": "adjust_plan_item",
+          "execution_message": "C'est fait, j'ai ajusté ton niveau pour le rendre plus accessible et flexible.\n\nJ'ai réduit la fréquence de l'habitude 'Partager un point positif' à 2 jours par semaine en limitant l'effort à une phrase neutre, sans contrainte d'horaire. J'ai aussi allégé la mission 'Convenir d'un signal de pause' pour qu'elle ne vous demande que 5 minutes au moment où vous vous sentez disponibles.\n\nCes modifications te permettent de garder l'élan sur la sécurité tout en supprimant la pression du calendrier. Ton objectif de fond ne bouge pas, mais le quotidien devient plus respirable.",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Je te propose d'alléger ton niveau actuel pour qu'il soit plus fluide à suivre cette semaine, sans toucher à ton objectif global. Rien n'est encore appliqué, j'attends ta validation sur ce brouillon.\n\nVoici les deux changements concrets que je prévois :\n1. Pour l'habitude 'Partager un point positif', je propose de passer à 2 jours par semaine avec une consigne simplifiée (une phrase neutre) à réaliser quand cela se présente naturellement, sans créneau imposé.\n2. Pour la mission 'Convenir d'un signal de pause', je simplifie l'objectif : choisir un mot ou un geste simple en 5 minutes, au moment qui vous semble le plus libre.\n\nLe reste de ton plan et la direction de ton travail sur la sécurité restent inchangés. Est-ce que cette version plus légère te convient ?"
+        },
+        "patch": {
+          "confidence": "medium",
+          "scope_kind": "current_level",
+          "constraints": [
+            "no_pressure",
+            "minimal_patch",
+            "preserve_plan_intent",
+            "no_schedule_day_change",
+            "ask_confirmation_before_write",
+            "sans changer l'objectif global",
+            "version plus légère",
+            "2 jours / semaine",
+            "une phrase neutre",
+            "choisir un mot ou un geste simple en 5 minutes",
+            "quand ça se présente naturellement",
+            "moment libre",
+            "pas de créneau",
+            "affected_item:Partager un point positif",
+            "affected_item:Convenir d'un signal de pause"
+          ],
+          "reason_type": "context_changed",
+          "change_target": "global_load",
+          "reason_change": "context_changed",
+          "load_adjustment": "lighter",
+          "level_adjustment": "reduce_load"
+        },
+        "scope": {
+          "kind": "current_level",
+          "title": "Désamorcer et recréer de la sécurité",
+          "plan_item_id": null,
+          "current_summary": "Désamorcer et recréer de la sécurité"
+        },
+        "reason": "non_item_scope_plan_adjustment",
+        "applied": true,
+        "created_at": "2026-05-16T14:51:30.823Z",
+        "request_id": "qa-rose-2026-05-16-adjust-plan-level-level-validation-r1-t10",
+        "operation_id": "fbef8a64-5c5f-4abf-a5e2-b8ee633d23f6",
+        "plan_patch_id": "b47eb60f-12ad-4659-9f85-fd77620a3502",
+        "affected_scope": "current_level",
+        "storage_fallback": "plan_generated_v2",
+        "source_message_id": "b1840ad9-90ee-4ae4-9062-9442f72c59b0",
+        "materialized_plan_item_ids": [
+          "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+          "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5"
+        ]
+      },
+      "created_at": "2026-05-16T14:51:30.85567+00:00"
+    },
+    {
+      "id": "d031af6b-1bcc-4c0c-a8cc-e6a89e714f78",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": null,
+      "snapshot_type": "momentum_state_v2",
+      "payload": {
+        "state": "healthy",
+        "window": {
+          "to": "2026-05-13",
+          "days": 7,
+          "from": "2026-05-07"
+        },
+        "signals": {
+          "done": 2,
+          "missed": 1,
+          "partial": 0,
+          "unanswered": 0,
+          "rescheduled": 0,
+          "missed_streak": 1,
+          "adherence_rate": 0.67,
+          "planned_actions": 3,
+          "conversation_risk": null,
+          "last_user_reply_at": "2026-05-13T21:10:32.585427+00:00",
+          "planning_confirmed": false,
+          "current_done_streak": 0,
+          "active_transformations": 1,
+          "days_since_last_user_reply": 0,
+          "planning_modified_this_week": false,
+          "upcoming_planned_actions_7d": 5
+        },
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "version": 1,
+        "risk_level": "low",
+        "generated_at": "2026-05-13T21:10:32.597Z",
+        "interpretation": {
+          "confidence": "medium",
+          "main_pattern": "la trajectoire est assez stable sur la fenetre recente"
+        },
+        "recommended_intervention": {
+          "kind": "dashboard_prompt",
+          "reason": "le planning doit rester confirme pour fiabiliser les checks",
+          "posture": "warm_pragmatic",
+          "urgency": "low"
+        }
+      },
+      "created_at": "2026-05-13T21:10:42.957096+00:00"
+    },
+    {
+      "id": "84a54ae4-5040-495d-951d-7fa19c1cd2a8",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "plan_item_entry_logged_v2",
+      "payload": {
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "entry_id": "8962a7ae-49ea-438f-b658-a7957aa35dc1",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "missions",
+          "confidence": "high",
+          "local_date": "2026-05-13",
+          "reason_text": "peur que ça relance une tension",
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "60103e2e-f87c-4759-be10-86081decafc7",
+          "outcome_source": "free_text",
+          "rescheduled_to": "wed",
+          "still_relevant": null,
+          "reason_category": "emotional",
+          "matched_user_text": "Par contre le signal de pause, non : je n'ai pas osé l'amener, j'avais peur que ça relance une tension.",
+          "occurrence_status": "rescheduled",
+          "pending_action_id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+          "reschedule_decision": "rescheduled_tomorrow",
+          "scheduled_checkin_id": "2581a260-1619-4fa5-9493-045e2835b5a5"
+        },
+        "entry_kind": "skip",
+        "effective_at": "2026-05-13T12:00:00.000Z",
+        "plan_item_id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-13T21:10:42.878026+00:00"
+    },
+    {
+      "id": "2236863f-61da-4da6-9f6b-23bd60bee6df",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "plan_item_entry_logged_v2",
+      "payload": {
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "entry_id": "9c2c5a84-b198-4628-a0bd-96fd698a6dac",
+        "metadata": {
+          "source": "daily_action_review_v1",
+          "channel": "whatsapp",
+          "action_id": null,
+          "dimension": "habits",
+          "confidence": "high",
+          "local_date": "2026-05-13",
+          "reason_text": null,
+          "legacy_source": "action_evening_review_v2",
+          "occurrence_id": "57e3b4a8-35ce-414f-8012-61a162423ef4",
+          "outcome_source": "free_text",
+          "rescheduled_to": null,
+          "still_relevant": null,
+          "reason_category": "none",
+          "matched_user_text": "Oui, j'ai partagé un point positif avec lui ce soir, ça a été un peu maladroit mais je l'ai fait.",
+          "occurrence_status": "done",
+          "pending_action_id": "7bc8299f-65d8-4567-94ae-4e8cdea83f5e",
+          "reschedule_decision": null,
+          "scheduled_checkin_id": "2581a260-1619-4fa5-9493-045e2835b5a5"
+        },
+        "entry_kind": "checkin",
+        "effective_at": "2026-05-13T12:00:00.000Z",
+        "plan_item_id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-13T21:10:42.872868+00:00"
+    },
+    {
+      "id": "ff198f01-dfc5-40aa-b7c0-76590b23fa45",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "transformation_activated_v2",
+      "payload": {
+        "reason": "transformation_status_active",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:44:08.504132+00:00"
+    },
+    {
+      "id": "e8c33154-d1c2-4c8a-ba53-1dbccd6638e5",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "plan_activated_v2",
+      "payload": {
+        "reason": "plan_status_active",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:44:08.497531+00:00"
+    },
+    {
+      "id": "3aeb3368-4dc9-4e4f-8df6-e4b57b6733bf",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "plan_generated_v2",
+      "payload": {
+        "reason": "initial_generation",
+        "plan_id": "fe37bd40-6721-4de5-bfb0-b8998d8b7b3e",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "item_count": 4,
+          "phase_count": 1
+        },
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:44:08.418895+00:00"
+    },
+    {
+      "id": "3c72502b-7efd-4ba1-a9e2-b6c31ae58372",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "cycle_prioritized_v2",
+      "payload": {
+        "reason": "questionnaire_generated",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "generate-questionnaire-v2",
+          "cycle_status": "questionnaire_in_progress",
+          "question_count": 12
+        },
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:40:55.388775+00:00"
+    },
+    {
+      "id": "b2ea343c-53fb-4b97-af64-0038d784cafd",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "cycle_prioritized_v2",
+      "payload": {
+        "reason": "questionnaire_generated",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "generate-questionnaire-v2",
+          "cycle_status": "questionnaire_in_progress",
+          "question_count": 12
+        },
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:40:53.609284+00:00"
+    },
+    {
+      "id": "3fe789f4-5779-4c1b-bde3-bf0d82a45974",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3",
+      "snapshot_type": "cycle_prioritized_v2",
+      "payload": {
+        "reason": "questionnaire_generated",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "generate-questionnaire-v2",
+          "cycle_status": "questionnaire_in_progress",
+          "question_count": 12
+        },
+        "transformation_id": "c6f5d590-ebd4-4533-afc8-bda4a9adcfe3"
+      },
+      "created_at": "2026-05-12T16:40:45.707451+00:00"
+    },
+    {
+      "id": "ddf79c3d-ae87-4f51-96c0-eb69750b4ba8",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": null,
+      "snapshot_type": "cycle_prioritized_v2",
+      "payload": {
+        "reason": "unified_materialized",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "intake-to-transformations-v2",
+          "transformations_count": 1
+        }
+      },
+      "created_at": "2026-05-12T16:39:25.860193+00:00"
+    },
+    {
+      "id": "c1f54d35-4bc5-4bc4-8ed5-ec810ff125e1",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": null,
+      "snapshot_type": "cycle_structured_v2",
+      "payload": {
+        "reason": "unified_materialized",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "intake-to-transformations-v2",
+          "aspects_count": 2,
+          "transformations_count": 1
+        }
+      },
+      "created_at": "2026-05-12T16:39:25.854861+00:00"
+    },
+    {
+      "id": "01e3b862-644c-44f2-9610-1527b4f09bb2",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+      "transformation_id": null,
+      "snapshot_type": "cycle_created_v2",
+      "payload": {
+        "reason": "intake_unified_started",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "cycle_id": "a9200dab-44c5-4626-b916-16a5f241d305",
+        "metadata": {
+          "source": "intake-to-transformations-v2"
+        }
+      },
+      "created_at": "2026-05-12T16:39:25.836993+00:00"
+    }
+  ]
+}

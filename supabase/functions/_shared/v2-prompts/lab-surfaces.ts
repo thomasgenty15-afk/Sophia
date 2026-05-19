@@ -55,18 +55,19 @@ export type AttackTechniqueGenerationInput = LabSurfaceGenerationInput & {
   } | null;
 };
 
-export type AttackTechniqueAdjustmentAnalysisInput = LabSurfaceGenerationInput & {
-  current_technique_key: AttackTechniqueGenerationInput["technique_key"];
-  current_technique_title: string;
-  current_technique_pour_quoi: string;
-  current_generated_asset: string;
-  current_mode_emploi: string;
-  failure_reason_key: string;
-  failure_notes: string | null;
-};
+export type AttackTechniqueAdjustmentAnalysisInput =
+  & LabSurfaceGenerationInput
+  & {
+    current_technique_key: AttackTechniqueGenerationInput["technique_key"];
+    current_technique_title: string;
+    current_technique_pour_quoi: string;
+    current_generated_asset: string;
+    current_mode_emploi: string;
+    failure_reason_key: string;
+    failure_notes: string | null;
+  };
 
-export const ATTACK_CARD_SYSTEM_PROMPT =
-  `Tu generes une carte d'attaque Sophia.
+export const ATTACK_CARD_SYSTEM_PROMPT = `Tu generes une carte d'attaque Sophia.
 
 Cette carte vit dans le Labo. Elle n'est pas un item du plan.
 Elle sert a prendre de l'avance, pas a reagir dans l'urgence.
@@ -128,8 +129,7 @@ Regles :
 - reminder court
 - pas de markdown`;
 
-export const INSPIRATION_SYSTEM_PROMPT =
-  `Tu generes des inspirations Sophia.
+export const INSPIRATION_SYSTEM_PROMPT = `Tu generes des inspirations Sophia.
 
 Les inspirations sont des objets hors plan. Elles servent a donner un angle, un recadrage, un mini-declic ou un micro-pas.
 
@@ -202,6 +202,7 @@ Regles :
 - pour \`preparer_terrain\`, reste sur un micro-setup complementaire a l'action cible, pas sur une grosse mission deja prevue dans le plan
 - ton simple, direct, utile
 - tutoie l'utilisateur
+- n'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur
 - pas de markdown`;
 
 export const ATTACK_TECHNIQUE_ADJUSTMENT_SYSTEM_PROMPT =
@@ -257,10 +258,13 @@ ${input.focus_context || "Non renseigne"}
 
 ## Questionnaire answers
 
-${JSON.stringify(input.questionnaire_answers ?? {}, null, 2)}${classificationBlock}
+${
+    JSON.stringify(input.questionnaire_answers ?? {}, null, 2)
+  }${classificationBlock}
 
-${input.action_context?.item_title
-    ? `## Focus action courante
+${
+    input.action_context?.item_title
+      ? `## Focus action courante
 
 - Action cible: ${input.action_context.item_title}
 - Type d'action: ${input.action_context.item_kind}
@@ -268,15 +272,23 @@ ${input.action_context?.item_title
 - Niveau du plan: ${input.action_context.phase_label ?? "Non précisé"}
 - Moment: ${input.action_context.time_of_day ?? "Non précisé"}
 - Cadence: ${input.action_context.cadence_label ?? "Non précisée"}
-- Ce qui doit être protégé maintenant: ${input.action_context.activation_hint ?? "L'exécution de cette action au bon moment."}${
-      Array.isArray(input.action_context.phase_items_summary) &&
-        input.action_context.phase_items_summary.length > 0
-        ? `
+- Ce qui doit être protégé maintenant: ${
+        input.action_context.activation_hint ??
+          "L'exécution de cette action au bon moment."
+      }${
+        Array.isArray(input.action_context.phase_items_summary) &&
+          input.action_context.phase_items_summary.length > 0
+          ? `
 - Autres actions deja prevues dans ce niveau:
-${input.action_context.phase_items_summary.map((item) => `  - ${item}`).join("\n")}`
-        : ""
-    }`
-    : ""}
+${
+            input.action_context.phase_items_summary.map((item) =>
+              `  - ${item}`
+            ).join("\n")
+          }`
+          : ""
+      }`
+      : ""
+  }
 
 ## Regle de focus
 
@@ -308,19 +320,26 @@ ${input.adjustment_context.current_generated_asset}
 - Mode d'emploi precedent: ${input.adjustment_context.current_mode_emploi}
 - Raison d'echec: ${input.adjustment_context.failure_reason_key}
 - Notes libres: ${input.adjustment_context.failure_notes ?? "aucune"}
-- Pourquoi cette nouvelle direction: ${input.adjustment_context.recommendation_reason ?? "non precise"}
+- Pourquoi cette nouvelle direction: ${
+      input.adjustment_context.recommendation_reason ?? "non precise"
+    }
 
 ## Questions de diagnostic supplementaires
 
-${(input.adjustment_context.diagnostic_questions ?? []).map((question, index) =>
-      `- Question ${index + 1}: ${question}`
-    ).join("\n") || "- Aucune"}
+${
+      (input.adjustment_context.diagnostic_questions ?? []).map((
+        question,
+        index,
+      ) => `- Question ${index + 1}: ${question}`).join("\n") || "- Aucune"
+    }
 
 ## Reponses de diagnostic
 
-${(input.adjustment_context.diagnostic_answers ?? []).map((answer, index) =>
-      `- Reponse diagnostic ${index + 1}: ${answer}`
-    ).join("\n") || "- Aucune"}`
+${
+      (input.adjustment_context.diagnostic_answers ?? []).map((answer, index) =>
+        `- Reponse diagnostic ${index + 1}: ${answer}`
+      ).join("\n") || "- Aucune"
+    }`
     : "";
 
   return `${base}
@@ -339,14 +358,16 @@ ${answers}
 
 ${adjustmentBlock}
 
-${input.technique_key === "pre_engagement"
-    ? `## Guidance speciale pour cette technique
+${
+    input.technique_key === "pre_engagement"
+      ? `## Guidance speciale pour cette technique
 
 - Tu generes un mot-cle de bascule, pas un contrat.
 - Le mot-cle doit etre cool, court, memorisable, facile a taper.
 - Le texte final doit dire a l'utilisateur d'envoyer seulement ce mot quand il sent qu'il va craquer ou perdre le controle.
 - Le JSON final doit absolument remplir \`keyword_trigger\`.`
-    : ""}
+      : ""
+  }
 
 ## Garde-fous anti-chevauchement
 
@@ -389,11 +410,17 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return !!value && typeof value === "object" && !Array.isArray(value);
 }
 
-function isStringArray(value: unknown, min: number, max: number): value is string[] {
+function isStringArray(
+  value: unknown,
+  min: number,
+  max: number,
+): value is string[] {
   return Array.isArray(value) &&
     value.length >= min &&
     value.length <= max &&
-    value.every((entry) => typeof entry === "string" && entry.trim().length > 0);
+    value.every((entry) =>
+      typeof entry === "string" && entry.trim().length > 0
+    );
 }
 
 export function validateAttackCardOutput(raw: unknown): {
@@ -402,7 +429,9 @@ export function validateAttackCardOutput(raw: unknown): {
   content: AttackCardContent | null;
 } {
   const issues: string[] = [];
-  if (!isRecord(raw)) return { valid: false, issues: ["output is not an object"], content: null };
+  if (!isRecord(raw)) {
+    return { valid: false, issues: ["output is not an object"], content: null };
+  }
   if (typeof raw.summary !== "string" || !raw.summary.trim()) {
     issues.push("summary is required");
   }
@@ -437,10 +466,15 @@ export function validateAttackCardOutput(raw: unknown): {
       if (typeof candidate.title !== "string" || !candidate.title.trim()) {
         issues.push(`techniques[${index}].title is required`);
       }
-      if (typeof candidate.pour_quoi !== "string" || !candidate.pour_quoi.trim()) {
+      if (
+        typeof candidate.pour_quoi !== "string" || !candidate.pour_quoi.trim()
+      ) {
         issues.push(`techniques[${index}].pour_quoi is required`);
       }
-      if (typeof candidate.objet_genere !== "string" || !candidate.objet_genere.trim()) {
+      if (
+        typeof candidate.objet_genere !== "string" ||
+        !candidate.objet_genere.trim()
+      ) {
         issues.push(`techniques[${index}].objet_genere is required`);
       }
       if (
@@ -449,12 +483,19 @@ export function validateAttackCardOutput(raw: unknown): {
           !Array.isArray(candidate.questions) ||
           candidate.questions.length < 2 ||
           candidate.questions.length > 3 ||
-          candidate.questions.some((entry) => typeof entry !== "string" || !entry.trim())
+          candidate.questions.some((entry) =>
+            typeof entry !== "string" || !entry.trim()
+          )
         )
       ) {
-        issues.push(`techniques[${index}].questions must contain 2 to 3 items when provided`);
+        issues.push(
+          `techniques[${index}].questions must contain 2 to 3 items when provided`,
+        );
       }
-      if (typeof candidate.mode_emploi !== "string" || !candidate.mode_emploi.trim()) {
+      if (
+        typeof candidate.mode_emploi !== "string" ||
+        !candidate.mode_emploi.trim()
+      ) {
         issues.push(`techniques[${index}].mode_emploi is required`);
       }
     }
@@ -473,7 +514,9 @@ export function validateSupportCardOutput(raw: unknown): {
   content: SupportCardContent | null;
 } {
   const issues: string[] = [];
-  if (!isRecord(raw)) return { valid: false, issues: ["output is not an object"], content: null };
+  if (!isRecord(raw)) {
+    return { valid: false, issues: ["output is not an object"], content: null };
+  }
   if (typeof raw.support_goal !== "string" || !raw.support_goal.trim()) {
     issues.push("support_goal is required");
   }
@@ -516,7 +559,9 @@ export function validateInspirationOutput(raw: unknown): {
   if (!isRecord(raw)) {
     return { valid: false, issues: ["output is not an object"], items: [] };
   }
-  if (!Array.isArray(raw.items) || raw.items.length < 3 || raw.items.length > 5) {
+  if (
+    !Array.isArray(raw.items) || raw.items.length < 3 || raw.items.length > 5
+  ) {
     return {
       valid: false,
       issues: ["items must contain 3-5 inspiration objects"],
@@ -530,7 +575,10 @@ export function validateInspirationOutput(raw: unknown): {
       issues.push("each inspiration item must be an object");
       continue;
     }
-    if (typeof candidate.inspiration_type !== "string" || !candidate.inspiration_type.trim()) {
+    if (
+      typeof candidate.inspiration_type !== "string" ||
+      !candidate.inspiration_type.trim()
+    ) {
       issues.push("inspiration_type is required");
     }
     if (typeof candidate.title !== "string" || !candidate.title.trim()) {
@@ -539,10 +587,17 @@ export function validateInspirationOutput(raw: unknown): {
     if (typeof candidate.body !== "string" || !candidate.body.trim()) {
       issues.push("body is required");
     }
-    if (!Array.isArray(candidate.tags) || candidate.tags.some((tag) => typeof tag !== "string")) {
+    if (
+      !Array.isArray(candidate.tags) ||
+      candidate.tags.some((tag) => typeof tag !== "string")
+    ) {
       issues.push("tags must be a string array");
     }
-    if (!["light", "medium", "high"].includes(String(candidate.effort_level ?? ""))) {
+    if (
+      !["light", "medium", "high"].includes(
+        String(candidate.effort_level ?? ""),
+      )
+    ) {
       issues.push("effort_level is invalid");
     }
     if (
@@ -559,15 +614,20 @@ export function validateInspirationOutput(raw: unknown): {
         : null,
       title: String(candidate.title ?? "").trim(),
       body: String(candidate.body ?? "").trim(),
-      cta_label: typeof candidate.cta_label === "string" && candidate.cta_label.trim()
-        ? candidate.cta_label.trim()
-        : null,
+      cta_label:
+        typeof candidate.cta_label === "string" && candidate.cta_label.trim()
+          ? candidate.cta_label.trim()
+          : null,
       cta_payload: isRecord(candidate.cta_payload) ? candidate.cta_payload : {},
       tags: Array.isArray(candidate.tags)
-        ? candidate.tags.filter((tag): tag is string => typeof tag === "string" && tag.trim().length > 0)
+        ? candidate.tags.filter((tag): tag is string =>
+          typeof tag === "string" && tag.trim().length > 0
+        )
         : [],
-      effort_level: candidate.effort_level as UserInspirationItemRow["effort_level"],
-      context_window: candidate.context_window as UserInspirationItemRow["context_window"],
+      effort_level: candidate
+        .effort_level as UserInspirationItemRow["effort_level"],
+      context_window: candidate
+        .context_window as UserInspirationItemRow["context_window"],
     });
   }
 
@@ -597,7 +657,9 @@ export function validateAttackTechniqueOutput(raw: unknown): {
   } | null;
 } {
   const issues: string[] = [];
-  if (!isRecord(raw)) return { valid: false, issues: ["output is not an object"], content: null };
+  if (!isRecord(raw)) {
+    return { valid: false, issues: ["output is not an object"], content: null };
+  }
   if (typeof raw.output_title !== "string" || !raw.output_title.trim()) {
     issues.push("output_title is required");
   }
@@ -627,27 +689,42 @@ export function validateAttackTechniqueOutput(raw: unknown): {
     if (!isRecord(raw.keyword_trigger)) {
       issues.push("keyword_trigger must be an object when provided");
     } else {
-      const activationKeyword = String(raw.keyword_trigger.activation_keyword ?? "").trim();
+      const activationKeyword = String(
+        raw.keyword_trigger.activation_keyword ?? "",
+      ).trim();
       const activationKeywordNormalized = String(
         raw.keyword_trigger.activation_keyword_normalized ?? "",
       ).trim();
-      const riskSituation = String(raw.keyword_trigger.risk_situation ?? "").trim();
-      const strengthAnchor = String(raw.keyword_trigger.strength_anchor ?? "").trim();
+      const riskSituation = String(raw.keyword_trigger.risk_situation ?? "")
+        .trim();
+      const strengthAnchor = String(raw.keyword_trigger.strength_anchor ?? "")
+        .trim();
       const firstResponseIntent = String(
         raw.keyword_trigger.first_response_intent ?? "",
       ).trim();
-      const assistantPrompt = String(raw.keyword_trigger.assistant_prompt ?? "").trim();
+      const assistantPrompt = String(raw.keyword_trigger.assistant_prompt ?? "")
+        .trim();
 
-      if (!activationKeyword) issues.push("keyword_trigger.activation_keyword is required");
-      if (!activationKeywordNormalized) {
-        issues.push("keyword_trigger.activation_keyword_normalized is required");
+      if (!activationKeyword) {
+        issues.push("keyword_trigger.activation_keyword is required");
       }
-      if (!riskSituation) issues.push("keyword_trigger.risk_situation is required");
-      if (!strengthAnchor) issues.push("keyword_trigger.strength_anchor is required");
+      if (!activationKeywordNormalized) {
+        issues.push(
+          "keyword_trigger.activation_keyword_normalized is required",
+        );
+      }
+      if (!riskSituation) {
+        issues.push("keyword_trigger.risk_situation is required");
+      }
+      if (!strengthAnchor) {
+        issues.push("keyword_trigger.strength_anchor is required");
+      }
       if (!firstResponseIntent) {
         issues.push("keyword_trigger.first_response_intent is required");
       }
-      if (!assistantPrompt) issues.push("keyword_trigger.assistant_prompt is required");
+      if (!assistantPrompt) {
+        issues.push("keyword_trigger.assistant_prompt is required");
+      }
 
       if (
         activationKeyword &&
@@ -674,14 +751,16 @@ export function validateAttackTechniqueOutput(raw: unknown): {
     issues,
     content: issues.length === 0
       ? {
-          output_title: String(raw.output_title).trim(),
-          generated_asset: String(raw.generated_asset).trim(),
-          supporting_points: Array.isArray(raw.supporting_points)
-            ? raw.supporting_points.map((entry) => String(entry).trim()).filter(Boolean).slice(0, 4)
-            : [],
-          mode_emploi: String(raw.mode_emploi).trim(),
-          keyword_trigger: keywordTrigger,
-        }
+        output_title: String(raw.output_title).trim(),
+        generated_asset: String(raw.generated_asset).trim(),
+        supporting_points: Array.isArray(raw.supporting_points)
+          ? raw.supporting_points.map((entry) => String(entry).trim()).filter(
+            Boolean,
+          ).slice(0, 4)
+          : [],
+        mode_emploi: String(raw.mode_emploi).trim(),
+        keyword_trigger: keywordTrigger,
+      }
       : null,
   };
 }

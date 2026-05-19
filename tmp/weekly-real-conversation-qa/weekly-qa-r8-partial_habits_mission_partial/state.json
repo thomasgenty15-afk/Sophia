@@ -1,0 +1,1240 @@
+{
+  "run_id": "weekly-qa-r8-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+  "email": "qa-weekly-deep-weekly-qa-r8-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+  "created_at": "2026-05-18T14:48:46.476Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-18T14:48:46.476Z",
+      "user": "Je l'ai vecue en deux temps : debut de semaine correct, puis grosse fatigue jeudi et vendredi. J'ai fait une partie des habitudes et commence la mission, mais je ne veux pas transformer ca en grosse liste de regles. Tu proposes quoi pour l'organisation concrete de la semaine ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ah ouais, jeudi-vendredi ça a vraiment cassé ton élan… 😮‍💨 Et le fait que tu aies quand même fait une partie des habitudes + commencé la mission, c’est un bon signe.\n\nPour que ce soit concret (et sans te transformer la semaine en règlement), je te propose une organisation simple en 2 couches :\n\n1) La couche “minimum vital” (facile à tenir, même fatigué)\n- Garder tes habitudes comme “versions light” uniquement si besoin: soit tu fais la cadence habituelle, soit tu fais juste la version la plus courte (sans négocier une tonne de choses).\n- La mission: tu avances en mode “un petit pas”, pas en mode “grosse liste”.\n\n2) La couche “propulsion” (quand t’as un peu d’énergie)\n- Dès que tu sens une fenêtre d’énergie (souvent 1 créneau dans la semaine), tu fais soit:\n  - 1 session un peu plus longue de la mission, ou\n  - 1 “petit paquet” d’achèvement (2-3 actions liées, pas plus).\n\nRègle d’or ultra simple pour éviter les listes de règles:\n- Chaque jour: 1 action garantie (habitude ou mission en min), et si tu peux, 1 action bonus.\n- Si tu fais la version min, c’est validé. Point. Pas de culpabilité, pas de rattrapage massif.\n\nJe peux te l’optimiser pour “ta” semaine exacte: tu me confirmes juste un truc, c’est quoi la mission que tu as commencée (en 1 phrase), et à quel point elle en est (0-25%, 25-50%, 50-75%, 75-100%) ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r8-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r8-partial_habits_mission_partial-t01",
+        "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah ouais, jeudi-vendredi ça a vraiment cassé ton élan… 😮‍💨 Et le fait que tu aies quand même fait une partie des habitudes + commencé la mission, c’est un bon signe.\n\nPour que ce soit concret (et sans te transformer la semaine en règlement), je te propose une organisation simple en 2 couches :\n\n1) La couche “minimum vital” (facile à tenir, même fatigué)\n- Garder tes habitudes comme “versions light” uniquement si besoin: soit tu fais la cadence habituelle, soit tu fais juste la version la plus courte (sans négocier une tonne de choses).\n- La mission: tu avances en mode “un petit pas”, pas en mode “grosse liste”.\n\n2) La couche “propulsion” (quand t’as un peu d’énergie)\n- Dès que tu sens une fenêtre d’énergie (souvent 1 créneau dans la semaine), tu fais soit:\n  - 1 session un peu plus longue de la mission, ou\n  - 1 “petit paquet” d’achèvement (2-3 actions liées, pas plus).\n\nRègle d’or ultra simple pour éviter les listes de règles:\n- Chaque jour: 1 action garantie (habitude ou mission en min), et si tu peux, 1 action bonus.\n- Si tu fais la version min, c’est validé. Point. Pas de culpabilité, pas de rattrapage massif.\n\nJe peux te l’optimiser pour “ta” semaine exacte: tu me confirmes juste un truc, c’est quoi la mission que tu as commencée (en 1 phrase), et à quel point elle en est (0-25%, 25-50%, 50-75%, 75-100%) ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t01",
+          "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+          "source_message_id": "003dfb8f-02a1-488c-a10b-f32f9265b68e",
+          "ts": "2026-05-18T14:49:01.089+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10256,
+            "latency_ms": 10729,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 600,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [
+                "Le message porte sur le bilan de la semaine et l'organisation future sans risque détecté."
+              ],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t01",
+            "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "Le user répond à la question du bilan hebdomadaire et demande la proposition d'ajustement.",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "003dfb8f-02a1-488c-a10b-f32f9265b68e",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 14570,
+          "created_at": "2026-05-18T14:49:01.091324+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-18T14:49:11.807Z",
+      "user": "La mission c'est convenir du signal de pause, je suis a peu pres a 50% : j'ai le brouillon du message mais pas l'accord avec la personne. Reformule sans regle du jour : qu'est-ce qu'on met dans l'organisation de la semaine prochaine ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok je vois : le point bloquant c’est “pas l’accord avec la personne” donc on garde le cap mais on enlève la pression de “tout faire parfait” d’ici là 😊\n\nPour l’organisation de la semaine prochaine (proposition) :\n1) Reprendre ton proposition de message et le finaliser en version courte + claire\n2) Envoyer à la personne (objectif : demander l’accord, pas débattre)\n3) Noter le statut après contact : accord obtenu / en attente / pas possible\n4) Si en attente au bout d’un créneau raisonnable, relance une fois avec une version encore plus simple\n\nJe te propose qu’on vise 1 seul message + 0 à 1 relance, pour que ça avance sans te cramer.\n\nTu préfères que je te reformule le message en mode “super court” (2-3 phrases) ou “un peu plus complet” (5-6 phrases) ? 😊",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r8-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r8-partial_habits_mission_partial-t02",
+        "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok je vois : le point bloquant c’est “pas l’accord avec la personne” donc on garde le cap mais on enlève la pression de “tout faire parfait” d’ici là 😊\n\nPour l’organisation de la semaine prochaine (proposition) :\n1) Reprendre ton proposition de message et le finaliser en version courte + claire\n2) Envoyer à la personne (objectif : demander l’accord, pas débattre)\n3) Noter le statut après contact : accord obtenu / en attente / pas possible\n4) Si en attente au bout d’un créneau raisonnable, relance une fois avec une version encore plus simple\n\nJe te propose qu’on vise 1 seul message + 0 à 1 relance, pour que ça avance sans te cramer.\n\nTu préfères que je te reformule le message en mode “super court” (2-3 phrases) ou “un peu plus complet” (5-6 phrases) ? 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t02",
+          "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+          "source_message_id": "ed0ea92d-6e3a-44ed-8dbf-7fde4bbe04b7",
+          "ts": "2026-05-18T14:49:18.158+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10645,
+            "latency_ms": 4468,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 579,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t02",
+            "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_continues_weekly_discussion",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "ed0ea92d-6e3a-44ed-8dbf-7fde4bbe04b7",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 6320,
+          "created_at": "2026-05-18T14:49:18.160689+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-18T14:49:27.248Z",
+      "user": "Ne reformule pas le message maintenant et n'applique rien. Je veux juste savoir si cette proposition reste une discussion weekly tant que je n'ai pas confirme.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui ✅ tant que tu n’as pas confirmé, on reste en mode revue weekly / proposition d’organisation, rien n’est appliqué. Et on ne “valide” la semaine prochaine que quand tu dis clairement que tu confirmes. 😊\n\nTu veux que je te redonne juste en une phrase ce qu’on propose actuellement, ou tu préfères attendre ta confirmation ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r8-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r8-partial_habits_mission_partial-t03",
+        "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui ✅ tant que tu n’as pas confirmé, on reste en mode revue weekly / proposition d’organisation, rien n’est appliqué. Et on ne “valide” la semaine prochaine que quand tu dis clairement que tu confirmes. 😊\n\nTu veux que je te redonne juste en une phrase ce qu’on propose actuellement, ou tu préfères attendre ta confirmation ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t03",
+          "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+          "source_message_id": "c5b55c60-2718-494f-ae4d-6dc5ffa81b02",
+          "ts": "2026-05-18T14:49:31.886+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10894,
+            "latency_ms": 3339,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 587,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t03",
+            "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_asking_about_weekly_process_and_confirmation_status",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.9,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "c5b55c60-2718-494f-ae4d-6dc5ffa81b02",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 4607,
+          "created_at": "2026-05-18T14:49:31.889181+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-18T14:49:43.174Z",
+      "user": "Attends ma confirmation. Et si finalement je veux alleger une habitude apres ce bilan, tu peux passer par l'ajustement du plan puis revenir au weekly ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te rassure, je ne valide rien sans ton feu vert. Et oui, c'est tout à fait possible de faire ça.\n\nSi au cours de notre discussion on se rend compte qu'une habitude est trop lourde, on peut faire une petite pause dans le bilan pour ajuster la fréquence ou l'objectif de cette action précise. Une fois que c'est modifié dans ton plan, on reprend le fil de notre revue là où on s'était arrêtés pour boucler la semaine proprement.\n\nOn peut même le faire directement quand on arrivera à la partie où on organise ta semaine prochaine. 🧭",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r8-partial_habits_mission_partial-t04",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r8-partial_habits_mission_partial-t04",
+        "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te rassure, je ne valide rien sans ton feu vert. Et oui, c'est tout à fait possible de faire ça.\n\nSi au cours de notre discussion on se rend compte qu'une habitude est trop lourde, on peut faire une petite pause dans le bilan pour ajuster la fréquence ou l'objectif de cette action précise. Une fois que c'est modifié dans ton plan, on reprend le fil de notre revue là où on s'était arrêtés pour boucler la semaine proprement.\n\nOn peut même le faire directement quand on arrivera à la partie où on organise ta semaine prochaine. 🧭",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t04",
+          "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+          "source_message_id": "ff1289dd-9162-486f-8466-e1a0fcec83db",
+          "ts": "2026-05-18T14:49:48.777+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11029,
+            "latency_ms": 3573,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 584,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t04",
+            "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_asking_about_weekly_flow_logic",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6,1.9;decay=0.55;recovery=0",
+                  "contribution": 1
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "ff1289dd-9162-486f-8466-e1a0fcec83db",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 5569,
+          "created_at": "2026-05-18T14:49:48.77969+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-18T14:50:00.506Z",
+      "user": "Ok, pour ce run je ne confirme pas encore. Resume juste l'etat : semaine partielle, fatigue, proposition allegee, rien applique, validation pas encore disponible.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok ✅ Je résume l’état: semaine partielle, fatigue comme blocage dominant, proposition d’une semaine allégée, rien n’est encore appliqué, et la validation de la semaine suivante n’est pas encore disponible. 😮‍💨\n\nTu me confirmes juste “on ne change rien pour l’instant” (oui/non) ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-r8-partial_habits_mission_partial-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-r8-partial_habits_mission_partial-t05",
+        "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok ✅ Je résume l’état: semaine partielle, fatigue comme blocage dominant, proposition d’une semaine allégée, rien n’est encore appliqué, et la validation de la semaine suivante n’est pas encore disponible. 😮‍💨\n\nTu me confirmes juste “on ne change rien pour l’instant” (oui/non) ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t05",
+          "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+          "source_message_id": "1a638ec2-10d3-4fe7-ae7c-b440a0e58bc3",
+          "ts": "2026-05-18T14:50:05.111+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11123,
+            "latency_ms": 3274,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 583,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-r8-partial_habits_mission_partial-t05",
+            "user_id": "b3342e18-2438-420e-ad22-e73d2c2d03ab",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_requests_summary_of_current_weekly_state",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "1,1.6,1.9,2;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9,
+                2
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "1a638ec2-10d3-4fe7-ae7c-b440a0e58bc3",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 4570,
+          "created_at": "2026-05-18T14:50:05.113747+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-18T14:50:05.160Z"
+}

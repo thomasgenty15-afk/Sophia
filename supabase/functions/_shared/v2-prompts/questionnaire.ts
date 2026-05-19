@@ -126,6 +126,7 @@ Le questionnaire doit être :
 - max_selections peut être null pour single_choice / number / time, et entre 2 et 3 pour multiple_choice.
 - max_selections doit être null pour text et time.
 - allow_other peut être true seulement quand un "Autre" libre est réellement pertinent.
+- Tutoie toujours l'utilisateur dans les questions, helper_text, options, placeholders et prompts visibles. N'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t'adresser directement à l'utilisateur.
 - Pour les questions "number", remplis si pertinent :
   - unit
   - suggested_value
