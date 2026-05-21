@@ -1,0 +1,225 @@
+{
+  "run_id": "weekly-deep-mpcwhnkx-no_signal",
+  "variant": "no_signal",
+  "user_id": "bc76904d-f24b-49df-be0a-11008106ab3f",
+  "email": "qa-weekly-deep-weekly-deep-mpcwhnkx-no_signal@example.com",
+  "password_redacted": true,
+  "scope": "weekly-deep-no_signal-weekly-deep-mpcwhnkx",
+  "connection_file": "tmp/weekly-real-conversation-qa/connections/weekly-deep-mpcwhnkx-no_signal.json",
+  "week_start_date": "2026-05-18",
+  "week_end_date": "2026-05-24",
+  "scheduled_checkin_id": "1d241fd1-b8b0-4557-af95-aa0da61cd9cf",
+  "opening": "C'est le moment du bilan de la semaine. Il manque surtout des retours fiables pour comprendre ce qui s'est vraiment passe.\n\nCote actions, il manque surtout des retours fiables pour lire la semaine.\n\nPour l'organisation de la semaine prochaine, l'option prudente serait de consolider la meme semaine avant d'avancer.\n\nAvant de confirmer l'organisation de la semaine prochaine, comment tu as vecu cette semaine dans l'ensemble ?",
+  "expected": {
+    "habit_verdict": {
+      "status": "no_signal",
+      "completion_rate": 0,
+      "planned_count": 5,
+      "done_points": 0,
+      "reason": "Les habitudes existent, mais aucune reponse fiable n'est disponible."
+    },
+    "daily_evidence_summary": {
+      "source": "daily_action_review_v1",
+      "coverage": "none",
+      "covered_count": 0,
+      "action_count": 6,
+      "dominant_blockers": [],
+      "rescheduled_open_count": 0,
+      "not_answered_count": 6,
+      "confidence": "low"
+    },
+    "week_strategy": {
+      "decision": "repeat_week",
+      "reason": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer.",
+      "preserve_level_objective": true,
+      "preserve_level_architecture": true
+    },
+    "question": {
+      "id": "weekly_no_signal_cause",
+      "text": "Je n'ai pas assez de retours fiables sur les habitudes. C'etait surtout une semaine empechee, un oubli de check, ou le plan etait trop dur ?",
+      "reason": "Distinguer donnee manquante, contexte externe et probleme de difficulte.",
+      "blocks_decision": true
+    },
+    "plan_patch": {
+      "requires_confirmation": true,
+      "operations": [
+        {
+          "op": "repeat_week",
+          "details": {
+            "reason": "Le signal est insuffisant; Sophia doit clarifier avant d'avancer."
+          }
+        }
+      ]
+    },
+    "item_decisions": [
+      {
+        "plan_item_id": "81f83f98-124c-446a-b954-b3b21cec5107",
+        "occurrence_id": "32af2c2f-5b62-485b-9d5f-6b8df3473f61",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les habitudes suivent la repetition de semaine."
+      },
+      {
+        "plan_item_id": "81f83f98-124c-446a-b954-b3b21cec5107",
+        "occurrence_id": "cc8e5e6a-0e97-4734-96cb-994997dd0322",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les habitudes suivent la repetition de semaine."
+      },
+      {
+        "plan_item_id": "81f83f98-124c-446a-b954-b3b21cec5107",
+        "occurrence_id": "fbd529fd-b7bf-4219-9581-55b0f8cdbcf8",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les habitudes suivent la repetition de semaine."
+      },
+      {
+        "plan_item_id": "8ae38363-f9d8-4c68-9f6d-77b95769c4a2",
+        "occurrence_id": "7a649aa7-37c3-419f-af15-a24ae4596c52",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les habitudes suivent la repetition de semaine."
+      },
+      {
+        "plan_item_id": "8ae38363-f9d8-4c68-9f6d-77b95769c4a2",
+        "occurrence_id": "8c15a486-56cf-4e8e-8d21-e5e0cdba77c2",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les habitudes suivent la repetition de semaine."
+      },
+      {
+        "plan_item_id": "9e972feb-7405-416d-90bf-21ac7741fe77",
+        "occurrence_id": "125c3d07-3836-4cf9-8006-bf788b5eaab3",
+        "title": "Convenir d'un signal de pause",
+        "family": "mission",
+        "current_week_status": "not_answered",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "none",
+          "reason_category": null,
+          "reason_text": null,
+          "still_relevant": null,
+          "reschedule_decision": null,
+          "confidence": "none"
+        },
+        "decision": "repeat_with_week",
+        "reason": "Les non-habitudes restent avec la semaine repetee."
+      }
+    ],
+    "supports_out_of_scope": true
+  },
+  "review_summary": [
+    {
+      "transformation_id": "52a15a7b-eb9d-4172-83d7-1ec7e546c531",
+      "plan_id": "abd19f59-2a5b-4f7c-b368-07c69ac81197",
+      "summary": {
+        "planned_count": 6,
+        "done_count": 0,
+        "partial_count": 0,
+        "missed_count": 0,
+        "unanswered_count": 6,
+        "rescheduled_count": 0,
+        "adherence_rate": 0
+      },
+      "actions": [
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        },
+        {
+          "title": "Convenir d'un signal de pause",
+          "dimension": "missions",
+          "deviation": "not_answered",
+          "had_entry": false,
+          "reason_category": null
+        }
+      ]
+    }
+  ]
+}

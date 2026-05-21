@@ -1,0 +1,573 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai relu la suite du plan. Je pense qu'il manque un niveau court de consolidation avant les sujets sensibles, un sas d'une semaine pour vérifier qu'on sait rester stables.",
+    "assistant": "Je comprends que tu souhaites ajouter un niveau de consolidation d'une semaine avant d'aborder les sujets sensibles, pour t'assurer de la stabilité. Je peux te préparer une proposition concrète pour cela, qu'en penses-tu ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des changements radicaux à la structure du plan actuel.",
+          "Ignorer l'intention de 'sas' et de 'courte durée' exprimée par le user.",
+          "Demander au user de justifier son besoin de consolidation, mais plutôt de l'aider à le concrétiser."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+          "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation.",
+          "L'ordre des phases existantes, en considérant l'insertion de ce nouveau niveau comme un ajout stratégique."
+        ],
+        "warnings": [
+          "Éviter de proposer une simple 'semaine de pause' sans objectif clair, ce qui diluerait l'intention de consolidation.",
+          "Ne pas surcharger cette semaine de consolidation avec de nouvelles actions complexes qui iraient à l'encontre de l'idée de 'stabilité' et de 'sas'.",
+          "Ne pas modifier les phases existantes ou les objectifs globaux du plan sans clarification supplémentaire."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+          "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+        ],
+        "observation": "Le user identifie un besoin de renforcement et de validation des acquis avant d'aborder des sujets plus délicats. Il exprime le désir d'insérer une phase de consolidation courte pour s'assurer de la stabilité des fondations établies.",
+        "change_family": "missing_bridge_or_level",
+        "recommendation": "Guider le sous-skill à explorer la nature et le contenu de cette phase de consolidation. Il est essentiel de comprendre ce que 'vérifier qu'on sait rester stables' signifie concrètement pour le user, afin de concevoir un niveau pertinent et efficace.",
+        "next_best_question": "Quelles actions ou réflexions spécifiques permettraient de 'vérifier qu'on sait rester stables' pendant cette semaine de consolidation ?",
+        "options_to_discuss": [
+          "Quels types d'activités ou de réflexions pourraient constituer cette consolidation (ex: bilan des outils appris, exercices de communication douce, moments de partage positifs) ?",
+          "Comment le user envisagerait-il de 'vérifier qu'on sait rester stables' ? Quels seraient les indicateurs de succès pour cette semaine ?",
+          "Quels sont précisément les 'sujets sensibles' que cette phase de consolidation est censée précéder, pour bien calibrer le pont ?"
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [
+          "Quelles actions ou réflexions spécifiques permettraient de 'vérifier qu'on sait rester stables' pendant cette semaine de consolidation ?",
+          "Comment le user saurait-il que cette période de consolidation a été réussie et qu'il est prêt pour les sujets sensibles ?"
+        ],
+        "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer une phase de consolidation d'une semaine avant d'aborder les sujets sensibles, pour s'assurer de la stabilité des acquis.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des changements radicaux à la structure du plan actuel.",
+        "Ignorer l'intention de 'sas' et de 'courte durée' exprimée par le user.",
+        "Demander au user de justifier son besoin de consolidation, mais plutôt de l'aider à le concrétiser."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+        "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation.",
+        "L'ordre des phases existantes, en considérant l'insertion de ce nouveau niveau comme un ajout stratégique."
+      ],
+      "warnings": [
+        "Éviter de proposer une simple 'semaine de pause' sans objectif clair, ce qui diluerait l'intention de consolidation.",
+        "Ne pas surcharger cette semaine de consolidation avec de nouvelles actions complexes qui iraient à l'encontre de l'idée de 'stabilité' et de 'sas'.",
+        "Ne pas modifier les phases existantes ou les objectifs globaux du plan sans clarification supplémentaire."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+        "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+      ],
+      "observation": "Le user identifie un besoin de renforcement et de validation des acquis avant d'aborder des sujets plus délicats. Il exprime le désir d'insérer une phase de consolidation courte pour s'assurer de la stabilité des fondations établies.",
+      "change_family": "missing_bridge_or_level",
+      "recommendation": "Guider le sous-skill à explorer la nature et le contenu de cette phase de consolidation. Il est essentiel de comprendre ce que 'vérifier qu'on sait rester stables' signifie concrètement pour le user, afin de concevoir un niveau pertinent et efficace.",
+      "next_best_question": "Quelles actions ou réflexions spécifiques permettraient de 'vérifier qu'on sait rester stables' pendant cette semaine de consolidation ?",
+      "options_to_discuss": [
+        "Quels types d'activités ou de réflexions pourraient constituer cette consolidation (ex: bilan des outils appris, exercices de communication douce, moments de partage positifs) ?",
+        "Comment le user envisagerait-il de 'vérifier qu'on sait rester stables' ? Quels seraient les indicateurs de succès pour cette semaine ?",
+        "Quels sont précisément les 'sujets sensibles' que cette phase de consolidation est censée précéder, pour bien calibrer le pont ?"
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [
+        "Quelles actions ou réflexions spécifiques permettraient de 'vérifier qu'on sait rester stables' pendant cette semaine de consolidation ?",
+        "Comment le user saurait-il que cette période de consolidation a été réussie et qu'il est prêt pour les sujets sensibles ?"
+      ],
+      "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer une phase de consolidation d'une semaine avant d'aborder les sujets sensibles, pour s'assurer de la stabilité des acquis.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare-le. Je veux deux micro-actions seulement : observer ce qui apaise dans la semaine, et faire une demande simple sans débat. Rien de profond à ce stade.",
+    "assistant": "Pour que je puisse te préparer le brouillon de cette nouvelle phase de consolidation, peux-tu me préciser si elle doit venir juste après la phase actuelle \"Désamorcer et recréer de la sécurité\", comme un pont avant d'aborder des sujets plus sensibles ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.adjustment_type",
+        "whole_plan.reason_change",
+        "whole_plan.change_target",
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des changements radicaux à la structure du plan actuel.",
+          "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+          "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+          "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+          "L'ordre des phases existantes, en insérant ce nouveau niveau comme un pont stratégique.",
+          "L'intention de 'sas' et de 'courte durée' pour cette phase de consolidation."
+        ],
+        "warnings": [
+          "Éviter d'ajouter des actions supplémentaires ou plus complexes que celles explicitement demandées par le user.",
+          "Ne pas interpréter 'rien de profond' comme une opportunité d'introduire des réflexions ou des diagnostics complexes.",
+          "Ne pas remettre en question la pertinence des micro-actions proposées, mais se concentrer sur leur intégration fidèle."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+          "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+        ],
+        "observation": "Le user valide l'idée d'une phase de consolidation et en précise le contenu : deux micro-actions légères et non conflictuelles. Il s'agit de concrétiser le 'sas' demandé précédemment avec des actions spécifiques.",
+        "change_family": "missing_bridge_or_level",
+        "recommendation": "Guider le sous-skill à élaborer un brouillon de cette nouvelle phase de consolidation, en intégrant précisément les deux micro-actions formulées par le user. Il est crucial de respecter l'intention de légèreté et de non-profondeur.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer une phase de consolidation d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des changements radicaux à la structure du plan actuel.",
+        "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+        "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+        "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+        "L'ordre des phases existantes, en insérant ce nouveau niveau comme un pont stratégique.",
+        "L'intention de 'sas' et de 'courte durée' pour cette phase de consolidation."
+      ],
+      "warnings": [
+        "Éviter d'ajouter des actions supplémentaires ou plus complexes que celles explicitement demandées par le user.",
+        "Ne pas interpréter 'rien de profond' comme une opportunité d'introduire des réflexions ou des diagnostics complexes.",
+        "Ne pas remettre en question la pertinence des micro-actions proposées, mais se concentrer sur leur intégration fidèle."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+        "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+      ],
+      "observation": "Le user valide l'idée d'une phase de consolidation et en précise le contenu : deux micro-actions légères et non conflictuelles. Il s'agit de concrétiser le 'sas' demandé précédemment avec des actions spécifiques.",
+      "change_family": "missing_bridge_or_level",
+      "recommendation": "Guider le sous-skill à élaborer un brouillon de cette nouvelle phase de consolidation, en intégrant précisément les deux micro-actions formulées par le user. Il est crucial de respecter l'intention de légèreté et de non-profondeur.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer une phase de consolidation d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, exactement : juste après la phase actuelle de sécurité, avant d'ouvrir les reproches, attentes non dites ou tensions. Mais je préfère que tu l'appelles niveau de consolidation, pas pont.",
+    "assistant": "D'accord, je comprends. Pour ce nouveau niveau de consolidation, tu avais mentionné deux micro-actions : \"observer ce qui apaise dans la semaine\" et \"faire une demande simple sans débat\". Est-ce que ce sont bien celles-ci que tu souhaites inclure, et y a-t-il des précisions à ajouter pour chacune ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des changements radicaux à la structure du plan actuel.",
+          "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+          "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'.",
+          "Utiliser le terme 'pont' pour la nouvelle phase."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+          "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+          "L'ordre des phases existantes, en insérant ce nouveau niveau comme un sas stratégique.",
+          "L'intention de 'sas' et de 'courte durée' pour cette phase de consolidation.",
+          "Le contenu des deux micro-actions déjà spécifiées par le user pour ce niveau."
+        ],
+        "warnings": [
+          "Ne pas utiliser le terme 'pont' pour désigner cette nouvelle phase.",
+          "Ne pas modifier le positionnement demandé de cette phase de consolidation."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+          "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+        ],
+        "observation": "Le user confirme la nécessité d'une phase de consolidation et en précise le positionnement exact ainsi que la terminologie préférée. Il s'agit de concrétiser l'insertion d'un nouveau niveau dans la trajectoire du plan.",
+        "change_family": "missing_bridge_or_level",
+        "recommendation": "Guider le sous-skill à élaborer un brouillon de cette nouvelle phase, en respectant scrupuleusement le nom 'niveau de consolidation' et son placement 'juste après la phase actuelle de sécurité, avant d'ouvrir les reproches, attentes non dites ou tensions'.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer un 'niveau de consolidation' d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), juste après la phase actuelle de sécurité et avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des changements radicaux à la structure du plan actuel.",
+        "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+        "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'.",
+        "Utiliser le terme 'pont' pour la nouvelle phase."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+        "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+        "L'ordre des phases existantes, en insérant ce nouveau niveau comme un sas stratégique.",
+        "L'intention de 'sas' et de 'courte durée' pour cette phase de consolidation.",
+        "Le contenu des deux micro-actions déjà spécifiées par le user pour ce niveau."
+      ],
+      "warnings": [
+        "Ne pas utiliser le terme 'pont' pour désigner cette nouvelle phase.",
+        "Ne pas modifier le positionnement demandé de cette phase de consolidation."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+        "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+      ],
+      "observation": "Le user confirme la nécessité d'une phase de consolidation et en précise le positionnement exact ainsi que la terminologie préférée. Il s'agit de concrétiser l'insertion d'un nouveau niveau dans la trajectoire du plan.",
+      "change_family": "missing_bridge_or_level",
+      "recommendation": "Guider le sous-skill à élaborer un brouillon de cette nouvelle phase, en respectant scrupuleusement le nom 'niveau de consolidation' et son placement 'juste après la phase actuelle de sécurité, avant d'ouvrir les reproches, attentes non dites ou tensions'.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer un 'niveau de consolidation' d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), juste après la phase actuelle de sécurité et avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, ce sont les deux. Observer ce qui apaise = noter un moment où on redescend au lieu d'insister. Demande simple = une demande concrète du quotidien, sans chercher à régler le fond. Prépare le brouillon mais ne l'applique pas.",
+    "assistant": "Je n'ai pas une cible assez claire pour ajuster le plan depuis le chat. Tu peux le faire dans ton espace sur sophia-coach.ai. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "fallback_dashboard",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "whole_plan.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des changements radicaux à la structure du plan actuel.",
+          "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+          "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'.",
+          "Utiliser le terme 'pont' pour la nouvelle phase.",
+          "Ajouter des actions ou des objectifs supplémentaires à ce niveau de consolidation."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+          "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+          "L'ordre des phases existantes, en insérant ce nouveau niveau comme un sas stratégique.",
+          "L'intention de 'sas' et de 'courte durée' (1 semaine) pour cette phase de consolidation.",
+          "Le contenu exact des deux micro-actions déjà spécifiées par le user pour ce niveau : 'Observer ce qui apaise = noter un moment où on redescend au lieu d'insister' et 'Demande simple = une demande concrète du quotidien, sans chercher à régler le fond'.",
+          "Le nom 'niveau de consolidation' pour cette nouvelle phase."
+        ],
+        "warnings": [
+          "Ne pas utiliser le terme 'pont' pour désigner cette nouvelle phase.",
+          "Ne pas modifier le positionnement demandé de cette phase de consolidation.",
+          "Ne pas introduire d'autres actions ou complexités que les deux micro-actions spécifiées par le user."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+          "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+        ],
+        "observation": "Le user a validé et précisé le contenu des deux micro-actions pour le nouveau 'niveau de consolidation'. Toutes les informations nécessaires sont maintenant disponibles pour élaborer un brouillon de cette nouvelle phase du plan.",
+        "change_family": "missing_bridge_or_level",
+        "recommendation": "Guider le sous-skill à élaborer un brouillon détaillé de la nouvelle phase de consolidation, en intégrant les définitions précises des deux micro-actions fournies par le user, et en respectant scrupuleusement le nom 'niveau de consolidation' et son placement 'juste après la phase actuelle de sécurité, avant d'ouvrir les reproches, attentes non dites ou tensions'.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer un 'niveau de consolidation' d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), juste après la phase actuelle de sécurité et avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des changements radicaux à la structure du plan actuel.",
+        "Demander au user de justifier son besoin de consolidation ou le contenu des micro-actions.",
+        "Introduire des éléments qui iraient à l'encontre de l'idée de 'rien de profond à ce stade'.",
+        "Utiliser le terme 'pont' pour la nouvelle phase.",
+        "Ajouter des actions ou des objectifs supplémentaires à ce niveau de consolidation."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif général du plan de désamorcer les tensions et recréer de la sécurité.",
+        "Les actions et habitudes déjà en place qui contribuent à la sécurité et à l'observation, en dehors de cette nouvelle phase.",
+        "L'ordre des phases existantes, en insérant ce nouveau niveau comme un sas stratégique.",
+        "L'intention de 'sas' et de 'courte durée' (1 semaine) pour cette phase de consolidation.",
+        "Le contenu exact des deux micro-actions déjà spécifiées par le user pour ce niveau : 'Observer ce qui apaise = noter un moment où on redescend au lieu d'insister' et 'Demande simple = une demande concrète du quotidien, sans chercher à régler le fond'.",
+        "Le nom 'niveau de consolidation' pour cette nouvelle phase."
+      ],
+      "warnings": [
+        "Ne pas utiliser le terme 'pont' pour désigner cette nouvelle phase.",
+        "Ne pas modifier le positionnement demandé de cette phase de consolidation.",
+        "Ne pas introduire d'autres actions ou complexités que les deux micro-actions spécifiées par le user."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. L'insertion d'une phase doit respecter les prérequis et l'ordre logique des étapes. L'objectif et le questionnaire du plan doivent être préservés. Le nouveau niveau doit servir de pont clair vers la suite.",
+        "**Guidelines niveau**: Le nouveau niveau doit avoir une charge et un rythme adaptés à son rôle de consolidation. Il doit être temporaire et ne pas modifier la nature des niveaux adjacents. Les limites de fin de niveau doivent être claires. Le cœur des niveaux existants doit être préservé."
+      ],
+      "observation": "Le user a validé et précisé le contenu des deux micro-actions pour le nouveau 'niveau de consolidation'. Toutes les informations nécessaires sont maintenant disponibles pour élaborer un brouillon de cette nouvelle phase du plan.",
+      "change_family": "missing_bridge_or_level",
+      "recommendation": "Guider le sous-skill à élaborer un brouillon détaillé de la nouvelle phase de consolidation, en intégrant les définitions précises des deux micro-actions fournies par le user, et en respectant scrupuleusement le nom 'niveau de consolidation' et son placement 'juste après la phase actuelle de sécurité, avant d'ouvrir les reproches, attentes non dites ou tensions'.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel vise à désamorcer les tensions et recréer de la sécurité. Le user souhaite insérer un 'niveau de consolidation' d'une semaine, contenant deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat'), juste après la phase actuelle de sécurité et avant d'aborder des sujets plus profonds, pour s'assurer de la stabilité des acquis.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r105-short-consolidation-level-t04",
+    "trace_error": null
+  }
+]

@@ -1,14 +1,21 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 import type { LabScopeKind, PotionType } from "./v2-types.ts";
-import { loadLabScopeContext } from "./v2-lab-context.ts";
+import {
+  type LabTransformationContext,
+  loadLabScopeContext,
+} from "./v2-lab-context.ts";
 
 export type PotionBaseContext = {
   scope: {
     kind: LabScopeKind;
     cycle_id: string | null;
     transformation_id: string | null;
-    resolved_from: "explicit_transformation" | "related_plan_item" | "active_transformation" | "out_of_plan";
+    resolved_from:
+      | "explicit_transformation"
+      | "related_plan_item"
+      | "active_transformation"
+      | "out_of_plan";
   };
   transformation: {
     title: string | null;
@@ -82,9 +89,7 @@ function extractDeepWhyAnswers(
   if (!isRecord(handoffPayload)) return [];
   const phase1 = isRecord(handoffPayload.phase_1) ? handoffPayload.phase_1 : {};
   const deepWhy = isRecord(phase1.deep_why) ? phase1.deep_why : {};
-  const questions = Array.isArray(deepWhy.questions)
-    ? deepWhy.questions
-    : [];
+  const questions = Array.isArray(deepWhy.questions) ? deepWhy.questions : [];
   const answers = Array.isArray(deepWhy.answers) ? deepWhy.answers : [];
   const questionById = new Map<string, string>();
   for (const question of questions) {
@@ -99,7 +104,9 @@ function extractDeepWhyAnswers(
     const answerText = text(answer.answer);
     if (!answerText) return [];
     return [{
-      question: questionId ? questionById.get(questionId) ?? questionId : "Pourquoi profond",
+      question: questionId
+        ? questionById.get(questionId) ?? questionId
+        : "Pourquoi profond",
       answer: answerText,
     }];
   }).slice(0, 6);
@@ -138,6 +145,26 @@ function guidanceForPotion(type: PotionType): string[] {
         "Le suivi doit desserrer la pression; evite d'ajouter une exigence de performance.",
       ];
   }
+}
+
+function emptyOutOfPlanContext(): LabTransformationContext {
+  return {
+    cycle_id: null as unknown as string,
+    scope_kind: "out_of_plan",
+    transformation_id: null,
+    transformation_title: "Hors transformations",
+    user_summary: "Contexte general hors transformation.",
+    focus_context: "",
+    free_text: "",
+    questionnaire_answers: null,
+    plan_strategy: {
+      identity_shift: null,
+      core_principle: null,
+      success_definition: null,
+      main_constraint: null,
+    },
+    classification: null,
+  };
 }
 
 async function resolveScope(args: {
@@ -227,23 +254,30 @@ export async function loadPotionBaseContext(args: {
   relatedPlanItemId?: string | null;
 }): Promise<PotionBaseContext> {
   const scope = await resolveScope(args);
-  const context = scope.kind === "transformation" && scope.transformation_id
-    ? await loadLabScopeContext({
+  let context: LabTransformationContext;
+  if (scope.kind === "transformation" && scope.transformation_id) {
+    context = await loadLabScopeContext({
       admin: args.admin,
       userId: args.userId,
       transformationId: scope.transformation_id,
       scopeKind: "transformation",
-    })
-    : await loadLabScopeContext({
+    });
+  } else if (scope.cycle_id) {
+    context = await loadLabScopeContext({
       admin: args.admin,
       userId: args.userId,
       scopeKind: "out_of_plan",
     });
+  } else {
+    context = emptyOutOfPlanContext();
+  }
 
   const { data: transformation } = scope.transformation_id
     ? await args.admin
       .from("user_transformations")
-      .select("title, internal_summary, user_summary, success_definition, main_constraint, questionnaire_answers, handoff_payload")
+      .select(
+        "title, internal_summary, user_summary, success_definition, main_constraint, questionnaire_answers, handoff_payload",
+      )
       .eq("id", scope.transformation_id)
       .maybeSingle()
     : { data: null };
@@ -251,7 +285,9 @@ export async function loadPotionBaseContext(args: {
   const { data: items } = scope.transformation_id
     ? await args.admin
       .from("user_plan_items")
-      .select("id,title,description,dimension,kind,status,tracking_type,current_habit_state,support_mode,support_function,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,activation_order,updated_at")
+      .select(
+        "id,title,description,dimension,kind,status,tracking_type,current_habit_state,support_mode,support_function,target_reps,current_reps,cadence_label,scheduled_days,time_of_day,activation_order,updated_at",
+      )
       .eq("user_id", args.userId)
       .eq("transformation_id", scope.transformation_id)
       .in("status", ["active", "pending", "stalled", "in_maintenance"])
@@ -271,7 +307,9 @@ export async function loadPotionBaseContext(args: {
 
   const { data: reminders } = await args.admin
     .from("user_recurring_reminders")
-    .select("id,message_instruction,local_time_hhmm,scheduled_days,source_potion_session_id,user_potion_sessions(potion_type)")
+    .select(
+      "id,message_instruction,local_time_hhmm,scheduled_days,source_potion_session_id,user_potion_sessions(potion_type)",
+    )
     .eq("user_id", args.userId)
     .eq("status", "active")
     .eq("initiative_kind", "potion_follow_up")
@@ -307,8 +345,12 @@ export async function loadPotionBaseContext(args: {
       current_habit_state: text(item.current_habit_state),
       support_mode: text(item.support_mode),
       support_function: text(item.support_function),
-      target_reps: typeof item.target_reps === "number" ? item.target_reps : null,
-      current_reps: typeof item.current_reps === "number" ? item.current_reps : null,
+      target_reps: typeof item.target_reps === "number"
+        ? item.target_reps
+        : null,
+      current_reps: typeof item.current_reps === "number"
+        ? item.current_reps
+        : null,
       cadence_label: text(item.cadence_label),
       scheduled_days: stringArray(item.scheduled_days),
       time_of_day: text(item.time_of_day),
@@ -347,14 +389,18 @@ export function formatPotionBaseContextForPrompt(
   context: PotionBaseContext | null | undefined,
 ): string {
   if (!context) return "Aucun contexte de base DB charge.";
-  return JSON.stringify({
-    source: "database",
-    scope: context.scope,
-    potion_specific_guidance: context.usage_guidance,
-    transformation: context.transformation,
-    plan_strategy: context.plan_strategy,
-    plan_items: context.plan_items,
-    prior_potions_same_type: context.prior_potions,
-    active_potion_reminders: context.active_potion_reminders,
-  }, null, 2);
+  return JSON.stringify(
+    {
+      source: "database",
+      scope: context.scope,
+      potion_specific_guidance: context.usage_guidance,
+      transformation: context.transformation,
+      plan_strategy: context.plan_strategy,
+      plan_items: context.plan_items,
+      prior_potions_same_type: context.prior_potions,
+      active_potion_reminders: context.active_potion_reminders,
+    },
+    null,
+    2,
+  );
 }

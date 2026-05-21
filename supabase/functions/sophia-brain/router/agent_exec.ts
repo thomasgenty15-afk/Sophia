@@ -21,6 +21,7 @@ type ExecMeta = {
   model?: string;
   evalRunId?: string | null;
   forceBrainTrace?: boolean;
+  blockSideEffects?: boolean;
 };
 
 function normalizeAgentText(text: unknown): string {

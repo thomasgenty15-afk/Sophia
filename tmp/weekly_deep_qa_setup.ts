@@ -9,8 +9,10 @@ import {
   buildWeeklyAdaptiveReview,
   buildWeeklyAdaptiveReviewGrounding,
   buildWeeklyAdaptiveReviewInstruction,
-  buildWeeklyAdaptiveReviewIntroMessage,
 } from "../supabase/functions/_shared/weekly_adaptive_review.ts";
+import {
+  generateWeeklyAdaptiveReviewOpening,
+} from "../supabase/functions/_shared/weekly_adaptive_review_opening.ts";
 
 type VariantKey =
   | "all_habits_done_mission_missed"
@@ -93,9 +95,9 @@ function loadSupabaseStatus(): Record<string, string> {
     env[match[1]] = match[2].replace(/^["']|["']$/g, "");
   }
   return {
-    API_URL: env.VITE_SUPABASE_URL ?? env.SUPABASE_URL ??
+    API_URL: env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ??
       "http://127.0.0.1:54321",
-    ANON_KEY: env.VITE_SUPABASE_ANON_KEY ?? env.SUPABASE_ANON_KEY ?? "",
+    ANON_KEY: env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? "",
     SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
     SECRET_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   };
@@ -585,7 +587,15 @@ async function setupVariant(args: {
     dashboardUrl: "http://localhost:5173/dashboard",
   });
   const adaptiveReview = buildWeeklyAdaptiveReview(review);
-  const opening = buildWeeklyAdaptiveReviewIntroMessage(review, adaptiveReview);
+  const opening = await generateWeeklyAdaptiveReviewOpening({
+    supabaseAdmin: admin as any,
+    userId,
+    scheduledFor: nowIso,
+    requestId: `${runId}-setup-opening`,
+    review,
+    adaptiveReview,
+    allowGreeting: false,
+  });
   const scheduledCheckinId = crypto.randomUUID();
   const payload = {
     source: "weekly_deep_qa_setup:weekly_adaptive_review_v1",

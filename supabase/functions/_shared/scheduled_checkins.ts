@@ -18,6 +18,7 @@ import {
   getUserRelationPreferences,
 } from "../sophia-brain/relation_preferences_engine.ts";
 const RDV_GENERATION_MODEL = "gpt-5.2";
+const WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL = "gemini-3-flash-preview";
 
 function safeTrim(s: unknown): string {
   return String(s ?? "").trim();
@@ -198,7 +199,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   const eventContext = clampText(params.eventContext, 180);
   const instruction = clampText(
     params.instruction ?? "",
-    isDailyActionReview || isWeeklyAdaptiveReview ? 1_800 : 500,
+    isWeeklyAdaptiveReview ? 3_600 : isDailyActionReview ? 1_800 : 500,
   );
   const watcherScopeSnapshot = isWatcherCheckin
     ? await fetchCheckinExclusionSnapshot({ admin, userId })
@@ -210,7 +211,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
         watcherScopeSnapshot,
       )
       : (params.eventGrounding ?? ""),
-    isDailyActionReview || isWeeklyAdaptiveReview ? 1_600 : 320,
+    isWeeklyAdaptiveReview ? 3_000 : isDailyActionReview ? 1_600 : 320,
   );
 
   const { data: prof } = await admin
@@ -381,7 +382,9 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     "auto",
     {
       requestId: params.requestId,
-      model: RDV_GENERATION_MODEL,
+      model: isWeeklyAdaptiveReview
+        ? WEEKLY_ADAPTIVE_REVIEW_OPENING_MODEL
+        : RDV_GENERATION_MODEL,
       source: "scheduled_checkins:dynamic_whatsapp",
       forceRealAi: true,
       userId,

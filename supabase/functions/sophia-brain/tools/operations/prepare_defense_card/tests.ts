@@ -133,6 +133,58 @@ Deno.test("prepare_defense_card AI flow drafts from structured state and executo
   assertStringIncludes(executed.ack, "l'ajuster depuis la plateforme");
 });
 
+Deno.test("prepare_defense_card AI flow sanitizes duplicated labeled draft fields", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "ok fais une carte pour ce moment de risque",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-defense-labeled-fields",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredDefenseCardSlotFiller(readyDefenseCardStatePatch()),
+    draft_generator: async (input) => {
+      const response =
+        "Le moment : je rentre fatigue et je pars scroller\nLe piege : moment de risque identifié\nMon geste : Je pose le telephone loin de moi et j'attends 10 minutes.\nPlan B : Je reduis les degats.";
+      return {
+        operation_type: "prepare_defense_card",
+        output_schema: "defense_card_draft_v1",
+        draft: {
+          title: "Carte de defense - scroll",
+          impulse_label: "scroll",
+          target_label: String(
+            (input.state.attachment as any).title ?? "marche",
+          ),
+          situation: input.state.risk_situation.label ?? "",
+          signal: input.state.risk_situation.description ?? "",
+          risk_situation: input.state.risk_situation.label ?? "",
+          trigger: input.state.trigger.type ?? "fatigue",
+          defense_response: response,
+          plan_b: response,
+          fallback_plan: response,
+          why_it_helps: "Elle prepare une reponse courte.",
+          generic_defense: response,
+        },
+        confirmation_message: response,
+        confirmation_actions: ["yes", "no"],
+      };
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    output.draft?.draft.defense_response,
+    "Je pose le telephone loin de moi et j'attends 10 minutes.",
+  );
+  assertEquals(output.draft?.draft.plan_b, "Je reduis les degats.");
+  const message = output.confirmation?.message ?? "";
+  assertEquals((message.match(/Le moment/g) ?? []).length, 1);
+  assertEquals((message.match(/Le piège/g) ?? []).length, 1);
+  assertEquals((message.match(/Mon geste/g) ?? []).length, 1);
+  assertEquals((message.match(/Plan B/g) ?? []).length, 1);
+  assertEquals(message.includes("Mon geste : Le moment"), false);
+});
+
 Deno.test("prepare_defense_card AI flow stops on slot filler failure without regex fallback", async () => {
   const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",

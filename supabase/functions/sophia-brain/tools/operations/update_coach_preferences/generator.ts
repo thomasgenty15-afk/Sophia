@@ -66,6 +66,55 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
     : "un niveau de questions équilibré";
 }
 
+function normalizePreferenceEvidenceText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+}
+
+function summaryForPatch(
+  key: CoachPreferenceKey,
+  value: string,
+  evidenceText = "",
+): string {
+  const evidence = normalizePreferenceEvidenceText(evidenceText);
+  if (key === "coach.question_tendency" && value === "low") {
+    if (
+      /\bune action\b/.test(evidence) ||
+      /\baction concrete\b/.test(evidence) ||
+      /\bpas trois options\b/.test(evidence) ||
+      /\bpas 3 options\b/.test(evidence)
+    ) {
+      return "je te proposerai une seule action concrète à la fois, avec moins de questions/options quand tu es vidé ou bloqué.";
+    }
+    return "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.";
+  }
+  if (key === "coach.question_tendency" && value === "high") {
+    return "je prendrai plus souvent le temps de te questionner avant de trancher.";
+  }
+  if (key === "coach.question_tendency") {
+    return "je garderai un équilibre entre questions utiles et réponses directes.";
+  }
+  if (key === "coach.tone" && value === "direct") {
+    return "je serai plus directe, sans perdre le côté soutenant.";
+  }
+  if (key === "coach.tone" && value === "soft") {
+    return "je prendrai un ton plus doux quand je te réponds.";
+  }
+  if (key === "coach.challenge_level" && value === "high") {
+    return "je te challengerai davantage quand tu demandes un vrai coup de lucidité.";
+  }
+  if (key === "coach.challenge_level" && value === "low") {
+    return "je garderai le challenge plus léger et moins frontal.";
+  }
+  return `j'utiliserai ${labelForPatch(key, value)}.`;
+}
+
+function confirmationForPatch(summary: string): string {
+  return `Bien reçu. Pour la suite, ${summary} Si c'est bien ça, je le garde comme préférence.`;
+}
+
 export function validateCoachPreferencePatch(
   patch: Record<string, unknown>,
 ): void {
@@ -93,17 +142,17 @@ export function runCoachPreferencesPatchBuilder(
   const value = normalizeCoachPreferenceValue(key, rawValue);
   if (!value) throw new Error("coach_preferences_unsupported_value");
   const patch = { [key]: value } as Partial<Record<CoachPreferenceKey, string>>;
-  const summary = `j'utiliserai ${labelForPatch(key, value)}.`;
+  const reason = input.reason?.evidence?.[0] ?? null;
+  const summary = summaryForPatch(key, value, reason ?? "");
   return {
     operation_type: "update_coach_preferences",
     output_schema: "coach_preferences_patch_draft_v1",
     draft: {
       patch,
       summary,
-      reason: input.reason?.evidence?.[0] ?? null,
+      reason,
     },
-    confirmation_message:
-      `Je peux régler ma façon de répondre: ${summary} Tu veux que je l'applique ?`,
+    confirmation_message: confirmationForPatch(summary),
     confirmation_actions: ["yes", "no"],
   };
 }

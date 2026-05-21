@@ -138,6 +138,29 @@ Exemple :
 
 - si l'onboarding WhatsApp est actif, le dispatcher ne doit pas router par defaut vers le plan/action du jour sans intention claire.
 
+Peut aussi contenir un `active_runtime_context` compact quand un skill ou tool-skill runtime est actif ou attend une confirmation.
+
+Exemple :
+
+```json
+{
+  "active_runtime_context": {
+    "owner": "tool_skill",
+    "operation_type": "prepare_attack_card",
+    "phase": "awaiting_confirmation",
+    "pending_confirmation": true,
+    "confirmation_owned_by_runtime": true,
+    "dispatcher_must_not_classify_confirmation": true
+  }
+}
+```
+
+Regle importante :
+
+- le dispatcher utilise ce contexte pour safety, memoire, interruption forte, sortie ou changement de sujet ;
+- le dispatcher ne doit pas classer le oui/non dans `confirmation_response` si la confirmation est seulement signalee par `active_runtime_context` ;
+- le runtime du skill ou tool-skill reste proprietaire des slots, corrections, confirmations et executions.
+
 ### `plan_snapshot`
 
 Vue courte des items de plan utilisateur disponibles au tour courant.
@@ -266,4 +289,3 @@ Quand une memoire ciblee est utile :
 - Verifier que `plan_snapshot` contient juste assez d'information pour resoudre les IDs sans exposer trop de contexte.
 - Ajouter des tests ou snapshots de prompt pour proteger ce contrat.
 - Verifier que les traces QA affichent l'input dispatcher et l'output `TurnFrame` de facon lisible, sans secrets.
-

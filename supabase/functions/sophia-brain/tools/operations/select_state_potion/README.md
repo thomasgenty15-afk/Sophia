@@ -11,8 +11,10 @@ Architecture constraints:
   sub-skills, and calls the potion generator.
 - No regex, keyword fallback, or hardcoded slot extraction should be added to
   the intake.
-- If the slot filler cannot produce structured output, the operation returns
-  `technical_error`; it must not guess a potion from text.
+- If the slot filler cannot produce structured output, the operation keeps the
+  intake active and asks one neutral recovery question; it must not guess a
+  potion from text. Recommendation payloads with explicit missing structured
+  fields still exit as invalid instead of inventing missing structure.
 - Recommendation payloads must already provide valid structured `state` and
   `potion_type` values.
 - If the user asks for a potion without naming one, the slot filler proposes

@@ -1,0 +1,425 @@
+[
+  {
+    "potion": "apaisement",
+    "state": "stress_pressure",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r51_hard2_apaisement_apaisement",
+    "user_id": "5b47908d-e39f-4d13-8ec7-8fb550ce2cef",
+    "fixture": {
+      "cycle": {
+        "id": "4563c47e-6927-49d7-8cab-18646b45a5eb",
+        "user_id": "5b47908d-e39f-4d13-8ec7-8fb550ce2cef",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:24:33.814593+00:00",
+        "updated_at": "2026-05-21T16:24:33.814593+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "53a3b6b3-cfdf-474c-ad84-94f282c88e47",
+        "cycle_id": "4563c47e-6927-49d7-8cab-18646b45a5eb",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Redescendre la pression",
+        "internal_summary": "Fixture QA pour tester la potion apaisement.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "apaisement",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:24:33.818328+00:00",
+        "updated_at": "2026-05-21T16:24:33.818328+00:00",
+        "activated_at": "2026-05-21T16:24:33.587+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "086e8e23-4c8f-46cb-899b-d60c7cb4cbba",
+        "user_id": "5b47908d-e39f-4d13-8ec7-8fb550ce2cef",
+        "cycle_id": "4563c47e-6927-49d7-8cab-18646b45a5eb",
+        "transformation_id": "53a3b6b3-cfdf-474c-ad84-94f282c88e47",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA apaisement",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:24:33.587+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:24:33.826191+00:00",
+        "updated_at": "2026-05-21T16:24:33.826191+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "e7f2d4b9-deb7-4fbf-a8d9-8f73000a023d",
+        "user_id": "5b47908d-e39f-4d13-8ec7-8fb550ce2cef",
+        "cycle_id": "4563c47e-6927-49d7-8cab-18646b45a5eb",
+        "transformation_id": "53a3b6b3-cfdf-474c-ad84-94f282c88e47",
+        "plan_id": "086e8e23-4c8f-46cb-899b-d60c7cb4cbba",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Faire une pause avant de reprendre",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "apaisement"
+        },
+        "created_at": "2026-05-21T16:24:33.828961+00:00",
+        "updated_at": "2026-05-21T16:24:33.828961+00:00",
+        "activated_at": "2026-05-21T16:24:33.587+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t01-a1",
+        "user": "Potion d'apaisement. Je suis tendu mais je n'arrive pas a trier ce qui se passe.",
+        "assistant": "C'est normal de se sentir tendu quand tout se mélange. Si tu devais pointer une seule chose, même petite, qui pèse le plus en ce moment, ce serait quoi ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": "immediate_mode_request_not_state_potion",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t02-a1",
+        "user": "La reunion de cet apres-midi prend toute la place, et autour j'ai l'impression que tout presse.",
+        "assistant": "Je vois que la pression monte avec cette réunion et tout ce qui s'accumule autour. On va s'appuyer sur la Potion d'apaisement pour t'aider à relâcher la tension et retrouver un peu d'espace intérieur. Je prévois de t'accompagner chaque matin à 08:30 pendant 7 jours pour que tu puisses aborder tes journées avec plus de douceur. Dis-moi si ce soutien te semble juste pour toi. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t03-a1",
+        "user": "Dans le corps c'est machoire serree, souffle court. Aide-moi le matin a ralentir sans culpabiliser.",
+        "assistant": "Je garde en tête ce souffle court et cette mâchoire serrée ; c'est le signe qu'il est temps de desserrer l'étau face à cette réunion et tout ce qui presse autour. On va s'appuyer sur la Potion d'apaisement pour t'aider à ralentir chaque matin à 08:30, sans aucune culpabilité, juste pour te redonner de l'air avant que la journée ne s'emballe. Dis-moi si ce rendez-vous matinal te semble être le bon point d'appui. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t04-a1",
+        "user": "08h30 sur une semaine, ca me va. Garde le ton calme et direct.",
+        "assistant": "C'est entendu pour le rythme : on part sur un rendez-vous quotidien à 08:30 pendant une semaine pour t'aider à relâcher la pression. Ce sera un appui direct pour traverser cette réunion et le reste de la charge avec plus d'air. Je cale ça pour demain matin ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t05-a1",
+        "user": "Oui, active cette potion d'apaisement.",
+        "assistant": "C'est noté pour la tension. On va juste prendre un instant pour laisser la pression redescendre d'un cran, sans rien exiger de toi, juste pour retrouver un peu d'espace. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r51_hard2_apaisement-apaisement-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "ed6d7369-1db6-4225-a1e6-ab7afd0d623f",
+              "potion_type": "apaisement",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "114bb4ea-f814-4fe7-96b4-69ea61b9c46e",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "ddc22bd0-5e28-4d16-81da-8e4abaf361d0",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T08:30:00+00:00"
+            },
+            {
+              "id": "23869bfe-fe49-4dad-82d4-e1e305435d0e",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T08:30:00+00:00"
+            },
+            {
+              "id": "51a88735-2657-46d9-b3ed-ed6a68504138",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T08:30:00+00:00"
+            },
+            {
+              "id": "be78d700-360c-49fe-81ec-53594c6ba1de",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T08:30:00+00:00"
+            },
+            {
+              "id": "aa2f9991-5369-4586-a64b-b23321a02cf2",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T08:30:00+00:00"
+            },
+            {
+              "id": "cbcf1339-6aff-4ddf-b490-46a04adf8330",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T08:30:00+00:00"
+            },
+            {
+              "id": "9df07f1d-0bb0-4a50-9f07-9c2505e7e639",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T08:30:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

@@ -39,7 +39,9 @@ export function chatDetailQuestionLabel(
   questionId: string,
 ): string {
   const definition = type ? POTION_DEFINITIONS[type] : null;
-  return definition?.questionnaire.find((question) => question.id === questionId)
+  return definition?.questionnaire.find((question) =>
+    question.id === questionId
+  )
     ?.label ?? questionId;
 }
 
@@ -54,13 +56,10 @@ export function buildPotionDetailSubskillPrompt(
     ...entries.map((entry) => {
       const definition = POTION_DEFINITIONS[entry.potion_type];
       const questions = entry.required_question_ids.map((id) => {
-        const question = definition.questionnaire.find((item) => item.id === id);
-        const options = question?.options?.length
-          ? ` Options: ${
-            question.options.map((option) => `${option.value}=${option.label}`).join(", ")
-          }`
-          : "";
-        return `${id}: ${question?.label ?? id}.${options}`;
+        const question = definition.questionnaire.find((item) =>
+          item.id === id
+        );
+        return `${id}: ${question?.label ?? id}.`;
       });
       return [
         `- ${entry.sub_skill}`,
@@ -88,8 +87,14 @@ export async function fillPotionDetailSlotsWithAi(
     "Tu ne reponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: l'extraction des deux champs detail se fait ici, dans le JSON. Le code ne fera pas de regex ni de fallback metier.",
     buildPotionDetailSubskillPrompt(selectedPotion || null),
+    "Utilise current_user_message ET recent_messages: si le user a deja repondu naturellement a un champ dans les derniers tours, remplis ce champ au lieu de reposer la meme question.",
+    "Quand le user ajoute une precision apres une question Sophia, rattache cette precision au champ manquant le plus probable, meme si les mots ne reprennent pas le libelle canonique.",
     "Remplis details.answers pour les deux champs obligatoires de la potion selectionnee.",
-    "Si un ou deux champs manquent, current_sub_skill='detail_intake', missing_slots contient potion_detail:<question_id>, et generated_user_message demande uniquement les champs manquants dans un seul message court.",
+    "Si un ou deux champs manquent, current_sub_skill='detail_intake', missing_slots contient potion_detail:<question_id>, et generated_user_message pose UNE seule question courte, naturelle et prioritaire.",
+    "Ne pose pas les deux questions canoniques d'un coup. Si deux champs manquent, choisis celui qui debloque le mieux la suite.",
+    "Ne liste jamais les options internes au user. Interdits visibles: 'peur du resultat, du regard, de l'inconfort ou du conflit', 'ponctuel ou recurrent', 'moment precis ou situation qui revient', et toute enumeration type formulaire.",
+    "Avant la question, tu peux faire une micro-reformulation en mots user, mais pas de phrase generique.",
+    "La question doit sonner comme une conversation: ancree dans ce que le user vient de dire, pas comme un questionnaire. Ne repose pas une question deja repondue dans recent_messages.",
     "Si les deux champs sont remplis, current_sub_skill='draft_generation' et generated_user_message peut rester null.",
     "Tu tutoies toujours l'utilisateur. Pas de vocabulaire technique.",
   ].join("\n");

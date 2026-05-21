@@ -1,6 +1,7 @@
 import { assertEquals, assertMatch } from "jsr:@std/assert@1";
 
 import {
+  allowRelaunchGreetingFromLastMessage,
   applyScheduledCheckinGreetingPolicy,
   applyWhatsappProactiveOpeningPolicy,
   computeScheduledForFromLocal,
@@ -36,6 +37,41 @@ Deno.test("applyScheduledCheckinGreetingPolicy keeps allowed relaunch greeting b
     text,
     /^(Hello!|Salut !|Hey !|Coucou !) Tu me racontes comment ça s'est passé \?$/,
   );
+});
+
+Deno.test("allowRelaunchGreetingFromLastMessage allows salutation after 6 hours", () => {
+  const sevenHoursAgo = new Date(Date.now() - 7 * 60 * 60 * 1000)
+    .toISOString();
+
+  assertEquals(
+    allowRelaunchGreetingFromLastMessage({
+      lastInboundAt: sevenHoursAgo,
+      thresholdHours: 6,
+    }),
+    true,
+  );
+});
+
+Deno.test("allowRelaunchGreetingFromLastMessage skips salutation under 6 hours", () => {
+  const fiveHoursAgo = new Date(Date.now() - 5 * 60 * 60 * 1000)
+    .toISOString();
+
+  assertEquals(
+    allowRelaunchGreetingFromLastMessage({
+      lastOutboundAt: fiveHoursAgo,
+      thresholdHours: 6,
+    }),
+    false,
+  );
+});
+
+Deno.test("applyScheduledCheckinGreetingPolicy omits greeting when relaunch is not allowed", () => {
+  const text = applyScheduledCheckinGreetingPolicy({
+    text: "Salut ! Petit check-in: on garde juste l'action du jour en vue.",
+    allowRelaunchGreeting: false,
+  });
+
+  assertEquals(text, "On garde juste l'action du jour en vue.");
 });
 
 Deno.test("computeScheduledForFromLocal preserves Europe/Paris reminder times in CEST", () => {

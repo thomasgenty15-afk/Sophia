@@ -1,0 +1,1270 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "e4238c9f-2db1-4cfb-b79e-6e87b5109a12",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "df1060a0-7c25-402a-bb1d-987cd9ad2761",
+          "potion_type": "rappel",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "6355406d-28e2-4c66-8658-a07bbd1a9312",
+          "transformation_id": null,
+          "content": {
+            "title": "Potion de Rappel",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "mes fins de journee partent en vrille",
+                "marche ou bureau",
+                "juste un repere doux"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "related_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Potion de Rappel",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Stabiliser la transition de fin de journée sur une semaine complète.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "17:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "17:30",
+                "reason_for_time": "Le décrochage se produit en fin de journée, au moment de quitter le bureau.",
+                "reminder_instruction": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur."
+              },
+              "potion_type": "rappel",
+              "opening_prompt": "C'est souvent là que ça se joue, quand la journée bascule. On regarde comment se raccrocher ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Marcher dix minutes puis ranger le bureau",
+                "evidence": [
+                  "mes fins de journee partent en vrille",
+                  "marche ou bureau",
+                  "juste un repere doux"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "fin de journée",
+                "target_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+                "related_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu as identifié que tes fins de journée partent en vrille et que tu as besoin d'un repère doux pour ne pas décrocher de tes petits gestes du soir.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion de Rappel est là pour t'aider à ne pas laisser filer tes fins de journée. Je t'enverrai un message quotidien pour t'aider à faire la transition vers ta marche ou le rangement du bureau, sans aucune pression.",
+              "instant_support_message": "C'est normal de laisser filer quand la fatigue arrive ou que la transition est floue. On ne va pas forcer, juste remettre un peu de conscience là où ça glisse pour que tu retrouves ton mouvement."
+            },
+            "why_this_potion": "Tu as identifié que tes fins de journée partent en vrille et que tu as besoin d'un repère doux pour ne pas décrocher de tes petits gestes du soir.",
+            "potion_info_message": "Cette potion de Rappel est là pour t'aider à ne pas laisser filer tes fins de journée. Je t'enverrai un message quotidien pour t'aider à faire la transition vers ta marche ou le rangement du bureau, sans aucune pression.",
+            "instant_support_message": "C'est normal de laisser filer quand la fatigue arrive ou que la transition est floue. On ne va pas forcer, juste remettre un peu de conscience là où ça glisse pour que tu retrouves ton mouvement."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Stabiliser la transition de fin de journée sur une semaine complète.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "17:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "mes fins de journee partent en vrille",
+                "marche ou bureau",
+                "juste un repere doux"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "related_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "17:30",
+            "reason_for_time": "Le décrochage se produit en fin de journée, au moment de quitter le bureau.",
+            "reminder_instruction": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t05-a1",
+            "operation_id": "e902626c-ae6b-43bc-82db-2e08822e5a4d",
+            "operation_type": "select_state_potion",
+            "source_message_id": "31270a96-016d-41af-a82b-0a5f193fe69a"
+          },
+          "generated_at": "2026-05-21T14:32:24.659+00:00",
+          "last_updated_at": "2026-05-21T14:32:24.659+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "message_instruction": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "rationale": "Stabiliser la transition de fin de journée sur une semaine complète.",
+          "local_time_hhmm": "17:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "df1060a0-7c25-402a-bb1d-987cd9ad2761",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-rappel-t05-a1",
+            "operation_id": "e902626c-ae6b-43bc-82db-2e08822e5a4d",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Stabiliser la transition de fin de journée sur une semaine complète.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "17:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "mes fins de journee partent en vrille",
+                "marche ou bureau",
+                "juste un repere doux"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "related_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "0147d4ce-66c1-4601-a192-d471f69b2fd8",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:32:24.659+00:00",
+          "created_at": "2026-05-21T14:32:24.665547+00:00",
+          "updated_at": "2026-05-21T14:32:24.665547+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "49c65d77-1e41-4f1d-b19f-078ca30d93c2",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-22",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-22T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "0cf0fce4-7e90-4220-b0f4-e283fbf1db72",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-23",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-23T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "8846b378-1979-4c5c-af87-455b2adf1516",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-24",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-24T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "0ed88722-edb4-4281-b56a-9abe19eae4b5",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-25",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-25T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "8da0aac4-b69d-4819-b37c-609da44532f7",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-26",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-26T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "aee41abe-3b24-4917-9e7b-2b8b339aec52",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-27",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-27T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        },
+        {
+          "id": "43c4f31b-0aa1-4468-9d93-35a8e9a0d7c5",
+          "recurring_reminder_id": "33ae9c80-341f-431a-8a4d-7f04adb7c25c",
+          "event_context": "recurring_reminder:33ae9c80-341f-431a-8a4d-7f04adb7c25c:potion:df1060a0-7c25-402a-bb1d-987cd9ad2761:2026-05-28",
+          "draft_message": "Aider le user à amorcer sa transition de fin de journée (marche ou bureau) avec douceur.",
+          "scheduled_for": "2026-05-28T17:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:32:24.683436+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "2f57e606-08fa-49f8-804e-b4ed1bc4b2de",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "c602c5eb-98e1-41e0-b219-f1a33e0f5ad8",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "63edac3e-d9e5-4188-ac02-8935ab7c56a5",
+          "potion_type": "guerison",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "592098f9-25f1-43d7-b66a-00b74c5fc0f6",
+          "transformation_id": null,
+          "content": {
+            "title": "Reprendre proprement",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "A raté son bloc hier",
+                "Le moment qui reste, c'est quand j'ai fermé le document"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "related_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Reprendre proprement",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi de 7 jours permet de sortir proprement de la phase de fatigue sans laisser la honte s'installer.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "Le matin permet de poser un cadre clair avant que la journée ne s'accélère.",
+                "reminder_instruction": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin."
+              },
+              "potion_type": "guerison",
+              "opening_prompt": "Qu'est-ce qui permettrait de clore cet épisode sans y laisser trop d'énergie ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Reprendre doucement après un ratage",
+                "evidence": [
+                  "A raté son bloc hier",
+                  "Le moment qui reste, c'est quand j'ai fermé le document"
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": null,
+                "target_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+                "related_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Pour traiter la fatigue et la honte de manière factuelle et adulte, en évitant la spirale de l'auto-attaque.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion de guérison va t'aider à stabiliser ton énergie ces prochains jours. Je t'enverrai un message chaque matin pour garder cette clarté et éviter que la fatigue ne se transforme en auto-jugement.",
+              "instant_support_message": "Fermer ce document hier était une réponse à la fatigue. C'est un fait, pas une faute. On peut simplement reprendre là où c'est utile, sans avoir besoin de compenser ou de se justifier."
+            },
+            "why_this_potion": "Pour traiter la fatigue et la honte de manière factuelle et adulte, en évitant la spirale de l'auto-attaque.",
+            "potion_info_message": "Cette potion de guérison va t'aider à stabiliser ton énergie ces prochains jours. Je t'enverrai un message chaque matin pour garder cette clarté et éviter que la fatigue ne se transforme en auto-jugement.",
+            "instant_support_message": "Fermer ce document hier était une réponse à la fatigue. C'est un fait, pas une faute. On peut simplement reprendre là où c'est utile, sans avoir besoin de compenser ou de se justifier."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi de 7 jours permet de sortir proprement de la phase de fatigue sans laisser la honte s'installer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "A raté son bloc hier",
+                "Le moment qui reste, c'est quand j'ai fermé le document"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "related_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "Le matin permet de poser un cadre clair avant que la journée ne s'accélère.",
+            "reminder_instruction": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t05-a1",
+            "operation_id": "0fc0a616-74d0-4806-90dc-d7b4add3c8df",
+            "operation_type": "select_state_potion",
+            "source_message_id": "9858dd9b-e6ef-4b10-8dc2-fc10c394a6ed"
+          },
+          "generated_at": "2026-05-21T14:38:32.497+00:00",
+          "last_updated_at": "2026-05-21T14:38:32.497+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "message_instruction": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "rationale": "Un suivi de 7 jours permet de sortir proprement de la phase de fatigue sans laisser la honte s'installer.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "63edac3e-d9e5-4188-ac02-8935ab7c56a5",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-guerison-t05-a1",
+            "operation_id": "0fc0a616-74d0-4806-90dc-d7b4add3c8df",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi de 7 jours permet de sortir proprement de la phase de fatigue sans laisser la honte s'installer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Reprendre doucement après un ratage",
+              "evidence": [
+                "A raté son bloc hier",
+                "Le moment qui reste, c'est quand j'ai fermé le document"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "related_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "3d24a012-39ca-44a8-87dc-8c36cbcc2e00",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:38:32.497+00:00",
+          "created_at": "2026-05-21T14:38:32.501392+00:00",
+          "updated_at": "2026-05-21T14:38:32.501392+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7c9ebbde-8419-4f93-8a94-74def9a84955",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-22",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "d9310235-b838-4c82-a189-33d96e612bf0",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-23",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "1471ee48-50d5-4d4f-a2b8-f147d8b2dec3",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-24",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "e8b2e7ad-4ded-4910-8283-375e90c904f8",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-25",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "ba121b52-bc19-4657-b66f-3a448b0aa07d",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-26",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "b5a4d525-64bc-40bc-84dd-966cc225b84e",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-27",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        },
+        {
+          "id": "bc26ef03-8964-4396-8385-d21c93981249",
+          "recurring_reminder_id": "2dba0120-1765-40b5-9487-eac31a482627",
+          "event_context": "recurring_reminder:2dba0120-1765-40b5-9487-eac31a482627:potion:63edac3e-d9e5-4188-ac02-8935ab7c56a5:2026-05-28",
+          "draft_message": "Messages directs et factuels pour stabiliser l'énergie et la présence le matin.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:38:32.507654+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "cf183636-264c-4413-9136-775a519529b3",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "c1409027-7a9a-448b-b8bd-116f643a93f1",
+          "potion_type": "clarte",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "14e4ebb5-eb04-4a98-af66-b8f49d68f49e",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver le premier fil",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Tu as trois pistes pour demain matin et tu as peur de perdre la bonne opportunité.",
+                "Tu veux un soutien à 09:00 demain puis chaque matin."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "demain à 09:00",
+              "target_plan_item_id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver le premier fil",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un appui quotidien à l'heure de ton choix de priorité aide à ne pas laisser le flou s'installer.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "during"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "09:00 demain pour être là pile quand tu dois choisir ta priorité, puis chaque matin pour stabiliser ton élan.",
+                "reminder_instruction": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge."
+              },
+              "potion_type": "clarte",
+              "opening_prompt": "Si tu ne gardais qu’un seul fil pour demain matin, lequel t’aiderait à démarrer sans te perdre ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Choisir la priorité du matin",
+                "evidence": [
+                  "Tu as trois pistes pour demain matin et tu as peur de perdre la bonne opportunité.",
+                  "Tu veux un soutien à 09:00 demain puis chaque matin."
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "demain à 09:00",
+                "target_plan_item_id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "La clarté permet de réduire le bruit quand trop de sujets s'accumulent, en se concentrant sur un seul geste à la fois.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion t'aide à simplifier quand tout se mélange. Je serai là demain à 09:00, puis chaque matin pendant une semaine, pour t'aider à garder ce premier fil bien en main.",
+              "instant_support_message": "Là, tu n’as pas besoin de tout remettre en ordre. Juste de retrouver le premier fil, un seul, pour que ça redevienne maniable."
+            },
+            "why_this_potion": "La clarté permet de réduire le bruit quand trop de sujets s'accumulent, en se concentrant sur un seul geste à la fois.",
+            "potion_info_message": "Cette potion t'aide à simplifier quand tout se mélange. Je serai là demain à 09:00, puis chaque matin pendant une semaine, pour t'aider à garder ce premier fil bien en main.",
+            "instant_support_message": "Là, tu n’as pas besoin de tout remettre en ordre. Juste de retrouver le premier fil, un seul, pour que ça redevienne maniable."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un appui quotidien à l'heure de ton choix de priorité aide à ne pas laisser le flou s'installer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "during"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Tu as trois pistes pour demain matin et tu as peur de perdre la bonne opportunité.",
+                "Tu veux un soutien à 09:00 demain puis chaque matin."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "demain à 09:00",
+              "target_plan_item_id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "09:00 demain pour être là pile quand tu dois choisir ta priorité, puis chaque matin pour stabiliser ton élan.",
+            "reminder_instruction": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t05-a1",
+            "operation_id": "b46560c8-2d33-4a08-95d0-3f359ee47470",
+            "operation_type": "select_state_potion",
+            "source_message_id": "86f93a92-4c7c-4e85-bea9-cab212d5df44"
+          },
+          "generated_at": "2026-05-21T14:41:21.566+00:00",
+          "last_updated_at": "2026-05-21T14:41:21.566+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "message_instruction": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "rationale": "Un appui quotidien à l'heure de ton choix de priorité aide à ne pas laisser le flou s'installer.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "c1409027-7a9a-448b-b8bd-116f643a93f1",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-clarte-t05-a1",
+            "operation_id": "b46560c8-2d33-4a08-95d0-3f359ee47470",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un appui quotidien à l'heure de ton choix de priorité aide à ne pas laisser le flou s'installer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "during"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Choisir la priorité du matin",
+              "evidence": [
+                "Tu as trois pistes pour demain matin et tu as peur de perdre la bonne opportunité.",
+                "Tu veux un soutien à 09:00 demain puis chaque matin."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "demain à 09:00",
+              "target_plan_item_id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "3a0529c6-2518-4434-ac37-c6df90d5b393",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:41:21.566+00:00",
+          "created_at": "2026-05-21T14:41:21.572852+00:00",
+          "updated_at": "2026-05-21T14:41:21.572852+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "6cd73144-459a-476c-b3ad-95eb35325c11",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-22",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "8ec6faf7-30de-4d20-bce4-775b51d763b3",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-23",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "def708cc-8f12-478d-9010-6423aeca8de7",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-24",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "6e200312-2462-4efe-bbde-99f3db36e490",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-25",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "f99130f5-1285-44ba-8d08-0f62b660376b",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-26",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "5a754771-894b-46db-bd95-9d66ff4303ba",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-27",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        },
+        {
+          "id": "d76c1e07-a426-437d-aba6-34935c4e8927",
+          "recurring_reminder_id": "93f3e12e-7a22-4689-8417-af30d1094b5a",
+          "event_context": "recurring_reminder:93f3e12e-7a22-4689-8417-af30d1094b5a:potion:c1409027-7a9a-448b-b8bd-116f643a93f1:2026-05-28",
+          "draft_message": "Te ramener au premier fil pour ta priorité du matin, sans ajouter de charge.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:41:21.583214+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "3f868625-cd7a-4faa-a466-ba4116c145f1",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "2a153d8c-c9b3-4c00-bab6-d572fb3e7c21",
+          "potion_type": "amour",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "3030c043-c72d-48a8-9303-79d28cba83c9",
+          "transformation_id": null,
+          "content": {
+            "title": "Retrouver un ton plus tendre avec toi",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+                "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Retrouver un ton plus tendre avec toi",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "L’état est général, sans action précise à cibler, donc un rappel quotidien le matin reste le plus simple et le plus stable.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "09:00",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "09:00",
+                "reason_for_time": "Le matin à 09:00 correspond à ton rythme préféré et aide à poser le ton avant que la journée ne te pousse trop fort.",
+                "reminder_instruction": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir."
+              },
+              "potion_type": "amour",
+              "opening_prompt": "Comment est-ce que tu te parles en ce moment, quand la journée commence ?",
+              "target_binding": {
+                "kind": "none",
+                "label": null,
+                "evidence": [
+                  "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                  "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+                  "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon."
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": null,
+                "target_plan_item_id": null,
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Tu veux sortir de l’auto-jugement sans te flatter, avec un appui simple qui ramène de la chaleur et un regard plus juste dès le matin.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion t’aide à remettre de la douceur dans le dialogue avec toi, sans te raconter d’histoire. Le rappel du matin à 09:00 est là pour t’aider à ne pas commencer la journée en te tapant dessus.",
+              "instant_support_message": "Là, tu n’as pas besoin de te secouer. Juste de desserrer un peu la voix contre toi. On peut garder du vrai sans rajouter de dureté."
+            },
+            "why_this_potion": "Tu veux sortir de l’auto-jugement sans te flatter, avec un appui simple qui ramène de la chaleur et un regard plus juste dès le matin.",
+            "potion_info_message": "Cette potion t’aide à remettre de la douceur dans le dialogue avec toi, sans te raconter d’histoire. Le rappel du matin à 09:00 est là pour t’aider à ne pas commencer la journée en te tapant dessus.",
+            "instant_support_message": "Là, tu n’as pas besoin de te secouer. Juste de desserrer un peu la voix contre toi. On peut garder du vrai sans rajouter de dureté."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "L’état est général, sans action précise à cibler, donc un rappel quotidien le matin reste le plus simple et le plus stable.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+                "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "09:00",
+            "reason_for_time": "Le matin à 09:00 correspond à ton rythme préféré et aide à poser le ton avant que la journée ne te pousse trop fort.",
+            "reminder_instruction": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t05-a1",
+            "operation_id": "0d728238-f06e-4d70-8089-3f2ca32d4166",
+            "operation_type": "select_state_potion",
+            "source_message_id": "26ff0f7a-a6f1-4ea7-aa6e-abc7caad67a1"
+          },
+          "generated_at": "2026-05-21T14:44:16.029+00:00",
+          "last_updated_at": "2026-05-21T14:44:16.029+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "message_instruction": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "rationale": "L’état est général, sans action précise à cibler, donc un rappel quotidien le matin reste le plus simple et le plus stable.",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "2a153d8c-c9b3-4c00-bab6-d572fb3e7c21",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-amour-t05-a1",
+            "operation_id": "0d728238-f06e-4d70-8089-3f2ca32d4166",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "L’état est général, sans action précise à cibler, donc un rappel quotidien le matin reste le plus simple et le plus stable.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "09:00",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "Le matin a 09h, ca m'aiderait a ne pas commencer par me taper dessus.",
+                "J'ai besoin d'un ton tendre mais lucide, pas un truc qui me flatte.",
+                "La phrase qui revient: tu rates toujours au meme endroit, donc a quoi bon."
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T14:44:16.029+00:00",
+          "created_at": "2026-05-21T14:44:16.035584+00:00",
+          "updated_at": "2026-05-21T14:44:16.035584+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "585915f7-1d62-4889-b6e5-9d473683f034",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-22",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-22T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "b07d92f7-6af9-48e6-8d2f-c70ff3a321f9",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-23",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-23T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "2778527e-951c-4b5a-bba8-f4b6c245ad05",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-24",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-24T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "ad9d742f-d582-4325-98e4-437977dfea79",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-25",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-25T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "851f1e98-c38c-4949-8ee1-3c956c7075fa",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-26",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-26T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "8bd63405-559f-4ba0-98cd-4aa2471f45c0",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-27",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-27T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        },
+        {
+          "id": "e56f8ef2-da5a-4e52-9cda-667255f5421d",
+          "recurring_reminder_id": "6e1e3bb5-ae56-4e6f-9286-27570c1e31b2",
+          "event_context": "recurring_reminder:6e1e3bb5-ae56-4e6f-9286-27570c1e31b2:potion:2a153d8c-c9b3-4c00-bab6-d572fb3e7c21:2026-05-28",
+          "draft_message": "Le matin, rappelle-toi de te parler avec plus de douceur, sans te mentir.",
+          "scheduled_for": "2026-05-28T09:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:44:16.04451+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "5db2024e-0bd5-4753-9169-ba5cb4000898",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r36_hard2_green_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "f389fc39-58a8-49f9-b32b-11e0abf7303c",
+          "potion_type": "apaisement",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "df6489ce-99ca-4155-99dd-d6781ff65fc1",
+          "transformation_id": null,
+          "content": {
+            "title": "Desserrer l'étau",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "tendu et submergé",
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Desserrer l'étau",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien matinal aide à instaurer un climat de douceur avant que la journée ne s'accélère.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:30",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "08:30",
+                "reason_for_time": "L'utilisateur a validé le créneau de 08:30 pour un soutien matinal quotidien.",
+                "reminder_instruction": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité."
+              },
+              "potion_type": "apaisement",
+              "opening_prompt": "Qu'est-ce qui a allumé l'alerte ce matin ?",
+              "target_binding": {
+                "kind": "none",
+                "label": null,
+                "evidence": [
+                  "tendu et submergé",
+                  "La reunion de cet apres-midi prend toute la place"
+                ],
+                "recurrence_hint": null,
+                "date_or_window_hint": null,
+                "target_plan_item_id": null,
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "L'utilisateur ressent des tensions physiques et une submersion liées à une surcharge et une réunion. La potion d'apaisement permet de redescendre en pression sans ajouter de contrainte de performance.",
+              "expected_duration": "short",
+              "potion_info_message": "Cette potion est là pour t'aider à ralentir le matin sans culpabiliser. Je vais t'accompagner ces prochains jours pour t'aider à garder cet espace de respiration, même quand tout semble presser.",
+              "instant_support_message": "Prends juste une seconde pour desserrer la mâchoire et laisser tes épaules descendre. On ne va rien rajouter à ta liste, juste laisser un peu d'air circuler là où c'est bloqué en ce moment."
+            },
+            "why_this_potion": "L'utilisateur ressent des tensions physiques et une submersion liées à une surcharge et une réunion. La potion d'apaisement permet de redescendre en pression sans ajouter de contrainte de performance.",
+            "potion_info_message": "Cette potion est là pour t'aider à ralentir le matin sans culpabiliser. Je vais t'accompagner ces prochains jours pour t'aider à garder cet espace de respiration, même quand tout semble presser.",
+            "instant_support_message": "Prends juste une seconde pour desserrer la mâchoire et laisser tes épaules descendre. On ne va rien rajouter à ta liste, juste laisser un peu d'air circuler là où c'est bloqué en ce moment."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien matinal aide à instaurer un climat de douceur avant que la journée ne s'accélère.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "tendu et submergé",
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "08:30",
+            "reason_for_time": "L'utilisateur a validé le créneau de 08:30 pour un soutien matinal quotidien.",
+            "reminder_instruction": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t05-a1",
+            "operation_id": "d5618dee-141d-4255-9f56-fcb294ed4dda",
+            "operation_type": "select_state_potion",
+            "source_message_id": "c4890e5a-f811-4bbd-a664-f9ce3ada7d02"
+          },
+          "generated_at": "2026-05-21T14:47:46.684+00:00",
+          "last_updated_at": "2026-05-21T14:47:46.684+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "message_instruction": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "rationale": "Un suivi quotidien matinal aide à instaurer un climat de douceur avant que la journée ne s'accélère.",
+          "local_time_hhmm": "08:30",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "f389fc39-58a8-49f9-b32b-11e0abf7303c",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r36_hard2_green-apaisement-t05-a1",
+            "operation_id": "d5618dee-141d-4255-9f56-fcb294ed4dda",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien matinal aide à instaurer un climat de douceur avant que la journée ne s'accélère.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "08:30",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "none",
+              "label": null,
+              "evidence": [
+                "tendu et submergé",
+                "La reunion de cet apres-midi prend toute la place"
+              ],
+              "recurrence_hint": null,
+              "date_or_window_hint": null,
+              "target_plan_item_id": null,
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T14:47:46.684+00:00",
+          "created_at": "2026-05-21T14:47:46.702358+00:00",
+          "updated_at": "2026-05-21T14:47:46.702358+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "dc2a34ce-a8a7-457c-b455-29357f7e2f80",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-22",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-22T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "c921f59e-5390-41d9-b3c2-35a3d34cbf94",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-23",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-23T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "3d708aa9-2bf9-432b-9b4a-ceeb223fcb7a",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-24",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-24T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "2ec44185-af13-49e2-8e30-2c7f30c3a3bc",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-25",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-25T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "66b285c5-379a-415b-bd91-1bb03f6905d8",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-26",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-26T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "cd39fe2d-f6e6-4822-b7a3-8afe06b169dc",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-27",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-27T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        },
+        {
+          "id": "e9e69e80-613c-4d65-a6ab-45de1b997f40",
+          "recurring_reminder_id": "b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4",
+          "event_context": "recurring_reminder:b9dd2d34-fb4d-43e8-a0d8-5fb13ff480f4:potion:f389fc39-58a8-49f9-b32b-11e0abf7303c:2026-05-28",
+          "draft_message": "Envoie un message pour aider à desserrer la pression physique et mentale, en insistant sur le droit de ralentir sans culpabilité.",
+          "scheduled_for": "2026-05-28T08:30:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:47:46.709388+00:00"
+        }
+      ]
+    }
+  }
+]

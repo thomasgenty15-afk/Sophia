@@ -1,0 +1,544 @@
+{
+  "run_id": "weekly-feedback-r3-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "157d1c18-1fc2-4926-8bd7-3802cc3b1730",
+  "email": "qa-weekly-deep-weekly-feedback-r3-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-feedback-r3",
+  "created_at": "2026-05-20T16:43:04.073Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T16:43:04.076Z",
+      "user": "Debut OK puis grosse fatigue jeudi vendredi. Je ne veux pas alleger: prolonge la meme semaine une semaine de plus en copie conforme, memes actions et meme rythme, sans changer le plan global.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose de prolonger le niveau actuel d'une semaine à l'identique.\n\nCe qui change: uniquement la durée du niveau. Tu gardes les mêmes actions, le même rythme et les mêmes repères.\n\n- Convenir d'un signal de pause: inchangé.\n- Partager un point positif: inchangé.\n- Respiration de pause: inchangé.\n\nRien n'est appliqué tant que tu ne valides pas. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-feedback-r3-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-feedback-r3-partial_habits_mission_partial-t01",
+        "user_id": "157d1c18-1fc2-4926-8bd7-3802cc3b1730",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-feedback-r3",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose de prolonger le niveau actuel d'une semaine à l'identique.\n\nCe qui change: uniquement la durée du niveau. Tu gardes les mêmes actions, le même rythme et les mêmes repères.\n\n- Convenir d'un signal de pause: inchangé.\n- Partager un point positif: inchangé.\n- Respiration de pause: inchangé.\n\nRien n'est appliqué tant que tu ne valides pas. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-feedback-r3-partial_habits_mission_partial-t01",
+          "user_id": "157d1c18-1fc2-4926-8bd7-3802cc3b1730",
+          "source_message_id": "0b80dc02-1c3c-4d8e-b3c3-e2dcf3bed8b4",
+          "ts": "2026-05-20T16:43:14.579+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11371,
+            "latency_ms": 3996,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 708,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-feedback-r3-partial_habits_mission_partial-t01",
+            "user_id": "157d1c18-1fc2-4926-8bd7-3802cc3b1730",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_review_with_plan_adjustment",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "0b80dc02-1c3c-4d8e-b3c3-e2dcf3bed8b4",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "semaine prochaine",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "semaine prochaine",
+                    "status": "identified",
+                    "evidence": [
+                      "prolonge la meme semaine une semaine de plus en copie conforme"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "prolonge la meme semaine une semaine de plus"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "extend_current_level_same_plan",
+                    "copy_forward_level_one_week",
+                    "preserve_action_content",
+                    "preserve_cadence",
+                    "avoid_repetitive_clarification_when_user_gives_solution",
+                    "coach_observation:La demande exprime un besoin de consolidation après une montée de fatigue en fin de semaine : il ne s’agit pas d’un changement d’objectif, mais d’un maintien rassurant du niveau actuel pour laisser le temps d’intégrer sans ouvrir une nouvelle phase. Humainement, le vrai enjeu est la préservation de l’élan sans surcharger; techniquement, la demande est simple car elle porte sur un prolongement à l’identique du niveau courant.",
+                    "coach_recommendation:Orienter la suite comme une prolongation stable du niveau actuel sur une semaine supplémentaire, en gardant strictement les mêmes actions, la même cadence et le même rôle de chaque item. Le sous-skill doit privilégier une formulation de continuité et de sécurité, en évitant toute requalification du plan ou toute proposition d’allègement non demandée.",
+                    "coach_warning:Éviter de transformer cette fatigue ponctuelle en justification pour redéfinir le niveau ou la trajectoire globale.",
+                    "coach_warning:Éviter de proposer spontanément une baisse de charge, une suppression d’items ou une modification de cadence puisque l’intention explicite est de conserver le rythme.",
+                    "coach_warning:Éviter un discours qui présente la copie conforme comme une stagnation; ici, la répétition sert la consolidation.",
+                    "coach_warning:Éviter d’ajouter des ajustements implicites sous prétexte d’optimisation; cela casserait la cohérence de la demande.",
+                    "coach_warning:Éviter de sur-questionner alors que l’intention est déjà suffisamment claire pour avancer.",
+                    "coach_preserve:Le niveau actuel comme cadre de travail.",
+                    "coach_preserve:Les mêmes actions et leur contenu exact.",
+                    "coach_preserve:Le même rythme et la même cadence.",
+                    "coach_preserve:Le plan global inchangé.",
+                    "coach_preserve:La logique de consolidation après une fatigue ponctuelle.",
+                    "coach_preserve:Le rôle de chaque item déjà en place.",
+                    "coach_avoid:Ne pas proposer d’allègement.",
+                    "coach_avoid:Ne pas proposer de suppression ou de remplacement d’items.",
+                    "coach_avoid:Ne pas modifier la nature des actions.",
+                    "coach_avoid:Ne pas changer la trajectoire du plan.",
+                    "coach_avoid:Ne pas ouvrir une nouvelle phase ou un nouveau niveau.",
+                    "coach_avoid:Ne pas formuler de questions inutiles sur la compréhension de la demande.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Action: traiter la demande comme une extension de continuité, pas comme une refonte.",
+                    "coach_guideline:Intention préservée: maintenir l’effort malgré la fatigue, avec une copie conforme du niveau courant.",
+                    "coach_guideline:Pont mini si besoin: formuler la semaine supplémentaire comme une semaine de consolidation avant toute évolution ultérieure.",
+                    "coach_guideline:Pas de changement de nature sans demande explicite: conserver missions, habitudes, séquences et cadence tels quels.",
+                    "coach_guideline:Niveau: préserver la charge et le rythme du niveau actuel; toute baisse éventuelle relèverait d’un autre échange et ne doit pas être introduite ici.",
+                    "coach_guideline:Boundary de fin de niveau: cette semaine ajoutée sert de prolongation temporaire, sans redéfinir la fin du niveau ni son cœur.",
+                    "coach_guideline:Cœur du niveau préservé: mêmes objectifs fonctionnels, mêmes repères de fatigue, mêmes rituels, même structure hebdomadaire.",
+                    "coach_guideline:Whole plan: conserver la trajectoire globale, l’ordre des phases et le questionnaire/fil directeur déjà posés; ne pas réinterpréter la fatigue comme un changement de stratégie.",
+                    "coach_guideline:Distinguer systématiquement ce qui est humainement pertinent (besoin de stabilité, sécurité, consolidation) de ce qui est techniquement faisable (dupliquer le niveau sans modification).",
+                    "affected_item:Fiche support: repere de fatigue",
+                    "affected_item:Convenir d'un signal de pause",
+                    "affected_item:Partager un point positif",
+                    "affected_item:Respiration de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "timing",
+                  "reason_change": "time_or_capacity_changed"
+                },
+                "title": "Prolonger le niveau actuel",
+                "confidence": "high",
+                "ack_summary": {
+                  "changed": [
+                    "Durée du niveau actuel"
+                  ],
+                  "unchanged": [
+                    "Actions du niveau",
+                    "Rythme",
+                    "Repères",
+                    "Plan global"
+                  ],
+                  "confidence": "high",
+                  "why_it_helps": "Le niveau est consolidé sans déplacer la trajectoire ni modifier la charge.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "niveau actuel",
+                "why_it_helps": "Cela laisse une semaine de consolidation avant la suite sans ajouter de charge ni changer le cadre.",
+                "decision_basis": {
+                  "evidence": [
+                    "Debut OK puis grosse fatigue jeudi vendredi. Je ne veux pas alleger: prolonge la meme semaine une semaine de plus en copie conforme, memes actions et meme rythme, sans changer le plan global.",
+                    "operation_input.scope",
+                    "message.copy_forward_current_level",
+                    "deterministic copy-forward level request",
+                    "message.copy_forward_current_level",
+                    "user wants one more identical consolidation week",
+                    "message.copy_forward_current_level",
+                    "level needs one more week before next step",
+                    "message.copy_forward_current_level",
+                    "extend current level without changing actions or cadence"
+                  ],
+                  "confidence": "high",
+                  "uncertainty": [],
+                  "user_problem": "Le user veut consolider le niveau actuel une semaine de plus sans changer le contenu.",
+                  "inferred_need": "prolonger le meme niveau a l'identique, sans alleger, sans changer les actions et sans changer le rythme",
+                  "must_preserve": [
+                    "actions existantes",
+                    "rythme existant",
+                    "reperes du niveau actuel",
+                    "plan global"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global.",
+                "change_rationale": {
+                  "why_this_change": "La demande porte sur le temps de consolidation, pas sur le contenu des actions.",
+                  "success_condition": "Le user garde les mêmes actions et le même rythme pendant une semaine supplémentaire.",
+                  "expected_mechanism": "Une semaine identique donne plus de répétition sans changer la difficulté."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "high",
+                    "missing_info": [],
+                    "user_problem": "Le user veut consolider avant de passer au niveau suivant.",
+                    "expected_effect": "Le user garde le même cadre une semaine de plus.",
+                    "why_this_change": "Prolonger à l'identique répond à la demande sans créer d'allègement non demandé."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement prolonge le niveau actuel sans modifier son contenu.",
+                    "affected_scope": "niveau actuel",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "actions",
+                      "rythme",
+                      "objectif global",
+                      "plan global"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global.",
+                    "changed_items": [
+                      {
+                        "id": "679d538d-4014-4d73-938f-78962e21b03e",
+                        "kind": "action",
+                        "after": "Inchangé: mission ponctuelle. Le niveau est seulement prolongé d'une semaine.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le user veut consolider le niveau actuel une semaine de plus sans modifier les actions ni le rythme.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "dd2a6a57-af7f-481b-9bf9-729e737b3d16",
+                        "kind": "habit",
+                        "after": "Inchangé: 3x/semaine. Le niveau est seulement prolongé d'une semaine.",
+                        "title": "Partager un point positif",
+                        "before": "Partager un point positif",
+                        "reason": "Le user veut consolider le niveau actuel une semaine de plus sans modifier les actions ni le rythme.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "c6e806f7-21aa-4721-86ef-46f3cdb83e92",
+                        "kind": "habit",
+                        "after": "Inchangé: 2x/semaine. Le niveau est seulement prolongé d'une semaine.",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause",
+                        "reason": "Le user veut consolider le niveau actuel une semaine de plus sans modifier les actions ni le rythme.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "679d538d-4014-4d73-938f-78962e21b03e",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Action conservée à l'identique."
+                      },
+                      {
+                        "id": "dd2a6a57-af7f-481b-9bf9-729e737b3d16",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "Action conservée à l'identique."
+                      },
+                      {
+                        "id": "c6e806f7-21aa-4721-86ef-46f3cdb83e92",
+                        "kind": "habit",
+                        "title": "Respiration de pause",
+                        "reason": "Action conservée à l'identique."
+                      }
+                    ]
+                  },
+                  "user_message_brief": "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global.",
+                  "user_message_detailed": "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique.\n\nLes actions, le rythme et les repères restent inchangés. Le plan global n'est pas refait.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de prolonger le niveau actuel d'une semaine à l'identique.\n\nCe qui change: uniquement la durée du niveau. Tu gardes les mêmes actions, le même rythme et les mêmes repères.\n\n- Convenir d'un signal de pause: inchangé.\n- Partager un point positif: inchangé.\n- Respiration de pause: inchangé.\n\nRien n'est appliqué tant que tu ne valides pas."
+            },
+            "status": "draft_review",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "873cbdfb-cf4f-41c7-8ef4-ddc1c9dd526f",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer d’allègement.",
+                "Ne pas proposer de suppression ou de remplacement d’items.",
+                "Ne pas modifier la nature des actions.",
+                "Ne pas changer la trajectoire du plan.",
+                "Ne pas ouvrir une nouvelle phase ou un nouveau niveau.",
+                "Ne pas formuler de questions inutiles sur la compréhension de la demande."
+              ],
+              "scope": "level",
+              "preserve": [
+                "Le niveau actuel comme cadre de travail.",
+                "Les mêmes actions et leur contenu exact.",
+                "Le même rythme et la même cadence.",
+                "Le plan global inchangé.",
+                "La logique de consolidation après une fatigue ponctuelle.",
+                "Le rôle de chaque item déjà en place."
+              ],
+              "warnings": [
+                "Éviter de transformer cette fatigue ponctuelle en justification pour redéfinir le niveau ou la trajectoire globale.",
+                "Éviter de proposer spontanément une baisse de charge, une suppression d’items ou une modification de cadence puisque l’intention explicite est de conserver le rythme.",
+                "Éviter un discours qui présente la copie conforme comme une stagnation; ici, la répétition sert la consolidation.",
+                "Éviter d’ajouter des ajustements implicites sous prétexte d’optimisation; cela casserait la cohérence de la demande.",
+                "Éviter de sur-questionner alors que l’intention est déjà suffisamment claire pour avancer."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Action: traiter la demande comme une extension de continuité, pas comme une refonte.",
+                "Intention préservée: maintenir l’effort malgré la fatigue, avec une copie conforme du niveau courant.",
+                "Pont mini si besoin: formuler la semaine supplémentaire comme une semaine de consolidation avant toute évolution ultérieure.",
+                "Pas de changement de nature sans demande explicite: conserver missions, habitudes, séquences et cadence tels quels.",
+                "Niveau: préserver la charge et le rythme du niveau actuel; toute baisse éventuelle relèverait d’un autre échange et ne doit pas être introduite ici.",
+                "Boundary de fin de niveau: cette semaine ajoutée sert de prolongation temporaire, sans redéfinir la fin du niveau ni son cœur.",
+                "Cœur du niveau préservé: mêmes objectifs fonctionnels, mêmes repères de fatigue, mêmes rituels, même structure hebdomadaire.",
+                "Whole plan: conserver la trajectoire globale, l’ordre des phases et le questionnaire/fil directeur déjà posés; ne pas réinterpréter la fatigue comme un changement de stratégie.",
+                "Distinguer systématiquement ce qui est humainement pertinent (besoin de stabilité, sécurité, consolidation) de ce qui est techniquement faisable (dupliquer le niveau sans modification)."
+              ],
+              "observation": "La demande exprime un besoin de consolidation après une montée de fatigue en fin de semaine : il ne s’agit pas d’un changement d’objectif, mais d’un maintien rassurant du niveau actuel pour laisser le temps d’intégrer sans ouvrir une nouvelle phase. Humainement, le vrai enjeu est la préservation de l’élan sans surcharger; techniquement, la demande est simple car elle porte sur un prolongement à l’identique du niveau courant.",
+              "recommendation": "Orienter la suite comme une prolongation stable du niveau actuel sur une semaine supplémentaire, en gardant strictement les mêmes actions, la même cadence et le même rôle de chaque item. Le sous-skill doit privilégier une formulation de continuité et de sécurité, en évitant toute requalification du plan ou toute proposition d’allègement non demandée.",
+              "options_to_discuss": [
+                "Confirmer simplement la prolongation à l’identique du niveau courant pour une semaine supplémentaire.",
+                "Présenter cette semaine copiée comme une semaine de consolidation, sans changer le contenu du plan.",
+                "Ajouter uniquement un cadre de vigilance interne sur la fatigue, sans toucher aux actions ni à leur rythme.",
+                "Si nécessaire plus tard, ouvrir une discussion séparée sur l’ajustement de charge, mais pas dans cette réponse."
+              ],
+              "questions_to_clarify": []
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 10432,
+          "created_at": "2026-05-20T16:43:14.580618+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T16:43:14.591Z"
+}

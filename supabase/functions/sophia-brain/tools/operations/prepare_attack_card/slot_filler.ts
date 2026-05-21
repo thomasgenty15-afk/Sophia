@@ -119,6 +119,119 @@ function normalizeTechniqueOptions(value: unknown) {
   }).slice(0, 3);
 }
 
+function normalizeFitText(value: string): string {
+  return value.toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ");
+}
+
+function isPreEngagementFitText(text: string): boolean {
+  return /\b(mot de bascule|mot-cle|mot cle|keyword|bascule)\b/.test(text) ||
+    /\b(craquer|je vais craquer|impulsion|impulsif|compulsion|rechute|me controler|me contrôler|perdre le controle|perdre le contrôle|envie irresistible|envie irrépressible|reaction automatique|réaction automatique)\b/
+      .test(text) ||
+    /\b(abandonner|esquiver|fuir)\b/.test(text) &&
+      /\b(moment fragile|sur le moment|a chaud|à chaud|quand ca monte|quand ça monte)\b/
+        .test(text);
+}
+
+function isExecutionStartBlockerText(text: string): boolean {
+  const actionSignal =
+    /\b(action|mission|dossier|compte rendu|relire|ecrire|écrire|ouvrir|commencer|demarrer|démarrer|me lancer|premier pas|trois puces|3 puces)\b/
+      .test(text);
+  const blockerSignal =
+    /\b(perfection|parfait|comprendre parfaitement|tout comprendre|attendre d avoir tout compris|avant d ecrire|avant d écrire|tourner autour|procrastin|blocage|bloquer|flou|pas clair|trop gros|friction)\b/
+      .test(text);
+  return actionSignal && blockerSignal;
+}
+
+function techniqueOption(
+  technique: AttackTechniqueKey,
+  reason: string,
+  recommended: boolean,
+) {
+  const definition = ATTACK_TECHNIQUES[technique];
+  return {
+    technique_key: technique,
+    title: definition.title,
+    description: definition.pour_quoi,
+    reason,
+    example: definition.example,
+    recommended,
+  };
+}
+
+export function refineAttackCardTechniqueFitForTest(
+  output: AttackCardSlotFillerOutput,
+  input: Pick<AttackCardSlotFillerInput, "message" | "recent_messages">,
+): AttackCardSlotFillerOutput {
+  const patch = output.state_patch;
+  const technique = patch.technique;
+  if (!technique) return output;
+  const evidenceText = [
+    input.message,
+    ...(input.recent_messages ?? []).map((turn) => turn.content),
+    ...(technique.evidence ?? []),
+    ...(patch.target?.status === "identified" ? [patch.target.title] : []),
+    ...((patch.blocker as any)?.evidence ?? []),
+  ].join("\n");
+  const normalized = normalizeFitText(evidenceText);
+  const isPreEngagementFit = isPreEngagementFitText(normalized);
+  const isExecutionStartBlocker =
+    isExecutionStartBlockerText(normalized) ||
+    ["avoidance", "procrastination", "action_too_heavy", "unclear_first_step", "friction"]
+      .includes(String((patch.blocker as any)?.type ?? ""));
+  if (!isExecutionStartBlocker || isPreEngagementFit) return output;
+
+  let changed = false;
+  const existing = (technique.options ?? []).filter((option) => {
+    if (option.technique_key !== "pre_engagement") return true;
+    changed = true;
+    return false;
+  });
+  const optionKeys = new Set(existing.map((option) => option.technique_key));
+  if (!optionKeys.has("texte_recadrage")) {
+    existing.unshift(techniqueOption(
+      "texte_recadrage",
+      "Pour recadrer le besoin de tout comprendre avant de produire.",
+      true,
+    ));
+    changed = true;
+  }
+  if (!optionKeys.has("ancre_visuelle")) {
+    existing.push(techniqueOption(
+      "ancre_visuelle",
+      "Pour transformer l'environnement en signal concret de depart.",
+      false,
+    ));
+    changed = true;
+  }
+  const nextTechnique = { ...technique, options: existing.slice(0, 3) };
+  if (technique.value === "pre_engagement" && !technique.explicitly_requested) {
+    nextTechnique.status = "ambiguous";
+    nextTechnique.value = null;
+    nextTechnique.confidence = "medium";
+    nextTechnique.fit_warning =
+      "Mot de bascule est reserve aux moments d'impulsion ou de risque de craquer; ici le besoin ressemble plutot a un demarrage d'action.";
+    changed = true;
+  }
+  const generatedMentionsMot = /mot de bascule/i.test(
+    output.generated_user_message ?? "",
+  ) || /mot de bascule/i.test(patch.generated_user_message ?? "");
+  const nextMessage = changed || generatedMentionsMot
+    ? "Pour ce blocage de demarrage, je te propose deux options: 'Le texte magique' pour recadrer le perfectionnisme, ou 'Ancre visuelle' pour avoir un signal concret de depart. Laquelle te semble la plus utile ?"
+    : output.generated_user_message;
+  return {
+    ...output,
+    state_patch: {
+      ...patch,
+      technique: nextTechnique,
+      generated_user_message: nextMessage ?? patch.generated_user_message,
+    },
+    generated_user_message: nextMessage ?? output.generated_user_message,
+  };
+}
+
 function normalizeStatePatch(value: unknown): Partial<AttackCardIntakeState> {
   const root = objectValue(value);
   if (!root) return {};
@@ -303,7 +416,9 @@ export async function fillAttackCardSlotsWithAi(
     "Quand tu proposes des techniques au user, affiche uniquement les titres exacts de attack_techniques_source_of_truth[technique_key].title. Ne raccourcis pas et ne renomme pas les techniques.",
     "Chaque option proposée doit garder son technique_key exact avec le title exact correspondant.",
     "Ne choisis pas une technique d'office si le user ne l'a pas demandée explicitement et si plusieurs options sont plausibles: propose 2-3 options pertinentes.",
-    "Mot de bascule convient surtout si le user risque de craquer, abandonner, esquiver ou a besoin d'un mot court a envoyer a Sophia.",
+    "Mot de bascule convient surtout si le user risque de craquer, d'agir sous impulsion, de rechuter, d'abandonner/esquiver dans un moment chaud, ou a explicitement besoin d'un mot court a envoyer a Sophia.",
+    "Mot de bascule n'est pas un bon candidat pour un simple demarrage d'action, un blocage de perfectionnisme, une action trop floue ou une difficulte a ecrire/ouvrir/commencer. Dans ces cas, prefere Le texte magique, Ancre visuelle ou Preparer le terrain selon le besoin.",
+    "Ancre visuelle convient bien quand le user n'arrive pas a commencer une action concrete et a besoin d'un signal visible de depart dans son environnement.",
     "Si le user corrige un champ, conserve les autres champs déjà valides dans l'état.",
     "Si operation_input.target_candidate existe, tu es dans la validation de cible: si le user accepte ce candidat, copie-le dans state_patch.target avec status identified; s'il le refuse, mets target.status missing et pose une nouvelle question; s'il corrige, identifie la nouvelle cible depuis son message.",
     "Si des slots manquent, generated_user_message doit contenir une question WhatsApp courte.",
@@ -401,5 +516,8 @@ export async function fillAttackCardSlotsWithAi(
       maxRetries: 1,
     },
   );
-  return normalizeAttackCardSlotFillerOutput(raw);
+  return refineAttackCardTechniqueFitForTest(
+    normalizeAttackCardSlotFillerOutput(raw),
+    input,
+  );
 }

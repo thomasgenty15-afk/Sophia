@@ -1,0 +1,660 @@
+{
+  "run_id": "weekly-deep-mpdzpnyb-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+  "email": "qa-weekly-deep-weekly-deep-mpdzpnyb-not_relevant_level_review@example.com",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-deep-mpdzpnyb",
+  "created_at": "2026-05-20T11:47:16.915Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T11:47:16.915Z",
+      "user": "Cette semaine confirme que le problème n'est pas juste une action ni seulement le niveau courant. Le plan global ne colle plus : l'objectif et la trajectoire ne répondent plus à mon vrai problème. Je veux revoir le plan dans son ensemble, réordonner la suite et repartir sur une trajectoire plus pertinente.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je comprends que le plan actuel ne correspond plus à ce que tu vis. Pour que je puisse t'aider à construire une nouvelle trajectoire, peux-tu me dire quel est le nouveau problème que tu identifies maintenant, ou quel est le nouvel objectif que tu souhaites atteindre ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t01",
+        "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-deep-mpdzpnyb",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je comprends que le plan actuel ne correspond plus à ce que tu vis. Pour que je puisse t'aider à construire une nouvelle trajectoire, peux-tu me dire quel est le nouveau problème que tu identifies maintenant, ou quel est le nouvel objectif que tu souhaites atteindre ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t01",
+          "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+          "source_message_id": "cb46ed6c-d066-4c26-8686-691b500ce5a3",
+          "ts": "2026-05-20T11:47:40.856+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10256,
+            "latency_ms": 5777,
+            "model_used": "gemini-2.5-flash",
+            "tokens_out": 708,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t01",
+            "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "cb46ed6c-d066-4c26-8686-691b500ce5a3",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "plan global",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "plan global",
+                    "status": "identified",
+                    "evidence": [
+                      "Le plan global ne colle plus",
+                      "revoir le plan dans son ensemble"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "Le plan global ne colle plus",
+                      "revoir le plan dans son ensemble"
+                    ],
+                    "confidence": "high",
+                    "negative_evidence": []
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "whole_plan.affected_items"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer des actions spécifiques ou une nouvelle structure de plan à ce stade.",
+                "Minimiser l'importance de la demande de l'utilisateur.",
+                "Poser des questions sur des éléments spécifiques du plan actuel (e.g., 'Voulez-vous garder 'Respiration de pause' ?') avant d'avoir défini le nouvel objectif."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "L'autonomie de l'utilisateur et son droit à faire évoluer sa compréhension de ses propres besoins.",
+                "La relation de coaching, qui doit s'adapter à l'expérience vécue de l'utilisateur."
+              ],
+              "warnings": [
+                "Éviter de proposer des réordonnancements ou de nouvelles actions sans avoir d'abord compris le nouveau problème sous-jacent et le nouvel objectif de l'utilisateur.",
+                "Ne pas présumer de la pertinence des éléments de plan existants par rapport à un objectif encore indéfini.",
+                "Ne pas tenter de 'patcher' le plan actuel, car l'utilisateur indique explicitement qu'il 'ne colle plus'."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Guidelines action: Le rôle des actions sera redéfini par le nouvel objectif. Leur intention doit être réévaluée dans ce nouveau cadre.",
+                "Guidelines niveau: Le concept de 'niveau' est secondaire à la redéfinition de l'objectif global du plan à ce stade.",
+                "Guidelines whole_plan: La priorité est de se concentrer sur la nouvelle trajectoire, la cohérence globale, les prérequis et la définition du nouvel objectif et du questionnaire associé."
+              ],
+              "observation": "L'utilisateur exprime une profonde déconnexion avec l'orientation fondamentale du plan actuel. Il ne s'agit pas d'un ajustement superficiel, mais d'un appel à redéfinir le problème central et la trajectoire pour y répondre. La demande est de revoir l'objectif et la cohérence globale du plan.",
+              "recommendation": "Guider l'utilisateur à articuler clairement sa nouvelle compréhension du problème et le nouvel objectif qu'il souhaite atteindre. C'est la première étape indispensable avant toute réorganisation ou proposition de nouvelle trajectoire.",
+              "options_to_discuss": [
+                "Comment l'utilisateur souhaite-t-il explorer et définir ce nouveau problème et ce nouvel objectif ? (e.g., une réflexion guidée, une série de questions ciblées)",
+                "Qu'est-ce qui a spécifiquement conduit à cette prise de conscience que le plan ne correspond plus ? Comprendre le déclencheur peut éclairer la nouvelle direction."
+              ],
+              "questions_to_clarify": [
+                "Quel est le nouveau problème que l'utilisateur identifie maintenant ?",
+                "Quel est le nouvel objectif ou le résultat souhaité qu'il vise ?",
+                "Qu'est-ce qui a changé dans sa compréhension ou son contexte qui rend le plan précédent non pertinent ?"
+              ]
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 23906,
+          "created_at": "2026-05-20T11:47:40.857177+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T11:47:51.866Z",
+      "user": "Le vrai problème n'est plus d'ajouter des pauses isolées. Je veux reconstruire une trajectoire globale autour de la fatigue relationnelle : d'abord stabiliser mon énergie, ensuite seulement reprendre les conversations difficiles. Prépare une modification du plan global, pas du niveau actuel.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je vois exactement où tu veux en venir. On arrête de mettre des pansements sur une jambe de bois avec des micro-pauses alors que c'est le fond qui doit changer.\n\nTa vision est saine : on sécurise tes réserves d'abord, et on ne touche au relationnel complexe qu'une fois que tu as du répondant. C'est une stratégie de reconstruction, pas de maintenance.\n\nPour modifier la trajectoire globale et pas juste ajuster deux-trois détails, il faut qu'on revoie tes priorités dans ton tableau de bord. Je te suggère d'aller dans l'onglet Actions Personnelles pour supprimer ce qui te pèse et définir ces nouvelles étapes de stabilisation.\n\nOn commence par quoi pour stabiliser ton énergie concrètement ? 🔋",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t02",
+        "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-deep-mpdzpnyb",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je vois exactement où tu veux en venir. On arrête de mettre des pansements sur une jambe de bois avec des micro-pauses alors que c'est le fond qui doit changer.\n\nTa vision est saine : on sécurise tes réserves d'abord, et on ne touche au relationnel complexe qu'une fois que tu as du répondant. C'est une stratégie de reconstruction, pas de maintenance.\n\nPour modifier la trajectoire globale et pas juste ajuster deux-trois détails, il faut qu'on revoie tes priorités dans ton tableau de bord. Je te suggère d'aller dans l'onglet Actions Personnelles pour supprimer ce qui te pèse et définir ces nouvelles étapes de stabilisation.\n\nOn commence par quoi pour stabiliser ton énergie concrètement ? 🔋",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t02",
+          "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+          "source_message_id": "a7988cd9-198f-471a-b42d-3ac816244091",
+          "ts": "2026-05-20T11:48:03.078+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12918,
+            "latency_ms": 8777,
+            "model_used": "gemini-2.5-flash",
+            "tokens_out": 1043,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "fatigue relationnelle",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "fatigue relationnelle",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "stabilisation énergie",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "stabiliser mon énergie",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-mpdzpnyb-not_relevant_level_review-t02",
+            "user_id": "4c6353dc-f6fc-4779-a687-fb55fa9b1dca",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "fatigue relationnelle",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "fatigue relationnelle",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "stabilisation énergie",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "stabiliser mon énergie",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "reason": "user_explicitly_requests_tool_skill_while_in_weekly_escalation",
+                "signal": "continue_and_handoff_to_tool_skill",
+                "skill_id": "weekly_adaptive_review_v1",
+                "weekly_adaptive_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "a7988cd9-198f-471a-b42d-3ac816244091",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_weekly_review_kept_in_conversation",
+            "blocked_paths": [
+              {
+                "path": "tool_skills",
+                "reason_code": "product_help_inline_preserves_active_tool_skill"
+              },
+              {
+                "path": "tool_skill",
+                "reason_code": "active_weekly_review_requires_confirmation_flow"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "active_weekly_review_requires_branch_decision"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "inline_answer_then_resume",
+              "reason_code": "product_help_inline_resume_active_tool_skill",
+              "active_owner": "tool_skill",
+              "resume_policy": "auto_after_answer",
+              "selected_owner": "product_help"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_weekly_review_kept_in_conversation",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": {
+            "stats": {
+              "used_llm": false,
+              "latency_ms": 0,
+              "model_name": "gemini-3-flash-preview",
+              "prompt_version": "recommendation_tool_v1_2026_05"
+            },
+            "recommendation": {
+              "reason": "product_help_skill_signal",
+              "timing": "now",
+              "decision": "recommend",
+              "cta_style": "soft",
+              "confidence": 0.62,
+              "surface_id": "dashboard.personal_actions",
+              "alternatives": [],
+              "do_not_recommend": [],
+              "requires_consent": false,
+              "recommendation_id": "rec_weekly-deep-mpdzpnyb-not_relevant_level_review-t02_1779277680709",
+              "user_facing_offer": "Je peux te guider vers cette fonctionnalite.",
+              "presentation_level": 1
+            }
+          },
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 11177,
+          "created_at": "2026-05-20T11:48:03.082809+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T11:48:03.113Z"
+}

@@ -250,10 +250,17 @@ export function isLikelyOneShotReminderRequest(message: string): boolean {
   const text = compactText(message, 500);
   if (!text) return false;
   if (isMemoryRecallReminderPhrase(text)) return false;
+  if (
+    /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place)\b/i
+      .test(text)
+  ) return false;
   const reminderClause = extractReminderClause(text);
   if (reminderClause) return !hasRecurringCadenceHint(reminderClause);
   if (isRecurringReminderRequest(text)) return false;
-  if (!/\brappel|rappelle|remind\b/i.test(text)) return false;
+  if (
+    !/\brappel|rappelle|remind|programme|programmer|planifie|planifier\b/i
+      .test(text)
+  ) return false;
   return hasResolvableOneShotTimeHint(text);
 }
 
@@ -579,6 +586,11 @@ function parseScheduledForFromRelativeHint(args: {
 function extractReminderInstruction(message: string): string {
   const full = compactText(message, 500);
   const clause = extractReminderClause(full) || full;
+  const afterColon = clause.match(/:\s*(.+)$/)?.[1] ?? "";
+  if (/[\p{L}\p{N}]/u.test(afterColon)) {
+    const cleanedAfterColon = cleanReminderInstructionTarget(afterColon);
+    if (cleanedAfterColon) return cleanedAfterColon;
+  }
 
   let explicitTarget = clause.match(
       /\b(?:de\s+manière\s+à\s+ce\s+que|de\s+maniere\s+à\s+ce\s+que|de\s+maniere\s+a\s+ce\s+que|de\s+façon\s+à\s+ce\s+que|de\s+facon\s+a\s+ce\s+que|pour\s+que)\s+je\s+fasse\s+(.+)$/i,
@@ -601,8 +613,14 @@ function extractReminderInstruction(message: string): string {
     clause.match(/\bpour\s+(.+)$/i)?.[1] ??
     "";
 
-  const cleaned = compactText(
-    explicitTarget
+  const cleaned = cleanReminderInstructionTarget(explicitTarget);
+  if (cleaned) return cleaned;
+  return "ce que tu as prévu";
+}
+
+function cleanReminderInstructionTarget(value: string): string {
+  return compactText(
+    String(value ?? "")
       .replace(/\bmanière\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bmaniere\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\bmaniere\s+a\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
@@ -613,14 +631,13 @@ function extractReminderInstruction(message: string): string {
       .replace(/^me\s+bouge\b/i, "me bouger")
       .replace(/\s*,?\s+mais\s+si\b[\s\S]*$/i, "")
       .replace(/\s*,?\s+mais\b[\s\S]*$/i, "")
+      .replace(/\s*,?\s+et\s+(?:retiens|garde|enregistre)\s+(?:aussi\s+)?(?:en\s+t[eê]te\s+)?que\b[\s\S]*$/i, "")
       .replace(/\b(?:stp|s['’]il te plaît|s'il te plait|please)\b/gi, " ")
       .replace(/\s*(?:[?!.]+|[:;]-?[)(DPp/]+)+\s*$/g, "")
       .replace(/\s*(?:<3|xd|xD|XD)+\s*$/g, "")
       .replace(/[?!.]+$/g, ""),
     140,
   );
-  if (cleaned) return cleaned;
-  return "ce que tu as prévu";
 }
 
 export function parseOneShotReminderRequest(args: {
@@ -1140,6 +1157,7 @@ export function buildOneShotReminderAddon(
       `- Objet du rappel: ${outcome.reminder_instruction}.`,
       `- Parse source: ${outcome.parse_source ?? "unknown"}.`,
       "- Tu peux confirmer clairement que le rappel est programme.",
+      "- Ne demande pas au user de confirmer le fuseau ou la ville apres succes: la DB est deja programmee. Si utile, mentionne simplement l'heure locale programmee.",
       "- IMPORTANT: confirme seulement la programmation en base / dans le systeme. Ne promets rien de plus que ce succes confirme.",
       "- Si le message user contenait un autre sujet, reponds aussi a ce sujet.",
       "",

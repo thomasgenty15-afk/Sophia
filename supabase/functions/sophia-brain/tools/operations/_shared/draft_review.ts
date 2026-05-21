@@ -121,6 +121,15 @@ export async function reviewToolSkillDraftWithAi(input: {
   request_id?: string | null;
 }): Promise<ToolSkillDraftReviewDecision | null> {
   if (!shouldUseToolSkillAiDraftReview()) return null;
+  const operationSpecificRules = input.operation_type === "select_state_potion"
+    ? [
+      "Regles specifiques select_state_potion:",
+      "- approve uniquement si le user confirme explicitement l'activation/execution maintenant de la potion deja proposee.",
+      "- Si le user donne un detail emotionnel, une contrainte de ton, une precision de rappel, une action cible, ou dit 'avant validation', c'est revise, pas approve.",
+      "- Si le user demande le detail du suivi ou veut etre rassure avant de valider, c'est explain.",
+      "- Ne considere jamais une simple reponse aux questions de detail comme une confirmation d'activation.",
+    ].join("\n")
+    : "";
   const prompt = [
     "Tu es le sous-skill draft_validation d'un Tool Skill Sophia.",
     "Tu lis le brouillon pending, le dernier message user et l'etat operationnel, puis tu retournes uniquement un JSON.",
@@ -132,6 +141,7 @@ export async function reviewToolSkillDraftWithAi(input: {
     "topic_change: le user quitte clairement ce tool skill.",
     "unclear: le message ne permet pas de decider.",
     "Si le user dit juste oui a une demande de montrer/preparer/reformuler, ce n'est pas approve tant qu'il ne demande pas explicitement l'execution.",
+    operationSpecificRules,
     "Si tu dois répondre au user sans executer, genere generated_user_message en langage naturel, sans vocabulaire technique.",
     'Tu tutoies toujours l\'utilisateur dans generated_user_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand generated_user_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',

@@ -1,0 +1,293 @@
+{
+  "run_id": "weekly-8turn-r1-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "5b0fa6f2-90d3-4691-921d-48e23d74a175",
+  "email": "qa-weekly-deep-weekly-8turn-r1-partial_habits_mission_partial@example.com",
+  "scope": "weekly-real-weekly-8turn-r1-partial_habits_mission_partial",
+  "created_at": "2026-05-21T13:51:02.217Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-21T13:51:02.218Z",
+      "user": "Je l'ai vecue en deux parties : debut OK, puis fatigue forte jeudi/vendredi. Et tant qu'on y est, tu peux me mettre un rappel mercredi 18h pour faire la respiration ?",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t01",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-21T13:51:02.441Z",
+      "user": "Oui la fatigue c'est le vrai sujet. Et j'ai oublie de cocher : respiration faite mardi et jeudi, point positif fait vendredi.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t02",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-21T13:51:02.641Z",
+      "user": "Tu peux aussi me creer une carte defense anti-fatigue pour le moment ou je rentre le soir et que je veux juste m'effondrer ?",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t03",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-21T13:51:02.829Z",
+      "user": "Et desactive partager un point positif, ca m'a gonfle cette semaine.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t04",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t04",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-21T13:51:03.027Z",
+      "user": "Attends non, je me suis mal exprime : ne le desactive pas completement, allege-le juste. Je veux que ca reste simple.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t05",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 6,
+      "started_at": "2026-05-21T13:51:03.234Z",
+      "user": "Pour la semaine prochaine je veux respiration lundi et mercredi, point positif seulement vendredi, et la mission signal de pause juste a finir sans pression.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t06",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t06",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 7,
+      "started_at": "2026-05-21T13:51:03.419Z",
+      "user": "Mais du coup la validation de la semaine prochaine elle est dispo maintenant ou pas ?",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t07",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t07",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 8,
+      "started_at": "2026-05-21T13:51:03.611Z",
+      "user": "Ok si tu as bien compris, applique la version allegee et dis-moi concretement ce qui change.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t08",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-partial_habits_mission_partial-t08",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    }
+  ],
+  "updated_at": "2026-05-21T13:51:03.618Z"
+}

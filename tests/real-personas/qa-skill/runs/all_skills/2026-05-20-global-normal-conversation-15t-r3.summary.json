@@ -1,0 +1,498 @@
+{
+  "runId": "global15_20260520_r3",
+  "slug": "2026-05-20-global-normal-conversation-15t-r3",
+  "scope": "qa-global-normal-conversation-15t-20260520-r3",
+  "user": {
+    "id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+    "email": "qa-global15-r3-1779295795769@example.com"
+  },
+  "turns": [
+    {
+      "turn": "1",
+      "request_id": "global15_20260520_r3-t01",
+      "created_at": "2026-05-20T16:50:04.451Z",
+      "user": "Salut Sophia, j'ai une note client à reprendre aujourd'hui. Ce n'est pas énorme, mais je sens déjà que je vais ouvrir trois onglets au lieu de commencer. J'ai besoin d'un départ très simple.",
+      "sophia": "Oh je vois le genre 😅 On vise “zéro friction” : tu lances juste la reprise de la note en 2 minutes, sans chercher à l’améliorer.\n\nMicro-geste maintenant :\n1) Ouvre la note client\n2) Fais un copier-coller dans un coin “A reprendre” : 1 phrase “où j’en suis” + 1 point “ce qu’il manque”\n\nEt après, tu fais juste la prochaine action évidente (même petite). ✅\n\nTu veux que je te fasse une Carte d’attaque “Reprendre une note client” pour que tu aies exactement quoi faire dès que tu l’ouvres ? (oui/non) 😊",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "difficulté de démarrage travail",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "travail.performance",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "notes clients et rédaction",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "2",
+      "request_id": "global15_20260520_r3-t02",
+      "created_at": "2026-05-20T16:50:18.839Z",
+      "user": "Oui, fais-la. La cible c'est relire la note et sortir trois puces imparfaites. Mon piège habituel: vouloir comprendre toute la logique avant d'écrire une première version.",
+      "sophia": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ? 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": {
+          "draft": {
+            "draft": {
+              "title": "Terrain prêt pour l'imperfection",
+              "technique": "preparer_terrain",
+              "instruction": "Prépare ton espace pour limiter la réflexion et favoriser l'action brute.",
+              "mode_emploi": "Prépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.",
+              "target_label": "Relire la note et sortir trois puces imparfaites",
+              "why_it_helps": "Cela réduit la friction visuelle et mentale qui te pousse à vouloir tout comprendre avant d'agir.",
+              "generated_asset": "Ouvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "L'objectif n'est pas de comprendre, mais de produire.",
+                "Trois puces suffisent.",
+                "L'imperfection est la clé du démarrage."
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ?"
+          },
+          "source": "recommendation_tool",
+          "status": "pending_confirmation",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "operation_id": "854ef3ed-ae13-4ccb-b38a-733ba14056a8",
+          "selected_handler": "prepare_attack_card",
+          "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260520_r3-t01"
+        },
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "reprendre_note_client",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "reprendre note client",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et demarrage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "3rr",
+      "request_id": "global15_20260520_r3-t3rr",
+      "created_at": "2026-05-20T16:52:22.261Z",
+      "user": "Je reprends après l'incident technique: oui, valide cette carte. Et garde en tête le point important: quand je cherche à tout comprendre d'abord, je m'empêche d'écrire le brouillon.",
+      "sophia": "C'est fait. J'ai créé cette carte d'attaque :\n\nTerrain prêt pour l'imperfection\nTechnique : Préparer le terrain\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\n\nMode d'emploi : Prépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation. 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "tool_skill",
+        "selected_handler": "product_help",
+        "route_reason": "skill_handoff_requested",
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "prepare_attack_card"
+          }
+        ],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "reprendre_note_client",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "note client brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "vouloir tout comprendre avant d'écrire",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [
+          "prepare_attack_card"
+        ],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "4",
+      "request_id": "global15_20260520_r3-t04",
+      "created_at": "2026-05-20T16:52:48.148Z",
+      "user": "Je démarre maintenant. Donne-moi une phrase très courte pour rester sur le brouillon, pas sur la compréhension parfaite.",
+      "sophia": "“Je fais un brouillon qui tient debout, pas une version parfaite.” 😄\n\nTu la mets où exactement (en haut de la note ou en premier dans ton texte) ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "active_conversation_skill_continue",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "reprendre_note_client",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "note client brouillon imperfection",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme blocage ecriture",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "5",
+      "request_id": "global15_20260520_r3-t05",
+      "created_at": "2026-05-20T16:53:02.884Z",
+      "user": "En haut de la note. J'ai relu un premier paragraphe, et je sens déjà l'envie de réorganiser tout le document avant de sortir les trois puces.",
+      "sophia": "Yes, parfait : on garde “BROUILLON IMPARFAIT” tout en haut. 😄\n\nLà, ton cerveau veut “réorganiser tout le document” avant d’écrire. Donc on stoppe ça avec une règle simple :\n1) Tu ne touches à rien.\n2) Tu prends seulement 3 phrases qui sont déjà là (même pas les meilleures).\n3) Tu les transformes en 3 puces imparfaites, point.\n\nTu veux qu’on fasse les 3 puces sur le paragraphe que tu viens de relire, ou sur toute la note ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "active_conversation_skill_continue",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "reprendre_note_client",
+              "type": "action",
+              "priority": null,
+              "query_hint": "friction et pièges sur la note client",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "6",
+      "request_id": "global15_20260520_r3-t06",
+      "created_at": "2026-05-20T16:53:19.551Z",
+      "user": "Sur le paragraphe seulement. J'en ai sorti deux, mais la troisième me paraît nulle et ça me donne un petit coup de honte.",
+      "sophia": "Ouille… ça, c’est le cerveau qui confond “brouillon” avec “jugement”. 😬  \nMais le but c’est juste 3 puces imparfaites, pas une médaille. Pour la troisième, on la “sauve” en version moche mais utile :\n\nPhrase de réparation à coller telle quelle :  \n“Troisième puce (à affiner) : [nomme juste l’idée en 5-7 mots], à vérifier / à compléter.”\n\nTu fais littéralement ça sur ton paragraphe, sans la perfectionner. Puis tu poursuis.\n\nTu veux que ta 3e puce soit plutôt “action” ou plutôt “info à confirmer” ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "emotional_repair",
+        "route_reason": "skill_handoff_requested",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "psychologie.emotions",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "honte et perfectionnisme",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "peur de mal faire et blocage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "7",
+      "request_id": "global15_20260520_r3-t07",
+      "created_at": "2026-05-20T16:53:35.627Z",
+      "user": "Info à confirmer. Je l'ai écrite comme ça. Ça suffit pour aujourd'hui, mais j'ai peur de reprendre demain en voulant tout refaire.",
+      "sophia": "Ok, déjà: si “ça suffit pour aujourd’hui”, c’est que ton brouillon a fait son job ✅🙂\n\nEt ton cerveau demain il te promet un remake complet… c’est la honte qui veut reprendre le contrôle, pas la qualité.\n\nDonc la règle pour demain (anti-refonte) :\nTu ne ré-ouvres pas le document pour “tout refaire”.\nTu fais seulement: relire 1 fois, puis produire 3 puces “telles quelles”, en gardant le même brouillon.\n\nSi tu veux une phrase-cadenas à te dire: “Je corrige pas. Je sors juste les 3 puces.”\n\nTu veux que je te donne une micro-routine de 2 minutes pour demain, ou tu préfères que ça reste une règle simple ? 🙂",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "emotional_repair",
+        "route_reason": "active_flow_defers_tool_skill_opportunity",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et blocage brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "psychologie.peur_echec",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "honte et perfectionnisme",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "8",
+      "request_id": "global15_20260520_r3-t08",
+      "created_at": "2026-05-20T16:53:54.063Z",
+      "user": "Règle simple. Et programme-moi un rappel demain à 8h30: relire une fois, sortir trois puces telles quelles, ne pas refaire le document.",
+      "sophia": "Ok ✅ On fait simple et propre.  \nJe te programme un rappel demain à 8h30 pour: relire une fois, sortir trois puces “telles quelles”, et ne pas refaire le document. ⏰🙂\n\nTu es bien en France (heure Europe/Paris) pour 8h30 ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_handoff_requested",
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "create_one_shot_reminder"
+          }
+        ],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "perfectionnisme et blocage brouillon",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "psychologie.emotions",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "honte et jugement de soi sur le travail",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "durable_effect": null
+      }
+    },
+    {
+      "turn": "9",
+      "request_id": "global15_20260520_r3-t09",
+      "created_at": "2026-05-20T16:54:14.515Z",
+      "user": "Oui, Europe/Paris. Et le rappel ponctuel que tu viens de créer, je le retrouve où si je veux juste vérifier ou annuler plus tard ?",
+      "sophia": "Bonne question 🙂 Pour un rappel ponctuel, tu peux le retrouver côté Initiatives, puis:\n- pour vérifier: tu ouvres la liste des Initiatives et tu repères le rappel “demain à 8h30”\n- pour annuler: tu fais pareil, puis tu annules depuis cet endroit (si l’option est affichée)\n\nTu veux que je te dise exactement quoi chercher comme intitulé (genre “rappel ponctuel”) ou c’est plutôt un doute sur “où dans Initiatives” ?",
+      "trace_short": {
+        "http_status": 200,
+        "ok": true,
+        "response_owner": "conversation_handler",
+        "selected_handler": "product_help",
+        "route_reason": "skill_handoff_requested",
+        "direct_effects": [],
+        "operation": null,
+        "pending_confirmation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "reminders",
+              "type": "topic",
+              "priority": null,
+              "query_hint": "gestion des rappels et dashboard",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        },
+        "executed_tools": [],
+        "durable_effect": null
+      }
+    }
+  ],
+  "incidents": [
+    {
+      "turn": "3",
+      "request_id": "global15_20260520_r3-t03",
+      "status": null,
+      "empty_response": true,
+      "error": "fetch failed",
+      "at": "2026-05-20T16:50:56.667Z"
+    },
+    {
+      "turn": "3r",
+      "request_id": "global15_20260520_r3-t3r",
+      "status": null,
+      "empty_response": true,
+      "error": "fetch failed",
+      "at": "2026-05-20T16:51:32.972Z"
+    }
+  ]
+}

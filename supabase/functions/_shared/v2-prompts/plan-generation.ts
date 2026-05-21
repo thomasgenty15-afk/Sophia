@@ -1940,6 +1940,8 @@ Rappels importants :
 - si \`plan_blueprint.levels\` contient 0 niveau, alors \`plan_blueprint.estimated_levels_count\` doit aussi valoir 0
 - le premier niveau de \`plan_blueprint.levels\` doit commencer strictement après \`current_level_runtime.level_order\`
 - retourne un \`current_level_runtime\` détaillé uniquement pour le niveau courant
+- si le feedback contient un "Bilan de fin de niveau", traite-le comme le signal de coaching prioritaire pour générer le prochain niveau: conserve les acquis déclarés, ajuste la charge d'après les difficultés et les statuts réels des actions, et ne répète jamais le niveau déjà terminé comme niveau courant
+- dans ce cas, l'objectif du nouveau niveau courant doit contribuer explicitement à l'objectif global de transformation et rester cohérent avec la logique du plan existant, sauf si le bilan justifie clairement une réorientation
 - tu dois aussi remplir \`metadata.plan_adjustment_context\` avec une logique interne exploitable plus tard pour ajuster le niveau courant, les niveaux suivants, ou le plan complet sans perdre le fil
 - le premier niveau généré du JSON doit être particulièrement clair et concret car c'est lui qui sera relu en détail avant validation
 - si tu génères explicitement la partie 2 d'un parcours déjà engagé, le premier niveau généré doit montrer une continuité assumée avec la partie précédente, pas un redémarrage en baby step

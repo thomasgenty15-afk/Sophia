@@ -1,0 +1,637 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai lu une phase plus tard dans le plan, celle où on commence à revenir sur les tensions. Franchement je trouve que ça arrive trop frontalement, comme si on devait analyser tout de suite les reproches.",
+    "assistant": "Je comprends que l'approche de la phase sur les tensions te semble trop directe. Quel type de changement envisages-tu pour cette approche ? Souhaites-tu adoucir la manière d'aborder les tensions, ou plutôt modifier le moment où elles sont traitées dans le plan ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+          "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+          "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs)."
+        ],
+        "warnings": [
+          "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive.",
+          "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste probablement pertinent, mais son exécution est en question.",
+          "Ne pas proposer de solution immédiate sans avoir clarifié la phase exacte et les raisons profondes de son inconfort."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+        ],
+        "observation": "L'utilisateur anticipe une phase future du plan qui aborde les tensions et exprime un fort inconfort, la jugeant \"trop frontale\" et prématurée pour \"analyser les reproches\". Cela révèle une préoccupation quant à la méthode et au timing de l'approche des sujets sensibles, suggérant un décalage avec sa capacité ou sa préparation émotionnelle actuelle.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Il est essentiel de comprendre précisément quelle phase est concernée et ce qui, dans son approche, génère ce sentiment de frontalité. L'objectif est d'ajuster la trajectoire pour qu'elle respecte le rythme et la capacité de l'utilisateur à aborder les tensions, en privilégiant une progression plus douce et préparée.",
+        "next_best_question": "Pouvez-vous me dire quelle est la phase exacte à laquelle vous faites référence, et qu'est-ce qui, dans sa description, vous donne l'impression qu'elle est trop frontale ?",
+        "options_to_discuss": [
+          "Explorer des approches alternatives pour aborder les tensions (ex: focus sur les besoins plutôt que les reproches, communication non-violente).",
+          "Envisager l'insertion d'une ou plusieurs phases préparatoires pour renforcer la sécurité et les outils de communication avant d'aborder directement les tensions.",
+          "Ajuster la description et les activités de la phase concernée pour la rendre moins 'frontale' et plus progressive."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [
+          "Pouvez-vous me dire quelle est la phase exacte à laquelle vous faites référence dans le plan ?",
+          "Qu'est-ce qui, dans la description ou l'objectif de cette phase, vous donne l'impression qu'elle est trop frontale ou qu'elle pousse à analyser les reproches trop tôt ?",
+          "Quelle serait, pour vous, une manière plus douce ou plus progressive d'aborder ces sujets sensibles ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle du plan semble passer d'une phase de désamorçage à une phase d'analyse des tensions perçue comme trop directe, nécessitant un ajustement pour une transition plus douce et adaptée à la capacité de l'utilisateur.",
+        "must_not_execute_reason": "L'utilisateur exprime un ressenti et une préoccupation sur une phase future, nécessitant une clarification avant toute modification."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+        "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+        "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs)."
+      ],
+      "warnings": [
+        "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive.",
+        "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste probablement pertinent, mais son exécution est en question.",
+        "Ne pas proposer de solution immédiate sans avoir clarifié la phase exacte et les raisons profondes de son inconfort."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+      ],
+      "observation": "L'utilisateur anticipe une phase future du plan qui aborde les tensions et exprime un fort inconfort, la jugeant \"trop frontale\" et prématurée pour \"analyser les reproches\". Cela révèle une préoccupation quant à la méthode et au timing de l'approche des sujets sensibles, suggérant un décalage avec sa capacité ou sa préparation émotionnelle actuelle.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Il est essentiel de comprendre précisément quelle phase est concernée et ce qui, dans son approche, génère ce sentiment de frontalité. L'objectif est d'ajuster la trajectoire pour qu'elle respecte le rythme et la capacité de l'utilisateur à aborder les tensions, en privilégiant une progression plus douce et préparée.",
+      "next_best_question": "Pouvez-vous me dire quelle est la phase exacte à laquelle vous faites référence, et qu'est-ce qui, dans sa description, vous donne l'impression qu'elle est trop frontale ?",
+      "options_to_discuss": [
+        "Explorer des approches alternatives pour aborder les tensions (ex: focus sur les besoins plutôt que les reproches, communication non-violente).",
+        "Envisager l'insertion d'une ou plusieurs phases préparatoires pour renforcer la sécurité et les outils de communication avant d'aborder directement les tensions.",
+        "Ajuster la description et les activités de la phase concernée pour la rendre moins 'frontale' et plus progressive."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [
+        "Pouvez-vous me dire quelle est la phase exacte à laquelle vous faites référence dans le plan ?",
+        "Qu'est-ce qui, dans la description ou l'objectif de cette phase, vous donne l'impression qu'elle est trop frontale ou qu'elle pousse à analyser les reproches trop tôt ?",
+        "Quelle serait, pour vous, une manière plus douce ou plus progressive d'aborder ces sujets sensibles ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle du plan semble passer d'une phase de désamorçage à une phase d'analyse des tensions perçue comme trop directe, nécessitant un ajustement pour une transition plus douce et adaptée à la capacité de l'utilisateur.",
+      "must_not_execute_reason": "L'utilisateur exprime un ressenti et une préoccupation sur une phase future, nécessitant une clarification avant toute modification."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "tout de suite"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t02",
+    "status": 502,
+    "ok": null,
+    "user": "Plutôt modifier la manière. Je ne veux pas supprimer cette étape, mais la remplacer par une phase de réparation après petite tension : revenir au calme, reconnaître ce qui a aidé, puis seulement après parler du fond.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Je répète parce que je n'ai pas eu ta réponse : remplace la phase future trop frontale par une phase de réparation après petite tension. L'ordre serait revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond.",
+    "assistant": "Je comprends bien ton besoin de remplacer cette phase future par une approche plus progressive. Pour que je puisse te proposer un brouillon précis, peux-tu me dire à quelle phase exacte du plan tu fais référence, ou me décrire son objectif tel que tu l'imagines ? Cela m'aidera à cibler le bon endroit pour cet ajustement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+      "plan_item_id": null,
+      "target_title": "trajectoire du plan sur les tensions",
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+          "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+          "Ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+          "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+          "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+        ],
+        "warnings": [
+          "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive.",
+          "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste probablement pertinent, mais son exécution est en question.",
+          "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+        ],
+        "observation": "L'utilisateur réitère son inconfort face à une phase future du plan qu'il perçoit comme 'trop frontale' pour aborder les tensions. Il propose une solution concrète : remplacer cette phase par une 'phase de réparation' structurée selon un ordre précis : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. Cela révèle un besoin profond de progressivité et de sécurité émotionnelle dans la gestion des conflits.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Il est essentiel de reconnaître la solution proposée par l'utilisateur et de l'intégrer comme base de travail. La prochaine étape est de clarifier la phase exacte du plan à laquelle il fait référence pour pouvoir appliquer sa proposition de manière cohérente et s'assurer que la nouvelle structure de 'phase de réparation' est bien alignée avec les objectifs globaux du plan.",
+        "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "options_to_discuss": [
+          "Explorer des approches alternatives pour aborder les tensions (ex: focus sur les besoins plutôt que les reproches, communication non-violente) une fois la phase de réparation établie.",
+          "Envisager l'insertion de phases préparatoires supplémentaires pour renforcer la sécurité et les outils de communication avant d'aborder directement les tensions, si la 'phase de réparation' ne suffit pas à elle seule.",
+          "Ajuster la description et les activités de la phase concernée pour la rendre moins 'frontale' et plus progressive, en s'inspirant de la proposition de l'utilisateur."
+        ],
+        "candidate_operation": "replace_phase",
+        "questions_to_clarify": [
+          "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+          "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+          "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+          "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond.",
+        "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+        "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+        "Ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+        "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+        "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+      ],
+      "warnings": [
+        "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive.",
+        "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste probablement pertinent, mais son exécution est en question.",
+        "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+      ],
+      "observation": "L'utilisateur réitère son inconfort face à une phase future du plan qu'il perçoit comme 'trop frontale' pour aborder les tensions. Il propose une solution concrète : remplacer cette phase par une 'phase de réparation' structurée selon un ordre précis : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. Cela révèle un besoin profond de progressivité et de sécurité émotionnelle dans la gestion des conflits.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Il est essentiel de reconnaître la solution proposée par l'utilisateur et de l'intégrer comme base de travail. La prochaine étape est de clarifier la phase exacte du plan à laquelle il fait référence pour pouvoir appliquer sa proposition de manière cohérente et s'assurer que la nouvelle structure de 'phase de réparation' est bien alignée avec les objectifs globaux du plan.",
+      "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+      "options_to_discuss": [
+        "Explorer des approches alternatives pour aborder les tensions (ex: focus sur les besoins plutôt que les reproches, communication non-violente) une fois la phase de réparation établie.",
+        "Envisager l'insertion de phases préparatoires supplémentaires pour renforcer la sécurité et les outils de communication avant d'aborder directement les tensions, si la 'phase de réparation' ne suffit pas à elle seule.",
+        "Ajuster la description et les activités de la phase concernée pour la rendre moins 'frontale' et plus progressive, en s'inspirant de la proposition de l'utilisateur."
+      ],
+      "candidate_operation": "replace_phase",
+      "questions_to_clarify": [
+        "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+        "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+        "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond.",
+      "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Je parle de la phase où on aborde les reproches et attentes non dites. Son objectif devrait rester d'aller vers plus de clarté, mais je veux que l'entrée soit réparation légère après tension, pas analyse directe.",
+    "assistant": "Je comprends ce que tu veux faire, mais pour que je puisse te montrer un brouillon de ce changement, j'ai besoin de mieux identifier la phase dont tu parles. Peux-tu me préciser quelle est la phase exacte à laquelle tu fais référence dans le plan, ou me décrire son objectif tel que tu l'anticipes, afin que je puisse cibler le bon endroit pour cette modification ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+          "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+          "Proposer une approche qui serait perçue comme une 'analyse directe' ou 'frontale'."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+          "L'objectif de la phase concernée de tendre vers 'plus de clarté' concernant les reproches et attentes non dites.",
+          "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+          "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+        ],
+        "warnings": [
+          "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive ou prématurée.",
+          "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste pertinent, mais son exécution est en question.",
+          "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence ou de modifier la mauvaise partie du plan.",
+          "Ne pas ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+        ],
+        "observation": "L'utilisateur exprime un besoin de modifier l'approche d'une phase future du plan, celle qui aborde les reproches et attentes non dites. Il perçoit l'approche actuelle comme 'trop frontale' et 'analyse directe', et souhaite la remplacer par une 'entrée de réparation légère après tension', avec une séquence spécifique : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. L'objectif de 'plus de clarté' doit être maintenu. Cela révèle une préférence pour une progression plus douce et sécurisante dans la gestion des conflits.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Il est crucial de valider la phase spécifique du plan à laquelle l'utilisateur fait référence pour pouvoir appliquer sa proposition de manière cohérente. Une fois la phase identifiée, l'objectif sera d'intégrer la séquence proposée ('retour au calme', 'identification de ce qui a aidé', 'parler du fond') en tant que nouvelle méthode pour cette phase, tout en préservant l'objectif de clarté.",
+        "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "options_to_discuss": [
+          "Explorer des exemples concrets d'actions ou d'exercices pour chaque étape de la nouvelle séquence ('retour au calme', 'identifier ce qui a aidé', 'parler du fond').",
+          "Discuter de la durée ou de la fréquence idéale pour cette nouvelle phase de 'réparation légère'.",
+          "Envisager si des outils ou des cadres de communication spécifiques (ex: communication non-violente) pourraient être introduits pour faciliter le 'parler du fond' de manière constructive."
+        ],
+        "candidate_operation": "replace_phase",
+        "questions_to_clarify": [
+          "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+          "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+          "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+          "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond, tout en maintenant l'objectif de clarté.",
+        "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+        "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+        "Proposer une approche qui serait perçue comme une 'analyse directe' ou 'frontale'."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+        "L'objectif de la phase concernée de tendre vers 'plus de clarté' concernant les reproches et attentes non dites.",
+        "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+        "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+      ],
+      "warnings": [
+        "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive ou prématurée.",
+        "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste pertinent, mais son exécution est en question.",
+        "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence ou de modifier la mauvaise partie du plan.",
+        "Ne pas ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+      ],
+      "observation": "L'utilisateur exprime un besoin de modifier l'approche d'une phase future du plan, celle qui aborde les reproches et attentes non dites. Il perçoit l'approche actuelle comme 'trop frontale' et 'analyse directe', et souhaite la remplacer par une 'entrée de réparation légère après tension', avec une séquence spécifique : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. L'objectif de 'plus de clarté' doit être maintenu. Cela révèle une préférence pour une progression plus douce et sécurisante dans la gestion des conflits.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Il est crucial de valider la phase spécifique du plan à laquelle l'utilisateur fait référence pour pouvoir appliquer sa proposition de manière cohérente. Une fois la phase identifiée, l'objectif sera d'intégrer la séquence proposée ('retour au calme', 'identification de ce qui a aidé', 'parler du fond') en tant que nouvelle méthode pour cette phase, tout en préservant l'objectif de clarté.",
+      "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+      "options_to_discuss": [
+        "Explorer des exemples concrets d'actions ou d'exercices pour chaque étape de la nouvelle séquence ('retour au calme', 'identifier ce qui a aidé', 'parler du fond').",
+        "Discuter de la durée ou de la fréquence idéale pour cette nouvelle phase de 'réparation légère'.",
+        "Envisager si des outils ou des cadres de communication spécifiques (ex: communication non-violente) pourraient être introduits pour faciliter le 'parler du fond' de manière constructive."
+      ],
+      "candidate_operation": "replace_phase",
+      "questions_to_clarify": [
+        "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+        "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+        "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond, tout en maintenant l'objectif de clarté.",
+      "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Dans le plan actuel, vise la partie future autour de cartographier les déclencheurs / faire le point sur le signal de pause, celle qui prépare les conversations plus sensibles. Je veux remplacer cette entrée par réparation après petite tension. Fais-moi le brouillon.",
+    "assistant": "Je comprends ce que tu veux faire, mais pour pouvoir te montrer un brouillon précis, j'ai besoin de clarifier un point. Tu as mentionné \"Cartographier les déclencheurs\", qui est une clarification dans ton plan. Les clarifications sont des repères pour la réflexion, mais les ajustements doivent porter sur des habitudes ou des missions concrètes.\n\nPeux-tu me préciser quelle habitude ou mission concrète, parmi celles que tu as citées ou d'autres, tu souhaites remplacer par \"réparation après petite tension\" ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+          "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+          "Proposer une approche qui serait perçue comme une 'analyse directe' ou 'frontale'."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+          "L'objectif de la phase concernée de tendre vers 'plus de clarté' concernant les reproches et attentes non dites.",
+          "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+          "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+        ],
+        "warnings": [
+          "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive ou prématurée.",
+          "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste pertinent, mais son exécution est en question.",
+          "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence ou de modifier la mauvaise partie du plan.",
+          "Ne pas ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+        ],
+        "observation": "L'utilisateur exprime un besoin de modifier l'approche d'une phase future du plan, celle qui aborde les reproches et attentes non dites. Il perçoit l'approche actuelle comme 'trop frontale' et 'analyse directe', et souhaite la remplacer par une 'entrée de réparation légère après tension', avec une séquence spécifique : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. L'objectif de 'plus de clarté' doit être maintenu. Cela révèle une préférence pour une progression plus douce et sécurisante dans la gestion des conflits.",
+        "change_family": "style_or_method_mismatch",
+        "recommendation": "Il est crucial de valider la phase spécifique du plan à laquelle l'utilisateur fait référence pour pouvoir appliquer sa proposition de manière cohérente. Une fois la phase identifiée, l'objectif sera d'intégrer la séquence proposée ('retour au calme', 'identification de ce qui a aidé', 'parler du fond') en tant que nouvelle méthode pour cette phase, tout en préservant l'objectif de clarté.",
+        "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "options_to_discuss": [
+          "Explorer des exemples concrets d'actions ou d'exercices pour chaque étape de la nouvelle séquence ('retour au calme', 'identifier ce qui a aidé', 'parler du fond').",
+          "Discuter de la durée ou de la fréquence idéale pour cette nouvelle phase de 'réparation légère'.",
+          "Envisager si des outils ou des cadres de communication spécifiques (ex: communication non-violente) pourraient être introduits pour faciliter le 'parler du fond' de manière constructive."
+        ],
+        "candidate_operation": "replace_phase",
+        "questions_to_clarify": [
+          "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+          "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+          "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+          "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond, tout en maintenant l'objectif de clarté.",
+        "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait le besoin de l'utilisateur de se sentir en sécurité et préparé avant d'aborder des sujets conflictuels.",
+        "Des changements drastiques qui pourraient déstabiliser la cohérence du plan sans une compréhension approfondie du problème et de la phase cible.",
+        "Proposer une approche qui serait perçue comme une 'analyse directe' ou 'frontale'."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention globale du plan d'améliorer la gestion des tensions et la communication au sein de la relation.",
+        "L'objectif de la phase concernée de tendre vers 'plus de clarté' concernant les reproches et attentes non dites.",
+        "Les acquis des phases précédentes axées sur la création de sécurité et l'observation sans jugement (ex: signal de pause, points positifs).",
+        "La progression logique et l'établissement de prérequis avant d'aborder des sujets complexes."
+      ],
+      "warnings": [
+        "Éviter de minimiser le ressenti de l'utilisateur ou de le pousser à accepter une approche qu'il perçoit comme trop agressive ou prématurée.",
+        "Ne pas proposer de supprimer purement et simplement la phase d'abord des tensions, car l'objectif de fond reste pertinent, mais son exécution est en question.",
+        "Ne pas tenter d'appliquer la solution proposée sans avoir identifié précisément la phase cible dans le plan actuel, au risque de créer une incohérence ou de modifier la mauvaise partie du plan.",
+        "Ne pas ignorer la séquence explicite proposée par l'utilisateur pour la phase de réparation."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "whole_plan: La trajectoire globale du plan doit rester cohérente. Les prérequis pour chaque phase doivent être respectés. L'ordre des phases doit être logique et progressif. L'objectif général du plan et les questionnaires de diagnostic doivent être préservés."
+      ],
+      "observation": "L'utilisateur exprime un besoin de modifier l'approche d'une phase future du plan, celle qui aborde les reproches et attentes non dites. Il perçoit l'approche actuelle comme 'trop frontale' et 'analyse directe', et souhaite la remplacer par une 'entrée de réparation légère après tension', avec une séquence spécifique : 'revenir au calme, identifier ce qui a aidé, puis seulement après parler du fond'. L'objectif de 'plus de clarté' doit être maintenu. Cela révèle une préférence pour une progression plus douce et sécurisante dans la gestion des conflits.",
+      "change_family": "style_or_method_mismatch",
+      "recommendation": "Il est crucial de valider la phase spécifique du plan à laquelle l'utilisateur fait référence pour pouvoir appliquer sa proposition de manière cohérente. Une fois la phase identifiée, l'objectif sera d'intégrer la séquence proposée ('retour au calme', 'identification de ce qui a aidé', 'parler du fond') en tant que nouvelle méthode pour cette phase, tout en préservant l'objectif de clarté.",
+      "next_best_question": "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+      "options_to_discuss": [
+        "Explorer des exemples concrets d'actions ou d'exercices pour chaque étape de la nouvelle séquence ('retour au calme', 'identifier ce qui a aidé', 'parler du fond').",
+        "Discuter de la durée ou de la fréquence idéale pour cette nouvelle phase de 'réparation légère'.",
+        "Envisager si des outils ou des cadres de communication spécifiques (ex: communication non-violente) pourraient être introduits pour faciliter le 'parler du fond' de manière constructive."
+      ],
+      "candidate_operation": "replace_phase",
+      "questions_to_clarify": [
+        "Pouvez-vous me préciser quelle est la phase exacte à laquelle vous faites référence dans le plan, ou me décrire son objectif tel que vous l'anticipez, afin que je puisse cibler le bon endroit pour cette modification ?",
+        "Qu'est-ce qui, pour vous, caractérise le 'retour au calme' et comment imaginez-vous le mettre en œuvre concrètement dans cette nouvelle phase ?",
+        "Quand vous dites 'identifier ce qui a aidé', à quels types d'éléments ou d'actions pensez-vous spécifiquement ?",
+        "Comment envisagez-vous de 'parler du fond' de manière constructive et non-frontale après ces deux premières étapes ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle du plan semble anticiper une approche directe des tensions dans une phase future. L'utilisateur propose de remplacer cette approche par une 'phase de réparation' plus progressive, axée sur le retour au calme, l'identification des points positifs, puis seulement l'abord des sujets de fond, tout en maintenant l'objectif de clarté.",
+      "must_not_execute_reason": "L'utilisateur propose une solution pour une phase future, mais la phase spécifique à modifier n'est pas clairement identifiée dans le plan actuel, nécessitant une clarification avant toute modification."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r107-future-phase-mismatch-t05",
+    "trace_error": null
+  }
+]

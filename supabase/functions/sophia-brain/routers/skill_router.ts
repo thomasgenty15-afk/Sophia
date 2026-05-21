@@ -35,7 +35,7 @@ function bestEntrySkill(turnFrame: TurnFrame): string | null {
     if (entries[skillId]?.detected) return skillId;
   }
   for (const [skillId, signal] of Object.entries(entries)) {
-    if (signal.detected) return skillId;
+    if ((signal as any)?.detected) return skillId;
   }
   return null;
 }
@@ -59,9 +59,18 @@ export function runSkillRouter(input: {
   active_skill_state?: unknown;
   pending_tool_skill_confirmation?: unknown;
 }): SkillRouterDecision {
+  const active = activeSkillId(input.active_skill_state);
   const mediumSafetyConversation = needsMediumSafetyConversation(
     input.turn_frame,
   );
+  if (active === "safety_crisis") {
+    return {
+      status: "continue",
+      selected_skill_id: "safety_crisis",
+      reason_code: "active_safety_crisis_continue",
+      blocked_paths: [{ path: "skills", reason_code: "safety_override" }],
+    };
+  }
   if (
     forcesSafetyCrisisSkill(input.turn_frame.safety.risk_band) ||
     mediumSafetyConversation
@@ -84,7 +93,6 @@ export function runSkillRouter(input: {
     };
   }
 
-  const active = activeSkillId(input.active_skill_state);
   const lifecycle = active
     ? input.turn_frame.skill_signals.lifecycle?.[active]
     : null;

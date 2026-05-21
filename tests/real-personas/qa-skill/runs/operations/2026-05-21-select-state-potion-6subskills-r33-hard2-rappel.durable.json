@@ -1,0 +1,247 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "b40f8162-ebae-4e49-882b-4d80ae101fb8",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r33_hard2_rappel_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "dd81bbfb-e360-4ee4-ac78-b5cc31463fb8",
+          "potion_type": "rappel",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "b004d43c-903a-4f54-a19b-50935a95d16e",
+          "transformation_id": null,
+          "content": {
+            "title": "Le sas de déconnexion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "related_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Le sas de déconnexion",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un soutien quotidien pour stabiliser l'habitude sans forcer.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "18:45",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "18:45",
+                "reason_for_time": "Juste avant de se poser, pour attraper l'élan de la fin de journée.",
+                "reminder_instruction": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée."
+              },
+              "potion_type": "rappel",
+              "opening_prompt": "Qu'est-ce qui te ferait le plus de bien juste après avoir fermé l'ordi ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Marcher dix minutes puis ranger le bureau",
+                "evidence": [
+                  "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "fin de journée",
+                "target_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+                "related_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Pour éviter que le report ne s'installe au moment de la transition entre le travail et la soirée.",
+              "expected_duration": "short",
+              "potion_info_message": "Je t'enverrai un mot chaque jour à 18h45 pour t'aider à garder ce mouvement vers la marche ou le rangement, sans pression.",
+              "instant_support_message": "C'est le moment où l'énergie redescend. Respire un coup : l'idée c'est juste de ne pas laisser filer ce petit moment pour toi avant de te poser."
+            },
+            "why_this_potion": "Pour éviter que le report ne s'installe au moment de la transition entre le travail et la soirée.",
+            "potion_info_message": "Je t'enverrai un mot chaque jour à 18h45 pour t'aider à garder ce mouvement vers la marche ou le rangement, sans pression.",
+            "instant_support_message": "C'est le moment où l'énergie redescend. Respire un coup : l'idée c'est juste de ne pas laisser filer ce petit moment pour toi avant de te poser."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien pour stabiliser l'habitude sans forcer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "related_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "18:45",
+            "reason_for_time": "Juste avant de se poser, pour attraper l'élan de la fin de journée.",
+            "reminder_instruction": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t06-a1",
+            "operation_id": "13b3c5e3-8e73-4f02-b619-49c6bdf54cb0",
+            "operation_type": "select_state_potion",
+            "source_message_id": "d886da57-fb30-46c2-a87b-b5748b488fc8"
+          },
+          "generated_at": "2026-05-21T14:22:20.63+00:00",
+          "last_updated_at": "2026-05-21T14:22:20.63+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "message_instruction": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "rationale": "Un soutien quotidien pour stabiliser l'habitude sans forcer.",
+          "local_time_hhmm": "18:45",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "dd81bbfb-e360-4ee4-ac78-b5cc31463fb8",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t06-a1",
+            "operation_id": "13b3c5e3-8e73-4f02-b619-49c6bdf54cb0",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un soutien quotidien pour stabiliser l'habitude sans forcer.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau"
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "fin de journée",
+              "target_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "related_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T14:22:20.63+00:00",
+          "created_at": "2026-05-21T14:22:20.646867+00:00",
+          "updated_at": "2026-05-21T14:22:20.646867+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "576c506d-270f-47a4-a83e-9f14368a0254",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-22",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-22T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "42349a19-b0c6-4e6f-8e4d-449e7ce209ff",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-23",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-23T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "9eb6fc1d-d449-4955-ac56-d8344585d5cc",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-24",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-24T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "193954d2-bc20-47ec-828c-dc815889c9c3",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-25",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-25T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "64c1e481-a3e2-4d0b-84f0-5bbc560ea208",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-26",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-26T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "1953b1fa-4a75-43c0-9e15-584512262c70",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-27",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-27T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        },
+        {
+          "id": "eee2c565-57cf-40c9-8191-ccc932cf085d",
+          "recurring_reminder_id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+          "event_context": "recurring_reminder:dc20e2d9-0103-4b3c-8161-4c48bbbaa440:potion:dd81bbfb-e360-4ee4-ac78-b5cc31463fb8:2026-05-28",
+          "draft_message": "Aider à choisir entre marcher ou ranger avant de s'installer pour la soirée.",
+          "scheduled_for": "2026-05-28T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T14:22:20.659505+00:00"
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,130 @@
+[
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 1,
+    "ok": true,
+    "assistant": "Ok, début OK puis grosse fatigue jeudi/vendredi. Donc ouais, c’est elle qui a dicté le rythme cette semaine 😮‍💨\n\nPour mercredi à 18h: je te le mets pour te rappeler de faire la respiration. ✅\n\nTu préfères qu’on garde la respiration à la même cadence que d’habitude (mais en version plus souple en cas de fatigue), ou tu veux que je l’allège dès maintenant pour la semaine prochaine ?",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 2,
+    "ok": true,
+    "assistant": "C'est enregistré: +2 pour \"Respiration de pause\" (2026-05-19) ; +1 pour \"Partager un point positif\" (2026-05-22).\n\nAh ouais, logique : si la fatigue a dicté le rythme, on ajuste. Et nickel pour les cochages oubliés 👍🙂\n\nDu coup je prends en compte :\n- respiration de pause : mardi + jeudi (donc c’est validé)\n- point positif : vendredi (validé)\n\nPar contre, pour le reste, je te propose une semaine allégée pour garder le cap sans te cramer. Tu veux qu’on applique ça maintenant, ou tu préfères continuer la discussion 2 minutes sans rien confirmer tout de suite ? 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 3,
+    "ok": true,
+    "assistant": "C'est une super idée pour t'aider à garder un peu de jus le soir. Je note qu'on se fera cette carte de défense dès qu'on aura terminé notre point sur la semaine.\n\nPour l'instant, on reste sur notre lancée pour caler ton organisation : tu me confirmes que c'est bien la fatigue le blocage principal à gérer pour la suite ? 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 4,
+    "ok": true,
+    "assistant": "Je t'ai entendu, on reste focus sur ton bilan. Je ne crée rien du tout et on oublie les cartes pour l'instant.\n\nOn en était à ton organisation pour la suite. Comme la fatigue a pas mal pesé ces derniers jours, je te propose de partir sur une semaine allégée. L'idée c'est de garder le cap sans te cramer, en réduisant un peu la charge pour que ce soit plus digeste.\n\nEst-ce que ça te semble être la bonne approche pour la semaine prochaine ? 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 5,
+    "ok": true,
+    "assistant": "C'est noté, je rectifie ça tout de suite dans tes stats pour qu'on ait une vision clean. Ça change pas mal la donne sur ta régularité, c'est cool que tu l'aies précisé.\n\nAvec ces corrections, on voit que tu as quand même réussi à maintenir le cap malgré la fatigue. Pour la semaine prochaine, on reste sur l'idée d'alléger un peu le rythme pour que ce soit plus digeste pour toi ? 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 6,
+    "ok": true,
+    "assistant": "Ok, je reprends ta version exactement.\n\nProposition pour la semaine prochaine:\n- Respiration de pause: lundi et mercredi.\n- Partager un point positif: vendredi seulement.\n- Mission signal de pause: à finir tranquillement, sans pression.\n\nRien n'est appliqué tant que tu ne me le confirmes pas clairement. 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 7,
+    "ok": true,
+    "assistant": "Pour une proposition simple de semaine prochaine, on peut rester dans le weekly.\n\nSi on change vraiment la cadence ou le contenu des actions dans ton plan, je passe par l'ajustement du plan avant application. Là, ta version touche bien l'organisation concrète, donc je peux l'appliquer seulement si tu confirmes clairement. 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-partial_habits_mission_partial",
+    "turn": 8,
+    "ok": true,
+    "assistant": "Je ne peux pas appliquer cet ajustement: le patch est invalide. 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 1,
+    "ok": true,
+    "assistant": "D’accord. Pour ajuster finement, dis-moi juste ce qui ne va plus : les actions sont trop lourdes, pas assez concrètes, mal ordonnées, ou pas les bonnes du tout ? 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 2,
+    "ok": true,
+    "assistant": "Je te propose une version allégée du niveau actuel, sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.\n\nCe qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 3,
+    "ok": true,
+    "assistant": "Ok je te suis 🙂 Le “point positif” ne sera pas en mode quotidien, et on ne le garde que samedi matin.\n\nDu coup, tu préfères qu’on le mette samedi matin à quelle fréquence sur ta semaine allégée : juste 1 fois (samedi uniquement) ou aussi un petit deuxième jour à choisir ?",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 4,
+    "ok": false,
+    "assistant": "",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 5,
+    "ok": false,
+    "assistant": "",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 6,
+    "ok": false,
+    "assistant": "",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 7,
+    "ok": false,
+    "assistant": "",
+    "selected_handler": null,
+    "executed_tools": null
+  },
+  {
+    "run_id": "weekly-8turn-r10-not_relevant_level_review",
+    "turn": 8,
+    "ok": true,
+    "assistant": "Oui. Le proposition prévoit bien: Ok, je reprends ta version exactement.\n\nProposition pour la semaine prochaine:\n- Respiration de pause: lundi et mercredi.\n- Partager un point positif: vendredi seulement.\n- Mission signal de pause: à finir tranquillement, sans pression.\n\nRien n'est appliqué tant que tu ne me le confirmes pas clairement.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+    "selected_handler": null,
+    "executed_tools": null
+  }
+]

@@ -1,0 +1,358 @@
+{
+  "run_id": "weekly-focus-r12-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "9107ca26-f9f2-4575-a58e-bee0248bc4f5",
+  "email": "qa-weekly-deep-weekly-focus-r12-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-focus-r12",
+  "created_at": "2026-05-20T14:07:00.658Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T14:07:00.659Z",
+      "user": "Debut OK puis grosse fatigue jeudi vendredi. Je ne veux pas alleger: prolonge la meme semaine une semaine de plus en copie conforme, memes actions et meme rythme, sans changer le plan global.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te prépare une proposition pour prolonger la semaine actuelle d’une semaine, à l’identique, sans toucher au plan global. Rien n’est appliqué pour l’instant. Tu veux que je la formalise maintenant ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-focus-r12-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-focus-r12-partial_habits_mission_partial-t01",
+        "user_id": "9107ca26-f9f2-4575-a58e-bee0248bc4f5",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-focus-r12",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te prépare une proposition pour prolonger la semaine actuelle d’une semaine, à l’identique, sans toucher au plan global. Rien n’est appliqué pour l’instant. Tu veux que je la formalise maintenant ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-focus-r12-partial_habits_mission_partial-t01",
+          "user_id": "9107ca26-f9f2-4575-a58e-bee0248bc4f5",
+          "source_message_id": "4940a87b-21ec-4d71-9240-af0bb45850d0",
+          "ts": "2026-05-20T14:07:27.376+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10659,
+            "latency_ms": 12731,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 738,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "fatigue signalée jeudi vendredi",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-focus-r12-partial_habits_mission_partial-t01",
+            "user_id": "9107ca26-f9f2-4575-a58e-bee0248bc4f5",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "fatigue signalée jeudi vendredi",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "4940a87b-21ec-4d71-9240-af0bb45850d0",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "prolonge la meme semaine une semaine de plus en copie conforme",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "semaine actuelle",
+                    "status": "identified",
+                    "evidence": [
+                      "prolonge la meme semaine"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "prolonge la meme semaine",
+                      "sans changer le plan global"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "draft_generation_confirmation"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un allègement.",
+                "Ne pas proposer une réorganisation des tâches.",
+                "Ne pas ajouter de nouvelles actions ou de nouvelles contraintes.",
+                "Ne pas changer la nature du niveau ni le transformer en phase de récupération.",
+                "Ne pas commenter la demande comme un problème à corriger plutôt que comme un besoin de consolidation."
+              ],
+              "scope": "level",
+              "preserve": [
+                "Le niveau courant comme base de travail.",
+                "Les actions existantes dans leur contenu exact.",
+                "Le rythme et la répartition des jours.",
+                "La logique de progression globale du plan.",
+                "Le repère de fatigue comme signal à observer pour la suite, sans le transformer ici en modification structurelle."
+              ],
+              "warnings": [
+                "Éviter de transformer cette demande de prolongation en allègement implicite ou en nouveau plan.",
+                "Éviter d’introduire des changements de cadence, de contenu ou de priorisation sous couvert d’adaptation.",
+                "Éviter de sur-interpréter la fatigue comme une nécessité de baisse globale si l’utilisateur a explicitement demandé de ne pas alléger.",
+                "Éviter de déplacer la discussion vers le niveau suivant ou la trajectoire globale alors que la demande porte sur le niveau courant.",
+                "Éviter les questions inutiles: le besoin principal est déjà formulé clairement."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Action: maintenir le rôle actuel du niveau comme consolidation, avec intention préservée de continuité et de familiarisation; si pont nécessaire, faire un pont minimal vers une semaine supplémentaire identique, sans changement de nature sans demande explicite.",
+                "Niveau: conserver la charge et le rythme du niveau courant; la fatigue de fin de semaine peut être notée comme point de vigilance, mais toute baisse doit rester temporaire, locale et non globale si elle est discutée plus tard; préserver la boundary de fin de niveau.",
+                "Whole_plan: préserver la trajectoire et l’ordre des phases; ne pas toucher aux prérequis ni au questionnaire implicite du plan; le prolongement doit s’inscrire comme une copie conforme du niveau actuel, sans reconfigurer l’objectif global.",
+                "Coherence: distinguer ce qui est humainement pertinent (fatigue en fin de semaine, besoin de consolidation) de ce qui est techniquement faisable (copier le niveau une semaine de plus); privilégier la stabilité du plan sur l’optimisation prématurée.",
+                "Communication: rester sobre, rassurant et non interprétatif; valider la continuité du cadre sans sur-promettre ni dramatiser la fatigue."
+              ],
+              "observation": "La demande exprime un besoin de consolidation, pas de redesign: le démarrage est bon, puis la fatigue apparaît en fin de semaine, et le changement recherché est surtout un prolongement temporel à l’identique. Humainement, le signal important est la limite de charge en fin de semaine; techniquement, la solution demandée est simple (copie conforme du niveau courant).",
+              "recommendation": "Orienter la réponse vers une prolongation du niveau actuel à l’identique, en conservant actions, rythme et intention, sans modifier la trajectoire globale. Le coaching doit surtout préserver le sentiment de continuité et de sécurité, tout en gardant en tête que la fatigue de jeudi-vendredi est un indicateur à surveiller pour la suite, pas un prétexte à réécrire le plan maintenant.",
+              "options_to_discuss": [
+                "Prolonger strictement la même semaine une semaine de plus.",
+                "Garder les mêmes jours, mêmes actions et même rythme, avec un simple décalage temporel du niveau.",
+                "Si besoin plus tard, prévoir un point de vigilance sur la fatigue de fin de semaine sans changer le contenu maintenant.",
+                "Conserver le plan global intact et traiter cette semaine supplémentaire comme une semaine de consolidation."
+              ],
+              "questions_to_clarify": []
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 26644,
+          "created_at": "2026-05-20T14:07:27.379477+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T14:07:27.395Z"
+}

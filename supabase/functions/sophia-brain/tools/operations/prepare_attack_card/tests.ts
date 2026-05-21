@@ -13,6 +13,7 @@ import {
 } from "../../../test_harness/conversation_route_replay/runner.ts";
 import { runPrepareAttackCardAiIntake } from "./ai_intake.ts";
 import { executePrepareAttackCard } from "./executor.ts";
+import { refineAttackCardTechniqueFitForTest } from "./slot_filler.ts";
 import {
   readyAttackCardStatePatch,
   structuredAttackCardDraftGenerator,
@@ -20,6 +21,139 @@ import {
 } from "./test_helpers.ts";
 
 const SECRET = "s5-test-secret";
+
+Deno.test("prepare_attack_card technique fit prefers ancre visuelle over mot de bascule for perfectionism start blocker", () => {
+  const refined = refineAttackCardTechniqueFitForTest({
+    current_step: "technique_selection",
+    missing_slots: ["technique"],
+    confidence: "high",
+    generated_user_message:
+      "Je te propose Le texte magique ou Mot de bascule. Qu'est-ce qui te semble le plus efficace ?",
+    state_patch: {
+      current_step: "technique_selection",
+      target: {
+        status: "identified",
+        kind: "personal_action",
+        plan_item_id: null,
+        title: "Relire deux pages de compte rendu",
+        confidence: "high",
+        evidence: ["relire deux pages de compte rendu"],
+      },
+      blocker: {
+        type: "avoidance",
+        confidence: 0.9,
+        evidence: [
+          "attendre d'avoir tout compris avant d'écrire une ligne",
+        ],
+      },
+      technique: {
+        status: "ambiguous",
+        value: null,
+        explicitly_requested: false,
+        fit_warning: null,
+        confidence: "medium",
+        evidence: ["attendre d'avoir tout compris"],
+        options: [
+          {
+            technique_key: "texte_recadrage",
+            title: "Le texte magique",
+            description: "recadrage",
+            reason: "recadrer le perfectionnisme",
+            example: "texte court",
+            recommended: true,
+          },
+          {
+            technique_key: "pre_engagement",
+            title: "Mot de bascule",
+            description: "mot court",
+            reason: "signaler le blocage",
+            example: "BASCULE",
+            recommended: false,
+          },
+        ],
+      },
+      activation_keyword: {
+        status: "not_applicable",
+        value: null,
+        options: [],
+        rejected_value: null,
+        confidence: "low",
+        evidence: [],
+      },
+      constraints: ["version minimale"],
+      missing_slots: ["technique"],
+      confidence: "high",
+      generated_user_message:
+        "Je te propose Le texte magique ou Mot de bascule. Qu'est-ce qui te semble le plus efficace ?",
+    },
+  }, {
+    message:
+      "Le boulot c'est relire deux pages de compte rendu; mon réflexe c'est d'attendre d'avoir tout compris avant d'écrire une ligne.",
+  });
+
+  const options = refined.state_patch.technique?.options ?? [];
+  assertEquals(
+    options.some((option) => option.technique_key === "pre_engagement"),
+    false,
+  );
+  assertEquals(
+    options.some((option) => option.technique_key === "ancre_visuelle"),
+    true,
+  );
+  assertEquals(
+    /Mot de bascule/i.test(refined.generated_user_message ?? ""),
+    false,
+  );
+  assertStringIncludes(refined.generated_user_message ?? "", "Ancre visuelle");
+});
+
+Deno.test("prepare_attack_card technique fit keeps mot de bascule for impulse risk", () => {
+  const refined = refineAttackCardTechniqueFitForTest({
+    current_step: "technique_selection",
+    missing_slots: ["technique"],
+    confidence: "high",
+    generated_user_message:
+      "Je te propose Mot de bascule. Qu'est-ce qui te semble le plus utile ?",
+    state_patch: {
+      current_step: "technique_selection",
+      blocker: {
+        type: "avoidance",
+        confidence: 0.9,
+        evidence: ["je risque de craquer a chaud"],
+      },
+      technique: {
+        status: "ambiguous",
+        value: null,
+        explicitly_requested: false,
+        fit_warning: null,
+        confidence: "medium",
+        evidence: ["risque de craquer"],
+        options: [
+          {
+            technique_key: "pre_engagement",
+            title: "Mot de bascule",
+            description: "mot court",
+            reason: "moment fragile",
+            example: "BASCULE",
+            recommended: true,
+          },
+        ],
+      },
+      missing_slots: ["technique"],
+      confidence: "high",
+    },
+  }, {
+    message:
+      "Quand je suis a chaud je risque de craquer et d'envoyer un message impulsif.",
+  });
+
+  assertEquals(
+    (refined.state_patch.technique?.options ?? []).some((option) =>
+      option.technique_key === "pre_engagement"
+    ),
+    true,
+  );
+});
 
 Deno.test("prepare_attack_card AI flow only advances from structured slots", async () => {
   const output = await runPrepareAttackCardAiIntake({

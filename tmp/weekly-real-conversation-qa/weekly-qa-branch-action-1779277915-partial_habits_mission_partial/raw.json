@@ -1,0 +1,1142 @@
+{
+  "run_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+  "email": "qa-weekly-deep-weekly-qa-branch-action-1779277915-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-branch-action-1779277915",
+  "created_at": "2026-05-20T11:52:53.745Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T11:52:53.746Z",
+      "user": "Je l'ai vecue en deux parties : debut OK, puis fatigue forte jeudi/vendredi. La mission du signal de pause est commencee a 50%. Par contre Respiration de pause ne me convient pas : la respiration guidee me crispe quand je suis fatigue. Je veux remplacer cette action, pas seulement alleger le niveau.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je dois reprendre le brouillon proprement. Pour régénérer le remplacement de « Respiration de pause », quel type d’action tu veux à la place : observation très courte, relâchement corporel, pause silencieuse, ou autre ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t01",
+        "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-branch-action-1779277915",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je dois reprendre le brouillon proprement. Pour régénérer le remplacement de « Respiration de pause », quel type d’action tu veux à la place : observation très courte, relâchement corporel, pause silencieuse, ou autre ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t01",
+          "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+          "source_message_id": "b5cd920d-3c92-4297-b7d3-5e17d51a20a4",
+          "ts": "2026-05-20T11:53:32.67+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10238,
+            "latency_ms": 4698,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 726,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t01",
+            "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_review_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "b5cd920d-3c92-4297-b7d3-5e17d51a20a4",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_action",
+                    "label": "Respiration de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "Respiration de pause ne me convient pas"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "specific_action",
+                    "status": "identified",
+                    "evidence": [
+                      "Je veux remplacer cette action"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "draft_generation_retry_needed"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer uniquement \"faire moins\" de respiration guidée.",
+                "Insister sur la respiration comme si la difficulté relevait d’un manque d’adhésion.",
+                "Recomposer tout le plan ou toucher aux autres items sans nécessité.",
+                "Introduire une action nouvelle trop ambitieuse ou trop technique.",
+                "Oublier de relier le remplacement à la réalité de la fatigue vécue."
+              ],
+              "scope": "action",
+              "preserve": [
+                "L’intention de pause et de régulation en contexte de fatigue.",
+                "Le caractère ciblé de l’ajustement sur l’action \"Respiration de pause\".",
+                "La logique de remplacement fonctionnel plutôt que de simple allègement.",
+                "La stabilité du reste du plan et du niveau global.",
+                "La prise en compte du fait que la fatigue modifie la faisabilité humaine de l’action."
+              ],
+              "warnings": [
+                "Éviter de présenter la respiration guidée comme un choix universel ou intrinsèquement préférable alors qu’elle déclenche une crispation en contexte de fatigue.",
+                "Éviter de ne proposer qu’une diminution de fréquence ou de volume si la demande explicite est un remplacement d’action.",
+                "Éviter de changer la nature du niveau global ou de réorganiser tout le plan sans demande explicite.",
+                "Éviter des alternatives trop cognitives, trop longues ou demandant une forte auto-commande au moment où la fatigue est haute.",
+                "Éviter de casser l’intention de pause/régulation en remplaçant par une action sans lien fonctionnel."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+                "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+                "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+                "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+                "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+                "Action: traiter la respiration de pause comme un support à remplacer, en conservant l’intention de pause/régulation; ne pas changer la nature du besoin sans demande explicite.",
+                "Action: proposer un pont minimal entre l’ancien et le nouveau format, avec une continuité d’objectif mais un mécanisme plus compatible avec la fatigue.",
+                "Niveau: préserver la charge et le rythme du niveau courant; si allègement temporaire est évoqué, le distinguer clairement d’un remplacement d’action.",
+                "Niveau: ne pas modifier la boundary de fin de niveau ni le coeur du niveau sans signal explicite.",
+                "Whole_plan: garder la trajectoire générale et l’ordre des phases; l’ajustement doit rester local à l’item concerné.",
+                "Whole_plan: préserver l’objectif initial du questionnaire/plan — apprendre une pause utile en situation réelle — tout en adaptant l’outil pour qu’il soit humainement acceptable."
+              ],
+              "observation": "La demande porte sur un remplacement ciblé d’une action précise, pas sur une simple réduction de charge. Le signal important est double: l’action actuelle devient contre-productive en contexte de fatigue, et l’expérience vécue montre qu’un démarrage partiel puis une fatigue forte en fin de semaine a changé la pertinence de cette pratique. Le besoin réel est donc d’ajuster la nature de l’action pour qu’elle reste aidante dans les moments de baisse d’énergie, tout en conservant l’intention de pause/régulation.",
+              "recommendation": "Orienter la prochaine réponse vers une proposition de remplacement fonctionnel de \"Respiration de pause\", en gardant l’objectif de pause mais en changeant le mécanisme si la respiration guidée crispe quand la fatigue est présente. Le sous-skill doit privilégier une transition de même intention, de charge comparable ou plus légère, et éviter de reformuler cela comme un simple allègement. La bonne logique coaching est: préserver le besoin de pause, remplacer le format qui ne convient pas, et proposer une option plus simple, non intrusive, compatible avec la fatigue.",
+              "options_to_discuss": [
+                "Remplacer la respiration guidée par une pause d’observation très courte, sans consigne respiratoire, centrée sur le repérage de fatigue.",
+                "Remplacer par un micro-rituel corporel neutre et non intrusif, par exemple s’asseoir, relâcher les épaules, lever les yeux, sans contrôle respiratoire.",
+                "Remplacer par une pause de récupération passive de très courte durée, si elle reste compatible avec le cadre du plan.",
+                "Remplacer par une action d’ancrage simple orientée sensation ou environnement, sans guidance respiratoire.",
+                "Conserver l’intention de pause mais adapter le format à un contexte de fatigue élevée avec une version plus minimaliste."
+              ],
+              "questions_to_clarify": [
+                "Quel type d’action semble le plus acceptable à la place: observation, relâchement corporel, pause silencieuse, ou autre?",
+                "Faut-il préserver une durée équivalente ou peut-on réduire légèrement le format si le remplacement reste fonctionnel?"
+              ]
+            },
+            "coaching_guidance_audit": {
+              "scope": "action",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 38886,
+          "created_at": "2026-05-20T11:53:32.67378+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T11:53:47.871Z",
+      "user": "Observation tres courte. Remplace par : Pause de 2 minutes sans technique, puis noter mon etat en mots simples. Prepare le brouillon du remplacement.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose de remplacer seulement l’action \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". Rien d’autre ne serait touché: ni le reste du plan, ni l’objectif global, ni le rythme du niveau actuel. Ce choix aide parce qu’il garde la fonction de pause et de régulation, tout en enlevant le format respiratoire qui te crispe quand la fatigue monte. Si tu veux, je peux préparer ce remplacement tel quel, mais pour l’instant rien n’est encore appliqué. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t02",
+        "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-branch-action-1779277915",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose de remplacer seulement l’action \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". Rien d’autre ne serait touché: ni le reste du plan, ni l’objectif global, ni le rythme du niveau actuel. Ce choix aide parce qu’il garde la fonction de pause et de régulation, tout en enlevant le format respiratoire qui te crispe quand la fatigue monte. Si tu veux, je peux préparer ce remplacement tel quel, mais pour l’instant rien n’est encore appliqué. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t02",
+          "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+          "source_message_id": "a43b9fd8-cd79-4d5e-8edf-ccf6547665da",
+          "ts": "2026-05-20T11:54:12.86+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 14157,
+            "latency_ms": 5081,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 796,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t02",
+            "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_clarification_with_adjustment",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "a43b9fd8-cd79-4d5e-8edf-ccf6547665da",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_plan_item",
+                    "label": "Respiration de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "Respiration de pause ne me convient pas"
+                    ],
+                    "plan_item_id": "1c183dba-3bb1-408b-b015-691d55a870f3"
+                  },
+                  "change_target": {
+                    "value": "Pause de 2 minutes sans technique, puis noter mon etat en mots simples",
+                    "status": "identified",
+                    "evidence": [
+                      "Remplace par : Pause de 2 minutes sans technique, puis noter mon etat en mots simples"
+                    ],
+                    "confidence": "high"
+                  },
+                  "target_granularity": {
+                    "value": "single_action",
+                    "status": "identified",
+                    "evidence": [
+                      "Je veux remplacer cette action",
+                      "Respiration de pause ne me convient pas"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "difficulty": "medium",
+                  "instruction": "Pause de 2 minutes sans technique, puis noter mon etat en mots simples"
+                },
+                "title": "Ajustement - Respiration de pause",
+                "confidence": "high",
+                "ack_summary": {
+                  "changed": [
+                    "ajustement de \"Respiration de pause\""
+                  ],
+                  "unchanged": [
+                    "le reste du plan n'est pas touché"
+                  ],
+                  "confidence": "high",
+                  "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "Respiration de pause",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "decision_basis": {
+                  "evidence": [
+                    "Observation tres courte. Remplace par : Pause de 2 minutes sans technique, puis noter mon etat en mots simples. Prepare le brouillon du remplacement.",
+                    "Respiration de pause ne me convient pas",
+                    "Je veux remplacer cette action, pas seulement alleger le niveau",
+                    "La respiration guidee me crispe quand je suis fatigue",
+                    "debut OK, puis fatigue forte jeudi/vendredi"
+                  ],
+                  "confidence": "high",
+                  "uncertainty": [],
+                  "user_problem": "Respiration de pause bloque parce que l'entree est trop lourde.",
+                  "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                  "must_preserve": [
+                    "reprendre Respiration de pause apres la version mini"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "ajuster le plan de facon minimale",
+                "change_rationale": {
+                  "why_this_change": "Ajuster \"Respiration de pause\" traite le blocage identifié sans changer le reste du plan.",
+                  "success_condition": "L'action redevient faisable.",
+                  "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+                },
+                "adjust_plan_result": {
+                  "scope": "action",
+                  "rationale": {
+                    "confidence": "high",
+                    "missing_info": [],
+                    "user_problem": "L’action de respiration guidée bloque parce que son format devient difficile à supporter quand la fatigue monte.",
+                    "expected_effect": "L’action devient plus faisable, plus neutre et plus compatible avec les moments de fatigue.",
+                    "why_this_change": "Un remplacement minimal permet de garder l’intention de pause utile sans imposer un mécanisme qui crispe."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement reste local à l’action ciblée et ne modifie ni la direction générale ni l’organisation du plan.",
+                    "affected_scope": "action ciblée uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "autres actions du plan",
+                      "structure complète du plan"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Remplacer l’action de respiration guidée par une pause très courte sans technique, suivie d’une note simple de l’état ressenti.",
+                    "changed_items": [
+                      {
+                        "id": "1c183dba-3bb1-408b-b015-691d55a870f3",
+                        "kind": "habit",
+                        "after": "Pause de 2 minutes sans technique, puis noter mon état en mots simples",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause, 2x/semaine",
+                        "reason": "Ce remplacement conserve la fonction de pause et de régulation tout en retirant le format respiratoire qui déclenche de la crispation quand la fatigue est forte.",
+                        "capability": "change_action_frequency"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "5a1afcef-9584-4bd8-810f-1a9f80a4367b",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Je le laisse inchangé; la demande porte seulement sur le remplacement de l’action de respiration, sans toucher aux autres éléments du plan."
+                      }
+                    ],
+                    "trajectory_change": null
+                  },
+                  "user_message_brief": "Je te propose de remplacer \"Respiration de pause\" par une pause de 2 minutes sans technique, puis une note simple de l’état ressenti.",
+                  "user_message_detailed": "Changement 1 — \"Respiration de pause\"\nAvant : \"Respiration de pause, 2x/semaine\"\nAprès : \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\"\nPourquoi : ça garde la fonction de pause et de régulation, mais enlève le format respiratoire qui te crispe quand tu es fatigué.\n\nCe qui ne bouge pas : le reste du plan, l’objectif global et le rythme du niveau actuel restent inchangés.\n\nConfiance : haute.\n\nSi tu veux, je peux préparer ce remplacement tel quel."
+                },
+                "execution_strategy": "patch_existing",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused",
+                  "target_reps",
+                  "cadence_label"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "Si tu confirmes, je remplacerai \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". L’intention de pause restera la même, le reste du plan restera inchangé, et ce format devrait être plus simple à tenir quand tu es fatigué.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de remplacer seulement l’action \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". Rien d’autre ne serait touché: ni le reste du plan, ni l’objectif global, ni le rythme du niveau actuel. Ce choix aide parce qu’il garde la fonction de pause et de régulation, tout en enlevant le format respiratoire qui te crispe quand la fatigue monte. Si tu veux, je peux préparer ce remplacement tel quel, mais pour l’instant rien n’est encore appliqué."
+            },
+            "status": "draft_review",
+            "reason_code": "active_tool_skill_continue",
+            "operation_id": "ae17eae8-8f8f-47e9-a1e7-ce6ca218bf01",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer seulement de faire moins de respiration guidée.",
+                "Transformer ce remplacement en réorganisation du plan complet.",
+                "Introduire une action nouvelle trop ambitieuse ou trop technique.",
+                "Nier le lien entre la difficulté et la fatigue réelle.",
+                "Changer la nature du besoin sans demande explicite."
+              ],
+              "scope": "action",
+              "preserve": [
+                "L’intention de pause et de régulation en contexte de fatigue.",
+                "Le ciblage strict sur l’action \"Respiration de pause\".",
+                "La logique de remplacement fonctionnel plutôt qu’un simple allègement.",
+                "La stabilité du reste du plan et du niveau courant.",
+                "Le respect du fait que la fatigue change la faisabilité humaine de l’action."
+              ],
+              "warnings": [
+                "Ne pas reformuler la demande comme une baisse de charge ou de fréquence: le besoin exprimé est un remplacement.",
+                "Ne pas présenter la respiration guidée comme intrinsèquement supérieure alors qu’elle crée une tension en contexte de fatigue.",
+                "Ne pas élargir l’ajustement aux autres éléments du plan ou au niveau global.",
+                "Ne pas proposer une alternative trop cognitive, trop longue ou exigeant une forte auto-commande.",
+                "Ne pas casser l’intention initiale de pause/régulation en proposant une action déconnectée de ce rôle."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+                "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+                "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+                "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+                "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+                "Action: traiter l’item comme un support à remplacer, en conservant l’intention de pause/régulation.",
+                "Action: proposer un pont minimal entre l’ancien et le nouveau format, avec une continuité d’objectif mais un mécanisme plus compatible avec la fatigue.",
+                "Action: ne pas modifier la nature du besoin sans demande explicite.",
+                "Niveau: préserver la charge et le rythme du niveau courant; distinguer clairement un remplacement d’action d’un allègement temporaire.",
+                "Niveau: ne pas modifier la boundary de fin de niveau ni le cœur du niveau sans signal explicite.",
+                "Whole_plan: garder la trajectoire générale et l’ordre des phases; l’ajustement doit rester local à l’item concerné.",
+                "Whole_plan: préserver l’objectif initial d’apprendre une pause utile en situation réelle, tout en adaptant l’outil pour qu’il reste humainement acceptable."
+              ],
+              "observation": "La demande vise un remplacement ciblé d’une action précise, avec une intention de pause/régulation à conserver, mais un mécanisme actuel qui devient humainement inadapté quand la fatigue monte. Le point clé n’est pas de diminuer l’effort, mais de changer le format pour garder le même rôle fonctionnel sans déclencher de crispation.",
+              "recommendation": "Guider le sous-skill vers un remplacement fonctionnel local de \"Respiration de pause\" par une forme plus minimale, non technique et compatible avec la fatigue. Le bon angle coaching est de préserver l’intention de pause, de garder le périmètre strictement sur cette action, et d’éviter toute lecture en termes de simple allègement. La prochaine réponse doit aider à formuler un pont simple entre l’ancien rituel et le nouveau, sans toucher au reste du plan.",
+              "options_to_discuss": [
+                "Pause d’observation très courte sans consigne respiratoire, centrée sur l’état présent.",
+                "Micro-rituel corporel neutre et discret, avec relâchement simple plutôt que contrôle.",
+                "Pause silencieuse de récupération passive si elle reste compatible avec le cadre du plan.",
+                "Ancrage minimal orienté sensation ou environnement, sans technique guidée.",
+                "Version-pont très courte qui conserve le même objectif mais enlève tout aspect contraignant."
+              ],
+              "questions_to_clarify": [
+                "Faut-il conserver une durée équivalente ou une légère réduction est-elle acceptable si le remplacement reste fonctionnel ?",
+                "Quel format paraît le plus acceptable à la place: observation, relâchement corporel, pause silencieuse, ou autre ?"
+              ]
+            },
+            "coaching_guidance_audit": {
+              "scope": "action",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 24954,
+          "created_at": "2026-05-20T11:54:12.862234+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-20T11:54:27.739Z",
+      "user": "Oui, applique ce remplacement tel quel maintenant, puis reviens au weekly et conclus le bilan de la semaine.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Si tu confirmes, je remplacerai \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". L’intention de pause restera la même, le reste du plan restera inchangé, et ce format devrait être plus simple à tenir quand tu es fatigué.\n\nOn revient au weekly.\n\nCe qu'on retient côté weekly: la semaine a été partielle, et l'organisation de la suite a été ajustée pour rester plus légère.\n\nLe point weekly est terminé. La validation de la semaine prochaine est disponible pour confirmer cette organisation.\n\nMini-synthèse pour le prochain weekly: vérifier si l'organisation plus légère tient mieux en fin de semaine. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t03",
+        "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-qa-branch-action-1779277915",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Si tu confirmes, je remplacerai \"Respiration de pause\" par \"Pause de 2 minutes sans technique, puis noter mon état en mots simples\". L’intention de pause restera la même, le reste du plan restera inchangé, et ce format devrait être plus simple à tenir quand tu es fatigué.\n\nOn revient au weekly.\n\nCe qu'on retient côté weekly: la semaine a été partielle, et l'organisation de la suite a été ajustée pour rester plus légère.\n\nLe point weekly est terminé. La validation de la semaine prochaine est disponible pour confirmer cette organisation.\n\nMini-synthèse pour le prochain weekly: vérifier si l'organisation plus légère tient mieux en fin de semaine. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "adjust_plan_item"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t03",
+          "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+          "source_message_id": "42d5417d-a6df-4985-b77b-bad353f9029b",
+          "ts": "2026-05-20T11:54:32.099+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10517,
+            "latency_ms": 4241,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 714,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-qa-branch-action-1779277915-partial_habits_mission_partial-t03",
+            "user_id": "fc0c6eae-a20d-4468-95c6-c815168af09b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "le user demande de conclure le bilan apres l'ajustement",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "1,1.6;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "42d5417d-a6df-4985-b77b-bad353f9029b",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_action",
+                    "label": "Respiration de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "Respiration de pause"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "specific_action",
+                    "status": "identified",
+                    "evidence": [
+                      "le user veut remplacer cette action precise"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "adjust_plan_item"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "ae17eae8-8f8f-47e9-a1e7-ce6ca218bf01",
+            "plan_patch_id": "7054db60-1029-4074-9325-592518614d31",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer seulement de faire moins de respiration guidée.",
+                "Transformer ce remplacement en réorganisation du plan complet.",
+                "Introduire une action nouvelle trop ambitieuse ou trop technique.",
+                "Nier le lien entre la difficulté et la fatigue réelle.",
+                "Changer la nature du besoin sans demande explicite."
+              ],
+              "scope": "action",
+              "preserve": [
+                "L’intention de pause et de régulation en contexte de fatigue.",
+                "Le ciblage strict sur l’action \"Respiration de pause\".",
+                "La logique de remplacement fonctionnel plutôt qu’un simple allègement.",
+                "La stabilité du reste du plan et du niveau courant.",
+                "Le respect du fait que la fatigue change la faisabilité humaine de l’action."
+              ],
+              "warnings": [
+                "Ne pas reformuler la demande comme une baisse de charge ou de fréquence: le besoin exprimé est un remplacement.",
+                "Ne pas présenter la respiration guidée comme intrinsèquement supérieure alors qu’elle crée une tension en contexte de fatigue.",
+                "Ne pas élargir l’ajustement aux autres éléments du plan ou au niveau global.",
+                "Ne pas proposer une alternative trop cognitive, trop longue ou exigeant une forte auto-commande.",
+                "Ne pas casser l’intention initiale de pause/régulation en proposant une action déconnectée de ce rôle."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Verifier le role de l'action dans le plan avant de la reduire, remplacer ou mettre en pause.",
+                "Preserver l'intention de l'action d'origine quand le user demande seulement de la rendre plus faisable.",
+                "Preferer un ajustement minimal ou une action-pont quand le blocage est local.",
+                "Ne pas transformer une habitude en mission ponctuelle sans demande explicite.",
+                "Signaler si modifier cette action risque de casser un prerequis ou une dependance du plan.",
+                "Action: traiter l’item comme un support à remplacer, en conservant l’intention de pause/régulation.",
+                "Action: proposer un pont minimal entre l’ancien et le nouveau format, avec une continuité d’objectif mais un mécanisme plus compatible avec la fatigue.",
+                "Action: ne pas modifier la nature du besoin sans demande explicite.",
+                "Niveau: préserver la charge et le rythme du niveau courant; distinguer clairement un remplacement d’action d’un allègement temporaire.",
+                "Niveau: ne pas modifier la boundary de fin de niveau ni le cœur du niveau sans signal explicite.",
+                "Whole_plan: garder la trajectoire générale et l’ordre des phases; l’ajustement doit rester local à l’item concerné.",
+                "Whole_plan: préserver l’objectif initial d’apprendre une pause utile en situation réelle, tout en adaptant l’outil pour qu’il reste humainement acceptable."
+              ],
+              "observation": "La demande vise un remplacement ciblé d’une action précise, avec une intention de pause/régulation à conserver, mais un mécanisme actuel qui devient humainement inadapté quand la fatigue monte. Le point clé n’est pas de diminuer l’effort, mais de changer le format pour garder le même rôle fonctionnel sans déclencher de crispation.",
+              "recommendation": "Guider le sous-skill vers un remplacement fonctionnel local de \"Respiration de pause\" par une forme plus minimale, non technique et compatible avec la fatigue. Le bon angle coaching est de préserver l’intention de pause, de garder le périmètre strictement sur cette action, et d’éviter toute lecture en termes de simple allègement. La prochaine réponse doit aider à formuler un pont simple entre l’ancien rituel et le nouveau, sans toucher au reste du plan.",
+              "options_to_discuss": [
+                "Pause d’observation très courte sans consigne respiratoire, centrée sur l’état présent.",
+                "Micro-rituel corporel neutre et discret, avec relâchement simple plutôt que contrôle.",
+                "Pause silencieuse de récupération passive si elle reste compatible avec le cadre du plan.",
+                "Ancrage minimal orienté sensation ou environnement, sans technique guidée.",
+                "Version-pont très courte qui conserve le même objectif mais enlève tout aspect contraignant."
+              ],
+              "questions_to_clarify": [
+                "Faut-il conserver une durée équivalente ou une légère réduction est-elle acceptable si le remplacement reste fonctionnel ?",
+                "Quel format paraît le plus acceptable à la place: observation, relâchement corporel, pause silencieuse, ou autre ?"
+              ]
+            },
+            "bridge_plan_item_id": null,
+            "coaching_guidance_audit": {
+              "scope": "action",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4320,
+          "created_at": "2026-05-20T11:54:32.102357+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T11:54:32.113Z"
+}

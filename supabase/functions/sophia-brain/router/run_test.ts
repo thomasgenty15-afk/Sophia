@@ -4,6 +4,7 @@ import {
   computeStreakFromEntries,
   deterministicStaleBilanDecision,
   effectiveResponseOwnerForOperationRuntime,
+  isExplicitPendingApplyConfirmation,
   logPlanItemProgressV2,
   mapMomentumStateV2ToCoachingContext,
   maybeRunAdjustPlanItemOperation,
@@ -61,6 +62,33 @@ Deno.test("deterministicStaleBilanDecision: leaves unrelated topic unresolved fo
   assertEquals(
     deterministicStaleBilanDecision("au fait j'ai une question sur mon plan"),
     null,
+  );
+});
+
+Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before validation", () => {
+  assertEquals(
+    isExplicitPendingApplyConfirmation(
+      "Avant que je valide, confirme-moi juste que ca garde le signal de pause.",
+    ),
+    false,
+  );
+  assertEquals(
+    isExplicitPendingApplyConfirmation(
+      "Oui, valide cet ajustement et applique-le.",
+    ),
+    true,
+  );
+  assertEquals(
+    isExplicitPendingApplyConfirmation(
+      "Stop, on n'applique rien sur ce brouillon. Garde le plan tel quel.",
+    ),
+    false,
+  );
+  assertEquals(
+    isExplicitPendingApplyConfirmation(
+      "Ajoute juste cette nuance au brouillon. Ne valide toujours pas.",
+    ),
+    false,
   );
 });
 
@@ -632,6 +660,152 @@ Deno.test("adjust plan draft review answers pre-confirmation detail request with
     result?.content ?? "",
     "Cartographier les moments de tension",
   );
+  assertEquals(
+    Boolean((result?.nextTempMemory as any).__pending_adjust_plan_draft_review),
+    true,
+  );
+});
+
+Deno.test("adjust plan whole-plan detail request answers directly without repeating full draft", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux te proposer un ajustement du plan global. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change: "Réparer légèrement avant discussion de fond.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          summary: "Phase future retravaillée.",
+          trajectory_change: {
+            before: "La phase future entrait directement par les reproches.",
+            after:
+              "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            inserted_step:
+              "Une phase de réparation légère après petite tension.",
+            preserved_direction: "L'objectif global du plan reste stable.",
+            coaching_reason:
+              "Cela rend l'entrée dans les sujets sensibles plus progressive.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Avant validation, confirme-moi juste que ça ne supprime pas la discussion de fond, ça la décale après le retour au calme.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-detail",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "yes", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "explain_only",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-detail",
+    requestId: "req-whole-detail",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "none");
+  assertEquals(result?.executedTools, []);
+  assertStringIncludes(result?.content ?? "", "ne supprime pas");
+  assertStringIncludes(result?.content ?? "", "après le retour au calme");
+});
+
+Deno.test("adjust plan whole-plan pre-validation nuance updates draft without executing", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux te proposer un ajustement du plan global. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change: "Réparer légèrement avant discussion de fond.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          trajectory_change: {
+            after:
+              "La phase future garde son objectif de clarté, mais son entrée devient plus progressive.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Ajoute cette nuance au brouillon : on garde la discussion de fond, mais elle vient seulement après un retour au calme. Ne valide toujours pas.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-nuance",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "no", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "adjust",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-nuance",
+    requestId: "req-whole-nuance",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "blocked");
+  assertEquals(result?.executedTools, []);
+  assertEquals(result?.toolSkillRun?.status, "draft_review_updated");
+  assertStringIncludes(result?.content ?? "", "Nuance intégrée");
+  assertStringIncludes(result?.content ?? "", "Je n'applique rien");
   assertEquals(
     Boolean((result?.nextTempMemory as any).__pending_adjust_plan_draft_review),
     true,

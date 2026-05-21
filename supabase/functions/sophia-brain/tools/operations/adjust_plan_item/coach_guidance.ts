@@ -7,6 +7,39 @@ declare const Deno: any;
 
 export type AdjustPlanCoachScope = "action" | "level" | "whole_plan";
 
+export type WholePlanChangeFamily =
+  | "sequence_order_issue"
+  | "missing_bridge_or_level"
+  | "direction_change"
+  | "success_criteria_change"
+  | "future_phase_mismatch"
+  | "style_or_method_mismatch"
+  | "maintenance_or_consolidation_gap"
+  | "global_capacity_change"
+  | "value_preference_conflict"
+  | "plan_no_longer_relevant"
+  | "split_merge_restructure"
+  | "diagnostic_unclear"
+  | "cancel_or_reject";
+
+export type WholePlanCandidateOperation =
+  | "diagnostic_only"
+  | "reorder"
+  | "insert_phase"
+  | "replace_phase"
+  | "change_emphasis"
+  | "change_success_criteria"
+  | "pace_change"
+  | "maintenance_layer"
+  | "split_or_merge_phase"
+  | "cancel_or_revise";
+
+export type WholePlanReadiness =
+  | "diagnose"
+  | "draft_ready"
+  | "needs_confirmation"
+  | "execute_after_confirmation";
+
 export type AdjustPlanCoachGuidance = {
   scope: AdjustPlanCoachScope;
   observation: string;
@@ -18,6 +51,12 @@ export type AdjustPlanCoachGuidance = {
   avoid: string[];
   guidelines: string[];
   confidence: "low" | "medium" | "high";
+  change_family?: WholePlanChangeFamily | null;
+  candidate_operation?: WholePlanCandidateOperation | null;
+  readiness?: WholePlanReadiness | null;
+  must_not_execute_reason?: string | null;
+  trajectory_hypothesis?: string | null;
+  next_best_question?: string | null;
 };
 
 export type AdjustPlanCoachGuidanceInput = {
@@ -44,10 +83,13 @@ function safeEnvGet(name: string): string | undefined {
 }
 
 export function shouldUseAdjustPlanCoachGuidance(): boolean {
-  return String(safeEnvGet("SOPHIA_ADJUST_PLAN_COACH_GUIDANCE") ?? "")
-        .trim() === "1" ||
-    String(safeEnvGet("SOPHIA_ADJUST_PLAN_AI_SLOT_FILLING") ?? "").trim() ===
-      "1";
+  const explicitFlag = String(
+    safeEnvGet("SOPHIA_ADJUST_PLAN_COACH_GUIDANCE") ?? "",
+  ).trim();
+  if (explicitFlag === "0" || explicitFlag.toLowerCase() === "false") {
+    return false;
+  }
+  return true;
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -102,6 +144,59 @@ function stringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.map((item) => String(item ?? "").trim()).filter(Boolean)
     : [];
+}
+
+function wholePlanChangeFamily(value: unknown): WholePlanChangeFamily | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "sequence_order_issue",
+      "missing_bridge_or_level",
+      "direction_change",
+      "success_criteria_change",
+      "future_phase_mismatch",
+      "style_or_method_mismatch",
+      "maintenance_or_consolidation_gap",
+      "global_capacity_change",
+      "value_preference_conflict",
+      "plan_no_longer_relevant",
+      "split_merge_restructure",
+      "diagnostic_unclear",
+      "cancel_or_reject",
+    ].includes(raw)
+    ? raw as WholePlanChangeFamily
+    : null;
+}
+
+function wholePlanCandidateOperation(
+  value: unknown,
+): WholePlanCandidateOperation | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "diagnostic_only",
+      "reorder",
+      "insert_phase",
+      "replace_phase",
+      "change_emphasis",
+      "change_success_criteria",
+      "pace_change",
+      "maintenance_layer",
+      "split_or_merge_phase",
+      "cancel_or_revise",
+    ].includes(raw)
+    ? raw as WholePlanCandidateOperation
+    : null;
+}
+
+function wholePlanReadiness(value: unknown): WholePlanReadiness | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "diagnose",
+      "draft_ready",
+      "needs_confirmation",
+      "execute_after_confirmation",
+    ].includes(raw)
+    ? raw as WholePlanReadiness
+    : null;
 }
 
 function scopedGuidelines(scope: AdjustPlanCoachScope): string[] {
@@ -160,6 +255,24 @@ function normalizeGuidance(
       ...stringArray(root.guidelines),
     ],
     confidence,
+    change_family: scope === "whole_plan"
+      ? wholePlanChangeFamily(root.change_family)
+      : null,
+    candidate_operation: scope === "whole_plan"
+      ? wholePlanCandidateOperation(root.candidate_operation)
+      : null,
+    readiness: scope === "whole_plan"
+      ? wholePlanReadiness(root.readiness)
+      : null,
+    must_not_execute_reason: root.must_not_execute_reason == null
+      ? null
+      : String(root.must_not_execute_reason).trim() || null,
+    trajectory_hypothesis: root.trajectory_hypothesis == null
+      ? null
+      : String(root.trajectory_hypothesis).trim() || null,
+    next_best_question: root.next_best_question == null
+      ? null
+      : String(root.next_best_question).trim() || null,
   };
 }
 
@@ -181,6 +294,12 @@ export async function generateAdjustPlanCoachGuidance(
     "Le champ preserve liste ce qu'il faut garder stable dans le plan ou l'action.",
     "Le champ avoid liste ce que Sophia ne doit pas proposer dans sa prochaine reponse.",
     "Le champ guidelines contient des regles concretes que le writer doit suivre pour ce scope.",
+    "Pour whole_plan, tu dois classer la demande dans change_family: sequence_order_issue, missing_bridge_or_level, direction_change, success_criteria_change, future_phase_mismatch, style_or_method_mismatch, maintenance_or_consolidation_gap, global_capacity_change, value_preference_conflict, plan_no_longer_relevant, split_merge_restructure, diagnostic_unclear, cancel_or_reject.",
+    "Pour whole_plan, candidate_operation doit etre l'operation de trajectoire la plus probable: diagnostic_only, reorder, insert_phase, replace_phase, change_emphasis, change_success_criteria, pace_change, maintenance_layer, split_or_merge_phase, cancel_or_revise.",
+    "Pour whole_plan, readiness vaut diagnose si Sophia doit d'abord comprendre; draft_ready si le user a donne une solution concrete; needs_confirmation si un brouillon existe et doit etre valide; execute_after_confirmation seulement apres validation explicite.",
+    "Pour whole_plan, must_not_execute_reason explique pourquoi il ne faut pas appliquer maintenant si le user corrige, refuse, annule, ou si la demande reste vague.",
+    "Pour whole_plan, trajectory_hypothesis resume la trajectoire actuelle et la trajectoire possible en une phrase.",
+    "Pour whole_plan, next_best_question donne la meilleure question de clarification si readiness=diagnose.",
     "Guidelines action: role de l'action, intention preservee, pont mini si besoin, pas de changement de nature sans demande explicite.",
     "Guidelines niveau: charge et rythme du niveau courant, baisse temporaire non globale, boundary de fin de niveau, coeur du niveau preserve.",
     "Guidelines whole_plan: trajectoire, coherence globale, prerequis, ordre des phases, objectif et questionnaire preserves.",
@@ -196,6 +315,15 @@ export async function generateAdjustPlanCoachGuidance(
       preserve: ["string"],
       avoid: ["string"],
       guidelines: ["string"],
+      change_family:
+        "sequence_order_issue|missing_bridge_or_level|direction_change|success_criteria_change|future_phase_mismatch|style_or_method_mismatch|maintenance_or_consolidation_gap|global_capacity_change|value_preference_conflict|plan_no_longer_relevant|split_merge_restructure|diagnostic_unclear|cancel_or_reject|null",
+      candidate_operation:
+        "diagnostic_only|reorder|insert_phase|replace_phase|change_emphasis|change_success_criteria|pace_change|maintenance_layer|split_or_merge_phase|cancel_or_revise|null",
+      readiness:
+        "diagnose|draft_ready|needs_confirmation|execute_after_confirmation|null",
+      must_not_execute_reason: "string|null",
+      trajectory_hypothesis: "string|null",
+      next_best_question: "string|null",
       confidence: "low|medium|high",
     },
     scope: input.scope,

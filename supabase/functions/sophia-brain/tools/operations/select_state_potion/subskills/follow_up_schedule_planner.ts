@@ -22,7 +22,7 @@ export function buildPotionFollowUpSchedulePlannerPrompt(
     actionAware
       ? "Pour cette potion, si le user mentionne une action, tu dois choisir un binding action-aware ou demander le timing manquant."
       : "Pour cette potion, prefere none sauf si le user donne explicitement un moment ou une action recurrente.",
-    "Si une action est mentionnee mais qu'on ne sait pas si elle est ponctuelle ou recurrente, la question utile est: est-ce un moment precis ou une situation qui revient ?",
+    "Si une action est mentionnee mais que le bon moment du soutien n'est pas clair, la question visible doit etre naturelle, par exemple demander quand Sophia doit etre la autour de cette action. Ne formule pas en categories ponctuel/recurrent.",
     "Si le timing manque pour une action ponctuelle ou recurrente, ne fabrique pas de dates: le flow doit demander une clarification avant execution.",
   ].join("\n");
 }

@@ -8,14 +8,6 @@ type WeeklyAction =
     number
   ];
 
-type WeeklyTotals = {
-  planned: number;
-  done: number;
-  partial: number;
-  missed: number;
-  unanswered: number;
-};
-
 export type WeeklyHabitVerdictStatus =
   | "validated"
   | "partial_validatable"
@@ -541,92 +533,6 @@ function planPatchFor(
   return { requires_confirmation: true, operations };
 }
 
-function weeklyTotalsFromReview(review: WeeklyProgressReviewV2): WeeklyTotals {
-  return review.transformations.reduce(
-    (acc, transformation) => {
-      acc.planned += transformation.summary.planned_count;
-      acc.done += transformation.summary.done_count;
-      acc.partial += transformation.summary.partial_count;
-      acc.missed += transformation.summary.missed_count;
-      acc.unanswered += transformation.summary.unanswered_count;
-      return acc;
-    },
-    { planned: 0, done: 0, partial: 0, missed: 0, unanswered: 0 },
-  );
-}
-
-function weeklyActionCheckLine(args: WeeklyTotals): string {
-  if (args.planned === 0) {
-    return "Je n'ai pas assez d'actions confirmees pour lire la semaine correctement.";
-  }
-  if (args.done === args.planned && args.partial === 0 && args.missed === 0) {
-    return "Cote actions, la semaine semble bien tenue.";
-  }
-  if (args.done > 0 && args.missed === 0 && args.unanswered === 0) {
-    return "Cote actions, ca a avance, avec quelques points restes partiels.";
-  }
-  if (args.unanswered >= args.planned) {
-    return "Cote actions, il manque surtout des retours fiables pour lire la semaine.";
-  }
-  if (args.done > 0 || args.partial > 0) {
-    return "Cote actions, une partie a avance et une partie reste a clarifier.";
-  }
-  return "Cote actions, la semaine semble avoir ete difficile a tenir.";
-}
-
-function humanWeeklySynthesis(
-  totals: WeeklyTotals,
-  adaptiveReview: WeeklyAdaptiveReview,
-): string {
-  if (totals.planned === 0) {
-    return "Je n'ai pas encore assez de matiere fiable pour lire la semaine.";
-  }
-  if (adaptiveReview.habit_verdict.status === "validated") {
-    return "La semaine semble avoir ete solide dans l'ensemble.";
-  }
-  if (adaptiveReview.habit_verdict.status === "partial_validatable") {
-    return "La semaine a avance, mais certains points meritent d'etre ajustes avant la suite.";
-  }
-  if (adaptiveReview.habit_verdict.status === "no_signal") {
-    return "Il manque surtout des retours fiables pour comprendre ce qui s'est vraiment passe.";
-  }
-  if (totals.done > 0 || totals.partial > 0) {
-    return "Il y a eu du mouvement, mais la semaine semble avoir demande plus que prevu.";
-  }
-  return "La semaine semble avoir ete difficile a tenir.";
-}
-
-function strategyOrganizationLine(
-  adaptiveReview: WeeklyAdaptiveReview,
-): string {
-  const decision = adaptiveReview.week_strategy.decision;
-  if (decision === "advance") {
-    const carryOvers = adaptiveReview.item_decisions
-      .filter((item) => item.decision === "carry_over")
-      .map((item) => item.title)
-      .slice(0, 2);
-    const suffix = carryOvers.length > 0
-      ? ` avec a clarifier ou reporter: ${carryOvers.join(", ")}`
-      : ", sans report utile repere";
-    return `Pour l'organisation de la semaine prochaine, l'option naturelle serait de passer a la suite${suffix}.`;
-  }
-  if (
-    decision === "advance_with_caution" || decision === "advance_with_watch"
-  ) {
-    return "Pour l'organisation de la semaine prochaine, l'option serait d'avancer prudemment, seulement si ton etat confirme que c'est tenable.";
-  }
-  if (decision === "bridge_week") {
-    return "Pour l'organisation de la semaine prochaine, l'option naturelle serait une semaine allegee: on garde le cap, mais avec moins de charge.";
-  }
-  if (decision === "repeat_week") {
-    return "Pour l'organisation de la semaine prochaine, l'option prudente serait de consolider la meme semaine avant d'avancer.";
-  }
-  if (decision === "level_review") {
-    return "Pour l'organisation de la suite, ca ressemble plutot a un plan a revoir en profondeur qu'a un petit ajustement de semaine.";
-  }
-  return "Pour l'organisation de la semaine prochaine, je veux verifier le bon ajustement avant de te faire valider.";
-}
-
 function userFacingBlockerLabel(blocker: string | null | undefined): string {
   switch (blocker) {
     case "fatigue":
@@ -638,7 +544,7 @@ function userFacingBlockerLabel(blocker: string | null | undefined): string {
     case "not_relevant":
       return "des actions qui ne collaient plus vraiment a ta situation";
     case "context":
-      return "le contexte de la semaine";
+      return "une semaine chargee";
     case "forgotten":
       return "des oublis ou un manque de suivi";
     case "none":
@@ -664,27 +570,6 @@ function userFacingStrategyLabel(decision: WeeklyAdaptiveDecision): string {
   if (decision === "repeat_week") return "refaire la meme semaine";
   if (decision === "level_review") return "revoir la forme du niveau";
   return "ajuster la semaine prochaine";
-}
-
-export function buildWeeklyAdaptiveReviewIntroMessage(
-  review: WeeklyProgressReviewV2,
-  adaptiveReview: WeeklyAdaptiveReview,
-): string {
-  const totals = weeklyTotalsFromReview(review);
-  const blocker = adaptiveReview.daily_evidence_summary.dominant_blockers[0];
-  const blockerLine = blocker && blocker !== "none"
-    ? `Ce qui ressort surtout: ${userFacingBlockerLabel(blocker)}.`
-    : null;
-  const lines = [
-    `C'est le moment du bilan de la semaine. ${
-      humanWeeklySynthesis(totals, adaptiveReview)
-    }`,
-    weeklyActionCheckLine(totals),
-    blockerLine,
-    strategyOrganizationLine(adaptiveReview),
-    "Avant de confirmer l'organisation de la semaine prochaine, comment tu as vecu cette semaine dans l'ensemble ?",
-  ].filter(Boolean);
-  return lines.join("\n\n");
 }
 
 export function buildWeeklyAdaptiveReview(
@@ -760,7 +645,8 @@ export function buildWeeklyAdaptiveReviewInstruction(
     "L'ouverture doit toujours dire clairement que c'est le moment du bilan de la semaine ou du point de fin de semaine, pas commencer par une question nue.",
     "Dans l'ouverture, n'affiche jamais de chiffres de tableau de bord: pas de ratio, pas de pourcentage, pas de '5/6', pas de '83%'.",
     "Un petit compteur simple est autorise s'il clarifie l'etat sans noter le user, par exemple '6 actions prevues' ou '6 en attente'. Sinon, traduis en langage humain: la plupart, une partie, presque tout, peu de retours fiables, plusieurs points restes ouverts.",
-    "Ne refais pas un bilan action par action si le daily donne deja les raisons; mentionne seulement le signal utile.",
+    "Dans l'ouverture, reste leger et compatible WhatsApp: micro-synthese de la semaine, pas de recap jour par jour, pas de liste exhaustive des actions.",
+    "Tu peux citer 1 ou 2 actions importantes maximum si cela clarifie le bilan, mais ne repete pas 'pas fait' ou 'sans retour fiable' pour chaque occurrence.",
     "Dans le message d'ouverture, pose une seule question large maximum: comment le user a vecu la semaine dans l'ensemble.",
     "Ne pose pas deux questions frontales du type progression ressentie + etat/energie dans l'ouverture. Ces informations doivent etre recuperees naturellement dans la discussion et remplies dans le JSON du skill.",
     "Points a remplir progressivement dans le JSON du skill: progression ressentie vers l'objectif, etat/energie de fin de semaine, cause dominante si elle bloque, pertinence des actions non faites, et accord explicite avant validation.",
@@ -777,7 +663,7 @@ export function buildWeeklyAdaptiveReviewInstruction(
     "Les supports / fiches support sont hors scope du weekly: ne les propose pas dans l'organisation de la semaine prochaine et ne les reporte jamais.",
     "Si le user confirme une proposition applicable maintenant, applique seulement via le flow de modification autorise. S'il veut attendre demain/plus tard ou ne rien changer maintenant, dis qu'on reprendra plus tard et que rien n'est confirme; ne promets pas de garder une version en attente.",
     "Quand la discussion weekly est terminee, dis explicitement que la validation de la semaine prochaine est disponible. Cette validation signifie: confirmer l'organisation de la semaine suivante apres le point de fin de semaine, pas valider des occurrences passees.",
-    "A la conclusion du weekly, ajoute une mini-synthese utile pour le prochain weekly: ce qu'on retient de la semaine, l'ajustement choisi pour la suite, et le point a surveiller. Reste court.",
+    "A la conclusion du weekly, n'affiche pas de mini-synthese pour le prochain weekly au user. Cette synthese est interne et doit etre stockee dans l'etat pour guider le prochain message d'ouverture.",
     "Si la discussion weekly revele une vraie demande de modification de l'organisation, Sophia peut passer ponctuellement par adjust_plan_item, puis revenir au weekly pour conclure et debloquer la validation.",
     `Habit verdict interne: ${adaptiveReview.habit_verdict.status}.`,
     `Decision a expliquer au user: ${

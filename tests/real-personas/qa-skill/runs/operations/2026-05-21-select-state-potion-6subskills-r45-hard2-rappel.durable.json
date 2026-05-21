@@ -1,0 +1,251 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "4722a468-ec29-4547-81fb-bd8c0d70ee65",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r45_hard2_rappel_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [
+        {
+          "id": "19a82edb-bb7b-4f68-9cd8-1e8a0407d04f",
+          "potion_type": "rappel",
+          "status": "completed",
+          "source": "system",
+          "scope_kind": "out_of_plan",
+          "cycle_id": "c8e17a81-8487-4fbb-86e5-a9e1fec61ed7",
+          "transformation_id": null,
+          "content": {
+            "title": "Le pivot de fin de journée",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "au moment de fermer l'ordinateur",
+              "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "operation_draft": {
+              "title": "Le pivot de fin de journée",
+              "follow_up": {
+                "duration_days": 7,
+                "schedule_plan": {
+                  "mode": "daily_series",
+                  "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+                  "local_dates": [],
+                  "duration_days": 7,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "18:45",
+                  "timing_relation": "daily"
+                },
+                "local_time_hhmm": "18:45",
+                "reason_for_time": "L'horaire de 18h45 est maintenu pour intervenir juste avant la transition de fin de journée.",
+                "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+              },
+              "potion_type": "rappel",
+              "opening_prompt": "Qu'est-ce qui rend la fermeture de l'ordi difficile aujourd'hui ?",
+              "target_binding": {
+                "kind": "plan_item",
+                "label": "Marcher dix minutes puis ranger le bureau",
+                "evidence": [
+                  "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                  "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+                ],
+                "recurrence_hint": "quotidien",
+                "date_or_window_hint": "au moment de fermer l'ordinateur",
+                "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+                "related_plan_item_id": null,
+                "target_action_family_key": null,
+                "target_generated_temp_id": null
+              },
+              "why_this_potion": "Le user confirme vouloir un repère doux à 18h45 pour protéger la transition entre le travail et ses activités (marche ou rangement) sans pression.",
+              "expected_duration": "short",
+              "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+              "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+            },
+            "why_this_potion": "Le user confirme vouloir un repère doux à 18h45 pour protéger la transition entre le travail et ses activités (marche ou rangement) sans pression.",
+            "potion_info_message": "Je vais t'accompagner chaque soir pour t'aider à faire ce petit pivot vers la marche ou le rangement, sans que la pression ne remonte.",
+            "instant_support_message": "C'est normal de sentir l'élan retomber au moment de la transition. On va juste s'assurer que ce passage ne devienne pas un poids."
+          },
+          "follow_up_strategy": {
+            "duration_days": 7,
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "au moment de fermer l'ordinateur",
+              "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "local_time_hhmm": "18:45",
+            "reason_for_time": "L'horaire de 18h45 est maintenu pour intervenir juste avant la transition de fin de journée.",
+            "reminder_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report."
+          },
+          "metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+            "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+            "operation_type": "select_state_potion",
+            "source_message_id": "9e6888d1-b1a9-43ac-a518-1435cfd6f3ed"
+          },
+          "generated_at": "2026-05-21T16:11:57.265+00:00",
+          "last_updated_at": "2026-05-21T16:11:57.265+00:00"
+        }
+      ],
+      "reminders": [
+        {
+          "id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "message_instruction": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "rationale": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+          "local_time_hhmm": "18:45",
+          "scheduled_days": [
+            "fri",
+            "sat",
+            "sun",
+            "mon",
+            "tue",
+            "wed",
+            "thu"
+          ],
+          "status": "active",
+          "initiative_kind": "potion_follow_up",
+          "source_kind": "potion_generated",
+          "source_potion_session_id": "19a82edb-bb7b-4f68-9cd8-1e8a0407d04f",
+          "initiative_metadata": {
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r45_hard2_rappel-rappel-t05-a1",
+            "operation_id": "15d4bc62-4022-4edd-a558-963f3f981ef9",
+            "schedule_plan": {
+              "mode": "daily_series",
+              "reason": "Un suivi quotidien à 18h45 permet d'intercepter le moment de transition avant le décrochage.",
+              "local_dates": [],
+              "duration_days": 7,
+              "scheduled_days": [],
+              "local_time_hhmm": "18:45",
+              "timing_relation": "daily"
+            },
+            "operation_type": "select_state_potion",
+            "target_binding": {
+              "kind": "plan_item",
+              "label": "Marcher dix minutes puis ranger le bureau",
+              "evidence": [
+                "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau",
+                "Oui, garde ce cadre: marche ou bureau, juste un repere doux."
+              ],
+              "recurrence_hint": "quotidien",
+              "date_or_window_hint": "au moment de fermer l'ordinateur",
+              "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+              "related_plan_item_id": null,
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            }
+          },
+          "target_kind": "plan_item",
+          "target_plan_item_id": "47e17639-0897-41a8-9248-fc6a9c6b6f02",
+          "target_action_family_key": null,
+          "target_binding_policy": "live_action",
+          "target_lifecycle_policy": "while_target_active",
+          "starts_at": "2026-05-21T16:11:57.265+00:00",
+          "created_at": "2026-05-21T16:11:57.273524+00:00",
+          "updated_at": "2026-05-21T16:11:57.273524+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "bec44b43-5d2b-4db9-8383-b7bad5d8d3a6",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-22",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-22T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "ec6429c5-3e54-4042-a50d-75c77c43ee7d",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-23",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-23T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "00cdbe0a-042c-4c14-b956-fc7e8d856060",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-24",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-24T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "c0166b3d-f1c9-43dd-88bd-f973e8f55ad0",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-25",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-25T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "f1d56cdf-4a43-44bc-a8cd-52a806bb13f7",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-26",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-26T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "3524aed5-3419-40b5-8e0e-a3e4a55ac267",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-27",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-27T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        },
+        {
+          "id": "b5f59eb7-a71a-48d4-a9a9-badef03f2b9e",
+          "recurring_reminder_id": "31206008-9cbb-4a61-a634-28890fbf0ab7",
+          "event_context": "recurring_reminder:31206008-9cbb-4a61-a634-28890fbf0ab7:potion:19a82edb-bb7b-4f68-9cd8-1e8a0407d04f:2026-05-28",
+          "draft_message": "Aider à marquer la transition entre le travail et le mouvement/rangement à 18h45 pour éviter le report.",
+          "scheduled_for": "2026-05-28T18:45:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T16:11:57.282033+00:00"
+        }
+      ]
+    }
+  }
+]

@@ -108,6 +108,11 @@ export type SelectStatePotionSlotFillerOutput = {
   evidence?: string[];
 };
 
+export type SelectStatePotionSubSkillFiller = (
+  input: SelectStatePotionSlotFillerInput,
+  normalize: (raw: unknown) => SelectStatePotionSlotFillerOutput,
+) => Promise<SelectStatePotionSlotFillerOutput | null>;
+
 export type SelectStatePotionSlotFiller = (
   input: SelectStatePotionSlotFillerInput,
 ) => Promise<SelectStatePotionSlotFillerOutput | null>;
@@ -220,6 +225,25 @@ function stateKind(
     ].includes(raw)
     ? raw as PotionSessionSelectorInput["state"]["kind"]
     : null;
+}
+
+function stateKindForPotion(
+  potion: PotionSessionSelectorInput["potion_type"],
+): PotionSessionSelectorInput["state"]["kind"] {
+  switch (potion) {
+    case "rappel":
+      return "decrochage";
+    case "courage":
+      return "fear_avoidance";
+    case "guerison":
+      return "shame_guilt";
+    case "clarte":
+      return "confusion_overload";
+    case "amour":
+      return "self_harshness";
+    case "apaisement":
+      return "stress_pressure";
+  }
 }
 
 function stateIntensity(
@@ -353,7 +377,9 @@ function normalizeStatePatch(
   );
   if (selectedPotionRoot) {
     patch.selected_potion = {
-      status: selectedPotionValue ? slotStatus(selectedPotionRoot.status) : "missing",
+      status: selectedPotionValue
+        ? slotStatus(selectedPotionRoot.status)
+        : "missing",
       value: selectedPotionValue,
       confidence: confidence(selectedPotionRoot.confidence),
       evidence: stringArray(selectedPotionRoot.evidence),
@@ -389,7 +415,7 @@ function normalizeStatePatch(
       : [];
     patch.details = {
       status: answers.filter((answer) => required.includes(answer.question_id))
-          .length >= required.length && required.length > 0
+              .length >= required.length && required.length > 0
         ? "identified"
         : slotStatus(details.status),
       required_question_ids: required,
@@ -500,31 +526,76 @@ function stateFromOperationInput(
   const selectedPotion = objectValue(input.selected_potion);
   const shortlist = objectValue(input.shortlist);
   const details = objectValue(input.details);
+  const inputPotionObject = objectValue(input.potion_type);
+  const inputPotionValue = potionType(input.potion_type) ??
+    potionType(inputPotionObject?.value);
+  const previousDraft = objectValue(input.previous_draft);
+  const previousDraftBody = objectValue(previousDraft?.draft) ?? previousDraft;
+  const previousDraftPotion = potionType(previousDraftBody?.potion_type);
+  const previousDraftFollowUp = objectValue(previousDraftBody?.follow_up);
+  const previousDraftTarget = objectValue(previousDraftBody?.target_binding);
+  const previousDraftEvidence = [
+    String(previousDraftBody?.why_this_potion ?? "").trim(),
+    String(previousDraftBody?.opening_prompt ?? "").trim(),
+    String(previousDraftFollowUp?.reminder_instruction ?? "").trim(),
+    ...stringArray(previousDraftTarget?.evidence),
+  ].filter(Boolean);
+  const selectedPotionValue = selectedPotion?.value ?? inputPotionValue ??
+    previousDraftPotion;
+  const existingDetails = objectValue(existing?.details);
+  const existingDetailAnswers = Array.isArray(existingDetails?.answers)
+    ? existingDetails.answers.length
+    : 0;
+  const directDetailAnswers = Array.isArray(details?.answers)
+    ? details.answers.length
+    : 0;
+  const shouldSeedDetailsFromPreviousDraft = Boolean(
+    previousDraftPotion &&
+      selectedPotionValue === previousDraftPotion &&
+      input.revision_request &&
+      existingDetailAnswers === 0 &&
+      directDetailAnswers === 0,
+  );
+  const seededDetailAnswers = shouldSeedDetailsFromPreviousDraft &&
+      previousDraftPotion
+    ? chatDetailQuestionIds(previousDraftPotion).map((questionId) => ({
+      question_id: questionId,
+      label: chatDetailQuestionLabel(previousDraftPotion, questionId),
+      answer: previousDraftEvidence.join(" ") ||
+        "Contexte déjà établi dans le brouillon précédent.",
+      evidence: ["previous_draft"],
+    }))
+    : [];
+  const inputStateKind = state?.kind ?? input.state ??
+    (previousDraftPotion
+      ? stateKindForPotion(previousDraftPotion)
+      : inputPotionObject && inputPotionValue
+      ? stateKindForPotion(inputPotionValue)
+      : null);
   return mergeState(defaultState(), {
     ...(existing ?? {}),
     state: {
       ...(objectValue(existing?.state) ?? {}),
       ...(state ?? {}),
-      kind: state?.kind ?? input.state,
+      kind: inputStateKind,
       intensity: state?.intensity ?? input.state_intensity,
       status: state?.status ??
-        (stateKind(state?.kind ?? input.state) ? "identified" : undefined),
+        (stateKind(inputStateKind) ? "identified" : undefined),
       evidence: state?.evidence ?? ["structured_operation_input"],
       confidence: state?.confidence ?? "high",
     },
     explicit_potion_request: {
       ...(objectValue(existing?.explicit_potion_request) ?? {}),
       ...(explicitPotion ?? {}),
-      potion_type: explicitPotion?.potion_type ?? input.explicit_potion_type,
+      potion_type: explicitPotion?.potion_type ?? input.explicit_potion_type ??
+        inputPotionValue ?? previousDraftPotion,
     },
     selected_potion: {
       ...(objectValue(existing?.selected_potion) ?? {}),
       ...(selectedPotion ?? {}),
-      value: selectedPotion?.value ?? input.potion_type,
+      value: selectedPotionValue,
       status: selectedPotion?.status ??
-        (potionType(selectedPotion?.value ?? input.potion_type)
-          ? "identified"
-          : undefined),
+        (potionType(selectedPotionValue) ? "identified" : undefined),
       evidence: selectedPotion?.evidence ?? ["structured_operation_input"],
       confidence: selectedPotion?.confidence ?? "high",
     },
@@ -535,12 +606,44 @@ function stateFromOperationInput(
     details: {
       ...(objectValue(existing?.details) ?? {}),
       ...(details ?? {}),
+      ...(seededDetailAnswers.length > 0
+        ? {
+          status: "identified",
+          required_question_ids: chatDetailQuestionIds(previousDraftPotion!),
+          answers: seededDetailAnswers,
+          evidence: ["previous_draft"],
+        }
+        : {}),
     },
     context: {
       ...(objectValue(existing?.context) ?? {}),
       ...(objectValue(input.context) ?? {}),
     },
     generated_user_message: existing?.generated_user_message,
+  });
+}
+
+function preservePreviousDraftPotionSelection(
+  state: SelectStatePotionIntakeState,
+  operationInput: Record<string, unknown> | null | undefined,
+): SelectStatePotionIntakeState {
+  const input = operationInput ?? {};
+  const previousDraft = objectValue(input.previous_draft);
+  const previousDraftBody = objectValue(previousDraft?.draft) ?? previousDraft;
+  const previousDraftPotion = potionType(previousDraftBody?.potion_type);
+  if (!previousDraftPotion || state.selected_potion.value) return state;
+  return mergeState(state, {
+    explicit_potion_request: {
+      status: "identified",
+      potion_type: previousDraftPotion,
+      evidence: ["previous_draft"],
+    },
+    selected_potion: {
+      status: "identified",
+      value: previousDraftPotion,
+      confidence: "high",
+      evidence: ["previous_draft"],
+    },
   });
 }
 
@@ -662,41 +765,256 @@ export function normalizeSelectStatePotionSlotFillerOutput(
   };
 }
 
-export async function fillSelectStatePotionSlotsWithAi(
-  input: SelectStatePotionSlotFillerInput,
-): Promise<SelectStatePotionSlotFillerOutput | null> {
-  const state = input.current_state ?? stateFromOperationInput(input.operation_input);
+function needsPotionDetailIntake(state: SelectStatePotionIntakeState): boolean {
   const hasSelectedPotion = Boolean(
     state.selected_potion.value ?? state.explicit_potion_request.potion_type,
   );
-  const needsDetail = hasSelectedPotion &&
+  return hasSelectedPotion &&
     state.missing_slots.some((slot) => slot.startsWith("potion_detail:"));
-  return needsDetail
-    ? await fillPotionDetailSlotsWithAi(
-      { ...input, current_state: state },
-      normalizeSelectStatePotionSlotFillerOutput,
-    )
-    : await fillPotionRouterSlotsWithAi(
+}
+
+function stripRouterOwnedDetails(
+  output: SelectStatePotionSlotFillerOutput,
+): SelectStatePotionSlotFillerOutput {
+  const statePatch = { ...output.state_patch };
+  delete statePatch.details;
+  return {
+    ...output,
+    current_sub_skill: output.current_sub_skill === "draft_generation"
+      ? "detail_intake"
+      : output.current_sub_skill,
+    state_patch: {
+      ...statePatch,
+      current_sub_skill: output.current_sub_skill === "draft_generation"
+        ? "detail_intake"
+        : statePatch.current_sub_skill,
+    },
+  };
+}
+
+function composeSubSkillOutputs(
+  base: SelectStatePotionIntakeState,
+  first: SelectStatePotionSlotFillerOutput,
+  second: SelectStatePotionSlotFillerOutput,
+): SelectStatePotionSlotFillerOutput {
+  const nextState = mergeState(
+    mergeState(base, first.state_patch),
+    second.state_patch,
+  );
+  return {
+    current_sub_skill: nextState.current_sub_skill,
+    state_patch: nextState,
+    missing_slots: nextState.missing_slots,
+    confidence: second.confidence,
+    generated_user_message: nextState.generated_user_message,
+    evidence: [
+      ...(first.evidence ?? []),
+      ...(second.evidence ?? []),
+    ],
+  };
+}
+
+export async function fillSelectStatePotionSlotsWithAi(
+  input: SelectStatePotionSlotFillerInput,
+  subskills: {
+    router?: SelectStatePotionSubSkillFiller;
+    detail?: SelectStatePotionSubSkillFiller;
+  } = {},
+): Promise<SelectStatePotionSlotFillerOutput | null> {
+  const state = input.current_state ??
+    stateFromOperationInput(input.operation_input);
+  const routerSubSkill = subskills.router ?? fillPotionRouterSlotsWithAi;
+  const detailSubSkill = subskills.detail ?? fillPotionDetailSlotsWithAi;
+  if (needsPotionDetailIntake(state)) {
+    return await detailSubSkill(
       { ...input, current_state: state },
       normalizeSelectStatePotionSlotFillerOutput,
     );
+  }
+
+  const routed = await routerSubSkill(
+    { ...input, current_state: state },
+    normalizeSelectStatePotionSlotFillerOutput,
+  );
+  if (!routed) return null;
+
+  const routerOutput = stripRouterOwnedDetails(routed);
+  const routedState = mergeState(state, routerOutput.state_patch);
+  if (!needsPotionDetailIntake(routedState)) return routerOutput;
+
+  const detailed = await detailSubSkill(
+    { ...input, current_state: routedState },
+    normalizeSelectStatePotionSlotFillerOutput,
+  );
+  return detailed
+    ? composeSubSkillOutputs(state, routerOutput, detailed)
+    : routerOutput;
 }
 
 function technicalErrorOutput(
   source: "direct_user_request" | "recommendation_tool",
+  currentState?: SelectStatePotionIntakeState,
 ): SelectStatePotionOperationOutput {
+  const state = currentState ?? defaultState();
+  const operationInput = operationInputFromState(state);
   return {
     operation_type: "select_state_potion",
-    status: "technical_error",
+    status: "ask_question",
     source,
-    phase: "exit",
-    ack:
-      "Je n'ai pas pu lire correctement les infos de cette potion. Reessaie en me donnant l'etat principal.",
+    phase: "state_resolution",
+    next_question: {
+      needed: true,
+      question: "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ?",
+      reason: state.missing_slots[0] ?? "state",
+    },
+    ack: "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ?",
     state_patch: {
-      summary: "State potion skill could not produce structured intake.",
-      phase: "exit",
-      missing_slots: [],
+      summary:
+        "Potion intake keeps the flow active after unstructured AI intake failure.",
+      phase: "state_resolution",
+      missing_slots: state.missing_slots,
       turn_count_increment: 1,
+      operation_input: operationInput,
+      intake_state: state,
+    },
+  };
+}
+
+function unstructuredRecoveryQuestionOutput(
+  source: "direct_user_request" | "recommendation_tool",
+  state: SelectStatePotionIntakeState,
+): SelectStatePotionOperationOutput {
+  const operationInput = operationInputFromState(state);
+  return {
+    operation_type: "select_state_potion",
+    status: "ask_question",
+    source,
+    phase: "state_resolution",
+    next_question: {
+      needed: true,
+      question: "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ?",
+      reason: state.missing_slots[0] ?? "state",
+    },
+    state_patch: {
+      summary:
+        "Potion intake keeps the flow active after unstructured AI intake failure.",
+      phase: "state_resolution",
+      missing_slots: state.missing_slots,
+      turn_count_increment: 1,
+      operation_input: operationInput,
+      intake_state: state,
+    },
+  };
+}
+
+function fallbackQuestionForState(
+  state: SelectStatePotionIntakeState,
+): string | null {
+  const selectedPotion = state.selected_potion.value ??
+    state.explicit_potion_request.potion_type;
+  if (!selectedPotion) return null;
+  const missingDetailIds = state.missing_slots
+    .map((slot) => slot.startsWith("potion_detail:") ? slot.slice(14) : "")
+    .filter(Boolean);
+  if (missingDetailIds.length === 0) return null;
+  const firstMissing = missingDetailIds[0];
+  const byPotion: Partial<
+    Record<PotionSessionSelectorInput["potion_type"], Record<string, string>>
+  > = {
+    rappel: {
+      drift_target:
+        "Qu'est-ce que tu veux surtout ne pas laisser filer en ce moment ?",
+      drift_style:
+        "Je vois ce qui glisse. Ça part plutôt comment, chez toi, au moment où tu décroches ?",
+    },
+    courage: {
+      avoidance_target:
+        "C'est quel passage concret que tu évites là ?",
+      blocker_kind:
+        "Je vois le passage à franchir. Qu'est-ce qui serre le plus quand tu t'en approches ?",
+    },
+    guerison: {
+      recent_hurt:
+        "Quel moment récent a laissé cette trace ?",
+      dominant_feeling:
+        "Je vois l'épisode. Qu'est-ce qui pèse le plus maintenant quand tu y repenses ?",
+    },
+    clarte: {
+      clarity_problem:
+        "Qu'est-ce qui est le plus mélangé là, concrètement ?",
+      clarity_need:
+        "Je vois le brouillard. Tu as surtout besoin de retrouver quel fil en premier ?",
+    },
+    amour: {
+      self_talk:
+        "Quelle phrase dure revient le plus contre toi en ce moment ?",
+      love_need:
+        "Je vois la dureté. De quoi tu aurais le plus besoin dans la manière de te parler là ?",
+    },
+    apaisement: {
+      pressure_source:
+        "Qu'est-ce qui met le plus ton corps sous pression là ?",
+      pressure_state:
+        "Je vois la pression. Comment elle se manifeste le plus dans ton corps maintenant ?",
+    },
+  };
+  return byPotion[selectedPotion]?.[firstMissing] ??
+    `${
+      chatDetailQuestionLabel(selectedPotion, firstMissing)
+    }`;
+}
+
+function normalizeVisibleQuestionText(value: string): string {
+  return value.toLowerCase().normalize("NFD").replace(/\p{Diacritic}/gu, "");
+}
+
+function preventPotionRerouteQuestion(
+  question: string,
+  state: SelectStatePotionIntakeState,
+): string {
+  const selectedPotion = state.selected_potion.value ??
+    state.explicit_potion_request.potion_type;
+  if (!selectedPotion) return question;
+  const text = normalizeVisibleQuestionText(question);
+  const otherPotionMentioned = [
+    "rappel",
+    "courage",
+    "guerison",
+    "clarte",
+    "amour",
+    "apaisement",
+  ].some((potion) => potion !== selectedPotion && text.includes(potion));
+  const asksChoiceBetweenPotions = /\btu preferes\b/.test(text) &&
+    /\bou\b/.test(text) &&
+    (text.includes("potion") || otherPotionMentioned);
+  if (!otherPotionMentioned && !asksChoiceBetweenPotions) return question;
+  return fallbackQuestionForState(state) ?? question;
+}
+
+function recoverableQuestionOutput(
+  source: "direct_user_request" | "recommendation_tool",
+  state: SelectStatePotionIntakeState,
+): SelectStatePotionOperationOutput | null {
+  const question = fallbackQuestionForState(state);
+  if (!question) return null;
+  const operationInput = operationInputFromState(state);
+  return {
+    operation_type: "select_state_potion",
+    status: "ask_question",
+    source,
+    phase: "detail_intake",
+    next_question: {
+      needed: true,
+      question,
+      reason: state.missing_slots[0] ?? "potion_detail",
+    },
+    state_patch: {
+      summary: "Potion intake fallback asks missing detail fields.",
+      phase: "detail_intake",
+      missing_slots: state.missing_slots,
+      turn_count_increment: 1,
+      operation_input: operationInput,
+      intake_state: state,
     },
   };
 }
@@ -719,7 +1037,6 @@ export async function runSelectStatePotionIntake(input: {
 }): Promise<SelectStatePotionOperationOutput> {
   const source = input.source ?? "direct_user_request";
   if (
-    input.safety_pregate_risk_band === "medium" ||
     input.safety_pregate_risk_band === "high" ||
     input.safety_pregate_risk_band === "critical"
   ) {
@@ -728,6 +1045,8 @@ export async function runSelectStatePotionIntake(input: {
       status: "blocked_by_safety",
       source,
       phase: "exit",
+      ack:
+        "Je ne vais rien activer dans cet état. On peut reprendre la potion quand ce sera plus stable pour toi.",
       state_patch: {
         summary: "Safety blocks potion operation.",
         phase: "exit",
@@ -740,12 +1059,15 @@ export async function runSelectStatePotionIntake(input: {
   const initialState = stateFromOperationInput(input.operation_input);
   let nextState: SelectStatePotionIntakeState | null =
     source === "recommendation_tool" ? initialState : null;
-  const hasCoreMissing = nextState?.missing_slots.some((slot) =>
-    slot === "state" || slot === "potion_type"
-  ) ?? false;
+  const hasCoreMissing =
+    nextState?.missing_slots.some((slot) =>
+      slot === "state" || slot === "potion_type"
+    ) ?? false;
   const needsSkillAi = !nextState ||
     (!hasCoreMissing &&
-      nextState.missing_slots.some((slot) => slot.startsWith("potion_detail:")));
+      nextState.missing_slots.some((slot) =>
+        slot.startsWith("potion_detail:")
+      ));
   if (needsSkillAi) {
     const slotFiller = input.slot_filler ?? fillSelectStatePotionSlotsWithAi;
     const filled = await slotFiller({
@@ -758,16 +1080,28 @@ export async function runSelectStatePotionIntake(input: {
       timezone: input.timezone,
       channel: input.channel,
     });
-    if (!filled) return technicalErrorOutput(source);
-    nextState = mergeState(nextState ?? initialState, {
-      ...filled.state_patch,
-      current_sub_skill: filled.current_sub_skill,
-      missing_slots: filled.missing_slots,
-      generated_user_message: filled.generated_user_message,
-      confidence: filled.confidence,
-    });
+    if (!filled) {
+      return recoverableQuestionOutput(source, initialState) ??
+        (source === "direct_user_request"
+          ? unstructuredRecoveryQuestionOutput(source, initialState)
+          : technicalErrorOutput(source, initialState));
+    }
+    nextState = preservePreviousDraftPotionSelection(
+      mergeState(nextState ?? initialState, {
+        ...filled.state_patch,
+        current_sub_skill: filled.current_sub_skill,
+        missing_slots: filled.missing_slots,
+        generated_user_message: filled.generated_user_message,
+        confidence: filled.confidence,
+      }),
+      input.operation_input,
+    );
   }
-  if (!nextState) return technicalErrorOutput(source);
+  if (!nextState) {
+    return source === "direct_user_request"
+      ? unstructuredRecoveryQuestionOutput(source, initialState)
+      : technicalErrorOutput(source, initialState);
+  }
 
   const operationInput = operationInputFromState(nextState);
   if (nextState.missing_slots.length > 0) {
@@ -790,12 +1124,19 @@ export async function runSelectStatePotionIntake(input: {
         },
       };
     }
-    if (!nextState.generated_user_message) return technicalErrorOutput(source);
+    if (!nextState.generated_user_message) {
+      return recoverableQuestionOutput(source, nextState) ??
+        technicalErrorOutput(source, nextState);
+    }
     const phase = nextState.current_sub_skill === "potion_choice"
       ? "potion_choice"
       : nextState.current_sub_skill === "detail_intake"
       ? "detail_intake"
       : "state_resolution";
+    const visibleQuestion = preventPotionRerouteQuestion(
+      nextState.generated_user_message,
+      nextState,
+    );
     return {
       operation_type: "select_state_potion",
       status: "ask_question",
@@ -803,7 +1144,7 @@ export async function runSelectStatePotionIntake(input: {
       phase,
       next_question: {
         needed: true,
-        question: nextState.generated_user_message,
+        question: visibleQuestion,
         reason: nextState.missing_slots[0],
       },
       state_patch: {
@@ -842,6 +1183,18 @@ export async function runSelectStatePotionIntake(input: {
     required_question_ids: nextState.details.required_question_ids,
     answers: nextState.details.answers,
   };
+  const operationInputRoot = objectValue(input.operation_input);
+  const previousDraft = objectValue(operationInputRoot?.previous_draft);
+  if (previousDraft) {
+    (draftInput as typeof draftInput & { previous_draft?: unknown })
+      .previous_draft = previousDraft;
+  }
+  const revisionRequest = String(operationInputRoot?.revision_request ?? "")
+    .trim();
+  if (revisionRequest) {
+    (draftInput as typeof draftInput & { revision_request?: string })
+      .revision_request = revisionRequest;
+  }
   const draftGenerator = input.draft_generator ??
     generatePotionSessionDraftWithAi;
   const draft = await draftGenerator({
@@ -850,7 +1203,7 @@ export async function runSelectStatePotionIntake(input: {
     request_id: input.request_id ?? null,
     base_context: input.base_context ?? null,
   });
-  if (!draft) return technicalErrorOutput(source);
+  if (!draft) return technicalErrorOutput(source, nextState);
   return {
     operation_type: "select_state_potion",
     status: "pending_confirmation",

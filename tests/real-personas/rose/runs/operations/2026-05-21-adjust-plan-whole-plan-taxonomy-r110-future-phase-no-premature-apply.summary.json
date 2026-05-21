@@ -1,0 +1,1268 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t01",
+    "status": 200,
+    "ok": true,
+    "user": "La phase future sur les reproches ne colle pas pour moi. Elle arrive trop frontalement. Je veux la remplacer par une phase de réparation légère après petite tension.",
+    "assistant": "Je comprends que tu souhaites remplacer la phase future sur les reproches par une phase de réparation légère après petite tension. Je peux te préparer une proposition concrète pour ce changement. Est-ce que je peux te montrer un brouillon ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui minimiserait l'inconfort du user face à la phase 'reproches'.",
+          "Une implémentation immédiate de la nouvelle phase sans en avoir exploré les contours et les implications.",
+          "Des formulations qui pourraient suggérer que la 'réparation légère' est une solution finale à tous les conflits."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan d'améliorer la communication et la gestion des conflits dans la relation.",
+          "Les fondations déjà établies, comme l'utilisation du signal de pause et l'observation des déclencheurs.",
+          "La progression graduelle et la construction de la sécurité émotionnelle comme préalable à des discussions plus difficiles."
+        ],
+        "warnings": [
+          "Éviter de remplacer la phase sans comprendre l'intention initiale de la phase 'reproches' et comment la nouvelle phase y répond de manière différente.",
+          "Ne pas laisser la 'réparation légère' devenir un contournement des problèmes de fond si la phase 'reproches' était destinée à les aborder.",
+          "Ne pas proposer une phase de 'réparation légère' qui serait trop exigeante ou complexe, contredisant l'intention de 'légère'."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+        ],
+        "observation": "Le user exprime un inconfort profond avec une phase future perçue comme trop frontale ('reproches') et propose une alternative plus douce et proactive ('réparation légère après petite tension'). Il s'agit d'une demande de réalignement de la trajectoire émotionnelle et relationnelle du plan, privilégiant une approche progressive et moins confrontante du conflit.",
+        "change_family": "future_phase_mismatch",
+        "recommendation": "Accompagner le sous-skill à valider l'intuition du user sur la nécessité d'une approche plus nuancée et moins directe des tensions. Guider la réflexion sur la manière dont cette nouvelle phase de 'réparation légère' peut s'intégrer de manière cohérente dans la progression du plan, en s'appuyant sur les acquis actuels (comme le signal de pause) et en préparant le terrain pour des discussions potentiellement plus complexes, sans les court-circuiter.",
+        "next_best_question": "Qu'est-ce que le user entend précisément par 'réparation légère après petite tension' ? Quels types d'actions ou de comportements cela implique-t-il pour lui et son partenaire ?",
+        "options_to_discuss": [
+          "Quelle était la fonction ou l'objectif initial de la phase 'reproches' dans la trajectoire globale du plan ?",
+          "Comment la phase de 'réparation légère' peut-elle s'articuler avec les outils déjà mis en place, comme le signal de pause ?",
+          "Quels types d'actions concrètes pourraient composer cette phase de 'réparation légère' pour qu'elle soit efficace sans être confrontante ?",
+          "Comment cette nouvelle phase prépare-t-elle le user et son partenaire à aborder des sujets plus délicats à l'avenir, si nécessaire ?"
+        ],
+        "candidate_operation": "replace_phase",
+        "questions_to_clarify": [
+          "Qu'est-ce que le user entend précisément par 'réparation légère après petite tension' ? Quels types d'actions ou de comportements cela implique-t-il pour lui et son partenaire ?",
+          "Quel est l'objectif principal que le user souhaite atteindre avec cette nouvelle phase, au-delà de la simple évitement des 'reproches' ?"
+        ],
+        "trajectory_hypothesis": "Le plan actuel inclut une phase future sur les 'reproches' que le user juge trop frontale; le user propose de la remplacer par une phase de 'réparation légère après petite tension' pour adopter une approche plus progressive et moins confrontante de la gestion des conflits.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui minimiserait l'inconfort du user face à la phase 'reproches'.",
+        "Une implémentation immédiate de la nouvelle phase sans en avoir exploré les contours et les implications.",
+        "Des formulations qui pourraient suggérer que la 'réparation légère' est une solution finale à tous les conflits."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan d'améliorer la communication et la gestion des conflits dans la relation.",
+        "Les fondations déjà établies, comme l'utilisation du signal de pause et l'observation des déclencheurs.",
+        "La progression graduelle et la construction de la sécurité émotionnelle comme préalable à des discussions plus difficiles."
+      ],
+      "warnings": [
+        "Éviter de remplacer la phase sans comprendre l'intention initiale de la phase 'reproches' et comment la nouvelle phase y répond de manière différente.",
+        "Ne pas laisser la 'réparation légère' devenir un contournement des problèmes de fond si la phase 'reproches' était destinée à les aborder.",
+        "Ne pas proposer une phase de 'réparation légère' qui serait trop exigeante ou complexe, contredisant l'intention de 'légère'."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+      ],
+      "observation": "Le user exprime un inconfort profond avec une phase future perçue comme trop frontale ('reproches') et propose une alternative plus douce et proactive ('réparation légère après petite tension'). Il s'agit d'une demande de réalignement de la trajectoire émotionnelle et relationnelle du plan, privilégiant une approche progressive et moins confrontante du conflit.",
+      "change_family": "future_phase_mismatch",
+      "recommendation": "Accompagner le sous-skill à valider l'intuition du user sur la nécessité d'une approche plus nuancée et moins directe des tensions. Guider la réflexion sur la manière dont cette nouvelle phase de 'réparation légère' peut s'intégrer de manière cohérente dans la progression du plan, en s'appuyant sur les acquis actuels (comme le signal de pause) et en préparant le terrain pour des discussions potentiellement plus complexes, sans les court-circuiter.",
+      "next_best_question": "Qu'est-ce que le user entend précisément par 'réparation légère après petite tension' ? Quels types d'actions ou de comportements cela implique-t-il pour lui et son partenaire ?",
+      "options_to_discuss": [
+        "Quelle était la fonction ou l'objectif initial de la phase 'reproches' dans la trajectoire globale du plan ?",
+        "Comment la phase de 'réparation légère' peut-elle s'articuler avec les outils déjà mis en place, comme le signal de pause ?",
+        "Quels types d'actions concrètes pourraient composer cette phase de 'réparation légère' pour qu'elle soit efficace sans être confrontante ?",
+        "Comment cette nouvelle phase prépare-t-elle le user et son partenaire à aborder des sujets plus délicats à l'avenir, si nécessaire ?"
+      ],
+      "candidate_operation": "replace_phase",
+      "questions_to_clarify": [
+        "Qu'est-ce que le user entend précisément par 'réparation légère après petite tension' ? Quels types d'actions ou de comportements cela implique-t-il pour lui et son partenaire ?",
+        "Quel est l'objectif principal que le user souhaite atteindre avec cette nouvelle phase, au-delà de la simple évitement des 'reproches' ?"
+      ],
+      "trajectory_hypothesis": "Le plan actuel inclut une phase future sur les 'reproches' que le user juge trop frontale; le user propose de la remplacer par une phase de 'réparation légère après petite tension' pour adopter une approche plus progressive et moins confrontante de la gestion des conflits.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, montre le brouillon. L'objectif reste la clarté, mais l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "remplacer par une phase de réparation légère après petite tension",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "replace_phase_kind:light_repair_after_tension",
+              "L'objectif reste la clarté",
+              "l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite",
+              "coach_observation:Le user exprime une préférence claire pour une nouvelle séquence émotionnelle et relationnelle dans l'approche des conflits au sein du plan. Il souhaite prioriser le retour au calme et la reconnaissance des points positifs avant d'aborder les sujets de fond, indiquant un besoin de réalignement de la trajectoire globale du plan vers une progression plus douce et sécurisante.",
+              "coach_recommendation:Accompagner le sous-skill à reconfigurer la trajectoire du plan en fonction de la séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'. Il est essentiel de s'assurer que les actions existantes s'intègrent logiquement dans ces nouvelles étapes et d'identifier les éventuels manques pour la phase 'parler du fond'.",
+              "coach_warning:Éviter de simplement réorganiser les actions existantes sans s'assurer que cette nouvelle séquence crée une progression cohérente et suffisante pour aborder les sujets de fond.",
+              "coach_warning:Ne pas sous-estimer la nécessité de créer ou d'adapter des actions spécifiques pour la phase 'parler du fond' si les éléments actuels ne sont pas suffisants ou adaptés à cette étape.",
+              "coach_warning:Ne pas ignorer les fondations déjà posées par les actions actuelles, mais les repositionner de manière pertinente dans la nouvelle séquence.",
+              "coach_preserve:L'objectif global de clarté dans la communication et la gestion des conflits.",
+              "coach_preserve:L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés.",
+              "coach_preserve:Les outils et habitudes déjà établis qui ont fait leurs preuves, comme le signal de pause et le partage de points positifs, en les intégrant dans la nouvelle séquence.",
+              "coach_avoid:Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+              "coach_avoid:Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+              "coach_avoid:Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification.",
+              "whole_plan_change_family:sequence_order_issue",
+              "whole_plan_candidate_operation:reorder",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive.",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+          "decision_basis": {
+            "evidence": [
+              "Oui, montre le brouillon. L'objectif reste la clarté, mais l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "phase future sur les reproches",
+              "remplacer par une phase de réparation légère",
+              "l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite",
+              "deterministic whole-plan fit/complexity signal",
+              "deterministic whole-plan family mismatch signal",
+              "deterministic whole-plan family target"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            "expected_mechanism": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+                "before": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+                "inserted_step": "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                "coaching_reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                "reordered_steps": [
+                  "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "Remplacer la phase future par une progression plus cohérente"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+            "user_message_detailed": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review",
+      "reason_code": "active_tool_skill_continue",
+      "operation_id": "4d32d9c5-3261-492f-9084-12ba67f330b0",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+          "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+          "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global de clarté dans la communication et la gestion des conflits.",
+          "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés.",
+          "Les outils et habitudes déjà établis qui ont fait leurs preuves, comme le signal de pause et le partage de points positifs, en les intégrant dans la nouvelle séquence."
+        ],
+        "warnings": [
+          "Éviter de simplement réorganiser les actions existantes sans s'assurer que cette nouvelle séquence crée une progression cohérente et suffisante pour aborder les sujets de fond.",
+          "Ne pas sous-estimer la nécessité de créer ou d'adapter des actions spécifiques pour la phase 'parler du fond' si les éléments actuels ne sont pas suffisants ou adaptés à cette étape.",
+          "Ne pas ignorer les fondations déjà posées par les actions actuelles, mais les repositionner de manière pertinente dans la nouvelle séquence."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+        ],
+        "observation": "Le user exprime une préférence claire pour une nouvelle séquence émotionnelle et relationnelle dans l'approche des conflits au sein du plan. Il souhaite prioriser le retour au calme et la reconnaissance des points positifs avant d'aborder les sujets de fond, indiquant un besoin de réalignement de la trajectoire globale du plan vers une progression plus douce et sécurisante.",
+        "change_family": "sequence_order_issue",
+        "recommendation": "Accompagner le sous-skill à reconfigurer la trajectoire du plan en fonction de la séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'. Il est essentiel de s'assurer que les actions existantes s'intègrent logiquement dans ces nouvelles étapes et d'identifier les éventuels manques pour la phase 'parler du fond'.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Comment les actions actuelles du plan (ex: signal de pause, point positif, cartographie des déclencheurs) peuvent-elles être regroupées ou adaptées pour correspondre aux étapes 'revenir au calme' et 'reconnaître ce qui a aidé' ?",
+          "Quels types d'activités ou de discussions concrètes le user imagine-t-il pour la phase 'parler du fond' afin qu'elle soit efficace et constructive, tout en respectant la progression souhaitée ?",
+          "Y a-t-il des prérequis ou des conditions spécifiques que le user identifie comme nécessaires avant de pouvoir 'parler du fond' ?"
+        ],
+        "candidate_operation": "reorder",
+        "questions_to_clarify": [
+          "Quelles actions ou quels types d'interactions le user associe-t-il spécifiquement à 'revenir au calme' et à 'reconnaître ce qui a aidé' dans le contexte de son plan ?",
+          "Qu'est-ce que le user entend précisément par 'parler du fond' ? Quels sujets ou objectifs cette étape devrait-elle couvrir ?"
+        ],
+        "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+        "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+        "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global de clarté dans la communication et la gestion des conflits.",
+        "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés.",
+        "Les outils et habitudes déjà établis qui ont fait leurs preuves, comme le signal de pause et le partage de points positifs, en les intégrant dans la nouvelle séquence."
+      ],
+      "warnings": [
+        "Éviter de simplement réorganiser les actions existantes sans s'assurer que cette nouvelle séquence crée une progression cohérente et suffisante pour aborder les sujets de fond.",
+        "Ne pas sous-estimer la nécessité de créer ou d'adapter des actions spécifiques pour la phase 'parler du fond' si les éléments actuels ne sont pas suffisants ou adaptés à cette étape.",
+        "Ne pas ignorer les fondations déjà posées par les actions actuelles, mais les repositionner de manière pertinente dans la nouvelle séquence."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+      ],
+      "observation": "Le user exprime une préférence claire pour une nouvelle séquence émotionnelle et relationnelle dans l'approche des conflits au sein du plan. Il souhaite prioriser le retour au calme et la reconnaissance des points positifs avant d'aborder les sujets de fond, indiquant un besoin de réalignement de la trajectoire globale du plan vers une progression plus douce et sécurisante.",
+      "change_family": "sequence_order_issue",
+      "recommendation": "Accompagner le sous-skill à reconfigurer la trajectoire du plan en fonction de la séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'. Il est essentiel de s'assurer que les actions existantes s'intègrent logiquement dans ces nouvelles étapes et d'identifier les éventuels manques pour la phase 'parler du fond'.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Comment les actions actuelles du plan (ex: signal de pause, point positif, cartographie des déclencheurs) peuvent-elles être regroupées ou adaptées pour correspondre aux étapes 'revenir au calme' et 'reconnaître ce qui a aidé' ?",
+        "Quels types d'activités ou de discussions concrètes le user imagine-t-il pour la phase 'parler du fond' afin qu'elle soit efficace et constructive, tout en respectant la progression souhaitée ?",
+        "Y a-t-il des prérequis ou des conditions spécifiques que le user identifie comme nécessaires avant de pouvoir 'parler du fond' ?"
+      ],
+      "candidate_operation": "reorder",
+      "questions_to_clarify": [
+        "Quelles actions ou quels types d'interactions le user associe-t-il spécifiquement à 'revenir au calme' et à 'reconnaître ce qui a aidé' dans le contexte de son plan ?",
+        "Qu'est-ce que le user entend précisément par 'parler du fond' ? Quels sujets ou objectifs cette étape devrait-elle couvrir ?"
+      ],
+      "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Avant validation, confirme-moi juste que ça ne supprime pas la discussion de fond, ça la décale après le retour au calme.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "ordre: revenir au calme -> reconnaître ce qui a aidé -> parler du fond",
+              "remplacer par une phase de réparation légère après petite tension",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "replace_phase_kind:light_repair_after_tension",
+              "L'objectif reste la clarté",
+              "l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite",
+              "ça ne supprime pas la discussion de fond, ça la décale après le retour au calme",
+              "replace_phase_kind:light_repair_after_tension",
+              "coach_observation:Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+              "coach_recommendation:Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+              "coach_warning:Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+              "coach_warning:Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe.",
+              "coach_preserve:L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+              "coach_preserve:La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+              "coach_preserve:L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés.",
+              "coach_avoid:Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+              "coach_avoid:Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+              "coach_avoid:Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+              "coach_avoid:Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification.",
+              "whole_plan_change_family:sequence_order_issue",
+              "whole_plan_candidate_operation:reorder",
+              "whole_plan_readiness:needs_confirmation",
+              "coach_must_not_execute:Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition.",
+              "coach_trajectory_hypothesis:Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+          "decision_basis": {
+            "evidence": [
+              "Avant validation, confirme-moi juste que ça ne supprime pas la discussion de fond, ça la décale après le retour au calme.",
+              "phase future sur les reproches",
+              "remplacer par une phase de réparation légère",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "deterministic whole-plan family mismatch signal",
+              "deterministic whole-plan family target"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            "expected_mechanism": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+                "before": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+                "inserted_step": "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                "coaching_reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                "reordered_steps": [
+                  "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "Remplacer la phase future par une progression plus cohérente"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+            "user_message_detailed": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "normal_reply_default",
+      "operation_id": "2f5a67e5-7b6d-4ae3-905d-c3d51bc04de1",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+          "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+          "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+          "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+          "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+          "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+        ],
+        "warnings": [
+          "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+          "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+        ],
+        "readiness": "needs_confirmation",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+        ],
+        "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+        "change_family": "sequence_order_issue",
+        "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "reorder",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+        "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "pre_validation_concrete_constraint_requires_revision"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "4d32d9c5-3261-492f-9084-12ba67f330b0",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+        "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+        "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+        "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+        "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+        "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+      ],
+      "warnings": [
+        "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+        "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+      ],
+      "readiness": "needs_confirmation",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+      ],
+      "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+      "change_family": "sequence_order_issue",
+      "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "reorder",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+      "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ajoute cette nuance au brouillon : on garde la discussion de fond, mais elle vient seulement après un retour au calme. Ne valide toujours pas.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "ordre: revenir au calme -> reconnaître ce qui a aidé -> parler du fond",
+              "remplacer par une phase de réparation légère après petite tension",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "replace_phase_kind:light_repair_after_tension",
+              "L'objectif reste la clarté",
+              "l'ordre doit être : revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite",
+              "ça ne supprime pas la discussion de fond, ça la décale après le retour au calme",
+              "on garde la discussion de fond, mais elle vient seulement après un retour au calme",
+              "whole_plan_readiness:draft_ready",
+              "replace_phase_kind:light_repair_after_tension",
+              "coach_observation:Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+              "coach_recommendation:Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+              "coach_warning:Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+              "coach_warning:Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe.",
+              "coach_preserve:L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+              "coach_preserve:La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+              "coach_preserve:L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés.",
+              "coach_avoid:Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+              "coach_avoid:Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+              "coach_avoid:Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+              "coach_avoid:Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification.",
+              "whole_plan_change_family:sequence_order_issue",
+              "whole_plan_candidate_operation:reorder",
+              "whole_plan_readiness:needs_confirmation",
+              "coach_must_not_execute:Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition.",
+              "coach_trajectory_hypothesis:Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+              "whole_plan_change_family:future_phase_mismatch",
+              "whole_plan_candidate_operation:replace_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "sequence",
+            "reason_change": "structure_bad_fit"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+          "decision_basis": {
+            "evidence": [
+              "Ajoute cette nuance au brouillon : on garde la discussion de fond, mais elle vient seulement après un retour au calme. Ne valide toujours pas.",
+              "phase future sur les reproches",
+              "remplacer par une phase de réparation légère",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "deterministic whole-plan family mismatch signal",
+              "deterministic whole-plan family target"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+            "expected_mechanism": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À placer dans la trajectoire ajustée: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+                "before": "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+                "inserted_step": "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                "coaching_reason": "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+                "reordered_steps": [
+                  "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+                  "Remplacer la phase future par une progression plus cohérente"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.",
+            "user_message_detailed": "je reprends la phase future qui ne colle pas: Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je reprends la phase future qui ne colle pas, avec une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "374e5166-e6e9-4613-986e-c98deb4cf31b",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+          "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+          "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+          "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+          "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+          "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+        ],
+        "warnings": [
+          "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+          "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+        ],
+        "readiness": "needs_confirmation",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+        ],
+        "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+        "change_family": "sequence_order_issue",
+        "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "reorder",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+        "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Ajoute cette nuance au brouillon",
+          "Ne valide toujours pas"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "2f5a67e5-7b6d-4ae3-905d-c3d51bc04de1",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+        "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+        "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+        "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+        "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+        "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+      ],
+      "warnings": [
+        "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+        "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+      ],
+      "readiness": "needs_confirmation",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+      ],
+      "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+      "change_family": "sequence_order_issue",
+      "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "reorder",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+      "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, maintenant valide et applique cette version du plan global.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLa phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "374e5166-e6e9-4613-986e-c98deb4cf31b",
+      "plan_patch_id": "3fe6ddc0-2b1a-49a0-ae90-cc82c3acd8a4",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+          "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+          "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+          "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+          "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+          "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+        ],
+        "warnings": [
+          "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+          "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+        ],
+        "readiness": "needs_confirmation",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+        ],
+        "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+        "change_family": "sequence_order_issue",
+        "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+        "next_best_question": null,
+        "options_to_discuss": [],
+        "candidate_operation": "reorder",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+        "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une réorganisation qui ne respecterait pas la logique émotionnelle et progressive exprimée par le user.",
+        "Minimiser l'importance de la phase 'reconnaître ce qui a aidé' en la traitant comme une simple transition.",
+        "Introduire des éléments trop confrontants ou complexes dans les premières phases de la nouvelle séquence.",
+        "Toute réponse qui ne répondrait pas directement à la question de la préservation de la discussion de fond."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global de clarté et de résolution des conflits, incluant la 'discussion de fond'.",
+        "La nouvelle séquence souhaitée par le user : 'revenir au calme', 'reconnaître ce qui a aidé', puis 'parler du fond'.",
+        "L'intention de construire une sécurité émotionnelle et une base positive avant d'aborder les difficultés."
+      ],
+      "warnings": [
+        "Éviter toute formulation qui pourrait laisser entendre que la discussion de fond est minimisée, diluée ou potentiellement omise.",
+        "Ne pas introduire de nouvelles questions ou options à ce stade, car le user demande une confirmation directe."
+      ],
+      "readiness": "needs_confirmation",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases doivent être respectés. L'ordre des phases doit avoir un sens progressif. L'objectif global et le questionnaire initial du plan doivent être préservés, sauf demande explicite de modification."
+      ],
+      "observation": "Le user cherche une confirmation explicite que la 'discussion de fond', bien que décalée, reste une partie intégrante et préservée de l'objectif global du plan. Il s'agit d'une vérification de la cohérence de la trajectoire proposée avec son intention profonde.",
+      "change_family": "sequence_order_issue",
+      "recommendation": "Le sous-skill doit rassurer le user en confirmant que la discussion de fond est bien maintenue et stratégiquement repositionnée après les étapes de retour au calme et de reconnaissance, conformément à la nouvelle séquence souhaitée. Il est essentiel de valider cette compréhension avant toute application.",
+      "next_best_question": null,
+      "options_to_discuss": [],
+      "candidate_operation": "reorder",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "Le plan actuel doit être réorganisé pour suivre une séquence où le retour au calme et la reconnaissance des points positifs précèdent l'abord des sujets de fond, afin de créer une progression plus sécurisante et constructive, sans supprimer l'objectif final de discussion approfondie.",
+      "must_not_execute_reason": "Le user demande une confirmation explicite sur la préservation d'un élément clé du plan avant de valider la proposition."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [
+        "maintenant"
+      ],
+      "risk_band": "none",
+      "reason_codes": [
+        "immediacy_now"
+      ],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": true,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r110-future-phase-no-premature-apply-t05",
+    "trace_error": null
+  }
+]

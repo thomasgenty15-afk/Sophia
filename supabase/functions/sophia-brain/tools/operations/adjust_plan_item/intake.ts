@@ -44,6 +44,9 @@ import {
   type AdjustPlanCoachGuidanceRunner,
   generateAdjustPlanCoachGuidance,
   shouldUseAdjustPlanCoachGuidance,
+  type WholePlanCandidateOperation,
+  type WholePlanChangeFamily,
+  type WholePlanReadiness,
 } from "./coach_guidance.ts";
 
 export { ADJUST_PLAN_SUB_SKILLS } from "./workflow.ts";
@@ -93,6 +96,12 @@ type ChangeTargetSlot = {
 type AffectedItemsSlot = {
   status: "missing" | "identified";
   values: string[];
+  evidence: string[];
+};
+
+type WholePlanChangeFamilySlot = {
+  status: "missing" | "identified";
+  value?: WholePlanChangeFamily;
   evidence: string[];
 };
 
@@ -169,9 +178,16 @@ function userExplicitlyRequestsDraftGeneration(message: string): boolean {
   const mentionsDraft =
     /\b(brouillon|proposition concrete|proposition|version concrete|version|changement concret|changements concrets|avant projet|preview)\b/
       .test(normalized);
+  const mentionsConcreteModification =
+    /\b(modification|ajustement|changement|remplacement)\b/.test(normalized);
+  const mentionsAdjustPlanScope =
+    /\b(niveau actuel|niveau courant|plan global|whole plan|trajectoire globale|organisation concrete|organisation de la semaine|semaine prochaine|version allegee|version concrete)\b/
+      .test(normalized);
   const explicitlyReviewOnly =
     /\b(n'applique pas|ne l'applique pas|n'applique rien|ne rien appliquer|sans appliquer|sans l'appliquer|pas encore|seulement|juste|uniquement|pour relire|juste relire|avant validation|avant de valider|sans valider|pas sure d'appliquer|pas sur d'appliquer)\b/
       .test(normalized);
+  if (asksToPrepare && mentionsConcreteModification) return true;
+  if (asksToPrepare && mentionsDraft && mentionsAdjustPlanScope) return true;
   return asksToPrepare && mentionsDraft && explicitlyReviewOnly;
 }
 
@@ -196,6 +212,44 @@ function levelBoundaryConstraintsForRequest(text: string): string[] {
     "adjustment_scope:current_level_not_whole_plan",
     "level_boundary_note:appliquer l'allegement au niveau actuel; si la demande depasse la fin du niveau, garder ce repere pour le prochain niveau plutot que modifier la trajectoire globale",
   ];
+}
+
+function wholePlanDetailConstraintsForRequest(text: string): string[] {
+  const normalized = normalizeForLooseMatch(text);
+  if (!normalized) return [];
+  const constraints: string[] = [];
+  if (
+    /\b(sas|niveau court|niveau en plus|nouveau niveau|niveau de consolidation|consolidation)\b/
+      .test(normalized) &&
+    /\b(sujets sensibles|reproches|attentes non dites|tensions|debat profond|debat de fond)\b/
+      .test(normalized)
+  ) {
+    constraints.push("insert_phase_kind:short_consolidation_level");
+    constraints.push("insert_phase_position:before_sensitive_topics");
+  }
+  if (
+    /\b(phase future|partie future|suite du plan|plus tard|reproches|attentes non dites)\b/
+      .test(normalized) &&
+    /\b(reparation|reparer|retour au calme|revenir au calme|reconnaitre ce qui a aide|ce qui a aide|petite tension)\b/
+      .test(normalized)
+  ) {
+    constraints.push("replace_phase_kind:light_repair_after_tension");
+  }
+  if (
+    /\b(observer|remarquer)\b.{0,60}\b(apaise|calme|stabilise)\b/.test(
+      normalized,
+    )
+  ) {
+    constraints.push("insert_phase_action:observer_ce_qui_apaise");
+  }
+  if (
+    /\b(demande simple|demande claire|faire une demande)\b/.test(normalized) &&
+    /\b(sans debat|sans debattre|pas de debat|sans conversation profonde|pas de debat profond)\b/
+      .test(normalized)
+  ) {
+    constraints.push("insert_phase_action:demande_simple_sans_debat");
+  }
+  return dedupeStrings(constraints);
 }
 
 function downgradeTemporaryWholePlanToLevel(input: {
@@ -362,6 +416,9 @@ export type LevelAdjustmentPayload = {
 
 export type WholePlanAdjustmentPayload = {
   scope_kind: "whole_plan";
+  whole_plan_change_family?: WholePlanChangeFamilySlot;
+  candidate_operation?: WholePlanCandidateOperation | null;
+  readiness?: WholePlanReadiness | null;
   adjustment_type: {
     status: "missing" | "identified";
     value?:
@@ -550,6 +607,63 @@ function normalizedTargetGranularity(value: unknown): TargetGranularity | null {
   return null;
 }
 
+function normalizedWholePlanChangeFamily(
+  value: unknown,
+): WholePlanChangeFamily | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "sequence_order_issue",
+      "missing_bridge_or_level",
+      "direction_change",
+      "success_criteria_change",
+      "future_phase_mismatch",
+      "style_or_method_mismatch",
+      "maintenance_or_consolidation_gap",
+      "global_capacity_change",
+      "value_preference_conflict",
+      "plan_no_longer_relevant",
+      "split_merge_restructure",
+      "diagnostic_unclear",
+      "cancel_or_reject",
+    ].includes(raw)
+    ? raw as WholePlanChangeFamily
+    : null;
+}
+
+function normalizedWholePlanCandidateOperation(
+  value: unknown,
+): WholePlanCandidateOperation | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "diagnostic_only",
+      "reorder",
+      "insert_phase",
+      "replace_phase",
+      "change_emphasis",
+      "change_success_criteria",
+      "pace_change",
+      "maintenance_layer",
+      "split_or_merge_phase",
+      "cancel_or_revise",
+    ].includes(raw)
+    ? raw as WholePlanCandidateOperation
+    : null;
+}
+
+function normalizedWholePlanReadiness(
+  value: unknown,
+): WholePlanReadiness | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "diagnose",
+      "draft_ready",
+      "needs_confirmation",
+      "execute_after_confirmation",
+    ].includes(raw)
+    ? raw as WholePlanReadiness
+    : null;
+}
+
 function targetGranularityFromOperationInput(
   operationInput: Record<string, unknown>,
 ): TargetGranularitySlot | null {
@@ -639,6 +753,9 @@ function emptyLevelPayload(): LevelAdjustmentPayload {
 function emptyWholePlanPayload(): WholePlanAdjustmentPayload {
   return {
     scope_kind: "whole_plan",
+    whole_plan_change_family: { status: "missing", evidence: [] },
+    candidate_operation: null,
+    readiness: null,
     adjustment_type: { status: "missing", evidence: [] },
     reason: { status: "missing", evidence: [] },
     reason_change: { status: "missing", evidence: [] },
@@ -784,6 +901,23 @@ function loosePayloadFromOperationInput(
   }
   return {
     ...emptyWholePlanPayload(),
+    whole_plan_change_family: (() => {
+      const raw = objectValue((source as any).whole_plan_change_family);
+      const value = normalizedWholePlanChangeFamily(raw?.value ?? raw);
+      return value
+        ? {
+          status: "identified" as const,
+          value,
+          evidence: stringList(raw?.evidence).length
+            ? stringList(raw?.evidence)
+            : ["operation_input.whole_plan_change_family"],
+        }
+        : { status: "missing" as const, evidence: [] };
+    })(),
+    candidate_operation: normalizedWholePlanCandidateOperation(
+      (source as any).candidate_operation,
+    ),
+    readiness: normalizedWholePlanReadiness((source as any).readiness),
     adjustment_type: looseEvidenceSlot(
       source.adjustment_type,
       ["reduce_global_load", "change_goal", "resequence", "restart_plan"],
@@ -1419,6 +1553,34 @@ function mergeAiStatePatch(
             "global_load",
           ],
         );
+        if (next.payload.scope_kind === "whole_plan") {
+          const rawFamily = objectValue(
+            (payloadPatch as any).whole_plan_change_family,
+          );
+          const family = normalizedWholePlanChangeFamily(
+            rawFamily?.value ?? (payloadPatch as any).whole_plan_change_family,
+          );
+          if (family) {
+            payload.whole_plan_change_family = {
+              status: "identified",
+              value: family,
+              evidence: stringList(rawFamily?.evidence).length
+                ? stringList(rawFamily?.evidence)
+                : ["ai_slot_filler.whole_plan_change_family"],
+            };
+          } else if (!payload.whole_plan_change_family) {
+            payload.whole_plan_change_family = {
+              status: "missing",
+              evidence: [],
+            };
+          }
+          payload.candidate_operation = normalizedWholePlanCandidateOperation(
+            (payloadPatch as any).candidate_operation,
+          ) ?? payload.candidate_operation ?? null;
+          payload.readiness =
+            normalizedWholePlanReadiness((payloadPatch as any).readiness) ??
+              payload.readiness ?? null;
+        }
         const affectedItems = objectValue(payloadPatch.affected_items);
         if (affectedItems) {
           payload.affected_items = {
@@ -1509,6 +1671,21 @@ function isPreValidationDetailRequest(message: string): boolean {
     .test(normalized);
 }
 
+function isPreValidationQuestionOnlyRequest(message: string): boolean {
+  const normalized = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’‘`´]/g, "'");
+  const asksQuestion = /\?/.test(normalized) ||
+    /\b(confirme(?:\s+moi)?|est\s+ce\s+que|tu\s+peux\s+me\s+dire|peux\s+tu\s+me\s+dire|resume(?:\s+moi)?|recap(?:itule)?|recapitule)\b/
+      .test(normalized);
+  const asksRewrite =
+    /\b(ajoute|ajouter|integre|integrer|corrige|corriger|modifie|modifier|change|changer|remplace|remplacer|retire|retirer)\b/
+      .test(normalized) ||
+    /\b(au brouillon|dans le brouillon|dans la proposition|dans cette version|garde .*brouillon|mets .*brouillon)\b/
+      .test(normalized);
+  return asksQuestion && !asksRewrite;
+}
+
 function isExplicitDraftRevisionRequest(message: string): boolean {
   const normalized = String(message ?? "").toLowerCase().normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
@@ -1520,9 +1697,247 @@ function isExplicitDraftRevisionRequest(message: string): boolean {
     /\b(modifie|modifier|corrige|corriger|change|changer|remplace|remplacer|ajoute|ajouter|retire|retirer|prefere|plutot|au lieu|pas .* mais)\b/
       .test(normalized);
   const reviewOnly =
-    /\b(n'applique pas|ne l'applique pas|n'applique rien|pas encore|sans appliquer|sans l'appliquer|avant validation)\b/
+    /\b(ne valide pas|ne valide encore pas|ne valide toujours pas|n'applique pas|ne l'applique pas|n'applique rien|pas encore|sans appliquer|sans l'appliquer|avant validation)\b/
       .test(normalized);
   return mentionsDraft && asksRevision && reviewOnly;
+}
+
+function userRequestsDraftRewriteWithoutApply(message: string): boolean {
+  const normalized = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’‘`´]/g, "'");
+  const asksRewrite =
+    /\b(reformule|reformuler|reprends|reprendre|refais|refaire|propose|proposer|prepare|preparer|montre|montrer|brouillon|proposition|version)\b/
+      .test(normalized);
+  const forbidsApply =
+    /\b(ne valide pas|ne valide encore pas|ne valide toujours pas|n'approuve pas|n'approuve|n'applique|ne l'applique|n applique|ne rien appliquer|sans appliquer|sans l'appliquer|avant validation|avant de valider|pas encore)\b/
+      .test(normalized);
+  return asksRewrite && forbidsApply;
+}
+
+function isStrongDraftRejectionOrCancel(message: string): boolean {
+  const normalized = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’‘`´]/g, "'");
+  if (
+    (approvalAddsConcreteConstraintWithoutApply(message) ||
+      preValidationConcreteRevisionRequest(message)) &&
+    !/\b(ce n'est pas ca|c'est pas ca|pas ce brouillon|pas le bon brouillon|hors sujet)\b/
+      .test(normalized)
+  ) {
+    return false;
+  }
+  if (
+    /\b(annule|annuler|stop|arrete|laisse tomber|oublie|abandonne)\b/.test(
+      normalized,
+    )
+  ) return true;
+  if (
+    /\b(n'applique rien|ne l'applique(?:\s+\w+)?\s+pas|n'applique(?:\s+\w+)?\s+pas|n applique rien|n applique(?:\s+\w+)?\s+pas|ne rien appliquer|sans appliquer|sans l appliquer)\b/
+      .test(normalized)
+  ) return true;
+  if (
+    /\b(ce n'est pas ca|c'est pas ca|pas ca|pas ce brouillon|ce brouillon n'est pas le bon|ce brouillon nest pas le bon|mauvais brouillon|pas le bon brouillon|hors sujet)\b/
+      .test(normalized)
+  ) return true;
+  return false;
+}
+
+function draftReviewRejectDecision(reason: string) {
+  return {
+    decision: "reject" as const,
+    confidence: "high" as const,
+    evidence: [reason],
+    apply_after_revision: false,
+  };
+}
+
+function approvalAddsConcreteConstraintWithoutApply(message: string): boolean {
+  const normalized = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’‘`´]/g, "'");
+  const forbidsApply =
+    /\b(ne valide pas|ne valide encore pas|ne valide toujours pas|n'approuve pas|n'approuve|n'applique|ne l'applique|n applique|ne rien appliquer|sans appliquer|sans l'appliquer|pas encore|avant validation|avant de valider)\b/
+      .test(normalized);
+  if (!/\b(oui|ok|d'accord|d accord|exactement)\b/.test(normalized)) {
+    return false;
+  }
+  if (
+    !forbidsApply &&
+    /\b(applique|appliquer|valide|valider|execute|executer|fais le|tu peux le faire|maintenant)\b/
+      .test(normalized)
+  ) {
+    return false;
+  }
+  return /\b(concretement|mission ponctuelle|petite habitude|protocole|puis|ensuite|avant de|avec|sans|copie conforme|exactement les memes|meme rythme|memes actions|jours|horaires)\b/
+    .test(normalized);
+}
+
+function preValidationConcreteRevisionRequest(message: string): boolean {
+  const normalized = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’‘`´]/g, "'");
+  const asksOnlyForConfirmation =
+    /\b(confirme(?:\s+moi)?|est\s+ce\s+que|tu\s+peux\s+me\s+dire|peux\s+tu\s+me\s+dire)\b/
+      .test(normalized);
+  const asksConcreteRewrite =
+    /\b(ajoute|ajouter|integre|integrer|corrige|corriger|modifie|modifier|change|changer|remplace|remplacer|retire|retirer)\b/
+      .test(normalized) ||
+    /\b(au brouillon|dans le brouillon|dans la proposition|dans cette version|garde .*brouillon|mets .*brouillon)\b/
+      .test(normalized);
+  if (asksOnlyForConfirmation && !asksConcreteRewrite) {
+    return false;
+  }
+  const forbidsApply =
+    /\b(ne valide pas|ne valide encore pas|ne valide toujours pas|n'approuve pas|n'approuve|n'applique|ne l'applique|n applique|ne rien appliquer|sans appliquer|sans l'appliquer|pas encore|avant validation|avant de valider)\b/
+      .test(normalized);
+  if (
+    !forbidsApply &&
+    /\b(applique|appliquer|valide|valider|execute|executer|tu peux valider|tu peux le faire|ok valide)\b/
+      .test(normalized)
+  ) {
+    return false;
+  }
+  const hasApprovalOrContinuation =
+    /\b(oui|ok|d'accord|d accord|ca me va|c est la bonne direction|bonne direction|exactement)\b/
+      .test(normalized);
+  const hasReviewOnly =
+    /\b(ne valide pas|ne valide encore pas|ne valide toujours pas|n'approuve pas|n'applique pas|ne l'applique pas|n'applique rien|pas encore|sans appliquer|sans l'appliquer|avant validation|montre moi|montre-moi|juste la version|juste une version|brouillon)\b/
+      .test(normalized);
+  const hasConcreteConstraint =
+    /\b(formulation|formule|version courte|critere|indicateur|repere secondaire|principal|lien preserve|comprehension mutuelle|complicite|plaisir simple|moments positifs|initiatives positives|axe central|changement d'axe|changer d'axe|sans baisser|ambitieux|moins mental|discussion.*apres|discussion de fond|retour au calme|reparation rapide|petit geste|compte autant|critere de sortie|passer a la suite|tension forte|pas avant|experience.*d'abord|observation.*ensuite|sans ajouter|pas de niveau pont|besoins simples|sujets sensibles|distincts?)\b/
+      .test(normalized);
+  return hasConcreteConstraint && (hasReviewOnly || hasApprovalOrContinuation);
+}
+
+function concreteRevisionImpliesWholePlan(message: string): boolean {
+  const normalized = normalizeForLooseMatch(message);
+  return /\b(trajectoire|plan global|suite du plan|avant la suite|avant les conversations|prochaine etape|mission ponctuelle|petite habitude|protocole|reordonner|reorganiser|direction|axe|cap|complicite|plaisir simple|critere de sortie|discussion de fond|retour au calme|reparation rapide|comprehension mutuelle|lien preserve)\b/
+    .test(normalized);
+}
+
+function scopeKindFromPreviousDraft(
+  previousDraft: Record<string, unknown> | null,
+): "specific_plan_item" | "current_level" | "whole_plan" | null {
+  const draft = objectValue((previousDraft as any)?.draft) ?? previousDraft;
+  const result = objectValue((draft as any)?.adjust_plan_result);
+  const rawScope = String((result as any)?.scope ?? (draft as any)?.scope ?? "")
+    .trim()
+    .toLowerCase();
+  const rawStrategy = String((draft as any)?.execution_strategy ?? "")
+    .trim()
+    .toLowerCase();
+  if (rawScope === "whole_plan" || rawStrategy === "whole_plan_adjustment") {
+    return "whole_plan";
+  }
+  if (
+    rawScope === "level" || rawScope === "current_level" ||
+    rawStrategy === "level_adjustment"
+  ) {
+    return "current_level";
+  }
+  if (
+    rawScope === "action" || rawScope === "specific_plan_item" ||
+    rawStrategy === "action_adjustment"
+  ) {
+    return "specific_plan_item";
+  }
+  return null;
+}
+
+function constraintsFromPreviousDraft(
+  previousDraft: Record<string, unknown> | null,
+): string[] {
+  if (!previousDraft) return [];
+  const draft = objectValue((previousDraft as any)?.draft) ?? previousDraft;
+  const patch = objectValue((draft as any)?.patch);
+  return stringList((patch as any)?.constraints);
+}
+
+function wholePlanFamilyFromPreviousDraft(
+  previousDraft: Record<string, unknown> | null,
+): WholePlanChangeFamily | null {
+  const constraints = constraintsFromPreviousDraft(previousDraft);
+  for (const constraint of constraints) {
+    const match = String(constraint).match(/^whole_plan_change_family:(.+)$/);
+    const family = normalizedWholePlanChangeFamily(match?.[1]?.trim());
+    if (family) return family;
+  }
+  const draft = objectValue((previousDraft as any)?.draft) ?? previousDraft;
+  return normalizedWholePlanChangeFamily(
+    (draft as any)?.whole_plan_change_family ??
+      (draft as any)?.adjust_plan_result?.whole_plan_change_family,
+  );
+}
+
+function currentWholePlanFamily(
+  state: AdjustPlanIntakeState,
+  message: string,
+): WholePlanChangeFamily | null {
+  if (
+    state.scope.kind !== "whole_plan" ||
+    state.payload?.scope_kind !== "whole_plan"
+  ) {
+    return null;
+  }
+  return state.payload.whole_plan_change_family?.value ??
+    state.coaching_guidance?.change_family ??
+    inferWholePlanFamilyFromText(message).family;
+}
+
+function seedStateForConcreteDraftRevision(input: {
+  state: AdjustPlanIntakeState;
+  previous_draft: Record<string, unknown> | null;
+  message: string;
+}): { state: AdjustPlanIntakeState; applied: boolean } {
+  if (input.state.scope.status === "identified" && input.state.scope.kind) {
+    return { state: input.state, applied: false };
+  }
+  const scopeKind = concreteRevisionImpliesWholePlan(input.message)
+    ? "whole_plan"
+    : scopeKindFromPreviousDraft(input.previous_draft);
+  if (!scopeKind) return { state: input.state, applied: false };
+  const targetValue = scopeKind === "specific_plan_item"
+    ? "single_action"
+    : scopeKind === "current_level"
+    ? "current_level"
+    : "whole_plan";
+  const payload = scopeKind === "specific_plan_item"
+    ? emptyActionPayload()
+    : scopeKind === "current_level"
+    ? emptyLevelPayload()
+    : emptyWholePlanPayload();
+  const nextState: AdjustPlanIntakeState = {
+    ...input.state,
+    target_granularity: {
+      status: "identified",
+      value: targetValue,
+      confidence: "high",
+      evidence: [
+        ...input.state.target_granularity.evidence,
+        "concrete revision of pending draft",
+      ],
+      negative_evidence: input.state.target_granularity.negative_evidence,
+    },
+    scope: {
+      status: "identified",
+      kind: scopeKind,
+      evidence: [
+        ...input.state.scope.evidence,
+        "concrete revision of pending draft",
+      ],
+      ...(scopeKind === "specific_plan_item"
+        ? { plan_item_id: undefined, label: undefined }
+        : {}),
+    } as AdjustPlanScopeSlot,
+    selected_sub_skill: scopeKind === "specific_plan_item"
+      ? "action_intake"
+      : scopeKind === "current_level"
+      ? "level_intake"
+      : "whole_plan_intake",
+    payload,
+  };
+  return { state: nextState, applied: true };
 }
 
 async function fillStateWithAiIfAvailable(input: {
@@ -1628,6 +2043,18 @@ export function runAdjustPlanDraftValidationSubSkill(input: {
   }
   if (scope === "level" && result?.boundaries?.global_plan_impact !== "none") {
     issues.push("level_draft_touches_global_plan");
+  }
+  if (scope === "whole_plan") {
+    const family = patchConstraints.find((constraint) =>
+      constraint.startsWith("whole_plan_change_family:")
+    );
+    const readiness = patchConstraints.find((constraint) =>
+      constraint.startsWith("whole_plan_readiness:")
+    );
+    if (!family) issues.push("whole_plan_change_family_missing");
+    if (readiness === "whole_plan_readiness:diagnose") {
+      issues.push("whole_plan_diagnostic_not_draft_ready");
+    }
   }
   if (!input.draft.confirmation_message?.trim()) {
     issues.push("draft_confirmation_message_missing");
@@ -1831,6 +2258,16 @@ function generatorDecisionBasis(
   const constraintValues = Array.isArray(payload?.constraints?.values)
     ? payload?.constraints?.values
     : [];
+  const normalizedConstraints = constraintValues.map((constraint) =>
+    normalizeForLooseMatch(String(constraint ?? ""))
+  );
+  const copyForwardRequested = payload?.scope_kind === "current_level" &&
+    normalizedConstraints.some((constraint) =>
+      constraint === "extend current level same plan" ||
+      constraint === "copy forward level one week" ||
+      constraint === "preserve action content" ||
+      constraint === "preserve cadence"
+    );
   const mustPreserve = constraintValues.includes(
       "preserve_plan_intent",
     )
@@ -1851,6 +2288,24 @@ function generatorDecisionBasis(
     };
   }
   if (payload?.scope_kind === "current_level") {
+    if (copyForwardRequested) {
+      return {
+        user_problem:
+          "Le user veut consolider le niveau actuel une semaine de plus sans changer le contenu.",
+        inferred_need:
+          "prolonger le meme niveau a l'identique, sans alleger, sans changer les actions et sans changer le rythme",
+        confidence: "high",
+        evidence,
+        uncertainty: [],
+        must_preserve: [
+          ...mustPreserve,
+          "actions existantes",
+          "rythme existant",
+          "reperes du niveau actuel",
+          "plan global",
+        ],
+      };
+    }
     return {
       user_problem:
         `Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.`,
@@ -2037,6 +2492,255 @@ function dedupeStrings(values: string[]): string[] {
   return next;
 }
 
+function inferWholePlanFamilyFromText(text: string): {
+  family: WholePlanChangeFamily;
+  operation: WholePlanCandidateOperation;
+  readiness: WholePlanReadiness;
+  evidence: string[];
+} {
+  const normalized = normalizeForLooseMatch(text);
+  const evidence: string[] = [];
+  const hasConcreteSolution =
+    /\b(je veux|il faudrait|pour moi ca veut dire|pour moi ca signifie|concretement|concrètement|ca veut dire|ça veut dire|ajoute|ajouter|insere|inserer|remplace|remplacer|mets|mettre|propose|proposer|reformule|reformuler|fusionne|fusionner|separe|separer|d abord|puis|ensuite|avant de|avant la suite|indicateur|critere|experience|geste concret|micro experience|prevenir|prévenir|reparer|réparer|garder un petit moment positif|sans ajouter)\b/
+      .test(normalized);
+  const rejectsBridgeStep =
+    /\b(eviter|sans|pas|pas necessaire|pas besoin|ne pas|n ajoute pas|ne l ajoute pas)\b.{0,40}\bpont\b/
+      .test(normalized) ||
+    /\bpont\b.{0,40}\b(pas necessaire|pas besoin|eviter|sans l ajouter|ne l ajoute pas)\b/
+      .test(normalized);
+  const reviewOnlyNoApply =
+    /\b(ne l applique pas encore|n applique pas encore|sans appliquer|sans l appliquer|avant validation|avant de valider|brouillon)\b/
+      .test(normalized);
+  const noAdditionRequested =
+    /\b(sans ajouter|sans ajout|ne pas ajouter|pas ajouter|n ajoute pas|ne rajoute pas|pas plus d actions|sans action supplementaire|sans actions supplementaires)\b/
+      .test(normalized);
+  const transitionCriterionSignal =
+    /\b(critere de passage|regle de passage|seuil de passage|frontiere|marche|passage aux sujets sensibles|deux fois d affilee|2 fois d affilee|deux demandes simples|2 demandes simples)\b/
+      .test(normalized);
+  if (
+    /\b(stop|annule|annuler|n applique rien|ne l applique pas|laisse tomber|ce n est pas ca|c est pas ca|hors sujet|pas ce brouillon)\b/
+      .test(normalized) && !reviewOnlyNoApply
+  ) {
+    return {
+      family: "cancel_or_reject",
+      operation: "cancel_or_revise",
+      readiness: "diagnose",
+      evidence: ["user rejects or cancels the pending whole-plan draft"],
+    };
+  }
+  if (
+    rejectsBridgeStep &&
+    /\b(separer|separation|deux niveaux|deux phases|distinct|distincts|frontiere|marche|besoins simples|sujets sensibles)\b/
+      .test(normalized)
+  ) {
+    evidence.push("split/merge structure signal with bridge rejection");
+    return {
+      family: "split_merge_restructure",
+      operation: "split_or_merge_phase",
+      readiness: "draft_ready",
+      evidence,
+    };
+  }
+  if (
+    (/\b(direction|axe|cap|trajectoire|reoriente|reorienter|reorientation|change d axe|changement d axe|axe central)\b/
+      .test(normalized) &&
+      /\b(complicite|plaisir simple|moments positifs|initiatives positives|initiatives de lien|lien positif|moins centre sur les disputes|eviter les disputes|reduire les disputes|eviter les tensions)\b/
+        .test(normalized)) ||
+    /\b(passer|passage)\b.{0,80}\b(eviter les disputes|reduire les disputes|apaisement)\b.{0,120}\b(complicite|plaisir simple|moments positifs|initiatives positives|initiatives de lien)\b/
+      .test(normalized)
+  ) {
+    evidence.push("global direction change signal");
+    return {
+      family: "direction_change",
+      operation: "change_emphasis",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(phase future|partie future|suite du plan|plus tard|reproches|attentes non dites|parler du fond|sujets sensibles)\b/
+      .test(normalized) &&
+    /\b(trop frontal|frontale|ne colle pas|pas coherent|remplace|remplacer|au lieu|reparation|reparer|retour au calme|revenir au calme|reconnaitre ce qui a aide|petite tension)\b/
+      .test(normalized)
+  ) {
+    evidence.push("future phase mismatch signal");
+    return {
+      family: "future_phase_mismatch",
+      operation: hasConcreteSolution ? "replace_phase" : "diagnostic_only",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(ajoute|ajouter|insere|inserer|niveau en plus|niveau court|nouveau niveau|etape intermediaire|phase intermediaire|pont|sas)\b/
+      .test(normalized) &&
+    !rejectsBridgeStep &&
+    !noAdditionRequested
+  ) {
+    evidence.push("missing bridge/level signal");
+    return {
+      family: "missing_bridge_or_level",
+      operation: "insert_phase",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    transitionCriterionSignal &&
+    /\b(besoins simples|sujets sensibles|deux niveaux|deux phases|distinct|distincts|separation|separer|frontiere|marche|passage)\b/
+      .test(normalized)
+  ) {
+    evidence.push("split/merge transition criterion signal");
+    return {
+      family: "split_merge_restructure",
+      operation: "split_or_merge_phase",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(critere|criteres|mesure|mesurer|reussite|succes|definition de reussite|evaluer|indicateur|indicateurs|qualite du lien|comprehension mutuelle|lien preserve|lien encore present)\b/
+      .test(normalized)
+  ) {
+    evidence.push("success criteria signal");
+    return {
+      family: "success_criteria_change",
+      operation: "change_success_criteria",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(style|methode|methodologie|trop therapeutique|trop scolaire|trop abstrait|trop strict|pas naturel|analyse d abord|moins analyse|experience concrete|micro experience|gestes concrets|partir du vecu|concret avant|discussion apres)\b/
+      .test(normalized)
+  ) {
+    evidence.push("style/method mismatch signal");
+    return {
+      family: "style_or_method_mismatch",
+      operation: "change_emphasis",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(fusionne|fusionner|fusion|separe|separer|separation|split|merge|deux niveaux|deux phases|marchent dessus|se marchent dessus|repetent la meme chose|repete la meme chose|doublon|redondant|redondance)\b/
+      .test(normalized)
+  ) {
+    evidence.push("split/merge structure signal");
+    return {
+      family: "split_merge_restructure",
+      operation: "split_or_merge_phase",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(niveau\s*\d+|niveau quatre|niveau 4|troisieme partie|3eme partie|partie du plan|phase future|plus tard)\b/
+      .test(normalized) &&
+    /\b(ne fait pas sens|pas de sens|pas coherent|coherent|me va pas|ne me parle pas|bizarre)\b/
+      .test(normalized)
+  ) {
+    evidence.push("future phase mismatch signal");
+    return {
+      family: "future_phase_mismatch",
+      operation: hasConcreteSolution ? "replace_phase" : "diagnostic_only",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(consolider|consolidation|maintenance|tenir dans le temps|stabiliser|retomber|ca ne tient pas)\b/
+      .test(normalized)
+  ) {
+    evidence.push("maintenance/consolidation signal");
+    return {
+      family: "maintenance_or_consolidation_gap",
+      operation: "maintenance_layer",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(logique de performance|performance|cocher des actions|cases a reussir|chaleur|fiabilite|fiable|presence fiable|reparer vite|moment positif)\b/
+      .test(normalized)
+  ) {
+    evidence.push("value preference conflict signal");
+    return {
+      family: "value_preference_conflict",
+      operation: "change_emphasis",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(direction|cap|objectif|axe|orientation|plus vers|moins vers|finalement je veux|je veux plutot|complicite|fun|attention|confiance)\b/
+      .test(normalized)
+  ) {
+    evidence.push("global direction signal");
+    return {
+      family: "direction_change",
+      operation: "change_emphasis",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(plus pertinent|ne me parle plus|plus trop coherent|tout le plan|plan global|trajectoire globale|reconstruire|repartir)\b/
+      .test(normalized)
+  ) {
+    evidence.push("plan relevance/coherence signal");
+    return {
+      family: "plan_no_longer_relevant",
+      operation: hasConcreteSolution ? "replace_phase" : "diagnostic_only",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  if (
+    /\b(trop vite|prochaine etape|ordre|reordonner|sequence)\b/.test(normalized)
+  ) {
+    evidence.push("sequence/order signal");
+    return {
+      family: "sequence_order_issue",
+      operation: "reorder",
+      readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+      evidence,
+    };
+  }
+  return {
+    family: "global_capacity_change",
+    operation: "pace_change",
+    readiness: hasConcreteSolution ? "draft_ready" : "diagnose",
+    evidence: ["fallback whole-plan capacity/coherence signal"],
+  };
+}
+
+function wholePlanFamilyConstraint(
+  payload: WholePlanAdjustmentPayload | null | undefined,
+  guidance: AdjustPlanCoachGuidance | null | undefined,
+): string | null {
+  const family = payload?.whole_plan_change_family?.value ??
+    guidance?.change_family ?? null;
+  return family ? `whole_plan_change_family:${family}` : null;
+}
+
+function wholePlanOperationConstraint(
+  payload: WholePlanAdjustmentPayload | null | undefined,
+  guidance: AdjustPlanCoachGuidance | null | undefined,
+): string | null {
+  const operation = payload?.candidate_operation ??
+    guidance?.candidate_operation ?? null;
+  return operation ? `whole_plan_candidate_operation:${operation}` : null;
+}
+
+function wholePlanReadinessConstraint(
+  payload: WholePlanAdjustmentPayload | null | undefined,
+  guidance: AdjustPlanCoachGuidance | null | undefined,
+): string | null {
+  const readiness = payload?.readiness ?? guidance?.readiness ?? null;
+  return readiness ? `whole_plan_readiness:${readiness}` : null;
+}
+
 function coachGuidanceConstraints(
   guidance: AdjustPlanCoachGuidance | null | undefined,
 ): string[] {
@@ -2050,6 +2754,22 @@ function coachGuidanceConstraints(
     ...guidance.preserve.map((value) => `coach_preserve:${value}`),
     ...guidance.avoid.map((value) => `coach_avoid:${value}`),
     ...guidance.guidelines.map((value) => `coach_guideline:${value}`),
+    guidance.change_family
+      ? `whole_plan_change_family:${guidance.change_family}`
+      : "",
+    guidance.candidate_operation
+      ? `whole_plan_candidate_operation:${guidance.candidate_operation}`
+      : "",
+    guidance.readiness ? `whole_plan_readiness:${guidance.readiness}` : "",
+    guidance.must_not_execute_reason
+      ? `coach_must_not_execute:${guidance.must_not_execute_reason}`
+      : "",
+    guidance.trajectory_hypothesis
+      ? `coach_trajectory_hypothesis:${guidance.trajectory_hypothesis}`
+      : "",
+    guidance.next_best_question
+      ? `coach_next_best_question:${guidance.next_best_question}`
+      : "",
   ];
   return dedupeStrings(prefixed);
 }
@@ -2095,6 +2815,13 @@ function textMentionsPlanTitle(text: string, title: string): boolean {
 function extractDeterministicLevelConstraints(text: string): string[] {
   const normalized = normalizeForLooseMatch(text);
   const constraints: string[] = [];
+  if (isCurrentLevelCopyForwardText(normalized)) {
+    constraints.push("extend_current_level_same_plan");
+    constraints.push("copy_forward_level_one_week");
+    constraints.push("preserve_action_content");
+    constraints.push("preserve_cadence");
+    constraints.push("avoid_repetitive_clarification_when_user_gives_solution");
+  }
   const frequencyMatch = normalized.match(
     /\b(\d+|un|une|deux|trois|quatre|cinq|six|sept)\s*(?:fois|jours?)\s*(?:\/|par)?\s*(?:semaine|sem)\b/,
   );
@@ -2119,6 +2846,12 @@ function extractDeterministicLevelConstraints(text: string): string[] {
   const durationMatch = normalized.match(/\b(\d{1,2})\s*minutes?\b/);
   if (durationMatch) {
     constraints.push(`duration:${durationMatch[1]} minutes`);
+    constraints.push(`duration_minutes:${durationMatch[1]}`);
+  }
+  if (/\bpause\b/.test(normalized) && /\bsans\s+technique\b/.test(normalized)) {
+    constraints.push(
+      "instruction:Pause de 2 minutes sans technique, puis noter l'état en mots simples",
+    );
   }
   if (
     /\bsans\s+(?:creneau|horaire|moment)\b/.test(normalized) ||
@@ -2134,6 +2867,28 @@ function extractDeterministicLevelConstraints(text: string): string[] {
     constraints.push("preserve:Cartographier les déclencheurs");
   }
   return constraints;
+}
+
+function isCurrentLevelCopyForwardText(normalizedText: string): boolean {
+  const text = normalizeForLooseMatch(normalizedText);
+  if (!text) return false;
+  const mentionsCurrentLevel =
+    /\b(niveau actuel|ce niveau|meme niveau|mêmes niveau|niveau)\b/.test(text);
+  const mentionsSameWeekOrContent =
+    /\b(meme semaine|memes semaines|refaire la meme|refaire pareil|meme contenu|memes actions?|meme actions?|copie conforme|a l identique|identique)\b/
+      .test(text);
+  const mentionsExtension =
+    /\b(semaine de plus|une semaine de plus|prolonge|prolonger|prolongation|garder|maintenir|consolider|copie conforme|refaire|rejouer)\b/
+      .test(text);
+  const asksSame =
+    /\b(copie conforme|a l identique|identique|exactement pareil|exactement les memes|exactement le meme|meme semaine|meme contenu|meme actions?|memes actions?|meme rythme|memes reperes|meme jours?|memes jours?|meme horaires?|memes horaires?)\b/
+      .test(text);
+  const forbidsChange =
+    /\b(sans changer|ne change pas|ne touche pas|sans modifier|pas alleger|pas allege|ni le rythme|ni les actions?|sans augmenter)\b/
+      .test(text);
+  return (mentionsCurrentLevel || mentionsSameWeekOrContent) &&
+    mentionsExtension &&
+    (asksSame || forbidsChange);
 }
 
 function messageRestrictsToMentionedItemsOnly(text: string): boolean {
@@ -2252,6 +3007,7 @@ function completeCurrentLevelStateFromTranscript(input: {
     affected_items: { ...payload.affected_items },
   };
   const evidence: string[] = [];
+  const copyForwardRequested = isCurrentLevelCopyForwardText(normalized);
 
   if (
     affectedValues.length >= 2 ||
@@ -2277,6 +3033,79 @@ function completeCurrentLevelStateFromTranscript(input: {
       ]),
     };
     evidence.push("constraints");
+  }
+  if (copyForwardRequested) {
+    const allEditableTitles = allowed.editable_items
+      .map((item) => item.title)
+      .filter(Boolean);
+    if (allEditableTitles.length) {
+      nextPayload.affected_items = {
+        status: "identified",
+        values: dedupeStrings([
+          ...stringList(nextPayload.affected_items.values),
+          ...allEditableTitles,
+        ]),
+        evidence: dedupeStrings([
+          ...stringList(nextPayload.affected_items.evidence),
+          "deterministic copy-forward level anchors",
+        ]),
+      };
+      evidence.push("affected_items");
+    }
+    nextPayload.adjustment_type = {
+      status: "identified",
+      value: "rebalance",
+      evidence: dedupeStrings([
+        ...stringList(nextPayload.adjustment_type.evidence),
+        "deterministic copy-forward level request",
+      ]),
+    };
+    nextPayload.reason = {
+      status: "identified",
+      value: "context_changed",
+      evidence: dedupeStrings([
+        ...stringList(nextPayload.reason.evidence),
+        "user wants one more identical consolidation week",
+      ]),
+    };
+    nextPayload.reason_change = {
+      status: "identified",
+      value: "time_or_capacity_changed",
+      evidence: dedupeStrings([
+        ...stringList(nextPayload.reason_change.evidence),
+        "level needs one more week before next step",
+      ]),
+    };
+    nextPayload.change_target = {
+      status: "identified",
+      value: "timing",
+      evidence: dedupeStrings([
+        ...stringList(nextPayload.change_target.evidence),
+        "extend current level without changing actions or cadence",
+      ]),
+    };
+    nextPayload.constraints = {
+      status: "identified",
+      values: dedupeStrings([
+        ...stringList(nextPayload.constraints.values),
+        "extend_current_level_same_plan",
+        "copy_forward_level_one_week",
+        "preserve_action_content",
+        "preserve_cadence",
+        "avoid_repetitive_clarification_when_user_gives_solution",
+      ]),
+      evidence: dedupeStrings([
+        ...stringList(nextPayload.constraints.evidence),
+        "deterministic copy-forward level request",
+      ]),
+    };
+    evidence.push(
+      "adjustment_type",
+      "reason",
+      "reason_change",
+      "change_target",
+      "constraints",
+    );
   }
   if (
     nextPayload.adjustment_type.status === "missing" &&
@@ -2339,6 +3168,104 @@ function completeCurrentLevelStateFromTranscript(input: {
     : { state: input.state, applied: false, evidence: [] };
 }
 
+function routeSingleItemLevelReplacementToAction(input: {
+  state: AdjustPlanIntakeState;
+  message: string;
+  recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
+  plan_snapshot?: unknown;
+}): { state: AdjustPlanIntakeState; applied: boolean; evidence: string[] } {
+  const payload = input.state.payload;
+  if (
+    input.state.scope.kind !== "current_level" ||
+    payload?.scope_kind !== "current_level"
+  ) {
+    return { state: input.state, applied: false, evidence: [] };
+  }
+
+  const text = transcriptUserText(input);
+  const latest = input.message;
+  const normalized = normalizeForLooseMatch(latest || text);
+  if (
+    !/\b(remplace|remplacer|changer|change|modifie|modifier)\b/.test(
+      normalized,
+    ) ||
+    !/\b(action|habitude|format|forme)\b/.test(normalized)
+  ) {
+    return { state: input.state, applied: false, evidence: [] };
+  }
+
+  const allowed = buildAllowedAdjustmentSet({
+    plan_snapshot: input.plan_snapshot,
+    scope_kind: "current_level",
+    signals: extractAdjustSignalsFromState(input.state),
+  });
+  const affectedValues = stringList(payload.affected_items.values);
+  const matchedItems = allowed.editable_items.filter((item) =>
+    affectedValues.some((affected) =>
+      textMentionsPlanTitle(item.title, affected)
+    ) || textMentionsPlanTitle(latest, item.title)
+  );
+  const matched = matchedItems.length === 1 ? matchedItems[0] : null;
+  if (!matched) {
+    return { state: input.state, applied: false, evidence: [] };
+  }
+
+  const constraints = dedupeStrings([
+    ...stringList(payload.constraints.values),
+    ...extractDeterministicLevelConstraints(latest || text),
+    "strict_affected_items_only",
+    "user_explicit_replace_request",
+    `affected_item:${matched.title}`,
+  ]);
+  const nextState: AdjustPlanIntakeState = {
+    ...input.state,
+    target_granularity: {
+      status: "identified",
+      value: "single_action",
+      confidence: "high",
+      evidence: dedupeStrings([
+        ...input.state.target_granularity.evidence,
+        "single affected item replacement request",
+      ]),
+      negative_evidence: input.state.target_granularity.negative_evidence,
+    },
+    scope: {
+      status: "identified",
+      kind: "specific_plan_item",
+      plan_item_id: matched.plan_item_id,
+      label: matched.title,
+      evidence: dedupeStrings([
+        ...input.state.scope.evidence,
+        "single affected item replacement request",
+      ]),
+    },
+    selected_sub_skill: "action_intake",
+    payload: {
+      ...emptyActionPayload(),
+      adjustment_type: {
+        status: "identified",
+        value: "replace",
+        evidence: ["deterministic single action replacement signal"],
+      },
+      reason: {
+        status: "identified",
+        value: "bad_fit",
+        evidence: ["deterministic action bad-fit signal"],
+      },
+      constraints: {
+        status: "identified",
+        values: constraints,
+        evidence: ["deterministic replacement constraints"],
+      },
+    },
+  };
+  return {
+    state: nextState,
+    applied: true,
+    evidence: ["single_item_level_replacement_routed_to_action"],
+  };
+}
+
 function completeWholePlanStateFromTranscript(input: {
   state: AdjustPlanIntakeState;
   message: string;
@@ -2357,12 +3284,40 @@ function completeWholePlanStateFromTranscript(input: {
   if (!normalized) return { state: input.state, applied: false, evidence: [] };
 
   const asksForDraft =
-    /\b(brouillon|proposition|propose|prepare|preparer|montre|fais moi|faire le brouillon)\b/
+    /\b(brouillon|proposition|propose|prepare|preparer|montre|fais moi|faire le brouillon|formule|formuler|formulation)\b/
       .test(normalized);
   const structuralSignal =
-    /\b(trajectoire|suite du plan|plan global|objectif global|etape|phase|partie|reorganis|reordon|ralent|transition|coherent|avant de|apres)\b/
+    /\b(trajectoire|suite du plan|plan global|objectif global|direction|axe|cap|etape|phase|partie|niveau|niveaux|reorganis|reordon|ralent|transition|coherent|avant de|avant la suite|avant les|apres|critere|criteres|reussite|succes|indicateur|methode|style|experience|vecu|fusion|fusionner|separer|separation|doublon|redondance)\b/
       .test(normalized);
-  if (!asksForDraft && !structuralSignal) {
+  const concreteTrajectoryProposal =
+    /\b(mission|habitude|protocole|phrase|formulation|20\s*minutes|vingt\s*minutes|respiration|pause|revenir|reparation|reparer|securite emotionnelle|retour au calme|retour au contact|revenir au contact|relancer le lien|critere|indicateur|comprehension mutuelle|lien preserve|experience|geste concret|petit geste|micro experience|petits sujets|sujets sensibles|argent|famille|intimite)\b/
+      .test(normalized) &&
+    /\b(ajouter|inserer|etape|phase|niveau|avant|apres|puis|ensuite|d'abord|intermediaire|reformuler|reformule|separer|fusionner|rendre|partir)\b/
+      .test(normalized);
+  const rejectsBridgeStep =
+    /\b(eviter|sans|pas|pas necessaire|pas besoin|ne pas|n ajoute pas|ne l ajoute pas)\b.{0,40}\bpont\b/
+      .test(normalized) ||
+    /\bpont\b.{0,40}\b(pas necessaire|pas besoin|eviter|sans l ajouter|ne l ajoute pas)\b/
+      .test(normalized);
+  const familyInference = inferWholePlanFamilyFromText(text);
+  const repairReconnectionStepSignal =
+    /\b(reconnaitre|nommer|acter|dire|dire brievement)\b.{0,90}\b(tension|dispute|ce qui s est passe|accroc|emporte|maladresse)\b/
+      .test(normalized) &&
+    /\b(retour au contact|revenir au contact|relancer le lien|relancer un moment de lien|geste de retour|petit geste|se remettre ensemble)\b/
+      .test(normalized);
+  const familyIsConcreteWholePlan =
+    familyInference.family === "missing_bridge_or_level" ||
+    familyInference.family === "direction_change" ||
+    familyInference.family === "success_criteria_change" ||
+    familyInference.family === "style_or_method_mismatch" ||
+    familyInference.family === "value_preference_conflict" ||
+    familyInference.family === "future_phase_mismatch" ||
+    familyInference.family === "maintenance_or_consolidation_gap" ||
+    familyInference.family === "split_merge_restructure";
+  if (
+    !asksForDraft && !structuralSignal && !concreteTrajectoryProposal &&
+    !familyIsConcreteWholePlan
+  ) {
     return { state: input.state, applied: false, evidence: [] };
   }
 
@@ -2373,15 +3328,26 @@ function completeWholePlanStateFromTranscript(input: {
     textMentionsPlanTitle(text, title)
   );
   const affectedValues = dedupeStrings([
-    ...stringList(payload.affected_items.values),
     ...mentionedTitles,
-    ...(asksForDraft && structuralSignal && mentionedTitles.length < 2
+    ...stringList(payload.affected_items.values),
+    ...(((asksForDraft && structuralSignal) || concreteTrajectoryProposal) &&
+        mentionedTitles.length < 2
+      ? planTitles.slice(0, 2)
+      : []),
+    ...(familyIsConcreteWholePlan &&
+        mentionedTitles.length < 2 &&
+        stringList(payload.affected_items.values).length < 2
       ? planTitles.slice(0, 2)
       : []),
   ]).slice(0, 6);
 
   const nextPayload: WholePlanAdjustmentPayload = {
     ...payload,
+    whole_plan_change_family: payload.whole_plan_change_family
+      ? { ...payload.whole_plan_change_family }
+      : { status: "missing", evidence: [] },
+    candidate_operation: payload.candidate_operation ?? null,
+    readiness: payload.readiness ?? null,
     adjustment_type: { ...payload.adjustment_type },
     reason: { ...payload.reason },
     reason_change: { ...payload.reason_change },
@@ -2391,18 +3357,58 @@ function completeWholePlanStateFromTranscript(input: {
   };
   const evidence: string[] = [];
 
-  if (nextPayload.adjustment_type.status === "missing" && structuralSignal) {
+  const existingFamily = nextPayload.whole_plan_change_family?.status ===
+      "identified"
+    ? nextPayload.whole_plan_change_family.value
+    : null;
+  const wholePlanFamilyChangedInTranscript = Boolean(
+    existingFamily && existingFamily !== familyInference.family &&
+      familyInference.family !== "cancel_or_reject",
+  );
+  if (
+    nextPayload.whole_plan_change_family?.status !== "identified" ||
+    wholePlanFamilyChangedInTranscript
+  ) {
+    nextPayload.whole_plan_change_family = {
+      status: "identified",
+      value: familyInference.family,
+      evidence: familyInference.evidence,
+    };
+    evidence.push("whole_plan_change_family");
+  }
+  if (!nextPayload.candidate_operation || wholePlanFamilyChangedInTranscript) {
+    nextPayload.candidate_operation = familyInference.operation;
+    evidence.push("candidate_operation");
+  }
+  const shouldUpgradeWholePlanReadiness = familyIsConcreteWholePlan &&
+    familyInference.readiness === "draft_ready" &&
+    nextPayload.readiness !== "draft_ready";
+  if (
+    !nextPayload.readiness || wholePlanFamilyChangedInTranscript ||
+    shouldUpgradeWholePlanReadiness
+  ) {
+    nextPayload.readiness = familyInference.readiness;
+    evidence.push("readiness");
+  }
+
+  if (
+    nextPayload.adjustment_type.status === "missing" &&
+    (structuralSignal || concreteTrajectoryProposal ||
+      familyIsConcreteWholePlan)
+  ) {
     nextPayload.adjustment_type = {
       status: "identified",
       value: "resequence",
-      evidence: ["deterministic whole-plan structural sequence signal"],
+      evidence: ["deterministic whole-plan structural/family signal"],
     };
     evidence.push("adjustment_type");
   }
   if (
     nextPayload.reason.status === "missing" &&
-    /\b(trop rapide|complex|sensible|coherent|coherence|transition|pas pret|pas prete)\b/
-      .test(normalized)
+    (concreteTrajectoryProposal ||
+      familyIsConcreteWholePlan ||
+      /\b(trop rapide|complex|sensible|coherent|coherence|transition|pas pret|pas prete)\b/
+        .test(normalized))
   ) {
     nextPayload.reason = {
       status: "identified",
@@ -2411,19 +3417,33 @@ function completeWholePlanStateFromTranscript(input: {
     };
     evidence.push("reason");
   }
-  if (nextPayload.reason_change.status === "missing" && structuralSignal) {
+  if (
+    nextPayload.reason_change.status === "missing" &&
+    (structuralSignal || concreteTrajectoryProposal ||
+      familyIsConcreteWholePlan)
+  ) {
     nextPayload.reason_change = {
       status: "identified",
-      value: "structure_bad_fit",
-      evidence: ["deterministic whole-plan structural mismatch signal"],
+      value: familyInference.family === "success_criteria_change"
+        ? "goal_changed"
+        : "structure_bad_fit",
+      evidence: ["deterministic whole-plan family mismatch signal"],
     };
     evidence.push("reason_change");
   }
-  if (nextPayload.change_target.status === "missing" && structuralSignal) {
+  if (
+    nextPayload.change_target.status === "missing" &&
+    (structuralSignal || concreteTrajectoryProposal ||
+      familyIsConcreteWholePlan)
+  ) {
     nextPayload.change_target = {
       status: "identified",
-      value: "sequence",
-      evidence: ["deterministic whole-plan resequencing target"],
+      value: familyInference.family === "success_criteria_change" ||
+          familyInference.family === "style_or_method_mismatch" ||
+          familyInference.family === "value_preference_conflict"
+        ? "focus"
+        : "sequence",
+      evidence: ["deterministic whole-plan family target"],
     };
     evidence.push("change_target");
   }
@@ -2438,17 +3458,65 @@ function completeWholePlanStateFromTranscript(input: {
     };
     evidence.push("affected_items");
   }
-  if (asksForDraft && structuralSignal) {
+  if (
+    familyInference.family !== "cancel_or_reject" &&
+    ((asksForDraft && structuralSignal) || concreteTrajectoryProposal ||
+      familyIsConcreteWholePlan)
+  ) {
+    const baseConstraints = shouldUpgradeWholePlanReadiness
+      ? stringList(payload.constraints.values).filter((constraint) =>
+        !String(constraint).startsWith("whole_plan_readiness:")
+      )
+      : stringList(payload.constraints.values);
     nextPayload.constraints = {
       status: "identified",
       values: dedupeStrings([
-        ...stringList(payload.constraints.values),
+        ...baseConstraints,
+        `whole_plan_change_family:${
+          nextPayload.whole_plan_change_family?.value ?? familyInference.family
+        }`,
+        `whole_plan_candidate_operation:${
+          nextPayload.candidate_operation ?? familyInference.operation
+        }`,
+        `whole_plan_readiness:${
+          nextPayload.readiness ?? familyInference.readiness
+        }`,
         "whole_plan_directional_draft_ready",
         "preserve_plan_intent",
+        ...(concreteTrajectoryProposal
+          ? ["avoid_repetitive_clarification_when_user_gives_solution"]
+          : []),
+        ...(familyInference.family === "split_merge_restructure" &&
+            /\b(deux fois d affilee|2 fois d affilee|deux demandes simples|2 demandes simples)\b/
+              .test(normalized)
+          ? [
+            "split_merge_transition_criterion:two_consecutive_simple_requests_without_high_tension",
+          ]
+          : []),
+        ...(familyInference.family === "split_merge_restructure" &&
+            rejectsBridgeStep
+          ? ["split_merge_no_bridge_step"]
+          : []),
+        ...(familyInference.family === "direction_change" &&
+            /\b(complicite|plaisir simple|moments positifs|initiatives positives|initiatives de lien|lien positif)\b/
+              .test(normalized)
+          ? ["direction_axis:complicity_and_simple_pleasure"]
+          : []),
+        ...(familyInference.family === "future_phase_mismatch" &&
+            /\b(reparation|reparer|retour au calme|revenir au calme|reconnaitre ce qui a aide|ce qui a aide|petite tension)\b/
+              .test(normalized)
+          ? ["replace_phase_kind:light_repair_after_tension"]
+          : []),
+        ...(familyInference.family === "missing_bridge_or_level" &&
+            repairReconnectionStepSignal
+          ? ["insert_phase_kind:repair_reconnection_after_tension"]
+          : []),
       ]),
       evidence: dedupeStrings([
         ...stringList(payload.constraints.evidence),
-        "deterministic whole-plan draft readiness",
+        concreteTrajectoryProposal
+          ? "deterministic whole-plan concrete trajectory proposal"
+          : "deterministic whole-plan draft readiness",
       ]),
     };
     evidence.push("constraints");
@@ -2463,20 +3531,304 @@ function completeWholePlanStateFromTranscript(input: {
     : { state: input.state, applied: false, evidence: [] };
 }
 
+function dedupeCandidatesById<T extends { id: string }>(candidates: T[]): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const candidate of candidates) {
+    if (seen.has(candidate.id)) continue;
+    seen.add(candidate.id);
+    out.push(candidate);
+  }
+  return out;
+}
+
 function deterministicWholePlanDirectionalDraft(
   input: PlanAdjustmentGeneratorInput,
 ): PlanAdjustmentDraftV1 | null {
+  if (input.scope.kind !== "whole_plan") return null;
+  const hasWholePlanFamily = input.constraints.some((constraint) =>
+    String(constraint).startsWith("whole_plan_change_family:")
+  );
+  const isDiagnoseOnly = input.constraints.includes(
+    "whole_plan_readiness:diagnose",
+  );
   if (
-    input.scope.kind !== "whole_plan" ||
-    !input.constraints.includes("whole_plan_directional_draft_ready")
+    isDiagnoseOnly ||
+    (!hasWholePlanFamily &&
+      !input.constraints.includes("whole_plan_directional_draft_ready"))
   ) return null;
-  const candidates = (input.materialization_candidates ?? [])
+  const eligibleCandidates = (input.materialization_candidates ?? [])
     .filter((candidate) =>
       String(candidate.clarification_type ?? "").trim() !== "clarification" &&
       String(candidate.dimension ?? "").trim() !== "clarifications"
-    )
-    .slice(0, 3);
+    );
+  const affectedLabels = input.constraints
+    .flatMap((constraint) => {
+      const match = String(constraint).match(/^affected_item:(.+)$/);
+      return match?.[1]?.trim() ? [match[1].trim()] : [];
+    });
+  const affectedCandidates = affectedLabels.flatMap((label) => {
+    const normalizedLabel = normalizeForLooseMatch(label);
+    const match = eligibleCandidates.find((candidate) => {
+      const title = String(candidate.title ?? "");
+      const normalizedTitle = normalizeForLooseMatch(title);
+      return normalizedTitle === normalizedLabel ||
+        normalizedTitle.includes(normalizedLabel) ||
+        normalizedLabel.includes(normalizedTitle);
+    });
+    return match ? [match] : [];
+  });
+  const candidates = dedupeCandidatesById(
+    affectedCandidates.length >= 2 ? affectedCandidates : eligibleCandidates,
+  ).slice(0, 3);
   if (candidates.length < 2) return null;
+  const constraintValue = (prefix: string): string | null => {
+    const found = input.constraints.find((constraint) =>
+      String(constraint).startsWith(prefix)
+    );
+    return found ? String(found).slice(prefix.length).trim() || null : null;
+  };
+  const family = constraintValue("whole_plan_change_family:") ??
+    "sequence_order_issue";
+  const candidateOperation =
+    constraintValue("whole_plan_candidate_operation:") ??
+      "reorder";
+  const hasTwoConsecutiveTransitionCriterion = input.constraints.includes(
+    "split_merge_transition_criterion:two_consecutive_simple_requests_without_high_tension",
+  );
+  const avoidsBridgeStep = input.constraints.includes(
+    "split_merge_no_bridge_step",
+  );
+  const hasComplicityAxis = input.constraints.includes(
+    "direction_axis:complicity_and_simple_pleasure",
+  );
+  const insertsShortConsolidationLevel = input.constraints.includes(
+    "insert_phase_kind:short_consolidation_level",
+  );
+  const insertsRepairReconnectionStep = input.constraints.includes(
+    "insert_phase_kind:repair_reconnection_after_tension",
+  );
+  const insertsBeforeSensitiveTopics = input.constraints.includes(
+    "insert_phase_position:before_sensitive_topics",
+  );
+  const insertPhaseActions = input.constraints
+    .flatMap((constraint) => {
+      if (constraint === "insert_phase_action:observer_ce_qui_apaise") {
+        return ["observer ce qui apaise"];
+      }
+      if (constraint === "insert_phase_action:demande_simple_sans_debat") {
+        return ["faire une demande simple sans débat"];
+      }
+      return [];
+    });
+  const insertedActionLabel = insertPhaseActions.length
+    ? `, avec ${insertPhaseActions.join(" et ")}`
+    : "";
+  const insertedPositionLabel = insertsBeforeSensitiveTopics
+    ? " avant les sujets sensibles"
+    : " avant de monter d'un cran";
+  const replacesWithLightRepair = input.constraints.includes(
+    "replace_phase_kind:light_repair_after_tension",
+  );
+  const focusTitles = candidates.slice(0, 2).map((candidate) =>
+    String(candidate.title ?? "").trim()
+  ).filter(Boolean);
+  const focusLabel = focusTitles.length >= 2
+    ? `${focusTitles[0]} et ${focusTitles[1]}`
+    : "les deux appuis principaux du plan";
+  const familyCopy = (() => {
+    if (family === "missing_bridge_or_level") {
+      if (insertsRepairReconnectionStep) {
+        return {
+          changeVerb: "j'insère une étape courte de réparation après tension",
+          inserted:
+            "Une étape explicite en deux temps: reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+          before:
+            "La suite du plan pouvait passer trop vite de la tension à l'analyse, sans sécuriser le retour au lien.",
+          after:
+            "Le plan ajoute un passage court après dispute: reconnaître ce qui s'est passé, puis revenir au contact avant d'analyser le fond.",
+          reason:
+            "Le user demande une étape concrète de réparation relationnelle, pas un niveau abstrait ni une analyse supplémentaire.",
+          nextStep:
+            "Reprendre ensuite la progression quand le contact est restauré",
+        };
+      }
+      if (insertsShortConsolidationLevel) {
+        return {
+          changeVerb: "j'insère un niveau court de consolidation",
+          inserted:
+            `Un sas d'une semaine${insertedPositionLabel}${insertedActionLabel}.`,
+          before:
+            "Le plan passait trop vite vers une phase plus sensible sans vérifier la stabilité sur des demandes simples.",
+          after:
+            `Le plan ajoute un niveau court de consolidation${insertedPositionLabel}, puis reprend la progression quand les bases tiennent.`,
+          reason:
+            "Le user demande d'ajouter un niveau de consolidation pour rendre la progression plus réaliste avant les sujets sensibles.",
+          nextStep:
+            "Reprendre ensuite les sujets sensibles avec une stabilité minimale déjà vérifiée",
+        };
+      }
+      return {
+        changeVerb: "j'insère un niveau intermédiaire",
+        inserted:
+          "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+        before: "Le plan passait trop directement d'un bloc au suivant.",
+        after:
+          "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+        reason:
+          "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+        nextStep:
+          "Reprendre ensuite la progression avec un prérequis consolidé",
+      };
+    }
+    if (family === "direction_change") {
+      return {
+        changeVerb: "je réoriente l'accent du plan",
+        inserted: hasComplicityAxis
+          ? "Un axe directeur plus centré sur la complicité, le plaisir simple et les initiatives positives de lien."
+          : `Un axe directeur plus aligné avec ${focusLabel}.`,
+        before:
+          "Le plan suivait son axe initial, mais cet axe ne correspond plus assez à la direction voulue.",
+        after: hasComplicityAxis
+          ? "Le plan garde l'apaisement comme base, mais la suite ne vise plus seulement à éviter les disputes: elle ajoute clairement un axe de complicité et de plaisir simple."
+          : `Le plan garde ce qui reste utile, mais la suite est réorientée autour de ${focusLabel}.`,
+        reason:
+          "Le user demande un changement d'axe global, pas seulement un allègement.",
+        nextStep: "Construire les prochains blocs autour du nouvel axe",
+      };
+    }
+    if (family === "value_preference_conflict") {
+      return {
+        changeVerb: "je réoriente l'esprit du plan",
+        inserted:
+          "Une lecture moins performative des actions existantes: elles servent la chaleur, la fiabilité et la réparation rapide, sans ajouter de nouvelles actions.",
+        before:
+          "Le plan pouvait être vécu comme une suite de cases à cocher ou d'actions à réussir.",
+        after:
+          "Le plan garde les mêmes appuis, mais leur rôle devient plus clair: soutenir la présence fiable, les petits moments positifs et la réparation après maladresse.",
+        reason:
+          "Le user demande de changer le sens et les critères implicites du plan, sans augmenter la charge.",
+        nextStep:
+          "Relire les prochains blocs avec cette boussole de chaleur et de fiabilité",
+      };
+    }
+    if (family === "future_phase_mismatch") {
+      return {
+        changeVerb: "je reprends la phase future qui ne colle pas",
+        inserted: replacesWithLightRepair
+          ? "Une phase de réparation légère après petite tension: revenir au calme, reconnaître ce qui a aidé, puis parler du fond seulement ensuite."
+          : `Une version retravaillée de la phase concernée, appuyée sur ${focusLabel}.`,
+        before:
+          "Une phase future arrivait avec une logique qui ne paraît pas assez cohérente.",
+        after: replacesWithLightRepair
+          ? "La phase future garde son objectif de clarté, mais son entrée devient plus progressive: réparation légère avant discussion de fond."
+          : `La phase future est retravaillée pour s'appuyer d'abord sur ${focusLabel}.`,
+        reason:
+          "Le user signale qu'une partie future ne fait pas sens dans la trajectoire.",
+        nextStep:
+          "Remplacer la phase future par une progression plus cohérente",
+      };
+    }
+    if (family === "success_criteria_change") {
+      return {
+        changeVerb: "je change les critères de réussite du plan",
+        inserted:
+          "Une mesure de réussite centrée sur la compréhension mutuelle et le lien préservé après une discussion tendue; moins de disputes reste seulement un repère secondaire.",
+        before:
+          "Le plan mesurait surtout la baisse de l'escalade et l'exécution des actions.",
+        after:
+          "Le plan garde l'apaisement comme base, mais le critère principal devient la compréhension mutuelle et le lien préservé après une discussion tendue.",
+        reason:
+          "Le user demande de changer ce qui compte comme progrès, pas de réordonner les actions.",
+        nextStep:
+          "Utiliser ces critères comme repères pour les prochains niveaux",
+      };
+    }
+    if (family === "style_or_method_mismatch") {
+      return {
+        changeVerb: "je change la méthode de progression du plan",
+        inserted:
+          "Un principe de progression: petite expérience concrète, observation de ce que ça produit, puis discussion seulement si ça ouvre quelque chose.",
+        before:
+          "Le plan entrait trop vite par l'analyse, le cadrage ou la discussion.",
+        after:
+          "Le plan garde son objectif, mais chaque niveau part davantage du vécu concret avant de passer à l'analyse ou à la discussion.",
+        reason:
+          "Le user veut une méthode plus incarnée et moins analytique, sans baisser le niveau ni changer l'objectif.",
+        nextStep:
+          "Reformuler les prochains niveaux autour de l'expérience puis de l'observation",
+      };
+    }
+    if (family === "split_merge_restructure") {
+      return {
+        changeVerb: "je clarifie la séparation entre deux étapes du plan",
+        inserted: hasTwoConsecutiveTransitionCriterion
+          ? "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles: on passe aux sujets sensibles seulement après deux demandes simples d'affilée sans tension forte."
+          : avoidsBridgeStep
+          ? "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles, sans ajouter d'étape pont."
+          : "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+        before:
+          "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+        after: hasTwoConsecutiveTransitionCriterion
+          ? "Le plan garde deux étapes distinctes, et leur frontière devient observable: deux demandes simples d'affilée sans tension forte avant d'ouvrir les sujets sensibles."
+          : avoidsBridgeStep
+          ? "Le plan garde deux étapes distinctes et renforce leur frontière sans créer de niveau ou d'étape pont supplémentaire."
+          : "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        reason:
+          "Le user demande une structure plus lisible entre deux phases futures proches.",
+        nextStep:
+          "Garder une marche claire avant d'aborder les sujets sensibles",
+      };
+    }
+    if (family === "maintenance_or_consolidation_gap") {
+      return {
+        changeVerb: "j'ajoute une couche de consolidation",
+        inserted: `Une phase de stabilisation autour de ${focusLabel}.`,
+        before:
+          "Le plan avançait vers la suite sans assez sécuriser ce qui doit tenir dans le temps.",
+        after:
+          `Le plan ajoute une phase de consolidation autour de ${focusLabel} avant d'augmenter la difficulté.`,
+        reason: "Le user a besoin que les acquis tiennent avant de poursuivre.",
+        nextStep: "Stabiliser les acquis avant la prochaine montée",
+      };
+    }
+    return {
+      changeVerb: candidateOperation === "insert_phase"
+        ? "j'insère une étape intermédiaire"
+        : "je réordonne la trajectoire",
+      inserted: `Une étape intermédiaire centrée sur ${focusLabel}.`,
+      before:
+        "Le plan avance vers la suite sans assez marquer le prérequis intermédiaire.",
+      after:
+        `Le plan garde son cap, mais consolide d'abord ${focusLabel} avant la suite.`,
+      reason:
+        "Le user demande de rendre la trajectoire globale plus progressive et cohérente.",
+      nextStep:
+        "Reprendre ensuite la suite du plan avec un prérequis consolidé",
+    };
+  })();
+  const afterFor = (title: string) => {
+    const normalized = normalizeForLooseMatch(title);
+    if (family === "success_criteria_change") {
+      return "À conserver dans le plan, mais à évaluer avec un critère plus relationnel: compréhension mutuelle et lien préservé après l'échange.";
+    }
+    if (family === "style_or_method_mismatch") {
+      return "À reformuler dans une logique plus concrète: vivre une petite expérience, observer, puis discuter seulement si ça ouvre quelque chose.";
+    }
+    if (family === "split_merge_restructure") {
+      return "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.";
+    }
+    if (family === "value_preference_conflict") {
+      return "À conserver, mais à lire comme un appui de chaleur, de fiabilité et de réparation, pas comme une case à réussir.";
+    }
+    if (/\bsignal\b/.test(normalized)) {
+      return `À placer dans la trajectoire ajustée: ${familyCopy.inserted}`;
+    }
+    if (/\brespiration|pause\b/.test(normalized)) {
+      return `À garder comme appui concret dans la trajectoire ajustée: ${familyCopy.inserted}`;
+    }
+    return `À replacer dans une trajectoire plus progressive: ${familyCopy.inserted}`;
+  };
   const changedItems = candidates.slice(0, 2).map((candidate) => ({
     kind:
       (String(candidate.kind ?? candidate.item_type ?? "").includes("habit")
@@ -2486,12 +3838,13 @@ function deterministicWholePlanDirectionalDraft(
     id: candidate.id,
     title: candidate.title,
     before: candidate.description ?? candidate.cadence_label ?? null,
-    after:
-      "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
-    reason:
-      "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+    after: afterFor(String(candidate.title ?? "")),
+    reason: familyCopy.reason,
   }));
-  const preserved = candidates.slice(2).map((candidate) => ({
+  const changedIds = new Set(changedItems.map((item) => item.id));
+  const preserved = eligibleCandidates.filter((candidate) =>
+    !changedIds.has(candidate.id)
+  ).slice(0, 2).map((candidate) => ({
     kind:
       (String(candidate.kind ?? candidate.item_type ?? "").includes("habit")
         ? "habit"
@@ -2501,8 +3854,46 @@ function deterministicWholePlanDirectionalDraft(
     reason:
       "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression.",
   }));
-  const summary =
-    "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.";
+  const summary = `${familyCopy.changeVerb}: ${familyCopy.inserted}`;
+  const insertedInline = familyCopy.inserted
+    ? `${familyCopy.inserted.charAt(0).toLowerCase()}${
+      familyCopy.inserted.slice(1)
+    }`
+    : familyCopy.inserted;
+  const executionDetail = familyCopy.after.endsWith(".")
+    ? familyCopy.after
+    : `${familyCopy.after}.`;
+  const maxTwoActions = input.constraints.some((constraint) =>
+    normalizeForLooseMatch(constraint) === "max two actions next step"
+  );
+  const confirmationMessage = [
+    "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.",
+    "",
+    `Ce qui changerait: ${familyCopy.changeVerb}, avec ${insertedInline}`,
+    "",
+    ...(maxTwoActions
+      ? [
+        "Contrainte ajoutée: la prochaine étape reste limitée à deux actions maximum.",
+        "",
+      ]
+      : []),
+    family === "success_criteria_change"
+      ? "Ce qui reste stable: l'objectif global, les actions actuelles et le signal de pause. On change surtout la façon de reconnaître le progrès."
+      : family === "style_or_method_mismatch"
+      ? "Ce qui reste stable: l'objectif global, l'ambition et la charge du plan. On change surtout la méthode d'entrée dans chaque étape."
+      : family === "split_merge_restructure"
+      ? "Ce qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette."
+      : family === "value_preference_conflict"
+      ? "Ce qui reste stable: l'objectif global du plan et les actions existantes. On change surtout leur intention: moins de performance, plus de chaleur et de fiabilité."
+      : "Ce qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.",
+    "",
+    "Ce que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
+  ].join("\n");
+  const executionMessage = [
+    "C'est fait: j'ai ajusté la trajectoire du plan.",
+    "",
+    executionDetail,
+  ].join("\n");
   return {
     operation_type: "adjust_plan_item",
     output_schema: "plan_adjustment_draft_v1",
@@ -2512,8 +3903,7 @@ function deterministicWholePlanDirectionalDraft(
       adjustment_type: input.adjustment_type,
       execution_strategy: "whole_plan_adjustment",
       proposed_change: summary,
-      why_it_helps:
-        "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+      why_it_helps: familyCopy.reason,
       confidence: "medium",
       decision_basis: input.decision_basis ?? {
         user_problem:
@@ -2530,22 +3920,18 @@ function deterministicWholePlanDirectionalDraft(
       change_rationale: {
         why_this_change:
           "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
-        expected_mechanism:
-          "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles.",
-        success_condition:
-          "Le prochain plan garde le même objectif mais avance plus progressivement.",
+        expected_mechanism: familyCopy.reason,
+        success_condition: familyCopy.after,
       },
       ack_summary: {
         changed: [
-          "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles.",
+          familyCopy.inserted,
         ],
         unchanged: [
           "Objectif global du plan",
-          "Rôle du signal de pause",
-          "Actions de soutien existantes sauf réordonnancement nécessaire",
+          "Actions de soutien existantes sauf changement explicitement validé",
         ],
-        why_it_helps:
-          "La progression devient plus cohérente avec le rythme de sécurité du user.",
+        why_it_helps: familyCopy.reason,
         confidence: "medium",
         follow_up_needed:
           "Valider avant régénération; le détail exact sera produit dans le plan ajusté.",
@@ -2554,6 +3940,18 @@ function deterministicWholePlanDirectionalDraft(
         scope: "whole_plan",
         applied_change: {
           summary,
+          trajectory_change: {
+            before: familyCopy.before,
+            after: familyCopy.after,
+            inserted_step: familyCopy.inserted,
+            reordered_steps: [
+              familyCopy.inserted,
+              familyCopy.nextStep,
+            ],
+            preserved_direction:
+              "L'objectif global du plan reste stable, sauf demande explicite de le changer.",
+            coaching_reason: familyCopy.reason,
+          },
           changed_items: changedItems,
           preserved_items: preserved,
         },
@@ -2569,12 +3967,10 @@ function deterministicWholePlanDirectionalDraft(
             "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
         },
         rationale: {
-          user_problem:
-            "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
-          why_this_change:
-            "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante.",
+          user_problem: familyCopy.before,
+          why_this_change: familyCopy.reason,
           expected_effect:
-            "Le plan avance sans surcharger le user ni casser l'objectif global.",
+            "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
           confidence: "medium",
           missing_info: [],
         },
@@ -2590,10 +3986,326 @@ function deterministicWholePlanDirectionalDraft(
       },
       allowed_patch_fields: input.allowed_patch_fields,
     },
-    confirmation_message:
-      "Je peux te proposer d'ajuster le plan global en gardant le même objectif, mais en insérant une étape intermédiaire avant les conversations plus sensibles. Cette étape consoliderait le signal de pause et une réparation simple après conflit. Rien n'est appliqué tant que tu ne valides pas.",
-    execution_message:
-      "C'est fait: j'ai ajusté la trajectoire du plan pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+    confirmation_message: confirmationMessage,
+    execution_message: executionMessage,
+    confirmation_actions: ["yes", "no"],
+  };
+}
+
+function deterministicCurrentLevelLoadDraft(
+  input: PlanAdjustmentGeneratorInput,
+): PlanAdjustmentDraftV1 | null {
+  if (input.scope.kind !== "current_level") return null;
+  if (isCopyForwardLevelGeneratorInput(input)) return null;
+  const evidenceText = [
+    ...(input.decision_basis?.evidence ?? []),
+    ...input.constraints,
+  ].join("\n");
+  const eligibleCandidates = (input.materialization_candidates ?? [])
+    .filter((candidate) =>
+      String(candidate.clarification_type ?? "").trim() !== "clarification" &&
+      String(candidate.dimension ?? "").trim() !== "clarifications" &&
+      !/\bfiche support\b/i.test(String(candidate.title ?? ""))
+    );
+  const mentionedCandidates = eligibleCandidates.filter((candidate) =>
+    textMentionsPlanTitle(evidenceText, String(candidate.title ?? ""))
+  );
+  const candidates =
+    (mentionedCandidates.length >= 2 ? mentionedCandidates : eligibleCandidates)
+      .slice(0, 4);
+  if (candidates.length < 2) return null;
+  const afterFor = (title: string) => {
+    const normalized = normalizeForLooseMatch(title);
+    if (/\bsignal\b/.test(normalized)) {
+      return "Terminer seulement la version simple du signal de pause cette semaine.";
+    }
+    if (/\bpoint positif|positif\b/.test(normalized)) {
+      return "1 fois en début de semaine, avec une phrase très courte.";
+    }
+    if (/\brespiration|pause\b/.test(normalized)) {
+      return "1 pause courte de 2 minutes, sans chercher à faire parfait.";
+    }
+    return "Garder l'action, mais en version minimale cette semaine.";
+  };
+  const changedItems = candidates.slice(0, 3).map((candidate) => ({
+    kind:
+      (String(candidate.kind ?? candidate.item_type ?? "").includes("habit")
+        ? "habit"
+        : "action") as "action" | "habit",
+    capability: "modify_existing_action" as const,
+    id: candidate.id,
+    title: candidate.title,
+    before: candidate.description ?? candidate.cadence_label ?? null,
+    after: afterFor(String(candidate.title ?? "")),
+    reason:
+      "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+  }));
+  const summary =
+    "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.";
+  const confirmationMessage = [
+    "Je te propose une version allégée du niveau actuel, sans refaire le plan global.",
+    "",
+    ...changedItems.map((item) => `- ${item.title}: ${item.after}`),
+    "",
+    "Ce qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas.",
+  ].join("\n");
+  const executionMessage = [
+    "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.",
+    "",
+    ...changedItems.map((item) => `- ${item.title}: ${item.after}`),
+  ].join("\n");
+  return {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    draft: {
+      title: "Alléger le niveau actuel",
+      scope_label: "niveau actuel",
+      adjustment_type: input.adjustment_type,
+      execution_strategy: "level_adjustment",
+      proposed_change: summary,
+      why_it_helps:
+        "Cela réduit la charge immédiate sans changer l'objectif de fond.",
+      confidence: "medium",
+      decision_basis: input.decision_basis ?? {
+        user_problem:
+          "Le niveau actuel est trop lourd pour l'énergie disponible.",
+        inferred_need: "Réduire la charge tout en gardant les mêmes repères.",
+        confidence: "medium",
+        evidence: input.reason.evidence,
+        uncertainty: [],
+        must_preserve: ["objectif du niveau actuel", "plan global"],
+      },
+      change_rationale: {
+        why_this_change:
+          "La difficulté porte sur la charge du niveau actuel, pas sur une action isolée ni sur tout le plan.",
+        expected_mechanism:
+          "Des versions plus petites diminuent le coût d'entrée et rendent la semaine plus tenable.",
+        success_condition:
+          "Le user peut tenir les appuis principaux sans se cramer en fin de semaine.",
+      },
+      ack_summary: {
+        changed: changedItems.map((item) => item.title),
+        unchanged: ["Plan global", "objectif du niveau actuel"],
+        why_it_helps: "La charge baisse sans casser la direction du plan.",
+        confidence: "medium",
+        follow_up_needed: null,
+      },
+      adjust_plan_result: {
+        scope: "level",
+        applied_change: {
+          summary,
+          changed_items: changedItems,
+          preserved_items: candidates.slice(3).map((candidate) => ({
+            kind: (String(candidate.kind ?? candidate.item_type ?? "").includes(
+                "habit",
+              )
+              ? "habit"
+              : "action") as "action" | "habit",
+            id: candidate.id,
+            title: candidate.title,
+            reason:
+              "Cet élément reste stable; l'ajustement vise surtout la charge des appuis principaux.",
+          })),
+        },
+        boundaries: {
+          affected_scope: "niveau actuel",
+          explicitly_not_affected: ["plan global", "objectif de fond"],
+          global_plan_impact: "none",
+          explanation:
+            "Le changement baisse la charge du niveau actuel sans réorienter la trajectoire globale.",
+        },
+        rationale: {
+          user_problem:
+            "La semaine est partielle et le niveau actuel demande trop d'énergie.",
+          why_this_change:
+            "Alléger les appuis principaux répond au blocage sans refaire tout le plan.",
+          expected_effect:
+            "La semaine suivante devient plus concrète et plus tenable.",
+          confidence: "medium",
+          missing_info: [],
+        },
+        user_message_brief: summary,
+        user_message_detailed: summary,
+      },
+      patch: {
+        scope_kind: "current_level",
+        reason_type: input.reason.type,
+        reason_change: input.reason_change?.type ?? "energy_low",
+        change_target: input.change_target?.value ?? "global_load",
+        constraints: input.constraints,
+      },
+      allowed_patch_fields: input.allowed_patch_fields,
+    },
+    confirmation_message: confirmationMessage,
+    execution_message: executionMessage,
+    confirmation_actions: ["yes", "no"],
+  };
+}
+
+function isCopyForwardLevelGeneratorInput(
+  input: PlanAdjustmentGeneratorInput,
+): boolean {
+  if (input.scope.kind !== "current_level") return false;
+  const constraints = input.constraints.map((constraint) =>
+    normalizeForLooseMatch(constraint)
+  );
+  return constraints.some((constraint) =>
+    constraint === "extend current level same plan" ||
+    constraint === "copy forward level one week" ||
+    constraint === "preserve cadence"
+  );
+}
+
+function deterministicCurrentLevelCopyForwardDraft(
+  input: PlanAdjustmentGeneratorInput,
+): PlanAdjustmentDraftV1 | null {
+  if (!isCopyForwardLevelGeneratorInput(input)) return null;
+  const eligibleCandidates = (input.materialization_candidates ?? [])
+    .filter((candidate) =>
+      String(candidate.clarification_type ?? "").trim() !== "clarification" &&
+      String(candidate.dimension ?? "").trim() !== "clarifications" &&
+      !/\bfiche support\b/i.test(String(candidate.title ?? ""))
+    )
+    .slice(0, 4);
+  if (eligibleCandidates.length === 0) return null;
+
+  const unchangedLineFor = (candidate: any) => {
+    const cadence = String(candidate.cadence_label ?? "").trim();
+    const description = String(candidate.description ?? "").trim();
+    return cadence
+      ? `Inchangé: ${cadence}. Le niveau est seulement prolongé d'une semaine.`
+      : description
+      ? `Inchangé: ${description}`
+      : "Inchangé: même consigne, même rythme, une semaine de plus.";
+  };
+  const changedItems = eligibleCandidates.map((candidate) => ({
+    kind:
+      (String(candidate.kind ?? candidate.item_type ?? "").includes("habit")
+        ? "habit"
+        : "action") as "action" | "habit",
+    capability: "modify_existing_action" as const,
+    id: candidate.id,
+    title: candidate.title,
+    before: candidate.description ?? candidate.cadence_label ?? null,
+    after: unchangedLineFor(candidate),
+    reason:
+      "Le user veut consolider le niveau actuel une semaine de plus sans modifier les actions ni le rythme.",
+  }));
+  const summary =
+    "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global.";
+  const confirmationMessage = [
+    "Je te propose de prolonger le niveau actuel d'une semaine à l'identique.",
+    "",
+    "Ce qui change: uniquement la durée du niveau. Tu gardes les mêmes actions, le même rythme et les mêmes repères.",
+    "",
+    ...changedItems.map((item) => `- ${item.title}: inchangé.`),
+    "",
+    "Rien n'est appliqué tant que tu ne valides pas.",
+  ].join("\n");
+  const executionMessage = [
+    "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique.",
+    "",
+    "Les actions, le rythme et les repères restent inchangés. Le plan global n'est pas refait.",
+  ].join("\n");
+  return {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    draft: {
+      title: "Prolonger le niveau actuel",
+      scope_label: "niveau actuel",
+      adjustment_type: input.adjustment_type,
+      execution_strategy: "level_adjustment",
+      proposed_change: summary,
+      why_it_helps:
+        "Cela laisse une semaine de consolidation avant la suite sans ajouter de charge ni changer le cadre.",
+      confidence: "high",
+      decision_basis: input.decision_basis ?? {
+        user_problem:
+          "Le user veut consolider le niveau actuel avant de passer à la suite.",
+        inferred_need:
+          "Garder le même cadre une semaine de plus, sans allègement ni hausse de rythme.",
+        confidence: "high",
+        evidence: input.reason.evidence,
+        uncertainty: [],
+        must_preserve: [
+          "actions existantes",
+          "rythme existant",
+          "objectif du niveau",
+          "plan global",
+        ],
+      },
+      change_rationale: {
+        why_this_change:
+          "La demande porte sur le temps de consolidation, pas sur le contenu des actions.",
+        expected_mechanism:
+          "Une semaine identique donne plus de répétition sans changer la difficulté.",
+        success_condition:
+          "Le user garde les mêmes actions et le même rythme pendant une semaine supplémentaire.",
+      },
+      ack_summary: {
+        changed: ["Durée du niveau actuel"],
+        unchanged: [
+          "Actions du niveau",
+          "Rythme",
+          "Repères",
+          "Plan global",
+        ],
+        why_it_helps:
+          "Le niveau est consolidé sans déplacer la trajectoire ni modifier la charge.",
+        confidence: "high",
+        follow_up_needed: null,
+      },
+      adjust_plan_result: {
+        scope: "level",
+        applied_change: {
+          summary,
+          changed_items: changedItems,
+          preserved_items: eligibleCandidates.map((candidate) => ({
+            kind: (String(candidate.kind ?? candidate.item_type ?? "").includes(
+                "habit",
+              )
+              ? "habit"
+              : "action") as "action" | "habit",
+            id: candidate.id,
+            title: candidate.title,
+            reason: "Action conservée à l'identique.",
+          })),
+        },
+        boundaries: {
+          affected_scope: "niveau actuel",
+          explicitly_not_affected: [
+            "actions",
+            "rythme",
+            "objectif global",
+            "plan global",
+          ],
+          global_plan_impact: "none",
+          explanation:
+            "Le changement prolonge le niveau actuel sans modifier son contenu.",
+        },
+        rationale: {
+          user_problem:
+            "Le user veut consolider avant de passer au niveau suivant.",
+          why_this_change:
+            "Prolonger à l'identique répond à la demande sans créer d'allègement non demandé.",
+          expected_effect: "Le user garde le même cadre une semaine de plus.",
+          confidence: "high",
+          missing_info: [],
+        },
+        user_message_brief: summary,
+        user_message_detailed: summary,
+      },
+      patch: {
+        scope_kind: "current_level",
+        reason_type: input.reason.type,
+        reason_change: input.reason_change?.type ?? "time_or_capacity_changed",
+        change_target: input.change_target?.value ?? "timing",
+        constraints: input.constraints,
+      },
+      allowed_patch_fields: input.allowed_patch_fields,
+    },
+    confirmation_message: confirmationMessage,
+    execution_message: executionMessage,
     confirmation_actions: ["yes", "no"],
   };
 }
@@ -2794,44 +4506,57 @@ export async function runAdjustPlanItemIntake(input: {
   });
   baseState = initialTemporalScopeCorrection.state;
 
-  // ----------------------------------------------------------------------
-  // Deterministic confirmation shortcut.
-  //
-  // When a previous draft is pending and the dispatcher's TurnFrame has
-  // classified the user's reply as a clear "yes" or "no", we MUST NOT
-  // re-enter the AI slot filler. The slot filler is unreliable at
-  // recognising a confirmation that is mixed with a paraphrase of the
-  // already-shown draft (real-world example: "Oui, applique cette version:
-  // point positif a 2j/sem, phrase neutre..."). Trusting the structured
-  // confirmation_response.kind from the dispatcher gives us a hard
-  // guarantee that the operation runtime will move from pending_confirmation
-  // to executed/cancelled without looping back to clarification.
-  //
-  // We only shortcut on "yes"/"no". A "correction_to_pending" still goes
-  // through the slot filler so the draft can be regenerated. An "unknown"
-  // or "topic_change" also stays in the existing flow so the AI can
-  // decide whether to keep or drop the pending draft.
-  //
-  // Defensive guard: even when the dispatcher's kind is "yes" or "no", we
-  // refuse the shortcut when the user message clearly contains a question
-  // (a "?" or an explain-marker like "tu peux me dire", "explique-moi",
-  // "concrètement"). Production dispatchers occasionally misclassify a
-  // pre-confirmation detail request as "yes" because the message contains
-  // the lemma "oui"; the lexical guard preserves the existing
-  // "show details before committing" UX without weakening the trust we
-  // place in the structured signal in normal cases.
-  // ----------------------------------------------------------------------
   const previousDraftValue = objectValue(
     (input.operation_input as any)?.previous_draft,
   );
-  const confirmationResponseKind = String(
-    (input.operation_input as any)?.confirmation_response_kind ?? "",
-  ).trim();
-  const userMessageLower = String(input.message ?? "").toLowerCase();
-  const userMessageContainsQuestion = /\?/.test(userMessageLower);
-  const userMessageContainsExplainMarker =
-    /\b(explique[- ]?moi|tu peux me dire|peux[- ]?tu me dire|peux[- ]?tu m'expliquer|c'est quoi|comment ça|qu'est[- ]?ce que|concretement|concr[eè]tement|montre[- ]?moi|d[eé]taille[- ]?moi)\b/
-      .test(userMessageLower);
+  const explicitNoApplyRevision = Boolean(previousDraftValue) &&
+    isStrongDraftRejectionOrCancel(input.message) &&
+    userRequestsDraftRewriteWithoutApply(input.message);
+  if (
+    previousDraftValue && isStrongDraftRejectionOrCancel(input.message) &&
+    !explicitNoApplyRevision
+  ) {
+    const rejectDecision = draftReviewRejectDecision(
+      "user_cancelled_or_rejected_pending_adjust_plan_draft",
+    );
+    const trace = [
+      ...subSkillTraceForState(baseState, missingSlots(baseState)),
+      {
+        sub_skill_id: "draft_validation" as const,
+        status: "ready" as const,
+        reason_code: "user_cancelled_or_rejected_pending_draft",
+        missing_slots: [],
+      },
+    ];
+    return {
+      operation_type: "adjust_plan_item",
+      status: "draft_review_decision",
+      source,
+      phase: "confirmation",
+      state_patch: {
+        summary:
+          "Adjust_plan draft validation cancelled the pending draft from an explicit user rejection.",
+        phase: "confirmation",
+        missing_slots: [],
+        turn_count_increment: 1,
+        intake_state: baseState,
+        sub_skill_trace: trace,
+        operation_input: operationInputFromIntakeState(
+          baseState,
+          input.operation_input,
+        ),
+        draft_review_decision: rejectDecision,
+        tool_skill_state: toolSkillState({
+          status: "cancelled",
+          state: baseState,
+          missing: [],
+          trace,
+          summary:
+            "Adjust_plan pending draft was cancelled by explicit user rejection.",
+        }),
+      },
+    };
+  }
   const userMessageAsksPreValidationDetail = isPreValidationDetailRequest(
     input.message,
   );
@@ -2840,62 +4565,20 @@ export async function runAdjustPlanItemIntake(input: {
       previousDraftValue,
       input.message,
     );
+  const approvalAddsConcreteConstraint = Boolean(previousDraftValue) &&
+    approvalAddsConcreteConstraintWithoutApply(input.message);
+  const preValidationConcreteRevision = Boolean(previousDraftValue) &&
+    preValidationConcreteRevisionRequest(input.message);
   if (
-    previousDraftValue &&
-    (confirmationResponseKind === "yes" || confirmationResponseKind === "no") &&
-    !userMessageContainsQuestion &&
-    !userMessageContainsExplainMarker &&
-    !userMessageAsksPreValidationDetail &&
-    !approvalContainsNewRestriction
+    approvalAddsConcreteConstraint || explicitNoApplyRevision ||
+    preValidationConcreteRevision
   ) {
-    const decision: "approve" | "reject" = confirmationResponseKind === "yes"
-      ? "approve"
-      : "reject";
-    const draftReviewDecision: NonNullable<
-      AdjustPlanItemOperationOutput["state_patch"]["draft_review_decision"]
-    > = {
-      decision,
-      confidence: "high",
-      evidence: [`confirmation_response.kind=${confirmationResponseKind}`],
-      apply_after_revision: false,
-    };
-    const shortcutTrace: AdjustPlanSubSkillTrace[] = [{
-      sub_skill_id: "draft_validation",
-      status: "ready_for_confirmation",
-      reason_code: `deterministic_${decision}_shortcut`,
-      missing_slots: [],
-    }];
-    const shortcutOperationInput = {
-      ...(input.operation_input ?? {}),
-      intake_state: baseState,
-      draft_review_decision_source: "deterministic_confirmation_response_kind",
-    } as Record<string, unknown>;
-    return {
-      operation_type: "adjust_plan_item",
-      status: "draft_review_decision",
-      source,
-      phase: "confirmation",
-      state_patch: {
-        summary:
-          `Adjust_plan deterministic ${decision} shortcut from confirmation_response.kind.`,
-        phase: "confirmation",
-        missing_slots: [],
-        turn_count_increment: 1,
-        intake_state: baseState,
-        sub_skill_trace: shortcutTrace,
-        operation_input: shortcutOperationInput,
-        draft_review_decision: draftReviewDecision,
-        tool_skill_state: toolSkillState({
-          status: "awaiting_user_confirmation",
-          state: baseState,
-          missing: [],
-          trace: shortcutTrace,
-          summary: `Adjust_plan ${
-            decision === "approve" ? "approved" : "rejected"
-          } the pending draft via deterministic shortcut.`,
-        }),
-      },
-    };
+    const seededRevision = seedStateForConcreteDraftRevision({
+      state: baseState,
+      previous_draft: previousDraftValue,
+      message: input.message,
+    });
+    baseState = seededRevision.state;
   }
 
   const filled = await fillStateWithAiIfAvailable({
@@ -2920,9 +4603,15 @@ export async function runAdjustPlanItemIntake(input: {
     recent_messages: input.recent_messages,
     plan_snapshot: input.plan_snapshot,
   });
+  const singleItemLevelReplacement = routeSingleItemLevelReplacementToAction({
+    state: deterministicLevelCompletion.state,
+    message: input.message,
+    recent_messages: input.recent_messages,
+    plan_snapshot: input.plan_snapshot,
+  });
   const deterministicWholePlanCompletion = completeWholePlanStateFromTranscript(
     {
-      state: deterministicLevelCompletion.state,
+      state: singleItemLevelReplacement.state,
       message: input.message,
       recent_messages: input.recent_messages,
       plan_snapshot: input.plan_snapshot,
@@ -2941,31 +4630,79 @@ export async function runAdjustPlanItemIntake(input: {
     operation_input: input.operation_input,
   });
   state = coachEnrichment.state;
+  if (
+    state.payload?.scope_kind === "whole_plan" &&
+    state.payload.affected_items.status !== "identified" &&
+    state.coaching_guidance?.readiness === "draft_ready" &&
+    !state.coaching_guidance.next_best_question &&
+    !state.coaching_guidance.must_not_execute_reason
+  ) {
+    const anchorTitles = planItems(input.plan_snapshot)
+      .map((item) => item.title)
+      .filter(Boolean)
+      .slice(0, 2);
+    if (anchorTitles.length >= 2) {
+      state = {
+        ...state,
+        payload: {
+          ...state.payload,
+          affected_items: {
+            status: "identified",
+            values: anchorTitles,
+            evidence: dedupeStrings([
+              ...stringList(state.payload.affected_items.evidence),
+              "specialized coach draft_ready whole-plan trajectory anchors",
+            ]),
+          },
+        },
+      };
+    }
+  }
   const deterministicDraftRevision = previousDraftValue &&
-      ((!filled.draft_review_decision &&
-        confirmationResponseKind === "correction_to_pending" &&
-        isExplicitDraftRevisionRequest(input.message)) ||
-        approvalContainsNewRestriction)
+      (explicitNoApplyRevision ||
+        ((!filled.draft_review_decision && approvalContainsNewRestriction) ||
+          approvalAddsConcreteConstraint || preValidationConcreteRevision))
     ? {
       decision: "revise" as const,
       confidence: "high" as const,
       evidence: [
-        ...(approvalContainsNewRestriction
-          ? ["latest_user_restricted_affected_items"]
-          : [
-            "confirmation_response.kind=correction_to_pending",
-            "explicit_draft_revision_request",
-          ]),
+        explicitNoApplyRevision
+          ? "explicit_no_apply_revision_requires_new_draft"
+          : preValidationConcreteRevision
+          ? "pre_validation_concrete_constraint_requires_revision"
+          : approvalAddsConcreteConstraint
+          ? "approval_with_new_concrete_constraint_requires_revision"
+          : "latest_user_restricted_affected_items",
       ],
-      apply_after_revision: approvalContainsNewRestriction,
+      apply_after_revision: approvalContainsNewRestriction &&
+        !approvalAddsConcreteConstraint && !explicitNoApplyRevision,
     }
     : undefined;
-  const rawDraftReviewDecision = approvalContainsNewRestriction
-    ? deterministicDraftRevision
-    : filled.draft_review_decision ?? deterministicDraftRevision;
+  const rawDraftReviewDecision =
+    explicitNoApplyRevision || approvalContainsNewRestriction ||
+      approvalAddsConcreteConstraint || preValidationConcreteRevision
+      ? deterministicDraftRevision
+      : filled.draft_review_decision ?? deterministicDraftRevision;
+  const previousWholePlanFamily = wholePlanFamilyFromPreviousDraft(
+    previousDraftValue,
+  );
+  const latestWholePlanFamily = currentWholePlanFamily(
+    state,
+    transcriptUserText({
+      message: input.message,
+      recent_messages: input.recent_messages,
+    }),
+  );
+  const wholePlanFamilyChanged = Boolean(
+    previousWholePlanFamily &&
+      latestWholePlanFamily &&
+      previousWholePlanFamily !== latestWholePlanFamily,
+  );
   const preValidationDetailRequest = previousDraftValue &&
     isPreValidationDetailRequest(input.message);
-  const draftReviewDecision = preValidationDetailRequest &&
+  const preValidationQuestionOnlyRequest = previousDraftValue &&
+    isPreValidationQuestionOnlyRequest(input.message);
+  const draftReviewDecision = preValidationQuestionOnlyRequest &&
       rawDraftReviewDecision?.decision === "approve"
     ? {
       ...rawDraftReviewDecision,
@@ -2977,6 +4714,21 @@ export async function runAdjustPlanItemIntake(input: {
       ],
       apply_after_revision: false,
     }
+    : preValidationQuestionOnlyRequest &&
+        rawDraftReviewDecision?.decision === "revise" &&
+        !explicitNoApplyRevision &&
+        !approvalAddsConcreteConstraint &&
+        !preValidationConcreteRevision
+    ? {
+      ...rawDraftReviewDecision,
+      decision: "explain" as const,
+      confidence: "high" as const,
+      evidence: [
+        ...rawDraftReviewDecision.evidence,
+        "pre_validation_detail_request_answers_without_revision",
+      ],
+      apply_after_revision: false,
+    }
     : preValidationDetailRequest &&
         rawDraftReviewDecision?.decision === "revise" &&
         rawDraftReviewDecision.apply_after_revision === true
@@ -2985,6 +4737,17 @@ export async function runAdjustPlanItemIntake(input: {
       evidence: [
         ...rawDraftReviewDecision.evidence,
         "pre_validation_detail_request_blocks_apply_after_revision",
+      ],
+      apply_after_revision: false,
+    }
+    : wholePlanFamilyChanged && rawDraftReviewDecision?.decision === "approve"
+    ? {
+      ...rawDraftReviewDecision,
+      decision: "revise" as const,
+      confidence: "high" as const,
+      evidence: [
+        ...rawDraftReviewDecision.evidence,
+        `whole_plan_family_changed:${previousWholePlanFamily}->${latestWholePlanFamily}`,
       ],
       apply_after_revision: false,
     }
@@ -3022,6 +4785,14 @@ export async function runAdjustPlanItemIntake(input: {
         ),
       }]
       : []),
+    ...(singleItemLevelReplacement.applied
+      ? [{
+        sub_skill_id: "scope_router" as const,
+        status: "ready" as const,
+        reason_code: "single_item_level_replacement_routes_to_action",
+        missing_slots: [],
+      }]
+      : []),
     ...(deterministicWholePlanCompletion.applied
       ? [{
         sub_skill_id: "whole_plan_intake" as const,
@@ -3039,6 +4810,7 @@ export async function runAdjustPlanItemIntake(input: {
     ...deterministicTrace,
   ];
   if (
+    previousDraftValue &&
     draftReviewDecision &&
     draftReviewDecision.decision !== "revise"
   ) {
@@ -3324,6 +5096,17 @@ export async function runAdjustPlanItemIntake(input: {
       input.plan_snapshot,
     )
     : rawAffectedItemValues;
+  const inferredWholePlanFamily = payload.scope_kind === "whole_plan"
+    ? inferWholePlanFamilyFromText(
+      transcriptUserText({
+        message: input.message,
+        recent_messages: input.recent_messages,
+      }),
+    )
+    : null;
+  const wholePlanPayload = payload.scope_kind === "whole_plan"
+    ? payload as WholePlanAdjustmentPayload
+    : null;
   const generatorConstraints = [
     "ask_confirmation_before_write",
     ...sanitizeGeneratorConstraints(
@@ -3340,7 +5123,37 @@ export async function runAdjustPlanItemIntake(input: {
         }),
       )
       : []),
+    ...(payload.scope_kind === "whole_plan"
+      ? wholePlanDetailConstraintsForRequest(
+        transcriptUserText({
+          message: input.message,
+          recent_messages: input.recent_messages,
+        }),
+      )
+      : []),
     ...coachGuidanceConstraints(state.coaching_guidance),
+    ...(payload.scope_kind === "whole_plan"
+      ? dedupeStrings([
+        wholePlanFamilyConstraint(wholePlanPayload, state.coaching_guidance) ??
+          (inferredWholePlanFamily
+            ? `whole_plan_change_family:${inferredWholePlanFamily.family}`
+            : ""),
+        wholePlanOperationConstraint(
+          wholePlanPayload,
+          state.coaching_guidance,
+        ) ??
+          (inferredWholePlanFamily
+            ? `whole_plan_candidate_operation:${inferredWholePlanFamily.operation}`
+            : ""),
+        wholePlanReadinessConstraint(
+          wholePlanPayload,
+          state.coaching_guidance,
+        ) ??
+          (inferredWholePlanFamily
+            ? `whole_plan_readiness:${inferredWholePlanFamily.readiness}`
+            : ""),
+      ])
+      : []),
     ...(payload.scope_kind !== "specific_plan_item"
       ? affectedItemValues.map((item) => `affected_item:${item}`)
       : []),
@@ -3404,69 +5217,80 @@ export async function runAdjustPlanItemIntake(input: {
   };
   let draft: PlanAdjustmentDraftV1;
   const generatorInput = buildPlanAdjustmentPayload(request);
-  try {
-    draft = await runPlanAdjustmentGenerator(
-      generatorInput,
-      {
-        adjust_plan_result_writer: input.adjust_plan_result_writer,
-        request_id: input.trigger_message_id,
-        user_id: input.user_id,
-      },
-    );
-  } catch (error) {
-    if (!isPlanAdjustmentDraftContractError(error)) throw error;
-    const reasonCode = error instanceof Error
-      ? error.message
-      : "adjust_plan_result_contract_error";
-    const deterministicDraft = deterministicWholePlanDirectionalDraft(
+  const deterministicImmediateDraft = deterministicWholePlanDirectionalDraft(
+    generatorInput,
+  ) ??
+    deterministicCurrentLevelCopyForwardDraft(
       generatorInput,
     );
-    if (deterministicDraft) {
-      draft = deterministicDraft;
-    } else {
-      const question = await nextQuestionForToolSkill({
-        state,
-        plan_snapshot: input.plan_snapshot,
-        operation_input: operationInput,
-        missing_slots: ["draft_generation_retry_needed"],
-        question_writer: input.question_writer,
-        force_ai_slot_filling: input.force_ai_slot_filling,
-        user_id: input.user_id,
-        request_id: input.trigger_message_id,
-        message: input.message,
-        recent_messages: input.recent_messages,
-        reason_code: reasonCode,
-      });
-      return {
-        operation_type: "adjust_plan_item",
-        status: "ask_question",
-        source,
-        phase: "generation",
-        next_question: {
-          needed: true,
-          question,
-          reason: reasonCode,
+  if (deterministicImmediateDraft) {
+    draft = deterministicImmediateDraft;
+  } else {
+    try {
+      draft = await runPlanAdjustmentGenerator(
+        generatorInput,
+        {
+          adjust_plan_result_writer: input.adjust_plan_result_writer,
+          request_id: input.trigger_message_id,
+          user_id: input.user_id,
         },
-        state_patch: {
-          summary:
-            "Plan adjustment draft generation stayed inside the skill after a contract validation failure.",
-          phase: "generation",
-          missing_slots: ["draft_generation_retry_needed"],
-          turn_count_increment: 1,
-          intake_state: state,
-          sub_skill_trace: intakeTrace,
-          draft_review_decision: draftReviewDecision,
+      );
+    } catch (error) {
+      if (!isPlanAdjustmentDraftContractError(error)) throw error;
+      const reasonCode = error instanceof Error
+        ? error.message
+        : "adjust_plan_result_contract_error";
+      const deterministicDraft = deterministicWholePlanDirectionalDraft(
+        generatorInput,
+      ) ?? deterministicCurrentLevelCopyForwardDraft(generatorInput) ??
+        deterministicCurrentLevelLoadDraft(generatorInput);
+      if (deterministicDraft) {
+        draft = deterministicDraft;
+      } else {
+        const question = await nextQuestionForToolSkill({
+          state,
+          plan_snapshot: input.plan_snapshot,
           operation_input: operationInput,
-          tool_skill_state: toolSkillState({
-            status: "collecting",
-            state,
-            missing: ["draft_generation_retry_needed"],
-            trace: intakeTrace,
+          missing_slots: ["draft_generation_retry_needed"],
+          question_writer: input.question_writer,
+          force_ai_slot_filling: input.force_ai_slot_filling,
+          user_id: input.user_id,
+          request_id: input.trigger_message_id,
+          message: input.message,
+          recent_messages: input.recent_messages,
+          reason_code: reasonCode,
+        });
+        return {
+          operation_type: "adjust_plan_item",
+          status: "ask_question",
+          source,
+          phase: "generation",
+          next_question: {
+            needed: true,
+            question,
+            reason: reasonCode,
+          },
+          state_patch: {
             summary:
-              "Adjust_plan draft generation needs a cleaner retry before confirmation.",
-          }),
-        },
-      };
+              "Plan adjustment draft generation stayed inside the skill after a contract validation failure.",
+            phase: "generation",
+            missing_slots: ["draft_generation_retry_needed"],
+            turn_count_increment: 1,
+            intake_state: state,
+            sub_skill_trace: intakeTrace,
+            draft_review_decision: draftReviewDecision,
+            operation_input: operationInput,
+            tool_skill_state: toolSkillState({
+              status: "collecting",
+              state,
+              missing: ["draft_generation_retry_needed"],
+              trace: intakeTrace,
+              summary:
+                "Adjust_plan draft generation needs a cleaner retry before confirmation.",
+            }),
+          },
+        };
+      }
     }
   }
   const draftValidation = runAdjustPlanDraftValidationSubSkill({ draft });

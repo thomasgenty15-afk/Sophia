@@ -32,6 +32,14 @@ export type AdjustPlanResultV1 = {
   scope: "action" | "level" | "whole_plan";
   applied_change: {
     summary: string;
+    trajectory_change?: {
+      before: string;
+      after: string;
+      inserted_step?: string | null;
+      reordered_steps?: string[];
+      preserved_direction: string;
+      coaching_reason: string;
+    } | null;
     changed_items: Array<{
       kind: "action" | "habit" | "level_setting" | "plan_setting";
       capability?: LevelAdjustmentCapability | null;
@@ -301,6 +309,29 @@ function parseJsonObject(raw: unknown): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
+function hasUserFacingTechnicalLeak(value: string): boolean {
+  const normalized = value.toLowerCase();
+  return [
+    /\b[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\b/i,
+    /\b(?:id|uuid|plan_item_id|operation_id|payload|scope_kind|current_level|whole_plan|changed_items|preserved_items)\b/i,
+    /\b(?:reason_change|change_target|global_load|level_setting|plan_setting|materialization_candidates)\b/i,
+    /\b(?:confidence|execution_strategy|patch|enum|json|database|db)\b/i,
+    /\(\s*id\s*:/i,
+    /\bid\s*:/i,
+  ].some((pattern) => pattern.test(value)) ||
+    normalized.includes("source_kind=") ||
+    normalized.includes("status=active");
+}
+
+function assertNoUserFacingTechnicalLeak(args: {
+  field: string;
+  value: string;
+}): void {
+  if (hasUserFacingTechnicalLeak(args.value)) {
+    throw new Error(`${args.field}_technical_leak`);
+  }
+}
+
 function stringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.map((item) => String(item ?? "").trim()).filter(Boolean)
@@ -536,8 +567,13 @@ function allowsSingleLevelChangedItem(
 
 function exactDurationMinutes(constraints: string[] = []): number | null {
   for (const constraint of constraints) {
-    if (!constraint.startsWith("duration_minutes:")) continue;
-    const value = Number(constraint.slice("duration_minutes:".length));
+    const normalized = constraint.startsWith("duration_minutes:")
+      ? constraint.slice("duration_minutes:".length)
+      : constraint.startsWith("duration:")
+      ? constraint.slice("duration:".length).replace(/\s*minutes?\s*$/i, "")
+      : "";
+    if (!normalized) continue;
+    const value = Number(normalized);
     if (Number.isFinite(value) && value > 0) return value;
   }
   return null;
@@ -633,7 +669,7 @@ function actionInstructionConstraint(
       normalized.includes("inchang") ||
       normalized.includes("ne bouge pas")
     ) return "";
-    return text.replace(/^style:\s*/i, "").trim();
+    return text.replace(/^(?:style|instruction):\s*/i, "").trim();
   }).find((constraint) =>
     constraint.split(" ").map((word) => word.trim()).filter(Boolean).length >=
       4
@@ -750,6 +786,14 @@ function normalizeGeneratedResult(
   const result = root.adjust_plan_result as any;
   if (!confirmationMessage) throw new Error("confirmation_message_missing");
   if (!executionMessage) throw new Error("execution_message_missing");
+  assertNoUserFacingTechnicalLeak({
+    field: "confirmation_message",
+    value: confirmationMessage,
+  });
+  assertNoUserFacingTechnicalLeak({
+    field: "execution_message",
+    value: executionMessage,
+  });
   if (!result || typeof result !== "object" || Array.isArray(result)) {
     throw new Error("adjust_plan_result_missing");
   }
@@ -820,6 +864,33 @@ function normalizeGeneratedResult(
     scope: normalizedScope as AdjustPlanResultV1["scope"],
     applied_change: {
       summary: String(result.applied_change?.summary ?? "").trim(),
+      trajectory_change: result.applied_change?.trajectory_change &&
+          typeof result.applied_change.trajectory_change === "object" &&
+          !Array.isArray(result.applied_change.trajectory_change)
+        ? {
+          before: String(
+            result.applied_change.trajectory_change.before ?? "",
+          ).trim(),
+          after: String(
+            result.applied_change.trajectory_change.after ?? "",
+          ).trim(),
+          inserted_step:
+            result.applied_change.trajectory_change.inserted_step == null
+              ? null
+              : String(
+                result.applied_change.trajectory_change.inserted_step,
+              ).trim(),
+          reordered_steps: stringArray(
+            result.applied_change.trajectory_change.reordered_steps,
+          ),
+          preserved_direction: String(
+            result.applied_change.trajectory_change.preserved_direction ?? "",
+          ).trim(),
+          coaching_reason: String(
+            result.applied_change.trajectory_change.coaching_reason ?? "",
+          ).trim(),
+        }
+        : null,
       changed_items: normalizedChangedItems,
       preserved_items: normalizedPreservedItems,
     },
@@ -860,6 +931,17 @@ function normalizeGeneratedResult(
       .map((item) => item.title)
       .filter(Boolean)
       .join(", ");
+  }
+  if (input.scope_kind === "whole_plan") {
+    const trajectory = normalized.applied_change.trajectory_change;
+    if (
+      !trajectory?.before ||
+      !trajectory.after ||
+      !trajectory.preserved_direction ||
+      !trajectory.coaching_reason
+    ) {
+      throw new Error("adjust_plan_result_trajectory_change_missing");
+    }
   }
   const allowSingleLevelChangedItem = allowsSingleLevelChangedItem(input);
   if (
@@ -985,6 +1067,14 @@ function normalizeGeneratedResult(
   if (!normalized.user_message_brief || !normalized.user_message_detailed) {
     throw new Error("adjust_plan_result_user_message_missing");
   }
+  assertNoUserFacingTechnicalLeak({
+    field: "user_message_brief",
+    value: normalized.user_message_brief,
+  });
+  assertNoUserFacingTechnicalLeak({
+    field: "user_message_detailed",
+    value: normalized.user_message_detailed,
+  });
   return {
     confirmation_message: confirmationMessage,
     execution_message: executionMessage,
@@ -1002,10 +1092,13 @@ export async function generateAdjustPlanResultWithAi(
   const systemPrompt = [
     "Tu es le writer interne du tool adjust_plan de Sophia.",
     "Tu reçois une décision structurée déjà prise par le tool. Tu ne changes pas le patch et tu n'inventes pas de modification supplémentaire.",
-    "Tu dois produire uniquement du JSON valide.",
+    "Tu dois produire uniquement du JSON strict valide, parsable par JSON.parse: pas de markdown, pas de commentaire, pas de texte hors JSON.",
+    'Dans les chaînes JSON, tout guillemet interne doit être échappé avec \\". Si tu écris une expression entre guillemets dans un message, échappe ces guillemets.',
     "Tu dois produire deux messages distincts: confirmation_message avant toute écriture, execution_message après écriture confirmée.",
     'Tu tutoies toujours l\'utilisateur. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
     'Quand confirmation_message ou execution_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    "Les IDs techniques, UUID, plan_item_id, operation_id, clés JSON, noms de champs internes, statuts internes, noms d'enums et détails d'implémentation sont strictement interdits dans confirmation_message, execution_message, user_message_brief et user_message_detailed.",
+    "Les identifiants ne servent qu'au JSON interne dans changed_items.id et preserved_items.id. Pour parler au user, utilise uniquement les titres lisibles des actions, niveaux, étapes ou phases.",
     "confirmation_message doit demander l'accord ou proposer l'ajustement. Il ne doit jamais dire que le changement est déjà fait, créé, ajouté, appliqué ou enregistré.",
     "confirmation_message est un message de review du brouillon: il doit permettre au user de valider dans les grandes lignes avant toute écriture.",
     "confirmation_message doit dire explicitement que rien n'est encore appliqué ou écrire clairement que c'est une proposition avant validation.",
@@ -1014,6 +1107,7 @@ export async function generateAdjustPlanResultWithAi(
     "Exception: si user_constraints contient un seul affected_item, ne propose qu'un seul changement concret pour cet item et cite le reste comme inchangé.",
     "Respecte strictement user_constraints: si une durée, un focus, une exclusion, une priorité, un moment de journée ou une durée de contexte est donnée, elle doit apparaître dans les messages et ne doit jamais être contredite.",
     "Si user_constraints contient une valeur exacte pour un item ciblé (ex: option par défaut, fréquence à conserver, question unique, durée), cette valeur doit apparaître dans changed_items.after et dans confirmation_message/execution_message.",
+    "Quand le user parle d'un rythme temporaire ou de cette semaine, dis 'ramener/mettre cette semaine à X' plutôt que 'passer de Y à X', sauf si Y est explicitement la charge de cette même semaine.",
     "Si user_constraints contient exact_text:<texte>, tu dois copier exactement <texte> dans changed_items.after, confirmation_message, execution_message et user_message_detailed. Interdiction de reformuler, raccourcir, traduire, remplacer par un synonyme ou changer la ponctuation.",
     "Le plan_snapshot est la source de vérité: status est l'état runtime en base, tandis que available_this_week/availability_status décrivent ce qui est disponible dans la semaine courante.",
     "Ne présente jamais status=active comme preuve qu'une action est dans la semaine courante; utilise available_this_week ou week_scope.",
@@ -1031,6 +1125,8 @@ export async function generateAdjustPlanResultWithAi(
     "Si user_constraints contient affected_item:<titre>, les changed_items doivent rester strictement dans ces titres ciblés. Les autres actions doivent aller dans preserved_items si elles sont mentionnées.",
     'Si le user dit seulement "signal de pause" ou demande que le signal soit plus court/simple/5 minutes, cible l\'action de mise en place du signal, par exemple "Convenir d\'un signal de pause". Ne cible "Faire le point sur le signal de pause" que si le user parle explicitement de bilan, faire le point, review, retour d\'experience ou evaluation.',
     "Si user_constraints ou evidence dit de ne pas mettre en pause, aucune changed_item ne doit utiliser pause_action ni dire mis/en pause.",
+    "Si adjustment_type vaut replace, présente le changement comme un remplacement de l'action ciblée. Ne dis pas que l'action complète, l'ancienne version ou la forme initiale reste prévue ensuite, sauf demande explicite du user.",
+    "Pour replace sur une action ciblée, execution_message doit dire que la nouvelle formulation remplace l'ancienne dans le niveau, pas qu'elle sert de version mini ou de pont.",
     "En révision de brouillon, corrige seulement ce que le user conteste, conserve les contraintes déjà validées, et ne repars pas sur une ancienne valeur par défaut.",
     "Une demande temporaire de calme/allegement/rythme sur cette semaine, deux prochaines semaines ou quelques jours est un ajustement de niveau, pas une refonte du plan global. Ne parle pas de changer la trajectoire globale dans ce cas.",
     "Si user_constraints contient level_boundary_note:<texte>, explique en langage simple que l'ajustement porte sur le niveau actuel; si la periode demandee depasse la fin du niveau, ce repere devra etre gardé pour le prochain niveau au moment de sa creation. Ne transforme pas cette note en changement de plan global.",
@@ -1039,10 +1135,16 @@ export async function generateAdjustPlanResultWithAi(
     "Respecte les warnings et avoid de coaching_guidance: ne propose pas une option explicitement marquee comme a eviter sauf si le dernier message user la demande clairement.",
     "Respecte preserve de coaching_guidance: ce qui doit rester stable doit apparaitre comme inchangé ou preserve dans le brouillon.",
     "Pour whole_plan, si coaching_guidance parle de prerequis, sequence, phase future ou coherence globale, raisonne en trajectoire et non en patch arbitraire d'actions courantes.",
+    "Pour whole_plan, lis whole_plan_change_family dans user_constraints. Cette famille determine la trajectoire a materialiser: sequence_order_issue=reordonner/ralentir; missing_bridge_or_level=ajouter une phase ou un niveau pont; direction_change=changer l'axe du plan; success_criteria_change=changer les criteres de reussite; future_phase_mismatch=reprendre une phase future; style_or_method_mismatch=changer la methode; maintenance_or_consolidation_gap=ajouter consolidation; global_capacity_change=changer le rythme global; plan_no_longer_relevant=re-diagnostiquer avant refonte.",
+    "Pour whole_plan, si whole_plan_readiness vaut diagnose, ne fabrique pas une application definitive: le brouillon doit signaler les informations manquantes et ne pas demander une execution immediate.",
+    "Pour whole_plan, si whole_plan_candidate_operation est insert_phase, le trajectory_change doit nommer la phase inseree, son role et son critere de passage.",
+    "Pour whole_plan, si whole_plan_candidate_operation est change_emphasis, le trajectory_change doit expliciter ancienne emphase, nouvelle emphase et ce qui reste stable.",
     "Pour un ajustement de niveau ou de plan global, user_message_detailed doit détailler au moins deux changed_items avec le titre exact, avant, après, et pourquoi ça aide. Utilise les champs before/after/reason des changed_items et ne te contente jamais d'un résumé général.",
     "Si le user demande des détails avant validation, user_message_detailed doit répondre directement: deux changements précis avec avant/après/pourquoi, ce qui ne bouge pas, le niveau de confiance en mots simples, et la durée/périmètre quand il s'agit du niveau ou du plan global.",
     "Pour un ajustement de niveau, cite explicitement les priorités utilisateur si elles existent dans user_constraints.",
     "Pour un ajustement de plan global, indique la durée de contexte si elle existe dans user_constraints et ce qui reste stable dans la direction du plan.",
+    "Pour whole_plan, le coeur de la réponse doit être une trajectoire: direction actuelle, direction proposée, étape insérée/réordonnée, prérequis de coaching, et ce qui reste stable. Les changed_items ne sont que des ancres matérielles internes pour exécuter/régénérer le plan; ne présente jamais le changement global comme seulement deux actions modifiées.",
+    "Pour whole_plan, adjust_plan_result.applied_change.trajectory_change est obligatoire et doit contenir before, after, inserted_step ou reordered_steps, preserved_direction et coaching_reason.",
     "Si tu n'as pas assez d'information pour dire précisément ce qui changerait, ne fais pas semblant: le brouillon doit indiquer les informations manquantes.",
     "execution_message doit être le message post-exécution: naturel, humain, précis, et expliquer ce qui a changé, ce qui ne change pas, pourquoi cette modification aide, et le niveau de confiance sans vocabulaire technique.",
     "Pour un ajustement de niveau ou de plan global, execution_message doit citer deux exemples concrets de ce qui a changé, en langage simple.",
@@ -1050,7 +1152,7 @@ export async function generateAdjustPlanResultWithAi(
     "Pour un ajustement de niveau ou de plan global, respecte strictement level_adjustment_contract: chaque changement concret doit choisir une capability autorisée et cibler une action/habitude existante par id depuis materialization_candidates.",
     "Pour un ajustement de niveau ou de plan global, n'utilise jamais level_setting/plan_setting comme faux exemple si aucune action réelle n'est modifiée. Si les actions exactes manquent, le JSON sera rejeté.",
     "Aucune phrase de réponse n'est fournie: rédige le message toi-même à partir des faits.",
-    "N'utilise pas les noms d'enums, les clés JSON, les mots patch, scope, confidence, payload, current_level, whole_plan, lighter, global_load, reason_change ou change_target dans les messages destinés à l'utilisateur.",
+    "N'utilise pas les noms d'enums, les clés JSON, les mots id, uuid, plan_item_id, operation_id, patch, scope, confidence, payload, current_level, whole_plan, changed_items, preserved_items, lighter, global_load, reason_change ou change_target dans les messages destinés à l'utilisateur.",
     "Pour un ajustement de niveau, indique clairement que le changement reste limité au niveau actuel et ne modifie pas le plan global.",
     "Pour un ajustement de niveau, ne parle pas de version mini, de pont, ni de repousser une version complète, sauf si le user demande explicitement une action-pont. Le niveau se modifie en ajustant des actions/habitudes existantes, leur fréquence, leur durée, leur timing ou leur ordre.",
     "Pour une action réduite, indique clairement la version mini créée, son rôle de pont, et que l'action d'origine reste prévue après.",
@@ -1064,6 +1166,23 @@ export async function generateAdjustPlanResultWithAi(
         scope: input.scope_kind,
         applied_change: {
           summary: "string",
+          trajectory_change: input.scope_kind === "whole_plan"
+            ? {
+              before:
+                "string describing the current trajectory in user language",
+              after:
+                "string describing the proposed trajectory in user language",
+              inserted_step:
+                "string|null for the new global step to insert before/after another step",
+              reordered_steps: [
+                "string names of phases/steps to reorder, user-facing",
+              ],
+              preserved_direction:
+                "string describing what remains stable in the plan direction",
+              coaching_reason:
+                "string explaining why this trajectory makes coaching sense",
+            }
+            : null,
           changed_items: [{
             kind: "action|habit|level_setting|plan_setting",
             capability: "LevelAdjustmentCapability|null",
@@ -1075,6 +1194,8 @@ export async function generateAdjustPlanResultWithAi(
           }],
           changed_items_rule: input.scope_kind === "action"
             ? "one concrete changed item is acceptable"
+            : input.scope_kind === "whole_plan"
+            ? "minimum two concrete materialization anchors for execution; they support the trajectory but must not be presented as the whole change"
             : "minimum two concrete changed items, each usable as an example in execution_message",
           preserved_items: [{
             kind: "action|habit|level|plan|clarification",
@@ -1120,7 +1241,7 @@ export async function generateAdjustPlanResultWithAi(
     materialization_candidates: input.materialization_candidates ?? [],
   };
   let lastError: unknown = null;
-  for (let attempt = 0; attempt < 1; attempt += 1) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
     const userPrompt = JSON.stringify({
       ...baseUserPrompt,
       previous_generation_error: attempt === 0
@@ -1128,9 +1249,12 @@ export async function generateAdjustPlanResultWithAi(
         : lastError instanceof Error
         ? lastError.message
         : String(lastError),
-      retry_instruction: attempt === 0
-        ? null
-        : "Corrige le JSON en respectant strictement user_constraints, les types réels des items, les clarifications read-only, et sans changer la fréquence d'une habitude si le user ne l'a pas demandé explicitement.",
+      retry_instruction: attempt === 0 ? null : [
+        "Corrige uniquement la sortie JSON. Elle doit être du JSON strict valide, sans markdown ni texte hors JSON.",
+        "Si l'erreur concerne une fuite technique, retire tous les IDs/UUID/champs internes des messages destinés au user et garde-les uniquement dans changed_items.id/preserved_items.id.",
+        "Si l'erreur concerne whole_plan, ajoute une vraie trajectory_change et rédige les messages autour de la trajectoire globale, pas autour de deux actions.",
+        "Respecte strictement user_constraints, les types réels des items, les clarifications read-only, et ne change pas la fréquence d'une habitude si le user ne l'a pas demandé explicitement.",
+      ].join(" "),
     });
     const raw = await generateWithGemini(
       systemPrompt,
@@ -1443,7 +1567,9 @@ export async function runPlanAdjustmentGenerator(
       }
       : {}),
     materialization_candidates: writerMaterializationCandidates,
-    coaching_guidance: input.coaching_guidance ?? null,
+    coaching_guidance: (input.coaching_guidance ?? null) as
+      | AdjustPlanCoachGuidance
+      | null,
   };
   const writer = options.adjust_plan_result_writer ??
     ((writerInput: AdjustPlanResultWriterInput) =>

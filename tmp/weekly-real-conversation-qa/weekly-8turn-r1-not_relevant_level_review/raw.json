@@ -1,0 +1,293 @@
+{
+  "run_id": "weekly-8turn-r1-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "f0baf109-c3a6-445d-ac81-05da52d4967b",
+  "email": "qa-weekly-deep-weekly-8turn-r1-not_relevant_level_review@example.com",
+  "scope": "weekly-real-weekly-8turn-r1-not_relevant_level_review",
+  "created_at": "2026-05-21T13:51:03.800Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-21T13:51:03.801Z",
+      "user": "Je vais etre chiant : le plan ne me convient plus, mais je ne veux pas tout jeter. Je veux garder l'objectif et changer tres precisement les actions.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t01",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-21T13:51:03.990Z",
+      "user": "Non, pas une revue vague du niveau. Je veux remplacer la respiration par une deconnexion de 7 minutes apres le diner, mardi et jeudi uniquement.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t02",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-21T13:51:04.179Z",
+      "user": "Le point positif ne doit pas etre quotidien. Je veux le mettre samedi matin seulement, parce que la semaine je n'y crois pas.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t03",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-21T13:51:04.367Z",
+      "user": "La mission signal de pause, je ne veux pas la supprimer. Je veux la renommer en phrase de sortie et la mettre vendredi, 10 minutes max.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t04",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t04",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-21T13:51:04.558Z",
+      "user": "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t05",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 6,
+      "started_at": "2026-05-21T13:51:04.755Z",
+      "user": "Ce n'est toujours pas assez precis : mardi/jeudi pour deconnexion, samedi matin pour point positif, vendredi pour phrase de sortie. Rien lundi, rien mercredi.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t06",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t06",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 7,
+      "started_at": "2026-05-21T13:51:04.967Z",
+      "user": "Ok applique seulement ca. Ne touche pas aux supports, ne change pas l'objectif du niveau, et ne rajoute pas de nouvelle action.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t07",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t07",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    },
+    {
+      "turn": 8,
+      "started_at": "2026-05-21T13:51:05.185Z",
+      "user": "Maintenant dis-moi si la validation de la semaine prochaine est dispo, et ce que je dois verifier avant de valider.",
+      "http_status": 500,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r1-not_relevant_level_review-t08",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "error": "supabaseUrl is required.",
+        "request_id": "weekly-8turn-r1-not_relevant_level_review-t08",
+        "qa_diagnostic": {
+          "source": "test-send-message",
+          "category": "router_or_app",
+          "reason": "unknown",
+          "provider": "unknown",
+          "retryable": false,
+          "note": "Unhandled application/router failure while running QA endpoint."
+        }
+      }
+    }
+  ],
+  "updated_at": "2026-05-21T13:51:05.195Z"
+}

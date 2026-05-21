@@ -1,11 +1,13 @@
-import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import { assertEquals } from "jsr:@std/assert@1";
 
 import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import {
   buildWeeklyAdaptiveReview,
   buildWeeklyAdaptiveReviewInstruction,
-  buildWeeklyAdaptiveReviewIntroMessage,
 } from "./weekly_adaptive_review.ts";
+import {
+  weeklyAdaptiveReviewOpeningLooksValid,
+} from "./weekly_adaptive_review_opening.ts";
 import { buildWeeklyProgressReviewFromRows } from "./weekly_progress_review.ts";
 
 function baseReview(overrides: {
@@ -158,33 +160,19 @@ Deno.test("weekly adaptive review advances when habits are validated", () => {
   );
 });
 
-Deno.test("weekly adaptive review intro opens with synthesis, action check and one broad question", () => {
-  const review = baseReview({
-    habitStatuses: ["done", "done", "partial", "missed"],
-    missionStatus: "missed",
-    missionStillRelevant: true,
-    blocker: "fatigue",
-  });
-  const adaptive = buildWeeklyAdaptiveReview(review);
-
-  const message = buildWeeklyAdaptiveReviewIntroMessage(review, adaptive);
-
-  assertStringIncludes(message, "bilan de la semaine");
-  assertStringIncludes(message, "Cote actions");
-  assertStringIncludes(message, "l'organisation de la semaine prochaine");
-  assertStringIncludes(message, "comment tu as vecu cette semaine");
-  assertEquals(/%|\b\d+\s*\/\s*\d+\b/.test(message), false);
+Deno.test("weekly adaptive review opening guard rejects rigid builder-like copy", () => {
   assertEquals(
-    /\b\d+\s+(actions?|prevues?|faites?|validees?|ratees?|non faites?)\b/i
-      .test(message),
+    weeklyAdaptiveReviewOpeningLooksValid(
+      "C'est le moment du bilan de la semaine.\n\nCe qui ressort surtout: le contexte de la semaine.\n\nComment tu as vecu la semaine ?",
+    ),
     false,
   );
-  assertEquals(message.includes("est-ce que tu sens une difference"), false);
   assertEquals(
-    message.includes("dans quel etat tu termines la semaine"),
-    false,
+    weeklyAdaptiveReviewOpeningLooksValid(
+      "C'est le moment du bilan de la semaine. On va faire le point tranquillement sur ce qui a tenu et ce qui a coince, puis on verra quoi ajuster pour la suite.\n\nComment tu as vecu la semaine dans l'ensemble ?",
+    ),
+    true,
   );
-  assertEquals((message.match(/\?/g) ?? []).length, 1);
 });
 
 Deno.test("weekly adaptive review prefers bridge week for fatigue habit failures", () => {
@@ -207,15 +195,11 @@ Deno.test("weekly adaptive review user-facing copy avoids internal bridge vocabu
   });
   const adaptive = buildWeeklyAdaptiveReview(review);
 
-  const intro = buildWeeklyAdaptiveReviewIntroMessage(review, adaptive)
-    .toLowerCase();
   const instruction = buildWeeklyAdaptiveReviewInstruction(adaptive)
     .toLowerCase();
 
-  assertStringIncludes(intro, "semaine allegee");
-  assertEquals(intro.includes("bridge"), false);
-  assertEquals(intro.includes("semaine pont"), false);
   assertEquals(instruction.includes("semaine allegee"), true);
+  assertEquals(adaptive.week_strategy.decision, "bridge_week");
 });
 
 Deno.test("weekly adaptive review drops non-habit when daily says not relevant", () => {
@@ -227,15 +211,11 @@ Deno.test("weekly adaptive review drops non-habit when daily says not relevant",
   });
 
   const adaptive = buildWeeklyAdaptiveReview(review);
-  const intro = buildWeeklyAdaptiveReviewIntroMessage(review, adaptive)
-    .toLowerCase();
 
   assertEquals(
     adaptive.item_decisions.find((item) => item.plan_item_id === "mission-1")
       ?.decision,
     "drop",
   );
-  assertEquals(intro.includes("not_relevant"), false);
-  assertStringIncludes(intro, "ne collaient plus");
-  assertStringIncludes(intro, "plan a revoir en profondeur");
+  assertEquals(adaptive.week_strategy.decision, "level_review");
 });

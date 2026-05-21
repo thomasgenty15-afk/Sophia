@@ -471,6 +471,67 @@ function technicalFailure(
   };
 }
 
+const DEFENSE_CARD_FIELD_LABEL_RE =
+  /(le\s+moment|le\s+pi[eè]ge|mon\s+geste|plan\s*b)\s*[:：]/giu;
+
+function compactDefenseCardFieldText(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function normalizeDefenseCardFieldLabel(value: string): string {
+  const normalized = value
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+  if (normalized === "le moment") return "moment";
+  if (normalized === "le piege") return "signal";
+  if (normalized === "mon geste") return "defense_response";
+  if (normalized === "plan b") return "plan_b";
+  return normalized;
+}
+
+function extractDefenseCardLabeledValue(
+  value: string,
+  wantedLabels: string[],
+): string | null {
+  const text = String(value ?? "").trim();
+  if (!text) return null;
+  const matches = Array.from(text.matchAll(DEFENSE_CARD_FIELD_LABEL_RE));
+  if (matches.length === 0) return null;
+  const wanted = new Set(wantedLabels);
+  for (let index = 0; index < matches.length; index++) {
+    const match = matches[index];
+    const label = normalizeDefenseCardFieldLabel(match[1] ?? "");
+    if (!wanted.has(label)) continue;
+    const start = (match.index ?? 0) + match[0].length;
+    const end = index + 1 < matches.length
+      ? matches[index + 1].index ?? text.length
+      : text.length;
+    const extracted = compactDefenseCardFieldText(text.slice(start, end));
+    if (extracted) return extracted;
+  }
+  return null;
+}
+
+function stripLeadingDefenseCardFieldLabel(value: string): string {
+  return compactDefenseCardFieldText(
+    String(value ?? "").replace(
+      DEFENSE_CARD_FIELD_LABEL_RE,
+      (match, _label, offset) => offset === 0 ? "" : match,
+    ),
+  );
+}
+
+function sanitizeDefenseCardField(
+  value: string,
+  wantedLabels: string[],
+): string {
+  const labeled = extractDefenseCardLabeledValue(value, wantedLabels);
+  return labeled ?? stripLeadingDefenseCardFieldLabel(value);
+}
+
 function normalizeDraft(
   raw: unknown,
   state: DefenseCardIntakeState,
@@ -479,15 +540,26 @@ function normalizeDraft(
   const draft = objectValue(root.draft);
   if (!draft) throw new Error("defense_card_draft_missing");
   const title = String(draft.title ?? "").trim();
-  const defenseResponse = String(draft.defense_response ?? "").trim();
-  const situation = String(
-    draft.situation ?? draft.risk_situation ?? state.risk_situation.label ?? "",
-  ).trim();
-  const signal = String(
-    draft.signal ?? state.risk_situation.description ??
-      state.trigger.evidence?.[0] ?? "",
-  ).trim();
-  const planB = String(draft.plan_b ?? draft.fallback_plan ?? "").trim();
+  const rawDefenseResponse = String(draft.defense_response ?? "").trim();
+  const defenseResponse = sanitizeDefenseCardField(rawDefenseResponse, [
+    "defense_response",
+  ]);
+  const situation = sanitizeDefenseCardField(
+    String(
+      draft.situation ?? draft.risk_situation ??
+        state.risk_situation.label ?? "",
+    ).trim(),
+    ["moment"],
+  );
+  const signal = sanitizeDefenseCardField(
+    String(
+      draft.signal ?? state.risk_situation.description ??
+        state.trigger.evidence?.[0] ?? "",
+    ).trim(),
+    ["signal"],
+  );
+  const rawPlanB = String(draft.plan_b ?? draft.fallback_plan ?? "").trim();
+  const planB = sanitizeDefenseCardField(rawPlanB, ["plan_b"]);
   const confirmationMessage = String(root.confirmation_message ?? "").trim();
   if (
     !title || !situation || !signal || !defenseResponse || !planB ||
@@ -495,7 +567,10 @@ function normalizeDraft(
   ) {
     throw new Error("defense_card_draft_required_text_missing");
   }
-  if (!confirmationMessage.includes(defenseResponse)) {
+  if (
+    !confirmationMessage.includes(rawDefenseResponse) &&
+    !confirmationMessage.includes(defenseResponse)
+  ) {
     throw new Error("defense_card_confirmation_message_draft_mismatch");
   }
   return {
@@ -530,14 +605,31 @@ function normalizeDraft(
 function withPlatformDefenseCardConfirmation(
   draft: DefenseCardDraftV1,
 ): DefenseCardDraftV1 {
+  const sanitizedDraft = {
+    ...draft.draft,
+    situation: sanitizeDefenseCardField(String(draft.draft.situation ?? ""), [
+      "moment",
+    ]),
+    signal: sanitizeDefenseCardField(String(draft.draft.signal ?? ""), [
+      "signal",
+    ]),
+    defense_response: sanitizeDefenseCardField(
+      String(draft.draft.defense_response ?? ""),
+      ["defense_response"],
+    ),
+    plan_b: sanitizeDefenseCardField(String(draft.draft.plan_b ?? ""), [
+      "plan_b",
+    ]),
+  };
   return {
     ...draft,
+    draft: sanitizedDraft,
     confirmation_message: [
       "Voici ta carte de défense :",
-      `Le moment : ${draft.draft.situation}`,
-      `Le piège : ${draft.draft.signal}`,
-      `Mon geste : ${draft.draft.defense_response}`,
-      `Plan B : ${draft.draft.plan_b}`,
+      `Le moment : ${sanitizedDraft.situation}`,
+      `Le piège : ${sanitizedDraft.signal}`,
+      `Mon geste : ${sanitizedDraft.defense_response}`,
+      `Plan B : ${sanitizedDraft.plan_b}`,
       "On valide ?",
     ].join("\n"),
     confirmation_actions: ["yes", "no"],

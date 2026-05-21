@@ -10,17 +10,25 @@ import {
   resetConsumedConfirmationTokensForTest,
 } from "../../../confirmation/confirmation_token.ts";
 import type { PotionType } from "../../../../_shared/v2-types.ts";
+import type { PotionSessionSelectorInput } from "../_shared/operation_payload_builder.ts";
 import { formatPotionBaseContextForPrompt } from "../../../../_shared/potion-base-context.ts";
 import {
   buildStatePotionCatalogPrompt,
   STATE_POTION_TYPES,
 } from "./catalog.ts";
 import { executeActivateStatePotion } from "./executor.ts";
-import { runSelectStatePotionIntake } from "./intake.ts";
 import {
+  fillSelectStatePotionSlotsWithAi,
+  runSelectStatePotionIntake,
+} from "./intake.ts";
+import { hasExplicitStatePotionActivationApproval } from "./draft_validation.ts";
+import {
+  buildPotionDetailSubskillPrompt,
   chatDetailQuestionIds,
   POTION_DETAIL_SUBSKILLS,
 } from "./subskills/potion_detail_intake.ts";
+import { buildPotionFollowUpSchedulePlannerPrompt } from "./subskills/follow_up_schedule_planner.ts";
+import { normalizePotionSessionDraft } from "./generator.ts";
 import {
   structuredStatePotionDraftGenerator,
   structuredStatePotionSlotFiller,
@@ -35,6 +43,7 @@ Deno.test("select_state_potion catalog gives AI rich potion context and question
     catalog,
     "Le suivi par defaut est un reminder court sur 7 jours",
   );
+  assertEquals(catalog.includes("options:"), false);
   assert(!/\b(vous|votre|vos)\b/i.test(catalog));
   for (const potionType of STATE_POTION_TYPES) {
     const definition = POTION_DEFINITIONS[potionType];
@@ -53,6 +62,118 @@ Deno.test("select_state_potion catalog gives AI rich potion context and question
       assert(question.label.length <= 80);
     }
   }
+  assertStringIncludes(
+    POTION_DETAIL_SUBSKILLS.rappel.extraction_rules.join(" "),
+    "moment a proteger",
+  );
+});
+
+Deno.test("select_state_potion prompts keep internal slots out of visible wording", () => {
+  const detailPrompt = buildPotionDetailSubskillPrompt("courage");
+  const schedulePrompt = buildPotionFollowUpSchedulePlannerPrompt("courage");
+  assertEquals(detailPrompt.includes("Options:"), false);
+  assertEquals(
+    detailPrompt.includes("peur du résultat, du regard"),
+    false,
+  );
+  assertEquals(
+    schedulePrompt.includes(
+      "est-ce un moment precis ou une situation qui revient ?",
+    ),
+    false,
+  );
+  assertStringIncludes(
+    schedulePrompt,
+    "Ne formule pas en categories ponctuel/recurrent",
+  );
+});
+
+Deno.test("select_state_potion rejects robotic confirmation voice", () => {
+  const baseDraft = {
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    draft: {
+      potion_type: "rappel",
+      title: "Rappel doux",
+      opening_prompt: "Respire.",
+      instant_support_message: "On revient doucement.",
+      potion_info_message: "Le suivi t'aide à garder le lien avec ta routine.",
+      expected_duration: "short",
+      why_this_potion: "Tu décroches de ta routine du soir.",
+      target_binding: {
+        kind: "none",
+        label: null,
+        related_plan_item_id: null,
+        target_plan_item_id: null,
+        target_action_family_key: null,
+        target_generated_temp_id: null,
+        recurrence_hint: null,
+        date_or_window_hint: null,
+        evidence: ["test"],
+      },
+      follow_up: {
+        reminder_instruction: "Revenir à la marche du soir.",
+        local_time_hhmm: "19:00",
+        duration_days: 7,
+        reason_for_time: "Avant la soirée.",
+        schedule_plan: {
+          mode: "daily_series",
+          duration_days: 7,
+          local_time_hhmm: "19:00",
+          scheduled_days: [],
+          local_dates: [],
+          timing_relation: "daily",
+          reason: "Soutien quotidien.",
+        },
+      },
+    },
+    confirmation_actions: ["yes", "no"],
+  };
+  const input = {
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    state: { kind: "decrochage", intensity: "medium", evidence: ["test"] },
+    potion_type: "rappel",
+    context: {},
+    constraints: [],
+    forbidden: [],
+  } satisfies PotionSessionSelectorInput;
+  const badMessages = [
+    "Je peux t'envoyer un petit signe chaque soir. On essaie ça ?",
+    "Je te propose d'activer cette Potion de Rappel. Ça te convient ?",
+    "Je t'enverrai un petit mot à 19h. On lance ça ?",
+  ];
+  for (const confirmation_message of badMessages) {
+    let failed = false;
+    try {
+      normalizePotionSessionDraft({ ...baseDraft, confirmation_message }, input);
+    } catch (error) {
+      failed = error instanceof Error &&
+        error.message === "potion_confirmation_template_voice";
+    }
+    assertEquals(failed, true, confirmation_message);
+  }
+});
+
+Deno.test("select_state_potion draft approval requires explicit activation", () => {
+  assertEquals(
+    hasExplicitStatePotionActivationApproval(
+      "Le probleme de clarte: j'ai trop de pistes ouvertes et je bloque demain matin.",
+    ),
+    false,
+  );
+  assertEquals(
+    hasExplicitStatePotionActivationApproval(
+      "Avant validation, je veux que le rappel reste doux.",
+    ),
+    false,
+  );
+  assertEquals(
+    hasExplicitStatePotionActivationApproval(
+      "Oui, active cette potion de clarte.",
+    ),
+    true,
+  );
 });
 
 Deno.test("state potion DB base context exposes shared front and chat material", () => {
@@ -540,6 +661,450 @@ Deno.test("select_state_potion asks two chat detail fields before draft", async 
   assertEquals(ready.draft?.draft.potion_type, "courage");
 });
 
+Deno.test("select_state_potion detail fallback asks missing fields without technical wording", async () => {
+  const askDetails = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "je veux la potion de courage",
+    trigger_message_id: "m-details-fallback-1",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredStatePotionSlotFiller({
+      state_kind: "fear_avoidance",
+      selected_potion: "courage",
+      omit_detail_answers: true,
+      generated_user_message:
+        "Dis-moi ce que tu evites et ce qui bloque le plus.",
+    }),
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  const fallback = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "J'evite surtout d'envoyer ce message.",
+    trigger_message_id: "m-details-fallback-2",
+    safety_pregate_risk_band: "none",
+    operation_input: askDetails.state_patch.operation_input,
+    slot_filler: async () => null,
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(fallback.status, "ask_question");
+  assertEquals(fallback.phase, "detail_intake");
+  assertEquals(
+    String(fallback.next_question?.question ?? "").includes("Je garde l'idee"),
+    false,
+  );
+  assertStringIncludes(
+    fallback.next_question?.question ?? "",
+    "passage concret",
+  );
+  assertEquals(
+    fallback.next_question?.question?.includes(
+      "Je n'ai pas pu lire correctement",
+    ),
+    false,
+  );
+  const lastResort = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "je suis a cran",
+    trigger_message_id: "m-details-fallback-3",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => null,
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(lastResort.status, "ask_question");
+  assertEquals(lastResort.phase, "state_resolution");
+  assertEquals(lastResort.state_patch.missing_slots, ["state", "potion_type"]);
+  assertEquals(
+    Boolean(lastResort.state_patch.operation_input?.intake_state),
+    true,
+  );
+  assertEquals(
+    String(lastResort.next_question?.question ?? "").includes(
+      "Je n'ai pas pu lire correctement",
+    ),
+    false,
+  );
+  assertStringIncludes(
+    lastResort.next_question?.question ?? "",
+    "Qu'est-ce qui te pèse",
+  );
+});
+
+Deno.test("select_state_potion revision keeps potion selected from previous draft", async () => {
+  const output = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Avant validation, je veux que le suivi m'aide a ralentir, pas a performer.",
+    trigger_message_id: "m-revision-previous-draft-1",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: {
+        draft: {
+          potion_type: "apaisement",
+          title: "Potion d'apaisement",
+        },
+      },
+    },
+    slot_filler: async (input) => {
+      assertEquals(input.current_state?.selected_potion.value, "apaisement");
+      return {
+        current_sub_skill: "detail_intake",
+        state_patch: {
+          state: {
+            status: "identified",
+            kind: "stress_pressure",
+            intensity: "high",
+            confidence: "high",
+            evidence: ["sous pression"],
+          },
+          selected_potion: {
+            status: "missing",
+            value: null,
+            confidence: "low",
+            evidence: [],
+          },
+          details: {
+            status: "identified",
+            required_question_ids: ["pressure_source", "pressure_state"],
+            answers: [{
+              question_id: "pressure_source",
+              label: "Qu'est-ce qui te met le plus sous pression ?",
+              answer: "La reunion de cet apres-midi.",
+              evidence: ["reunion"],
+            }, {
+              question_id: "pressure_state",
+              label: "Tu te sens plutot comment dans ton corps ?",
+              answer: "A cran et submerge.",
+              evidence: ["a cran"],
+            }],
+            evidence: ["revision_request"],
+          },
+        },
+        missing_slots: [],
+        confidence: "high",
+      };
+    },
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.potion_type, "apaisement");
+});
+
+Deno.test("select_state_potion revision reuses previous draft context instead of re-asking details", async () => {
+  const previousDraft = await structuredStatePotionDraftGenerator()({
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    state: { kind: "stress_pressure", intensity: "high", evidence: ["test"] },
+    potion_type: "apaisement",
+    context: {},
+    constraints: [],
+    forbidden: [],
+  });
+  const output = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux juste que ça ne me pousse pas à performer, garde le matin.",
+    trigger_message_id: "m-revision-previous-draft-context",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: previousDraft,
+      revision_request:
+        "Je veux juste que ça ne me pousse pas à performer, garde le matin.",
+    },
+    slot_filler: async (input) => {
+      assertEquals(input.current_state?.selected_potion.value, "apaisement");
+      assertEquals(input.current_state?.details.answers.length, 2);
+      return {
+        current_sub_skill: "draft_generation",
+        state_patch: {
+          details: input.current_state?.details,
+        },
+        missing_slots: [],
+        confidence: "high",
+        generated_user_message: null,
+      };
+    },
+    draft_generator: async (input) => {
+      assertEquals(input.previous_draft?.draft.potion_type, "apaisement");
+      assertEquals(input.revision_request?.includes("performer"), true);
+      return await structuredStatePotionDraftGenerator()(input);
+    },
+  });
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.potion_type, "apaisement");
+});
+
+Deno.test("select_state_potion does not ask to reroute after explicit potion selection", async () => {
+  const output = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "je suis submerge et a cran",
+    trigger_message_id: "m-no-reroute-1",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: {
+        draft: {
+          potion_type: "apaisement",
+          title: "Potion d'apaisement",
+        },
+      },
+    },
+    slot_filler: async () => ({
+      current_sub_skill: "detail_intake",
+      state_patch: {
+        state: {
+          status: "identified",
+          kind: "stress_pressure",
+          intensity: "high",
+          confidence: "high",
+          evidence: ["a cran"],
+        },
+        selected_potion: {
+          status: "missing",
+          value: null,
+          confidence: "low",
+          evidence: [],
+        },
+        details: {
+          status: "missing",
+          required_question_ids: ["pressure_source", "pressure_state"],
+          answers: [],
+          evidence: [],
+        },
+      },
+      missing_slots: ["potion_detail:pressure_source"],
+      confidence: "medium",
+      generated_user_message:
+        "Tu préfères qu'on parte sur de l'apaisement ou de la clarté ?",
+      evidence: ["structured"],
+    }),
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(output.status, "ask_question");
+  assertEquals(
+    String(output.next_question?.question ?? "").includes("clarté"),
+    false,
+  );
+  assertStringIncludes(output.next_question?.question ?? "", "pression");
+});
+
+Deno.test("select_state_potion default orchestrator forces router then detail subskill before draft", async () => {
+  let routerCalls = 0;
+  let detailCalls = 0;
+  const output = await fillSelectStatePotionSlotsWithAi({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux une potion de courage pour envoyer ce message, je bloque surtout par peur du conflit.",
+  }, {
+    router: async () => {
+      routerCalls += 1;
+      return {
+        current_sub_skill: "draft_generation",
+        state_patch: {
+          state: {
+            status: "identified",
+            kind: "fear_avoidance",
+            intensity: "medium",
+            confidence: "high",
+            evidence: ["peur du conflit"],
+          },
+          selected_potion: {
+            status: "identified",
+            value: "courage",
+            confidence: "high",
+            evidence: ["potion de courage"],
+          },
+          details: {
+            status: "identified",
+            required_question_ids: ["avoidance_target", "blocker_kind"],
+            answers: [{
+              question_id: "avoidance_target",
+              label: "Qu'est-ce que tu evites en ce moment ?",
+              answer: "Cette reponse ne doit pas venir du router.",
+              evidence: ["router_overreach"],
+            }, {
+              question_id: "blocker_kind",
+              label: "Qu'est-ce qui bloque le plus ?",
+              answer: "Cette reponse ne doit pas venir du router.",
+              evidence: ["router_overreach"],
+            }],
+            evidence: ["router_overreach"],
+          },
+        },
+        missing_slots: [],
+        confidence: "high",
+        generated_user_message: null,
+        evidence: ["router"],
+      };
+    },
+    detail: async (input) => {
+      detailCalls += 1;
+      assertEquals(input.current_state?.current_sub_skill, "detail_intake");
+      assertEquals(input.current_state?.details.answers, []);
+      return {
+        current_sub_skill: "draft_generation",
+        state_patch: {
+          details: {
+            status: "identified",
+            required_question_ids: ["avoidance_target", "blocker_kind"],
+            answers: [{
+              question_id: "avoidance_target",
+              label: "Qu'est-ce que tu evites en ce moment ?",
+              answer: "Envoyer le message a mon associe.",
+              evidence: ["message associe"],
+            }, {
+              question_id: "blocker_kind",
+              label: "Qu'est-ce qui bloque le plus ?",
+              answer: "La peur du conflit.",
+              evidence: ["peur du conflit"],
+            }],
+            evidence: ["detail"],
+          },
+        },
+        missing_slots: [],
+        confidence: "high",
+        generated_user_message: null,
+        evidence: ["detail"],
+      };
+    },
+  });
+  assertEquals(routerCalls, 1);
+  assertEquals(detailCalls, 1);
+  assertEquals(output?.current_sub_skill, "draft_generation");
+  assertEquals(output?.missing_slots, []);
+  assertEquals(
+    output?.state_patch.details?.answers.map((answer) => answer.answer),
+    ["Envoyer le message a mon associe.", "La peur du conflit."],
+  );
+});
+
+Deno.test("select_state_potion default orchestrator does not rerun router after potion is selected", async () => {
+  let routerCalls = 0;
+  let detailCalls = 0;
+  const slotFiller = (
+    input: Parameters<typeof fillSelectStatePotionSlotsWithAi>[0],
+  ) =>
+    fillSelectStatePotionSlotsWithAi(input, {
+      router: async () => {
+        routerCalls += 1;
+        return {
+          current_sub_skill: "detail_intake",
+          state_patch: {
+            state: {
+              status: "identified",
+              kind: "fear_avoidance",
+              intensity: "medium",
+              confidence: "high",
+              evidence: ["peur"],
+            },
+            selected_potion: {
+              status: "identified",
+              value: "courage",
+              confidence: "high",
+              evidence: ["courage"],
+            },
+            generated_user_message:
+              "Qu'est-ce que tu evites, et qu'est-ce qui bloque le plus ?",
+          },
+          missing_slots: [
+            "potion_detail:avoidance_target",
+            "potion_detail:blocker_kind",
+          ],
+          confidence: "high",
+          generated_user_message:
+            "Qu'est-ce que tu evites, et qu'est-ce qui bloque le plus ?",
+          evidence: ["router"],
+        };
+      },
+      detail: async (input) => {
+        detailCalls += 1;
+        if (input.message.includes("associe")) {
+          return {
+            current_sub_skill: "draft_generation",
+            state_patch: {
+              details: {
+                status: "identified",
+                required_question_ids: ["avoidance_target", "blocker_kind"],
+                answers: [{
+                  question_id: "avoidance_target",
+                  label: "Qu'est-ce que tu evites en ce moment ?",
+                  answer: "Envoyer le message a mon associe.",
+                  evidence: ["message associe"],
+                }, {
+                  question_id: "blocker_kind",
+                  label: "Qu'est-ce qui bloque le plus ?",
+                  answer: "La peur du conflit.",
+                  evidence: ["peur du conflit"],
+                }],
+                evidence: ["detail"],
+              },
+            },
+            missing_slots: [],
+            confidence: "high",
+            generated_user_message: null,
+            evidence: ["detail"],
+          };
+        }
+        return {
+          current_sub_skill: "detail_intake",
+          state_patch: {
+            generated_user_message:
+              "Qu'est-ce que tu evites, et qu'est-ce qui bloque le plus ?",
+          },
+          missing_slots: [
+            "potion_detail:avoidance_target",
+            "potion_detail:blocker_kind",
+          ],
+          confidence: "high",
+          generated_user_message:
+            "Qu'est-ce que tu evites, et qu'est-ce qui bloque le plus ?",
+          evidence: ["detail"],
+        };
+      },
+    });
+
+  const askDetails = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "Je veux une potion de courage",
+    trigger_message_id: "m-architecture-1",
+    safety_pregate_risk_band: "none",
+    slot_filler: slotFiller,
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(askDetails.status, "ask_question");
+  assertEquals(askDetails.phase, "detail_intake");
+
+  const ready = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "J'evite d'envoyer le message a mon associe, surtout par peur du conflit.",
+    trigger_message_id: "m-architecture-2",
+    safety_pregate_risk_band: "none",
+    operation_input: askDetails.state_patch.operation_input,
+    slot_filler: slotFiller,
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(routerCalls, 1);
+  assertEquals(detailCalls, 2);
+  assertEquals(ready.status, "pending_confirmation");
+  assertEquals(ready.draft?.draft.potion_type, "courage");
+});
+
 Deno.test("select_state_potion blocks missing state, safety and writes without Oui", async () => {
   const ask = await runSelectStatePotionIntake({
     user_id: "u1",
@@ -606,6 +1171,20 @@ Deno.test("select_state_potion blocks missing state, safety and writes without O
     safety_pregate_risk_band: "critical",
   });
   assertEquals(safety.status, "blocked_by_safety");
+  const mediumIntake = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "je veux une potion de rappel",
+    trigger_message_id: "m-medium-safety",
+    safety_pregate_risk_band: "medium",
+    slot_filler: structuredStatePotionSlotFiller({
+      state_kind: "decrochage",
+      selected_potion: "rappel",
+    }),
+    draft_generator: structuredStatePotionDraftGenerator(),
+  });
+  assertEquals(mediumIntake.status, "pending_confirmation");
   const ready = await runSelectStatePotionIntake({
     user_id: "u1",
     channel: "whatsapp",

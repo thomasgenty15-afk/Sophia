@@ -1,0 +1,934 @@
+{
+  "run_id": "weekly-focus-r8-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+  "email": "qa-weekly-deep-weekly-focus-r8-not_relevant_level_review@example.com",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-focus-r8",
+  "created_at": "2026-05-20T13:28:35.088Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T13:28:35.089Z",
+      "user": "Cette semaine m'a montre que ce n'est pas juste une action: le plan global ne colle plus a ma situation. Prepare un brouillon de changement du plan global, n'applique rien maintenant.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-focus-r8-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-focus-r8-not_relevant_level_review-t01",
+        "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-focus-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-focus-r8-not_relevant_level_review-t01",
+          "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+          "source_message_id": "21287f02-2495-4e4a-9a1c-75eafb264291",
+          "ts": "2026-05-20T13:28:48.369+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10675,
+            "latency_ms": 4897,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 574,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-focus-r8-not_relevant_level_review-t01",
+            "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_review_with_adjustment_request",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "21287f02-2495-4e4a-9a1c-75eafb264291",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "scope_kind": "whole_plan",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "whole_plan_directional_draft_ready",
+                    "preserve_plan_intent",
+                    "coach_observation:La demande signale un décrochage de cohérence au niveau du plan global, pas un simple ajustement local: la structure actuelle ne semble plus adaptée à la situation vécue cette semaine. Le besoin réel est de préparer une réorganisation de séquence sans trahir l’intention du plan, avec une prudence forte sur la continuité et la charge.",
+                    "coach_recommendation:Orienter le brouillon vers une re-séquence globale, en gardant le cœur du plan intact mais en changeant l’ordre, le rythme ou le moment d’introduction des éléments pour mieux coller à la réalité actuelle. Le sous-skill doit proposer une lecture de cohérence et des pistes de remaniement, sans appliquer de modification ni déplacer le plan vers un autre type d’objectif.",
+                    "coach_warning:Éviter de présenter cela comme un changement de nature du plan alors que la demande porte sur la structure et la séquence.",
+                    "coach_warning:Éviter d’optimiser seulement un item isolé: le signal porte sur un désalignement global.",
+                    "coach_warning:Éviter toute proposition qui augmente la charge ou multiplie les engagements sans vérifier la capacité réelle actuelle.",
+                    "coach_warning:Éviter de supprimer l’intention du plan initial si elle peut être préservée par un réordonnancement.",
+                    "coach_preserve:L’intention centrale du plan.",
+                    "coach_preserve:La logique de progression globale.",
+                    "coach_preserve:Les repères de stabilité déjà utiles.",
+                    "coach_preserve:Le principe de ne pas appliquer le changement maintenant.",
+                    "coach_avoid:Proposer une exécution immédiate du nouveau plan.",
+                    "coach_avoid:Transformer la demande en simple ajustement d’une tâche isolée.",
+                    "coach_avoid:Remplacer la structure par un autre objectif sans demande explicite.",
+                    "coach_avoid:Oublier la contrainte de préservation de l’intention du plan.",
+                    "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                    "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                    "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                    "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                    "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                    "coach_guideline:Action: traiter la demande comme un brouillon de reconfiguration, pas comme une implémentation.",
+                    "coach_guideline:Intention préservée: conserver l’objectif de fond du plan, même si la séquence change.",
+                    "coach_guideline:Pont mini: relier le changement proposé à la réalité observée cette semaine et à ce qui bloque la cohérence.",
+                    "coach_guideline:Pas de changement de nature sans demande explicite: rester sur la séquence, le rythme et l’ordre, pas sur le but.",
+                    "coach_guideline:Niveau: si la charge actuelle paraît trop haute, proposer une baisse temporaire et ciblée, non globale et non définitive.",
+                    "coach_guideline:Boundary de fin de niveau: expliciter ce qui marque la sortie d’une phase avant d’en ouvrir une autre.",
+                    "coach_guideline:Cœur du niveau à préserver: la fonction des éléments du plan doit rester lisible même si leur position change.",
+                    "coach_guideline:Whole plan: raisonner en trajectoire, en prérequis et en ordre de phases, pas en items indépendants.",
+                    "coach_guideline:Whole plan: conserver le questionnaire ou les critères implicites qui permettent d’évaluer si le nouveau séquencement est plus juste.",
+                    "coach_guideline:Whole plan: ne pas casser la continuité entre le plan existant et le brouillon; proposer une transition lisible.",
+                    "affected_item:plan global",
+                    "affected_item:Fiche support: repere de fatigue",
+                    "affected_item:Convenir d'un signal de pause"
+                  ],
+                  "reason_type": "bad_fit",
+                  "change_target": "sequence",
+                  "reason_change": "structure_bad_fit"
+                },
+                "title": "Ajuster la trajectoire du plan",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+                  ],
+                  "unchanged": [
+                    "Objectif global du plan",
+                    "Rôle du signal de pause",
+                    "Actions de soutien existantes sauf réordonnancement nécessaire"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+                  "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+                },
+                "scope_label": "plan global",
+                "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+                "decision_basis": {
+                  "evidence": [
+                    "Cette semaine m'a montre que ce n'est pas juste une action: le plan global ne colle plus a ma situation. Prepare un brouillon de changement du plan global, n'applique rien maintenant.",
+                    "operation_input.scope",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "semaines ou blocs exacts a affiner ensuite"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                  "must_preserve": [
+                    "intention du plan",
+                    "direction globale du plan"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                "change_rationale": {
+                  "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                  "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+                  "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+                },
+                "adjust_plan_result": {
+                  "scope": "whole_plan",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [],
+                    "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+                    "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+                    "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                    "affected_scope": "trajectoire globale du plan",
+                    "global_plan_impact": "requires_review",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "identité du plan",
+                      "demande de ne pas transformer cela en simple ajustement d'action"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                    "changed_items": [
+                      {
+                        "id": "d300c5b6-45c6-49f6-ac42-bb86128002d0",
+                        "kind": "action",
+                        "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                        "title": "Fiche support: repere de fatigue",
+                        "before": "Fiche support: repere de fatigue",
+                        "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "95bc0dc2-3f4a-4ba8-99df-e51847b80c39",
+                        "kind": "action",
+                        "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "4fa4ae75-98f6-4152-80be-b52791bdd49e",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                      }
+                    ],
+                    "trajectory_change": {
+                      "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                      "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                      "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                      "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                      "reordered_steps": [
+                        "Consolider le signal de pause",
+                        "S'entraîner au retour au calme et à la réparation simple",
+                        "Reprendre ensuite les conversations plus sensibles"
+                      ],
+                      "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+                    }
+                  },
+                  "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+                },
+                "execution_strategy": "whole_plan_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "plan_adjustment",
+                  "load_adjustment",
+                  "goal_adjustment",
+                  "sequence_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+            },
+            "status": "draft_review",
+            "reason_code": "active_conversation_skill_continue",
+            "operation_id": "5d6f87a9-924a-4346-8ac3-c78bbf37a174",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer une exécution immédiate du nouveau plan.",
+                "Transformer la demande en simple ajustement d’une tâche isolée.",
+                "Remplacer la structure par un autre objectif sans demande explicite.",
+                "Oublier la contrainte de préservation de l’intention du plan."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "L’intention centrale du plan.",
+                "La logique de progression globale.",
+                "Les repères de stabilité déjà utiles.",
+                "Le principe de ne pas appliquer le changement maintenant."
+              ],
+              "warnings": [
+                "Éviter de présenter cela comme un changement de nature du plan alors que la demande porte sur la structure et la séquence.",
+                "Éviter d’optimiser seulement un item isolé: le signal porte sur un désalignement global.",
+                "Éviter toute proposition qui augmente la charge ou multiplie les engagements sans vérifier la capacité réelle actuelle.",
+                "Éviter de supprimer l’intention du plan initial si elle peut être préservée par un réordonnancement."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Action: traiter la demande comme un brouillon de reconfiguration, pas comme une implémentation.",
+                "Intention préservée: conserver l’objectif de fond du plan, même si la séquence change.",
+                "Pont mini: relier le changement proposé à la réalité observée cette semaine et à ce qui bloque la cohérence.",
+                "Pas de changement de nature sans demande explicite: rester sur la séquence, le rythme et l’ordre, pas sur le but.",
+                "Niveau: si la charge actuelle paraît trop haute, proposer une baisse temporaire et ciblée, non globale et non définitive.",
+                "Boundary de fin de niveau: expliciter ce qui marque la sortie d’une phase avant d’en ouvrir une autre.",
+                "Cœur du niveau à préserver: la fonction des éléments du plan doit rester lisible même si leur position change.",
+                "Whole plan: raisonner en trajectoire, en prérequis et en ordre de phases, pas en items indépendants.",
+                "Whole plan: conserver le questionnaire ou les critères implicites qui permettent d’évaluer si le nouveau séquencement est plus juste.",
+                "Whole plan: ne pas casser la continuité entre le plan existant et le brouillon; proposer une transition lisible."
+              ],
+              "observation": "La demande signale un décrochage de cohérence au niveau du plan global, pas un simple ajustement local: la structure actuelle ne semble plus adaptée à la situation vécue cette semaine. Le besoin réel est de préparer une réorganisation de séquence sans trahir l’intention du plan, avec une prudence forte sur la continuité et la charge.",
+              "recommendation": "Orienter le brouillon vers une re-séquence globale, en gardant le cœur du plan intact mais en changeant l’ordre, le rythme ou le moment d’introduction des éléments pour mieux coller à la réalité actuelle. Le sous-skill doit proposer une lecture de cohérence et des pistes de remaniement, sans appliquer de modification ni déplacer le plan vers un autre type d’objectif.",
+              "options_to_discuss": [
+                "Revoir l’ordre des éléments pour commencer par ce qui stabilise le plus la situation.",
+                "Décaler temporairement les éléments les plus coûteux vers une phase plus tardive.",
+                "Conserver les missions et habitudes, mais changer leur cadence ou leur place dans la progression.",
+                "Introduire une phase de reprise ou de recentrage avant les éléments d’action plus exposés.",
+                "Alléger le départ du plan tout en gardant la même destination globale."
+              ],
+              "questions_to_clarify": [
+                "Quel aspect du plan global ne colle plus le plus: le rythme, l’ordre, la charge, ou les priorités ?",
+                "Y a-t-il des éléments du plan que la personne veut absolument garder tels quels ?",
+                "Le changement recherché est-il temporaire pour cette période, ou durable pour tout le plan ?"
+              ]
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 13117,
+          "created_at": "2026-05-20T13:28:48.380813+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T13:28:58.264Z",
+      "user": "Oui, mais ajoute une contrainte concrete: la prochaine etape doit rester sur deux actions maximum, et ne l'applique pas tant que je n'ai pas revalide.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est corrigé dans le brouillon: la prochaine étape reste limitée à deux actions maximum. Je n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-focus-r8-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-focus-r8-not_relevant_level_review-t02",
+        "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-focus-r8",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est corrigé dans le brouillon: la prochaine étape reste limitée à deux actions maximum. Je n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-focus-r8-not_relevant_level_review-t02",
+          "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+          "source_message_id": "9a28de75-3080-415b-940c-db0ceebbdcb7",
+          "ts": "2026-05-20T13:29:03.243+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10865,
+            "latency_ms": 4858,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 576,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-focus-r8-not_relevant_level_review-t02",
+            "user_id": "e55e5702-aeba-4287-b9d7-208549e782a3",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_continues_weekly_with_constraints",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "1;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "9a28de75-3080-415b-940c-db0ceebbdcb7",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "scope_kind": "whole_plan",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "whole_plan_directional_draft_ready",
+                    "preserve_plan_intent",
+                    "coach_observation:La demande signale un décrochage de cohérence au niveau du plan global, pas un simple ajustement local: la structure actuelle ne semble plus adaptée à la situation vécue cette semaine. Le besoin réel est de préparer une réorganisation de séquence sans trahir l’intention du plan, avec une prudence forte sur la continuité et la charge.",
+                    "coach_recommendation:Orienter le brouillon vers une re-séquence globale, en gardant le cœur du plan intact mais en changeant l’ordre, le rythme ou le moment d’introduction des éléments pour mieux coller à la réalité actuelle. Le sous-skill doit proposer une lecture de cohérence et des pistes de remaniement, sans appliquer de modification ni déplacer le plan vers un autre type d’objectif.",
+                    "coach_warning:Éviter de présenter cela comme un changement de nature du plan alors que la demande porte sur la structure et la séquence.",
+                    "coach_warning:Éviter d’optimiser seulement un item isolé: le signal porte sur un désalignement global.",
+                    "coach_warning:Éviter toute proposition qui augmente la charge ou multiplie les engagements sans vérifier la capacité réelle actuelle.",
+                    "coach_warning:Éviter de supprimer l’intention du plan initial si elle peut être préservée par un réordonnancement.",
+                    "coach_preserve:L’intention centrale du plan.",
+                    "coach_preserve:La logique de progression globale.",
+                    "coach_preserve:Les repères de stabilité déjà utiles.",
+                    "coach_preserve:Le principe de ne pas appliquer le changement maintenant.",
+                    "coach_avoid:Proposer une exécution immédiate du nouveau plan.",
+                    "coach_avoid:Transformer la demande en simple ajustement d’une tâche isolée.",
+                    "coach_avoid:Remplacer la structure par un autre objectif sans demande explicite.",
+                    "coach_avoid:Oublier la contrainte de préservation de l’intention du plan.",
+                    "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                    "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                    "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                    "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                    "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                    "coach_guideline:Action: traiter la demande comme un brouillon de reconfiguration, pas comme une implémentation.",
+                    "coach_guideline:Intention préservée: conserver l’objectif de fond du plan, même si la séquence change.",
+                    "coach_guideline:Pont mini: relier le changement proposé à la réalité observée cette semaine et à ce qui bloque la cohérence.",
+                    "coach_guideline:Pas de changement de nature sans demande explicite: rester sur la séquence, le rythme et l’ordre, pas sur le but.",
+                    "coach_guideline:Niveau: si la charge actuelle paraît trop haute, proposer une baisse temporaire et ciblée, non globale et non définitive.",
+                    "coach_guideline:Boundary de fin de niveau: expliciter ce qui marque la sortie d’une phase avant d’en ouvrir une autre.",
+                    "coach_guideline:Cœur du niveau à préserver: la fonction des éléments du plan doit rester lisible même si leur position change.",
+                    "coach_guideline:Whole plan: raisonner en trajectoire, en prérequis et en ordre de phases, pas en items indépendants.",
+                    "coach_guideline:Whole plan: conserver le questionnaire ou les critères implicites qui permettent d’évaluer si le nouveau séquencement est plus juste.",
+                    "coach_guideline:Whole plan: ne pas casser la continuité entre le plan existant et le brouillon; proposer une transition lisible.",
+                    "affected_item:plan global",
+                    "affected_item:Fiche support: repere de fatigue",
+                    "affected_item:Convenir d'un signal de pause",
+                    "max_two_actions_next_step"
+                  ],
+                  "reason_type": "bad_fit",
+                  "change_target": "sequence",
+                  "reason_change": "structure_bad_fit"
+                },
+                "title": "Ajuster la trajectoire du plan",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+                  ],
+                  "unchanged": [
+                    "Objectif global du plan",
+                    "Rôle du signal de pause",
+                    "Actions de soutien existantes sauf réordonnancement nécessaire"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+                  "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+                },
+                "scope_label": "plan global",
+                "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+                "decision_basis": {
+                  "evidence": [
+                    "Cette semaine m'a montre que ce n'est pas juste une action: le plan global ne colle plus a ma situation. Prepare un brouillon de changement du plan global, n'applique rien maintenant.",
+                    "operation_input.scope",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment",
+                    "message.explicit_whole_plan_adjustment"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "semaines ou blocs exacts a affiner ensuite"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                  "must_preserve": [
+                    "intention du plan",
+                    "direction globale du plan"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.\n\nContrainte ajoutée: la prochaine étape reste limitée à deux actions maximum.",
+                "change_rationale": {
+                  "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                  "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+                  "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+                },
+                "adjust_plan_result": {
+                  "scope": "whole_plan",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [],
+                    "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+                    "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+                    "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                    "affected_scope": "trajectoire globale du plan",
+                    "global_plan_impact": "requires_review",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "identité du plan",
+                      "demande de ne pas transformer cela en simple ajustement d'action"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                    "changed_items": [
+                      {
+                        "id": "d300c5b6-45c6-49f6-ac42-bb86128002d0",
+                        "kind": "action",
+                        "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                        "title": "Fiche support: repere de fatigue",
+                        "before": "Fiche support: repere de fatigue",
+                        "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "95bc0dc2-3f4a-4ba8-99df-e51847b80c39",
+                        "kind": "action",
+                        "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "4fa4ae75-98f6-4152-80be-b52791bdd49e",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                      }
+                    ],
+                    "trajectory_change": {
+                      "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                      "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                      "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                      "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                      "reordered_steps": [
+                        "Consolider le signal de pause",
+                        "S'entraîner au retour au calme et à la réparation simple",
+                        "Reprendre ensuite les conversations plus sensibles"
+                      ],
+                      "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+                    }
+                  },
+                  "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+                },
+                "execution_strategy": "whole_plan_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "plan_adjustment",
+                  "load_adjustment",
+                  "goal_adjustment",
+                  "sequence_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.\n\nContrainte ajoutée: la prochaine étape reste limitée à deux actions maximum.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas.\n\nContrainte ajoutée: la prochaine étape reste limitée à deux actions maximum."
+            },
+            "status": "draft_review_updated",
+            "reason_code": "active_conversation_skill_continue",
+            "operation_id": "5d6f87a9-924a-4346-8ac3-c78bbf37a174",
+            "selected_handler": "adjust_plan_item",
+            "draft_review_decision": {
+              "decision": "revise",
+              "evidence": [
+                "deterministic_simple_revision"
+              ],
+              "confidence": "high",
+              "apply_after_revision": false
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4939,
+          "created_at": "2026-05-20T13:29:03.245037+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T13:29:03.260Z"
+}

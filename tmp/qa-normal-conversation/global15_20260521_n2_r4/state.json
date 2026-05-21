@@ -1,0 +1,1161 @@
+{
+  "run_id": "global15_20260521_n2_r4",
+  "scope": "qa-global-normal-conversation-15t-20260521-n2-r4",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global15_20260521_n2_r4-1779367959339@example.com",
+  "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiI1NDY1MmQ5Mi1mZDkyLTQyOWQtYmRlYy1lOTgyN2FlNzA3MDYiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5MzcxNTU5LCJpYXQiOjE3NzkzNjc5NTksImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbDE1XzIwMjYwNTIxX24yX3I0LTE3NzkzNjc5NTkzMzlAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbDE1XzIwMjYwNTIxX24yX3I0LTE3NzkzNjc5NTkzMzlAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6Imdsb2JhbDE1XzIwMjYwNTIxX24yX3I0Iiwic3ViIjoiNTQ2NTJkOTItZmQ5Mi00MjlkLWJkZWMtZTk4MjdhZTcwNzA2In0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NzkzNjc5NTl9XSwic2Vzc2lvbl9pZCI6IjU1YjgxNmQ5LTQ5OGUtNDdjOS04YmFhLTliOTc4MjU1ZDEwMyIsImlzX2Fub255bW91cyI6ZmFsc2V9.a38dqIkmq_X5ngQsgIdHUx4HseXtj4UDcXqBcWSdYQA",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-21T12:52:39.591Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-21T12:52:53.822Z",
+      "user": "Salut Sophia, je rentre du boulot completement vide. J'ai promis de ranger la cuisine et de preparer mon sac de sport, mais je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree sans me mettre la pression.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je comprends, c'est le piège classique quand l'énergie est à plat. On va éviter le tunnel infini sur ton téléphone.\n\nPour sauver ta soirée sans forcer, on peut faire ça :\n1. Pose ton téléphone dans une autre pièce (le geste le plus dur, mais le plus efficace).\n2. Lance un chrono de 10 minutes seulement pour la cuisine, pas plus.\n3. Prépare ton sac juste après, ça prend 2 minutes chrono.\n\nSi tu veux, on peut préparer une petite Carte d'attaque pour rendre ce démarrage plus simple. Ça te dit ? 📱",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "attack_card",
+        "opportunity_operation": "prepare_attack_card",
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "execution_breakdown",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-21T12:52:53.770Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-21T12:52:53.770Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-21T12:52:53.770Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-21T12:52:53.770Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-21T12:52:53.770Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-21T12:52:53.769Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-05-21T12:52:53.769Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-21T12:52:53.769Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "186fed51-abc2-45db-9f59-9a19b3198560",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-05-21T12:52:53.754Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__pending_recommendation_operation": {
+                  "created_at": "2026-05-21T12:52:53.769Z",
+                  "request_id": "global15_20260521_n2_r4-t01",
+                  "surface_id": "attack_card",
+                  "surface_label": "Carte d'attaque",
+                  "operation_type": "prepare_attack_card",
+                  "operation_input": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "ranger la cuisine et préparer le sac de sport",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "reason": "user_identifies_friction_and_risk_of_avoidance_on_planned_tasks",
+                      "source_span": "je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree"
+                    },
+                    "desired_attack_angle": "preparer_terrain"
+                  },
+                  "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260521_n2_r4-t01"
+                }
+              },
+              "updated_at": "2026-05-21T12:52:53.774543+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 400,
+          "ok": false,
+          "body": {
+            "code": "42703",
+            "details": null,
+            "hint": null,
+            "message": "column scheduled_checkins.channel does not exist"
+          }
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260521_n2_r4-t01",
+        "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+        "channel": "web",
+        "scope": "qa-global-normal-conversation-15t-20260521-n2-r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je comprends, c'est le piège classique quand l'énergie est à plat. On va éviter le tunnel infini sur ton téléphone.\n\nPour sauver ta soirée sans forcer, on peut faire ça :\n1. Pose ton téléphone dans une autre pièce (le geste le plus dur, mais le plus efficace).\n2. Lance un chrono de 10 minutes seulement pour la cuisine, pas plus.\n3. Prépare ton sac juste après, ça prend 2 minutes chrono.\n\nSi tu veux, on peut préparer une petite Carte d'attaque pour rendre ce démarrage plus simple. Ça te dit ? 📱",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260521_n2_r4-t01",
+          "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+          "source_message_id": "186fed51-abc2-45db-9f59-9a19b3198560",
+          "ts": "2026-05-21T12:52:53.754+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8505,
+            "latency_ms": 4786,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 697,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "procrastination soir téléphone",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "fatigue retour boulot",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260521_n2_r4-t01",
+            "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "procrastination soir téléphone",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "fatigue retour boulot",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "blocked_execution_due_to_low_energy_and_digital_friction",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "186fed51-abc2-45db-9f59-9a19b3198560",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_identifies_friction_and_risk_of_avoidance_on_planned_tasks",
+              "source_span": "je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree",
+              "target_hint": "ranger la cuisine et préparer le sac de sport",
+              "offer_timing": "now",
+              "should_offer": true,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_entry_signal",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "execution_breakdown",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+              "status": "continue",
+              "skill_id": "execution_breakdown",
+              "diagnosis": {
+                "stage": "target_resolution",
+                "blocker_candidates": [
+                  "flou",
+                  "energie",
+                  "friction_demarrage"
+                ]
+              },
+              "state_patch": {
+                "summary": "Need concrete target."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "target_resolution",
+              "recommendation_need": {
+                "type": "execution_repair",
+                "needed": false,
+                "urgency": "medium",
+                "constraints": [
+                  "understand_before_solution"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [
+                {
+                  "kind": "statement",
+                  "scope_hint": "session",
+                  "content_text": "Salut Sophia, je rentre du boulot completement vide. J'ai promis de ranger la cuisine et de preparer mon sac de sport, mais je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree sans me mettre la pression.",
+                  "confidence_band": "medium",
+                  "sensitivity_level": 1,
+                  "evidence_source_ids": [
+                    "186fed51-abc2-45db-9f59-9a19b3198560"
+                  ],
+                  "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true
+                }
+              ]
+            },
+            "reason_code": "skill_entry_signal",
+            "selected_skill_id": "execution_breakdown"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": {
+            "stats": null,
+            "recommendation": {
+              "reason": "user_identifies_friction_and_risk_of_avoidance_on_planned_tasks",
+              "timing": "now",
+              "decision": "recommend_operation",
+              "cta_style": "soft",
+              "confidence": 0.86,
+              "surface_id": "attack_card",
+              "alternatives": [],
+              "operation_type": "prepare_attack_card",
+              "operation_input": {
+                "target": {
+                  "kind": "personal_action",
+                  "title": "ranger la cuisine et préparer le sac de sport"
+                },
+                "blocker": {
+                  "type": "friction",
+                  "reason": "user_identifies_friction_and_risk_of_avoidance_on_planned_tasks",
+                  "source_span": "je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree"
+                },
+                "desired_attack_angle": "preparer_terrain"
+              },
+              "do_not_recommend": [],
+              "executor_tool_id": "prepare_attack_card",
+              "requires_consent": true,
+              "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260521_n2_r4-t01",
+              "user_facing_offer": "Je vois surtout une friction de lancement pour \"ranger la cuisine et préparer le sac de sport\". Si tu veux, on peut en faire une petite Carte d'attaque pour rendre le démarrage plus simple.",
+              "presentation_level": 2
+            }
+          },
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 6783,
+          "created_at": "2026-05-21T12:52:53.757825+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-05-21T12:53:16.477Z",
+      "user": "Ok, on fait tres petit. Je vais commencer par la cuisine 6 minutes. Et j'aimerais une carte de defense pour le moment ou je m'assois sur le canape et que j'ouvre TikTok sans reflechir.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Voici ta carte de défense :\nLe moment : Le moment: Quand je m'assois sur le canapé\nLe piège : Le piege: J'ouvre TikTok sans réfléchir\nMon geste : Mon geste: Je pose mon téléphone face contre terre\nPlan B : Plan B: Je prends 3 grandes inspirations\nOn valide ? 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_defense_card",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "prepare_defense_card"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-21T12:52:53.770Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-21T12:52:53.770Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-21T12:52:53.770Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-21T12:52:53.770Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-21T12:52:53.770Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-21T12:52:53.769Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-05-21T12:52:53.769Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-21T12:52:58.909Z",
+                  "score": 1,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "186fed51-abc2-45db-9f59-9a19b3198560",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-05-21T12:52:53.754Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  1
+                ],
+                "__coaching_intervention_history": [],
+                "__pending_tool_skill_confirmation": {
+                  "draft": {
+                    "draft": {
+                      "title": "Pause canapé sans TikTok",
+                      "plan_b": "Plan B: Je prends 3 grandes inspirations",
+                      "signal": "Le piege: J'ouvre TikTok sans réfléchir",
+                      "trigger": "S'asseoir sur le canapé",
+                      "situation": "Le moment: Quand je m'assois sur le canapé",
+                      "target_label": "Temps pour soi",
+                      "why_it_helps": "Casser l'automatisme physique",
+                      "fallback_plan": "Je change de pièce",
+                      "impulse_label": "TikTok réflexe",
+                      "risk_situation": "Le moment: Quand je m'assois sur le canapé",
+                      "generic_defense": "Poser le téléphone",
+                      "defense_response": "Mon geste: Je pose mon téléphone face contre terre"
+                    },
+                    "output_schema": "defense_card_draft_v1",
+                    "operation_type": "prepare_defense_card",
+                    "confirmation_actions": [
+                      "yes",
+                      "no"
+                    ],
+                    "confirmation_message": "Voici ta carte de défense :\nLe moment : Le moment: Quand je m'assois sur le canapé\nLe piège : Le piege: J'ouvre TikTok sans réfléchir\nMon geste : Mon geste: Je pose mon téléphone face contre terre\nPlan B : Plan B: Je prends 3 grandes inspirations\nOn valide ?"
+                  },
+                  "source": "direct_user_request",
+                  "summary": "Pause canapé sans TikTok",
+                  "attachment": {
+                    "kind": "recurring_context",
+                    "title": "Moment canapé et TikTok",
+                    "plan_item_id": null
+                  },
+                  "created_at": "2026-05-21T12:53:16.369Z",
+                  "turn_count": 0,
+                  "intake_state": {
+                    "trigger": {
+                      "type": "habit_loop",
+                      "status": "identified",
+                      "evidence": [
+                        "sans reflechir"
+                      ],
+                      "confidence": 1
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "L'utilisateur demande explicitement une carte de défense pour un moment de craquage (TikTok par habitude).",
+                      "status": "defense",
+                      "evidence": [
+                        "j'aimerais une carte de defense pour le moment ou je m'assois sur le canape et que j'ouvre TikTok sans reflechir"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "recurring_context",
+                      "title": "Moment canapé et TikTok",
+                      "status": "identified",
+                      "evidence": [
+                        "le moment ou je m'assois sur le canape et que j'ouvre TikTok sans reflechir"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "draft_generation",
+                    "defense_goal": {
+                      "value": "interrupt_impulse",
+                      "status": "identified",
+                      "evidence": [
+                        "ouvrir TikTok sans reflechir"
+                      ],
+                      "confidence": "high"
+                    },
+                    "missing_slots": [],
+                    "risk_situation": {
+                      "label": "Ouverture réflexe de TikTok sur le canapé",
+                      "status": "identified",
+                      "evidence": [
+                        "le moment ou je m'assois sur le canape et que j'ouvre TikTok sans reflechir"
+                      ],
+                      "confidence": "high",
+                      "description": "S'asseoir sur le canapé et ouvrir l'application sans y réfléchir.",
+                      "timing_hint": "au moment de s'asseoir sur le canapé",
+                      "context_hint": "moment de transition ou de repos"
+                    },
+                    "defense_response_hint": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "strategy_hint": "unknown"
+                    },
+                    "generated_user_message": "C'est noté pour les 6 minutes de cuisine. Pour ta carte de défense : quand tu t'assois et que tu sens que tu ouvres TikTok par réflexe, qu'est-ce que tu pourrais faire de très simple pour casser cette habitude ?"
+                  },
+                  "operation_id": "db675126-2170-47ed-9f06-ea3ae2cd36ee",
+                  "operation_type": "prepare_defense_card",
+                  "risk_situation": {
+                    "label": "Ouverture réflexe de TikTok sur le canapé",
+                    "description": "S'asseoir sur le canapé et ouvrir l'application sans y réfléchir.",
+                    "timing_hint": "au moment de s'asseoir sur le canapé",
+                    "context_hint": "moment de transition ou de repos"
+                  },
+                  "expires_after_turns": 2
+                },
+                "__pending_recommendation_operation": {
+                  "created_at": "2026-05-21T12:52:53.769Z",
+                  "request_id": "global15_20260521_n2_r4-t01",
+                  "surface_id": "attack_card",
+                  "surface_label": "Carte d'attaque",
+                  "operation_type": "prepare_attack_card",
+                  "operation_input": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "ranger la cuisine et préparer le sac de sport",
+                      "plan_item_id": null
+                    },
+                    "blocker": {
+                      "type": "friction",
+                      "reason": "user_identifies_friction_and_risk_of_avoidance_on_planned_tasks",
+                      "source_span": "je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree"
+                    },
+                    "desired_attack_angle": "preparer_terrain"
+                  },
+                  "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260521_n2_r4-t01"
+                }
+              },
+              "updated_at": "2026-05-21T12:53:16.371178+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 400,
+          "ok": false,
+          "body": {
+            "code": "42703",
+            "details": null,
+            "hint": null,
+            "message": "column scheduled_checkins.channel does not exist"
+          }
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260521_n2_r4-t02",
+        "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+        "channel": "web",
+        "scope": "qa-global-normal-conversation-15t-20260521-n2-r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici ta carte de défense :\nLe moment : Le moment: Quand je m'assois sur le canapé\nLe piège : Le piege: J'ouvre TikTok sans réfléchir\nMon geste : Mon geste: Je pose mon téléphone face contre terre\nPlan B : Plan B: Je prends 3 grandes inspirations\nOn valide ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260521_n2_r4-t02",
+          "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+          "source_message_id": "ce0f7aad-e5f5-43f4-a40b-07404e97f774",
+          "ts": "2026-05-21T12:53:16.377+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8870,
+            "latency_ms": 4924,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 767,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "usage compulsif tiktok canapé",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "tiktok_scrolling",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "habitude de scroller sur tiktok le soir",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260521_n2_r4-t02",
+            "user_id": "54652d92-fd92-429d-bdec-e9827ae70706",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "usage compulsif tiktok canapé",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "tiktok_scrolling",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "habitude de scroller sur tiktok le soir",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "user_accepts_smaller_step_and_defines_it",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "0;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "ce0f7aad-e5f5-43f4-a40b-07404e97f774",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "moment où je m'assois sur le canapé et que j'ouvre TikTok sans réfléchir",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_defense_card",
+                "confidence_band": "high",
+                "operation_input": {
+                  "target": {
+                    "value": "moment où je m'assois sur le canapé et que j'ouvre TikTok sans réfléchir",
+                    "status": "identified",
+                    "evidence": [
+                      "moment ou je m'assois sur le canape et que j'ouvre TikTok sans reflechir"
+                    ]
+                  }
+                }
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "prepare_defense_card",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "title": "Pause canapé sans TikTok",
+                "plan_b": "Plan B: Je prends 3 grandes inspirations",
+                "signal": "Le piege: J'ouvre TikTok sans réfléchir",
+                "trigger": "S'asseoir sur le canapé",
+                "situation": "Le moment: Quand je m'assois sur le canapé",
+                "target_label": "Temps pour soi",
+                "why_it_helps": "Casser l'automatisme physique",
+                "fallback_plan": "Je change de pièce",
+                "impulse_label": "TikTok réflexe",
+                "risk_situation": "Le moment: Quand je m'assois sur le canapé",
+                "generic_defense": "Poser le téléphone",
+                "defense_response": "Mon geste: Je pose mon téléphone face contre terre"
+              },
+              "output_schema": "defense_card_draft_v1",
+              "operation_type": "prepare_defense_card",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici ta carte de défense :\nLe moment : Le moment: Quand je m'assois sur le canapé\nLe piège : Le piege: J'ouvre TikTok sans réfléchir\nMon geste : Mon geste: Je pose mon téléphone face contre terre\nPlan B : Plan B: Je prends 3 grandes inspirations\nOn valide ?"
+            },
+            "status": "pending_confirmation",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "db675126-2170-47ed-9f06-ea3ae2cd36ee",
+            "selected_handler": "prepare_defense_card"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 22414,
+          "created_at": "2026-05-21T12:53:16.37899+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-21T12:53:16.478Z"
+}

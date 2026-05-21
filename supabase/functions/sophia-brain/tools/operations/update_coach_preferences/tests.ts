@@ -5,13 +5,80 @@ import {
   resetConsumedConfirmationTokensForTest,
 } from "../../../confirmation/confirmation_token.ts";
 import { executeUpdateCoachPreferences } from "./executor.ts";
-import { runUpdateCoachPreferencesIntake } from "./intake.ts";
+import {
+  reviewUpdateCoachPreferencesDraft,
+  runUpdateCoachPreferencesIntake,
+} from "./intake.ts";
+import { runCoachPreferencesPatchBuilder } from "./generator.ts";
 import {
   readyCoachPreferencesStatePatch,
   structuredCoachPreferencesSlotFiller,
 } from "./test_helpers.ts";
 
 const SECRET = "s6-test-secret";
+
+Deno.test("update_coach_preferences draft review approves explicit keep preference with side request", async () => {
+  const decision = await reviewUpdateCoachPreferencesDraft({
+    message:
+      "Oui, garde cette préférence. Et donne-moi maintenant la version ultra de la phrase.",
+    previous_draft: {
+      operation_type: "update_coach_preferences",
+      draft: {
+        patch: { "coach.question_tendency": "low" },
+        summary:
+          "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.",
+      },
+    },
+  });
+  assertEquals(decision?.decision, "approve");
+  assertEquals(decision?.confidence, "high");
+});
+
+Deno.test("update_coach_preferences preserves one concrete action preference wording", () => {
+  const draft = runCoachPreferencesPatchBuilder({
+    operation_type: "update_coach_preferences",
+    output_schema: "coach_preferences_patch_draft_v1",
+    current_preferences: {},
+    requested_patch: { "coach.question_tendency": "low" },
+    reason: {
+      evidence: [
+        "Pour la suite, quand je suis vide, une action concrète à la fois, pas trois options.",
+      ],
+    },
+    constraints: [],
+    forbidden: [],
+  });
+
+  assertEquals(
+    draft.draft.summary,
+    "je te proposerai une seule action concrète à la fois, avec moins de questions/options quand tu es vidé ou bloqué.",
+  );
+  assertEquals(
+    draft.confirmation_message.includes("une seule action concrète à la fois"),
+    true,
+  );
+});
+
+Deno.test("update_coach_preferences resolves one action not three options deterministically", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Pour la suite, quand je suis vide comme ca, parle-moi en mode tres concret: une action, pas trois options. Garde cette preference si tu peux.",
+    trigger_message_id: "m-one-action-preference",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    output.confirmation?.message.includes("une seule action concrète"),
+    true,
+  );
+});
 
 Deno.test("update_coach_preferences pipeline covers 5 scenarios and strict allowed keys", async () => {
   const scenarios = [
@@ -78,7 +145,11 @@ Deno.test("update_coach_preferences pipeline covers 5 scenarios and strict allow
         false,
       );
       assertEquals(
-        pendingMessage.includes("j'utiliserai"),
+        pendingMessage.includes("Je peux régler ma façon de répondre"),
+        false,
+      );
+      assertEquals(
+        pendingMessage.includes("Si c'est bien ça"),
         true,
       );
       const token = await createConfirmationToken({

@@ -1,0 +1,172 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r118-value-warmth-green2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réorienter le cap vers chaleur et fiabilité, sans ajouter d'actions.",
+    "assistant": "Je comprends que tu souhaites réorienter le plan global pour qu'il reflète davantage la chaleur et la fiabilité, plutôt qu'une impression de performance, tout en gardant l'objectif de couple et sans ajouter de nouvelles actions. Est-ce que je peux te préparer une proposition concrète pour cela ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de nouvelles actions ou de nouveaux éléments au plan.",
+          "Se concentrer sur des métriques quantitatives ou des 'cases à cocher' dans les futures interactions.",
+          "Suggérer des changements qui altéreraient la nature profonde ou l'objectif initial des actions existantes."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du couple et de la relation.",
+          "L'ensemble des actions actuellement définies dans le plan, sans en ajouter de nouvelles.",
+          "La fonction fondamentale de chaque action existante (ex: le signal de pause pour la désescalade, le point positif pour le renforcement)."
+        ],
+        "warnings": [
+          "Éviter de proposer l'ajout de nouvelles actions ou phases, car cela contredirait la contrainte explicite de l'utilisateur.",
+          "Ne pas supprimer d'actions existantes sans avoir d'abord exploré comment elles pourraient être réinterprétées sous l'angle de la 'chaleur et fiabilité'.",
+          "Prendre garde à ne pas diluer la clarté ou l'utilité pratique des actions en les reformulant, mais plutôt à enrichir leur sens."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, ainsi que l'objectif et le questionnaire du plan doivent être préservés.",
+          "Action: Le rôle de chaque action, son intention préservée, la création de ponts minimaux si nécessaire, et l'absence de changement de nature sans demande explicite sont cruciaux.",
+          "Niveau: La charge et le rythme du niveau courant, une baisse temporaire non globale, la délimitation de la fin du niveau, et la préservation du cœur du niveau sont à respecter."
+        ],
+        "observation": "L'utilisateur perçoit le plan actuel comme trop axé sur la performance et la 'case à cocher', ce qui génère une dissonance avec son désir d'un plan orienté vers la 'chaleur et la fiabilité' pour son couple. Il souhaite une réorientation qualitative de l'approche du plan, sans ajouter de nouvelles actions, tout en maintenant l'objectif relationnel.",
+        "change_family": "value_preference_conflict",
+        "recommendation": "Réorienter l'emphase et le framing des actions existantes pour qu'elles résonnent avec les valeurs de 'chaleur et fiabilité', plutôt qu'avec une logique de performance. Il s'agit de transformer la perception et l'intention derrière chaque action, sans en modifier la substance ou en ajouter de nouvelles.",
+        "next_best_question": "Pour vous, concrètement, qu'est-ce qui rendrait une action comme 'Partager un point positif' plus orientée vers la 'chaleur et la fiabilité' et moins vers la 'performance' ?",
+        "options_to_discuss": [
+          "Explorer comment la description ou l'intention de chaque action actuelle (ex: 'Partager un point positif', 'Convenir d'un signal de pause') pourrait être reformulée pour incarner davantage la 'chaleur et la fiabilité'.",
+          "Discuter de la manière dont l'utilisateur pourrait aborder mentalement ou émotionnellement les actions pour qu'elles soient vécues comme des gestes de 'chaleur et fiabilité' plutôt que des tâches.",
+          "Considérer si des ajustements mineurs dans la cadence ou la difficulté perçue des actions existantes pourraient contribuer à alléger l'impression de 'performance' sans ajouter de charge."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [
+          "Pour vous, concrètement, qu'est-ce qui rendrait une action comme 'Partager un point positif' plus orientée vers la 'chaleur et la fiabilité' et moins vers la 'performance' ?",
+          "Quand vous parlez de 'chaleur et fiabilité', quels sont les sentiments ou les types d'interactions spécifiques que vous aimeriez ressentir ou créer en réalisant les actions du plan ?"
+        ],
+        "trajectory_hypothesis": "Le plan est actuellement perçu comme axé sur la performance; l'utilisateur cherche à réorienter son esprit vers la chaleur et la fiabilité en reformulant les actions existantes sans en ajouter de nouvelles.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de nouvelles actions ou de nouveaux éléments au plan.",
+        "Se concentrer sur des métriques quantitatives ou des 'cases à cocher' dans les futures interactions.",
+        "Suggérer des changements qui altéreraient la nature profonde ou l'objectif initial des actions existantes."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du couple et de la relation.",
+        "L'ensemble des actions actuellement définies dans le plan, sans en ajouter de nouvelles.",
+        "La fonction fondamentale de chaque action existante (ex: le signal de pause pour la désescalade, le point positif pour le renforcement)."
+      ],
+      "warnings": [
+        "Éviter de proposer l'ajout de nouvelles actions ou phases, car cela contredirait la contrainte explicite de l'utilisateur.",
+        "Ne pas supprimer d'actions existantes sans avoir d'abord exploré comment elles pourraient être réinterprétées sous l'angle de la 'chaleur et fiabilité'.",
+        "Prendre garde à ne pas diluer la clarté ou l'utilité pratique des actions en les reformulant, mais plutôt à enrichir leur sens."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, ainsi que l'objectif et le questionnaire du plan doivent être préservés.",
+        "Action: Le rôle de chaque action, son intention préservée, la création de ponts minimaux si nécessaire, et l'absence de changement de nature sans demande explicite sont cruciaux.",
+        "Niveau: La charge et le rythme du niveau courant, une baisse temporaire non globale, la délimitation de la fin du niveau, et la préservation du cœur du niveau sont à respecter."
+      ],
+      "observation": "L'utilisateur perçoit le plan actuel comme trop axé sur la performance et la 'case à cocher', ce qui génère une dissonance avec son désir d'un plan orienté vers la 'chaleur et la fiabilité' pour son couple. Il souhaite une réorientation qualitative de l'approche du plan, sans ajouter de nouvelles actions, tout en maintenant l'objectif relationnel.",
+      "change_family": "value_preference_conflict",
+      "recommendation": "Réorienter l'emphase et le framing des actions existantes pour qu'elles résonnent avec les valeurs de 'chaleur et fiabilité', plutôt qu'avec une logique de performance. Il s'agit de transformer la perception et l'intention derrière chaque action, sans en modifier la substance ou en ajouter de nouvelles.",
+      "next_best_question": "Pour vous, concrètement, qu'est-ce qui rendrait une action comme 'Partager un point positif' plus orientée vers la 'chaleur et la fiabilité' et moins vers la 'performance' ?",
+      "options_to_discuss": [
+        "Explorer comment la description ou l'intention de chaque action actuelle (ex: 'Partager un point positif', 'Convenir d'un signal de pause') pourrait être reformulée pour incarner davantage la 'chaleur et la fiabilité'.",
+        "Discuter de la manière dont l'utilisateur pourrait aborder mentalement ou émotionnellement les actions pour qu'elles soient vécues comme des gestes de 'chaleur et fiabilité' plutôt que des tâches.",
+        "Considérer si des ajustements mineurs dans la cadence ou la difficulté perçue des actions existantes pourraient contribuer à alléger l'impression de 'performance' sans ajouter de charge."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [
+        "Pour vous, concrètement, qu'est-ce qui rendrait une action comme 'Partager un point positif' plus orientée vers la 'chaleur et la fiabilité' et moins vers la 'performance' ?",
+        "Quand vous parlez de 'chaleur et fiabilité', quels sont les sentiments ou les types d'interactions spécifiques que vous aimeriez ressentir ou créer en réalisant les actions du plan ?"
+      ],
+      "trajectory_hypothesis": "Le plan est actuellement perçu comme axé sur la performance; l'utilisateur cherche à réorienter son esprit vers la chaleur et la fiabilité en reformulant les actions existantes sans en ajouter de nouvelles.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r118-value-warmth-green2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r118-value-warmth-green2-t02",
+    "status": 503,
+    "ok": null,
+    "user": "Oui, prépare la proposition, sans l'appliquer. Pour moi ça veut dire : prévenir quand je suis indisponible, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r118-value-warmth-green2-t02",
+    "trace_error": null
+  }
+]

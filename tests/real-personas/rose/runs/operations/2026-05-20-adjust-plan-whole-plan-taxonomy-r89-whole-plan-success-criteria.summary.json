@@ -1,0 +1,322 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r89-whole-plan-success-criteria-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je me rends compte que mesurer le plan avec juste moins de disputes ou faire les actions ne me parle plus trop. J aimerais que la reussite du plan soit plutot autour de la qualite du lien : est-ce qu on arrive a se sentir proches apres un echange, meme si tout n est pas regle. Je ne sais pas si c est un ajustement global ou juste une note.",
+    "assistant": "Je peux le faire, mais il me manque une précision : tu veux que la qualité du lien après échange remplace le critère actuel, ou qu’elle s’y ajoute comme nouveau critère principal ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer une simple reformulation cosmétique sans impact sur les critères.",
+          "Ne pas déplacer la demande vers une modification d'action ou de rythme.",
+          "Ne pas présenter une suppression pure et simple des objectifs de réduction de tension.",
+          "Ne pas valider un changement global sans clarification sur le statut du nouveau critère."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La logique de sécurité et de désamorçage déjà installée.",
+          "Les actions qui servent à réduire l'escalade et à créer un cadre plus sûr.",
+          "L'idée qu'un échange peut être réussi même si tout n'est pas résolu.",
+          "Les repères concrets déjà présents dans le plan, à titre d'indicateurs secondaires."
+        ],
+        "warnings": [
+          "Éviter de réduire la réussite à un ressenti vague sans garder de repères observables.",
+          "Éviter de proposer seulement une note marginale si le besoin exprimé concerne la logique globale du plan.",
+          "Éviter de remplacer trop vite les critères sans vérifier si la proximité après échange doit devenir un critère principal ou un critère complémentaire.",
+          "Éviter de laisser entendre que moins de disputes ou l'exécution des actions n'ont plus aucune valeur: ils peuvent rester des indicateurs indirects, pas le cœur de la réussite."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l'action: réviser le critère de succès du plan, pas les tâches elles-mêmes.",
+          "Intention préservée: continuer à désamorcer les tensions et à recréer de la sécurité relationnelle.",
+          "Pont mini si besoin: relier la baisse des disputes à la capacité de retrouver de la proximité après échange.",
+          "Pas de changement de nature sans demande explicite: ne pas transformer le plan en plan de communication positive ou de réparation intensive.",
+          "Niveau du plan: garder le même niveau de sécurité et d'observation; ne pas baisser l'exigence relationnelle, mais redéfinir ce qui compte comme réussite.",
+          "Whole_plan: préserver la trajectoire de désescalade, les prérequis de sécurité et l'ordre des phases; ajuster uniquement la définition de la réussite.",
+          "Whole_plan: si la proximité devient centrale, la formuler comme critère de succès observable ou partageable, pas comme simple impression passagère.",
+          "Whole_plan: ne pas effacer les indicateurs de friction; les repositionner comme signaux utiles mais non exclusifs."
+        ],
+        "observation": "La demande ne porte pas sur une action précise, mais sur ce qui compte comme réussite du plan. Le critère actuel semble centré sur la baisse des disputes ou l'exécution des actions, alors que le besoin humain réel est de savoir si l'échange laisse une sensation de proximité et de lien, même sans résolution complète. Cela touche au sens du plan plus qu'à un simple ajustement local.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter la demande comme un changement des critères de réussite à l'échelle du plan entier, avec une exploration préalable du bon niveau de changement. Le bon axe de coaching est de préserver la logique de sécurité et de désescalade déjà en place, tout en reformulant la réussite autour de la qualité du lien après échange, sans abandonner les indicateurs de tension comme signaux secondaires.",
+        "next_best_question": "Souhaites-tu que la qualité du lien après échange remplace le critère actuel de réussite, ou qu'elle s'ajoute à lui comme nouveau critère principal ?",
+        "options_to_discuss": [
+          "Faire de la qualité du lien après échange le critère principal de réussite du plan.",
+          "Garder les critères actuels comme indicateurs de support, mais ajouter un critère relationnel explicite.",
+          "Formuler un critère hybride: l'échange réussit si la tension baisse et si vous pouvez redevenir proches, même sans accord final.",
+          "Limiter ce changement à une note de cadrage sur le sens du plan, sans modifier formellement les critères de réussite.",
+          "Introduire un mini-indicateur observable de proximité après échange, pour rendre le critère concret."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [
+          "La qualité du lien après échange doit-elle devenir le critère principal du plan, ou seulement un critère ajouté aux critères actuels ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle mesure surtout la baisse de tension et l'exécution des actions; la trajectoire possible recentre la réussite sur la qualité du lien après échange, avec la paix relationnelle comme résultat recherché.",
+        "must_not_execute_reason": "La demande exprime une réorientation du sens du plan, mais ne précise pas encore si le nouveau critère doit remplacer l'ancien ou s'y ajouter. Il faut d'abord clarifier le niveau de changement avant toute réécriture."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer une simple reformulation cosmétique sans impact sur les critères.",
+        "Ne pas déplacer la demande vers une modification d'action ou de rythme.",
+        "Ne pas présenter une suppression pure et simple des objectifs de réduction de tension.",
+        "Ne pas valider un changement global sans clarification sur le statut du nouveau critère."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La logique de sécurité et de désamorçage déjà installée.",
+        "Les actions qui servent à réduire l'escalade et à créer un cadre plus sûr.",
+        "L'idée qu'un échange peut être réussi même si tout n'est pas résolu.",
+        "Les repères concrets déjà présents dans le plan, à titre d'indicateurs secondaires."
+      ],
+      "warnings": [
+        "Éviter de réduire la réussite à un ressenti vague sans garder de repères observables.",
+        "Éviter de proposer seulement une note marginale si le besoin exprimé concerne la logique globale du plan.",
+        "Éviter de remplacer trop vite les critères sans vérifier si la proximité après échange doit devenir un critère principal ou un critère complémentaire.",
+        "Éviter de laisser entendre que moins de disputes ou l'exécution des actions n'ont plus aucune valeur: ils peuvent rester des indicateurs indirects, pas le cœur de la réussite."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l'action: réviser le critère de succès du plan, pas les tâches elles-mêmes.",
+        "Intention préservée: continuer à désamorcer les tensions et à recréer de la sécurité relationnelle.",
+        "Pont mini si besoin: relier la baisse des disputes à la capacité de retrouver de la proximité après échange.",
+        "Pas de changement de nature sans demande explicite: ne pas transformer le plan en plan de communication positive ou de réparation intensive.",
+        "Niveau du plan: garder le même niveau de sécurité et d'observation; ne pas baisser l'exigence relationnelle, mais redéfinir ce qui compte comme réussite.",
+        "Whole_plan: préserver la trajectoire de désescalade, les prérequis de sécurité et l'ordre des phases; ajuster uniquement la définition de la réussite.",
+        "Whole_plan: si la proximité devient centrale, la formuler comme critère de succès observable ou partageable, pas comme simple impression passagère.",
+        "Whole_plan: ne pas effacer les indicateurs de friction; les repositionner comme signaux utiles mais non exclusifs."
+      ],
+      "observation": "La demande ne porte pas sur une action précise, mais sur ce qui compte comme réussite du plan. Le critère actuel semble centré sur la baisse des disputes ou l'exécution des actions, alors que le besoin humain réel est de savoir si l'échange laisse une sensation de proximité et de lien, même sans résolution complète. Cela touche au sens du plan plus qu'à un simple ajustement local.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter la demande comme un changement des critères de réussite à l'échelle du plan entier, avec une exploration préalable du bon niveau de changement. Le bon axe de coaching est de préserver la logique de sécurité et de désescalade déjà en place, tout en reformulant la réussite autour de la qualité du lien après échange, sans abandonner les indicateurs de tension comme signaux secondaires.",
+      "next_best_question": "Souhaites-tu que la qualité du lien après échange remplace le critère actuel de réussite, ou qu'elle s'ajoute à lui comme nouveau critère principal ?",
+      "options_to_discuss": [
+        "Faire de la qualité du lien après échange le critère principal de réussite du plan.",
+        "Garder les critères actuels comme indicateurs de support, mais ajouter un critère relationnel explicite.",
+        "Formuler un critère hybride: l'échange réussit si la tension baisse et si vous pouvez redevenir proches, même sans accord final.",
+        "Limiter ce changement à une note de cadrage sur le sens du plan, sans modifier formellement les critères de réussite.",
+        "Introduire un mini-indicateur observable de proximité après échange, pour rendre le critère concret."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [
+        "La qualité du lien après échange doit-elle devenir le critère principal du plan, ou seulement un critère ajouté aux critères actuels ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle mesure surtout la baisse de tension et l'exécution des actions; la trajectoire possible recentre la réussite sur la qualité du lien après échange, avec la paix relationnelle comme résultat recherché.",
+      "must_not_execute_reason": "La demande exprime une réorientation du sens du plan, mais ne précise pas encore si le nouveau critère doit remplacer l'ancien ou s'y ajouter. Il faut d'abord clarifier le niveau de changement avant toute réécriture."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r89-whole-plan-success-criteria-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r89-whole-plan-success-criteria-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux que ca devienne le critere principal. Garde moins de disputes comme repere secondaire, mais la vraie reussite serait : apres une discussion un peu tendue, chacun peut dire ce qu il a compris de l autre et je ne finis pas avec l impression d avoir perdu le lien.",
+    "assistant": "Tu veux que ce critère de lien remplace l’ancien critère de réussite, ou qu’il s’y ajoute comme critère principal ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer de modifier seulement une tâche ou une habitude.",
+          "Ne pas proposer une baisse de charge comme réponse principale.",
+          "Ne pas remplacer le plan par un objectif de communication positive ou de réparation intensive.",
+          "Ne pas présenter la réussite comme un ressenti vague sans repères observables."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention initiale de désamorcer les tensions et recréer de la sécurité.",
+          "Les actions déjà en place qui servent de cadre de sécurité.",
+          "L’idée qu’un échange peut être réussi même si tout n’est pas résolu.",
+          "Les indicateurs de friction comme repères secondaires, sans en faire le cœur du succès."
+        ],
+        "warnings": [
+          "Éviter une simple reformulation cosmétique qui ne change pas la logique de réussite.",
+          "Éviter de déplacer la demande vers une action précise, un rythme ou une fréquence.",
+          "Éviter de supprimer complètement les indicateurs de disputes ou d’adhésion: ils peuvent rester des signaux secondaires.",
+          "Éviter de valider un changement global sans savoir si la proximité relationnelle devient un nouveau critère principal ou remplace l’ancien."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases et définition du succès.",
+          "Préserver explicitement ce qui doit rester stable avant de proposer une réorganisation.",
+          "Raisonner en prérequis et en séquencement, pas en simple patch d’actions.",
+          "Ne pas changer la nature du plan sans demande explicite.",
+          "Si la proximité devient centrale, la formuler comme un critère de succès observable ou partageable.",
+          "Ne pas effacer les indicateurs de friction; les repositionner comme signaux utiles mais non exclusifs.",
+          "Garder la logique de sécurité relationnelle comme socle du plan."
+        ],
+        "observation": "La demande ne vise pas une action isolée, mais la définition même de ce qui compte comme réussite du plan. Le centre de gravité passe d’un indicateur de baisse des disputes ou d’exécution des tâches vers un indicateur relationnel plus profond: après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre et le lien n’est pas perdu. Le besoin humain réel est de préserver la sécurité relationnelle tout en rendant la réussite plus fidèle à ce qui compte vraiment pour la personne.",
+        "change_family": "success_criteria_change",
+        "recommendation": "Traiter cela comme un changement de critères de succès à l’échelle du plan entier, pas comme un patch local. La meilleure direction coaching est de préserver la trajectoire de désescalade et de sécurité déjà construite, tout en réécrivant la réussite autour de la qualité du lien après échange. À ce stade, il faut d’abord clarifier si ce nouveau critère remplace l’ancien ou s’y ajoute comme critère principal.",
+        "next_best_question": "La qualité du lien après échange doit-elle remplacer le critère actuel de réussite, ou seulement s’y ajouter comme critère principal ?",
+        "options_to_discuss": [
+          "Faire de la qualité du lien après échange le critère principal de réussite du plan.",
+          "Garder la baisse des disputes comme indicateur secondaire, tout en ajoutant un critère relationnel explicite.",
+          "Formuler un critère hybride: un échange réussit si la tension baisse et si chacun repart avec une compréhension mutuelle, même sans accord final.",
+          "Transformer cela en note de cadrage sur le sens du plan, sans modifier formellement les critères.",
+          "Ajouter un mini-indicateur observable de proximité après échange pour rendre le critère concret."
+        ],
+        "candidate_operation": "change_success_criteria",
+        "questions_to_clarify": [
+          "La qualité du lien après échange doit-elle remplacer le critère actuel de réussite, ou s’y ajouter comme nouveau critère principal ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle mesure surtout la baisse de tension et l’exécution des actions; la trajectoire possible recentre la réussite sur la qualité du lien après échange, avec les disputes comme indicateur secondaire.",
+        "must_not_execute_reason": "La demande exprime une réorientation du sens du plan, mais le statut exact du nouveau critère reste ambigu: remplacement complet ou ajout complémentaire. Il faut clarifier ce point avant toute réécriture formelle."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer de modifier seulement une tâche ou une habitude.",
+        "Ne pas proposer une baisse de charge comme réponse principale.",
+        "Ne pas remplacer le plan par un objectif de communication positive ou de réparation intensive.",
+        "Ne pas présenter la réussite comme un ressenti vague sans repères observables."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention initiale de désamorcer les tensions et recréer de la sécurité.",
+        "Les actions déjà en place qui servent de cadre de sécurité.",
+        "L’idée qu’un échange peut être réussi même si tout n’est pas résolu.",
+        "Les indicateurs de friction comme repères secondaires, sans en faire le cœur du succès."
+      ],
+      "warnings": [
+        "Éviter une simple reformulation cosmétique qui ne change pas la logique de réussite.",
+        "Éviter de déplacer la demande vers une action précise, un rythme ou une fréquence.",
+        "Éviter de supprimer complètement les indicateurs de disputes ou d’adhésion: ils peuvent rester des signaux secondaires.",
+        "Éviter de valider un changement global sans savoir si la proximité relationnelle devient un nouveau critère principal ou remplace l’ancien."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases et définition du succès.",
+        "Préserver explicitement ce qui doit rester stable avant de proposer une réorganisation.",
+        "Raisonner en prérequis et en séquencement, pas en simple patch d’actions.",
+        "Ne pas changer la nature du plan sans demande explicite.",
+        "Si la proximité devient centrale, la formuler comme un critère de succès observable ou partageable.",
+        "Ne pas effacer les indicateurs de friction; les repositionner comme signaux utiles mais non exclusifs.",
+        "Garder la logique de sécurité relationnelle comme socle du plan."
+      ],
+      "observation": "La demande ne vise pas une action isolée, mais la définition même de ce qui compte comme réussite du plan. Le centre de gravité passe d’un indicateur de baisse des disputes ou d’exécution des tâches vers un indicateur relationnel plus profond: après une discussion tendue, chacun peut dire ce qu’il a compris de l’autre et le lien n’est pas perdu. Le besoin humain réel est de préserver la sécurité relationnelle tout en rendant la réussite plus fidèle à ce qui compte vraiment pour la personne.",
+      "change_family": "success_criteria_change",
+      "recommendation": "Traiter cela comme un changement de critères de succès à l’échelle du plan entier, pas comme un patch local. La meilleure direction coaching est de préserver la trajectoire de désescalade et de sécurité déjà construite, tout en réécrivant la réussite autour de la qualité du lien après échange. À ce stade, il faut d’abord clarifier si ce nouveau critère remplace l’ancien ou s’y ajoute comme critère principal.",
+      "next_best_question": "La qualité du lien après échange doit-elle remplacer le critère actuel de réussite, ou seulement s’y ajouter comme critère principal ?",
+      "options_to_discuss": [
+        "Faire de la qualité du lien après échange le critère principal de réussite du plan.",
+        "Garder la baisse des disputes comme indicateur secondaire, tout en ajoutant un critère relationnel explicite.",
+        "Formuler un critère hybride: un échange réussit si la tension baisse et si chacun repart avec une compréhension mutuelle, même sans accord final.",
+        "Transformer cela en note de cadrage sur le sens du plan, sans modifier formellement les critères.",
+        "Ajouter un mini-indicateur observable de proximité après échange pour rendre le critère concret."
+      ],
+      "candidate_operation": "change_success_criteria",
+      "questions_to_clarify": [
+        "La qualité du lien après échange doit-elle remplacer le critère actuel de réussite, ou s’y ajouter comme nouveau critère principal ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle mesure surtout la baisse de tension et l’exécution des actions; la trajectoire possible recentre la réussite sur la qualité du lien après échange, avec les disputes comme indicateur secondaire.",
+      "must_not_execute_reason": "La demande exprime une réorientation du sens du plan, mais le statut exact du nouveau critère reste ambigu: remplacement complet ou ajout complémentaire. Il faut clarifier ce point avant toute réécriture formelle."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r89-whole-plan-success-criteria-t02",
+    "trace_error": null
+  }
+]

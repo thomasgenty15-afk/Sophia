@@ -19,6 +19,19 @@ const WATCHER_ACTIVITY_LOOKBACK_MINUTES = Number(
 /** Maximum number of users to process per cron invocation to avoid timeouts. */
 const BATCH_LIMIT = 50
 
+async function readJsonBody(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const raw = await req.clone().text()
+    if (!raw.trim()) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed as Record<string, unknown>
+      : {}
+  } catch {
+    return {}
+  }
+}
+
 async function hasMessagesSince(params: {
   admin: ReturnType<typeof createClient>
   userId: string
@@ -58,9 +71,13 @@ Deno.serve(async (req) => {
     const authResp = ensureInternalRequest(req)
     if (authResp) return authResp
 
+    const body = await readJsonBody(req)
+    const forceFullAi = body.force_full_ai === true
+
     const watcherDisabled =
-      (Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
-      (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1"
+      !forceFullAi &&
+      ((Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
+        (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1")
 
     if (watcherDisabled) {
       return jsonResponse(req, {
@@ -143,6 +160,7 @@ Deno.serve(async (req) => {
           requestId,
           channel,
           scope,
+          forceRealAi: forceFullAi,
         })
 
         await acknowledgeWatcherRun(

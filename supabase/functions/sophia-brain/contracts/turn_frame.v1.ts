@@ -21,6 +21,7 @@ export type ToolSkillOpportunityType =
   | "portion"
   | "state_potion"
   | "self_reminder"
+  | "coach_preferences"
   | "none";
 
 export type ToolSkillOpportunity = {
@@ -31,6 +32,7 @@ export type ToolSkillOpportunity = {
     | "adjust_plan_item"
     | "select_state_potion"
     | "create_recurring_reminder"
+    | "update_coach_preferences"
     | null;
   surface_id:
     | "attack_card"
@@ -39,6 +41,7 @@ export type ToolSkillOpportunity = {
     | "plan_item.clarify"
     | "potion.state"
     | "dashboard.reminders"
+    | "dashboard.preferences"
     | null;
   confidence_band: Exclude<ConfidenceBand, "critical">;
   should_offer: boolean;
@@ -53,6 +56,7 @@ export type ToolSkillOpportunity = {
     | "offer_portion"
     | "offer_state_potion"
     | "offer_self_reminder"
+    | "offer_coach_preferences"
     | null;
   offer_timing: "now" | "after_current_pending" | "weekly" | "never";
   must_not_execute: true;

@@ -1,0 +1,956 @@
+{
+  "run_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial",
+  "variant": "partial_habits_mission_partial",
+  "persona": "paul",
+  "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+  "email": "qa-weekly-deep-weekly-deep-mpcwm1he-partial_habits_mission_partial@example.com",
+  "scope": "weekly-deep-partial_habits_mission_partial-weekly-deep-mpcwm1he",
+  "created_at": "2026-05-19T17:25:53.766Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-19T17:25:53.767Z",
+      "user": "La semaine a été mitigée : j'ai fait une partie des habitudes, puis j'ai décroché avec la fatigue jeudi/vendredi. Et surtout l'action respiration de pause ne me convient pas vraiment. Je ne veux pas juste décaler : je veux revoir la forme du niveau parce que cette action ne colle pas.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est noté, on oublie le simple report alors. Si une action ne colle pas, ça ne sert à rien de s'obstiner, on est là pour construire un truc qui te ressemble, pas pour cocher des cases qui t'ennuient.\n\nC'est tout à fait normal d'avoir décroché avec la fatigue en fin de semaine, on va ajuster le tir pour que la suite soit plus digeste. Pour ta respiration de pause, si la forme actuelle ne te convient pas, on peut soit la transformer en quelque chose de plus court, soit changer complètement d'approche pour tes moments de récupération.\n\nOn va revoir la structure de ce niveau ensemble pour que ça reste stimulant sans être une corvée. Qu'est-ce qui te gêne le plus avec cette respiration ? C'est le côté trop formel, le moment choisi, ou juste le fait de devoir s'arrêter ? 🧘",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t01",
+        "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-deep-mpcwm1he",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est noté, on oublie le simple report alors. Si une action ne colle pas, ça ne sert à rien de s'obstiner, on est là pour construire un truc qui te ressemble, pas pour cocher des cases qui t'ennuient.\n\nC'est tout à fait normal d'avoir décroché avec la fatigue en fin de semaine, on va ajuster le tir pour que la suite soit plus digeste. Pour ta respiration de pause, si la forme actuelle ne te convient pas, on peut soit la transformer en quelque chose de plus court, soit changer complètement d'approche pour tes moments de récupération.\n\nOn va revoir la structure de ce niveau ensemble pour que ça reste stimulant sans être une corvée. Qu'est-ce qui te gêne le plus avec cette respiration ? C'est le côté trop formel, le moment choisi, ou juste le fait de devoir s'arrêter ? 🧘",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t01",
+          "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+          "source_message_id": "7b9c71a1-3c55-432a-8a8c-b923d71580f1",
+          "ts": "2026-05-19T17:26:02.45+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10230,
+            "latency_ms": 5215,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 706,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t01",
+            "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "problem_solving",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_question_with_adjustment_request",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "7b9c71a1-3c55-432a-8a8c-b923d71580f1",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_weekly_review_blocks_tool_skill_runtime",
+            "blocked_paths": [
+              {
+                "path": "tool_skill",
+                "reason_code": "active_weekly_review_blocks_tool_skill_runtime"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_weekly_review_blocks_tool_skill_runtime",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 8548,
+          "created_at": "2026-05-19T17:26:02.459844+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-19T17:26:15.164Z",
+      "user": "Le format respiration me bloque. Remplace cette action dans le niveau par une pause de 2 minutes sans technique, où je m'arrête et je note juste mon état. Oui, je veux préparer cette modification du niveau.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose un ajustement minimal pour **Respiration de pause** : la version actuelle deviendrait une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. Rien n’est encore appliqué : c’est une proposition à valider avant écriture.\n\nPourquoi ce choix aide : le format respiration bloque à l’entrée, donc je réduis juste la friction locale sans toucher à l’intention de fond. Je ne change ni l’objectif global, ni les autres actions du plan, ni la structure complète du plan.\n\nLes deux repères que je propose de garder sont :\n- **Respiration de pause** passe à une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**.\n- **Respiration de pause** reste bien une action à reprendre ensuite dans sa forme complète ; je ne la supprime pas et je ne modifie pas le reste du niveau.\n\nSi ça te va, je peux l’écrire comme ça. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t02",
+        "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-deep-mpcwm1he",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose un ajustement minimal pour **Respiration de pause** : la version actuelle deviendrait une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. Rien n’est encore appliqué : c’est une proposition à valider avant écriture.\n\nPourquoi ce choix aide : le format respiration bloque à l’entrée, donc je réduis juste la friction locale sans toucher à l’intention de fond. Je ne change ni l’objectif global, ni les autres actions du plan, ni la structure complète du plan.\n\nLes deux repères que je propose de garder sont :\n- **Respiration de pause** passe à une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**.\n- **Respiration de pause** reste bien une action à reprendre ensuite dans sa forme complète ; je ne la supprime pas et je ne modifie pas le reste du niveau.\n\nSi ça te va, je peux l’écrire comme ça. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t02",
+          "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+          "source_message_id": "71212c63-e391-4f33-a269-aa8226b5bcf3",
+          "ts": "2026-05-19T17:26:33.475+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10543,
+            "latency_ms": 4790,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 749,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t02",
+            "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_responding_to_weekly_question_with_adjustment_request",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 4.1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": true,
+                  "evidence": "arrete",
+                  "contribution": 2.5
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "explicit_stop_or_abandon",
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "71212c63-e391-4f33-a269-aa8226b5bcf3",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_action",
+                    "label": "Respiration de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "Le format respiration me bloque",
+                      "Remplace cette action"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "specific_action",
+                    "status": "identified",
+                    "evidence": [
+                      "Le user cible l'action respiration"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "difficulty": "medium",
+                  "instruction": "pause de 2 minutes"
+                },
+                "title": "Ajustement - Respiration de pause",
+                "confidence": "high",
+                "ack_summary": {
+                  "changed": [
+                    "ajustement de \"Respiration de pause\""
+                  ],
+                  "unchanged": [
+                    "le reste du plan n'est pas touché"
+                  ],
+                  "confidence": "high",
+                  "why_it_helps": "Le changement réduit la friction locale tout en gardant l'intention.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "Respiration de pause",
+                "why_it_helps": "Le changement reste minimal et preserve l'intention du plan.",
+                "decision_basis": {
+                  "evidence": [
+                    "Le format respiration me bloque. Remplace cette action dans le niveau par une pause de 2 minutes sans technique, où je m'arrête et je note juste mon état. Oui, je veux préparer cette modification du niveau.",
+                    "Le format respiration me bloque",
+                    "Remplace cette action dans le niveau",
+                    "Remplace cette action",
+                    "Le format respiration me bloque"
+                  ],
+                  "confidence": "high",
+                  "uncertainty": [],
+                  "user_problem": "Respiration de pause bloque parce que l'entree est trop lourde.",
+                  "inferred_need": "creer un pont plus petit sans supprimer l'action complete",
+                  "must_preserve": [
+                    "reprendre Respiration de pause apres la version mini"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "ajuster le plan de facon minimale",
+                "change_rationale": {
+                  "why_this_change": "Ajuster \"Respiration de pause\" traite le blocage identifié sans changer le reste du plan.",
+                  "success_condition": "L'action redevient faisable.",
+                  "expected_mechanism": "Le changement réduit la friction locale tout en gardant l'intention."
+                },
+                "adjust_plan_result": {
+                  "scope": "action",
+                  "rationale": {
+                    "confidence": "high",
+                    "missing_info": [],
+                    "user_problem": "Le format respiration bloque parce que l’entrée est trop lourde.",
+                    "expected_effect": "L’action devient plus facile à lancer et donc plus probable à faire, sans changer l’intention de fond.",
+                    "why_this_change": "Je réduis seulement la friction de départ avec une pause courte, sans technique, centrée sur un arrêt et un relevé simple de l’état."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement reste limité au niveau actuel et ne modifie pas la trajectoire globale. Si la demande devait dépasser la fin du niveau, ce repère serait à garder pour le prochain niveau au moment de sa création.",
+                    "affected_scope": "action ciblée uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "autres actions du plan",
+                      "structure complète du plan"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Ajuster uniquement Respiration de pause en version minimale pour lever le blocage d’entrée, sans toucher au reste du plan.",
+                    "changed_items": [
+                      {
+                        "id": "f19dd94c-2b90-4a76-b905-92ed372f49cf",
+                        "kind": "habit",
+                        "after": "pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause",
+                        "reason": "Le format respiration bloque à l’entrée ; une version plus simple rend l’action faisable tout en gardant l’intention.",
+                        "capability": null
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "5232712b-8afc-4abd-9e74-39ab3693774b",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Non touché : ce changement vise seulement l’action bloquante."
+                      },
+                      {
+                        "id": "2781f8bf-c8a3-4ec1-814f-c48816d3bb10",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "Non touché : le reste du plan reste inchangé."
+                      },
+                      {
+                        "id": "6e36af09-95ae-452a-8aca-e3854a526b21",
+                        "kind": "clarification",
+                        "title": "Fiche support: repere de fatigue",
+                        "reason": "Non touché : ce repère reste disponible comme contexte, sans modification."
+                      }
+                    ]
+                  },
+                  "user_message_brief": "Je te propose de transformer Respiration de pause en pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état.",
+                  "user_message_detailed": "Je te propose de modifier **Respiration de pause**.\n- **Avant** : Respiration de pause\n- **Après** : pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état\n- **Pourquoi** : le format respiration bloque à l’entrée, donc je simplifie juste le démarrage pour rendre l’action faisable.\n\nCe qui ne bouge pas : l’objectif global, les autres actions du plan, et la structure complète du plan. L’ajustement reste limité au niveau actuel, avec l’idée de garder ce repère pour le prochain niveau si la demande devait aller au-delà.\n\nNiveau de confiance : élevé."
+                },
+                "execution_strategy": "patch_existing",
+                "allowed_patch_fields": [
+                  "difficulty",
+                  "duration_minutes",
+                  "instruction",
+                  "paused",
+                  "target_reps",
+                  "cadence_label"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C’est écrit comme prévu pour **Respiration de pause** : la version du niveau est maintenant une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. L’action complète reste prévue ensuite, donc je n’ai pas touché à l’intention de fond ni aux autres actions du plan.\n\nCe choix aide parce qu’il enlève le blocage d’entrée tout en gardant le même repère de départ. Je garde aussi le cadre demandé : ajustement limité au niveau actuel, sans modifier la trajectoire globale.\n\nJe suis très confiant sur ce point : la modification répond directement au blocage décrit, avec une charge plus simple à lancer.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose un ajustement minimal pour **Respiration de pause** : la version actuelle deviendrait une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. Rien n’est encore appliqué : c’est une proposition à valider avant écriture.\n\nPourquoi ce choix aide : le format respiration bloque à l’entrée, donc je réduis juste la friction locale sans toucher à l’intention de fond. Je ne change ni l’objectif global, ni les autres actions du plan, ni la structure complète du plan.\n\nLes deux repères que je propose de garder sont :\n- **Respiration de pause** passe à une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**.\n- **Respiration de pause** reste bien une action à reprendre ensuite dans sa forme complète ; je ne la supprime pas et je ne modifie pas le reste du niveau.\n\nSi ça te va, je peux l’écrire comme ça."
+            },
+            "status": "draft_review",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "ef8dc1d7-cd3c-4df6-a88f-63c1d7736332",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": null,
+            "coaching_guidance_audit": {
+              "scope": "action",
+              "source": "disabled",
+              "status": "not_run"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 18262,
+          "created_at": "2026-05-19T17:26:33.477876+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-19T17:26:50.794Z",
+      "user": "Oui, valide et applique cet ajustement comme remplacement : l'action devient Pause de 2 minutes sans technique, puis noter l'état en mots simples. Après ça, reviens au weekly.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C’est écrit comme prévu pour **Respiration de pause** : la version du niveau est maintenant une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. L’action complète reste prévue ensuite, donc je n’ai pas touché à l’intention de fond ni aux autres actions du plan.\n\nCe choix aide parce qu’il enlève le blocage d’entrée tout en gardant le même repère de départ. Je garde aussi le cadre demandé : ajustement limité au niveau actuel, sans modifier la trajectoire globale.\n\nJe suis très confiant sur ce point : la modification répond directement au blocage décrit, avec une charge plus simple à lancer. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t03",
+        "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+        "channel": "web",
+        "scope": "weekly-deep-partial_habits_mission_partial-weekly-deep-mpcwm1he",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C’est écrit comme prévu pour **Respiration de pause** : la version du niveau est maintenant une **pause de 2 minutes, sans technique, où je m'arrête et je note juste mon état**. L’action complète reste prévue ensuite, donc je n’ai pas touché à l’intention de fond ni aux autres actions du plan.\n\nCe choix aide parce qu’il enlève le blocage d’entrée tout en gardant le même repère de départ. Je garde aussi le cadre demandé : ajustement limité au niveau actuel, sans modifier la trajectoire globale.\n\nJe suis très confiant sur ce point : la modification répond directement au blocage décrit, avec une charge plus simple à lancer. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "adjust_plan_item"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t03",
+          "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+          "source_message_id": "e4cb2e77-6213-44ff-ae4b-ac0f358617d2",
+          "ts": "2026-05-19T17:27:05.322+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10824,
+            "latency_ms": 4419,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 716,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-deep-mpcwm1he-partial_habits_mission_partial-t03",
+            "user_id": "5b609034-3564-4864-b912-ec5e05f9b601",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "le user demande de revenir au weekly apres l'ajustement",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.8,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,4.1;decay=0.55;recovery=1.5",
+                  "contribution": 0.8
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                4.1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "e4cb2e77-6213-44ff-ae4b-ac0f358617d2",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_action",
+                    "label": "Respiration de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "Respiration de pause"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "specific_action",
+                    "status": "identified",
+                    "evidence": [
+                      "le user demande de remplacer cette action precise"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "adjust_plan_item"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "ef8dc1d7-cd3c-4df6-a88f-63c1d7736332",
+            "plan_patch_id": "219e1bf6-1136-4ba4-8cf4-f6c6eeb4e331",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": null,
+            "bridge_plan_item_id": null,
+            "coaching_guidance_audit": {
+              "scope": "action",
+              "source": "disabled",
+              "status": "not_run"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 14481,
+          "created_at": "2026-05-19T17:27:05.325274+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-19T17:27:05.343Z"
+}

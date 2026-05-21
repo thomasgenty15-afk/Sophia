@@ -17,9 +17,9 @@ import {
   runCoachPreferencesPatchBuilder,
 } from "./generator.ts";
 import {
-  fillCoachPreferencesSlotsWithAi,
   type CoachPreferencesSlotFiller,
   type CoachPreferencesSlotFillerOutput,
+  fillCoachPreferencesSlotsWithAi,
 } from "./slot_filler.ts";
 import type {
   CoachPreferenceConfidence,
@@ -61,6 +61,8 @@ export function reviewUpdateCoachPreferencesDraft(input: {
   recent_messages?: Array<{ role: "user" | "assistant"; content: string }>;
   request_id?: string | null;
 }): Promise<ToolSkillDraftReviewDecision | null> {
+  const deterministic = deterministicCoachPreferencesDraftReview(input);
+  if (deterministic) return Promise.resolve(deterministic);
   return reviewToolSkillDraftWithAi({
     operation_type: "update_coach_preferences",
     message: input.message,
@@ -69,6 +71,92 @@ export function reviewUpdateCoachPreferencesDraft(input: {
     recent_messages: input.recent_messages,
     request_id: input.request_id,
   });
+}
+
+function normalizeReviewText(value: string): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function deterministicPatchFromMessage(
+  message: string,
+): Partial<Record<CoachPreferenceKey, string>> | null {
+  const text = normalizeReviewText(message);
+  if (
+    (
+      /\bune action\b/.test(text) ||
+      /\baction concrete\b/.test(text) ||
+      /\bmode tres concret\b/.test(text)
+    ) &&
+    (
+      /\bpas trois options\b/.test(text) ||
+      /\bpas 3 options\b/.test(text) ||
+      /\bune action\b/.test(text)
+    )
+  ) {
+    return { "coach.question_tendency": "low" };
+  }
+  return null;
+}
+
+function deterministicCoachPreferencesDraftReview(input: {
+  message: string;
+  previous_draft: unknown;
+}): ToolSkillDraftReviewDecision | null {
+  const draft = input.previous_draft as any;
+  if (
+    !draft || typeof draft !== "object" ||
+    draft.operation_type !== "update_coach_preferences" ||
+    !draft.draft?.patch ||
+    Object.keys(draft.draft.patch).length === 0
+  ) {
+    return null;
+  }
+  const text = normalizeReviewText(input.message);
+  if (!text) return null;
+  if (
+    /\b(annule|annuler|non|pas maintenant|laisse tomber|oublie)\b/.test(text)
+  ) {
+    return {
+      decision: "reject",
+      confidence: "high",
+      evidence: ["refus explicite de la preference en attente"],
+      generated_user_message: "Ok, je ne garde pas cette préférence.",
+    };
+  }
+  if (
+    /\b(oui|ok|d accord|vas y|valide|confirme|applique|garde|enregistre|conserve)\b/
+      .test(text) &&
+    /\b(preference|comme preference|pour la suite|garde ca|garde cette|applique cette|enregistre cette|conserve cette)\b/
+      .test(text) &&
+    !/\b(mais change|modifie|corrige|plutot|plutôt|au lieu)\b/.test(text)
+  ) {
+    return {
+      decision: "approve",
+      confidence: "high",
+      evidence: ["confirmation explicite de la preference en attente"],
+      generated_user_message: null,
+    };
+  }
+  if (
+    /\b(oui|ok|d accord|vas y|valide|confirme|applique|garde|enregistre|conserve)\b/
+      .test(text) &&
+    /\b(c est bien ca|c est exactement ca|c est bon|oui c est ca|oui cest ca)\b/
+      .test(text)
+  ) {
+    return {
+      decision: "approve",
+      confidence: "high",
+      evidence: ["confirmation explicite du brouillon de preference"],
+      generated_user_message: null,
+    };
+  }
+  return null;
 }
 
 function confidence(value: unknown): CoachPreferenceConfidence {
@@ -360,11 +448,23 @@ export async function runUpdateCoachPreferencesIntake(input: {
     };
   }
 
-  const initialState = stateFromOperationInput(input.operation_input);
+  const deterministicPatch = deterministicPatchFromMessage(input.message);
+  const initialOperationInput = deterministicPatch
+    ? {
+      ...(input.operation_input ?? {}),
+      requested_patch: deterministicPatch,
+      reason: {
+        evidence: [input.message],
+        confidence: "high",
+      },
+    }
+    : input.operation_input ??
+      null;
+  const initialState = stateFromOperationInput(initialOperationInput);
   const structuredPatch = requestedPatchFromState(initialState);
   const hasStructuredPatchInput = Boolean(
     objectValue(
-      input.operation_input?.requested_patch ?? input.operation_input?.patch,
+      initialOperationInput?.requested_patch ?? initialOperationInput?.patch,
     ) && structuredPatch,
   );
   const slotFiller = input.slot_filler ?? fillCoachPreferencesSlotsWithAi;
@@ -386,7 +486,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
         message: input.message,
         recent_messages: input.recent_messages,
         current_state: initialState,
-        operation_input: input.operation_input ?? null,
+        operation_input: initialOperationInput ?? null,
         current_preferences: input.current_preferences ?? {},
       });
     } catch {
@@ -464,8 +564,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
           status: "collecting",
           state,
           missing,
-          summary:
-            "Structured AI intake is collecting coach preference slots.",
+          summary: "Structured AI intake is collecting coach preference slots.",
         }),
       },
     };

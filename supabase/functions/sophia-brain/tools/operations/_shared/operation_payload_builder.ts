@@ -133,6 +133,8 @@ export type PotionSessionSelectorInput = {
     target_hint?: string | null;
     related_plan_item_id?: string | null;
     topic_hint?: string | null;
+    timezone?: string | null;
+    current_local_date?: string | null;
   };
   details?: {
     required_question_ids: string[];
@@ -146,6 +148,24 @@ export type PotionSessionSelectorInput = {
   constraints: string[];
   forbidden: string[];
 };
+
+function currentLocalDateForTimezone(timezone: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone || "Europe/Paris",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(new Date());
+    const year = parts.find((part) => part.type === "year")?.value;
+    const month = parts.find((part) => part.type === "month")?.value;
+    const day = parts.find((part) => part.type === "day")?.value;
+    if (year && month && day) return `${year}-${month}-${day}`;
+  } catch {
+    // Fall through to UTC date when the timezone is invalid.
+  }
+  return new Date().toISOString().slice(0, 10);
+}
 
 export type RecurringReminderBuilderInput = {
   operation_type: "create_recurring_reminder";
@@ -295,6 +315,12 @@ export type PlanAdjustmentGeneratorInput = {
     avoid: string[];
     guidelines: string[];
     confidence: "low" | "medium" | "high";
+    change_family?: string | null;
+    candidate_operation?: string | null;
+    readiness?: string | null;
+    must_not_execute_reason?: string | null;
+    trajectory_hypothesis?: string | null;
+    next_best_question?: string | null;
   } | null;
   materialization_candidates?: Array<{
     id: string;
@@ -470,6 +496,10 @@ export function buildPotionSelectionPayload(
       related_plan_item_id: request.target.plan_item_id ?? null,
       target_hint: request.target.plan_item_title ?? null,
       topic_hint: request.target.topic_id ?? null,
+      timezone: request.user_context.timezone,
+      current_local_date: currentLocalDateForTimezone(
+        request.user_context.timezone,
+      ),
     },
     constraints: [
       "short",

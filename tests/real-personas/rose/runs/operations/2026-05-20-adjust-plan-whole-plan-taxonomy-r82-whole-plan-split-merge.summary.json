@@ -1,0 +1,829 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t01",
+    "status": 200,
+    "ok": true,
+    "user": "J'ai relu la trajectoire du plan et je me demande si deux bouts ne se marchent pas dessus : apprendre a exprimer mes besoins et ensuite aborder les sujets sensibles. J'ai peur que ce soit trop proche et que ca fasse deux niveaux qui repetent la meme chose. Est-ce qu'on devrait fusionner ou separer autrement ?",
+    "assistant": "Je dois reprendre le brouillon proprement. Pour le régénérer, j’ai besoin d’une seule précision : qu’est-ce que tu veux garder de distinct entre « exprimer mes besoins » et « aborder les sujets sensibles » — le contexte, la difficulté du contenu, ou la manière de le dire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas dire au user que la fusion est forcément la bonne solution.",
+          "Ne pas proposer une simplification qui supprime le travail de fond sur l’expression des besoins.",
+          "Ne pas promettre que deux niveaux identiques seront utiles sans vérifier leur différence de charge et de contexte.",
+          "Ne pas modifier la structure globale du plan sans diagnostic sur la fonction réelle de chaque niveau.",
+          "Ne pas présenter la séparation comme un principe abstrait ; elle doit servir la montée en compétence et la tolérance émotionnelle."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La logique de progression graduelle du plan.",
+          "La distinction entre apprentissage de compétence et mise à l’épreuve en contexte plus chargé.",
+          "Le cadre de sécurité construit en amont avant les sujets sensibles.",
+          "L’objectif global de mieux communiquer sans surcharger la relation.",
+          "Les paliers déjà acquis si le premier niveau sert de socle."
+        ],
+        "warnings": [
+          "Éviter de fusionner automatiquement les deux niveaux sous prétexte qu’ils parlent tous deux de communication : cela risquerait d’effacer la montée en difficulté.",
+          "Éviter de conserver deux phases quasi identiques si le seul changement est le thème du sujet ; dans ce cas, le plan perd sa logique d’apprentissage progressif.",
+          "Éviter de proposer une réécriture lourde sans vérifier ce que le user entend exactement par 'exprimer mes besoins' versus 'sujets sensibles'.",
+          "Ne pas traiter cela comme un simple problème de formulation : il s’agit d’une question de structure, de progression et de charge émotionnelle.",
+          "Ne pas déplacer le niveau 'sujets sensibles' trop tôt si le socle d’expression n’est pas encore stabilisé."
+        ],
+        "readiness": "diagnose",
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action : garder un vrai apprentissage de base avant l’exposition à des situations plus sensibles.",
+          "Intention préservée : permettre au user de s’exprimer avec plus de clarté et moins de menace perçue.",
+          "Pont mini si besoin : insérer une étape de transition entre besoin simple et sujet sensible plutôt que forcer une bascule directe.",
+          "Pas de changement de nature sans demande explicite : ne pas transformer un niveau d’entraînement en niveau d’exposition plus ambitieuse sans validation.",
+          "Dans le whole plan, vérifier la cohérence entre ordre des phases, montée de difficulté et charge émotionnelle.",
+          "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+          "La fusion n’est pertinente que si la différence entre les deux niveaux n’apporte pas de valeur pédagogique réelle.",
+          "Conserver le cœur du plan : réduire la défensive et augmenter la capacité à parler à froid, pas seulement varier les thèmes."
+        ],
+        "observation": "Le user questionne une possible redondance structurelle entre deux étapes adjacentes du plan : apprendre à exprimer ses besoins puis aborder les sujets sensibles. Le vrai enjeu n’est pas seulement technique, c’est de savoir si la progression garde un vrai palier d’apprentissage ou si elle duplique la même compétence sous deux habillages.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "À ce stade, il est plus pertinent de diagnostiquer la frontière entre les deux niveaux que de fusionner ou de séparer d’emblée. La bonne direction coaching consiste à vérifier si le premier niveau construit un automatisme de formulation en contexte protégé, tandis que le second ajoute l’exposition à des sujets chargés. Si ce n’est pas clairement distinct, il faudra resegmenter pour créer un pont plus net entre compétence de base et situation sensible.",
+        "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+        "options_to_discuss": [
+          "Garder deux niveaux séparés mais clarifier leur fonction : premier niveau = formuler un besoin simple et court, second niveau = l’utiliser sur un sujet potentiellement chargé.",
+          "Fusionner partiellement en un seul niveau si la distinction pédagogique est trop faible, avec deux sous-objectifs internes au lieu de deux phases distinctes.",
+          "Ajouter un pont intermédiaire si le saut est trop abrupt : une étape de mise en pratique sur sujets neutres avant les sujets sensibles.",
+          "Renommer les deux niveaux pour rendre la progression plus lisible, si le problème est surtout sémantique et non structurel.",
+          "Décaler l’entrée dans les sujets sensibles si le plan montre que la compétence de base n’est pas encore suffisamment consolidée."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle semble aller d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+        "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne fournit pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas dire au user que la fusion est forcément la bonne solution.",
+        "Ne pas proposer une simplification qui supprime le travail de fond sur l’expression des besoins.",
+        "Ne pas promettre que deux niveaux identiques seront utiles sans vérifier leur différence de charge et de contexte.",
+        "Ne pas modifier la structure globale du plan sans diagnostic sur la fonction réelle de chaque niveau.",
+        "Ne pas présenter la séparation comme un principe abstrait ; elle doit servir la montée en compétence et la tolérance émotionnelle."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La logique de progression graduelle du plan.",
+        "La distinction entre apprentissage de compétence et mise à l’épreuve en contexte plus chargé.",
+        "Le cadre de sécurité construit en amont avant les sujets sensibles.",
+        "L’objectif global de mieux communiquer sans surcharger la relation.",
+        "Les paliers déjà acquis si le premier niveau sert de socle."
+      ],
+      "warnings": [
+        "Éviter de fusionner automatiquement les deux niveaux sous prétexte qu’ils parlent tous deux de communication : cela risquerait d’effacer la montée en difficulté.",
+        "Éviter de conserver deux phases quasi identiques si le seul changement est le thème du sujet ; dans ce cas, le plan perd sa logique d’apprentissage progressif.",
+        "Éviter de proposer une réécriture lourde sans vérifier ce que le user entend exactement par 'exprimer mes besoins' versus 'sujets sensibles'.",
+        "Ne pas traiter cela comme un simple problème de formulation : il s’agit d’une question de structure, de progression et de charge émotionnelle.",
+        "Ne pas déplacer le niveau 'sujets sensibles' trop tôt si le socle d’expression n’est pas encore stabilisé."
+      ],
+      "readiness": "diagnose",
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action : garder un vrai apprentissage de base avant l’exposition à des situations plus sensibles.",
+        "Intention préservée : permettre au user de s’exprimer avec plus de clarté et moins de menace perçue.",
+        "Pont mini si besoin : insérer une étape de transition entre besoin simple et sujet sensible plutôt que forcer une bascule directe.",
+        "Pas de changement de nature sans demande explicite : ne pas transformer un niveau d’entraînement en niveau d’exposition plus ambitieuse sans validation.",
+        "Dans le whole plan, vérifier la cohérence entre ordre des phases, montée de difficulté et charge émotionnelle.",
+        "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+        "La fusion n’est pertinente que si la différence entre les deux niveaux n’apporte pas de valeur pédagogique réelle.",
+        "Conserver le cœur du plan : réduire la défensive et augmenter la capacité à parler à froid, pas seulement varier les thèmes."
+      ],
+      "observation": "Le user questionne une possible redondance structurelle entre deux étapes adjacentes du plan : apprendre à exprimer ses besoins puis aborder les sujets sensibles. Le vrai enjeu n’est pas seulement technique, c’est de savoir si la progression garde un vrai palier d’apprentissage ou si elle duplique la même compétence sous deux habillages.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "À ce stade, il est plus pertinent de diagnostiquer la frontière entre les deux niveaux que de fusionner ou de séparer d’emblée. La bonne direction coaching consiste à vérifier si le premier niveau construit un automatisme de formulation en contexte protégé, tandis que le second ajoute l’exposition à des sujets chargés. Si ce n’est pas clairement distinct, il faudra resegmenter pour créer un pont plus net entre compétence de base et situation sensible.",
+      "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+      "options_to_discuss": [
+        "Garder deux niveaux séparés mais clarifier leur fonction : premier niveau = formuler un besoin simple et court, second niveau = l’utiliser sur un sujet potentiellement chargé.",
+        "Fusionner partiellement en un seul niveau si la distinction pédagogique est trop faible, avec deux sous-objectifs internes au lieu de deux phases distinctes.",
+        "Ajouter un pont intermédiaire si le saut est trop abrupt : une étape de mise en pratique sur sujets neutres avant les sujets sensibles.",
+        "Renommer les deux niveaux pour rendre la progression plus lisible, si le problème est surtout sémantique et non structurel.",
+        "Décaler l’entrée dans les sujets sensibles si le plan montre que la compétence de base n’est pas encore suffisamment consolidée."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle semble aller d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+      "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne fournit pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je garderais distinct la difficulte du contenu. Exprimer mes besoins, ca pourrait etre sur des petits sujets du quotidien. Les sujets sensibles, ce serait argent, famille, intimite. Donc peut-etre pas fusionner, mais rendre la separation plus nette.",
+    "assistant": "Je dois reprendre le brouillon proprement avant d’aller plus loin. Pour trancher la structure, dis-moi juste ce que tu veux garder comme vraie différence : la difficulté du contenu, le contexte, ou la façon de le dire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une fusion définitive sans vérifier la différence fonctionnelle des deux niveaux.",
+          "Réécrire lourdement le plan sans diagnostic de sa cohérence globale.",
+          "Traiter cela comme un simple problème de wording.",
+          "Changer la nature du niveau d’apprentissage sans demande explicite.",
+          "Promettre qu’une séparation ou une fusion sera automatiquement meilleure."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La logique de progression graduelle du plan.",
+          "La distinction entre apprentissage de base et mise à l’épreuve en contexte plus chargé.",
+          "Le cadre de sécurité construit en amont avant les sujets sensibles.",
+          "L’objectif global de mieux communiquer sans surcharger la relation.",
+          "Les paliers déjà acquis si le premier niveau sert de socle."
+        ],
+        "warnings": [
+          "Éviter de fusionner automatiquement les deux niveaux sous prétexte qu’ils parlent tous deux de communication.",
+          "Éviter de supprimer le travail de fond sur l’expression des besoins au nom de la simplification.",
+          "Éviter de maintenir deux étapes quasi identiques si la seule différence est le thème du sujet.",
+          "Ne pas présenter la séparation comme un principe abstrait : elle doit servir une montée en compétence observable.",
+          "Ne pas déplacer les sujets sensibles trop tôt si le socle d’expression n’est pas stabilisé."
+        ],
+        "readiness": "diagnose",
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+          "Vérifier que la proposition reste cohérente avec l’objectif global et avec ce que le user veut préserver.",
+          "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu’en patch local.",
+          "Signaler les risques de supprimer ou d’inverser une étape qui sert de socle.",
+          "Ne pas faire de changement de nature sans demande explicite.",
+          "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+          "La fusion n’est pertinente que si la différence entre les niveaux n’apporte pas de valeur pédagogique réelle.",
+          "Conserver le cœur du plan : réduire la défensive et augmenter la capacité à parler à froid."
+        ],
+        "observation": "Le user ne demande pas un simple ajustement de formulation, mais une clarification de structure : il perçoit un possible chevauchement entre deux paliers du plan. Le vrai sujet est de savoir si le premier niveau sert à installer une compétence de base sur des besoins du quotidien, puis si le second ajoute une exposition réellement différente sur des sujets sensibles, ou si les deux étapes répètent la même logique.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "À ce stade, la meilleure direction coaching est de diagnostiquer la fonction réelle de chaque niveau avant toute fusion ou séparation. Il faut préserver la montée progressive, vérifier que la distinction est bien une différence de charge et de contexte, puis seulement décider s’il faut garder deux paliers, les resegmenter ou insérer un pont intermédiaire.",
+        "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+        "options_to_discuss": [
+          "Garder deux niveaux séparés mais clarifier leur fonction : premier niveau pour formuler un besoin simple, second niveau pour l’utiliser sur un sujet chargé.",
+          "Fusionner partiellement en un seul niveau si la distinction pédagogique est trop faible, avec des sous-objectifs internes plutôt que deux phases distinctes.",
+          "Ajouter un pont intermédiaire entre sujets quotidiens et sujets sensibles pour réduire le saut de difficulté.",
+          "Renommer les deux niveaux pour rendre la progression plus lisible si le problème est surtout sémantique.",
+          "Décaler l’entrée dans les sujets sensibles si le socle de formulation n’est pas encore consolidé."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [
+          "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle va d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+        "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne fournit pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une fusion définitive sans vérifier la différence fonctionnelle des deux niveaux.",
+        "Réécrire lourdement le plan sans diagnostic de sa cohérence globale.",
+        "Traiter cela comme un simple problème de wording.",
+        "Changer la nature du niveau d’apprentissage sans demande explicite.",
+        "Promettre qu’une séparation ou une fusion sera automatiquement meilleure."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La logique de progression graduelle du plan.",
+        "La distinction entre apprentissage de base et mise à l’épreuve en contexte plus chargé.",
+        "Le cadre de sécurité construit en amont avant les sujets sensibles.",
+        "L’objectif global de mieux communiquer sans surcharger la relation.",
+        "Les paliers déjà acquis si le premier niveau sert de socle."
+      ],
+      "warnings": [
+        "Éviter de fusionner automatiquement les deux niveaux sous prétexte qu’ils parlent tous deux de communication.",
+        "Éviter de supprimer le travail de fond sur l’expression des besoins au nom de la simplification.",
+        "Éviter de maintenir deux étapes quasi identiques si la seule différence est le thème du sujet.",
+        "Ne pas présenter la séparation comme un principe abstrait : elle doit servir une montée en compétence observable.",
+        "Ne pas déplacer les sujets sensibles trop tôt si le socle d’expression n’est pas stabilisé."
+      ],
+      "readiness": "diagnose",
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire : objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+        "Vérifier que la proposition reste cohérente avec l’objectif global et avec ce que le user veut préserver.",
+        "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu’en patch local.",
+        "Signaler les risques de supprimer ou d’inverser une étape qui sert de socle.",
+        "Ne pas faire de changement de nature sans demande explicite.",
+        "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+        "La fusion n’est pertinente que si la différence entre les niveaux n’apporte pas de valeur pédagogique réelle.",
+        "Conserver le cœur du plan : réduire la défensive et augmenter la capacité à parler à froid."
+      ],
+      "observation": "Le user ne demande pas un simple ajustement de formulation, mais une clarification de structure : il perçoit un possible chevauchement entre deux paliers du plan. Le vrai sujet est de savoir si le premier niveau sert à installer une compétence de base sur des besoins du quotidien, puis si le second ajoute une exposition réellement différente sur des sujets sensibles, ou si les deux étapes répètent la même logique.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "À ce stade, la meilleure direction coaching est de diagnostiquer la fonction réelle de chaque niveau avant toute fusion ou séparation. Il faut préserver la montée progressive, vérifier que la distinction est bien une différence de charge et de contexte, puis seulement décider s’il faut garder deux paliers, les resegmenter ou insérer un pont intermédiaire.",
+      "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+      "options_to_discuss": [
+        "Garder deux niveaux séparés mais clarifier leur fonction : premier niveau pour formuler un besoin simple, second niveau pour l’utiliser sur un sujet chargé.",
+        "Fusionner partiellement en un seul niveau si la distinction pédagogique est trop faible, avec des sous-objectifs internes plutôt que deux phases distinctes.",
+        "Ajouter un pont intermédiaire entre sujets quotidiens et sujets sensibles pour réduire le saut de difficulté.",
+        "Renommer les deux niveaux pour rendre la progression plus lisible si le problème est surtout sémantique.",
+        "Décaler l’entrée dans les sujets sensibles si le socle de formulation n’est pas encore consolidé."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [
+        "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle va d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+      "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne fournit pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t03",
+    "status": 200,
+    "ok": true,
+    "user": "La difference principale, c'est la difficulte du contenu. Niveau besoins = petits sujets neutres. Niveau sujets sensibles = argent, famille, intimite. Je veux que le plan fasse une vraie marche entre les deux, pas deux phases floues.",
+    "assistant": "Je n’ai qu’une précision à te demander avant d’aller plus loin : tu veux que la différence entre les deux paliers soit surtout la difficulté du contenu, le contexte, ou la façon de le dire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "materialized_changed_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une fusion définitive sans diagnostic de la fonction de chaque niveau.",
+          "Réécrire lourdement tout le plan sans clarifier sa cohérence globale.",
+          "Traiter cette demande comme un simple problème de wording.",
+          "Changer la nature du niveau d’apprentissage sans demande explicite.",
+          "Promettre qu’une séparation ou une fusion sera automatiquement meilleure."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La logique de progression graduelle du plan.",
+          "La distinction entre apprentissage de base et exposition à des sujets plus chargés.",
+          "Le cadre de sécurité installé avant les sujets sensibles.",
+          "L’objectif global de mieux communiquer sans surcharger la relation.",
+          "Les acquis du premier niveau s’il sert de socle."
+        ],
+        "warnings": [
+          "Éviter de fusionner automatiquement les niveaux sans vérifier s’ils servent des fonctions pédagogiques distinctes.",
+          "Éviter de supprimer le travail de base sur l’expression des besoins au nom de la simplification.",
+          "Éviter de maintenir deux phases quasi identiques si la seule différence est le thème du sujet.",
+          "Éviter de déplacer trop tôt les sujets sensibles si le socle n’est pas stabilisé.",
+          "Éviter de présenter la séparation comme un principe abstrait: elle doit servir une montée en compétence observable."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+          "Vérifier que la proposition reste cohérente avec l’objectif global et avec ce que le user veut préserver.",
+          "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu’en patch local.",
+          "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle.",
+          "Ne pas faire de changement de nature sans demande explicite.",
+          "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+          "La fusion n’est pertinente que si la différence entre les niveaux n’apporte pas de valeur pédagogique réelle.",
+          "Conserver le cœur du plan: réduire la défensive et augmenter la capacité à parler à froid."
+        ],
+        "observation": "La demande porte sur l’architecture du plan, pas sur un simple ajustement local. Le point réel est un doute de cohérence entre deux paliers qui semblent proches, avec une attente claire: garder une progression lisible entre une compétence de base sur des sujets du quotidien et une mise à l’épreuve sur des sujets plus sensibles. Le risque coaching principal est de traiter cela comme un problème de formulation alors qu’il s’agit d’un problème de fonction des phases.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Le bon mouvement à ce stade est diagnostique: clarifier la fonction différente de chaque niveau avant toute fusion ou séparation. Il faut préserver la progression graduelle, vérifier si la différence est bien une différence de charge, de contexte ou d’usage, puis seulement décider entre garder deux paliers, les resegmenter, ou insérer un pont intermédiaire plus net.",
+        "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+        "options_to_discuss": [
+          "Garder deux niveaux séparés, mais rendre leur fonction plus explicite: base sur petits besoins quotidiens puis application sur sujets chargés.",
+          "Fusionner partiellement en une seule phase si la distinction pédagogique est trop faible, avec des sous-objectifs internes.",
+          "Insérer un pont intermédiaire entre quotidien et sujets sensibles pour réduire le saut de difficulté.",
+          "Renommer les niveaux pour mieux rendre lisible la progression si le problème est surtout sémantique.",
+          "Décaler l’entrée dans les sujets sensibles si le premier socle n’est pas encore consolidé."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [
+          "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle va d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+        "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne donne pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une fusion définitive sans diagnostic de la fonction de chaque niveau.",
+        "Réécrire lourdement tout le plan sans clarifier sa cohérence globale.",
+        "Traiter cette demande comme un simple problème de wording.",
+        "Changer la nature du niveau d’apprentissage sans demande explicite.",
+        "Promettre qu’une séparation ou une fusion sera automatiquement meilleure."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La logique de progression graduelle du plan.",
+        "La distinction entre apprentissage de base et exposition à des sujets plus chargés.",
+        "Le cadre de sécurité installé avant les sujets sensibles.",
+        "L’objectif global de mieux communiquer sans surcharger la relation.",
+        "Les acquis du premier niveau s’il sert de socle."
+      ],
+      "warnings": [
+        "Éviter de fusionner automatiquement les niveaux sans vérifier s’ils servent des fonctions pédagogiques distinctes.",
+        "Éviter de supprimer le travail de base sur l’expression des besoins au nom de la simplification.",
+        "Éviter de maintenir deux phases quasi identiques si la seule différence est le thème du sujet.",
+        "Éviter de déplacer trop tôt les sujets sensibles si le socle n’est pas stabilisé.",
+        "Éviter de présenter la séparation comme un principe abstrait: elle doit servir une montée en compétence observable."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+        "Vérifier que la proposition reste cohérente avec l’objectif global et avec ce que le user veut préserver.",
+        "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu’en patch local.",
+        "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle.",
+        "Ne pas faire de changement de nature sans demande explicite.",
+        "La séparation n’est pertinente que si chaque niveau a une fonction différente et observable.",
+        "La fusion n’est pertinente que si la différence entre les niveaux n’apporte pas de valeur pédagogique réelle.",
+        "Conserver le cœur du plan: réduire la défensive et augmenter la capacité à parler à froid."
+      ],
+      "observation": "La demande porte sur l’architecture du plan, pas sur un simple ajustement local. Le point réel est un doute de cohérence entre deux paliers qui semblent proches, avec une attente claire: garder une progression lisible entre une compétence de base sur des sujets du quotidien et une mise à l’épreuve sur des sujets plus sensibles. Le risque coaching principal est de traiter cela comme un problème de formulation alors qu’il s’agit d’un problème de fonction des phases.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Le bon mouvement à ce stade est diagnostique: clarifier la fonction différente de chaque niveau avant toute fusion ou séparation. Il faut préserver la progression graduelle, vérifier si la différence est bien une différence de charge, de contexte ou d’usage, puis seulement décider entre garder deux paliers, les resegmenter, ou insérer un pont intermédiaire plus net.",
+      "next_best_question": "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?",
+      "options_to_discuss": [
+        "Garder deux niveaux séparés, mais rendre leur fonction plus explicite: base sur petits besoins quotidiens puis application sur sujets chargés.",
+        "Fusionner partiellement en une seule phase si la distinction pédagogique est trop faible, avec des sous-objectifs internes.",
+        "Insérer un pont intermédiaire entre quotidien et sujets sensibles pour réduire le saut de difficulté.",
+        "Renommer les niveaux pour mieux rendre lisible la progression si le problème est surtout sémantique.",
+        "Décaler l’entrée dans les sujets sensibles si le premier socle n’est pas encore consolidé."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [
+        "Quelle différence concrète veux-tu garder entre 'exprimer mes besoins' et 'aborder les sujets sensibles' : la difficulté du contenu, le contexte, ou la façon de le dire ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle va d’une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+      "must_not_execute_reason": "La demande exprime une hésitation sur la structure du plan, mais ne donne pas encore assez d’éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d’abord comprendre leur fonction respective avant toute fusion ou séparation."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t04",
+    "status": 200,
+    "ok": true,
+    "user": "La difficulte du contenu.",
+    "assistant": "Je dois reprendre le brouillon proprement avant d’aller plus loin. Quelle différence concrète tu veux garder entre les deux niveaux : la difficulté du contenu, le contexte, ou la manière de le dire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer une fusion définitive sans diagnostic préalable.",
+          "Réécrire lourdement le plan sans clarifier sa cohérence globale.",
+          "Traiter cette demande comme un simple problème de wording.",
+          "Changer la nature du niveau d'apprentissage sans demande explicite.",
+          "Promettre qu'une séparation ou une fusion sera automatiquement meilleure."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La logique de progression graduelle du plan.",
+          "La distinction entre apprentissage de base et exposition à des sujets plus chargés.",
+          "Le cadre de sécurité avant les sujets sensibles.",
+          "L'objectif global de mieux communiquer sans surcharger la relation.",
+          "Les acquis du premier niveau s'il sert de socle."
+        ],
+        "warnings": [
+          "Ne pas fusionner automatiquement les niveaux sans vérifier qu'ils sont réellement redondants.",
+          "Ne pas supprimer le socle d'apprentissage de base au profit d'une simplification apparente.",
+          "Ne pas déplacer trop tôt les sujets sensibles si le premier palier n'est pas stabilisé.",
+          "Ne pas traiter ce besoin comme un simple problème de formulation ou de wording.",
+          "Ne pas promettre qu'une séparation ou une fusion sera meilleure sans diagnostic de fonction."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+          "Vérifier que le changement reste cohérent avec l'objectif global et avec ce qui doit être préservé.",
+          "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu'en patch local.",
+          "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle.",
+          "Ne pas faire de changement de nature sans demande explicite.",
+          "La séparation n'est pertinente que si chaque niveau a une fonction différente et observable.",
+          "La fusion n'est pertinente que si la différence entre les niveaux n'apporte pas de valeur pédagogique réelle.",
+          "Conserver le cœur du plan: réduire la défensive et augmenter la capacité à parler à froid."
+        ],
+        "observation": "La demande touche l'architecture globale du plan: il y a une inquiétude de redondance entre deux paliers qui semblent proches, avec une attente de progression plus lisible entre une compétence de base sur des sujets du quotidien et son extension vers des sujets plus chargés. Le vrai enjeu coaching est la fonction de chaque phase, pas seulement leur intitulé.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Rester en diagnostic à ce stade et clarifier la fonction distincte de chaque niveau avant toute fusion, séparation ou re-découpage. Le cadrage le plus utile est de vérifier si l'écart entre les paliers est une différence de charge, de contexte ou d'usage, puis de décider seulement ensuite s'il faut conserver deux phases, en insérer une intermédiaire, ou les resegmenter.",
+        "next_best_question": "Quelle différence concrète faut-il garder entre les deux niveaux: la difficulté du contenu, le contexte, ou la manière de le dire ?",
+        "options_to_discuss": [
+          "Garder deux niveaux séparés, mais expliciter leur fonction respective: socle quotidien puis transfert vers des sujets plus chargés.",
+          "Fusionner partiellement si la différence pédagogique est trop faible, en gardant des sous-objectifs internes.",
+          "Insérer un pont intermédiaire entre quotidien et sujets sensibles pour réduire le saut.",
+          "Renommer les niveaux pour rendre la progression plus lisible sans changer la structure.",
+          "Décaler l'entrée dans les sujets sensibles si le premier socle n'est pas encore suffisamment consolidé."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [
+          "Quelle différence concrète faut-il absolument préserver entre 'exprimer des besoins' et 'aborder des sujets sensibles' : la difficulté du contenu, le contexte, ou la manière de le dire ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle va d'une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+        "must_not_execute_reason": "La demande signale une hésitation sur la structure du plan, mais ne fournit pas encore assez d'éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d'abord comprendre leur fonction respective avant toute fusion, séparation ou insertion d'un pont."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer une fusion définitive sans diagnostic préalable.",
+        "Réécrire lourdement le plan sans clarifier sa cohérence globale.",
+        "Traiter cette demande comme un simple problème de wording.",
+        "Changer la nature du niveau d'apprentissage sans demande explicite.",
+        "Promettre qu'une séparation ou une fusion sera automatiquement meilleure."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La logique de progression graduelle du plan.",
+        "La distinction entre apprentissage de base et exposition à des sujets plus chargés.",
+        "Le cadre de sécurité avant les sujets sensibles.",
+        "L'objectif global de mieux communiquer sans surcharger la relation.",
+        "Les acquis du premier niveau s'il sert de socle."
+      ],
+      "warnings": [
+        "Ne pas fusionner automatiquement les niveaux sans vérifier qu'ils sont réellement redondants.",
+        "Ne pas supprimer le socle d'apprentissage de base au profit d'une simplification apparente.",
+        "Ne pas déplacer trop tôt les sujets sensibles si le premier palier n'est pas stabilisé.",
+        "Ne pas traiter ce besoin comme un simple problème de formulation ou de wording.",
+        "Ne pas promettre qu'une séparation ou une fusion sera meilleure sans diagnostic de fonction."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape et architecture globale.",
+        "Vérifier que le changement reste cohérent avec l'objectif global et avec ce qui doit être préservé.",
+        "Raisonner en prérequis, séquencement et charge émotionnelle plutôt qu'en patch local.",
+        "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle.",
+        "Ne pas faire de changement de nature sans demande explicite.",
+        "La séparation n'est pertinente que si chaque niveau a une fonction différente et observable.",
+        "La fusion n'est pertinente que si la différence entre les niveaux n'apporte pas de valeur pédagogique réelle.",
+        "Conserver le cœur du plan: réduire la défensive et augmenter la capacité à parler à froid."
+      ],
+      "observation": "La demande touche l'architecture globale du plan: il y a une inquiétude de redondance entre deux paliers qui semblent proches, avec une attente de progression plus lisible entre une compétence de base sur des sujets du quotidien et son extension vers des sujets plus chargés. Le vrai enjeu coaching est la fonction de chaque phase, pas seulement leur intitulé.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Rester en diagnostic à ce stade et clarifier la fonction distincte de chaque niveau avant toute fusion, séparation ou re-découpage. Le cadrage le plus utile est de vérifier si l'écart entre les paliers est une différence de charge, de contexte ou d'usage, puis de décider seulement ensuite s'il faut conserver deux phases, en insérer une intermédiaire, ou les resegmenter.",
+      "next_best_question": "Quelle différence concrète faut-il garder entre les deux niveaux: la difficulté du contenu, le contexte, ou la manière de le dire ?",
+      "options_to_discuss": [
+        "Garder deux niveaux séparés, mais expliciter leur fonction respective: socle quotidien puis transfert vers des sujets plus chargés.",
+        "Fusionner partiellement si la différence pédagogique est trop faible, en gardant des sous-objectifs internes.",
+        "Insérer un pont intermédiaire entre quotidien et sujets sensibles pour réduire le saut.",
+        "Renommer les niveaux pour rendre la progression plus lisible sans changer la structure.",
+        "Décaler l'entrée dans les sujets sensibles si le premier socle n'est pas encore suffisamment consolidé."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [
+        "Quelle différence concrète faut-il absolument préserver entre 'exprimer des besoins' et 'aborder des sujets sensibles' : la difficulté du contenu, le contexte, ou la manière de le dire ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle va d'une compétence de formulation simple vers son application sur des sujets plus chargés ; la trajectoire possible consiste soit à maintenir deux paliers distincts, soit à insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+      "must_not_execute_reason": "La demande signale une hésitation sur la structure du plan, mais ne fournit pas encore assez d'éléments pour savoir si les deux niveaux sont redondants ou complémentaires. Il faut d'abord comprendre leur fonction respective avant toute fusion, séparation ou insertion d'un pont."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Je viens de te le dire plusieurs fois : la difficulte du contenu. Est-ce que tu peux arreter de me reposer la meme question et me proposer une structure claire, sans rien appliquer ?",
+    "assistant": "Je dois reprendre le brouillon proprement avant de te proposer la structure. Dis-moi juste quelle différence doit absolument rester visible entre les deux niveaux : la difficulté du contenu, le contexte d’usage, ou la manière de le dire ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_adjust_plan_intake_kept_in_tool_skill",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer un patch local sur un item précis.",
+          "Ne pas reformuler la même question déjà posée.",
+          "Ne pas annoncer une fusion ou une séparation comme solution finale.",
+          "Ne pas modifier la nature du plan sans validation explicite.",
+          "Ne pas effacer le socle avant d'avoir vérifié sa fonction."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "La progression graduelle du plan.",
+          "La distinction entre apprentissage de base et sujets sensibles.",
+          "Le rôle de sécurité et de réduction de la défensive.",
+          "L'objectif global de mieux communiquer sans surcharge.",
+          "Les acquis déjà construits sur le premier palier."
+        ],
+        "warnings": [
+          "Éviter de reposer la même question de clarification alors que la demande est déjà suffisamment explicite sur la douleur centrale.",
+          "Éviter de prétendre qu'une fusion ou une séparation est la bonne réponse sans exposer la fonction de chaque niveau.",
+          "Éviter de traiter cela comme une simple correction de formulation: le besoin est structurel, pas cosmétique.",
+          "Éviter de proposer une action concrète sur le plan alors que le user demande explicitement de ne rien appliquer.",
+          "Éviter de supprimer le socle d'apprentissage de base au nom de la simplification."
+        ],
+        "readiness": "diagnose",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Expliquer la fonction de chaque niveau avant de parler d'architecture.",
+          "Privilégier une lecture en prérequis, charge émotionnelle et transfert de compétence.",
+          "Présenter le plan comme une trajectoire: socle, pont, extension éventuelle.",
+          "Ne pas changer de nature sans demande explicite.",
+          "Mettre en avant ce qui doit rester stable avant toute reconfiguration.",
+          "Produire une structure claire et non répétitive, avec options comparées, sans appliquer."
+        ],
+        "observation": "La demande ne porte plus sur un ajustement local mais sur la lisibilité globale du plan: le user ressent une répétition entre deux niveaux et demande une structure plus nette, sans exécution ni nouveau changement appliqué. Le vrai sujet humain est la saturation face à des questions redondantes et le besoin d'un pont cohérent entre un apprentissage de base et une montée vers des sujets plus sensibles.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Passer d'une interrogation répétitive à une proposition structurée de trajectoire: expliciter la fonction de chaque niveau, montrer le pont entre eux, puis présenter 2 à 3 architectures possibles sans appliquer de modification. Le writer doit donner un cadre clair et compact, avec un focus sur la cohérence de progression plutôt que sur le détail des items.",
+        "next_best_question": "Quelle différence concrète faut-il absolument préserver entre les deux niveaux: la difficulté du contenu, le contexte, ou la manière de le dire ?",
+        "options_to_discuss": [
+          "Conserver deux niveaux mais les différencier clairement: d'abord l'expression de besoins sur des sujets quotidiens, puis le transfert vers des sujets chargés.",
+          "Insérer un niveau-pont intermédiaire pour réduire le saut entre quotidien et sujets sensibles.",
+          "Fusionner partiellement les deux niveaux si la différence pédagogique n'est pas assez utile, tout en gardant des sous-étapes internes.",
+          "Renommer les niveaux pour rendre la progression plus lisible sans toucher à la logique.",
+          "Décaler l'exposition aux sujets sensibles si le socle de base n'est pas encore assez stable."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [
+          "Quelle différence doit absolument rester visible entre les deux niveaux: la difficulté du contenu, le contexte d'usage, ou la manière de s'exprimer ?"
+        ],
+        "trajectory_hypothesis": "La trajectoire actuelle va d'un apprentissage simple vers des sujets plus chargés; la trajectoire possible est soit de clarifier deux paliers distincts, soit d'insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+        "must_not_execute_reason": "Le user demande une structure claire sans application; il manque encore la décision sur la fonction exacte des deux niveaux pour savoir s'il faut fusionner, séparer ou intercaler un pont. Toute modification maintenant serait prématurée."
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer un patch local sur un item précis.",
+        "Ne pas reformuler la même question déjà posée.",
+        "Ne pas annoncer une fusion ou une séparation comme solution finale.",
+        "Ne pas modifier la nature du plan sans validation explicite.",
+        "Ne pas effacer le socle avant d'avoir vérifié sa fonction."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "La progression graduelle du plan.",
+        "La distinction entre apprentissage de base et sujets sensibles.",
+        "Le rôle de sécurité et de réduction de la défensive.",
+        "L'objectif global de mieux communiquer sans surcharge.",
+        "Les acquis déjà construits sur le premier palier."
+      ],
+      "warnings": [
+        "Éviter de reposer la même question de clarification alors que la demande est déjà suffisamment explicite sur la douleur centrale.",
+        "Éviter de prétendre qu'une fusion ou une séparation est la bonne réponse sans exposer la fonction de chaque niveau.",
+        "Éviter de traiter cela comme une simple correction de formulation: le besoin est structurel, pas cosmétique.",
+        "Éviter de proposer une action concrète sur le plan alors que le user demande explicitement de ne rien appliquer.",
+        "Éviter de supprimer le socle d'apprentissage de base au nom de la simplification."
+      ],
+      "readiness": "diagnose",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Expliquer la fonction de chaque niveau avant de parler d'architecture.",
+        "Privilégier une lecture en prérequis, charge émotionnelle et transfert de compétence.",
+        "Présenter le plan comme une trajectoire: socle, pont, extension éventuelle.",
+        "Ne pas changer de nature sans demande explicite.",
+        "Mettre en avant ce qui doit rester stable avant toute reconfiguration.",
+        "Produire une structure claire et non répétitive, avec options comparées, sans appliquer."
+      ],
+      "observation": "La demande ne porte plus sur un ajustement local mais sur la lisibilité globale du plan: le user ressent une répétition entre deux niveaux et demande une structure plus nette, sans exécution ni nouveau changement appliqué. Le vrai sujet humain est la saturation face à des questions redondantes et le besoin d'un pont cohérent entre un apprentissage de base et une montée vers des sujets plus sensibles.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Passer d'une interrogation répétitive à une proposition structurée de trajectoire: expliciter la fonction de chaque niveau, montrer le pont entre eux, puis présenter 2 à 3 architectures possibles sans appliquer de modification. Le writer doit donner un cadre clair et compact, avec un focus sur la cohérence de progression plutôt que sur le détail des items.",
+      "next_best_question": "Quelle différence concrète faut-il absolument préserver entre les deux niveaux: la difficulté du contenu, le contexte, ou la manière de le dire ?",
+      "options_to_discuss": [
+        "Conserver deux niveaux mais les différencier clairement: d'abord l'expression de besoins sur des sujets quotidiens, puis le transfert vers des sujets chargés.",
+        "Insérer un niveau-pont intermédiaire pour réduire le saut entre quotidien et sujets sensibles.",
+        "Fusionner partiellement les deux niveaux si la différence pédagogique n'est pas assez utile, tout en gardant des sous-étapes internes.",
+        "Renommer les niveaux pour rendre la progression plus lisible sans toucher à la logique.",
+        "Décaler l'exposition aux sujets sensibles si le socle de base n'est pas encore assez stable."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [
+        "Quelle différence doit absolument rester visible entre les deux niveaux: la difficulté du contenu, le contexte d'usage, ou la manière de s'exprimer ?"
+      ],
+      "trajectory_hypothesis": "La trajectoire actuelle va d'un apprentissage simple vers des sujets plus chargés; la trajectoire possible est soit de clarifier deux paliers distincts, soit d'insérer un pont intermédiaire si le saut est trop faible ou trop brutal.",
+      "must_not_execute_reason": "Le user demande une structure claire sans application; il manque encore la décision sur la fonction exacte des deux niveaux pour savoir s'il faut fusionner, séparer ou intercaler un pont. Toute modification maintenant serait prématurée."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-taxonomy-r82-whole-plan-split-merge-t05",
+    "trace_error": null
+  }
+]

@@ -1,0 +1,447 @@
+[
+  {
+    "potion": "rappel",
+    "state": "decrochage",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r33_hard2_rappel_rappel",
+    "user_id": "b40f8162-ebae-4e49-882b-4d80ae101fb8",
+    "fixture": {
+      "cycle": {
+        "id": "b004d43c-903a-4f54-a19b-50935a95d16e",
+        "user_id": "b40f8162-ebae-4e49-882b-4d80ae101fb8",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T14:20:16.807769+00:00",
+        "updated_at": "2026-05-21T14:20:16.807769+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "e540c4b9-ff9b-470a-8045-4a70e24109a8",
+        "cycle_id": "b004d43c-903a-4f54-a19b-50935a95d16e",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Revenir aux petits gestes du soir",
+        "internal_summary": "Fixture QA pour tester la potion rappel.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "rappel",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T14:20:16.812699+00:00",
+        "updated_at": "2026-05-21T14:20:16.812699+00:00",
+        "activated_at": "2026-05-21T14:20:16.532+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "1b6448d9-066c-4863-b081-6ca3bd3c7635",
+        "user_id": "b40f8162-ebae-4e49-882b-4d80ae101fb8",
+        "cycle_id": "b004d43c-903a-4f54-a19b-50935a95d16e",
+        "transformation_id": "e540c4b9-ff9b-470a-8045-4a70e24109a8",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA rappel",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T14:20:16.532+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T14:20:16.823951+00:00",
+        "updated_at": "2026-05-21T14:20:16.823951+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "6dc01a5a-da04-406f-93b0-cbd8e5a55913",
+        "user_id": "b40f8162-ebae-4e49-882b-4d80ae101fb8",
+        "cycle_id": "b004d43c-903a-4f54-a19b-50935a95d16e",
+        "transformation_id": "e540c4b9-ff9b-470a-8045-4a70e24109a8",
+        "plan_id": "1b6448d9-066c-4863-b081-6ca3bd3c7635",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Marcher dix minutes puis ranger le bureau",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "rappel"
+        },
+        "created_at": "2026-05-21T14:20:16.832469+00:00",
+        "updated_at": "2026-05-21T14:20:16.832469+00:00",
+        "activated_at": "2026-05-21T14:20:16.532+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t01-a1",
+        "user": "Je veux une potion de rappel, mais je suis pas tres clair: mes fins de journee partent en vrille.",
+        "assistant": "C'est souvent le moment où tout s'accélère. Quand tu dis que ça part en vrille, c'est plutôt que tu laisses filer l'heure ou que tu perds ton élan ? 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t02-a1",
+        "user": "Le moment a proteger, c'est quand je ferme l'ordi: soit je sors marcher dix minutes, soit je range le bureau, sinon je reporte.",
+        "assistant": "C'est ce moment précis, quand l'ordinateur se ferme, qui décide souvent de la suite de ta soirée. Pour éviter que tu ne reportes la marche ou le rangement, je vais être présente chaque jour vers 18h00 pendant une semaine. L'idée est de t'aider à garder le mouvement sans que ça devienne une contrainte. Dis-moi si cet horaire correspond bien au moment où tu termines ta journée. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t03-a1",
+        "user": "Je prefere que le rappel arrive avant que je me pose, vers 18h45. Le ton doit etre simple, pas scolaire.",
+        "assistant": "On décale à 18h45 pour attraper ce moment juste avant que tu ne t'installes. C'est souvent là que tout se joue pour la marche ou le rangement du bureau. Je serai là chaque jour à cette heure-là pendant une semaine pour t'aider à garder le fil, tout simplement. Dis-moi si ce moment te permet de rester dans le mouvement. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 3,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t04-a3",
+        "user": "Oui, garde ce cadre: marche ou bureau, juste un repere doux.",
+        "assistant": "",
+        "status": 502,
+        "trace": {
+          "http_status": 502,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 3,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t05-a3",
+        "user": "Oui, active cette potion de rappel.",
+        "assistant": "",
+        "status": 502,
+        "trace": {
+          "http_status": 502,
+          "ok": null,
+          "empty_response": null,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": null,
+          "selected_handler": null,
+          "route_selected_handler": null,
+          "route_reason": null,
+          "safety": null,
+          "direct_effects": null,
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": null,
+          "trace_error": null,
+          "trace_id": null
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 6,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t06-a1",
+        "user": "Oui je confirme, lance-la.",
+        "assistant": "C'est le moment où l'énergie redescend. Respire un coup : l'idée c'est juste de ne pas laisser filer ce petit moment pour toi avant de te poser. 🙂",
+        "status": 200,
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r33_hard2_rappel-rappel-t06-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "dd81bbfb-e360-4ee4-ac78-b5cc31463fb8",
+              "potion_type": "rappel",
+              "status": "completed"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "dc20e2d9-0103-4b3c-8161-4c48bbbaa440",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "576c506d-270f-47a4-a83e-9f14368a0254",
+              "status": "pending",
+              "scheduled_for": "2026-05-22T18:45:00+00:00"
+            },
+            {
+              "id": "42349a19-b0c6-4e6f-8e4d-449e7ce209ff",
+              "status": "pending",
+              "scheduled_for": "2026-05-23T18:45:00+00:00"
+            },
+            {
+              "id": "9eb6fc1d-d449-4955-ac56-d8344585d5cc",
+              "status": "pending",
+              "scheduled_for": "2026-05-24T18:45:00+00:00"
+            },
+            {
+              "id": "193954d2-bc20-47ec-828c-dc815889c9c3",
+              "status": "pending",
+              "scheduled_for": "2026-05-25T18:45:00+00:00"
+            },
+            {
+              "id": "64c1e481-a3e2-4d0b-84f0-5bbc560ea208",
+              "status": "pending",
+              "scheduled_for": "2026-05-26T18:45:00+00:00"
+            },
+            {
+              "id": "1953b1fa-4a75-43c0-9e15-584512262c70",
+              "status": "pending",
+              "scheduled_for": "2026-05-27T18:45:00+00:00"
+            },
+            {
+              "id": "eee2c565-57cf-40c9-8191-ccc932cf085d",
+              "status": "pending",
+              "scheduled_for": "2026-05-28T18:45:00+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

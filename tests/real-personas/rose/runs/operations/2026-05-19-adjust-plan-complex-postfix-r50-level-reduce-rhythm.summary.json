@@ -1,0 +1,717 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Cette semaine je sens que le niveau est un peu trop intense. Je veux garder le niveau, mais ralentir le rythme global, pas juste modifier une seule action.",
+    "assistant": "Pour ralentir le rythme global de cette semaine, quels sont les éléments qui te semblent les plus lourds ou que tu aimerais alléger ? Par exemple, l'habitude \"Partager un point positif\" ou la clarification \"Cartographier les déclencheurs\" ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+          "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+          "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La structure et la séquence globales du plan.",
+          "L'intention derrière chaque action, même si son exécution est modifiée."
+        ],
+        "warnings": [
+          "Éviter de proposer de sauter le niveau actuel ou de le modifier de manière drastique, car l'utilisateur souhaite 'garder le niveau'.",
+          "Ne pas se limiter à un ajustement d'une seule action, car la demande porte sur le 'rythme global'.",
+          "Ne pas altérer la nature ou l'objectif principal du niveau 'Désamorcer et recréer de la sécurité'."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+        ],
+        "observation": "L'utilisateur exprime un sentiment de surcharge globale pour le niveau en cours et souhaite une réduction du rythme général, au-delà d'un simple ajustement d'action. Il y a une volonté de maintenir le cap du niveau, mais de le rendre plus soutenable.",
+        "recommendation": "Identifier les leviers d'ajustement de la charge globale du niveau, en priorisant la réduction de la friction et de l'intensité sans altérer l'objectif fondamental du niveau. Il s'agit de trouver un équilibre entre la progression et la capacité de l'utilisateur à s'engager.",
+        "options_to_discuss": [
+          "Réduire la fréquence des habitudes récurrentes pour la semaine en cours.",
+          "Simplifier la portée ou la durée des missions ou clarifications spécifiques.",
+          "Mettre en pause temporairement un élément moins critique pour le reste de la semaine.",
+          "Réévaluer la charge perçue de chaque élément pour identifier les ajustements à fort impact."
+        ],
+        "questions_to_clarify": [
+          "Quels sont les éléments spécifiques ou les moments de la semaine qui contribuent le plus à ce sentiment d'intensité ?",
+          "Quel serait un rythme 'moins intense' pour vous ? (ex: moins de tâches quotidiennes, des durées plus courtes, moins d'effort cognitif requis)",
+          "Y a-t-il un type d'activité (habitudes, missions, réflexions) qui vous semble plus lourd que les autres en ce moment ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+        "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+        "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La structure et la séquence globales du plan.",
+        "L'intention derrière chaque action, même si son exécution est modifiée."
+      ],
+      "warnings": [
+        "Éviter de proposer de sauter le niveau actuel ou de le modifier de manière drastique, car l'utilisateur souhaite 'garder le niveau'.",
+        "Ne pas se limiter à un ajustement d'une seule action, car la demande porte sur le 'rythme global'.",
+        "Ne pas altérer la nature ou l'objectif principal du niveau 'Désamorcer et recréer de la sécurité'."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+      ],
+      "observation": "L'utilisateur exprime un sentiment de surcharge globale pour le niveau en cours et souhaite une réduction du rythme général, au-delà d'un simple ajustement d'action. Il y a une volonté de maintenir le cap du niveau, mais de le rendre plus soutenable.",
+      "recommendation": "Identifier les leviers d'ajustement de la charge globale du niveau, en priorisant la réduction de la friction et de l'intensité sans altérer l'objectif fondamental du niveau. Il s'agit de trouver un équilibre entre la progression et la capacité de l'utilisateur à s'engager.",
+      "options_to_discuss": [
+        "Réduire la fréquence des habitudes récurrentes pour la semaine en cours.",
+        "Simplifier la portée ou la durée des missions ou clarifications spécifiques.",
+        "Mettre en pause temporairement un élément moins critique pour le reste de la semaine.",
+        "Réévaluer la charge perçue de chaque élément pour identifier les ajustements à fort impact."
+      ],
+      "questions_to_clarify": [
+        "Quels sont les éléments spécifiques ou les moments de la semaine qui contribuent le plus à ce sentiment d'intensité ?",
+        "Quel serait un rythme 'moins intense' pour vous ? (ex: moins de tâches quotidiennes, des durées plus courtes, moins d'effort cognitif requis)",
+        "Y a-t-il un type d'activité (habitudes, missions, réflexions) qui vous semble plus lourd que les autres en ce moment ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Le plus lourd c'est le cumul : signal de pause + point positif + observation des déclencheurs. Je veux une version plus respirable du niveau, pas supprimer ces repères.",
+    "assistant": "Si je comprends bien, tu souhaites alléger le niveau actuel pour le rendre plus respirable, en particulier concernant le signal de pause, le point positif et l'observation des déclencheurs, sans pour autant supprimer ces repères. Est-ce que je peux te préparer une proposition concrète pour alléger ces éléments ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+          "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+          "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+          "La présence de 'Partager un point positif'.",
+          "La présence de 'Cartographier les déclencheurs'.",
+          "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+        ],
+        "warnings": [
+          "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+          "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+          "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+        ],
+        "observation": "L'utilisateur exprime un sentiment de surcharge lié à la combinaison de plusieurs actions clés du niveau en cours. Il ne souhaite pas supprimer ces actions, qu'il considère comme des repères essentiels, mais cherche à rendre le niveau globalement plus 'respirable'. La demande porte sur une réduction de la charge cumulative, pas sur l'élimination d'éléments fondamentaux.",
+        "recommendation": "Explorer des stratégies pour alléger la charge perçue des actions 'Convenir d'un signal de pause', 'Partager un point positif' et 'Cartographier les déclencheurs', en privilégiant la simplification, la réduction de fréquence ou l'étalement, tout en maintenant leur présence et leur intention fondamentale au sein du niveau.",
+        "options_to_discuss": [
+          "Réduire la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours, même si elle a déjà été ajustée.",
+          "Simplifier la portée ou la durée de la mission 'Faire le point sur le signal de pause' ou de la clarification 'Cartographier les déclencheurs' pour cette semaine.",
+          "Proposer de décaler légèrement la mission 'Faire le point sur le signal de pause' à la semaine suivante si elle n'est pas encore critique.",
+          "Explorer des versions 'mini' ou des instructions encore plus allégées pour 'Cartographier les déclencheurs' afin de réduire l'effort cognitif."
+        ],
+        "questions_to_clarify": [
+          "Quand vous parlez de 'cumul', est-ce la fréquence de ces actions, le temps qu'elles demandent, ou l'effort mental qu'elles représentent qui est le plus lourd ?",
+          "Parmi ces trois éléments ('signal de pause', 'point positif', 'observation des déclencheurs'), y en a-t-il un qui vous semble plus difficile à alléger que les autres, ou un qui est absolument non négociable dans sa forme actuelle ?",
+          "Si nous devions alléger un de ces 'repères' pour cette semaine, lequel aurait le plus grand impact sur votre sentiment de 'respirabilité' ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+        "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+        "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+        "La présence de 'Partager un point positif'.",
+        "La présence de 'Cartographier les déclencheurs'.",
+        "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+      ],
+      "warnings": [
+        "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+        "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+        "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+      ],
+      "observation": "L'utilisateur exprime un sentiment de surcharge lié à la combinaison de plusieurs actions clés du niveau en cours. Il ne souhaite pas supprimer ces actions, qu'il considère comme des repères essentiels, mais cherche à rendre le niveau globalement plus 'respirable'. La demande porte sur une réduction de la charge cumulative, pas sur l'élimination d'éléments fondamentaux.",
+      "recommendation": "Explorer des stratégies pour alléger la charge perçue des actions 'Convenir d'un signal de pause', 'Partager un point positif' et 'Cartographier les déclencheurs', en privilégiant la simplification, la réduction de fréquence ou l'étalement, tout en maintenant leur présence et leur intention fondamentale au sein du niveau.",
+      "options_to_discuss": [
+        "Réduire la fréquence de l'habitude 'Partager un point positif' pour la semaine en cours, même si elle a déjà été ajustée.",
+        "Simplifier la portée ou la durée de la mission 'Faire le point sur le signal de pause' ou de la clarification 'Cartographier les déclencheurs' pour cette semaine.",
+        "Proposer de décaler légèrement la mission 'Faire le point sur le signal de pause' à la semaine suivante si elle n'est pas encore critique.",
+        "Explorer des versions 'mini' ou des instructions encore plus allégées pour 'Cartographier les déclencheurs' afin de réduire l'effort cognitif."
+      ],
+      "questions_to_clarify": [
+        "Quand vous parlez de 'cumul', est-ce la fréquence de ces actions, le temps qu'elles demandent, ou l'effort mental qu'elles représentent qui est le plus lourd ?",
+        "Parmi ces trois éléments ('signal de pause', 'point positif', 'observation des déclencheurs'), y en a-t-il un qui vous semble plus difficile à alléger que les autres, ou un qui est absolument non négociable dans sa forme actuelle ?",
+        "Si nous devions alléger un de ces 'repères' pour cette semaine, lequel aurait le plus grand impact sur votre sentiment de 'respirabilité' ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare un brouillon sans appliquer. Je veux par exemple garder le signal de pause, mais rendre le point positif moins fréquent et l'observation des déclencheurs moins lourde.",
+    "assistant": "Je comprends que tu veux alléger le niveau actuel pour le rendre plus respirable, en gardant le signal de pause.\n\nPour l'habitude \"Partager un point positif\", tu avais déjà réduit la fréquence à 3 fois par semaine et simplifié la consigne. Quelle fréquence \"moins fréquente\" te semblerait vraiment plus facile à tenir et soutenable ?\n\nConcernant \"Cartographier les déclencheurs\", c'est une clarification qui sert de repère pour tes observations. Je ne peux pas modifier sa structure directement. Pour la rendre \"moins lourde\", qu'est-ce qui la rend difficile pour toi ? Est-ce le temps que ça prend, l'effort de réflexion, ou le fait de devoir écrire les choses en détail ? Comment aimerais-tu simplifier l'action concrète d'observer les déclencheurs ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+          "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+          "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+          "La présence de 'Partager un point positif'.",
+          "La présence de 'Cartographier les déclencheurs'.",
+          "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+        ],
+        "warnings": [
+          "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+          "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+          "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+        ],
+        "confidence": "medium",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+        ],
+        "observation": "L'utilisateur confirme le besoin d'alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la perception de 'lourdeur' de l'observation des déclencheurs. Il souhaite maintenir la présence de ces repères essentiels, y compris le signal de pause, mais dans une forme plus 'respirable' et moins exigeante.",
+        "recommendation": "Proposer des ajustements concrets pour réduire la fréquence de 'Partager un point positif' et simplifier la tâche de 'Cartographier les déclencheurs', tout en s'assurant que ces modifications répondent précisément à la source de la surcharge perçue par l'utilisateur et préservent l'intention pédagogique de chaque action.",
+        "options_to_discuss": [
+          "Pour 'Partager un point positif', réduire la fréquence à 1 ou 2 fois par semaine, compte tenu des ajustements déjà effectués.",
+          "Pour 'Cartographier les déclencheurs', simplifier la tâche en ne demandant qu'une seule observation rapide, sans détails complexes, ou en réduisant le nombre de champs à remplir.",
+          "Pour 'Cartographier les déclencheurs', proposer de transformer l'observation écrite en une simple réflexion mentale rapide en fin de semaine, sans nécessité de la formaliser."
+        ],
+        "questions_to_clarify": [
+          "Pour 'Partager un point positif', vous aviez déjà réduit la fréquence à 3 fois par semaine et simplifié la consigne. Quelle fréquence 'moins fréquente' vous semblerait vraiment plus facile à tenir et soutenable ?",
+          "Concernant 'Cartographier les déclencheurs', qu'est-ce qui la rend 'lourde' pour vous spécifiquement ? Est-ce le temps que cela prend, l'effort de réflexion, ou le fait de devoir écrire les choses en détail ?",
+          "Y a-t-il une de ces actions ('point positif', 'observation des déclencheurs') que vous souhaiteriez alléger en priorité ou d'une manière très spécifique ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer de supprimer une action entièrement sans explorer d'abord la simplification ou la réduction de fréquence.",
+        "Suggérer une pause globale du plan sans comprendre les raisons profondes de la surcharge.",
+        "Faire des suppositions sur la cause de l'intensité sans poser de questions directes."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La présence de 'Convenir d'un signal de pause' et de son suivi.",
+        "La présence de 'Partager un point positif'.",
+        "La présence de 'Cartographier les déclencheurs'.",
+        "L'intention fondamentale derrière chaque action (ex: le signal pour la pause, le positif pour l'ancrage, la cartographie pour la compréhension des déclencheurs)."
+      ],
+      "warnings": [
+        "Ne pas proposer de supprimer entièrement 'Convenir d'un signal de pause', 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite conserver ces 'repères'.",
+        "Éviter de suggérer une pause complète du niveau ou un changement drastique de son objectif, car la demande est de le rendre 'plus respirable', pas de l'interrompre.",
+        "Ne pas altérer la nature ou le rôle essentiel de chaque action, même si leur exécution est simplifiée."
+      ],
+      "confidence": "medium",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+      ],
+      "observation": "L'utilisateur confirme le besoin d'alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la perception de 'lourdeur' de l'observation des déclencheurs. Il souhaite maintenir la présence de ces repères essentiels, y compris le signal de pause, mais dans une forme plus 'respirable' et moins exigeante.",
+      "recommendation": "Proposer des ajustements concrets pour réduire la fréquence de 'Partager un point positif' et simplifier la tâche de 'Cartographier les déclencheurs', tout en s'assurant que ces modifications répondent précisément à la source de la surcharge perçue par l'utilisateur et préservent l'intention pédagogique de chaque action.",
+      "options_to_discuss": [
+        "Pour 'Partager un point positif', réduire la fréquence à 1 ou 2 fois par semaine, compte tenu des ajustements déjà effectués.",
+        "Pour 'Cartographier les déclencheurs', simplifier la tâche en ne demandant qu'une seule observation rapide, sans détails complexes, ou en réduisant le nombre de champs à remplir.",
+        "Pour 'Cartographier les déclencheurs', proposer de transformer l'observation écrite en une simple réflexion mentale rapide en fin de semaine, sans nécessité de la formaliser."
+      ],
+      "questions_to_clarify": [
+        "Pour 'Partager un point positif', vous aviez déjà réduit la fréquence à 3 fois par semaine et simplifié la consigne. Quelle fréquence 'moins fréquente' vous semblerait vraiment plus facile à tenir et soutenable ?",
+        "Concernant 'Cartographier les déclencheurs', qu'est-ce qui la rend 'lourde' pour vous spécifiquement ? Est-ce le temps que cela prend, l'effort de réflexion, ou le fait de devoir écrire les choses en détail ?",
+        "Y a-t-il une de ces actions ('point positif', 'observation des déclencheurs') que vous souhaiteriez alléger en priorité ou d'une manière très spécifique ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Mets 'Partager un point positif' à 2 jours cette semaine. Pour les déclencheurs, je veux juste noter un mot-clé quand ça déborde, pas faire une analyse complète.",
+    "assistant": "Je dois reprendre le brouillon pour tes ajustements. Pour l'action 'Cartographier les déclencheurs', tu as dit vouloir noter un mot-clé quand ça déborde, sans analyse complète. Est-ce que tu veux que je simplifie les questions actuelles ('Quels sujets ont créé de la friction cette semaine ?' et 'À quel moment précis la discussion a-t-elle basculé ?') pour qu'elles demandent juste un mot-clé, ou que je les remplace par une seule question plus simple ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire.",
+          "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs'.",
+          "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La présence de l'action 'Convenir d'un signal de pause' et son rôle.",
+          "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif.",
+          "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions.",
+          "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+        ],
+        "warnings": [
+          "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite.",
+          "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+          "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+        ],
+        "observation": "L'utilisateur fournit des instructions directes et précises pour alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il exprime clairement le désir de conserver ces actions comme des repères, mais sous une forme plus gérable et moins exigeante.",
+        "recommendation": "Procéder à l'application des ajustements demandés pour 'Partager un point positif' et 'Cartographier les déclencheurs'. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète fidèlement la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention de base de l'identification des déclencheurs.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire.",
+        "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs'.",
+        "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La présence de l'action 'Convenir d'un signal de pause' et son rôle.",
+        "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif.",
+        "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions.",
+        "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+      ],
+      "warnings": [
+        "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite.",
+        "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+        "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+      ],
+      "observation": "L'utilisateur fournit des instructions directes et précises pour alléger la charge du niveau actuel, en ciblant spécifiquement la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il exprime clairement le désir de conserver ces actions comme des repères, mais sous une forme plus gérable et moins exigeante.",
+      "recommendation": "Procéder à l'application des ajustements demandés pour 'Partager un point positif' et 'Cartographier les déclencheurs'. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète fidèlement la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention de base de l'identification des déclencheurs.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Remplace par une seule question plus simple : 'quel mot-clé résume le déclencheur ?'. Montre-moi le brouillon final sans appliquer.",
+    "assistant": "Ok, je te mets le brouillon final (version plus respirable) sans l’appliquer. 😌\n\n1) Habitude : Partager un point positif\n- Fréquence : 2 jours cette semaine\n- (On garde l’idée de repère positif, mais on baisse le volume à tenir.)\n\n2) Clarification : Cartographier les déclencheurs\n- Objectif : pas d’analyse complète\n- Consigne simplifiée (une seule question) :\n“Quel mot-clé résume le déclencheur ?”\n- Quand ça “déborde” : tu notes juste ce mot-clé (pas plus).\n\n3) Signal de pause\n- On le garde tel quel (sans toucher au repère).\n\nTu veux que je formate ça en checklist ultra courte “à lire en 10 secondes” ou tu préfères garder ce format ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t05",
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, valide ce brouillon : point positif à 2 jours cette semaine, une seule question mot-clé pour les déclencheurs, signal de pause inchangé.",
+    "assistant": "J'ai bien compris l'ajustement. Je te prépare une proposition concrète, et rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "draft_review_decision",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire et validée.",
+          "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite les conserver comme repères.",
+          "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+          "La présence de l'action 'Convenir d'un signal de pause' et son rôle essentiel dans la gestion des tensions.",
+          "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif, même avec une fréquence réduite.",
+          "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions, même avec une instruction simplifiée.",
+          "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+        ],
+        "warnings": [
+          "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite et a validé le brouillon.",
+          "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+          "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension, mais la rend plus accessible."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+          "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+        ],
+        "observation": "L'utilisateur valide explicitement les ajustements proposés pour alléger la charge du niveau actuel, en confirmant la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il réaffirme également que le signal de pause doit rester inchangé, ce qui renforce la clarté de ses attentes.",
+        "recommendation": "Procéder à l'application des ajustements tels que validés par l'utilisateur. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète précisément la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention fondamentale d'identifier les points de tension. Confirmer la réduction de 'Partager un point positif' à 2 jours par semaine.",
+        "options_to_discuss": [],
+        "questions_to_clarify": []
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Demander des précisions sur le 'pourquoi' de ces ajustements, l'intention de réduction de charge étant claire et validée.",
+        "Proposer de supprimer entièrement 'Partager un point positif' ou 'Cartographier les déclencheurs', car l'utilisateur souhaite les conserver comme repères.",
+        "Suggérer d'autres modifications au plan ou au niveau qui n'ont pas été explicitement demandées par l'utilisateur à ce stade."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'objectif principal du niveau actuel : 'Désamorcer et recréer de la sécurité'.",
+        "La présence de l'action 'Convenir d'un signal de pause' et son rôle essentiel dans la gestion des tensions.",
+        "La présence de l'habitude 'Partager un point positif' et son intention d'ancrage positif, même avec une fréquence réduite.",
+        "La présence de l'action 'Cartographier les déclencheurs' et son intention de compréhension des tensions, même avec une instruction simplifiée.",
+        "L'intention fondamentale de chaque action, même après ajustement de sa forme ou de sa fréquence."
+      ],
+      "warnings": [
+        "Ne pas tenter de rouvrir la discussion sur la nécessité de ces ajustements, car l'utilisateur a été très explicite et a validé le brouillon.",
+        "Éviter de proposer des alternatives aux modifications spécifiquement demandées pour la fréquence ou la simplification.",
+        "S'assurer que la simplification de 'Cartographier les déclencheurs' ne vide pas l'action de son sens initial d'identification des points de tension, mais la rend plus accessible."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Le rôle de chaque action doit être préservé. L'intention de l'action doit rester intacte même si sa charge est réduite. Privilégier un 'pont mini' (version simplifiée) plutôt qu'une suppression. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: La charge et le rythme du niveau courant sont la cible. Une baisse temporaire de la charge est acceptable, mais elle ne doit pas être globale au point de vider le niveau de son sens. La 'boundary' de fin de niveau et le cœur de son objectif doivent être préservés.",
+        "Guidelines whole_plan: La trajectoire globale, la cohérence d'ensemble, les prérequis, l'ordre des phases, l'objectif final et le questionnaire du plan doivent être préservés."
+      ],
+      "observation": "L'utilisateur valide explicitement les ajustements proposés pour alléger la charge du niveau actuel, en confirmant la fréquence de l'habitude de partage positif et la simplification de l'observation des déclencheurs. Il réaffirme également que le signal de pause doit rester inchangé, ce qui renforce la clarté de ses attentes.",
+      "recommendation": "Procéder à l'application des ajustements tels que validés par l'utilisateur. S'assurer que la modification de l'instruction pour 'Cartographier les déclencheurs' reflète précisément la demande de 'noter un mot-clé' sans analyse complète, tout en maintenant l'intention fondamentale d'identifier les points de tension. Confirmer la réduction de 'Partager un point positif' à 2 jours par semaine.",
+      "options_to_discuss": [],
+      "questions_to_clarify": []
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r50-level-reduce-rhythm-t06",
+    "trace_error": null
+  }
+]

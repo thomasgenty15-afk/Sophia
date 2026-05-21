@@ -1,0 +1,2106 @@
+[
+  {
+    "potion": "courage",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r42_hard2_courage_courage",
+    "auth_user_id": "dde77208-5382-437d-8625-559eb13817ff",
+    "fixture": {
+      "cycle": {
+        "id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "status": "active",
+        "raw_intake_text": "QA potions: l'utilisateur veut retrouver une relation plus calme a son quotidien tout en gardant une action simple.",
+        "intake_language": "fr",
+        "duration_months": 1,
+        "birth_date_snapshot": null,
+        "gender_snapshot": null,
+        "active_transformation_id": null,
+        "version": 1,
+        "created_at": "2026-05-21T16:01:44.14963+00:00",
+        "updated_at": "2026-05-21T16:01:44.14963+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "validated_structure": null,
+        "requested_pace": null
+      },
+      "transformation": {
+        "id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "priority_order": 1,
+        "status": "active",
+        "title": "Oser les conversations importantes",
+        "internal_summary": "Fixture QA pour tester la potion courage.",
+        "user_summary": "Le user cherche un accompagnement doux, concret, sans pression supplementaire.",
+        "success_definition": "Avoir un appui simple qui ramene au bon geste sans surcharge.",
+        "main_constraint": "Quand la charge monte, le user se perd dans la pression et l'auto-jugement.",
+        "questionnaire_schema": null,
+        "questionnaire_answers": {
+          "potion_qa": "courage",
+          "ton_prefere": "doux et direct",
+          "rythme_prefere": "matin"
+        },
+        "completion_summary": null,
+        "handoff_payload": {
+          "phase_1": {
+            "deep_why": {
+              "answers": [
+                {
+                  "answer": "Je veux arreter de me disperser et me sentir plus present a ce que je choisis.",
+                  "question_id": "why_1"
+                },
+                {
+                  "answer": "Je veux proteger mon energie et ma confiance au lieu de les depenser en tension.",
+                  "question_id": "why_2"
+                }
+              ],
+              "questions": [
+                {
+                  "id": "why_1",
+                  "label": "Pourquoi est-ce important pour toi ?"
+                },
+                {
+                  "id": "why_2",
+                  "label": "Qu'est-ce que tu veux proteger ?"
+                }
+              ]
+            }
+          }
+        },
+        "created_at": "2026-05-21T16:01:44.155739+00:00",
+        "updated_at": "2026-05-21T16:01:44.155739+00:00",
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "ordering_rationale": null,
+        "unlocked_principles": {
+          "kaizen": true
+        },
+        "base_de_vie_payload": null
+      },
+      "plan": {
+        "id": "29ec3505-e7d5-4bdb-bb16-9c70d6c205ac",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "transformation_id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "status": "active",
+        "version": 1,
+        "title": "Plan QA courage",
+        "content": {
+          "source": "qa_state_potion_6subskills",
+          "strategy": {
+            "core_principle": "Un seul appui juste vaut mieux qu'une pression de plus.",
+            "identity_shift": "Je deviens quelqu'un qui avance avec plus de douceur.",
+            "main_constraint": "La surcharge transforme les petits pas en montagne.",
+            "success_definition": "Revenir a un geste simple au bon moment."
+          }
+        },
+        "generation_attempts": 0,
+        "last_generation_reason": null,
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "archived_at": null,
+        "created_at": "2026-05-21T16:01:44.164938+00:00",
+        "updated_at": "2026-05-21T16:01:44.164938+00:00",
+        "generation_feedback": null,
+        "generation_input_snapshot": null
+      },
+      "item": {
+        "id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+        "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+        "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+        "transformation_id": "dc634cac-b196-4fb7-96e3-ee0824e0f855",
+        "plan_id": "29ec3505-e7d5-4bdb-bb16-9c70d6c205ac",
+        "dimension": "habits",
+        "kind": "habit",
+        "status": "active",
+        "title": "Envoyer le message difficile",
+        "description": "Action QA active visible par le skill potion.",
+        "tracking_type": "boolean",
+        "activation_order": 1,
+        "activation_condition": null,
+        "current_habit_state": "active_building",
+        "support_mode": null,
+        "support_function": null,
+        "target_reps": 1,
+        "current_reps": 0,
+        "cadence_label": "quotidien",
+        "scheduled_days": [
+          "thu"
+        ],
+        "time_of_day": "09:00",
+        "start_after_item_id": null,
+        "payload": {
+          "source": "qa_state_potion_6subskills",
+          "potion_type": "courage"
+        },
+        "created_at": "2026-05-21T16:01:44.170292+00:00",
+        "updated_at": "2026-05-21T16:01:44.170292+00:00",
+        "activated_at": "2026-05-21T16:01:43.903+00:00",
+        "completed_at": null,
+        "phase_id": null,
+        "phase_order": null,
+        "defense_card_id": null,
+        "attack_card_id": null,
+        "cards_status": "not_required",
+        "cards_generated_at": null
+      }
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1",
+        "user": "J'ai besoin d'une potion de courage, mais je change de formulation toutes les deux minutes.",
+        "assistant": "On va stabiliser ça. C'est pour quel genre de message ou de situation que tu cherches la formulation idéale ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1",
+          "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "On va stabiliser ça. C'est pour quel genre de message ou de situation que tu cherches la formulation idéale ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1",
+            "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+            "source_message_id": "f8253e89-bd63-4afc-a347-8d900493c28d",
+            "ts": "2026-05-21T16:02:10.394+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8647,
+              "latency_ms": 4922,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 692,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Envoyer le message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.motivation",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "courage et passage a l'action",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1",
+              "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "Envoyer le message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "psychologie.motivation",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "courage et passage a l'action",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 0,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [],
+                "context_summary": null,
+                "previous_scores": [],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "f8253e89-bd63-4afc-a347-8d900493c28d",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "courage",
+                  "user_intent": "create",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "potion_type": {
+                      "value": "courage",
+                      "status": "identified",
+                      "evidence": [
+                        "potion de courage"
+                      ],
+                      "confidence": "high"
+                    }
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "tool_skill_intent_start",
+              "blocked_paths": [],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "ask_question",
+              "reason_code": "tool_skill_intent_start",
+              "missing_slots": [
+                "potion_detail:avoidance_target"
+              ],
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 26160,
+            "created_at": "2026-05-21T16:02:10.395426+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "tool_skill_intent_start",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t01-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 2,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1",
+        "user": "C'est pour parler a mon associe. Je dois envoyer une premiere phrase, pas refaire mon plan.",
+        "assistant": "Pour t'aider à envoyer cette première phrase à ton associé sans que le perfectionnisme ne bloque tout, je vais t'accompagner avec cette potion de courage. Je passerai te voir chaque matin à 08h30 pendant une semaine pour garder cette impulsion douce. Dis-moi si c'est bon pour toi. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1",
+          "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "Pour t'aider à envoyer cette première phrase à ton associé sans que le perfectionnisme ne bloque tout, je vais t'accompagner avec cette potion de courage. Je passerai te voir chaque matin à 08h30 pendant une semaine pour garder cette impulsion douce. Dis-moi si c'est bon pour toi. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1",
+            "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+            "source_message_id": "b525e18b-01e0-49e4-b213-375b9397690c",
+            "ts": "2026-05-21T16:02:46.992+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9764,
+              "latency_ms": 10500,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 684,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "associe",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "relation avec l'associé et messages précédents",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "medium",
+                    "query_hint": "contexte de l'action envoyer le message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1",
+              "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "associe",
+                    "type": "entity",
+                    "priority": "high",
+                    "query_hint": "relation avec l'associé et messages précédents",
+                    "entity_type": "person",
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "medium",
+                    "query_hint": "contexte de l'action envoyer le message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {
+                  "select_state_potion": {
+                    "phase": "detail_intake",
+                    "status": "active",
+                    "evidence": [
+                      "Le user répond à la question de détail sur la situation pour la potion de courage"
+                    ]
+                  }
+                }
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0;decay=0.55;recovery=0",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "b525e18b-01e0-49e4-b213-375b9397690c",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "continue_active",
+                "reason_code": "active_tool_skill_continue",
+                "active_owner": "tool_skill",
+                "resume_policy": "none",
+                "selected_owner": "tool_skill"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Le premier message",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien sur une semaine aide à ancrer le mouvement et éviter que l'évitement ne revienne.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "08:30",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "08:30",
+                    "reason_for_time": "Le user préfère un accompagnement le matin.",
+                    "reminder_instruction": "Encourager l'envoi de la première phrase à l'associé en dégonflant la pression de perfection."
+                  },
+                  "potion_type": "courage",
+                  "opening_prompt": "Si tu veux, dis-moi ce qui te fait le plus hésiter dans cette première phrase. Juste pour l'ancrer.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Envoyer le message difficile",
+                    "evidence": [
+                      "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                      "Envoyer le message difficile"
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "09:00",
+                    "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user évite d'envoyer un message à son associé par perfectionnisme et hésitation sur la formulation. La potion courage aide à faire ce premier pas sans se brutaliser.",
+                  "expected_duration": "short",
+                  "potion_info_message": "C'est la potion de courage. Elle est là pour t'aider à traverser l'appréhension sans te brusquer. Je t'enverrai un rappel chaque matin pour t'aider à ne pas laisser l'évitement s'installer.",
+                  "instant_support_message": "C'est normal que le corps se ferme quand on touche à quelque chose d'important. On ne cherche pas le message parfait, juste à poser la première pierre. Respire, on va faire ça avec douceur."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Pour t'aider à envoyer cette première phrase à ton associé sans que le perfectionnisme ne bloque tout, je vais t'accompagner avec cette potion de courage. Je passerai te voir chaque matin à 08h30 pendant une semaine pour garder cette impulsion douce. Dis-moi si c'est bon pour toi."
+              },
+              "status": "pending_confirmation",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "cf2d921a-de97-4ee7-817d-3a90e59b5cc0",
+              "selected_handler": "select_state_potion"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 36532,
+            "created_at": "2026-05-21T16:02:46.993467+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t02-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 3,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1",
+        "user": "Ce qui bloque, c'est surtout qu'il me trouve lourd et que le conflit parte trop vite.",
+        "assistant": "J'entends cette peur d'être perçu comme lourd ou de voir le conflit s'allumer trop vite. On va utiliser la potion de courage pour t'aider à poser ce message avec plus de sérénité. Je viendrai te voir chaque matin à 08h30 pendant une semaine pour t'aider à franchir ce pas sans pression. Dis-moi si on fait comme ça. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1",
+          "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "J'entends cette peur d'être perçu comme lourd ou de voir le conflit s'allumer trop vite. On va utiliser la potion de courage pour t'aider à poser ce message avec plus de sérénité. Je viendrai te voir chaque matin à 08h30 pendant une semaine pour t'aider à franchir ce pas sans pression. Dis-moi si on fait comme ça. 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1",
+            "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+            "source_message_id": "d86ed63b-f205-4459-85cd-e53ba7d84397",
+            "ts": "2026-05-21T16:03:28.536+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 8942,
+              "latency_ms": 4583,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 642,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "conflit associe message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "gestion conflit associe",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1",
+              "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "conflit associe message difficile",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "gestion conflit associe",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1.6,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1;decay=0.55;recovery=0",
+                    "contribution": 0.6
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "d86ed63b-f205-4459-85cd-e53ba7d84397",
+              "tool_skill_intents": [],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Oser le premier mot",
+                  "follow_up": {
+                    "duration_days": 7,
+                    "schedule_plan": {
+                      "mode": "daily_series",
+                      "reason": "Un suivi quotidien sur une semaine aide à traverser l'appréhension du conflit sans laisser l'évitement s'installer.",
+                      "local_dates": [],
+                      "duration_days": 7,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "08:30",
+                      "timing_relation": "daily"
+                    },
+                    "local_time_hhmm": "08:30",
+                    "reason_for_time": "Le user préfère un accompagnement le matin pour ses actions importantes.",
+                    "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel pour éviter l'escalade."
+                  },
+                  "potion_type": "courage",
+                  "opening_prompt": "Si tu veux, dis-moi ce qui te semble le plus 'lourd' dans ce que tu as à dire. Juste pour sortir ça de ta tête.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Envoyer le message difficile",
+                    "evidence": [
+                      "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                      "Envoyer le message difficile",
+                      "Ce qui bloque, c'est surtout qu'il me trouve lourd et que le conflit parte trop vite."
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "09:00",
+                    "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit rapide avec son associé. La potion courage aide à agir malgré cette peur de la réaction de l'autre.",
+                  "expected_duration": "short",
+                  "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension du conflit. Je passerai te voir chaque matin pour t'aider à ne pas rester bloqué dans cette attente.",
+                  "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "J'entends cette peur d'être perçu comme lourd ou de voir le conflit s'allumer trop vite. On va utiliser la potion de courage pour t'aider à poser ce message avec plus de sérénité. Je viendrai te voir chaque matin à 08h30 pendant une semaine pour t'aider à franchir ce pas sans pression. Dis-moi si on fait comme ça."
+              },
+              "status": "pending_confirmation_updated",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "3698a53c-c092-4849-9bc0-ad856f54acfd",
+              "selected_handler": "select_state_potion",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "Le message user apporte une contrainte émotionnelle précise sur le blocage et le risque que le conflit monte trop vite.",
+                  "Il ne confirme pas l'activation maintenant de la potion, il affine plutôt le besoin à intégrer avant validation."
+                ],
+                "confidence": "high",
+                "generated_user_message": "Je vois mieux ce qui te bloque : tu veux éviter de paraître lourd et de faire monter le conflit trop vite. Je vais garder ça en tête pour ajuster l’aide avant que tu valides."
+              },
+              "previous_operation_id": "cf2d921a-de97-4ee7-817d-3a90e59b5cc0"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 41492,
+            "created_at": "2026-05-21T16:03:28.537688+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t03-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 4,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1",
+        "user": "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15.",
+        "assistant": "C'est entendu pour demain matin. On garde la potion de courage pour t'aider à envoyer ce message à ton associé sans que l'appréhension ou le perfectionnisme ne te bloquent. Je viendrai te voir à 08h15, juste avant que tu ne l'écrives, pour t'aider à rester simple et serein. On se dit à demain 08h15 ? 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1",
+          "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est entendu pour demain matin. On garde la potion de courage pour t'aider à envoyer ce message à ton associé sans que l'appréhension ou le perfectionnisme ne te bloquent. Je viendrai te voir à 08h15, juste avant que tu ne l'écrives, pour t'aider à rester simple et serein. On se dit à demain 08h15 ? 🙂",
+            "additional_contents": [],
+            "mode": "companion",
+            "tool_execution": "blocked",
+            "executed_tools": []
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1",
+            "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+            "source_message_id": "55f9f912-09a1-4e45-952e-4fc327680e0a",
+            "ts": "2026-05-21T16:04:12.756+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [
+                "demain"
+              ],
+              "risk_band": "none",
+              "reason_codes": [
+                "immediacy_tomorrow"
+              ],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": true,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9067,
+              "latency_ms": 5411,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 736,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte message associe",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "peur d'etre lourd ou conflit",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1",
+              "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": "high",
+                    "query_hint": "contexte message associe",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": "medium",
+                    "query_hint": "peur d'etre lourd ou conflit",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1.9,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": true,
+                    "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                    "contribution": 0.9
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure",
+                  "previous_risk"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "55f9f912-09a1-4e45-952e-4fc327680e0a",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "potion de courage",
+                  "user_intent": "adjust",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high",
+                  "operation_input": {
+                    "time_hint": {
+                      "value": "08:15",
+                      "status": "identified",
+                      "evidence": [
+                        "vers 08h15"
+                      ]
+                    },
+                    "recurrence": {
+                      "value": "daily",
+                      "status": "identified",
+                      "evidence": [
+                        "chaque matin"
+                      ]
+                    },
+                    "potion_type": "courage"
+                  }
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [],
+            "skill_run": null,
+            "tool_skill_run": {
+              "draft": {
+                "draft": {
+                  "title": "Oser le premier mot",
+                  "follow_up": {
+                    "duration_days": 1,
+                    "schedule_plan": {
+                      "mode": "single_before_event",
+                      "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+                      "local_dates": [
+                        "2026-05-22"
+                      ],
+                      "duration_days": null,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "08:15",
+                      "timing_relation": "before"
+                    },
+                    "local_time_hhmm": "08:15",
+                    "reason_for_time": "Le user a spécifiquement demandé un soutien demain matin à 08h15 avant de passer à l'action.",
+                    "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme."
+                  },
+                  "potion_type": "courage",
+                  "opening_prompt": "Si tu veux, dis-moi ce qui te semble le plus 'lourd' dans ce que tu as à dire. Juste pour sortir ça de ta tête.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Envoyer le message difficile",
+                    "evidence": [
+                      "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                      "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "2026-05-22 08:15",
+                    "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit. La potion courage aide à agir malgré cette peur de la réaction de l'autre et le perfectionnisme sur la formulation.",
+                  "expected_duration": "short",
+                  "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message.",
+                  "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+                },
+                "output_schema": "potion_session_draft_v1",
+                "operation_type": "select_state_potion",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "C'est entendu pour demain matin. On garde la potion de courage pour t'aider à envoyer ce message à ton associé sans que l'appréhension ou le perfectionnisme ne te bloquent. Je viendrai te voir à 08h15, juste avant que tu ne l'écrives, pour t'aider à rester simple et serein. On se dit à demain 08h15 ?"
+              },
+              "status": "pending_confirmation_updated",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+              "selected_handler": "select_state_potion",
+              "draft_review_decision": {
+                "decision": "revise",
+                "evidence": [
+                  "Le message demande une aide uniquement demain matin, pas chaque jour pendant une semaine.",
+                  "L'horaire demandé est vers 08h15, ce qui diffère du brouillon à 08h30.",
+                  "Le user précise un cadre temporel plus restreint avant l'écriture, donc il faut adapter le suivi avant validation."
+                ],
+                "confidence": "high",
+                "generated_user_message": "Je peux te l’ajuster pour demain matin vers 08h15, juste avant que tu l’écrives."
+              },
+              "previous_operation_id": "3698a53c-c092-4849-9bc0-ad856f54acfd"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 44160,
+            "created_at": "2026-05-21T16:04:12.757074+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [],
+          "tool_execution": "blocked",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t04-a1"
+        },
+        "durable_after": {
+          "sessions": [],
+          "reminders": [],
+          "checkins": []
+        }
+      },
+      {
+        "turn": 5,
+        "attempt": 1,
+        "requestId": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+        "user": "Oui, active la potion de courage.",
+        "assistant": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger. 🙂",
+        "status": 200,
+        "body": {
+          "ok": true,
+          "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+          "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+          "channel": "web",
+          "scope": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage",
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "logged_message_id": null,
+          "latest_message_id": null,
+          "response": {
+            "content": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger. 🙂",
+            "additional_contents": [
+              "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message. 🙂"
+            ],
+            "mode": "companion",
+            "tool_execution": "success",
+            "executed_tools": [
+              "select_state_potion"
+            ]
+          },
+          "conversation_turn_trace": {
+            "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+            "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+            "source_message_id": "acd31535-b594-4c0e-821b-26712014b350",
+            "ts": "2026-05-21T16:04:24.827+00:00",
+            "safety_pregate": {
+              "detected": false,
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": [],
+              "allow_side_effects": true,
+              "layer_contributions": {
+                "lexical": false,
+                "heuristic": false,
+                "dispatcher_llm": false
+              }
+            },
+            "dispatcher_run": {
+              "tokens_in": 9167,
+              "latency_ms": 10588,
+              "model_used": "gemini-3-flash-preview",
+              "tokens_out": 690,
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": null,
+                    "query_hint": "contexte du message difficile à l'associé",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": null,
+                    "query_hint": "peur du conflit ou d'être lourd",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+            },
+            "turn_frame": {
+              "safety": {
+                "evidence": [],
+                "risk_band": "low",
+                "reason_codes": []
+              },
+              "channel": "web",
+              "turn_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+              "user_id": "dde77208-5382-437d-8625-559eb13817ff",
+              "memory_plan": {
+                "targets": [
+                  {
+                    "key": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "type": "action",
+                    "priority": null,
+                    "query_hint": "contexte du message difficile à l'associé",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "semantic_first"
+                  },
+                  {
+                    "key": "relations.conflit",
+                    "type": "domain_key",
+                    "priority": null,
+                    "query_hint": "peur du conflit ou d'être lourd",
+                    "entity_type": null,
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first"
+                  }
+                ],
+                "memory_mode": "light",
+                "context_need": "targeted",
+                "model_tier_hint": "lite",
+                "plan_confidence": 0.7,
+                "response_intent": "reflection",
+                "retrieval_policy": "semantic_first",
+                "context_budget_tier": "small",
+                "reasoning_complexity": "low"
+              },
+              "skill_signals": {
+                "exit": {},
+                "entry": {},
+                "lifecycle": {}
+              },
+              "direct_effects": [],
+              "needs_research": {
+                "query": null,
+                "value": false,
+                "reason": null,
+                "detected": false,
+                "confidence": 0,
+                "domain_hint": null
+              },
+              "level_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "action_reference": {
+                "reason": null,
+                "status": "none",
+                "detected": false,
+                "expansion_policy": "none"
+              },
+              "conversation_risk": {
+                "score": 1,
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "weight": 3.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "weight": 2.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "weight": 2,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "weight": 1.5,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "weight": 0.7,
+                    "detected": false,
+                    "evidence": null,
+                    "contribution": 0
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "weight": 1,
+                    "detected": true,
+                    "evidence": "active_skill_or_operation_state",
+                    "contribution": 1
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "weight": 10,
+                    "detected": false,
+                    "evidence": "0,1,1.6,1.9;decay=0.55;recovery=1.5",
+                    "contribution": 0
+                  }
+                ],
+                "threshold": 8,
+                "reason_codes": [
+                  "active_flow_pressure"
+                ],
+                "context_summary": null,
+                "previous_scores": [
+                  0,
+                  1,
+                  1.6,
+                  1.9
+                ],
+                "flow_exit_context": null,
+                "should_exit_flows": false
+              },
+              "source_message_id": "acd31535-b594-4c0e-821b-26712014b350",
+              "tool_skill_intents": [
+                {
+                  "ambiguity": "none",
+                  "target_hint": "Oui, active la potion de courage.",
+                  "user_intent": "select",
+                  "explicitness": "explicit",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "high"
+                }
+              ],
+              "confirmation_response": null,
+              "tool_skill_opportunity": {
+                "type": "none",
+                "surface_id": null,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "offer_timing": "never",
+                "should_offer": false,
+                "target_status": "none",
+                "operation_type": null,
+                "confidence_band": "low",
+                "must_not_execute": true,
+                "suggested_question_intent": null
+              }
+            },
+            "route_decision": {
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "blocked_paths": [
+                {
+                  "path": "conversation_or_other_tool_skill",
+                  "reason_code": "active_select_state_potion_in_progress"
+                }
+              ],
+              "route_version": "v1",
+              "response_owner": "tool_skill",
+              "memory_use_kind": "none",
+              "selected_handler": "select_state_potion",
+              "direct_effects_to_run": [],
+              "memory_used_for_route": false,
+              "active_flow_arbitration": {
+                "decision": "none",
+                "reason_code": "no_active_flow",
+                "active_owner": "none",
+                "resume_policy": "none",
+                "selected_owner": "none"
+              },
+              "memory_item_ids_used_for_route": []
+            },
+            "direct_effects": [
+              {
+                "outcome": "success",
+                "tool_id": "select_state_potion"
+              }
+            ],
+            "skill_run": null,
+            "tool_skill_run": {
+              "status": "executed",
+              "reason_code": "active_select_state_potion_kept_in_tool_skill",
+              "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+              "selected_handler": "select_state_potion",
+              "potion_session_id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+              "draft_review_decision": {
+                "decision": "approve",
+                "evidence": [
+                  "Le message dit explicitement \"active\" la potion, ce qui confirme l'exécution maintenant de la potion déjà proposée.",
+                  "L'objet demandé correspond exactement à la potion de courage du brouillon, sans nouvelle contrainte à intégrer."
+                ],
+                "confidence": "high",
+                "generated_user_message": "C’est bon, je l’active pour toi."
+              },
+              "recurring_reminder_id": "e1b7cb42-02c7-463b-b0ef-59914869ef05"
+            },
+            "recommendation_tool_run": null,
+            "confirmation_token_outcomes": [],
+            "memory_write_candidates_emitted": 0,
+            "response_owner": "tool_skill",
+            "total_latency_ms": 12012,
+            "created_at": "2026-05-21T16:04:24.828439+00:00"
+          },
+          "trace_error": null,
+          "__http_status": 200
+        },
+        "trace": {
+          "http_status": 200,
+          "ok": true,
+          "empty_response": false,
+          "aborted": false,
+          "abort_reason": null,
+          "response_owner": "tool_skill",
+          "selected_handler": "select_state_potion",
+          "route_selected_handler": "select_state_potion",
+          "route_reason": "active_select_state_potion_kept_in_tool_skill",
+          "safety": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "select_state_potion"
+            }
+          ],
+          "operation": null,
+          "pending_confirmation": null,
+          "memory_plan": null,
+          "executed_tools": [
+            "select_state_potion"
+          ],
+          "tool_execution": "success",
+          "trace_error": null,
+          "trace_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1"
+        },
+        "durable_after": {
+          "sessions": [
+            {
+              "id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+              "potion_type": "courage",
+              "status": "completed",
+              "source": "system",
+              "scope_kind": "out_of_plan",
+              "cycle_id": "c99577e7-8e9b-4da2-bd9b-a12f322bde72",
+              "transformation_id": null,
+              "content": {
+                "title": "Oser le premier mot",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Envoyer le message difficile",
+                  "evidence": [
+                    "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                    "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "2026-05-22 08:15",
+                  "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "operation_draft": {
+                  "title": "Oser le premier mot",
+                  "follow_up": {
+                    "duration_days": 1,
+                    "schedule_plan": {
+                      "mode": "single_before_event",
+                      "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+                      "local_dates": [
+                        "2026-05-22"
+                      ],
+                      "duration_days": null,
+                      "scheduled_days": [],
+                      "local_time_hhmm": "08:15",
+                      "timing_relation": "before"
+                    },
+                    "local_time_hhmm": "08:15",
+                    "reason_for_time": "Le user a spécifiquement demandé un soutien demain matin à 08h15 avant de passer à l'action.",
+                    "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme."
+                  },
+                  "potion_type": "courage",
+                  "opening_prompt": "Si tu veux, dis-moi ce qui te semble le plus 'lourd' dans ce que tu as à dire. Juste pour sortir ça de ta tête.",
+                  "target_binding": {
+                    "kind": "plan_item",
+                    "label": "Envoyer le message difficile",
+                    "evidence": [
+                      "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                      "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                    ],
+                    "recurrence_hint": "quotidien",
+                    "date_or_window_hint": "2026-05-22 08:15",
+                    "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                    "target_action_family_key": null,
+                    "target_generated_temp_id": null
+                  },
+                  "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit. La potion courage aide à agir malgré cette peur de la réaction de l'autre et le perfectionnisme sur la formulation.",
+                  "expected_duration": "short",
+                  "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message.",
+                  "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+                },
+                "why_this_potion": "Le user craint d'être perçu comme lourd ou de déclencher un conflit. La potion courage aide à agir malgré cette peur de la réaction de l'autre et le perfectionnisme sur la formulation.",
+                "potion_info_message": "C'est la potion de courage. Elle t'accompagne pour traverser cette appréhension. Je passerai te voir demain matin à 08h15, juste avant que tu n'envoies ton message.",
+                "instant_support_message": "C'est normal d'avoir peur de la réaction de l'autre ou de paraître pesant. On va juste chercher à poser les choses, sans forcer le ton, pour que tu te sentes plus léger."
+              },
+              "follow_up_strategy": {
+                "duration_days": 1,
+                "schedule_plan": {
+                  "mode": "single_before_event",
+                  "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+                  "local_dates": [
+                    "2026-05-22"
+                  ],
+                  "duration_days": null,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:15",
+                  "timing_relation": "before"
+                },
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Envoyer le message difficile",
+                  "evidence": [
+                    "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                    "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "2026-05-22 08:15",
+                  "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "local_time_hhmm": "08:15",
+                "reason_for_time": "Le user a spécifiquement demandé un soutien demain matin à 08h15 avant de passer à l'action.",
+                "reminder_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme."
+              },
+              "metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+                "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+                "operation_type": "select_state_potion",
+                "source_message_id": "acd31535-b594-4c0e-821b-26712014b350"
+              },
+              "generated_at": "2026-05-21T16:04:24.808+00:00",
+              "last_updated_at": "2026-05-21T16:04:24.808+00:00"
+            }
+          ],
+          "reminders": [
+            {
+              "id": "e1b7cb42-02c7-463b-b0ef-59914869ef05",
+              "message_instruction": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme.",
+              "rationale": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+              "local_time_hhmm": "08:15",
+              "scheduled_days": [
+                "fri"
+              ],
+              "status": "active",
+              "initiative_kind": "potion_follow_up",
+              "source_kind": "potion_generated",
+              "source_potion_session_id": "b30a3aa3-2db0-4d01-b600-4ccc4caefbae",
+              "initiative_metadata": {
+                "source": "sophia_brain_tool_skill",
+                "request_id": "qa-state-potion-state_potion_6subskills_r42_hard2_courage-courage-t05-a1",
+                "operation_id": "bfadbec0-05b4-4476-99ba-6a17b72d65f9",
+                "schedule_plan": {
+                  "mode": "single_before_event",
+                  "reason": "Soutien ponctuel unique demandé pour demain matin avant l'écriture du message.",
+                  "local_dates": [
+                    "2026-05-22"
+                  ],
+                  "duration_days": null,
+                  "scheduled_days": [],
+                  "local_time_hhmm": "08:15",
+                  "timing_relation": "before"
+                },
+                "operation_type": "select_state_potion",
+                "target_binding": {
+                  "kind": "plan_item",
+                  "label": "Envoyer le message difficile",
+                  "evidence": [
+                    "C'est pour parler a mon associe. Je dois envoyer une premiere phrase",
+                    "Aide-moi uniquement demain matin avant que je l'ecrive, vers 08h15."
+                  ],
+                  "recurrence_hint": "quotidien",
+                  "date_or_window_hint": "2026-05-22 08:15",
+                  "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "related_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                }
+              },
+              "target_kind": "plan_item",
+              "target_plan_item_id": "6e2cd943-ee06-4e22-b1f5-ff4dcd5f41e8",
+              "target_action_family_key": null,
+              "target_binding_policy": "live_action",
+              "target_lifecycle_policy": "while_target_active",
+              "starts_at": "2026-05-21T16:04:24.808+00:00",
+              "created_at": "2026-05-21T16:04:24.811572+00:00",
+              "updated_at": "2026-05-21T16:04:24.811572+00:00"
+            }
+          ],
+          "checkins": [
+            {
+              "id": "a506dd24-0c09-42ad-afd1-3c6eb64b54a1",
+              "recurring_reminder_id": "e1b7cb42-02c7-463b-b0ef-59914869ef05",
+              "event_context": "recurring_reminder:e1b7cb42-02c7-463b-b0ef-59914869ef05:potion:b30a3aa3-2db0-4d01-b600-4ccc4caefbae:2026-05-22",
+              "draft_message": "Aider à dégonfler la peur d'être 'lourd' et encourager un message simple et factuel juste avant l'envoi pour éviter l'évitement lié au perfectionnisme.",
+              "scheduled_for": "2026-05-22T08:15:00+00:00",
+              "status": "pending",
+              "origin": "rendez_vous",
+              "created_at": "2026-05-21T16:04:24.81662+00:00"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

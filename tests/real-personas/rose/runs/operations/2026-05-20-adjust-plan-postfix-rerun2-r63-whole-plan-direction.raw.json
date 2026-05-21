@@ -1,0 +1,1235 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t01",
+    "user": "Je trouve que le plan passe trop vite du signal de pause aux conversations sensibles. Je veux garder l objectif, mais ajouter une vraie étape de réparation simple après conflit avant de reprendre les discussions plus profondes.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-postfix-rerun2-r63-whole-plan-direction",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "7f853be1-4f0e-45b2-b947-c6c2641a6f00",
+        "ts": "2026-05-20T12:15:26.071+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11312,
+          "latency_ms": 4038,
+          "model_used": "gpt-5.4-mini",
+          "tokens_out": 839,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "L1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau de sécurité et conversations sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "sécurité relationnelle et réparation après conflit",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "transition pause -> réparation -> discussions profondes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "L1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau de sécurité et conversations sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "sécurité relationnelle et réparation après conflit",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "transition pause -> réparation -> discussions profondes",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "7f853be1-4f0e-45b2-b947-c6c2641a6f00",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "plan global de la semaine / progression entre pause et conversations sensibles",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "plan global autour de la sécurité et des conversations sensibles",
+                  "status": "identified",
+                  "evidence": [
+                    "Le plan passe trop vite du signal de pause aux conversations sensibles",
+                    "ajouter une vraie étape de réparation simple après conflit avant de reprendre les discussions plus profondes"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "le user parle du plan global et de la transition entre étapes, pas d'une action unique"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "ce n'est pas une carte d'attaque"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "garder l objectif",
+                  "ajouter une vraie étape de réparation simple après conflit",
+                  "reprise des discussions plus profondes seulement après cette étape",
+                  "scope_kind:whole_plan",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:La demande ne vise pas un simple réglage local, mais une réorganisation de la progression du plan. Le besoin réel est de préserver l'objectif de fond tout en créant un sas intermédiaire après conflit: une étape de réparation simple, concrète et moins exigeante émotionnellement, avant de réouvrir des échanges plus profonds. Le point sensible n'est pas seulement la vitesse, mais le risque de faire porter au signal de pause une fonction qu'il ne peut pas assurer à lui seul: couper l'escalade sans encore réparer le lien.",
+                  "coach_recommendation:Orienter la prochaine proposition vers une séquence plus graduelle: pause d'abord, puis réparation minimale, puis seulement reprise des conversations sensibles. Le bon cadrage coaching est de montrer que l'objectif est maintenu, mais que la trajectoire devient plus sûre et plus cohérente avec l'état émotionnel après conflit. La réponse doit proposer un pont simple entre interruption et approfondissement, sans transformer le plan en thérapie de conflit ni alourdir la phase de sécurité.",
+                  "coach_warning:Éviter de présenter le signal de pause comme suffisant pour reprendre immédiatement les sujets sensibles.",
+                  "coach_warning:Éviter d'ajouter une étape de réparation trop ambitieuse, trop longue ou trop analytique, car elle recréerait de la pression.",
+                  "coach_warning:Éviter de changer la nature du plan vers une résolution complète de conflit ou une conversation de fond prématurée.",
+                  "coach_warning:Éviter d'empiler plusieurs nouvelles phases si une seule étape intermédiaire suffit à restaurer la cohérence.",
+                  "coach_warning:Éviter une formulation qui laisserait penser que le plan recule sur l'objectif initial.",
+                  "coach_preserve:L'objectif global de meilleure sécurité relationnelle et de conversations plus sereines.",
+                  "coach_preserve:Le rôle du signal de pause comme outil d'arrêt de l'escalade.",
+                  "coach_preserve:La progression graduelle du plan plutôt qu'un saut direct vers le difficile.",
+                  "coach_preserve:La simplicité des actions demandées à ce stade.",
+                  "coach_preserve:La séparation entre gestion de crise légère et reprise des discussions profondes.",
+                  "coach_avoid:Ne pas proposer de supprimer ou de contourner le signal de pause.",
+                  "coach_avoid:Ne pas proposer une étape de réparation vague ou trop psychologisante.",
+                  "coach_avoid:Ne pas faire croire que la reprise des discussions profondes peut être immédiate après n'importe quelle pause.",
+                  "coach_avoid:Ne pas modifier la finalité du plan vers autre chose qu'un mieux dans la qualité des échanges.",
+                  "coach_avoid:Ne pas multiplier les demandes de clarification si la direction générale est déjà claire.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:Action: garder au signal de pause sa fonction d'arrêt, et lui adjoindre un pont de réparation sans changer sa nature.",
+                  "coach_guideline:Intention preservée: sécuriser le lien avant toute réouverture de sujets sensibles; la réparation doit servir la reprise, pas la remplacer.",
+                  "coach_guideline:Pont mini: proposer une transition très courte et praticable entre conflit stoppé et conversation plus profonde, par exemple un geste, une phrase ou un temps bref de reconnexion.",
+                  "coach_guideline:Pas de changement de nature sans demande explicite: ne pas transformer l'étape en médiation complète, en analyse du conflit ou en résolution détaillée.",
+                  "coach_guideline:Niveau: maintenir une charge faible à modérée dans la phase de sécurité; introduire une baisse temporaire d'exigence après conflit sans globalement alléger tout le plan.",
+                  "coach_guideline:Boundary de fin de niveau: ne pas entrer dans les conversations sensibles tant qu'une réparation minimale n'a pas eu lieu et n'a pas été rendue explicite.",
+                  "coach_guideline:Coeur du niveau préservé: désamorcer, recréer de la sécurité, puis seulement réouvrir progressivement.",
+                  "coach_guideline:Whole plan: préserver la trajectoire en trois temps - interruption, réparation simple, reprise graduelle - avec des prérequis clairs avant les phases plus profondes.",
+                  "coach_guideline:Whole plan: garder l'objectif relationnel intact et conserver le questionnaire/les observations comme base de lecture, sans les mélanger avec l'étape de réparation.",
+                  "coach_guideline:Whole plan: veiller à la cohérence globale entre les phases pour que chaque étape prépare la suivante au lieu de la court-circuiter.",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "context_changed",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Insertion d'une étape intermédiaire de consolidation avant les conversations sensibles."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Rôle du signal de pause",
+                  "Actions de soutien existantes sauf réordonnancement nécessaire"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "La progression devient plus cohérente avec le rythme de sécurité du user.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Cela garde l'objectif global, mais ajoute un prérequis de sécurité relationnelle avant de monter en complexité.",
+              "decision_basis": {
+                "evidence": [
+                  "Je trouve que le plan passe trop vite du signal de pause aux conversations sensibles. Je veux garder l objectif, mais ajouter une vraie étape de réparation simple après conflit avant de reprendre les discussions plus profondes.",
+                  "operation_input.scope",
+                  "le plan passe trop vite du signal de pause aux conversations sensibles",
+                  "le user demande d'ajouter une étape intermédiaire avant les discussions plus profondes",
+                  "le plan passe trop vite",
+                  "avant de reprendre les discussions plus profondes",
+                  "Je trouve que le plan passe trop vite du signal de pause aux conversations sensibles",
+                  "ajouter une vraie étape de réparation simple après conflit avant de reprendre les discussions plus profondes",
+                  "Je veux garder l objectif"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le prochain plan garde le même objectif mais avance plus progressivement.",
+                "expected_mechanism": "Ajouter une étape de consolidation réduit le saut de difficulté avant les sujets sensibles."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "La prochaine étape semble arriver trop vite avant des conversations plus sensibles.",
+                  "expected_effect": "Le plan avance sans surcharger le user ni casser l'objectif global.",
+                  "why_this_change": "Une étape intermédiaire rend la trajectoire plus progressive et plus sécurisante."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À replacer dans une trajectoire plus progressive: consolider le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande de ralentir la transition globale sans changer l'objectif du plan.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.",
+                    "before": "Le plan avance du désamorçage vers des conversations plus sensibles.",
+                    "inserted_step": "Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.",
+                    "coaching_reason": "La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.",
+                    "reordered_steps": [
+                      "Consolider le signal de pause",
+                      "S'entraîner au retour au calme et à la réparation simple",
+                      "Reprendre ensuite les conversations plus sensibles"
+                    ],
+                    "preserved_direction": "L'objectif global du plan et l'apprentissage du désamorçage restent la base."
+                  }
+                },
+                "user_message_brief": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles.",
+                "user_message_detailed": "Ralentir la trajectoire globale en ajoutant une étape intermédiaire centrée sur le signal de pause et une réparation simple avant les conversations plus sensibles."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire avant les conversations plus sensibles, centrée sur le signal de pause et une réparation simple après conflit.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan pour réordonner la suite autour de cette étape de consolidation. Rien n'est appliqué tant que tu ne valides pas."
+          },
+          "status": "draft_review",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "128fc97d-2449-4074-af42-fb24ca207734",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer de supprimer ou de contourner le signal de pause.",
+              "Ne pas proposer une étape de réparation vague ou trop psychologisante.",
+              "Ne pas faire croire que la reprise des discussions profondes peut être immédiate après n'importe quelle pause.",
+              "Ne pas modifier la finalité du plan vers autre chose qu'un mieux dans la qualité des échanges.",
+              "Ne pas multiplier les demandes de clarification si la direction générale est déjà claire."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global de meilleure sécurité relationnelle et de conversations plus sereines.",
+              "Le rôle du signal de pause comme outil d'arrêt de l'escalade.",
+              "La progression graduelle du plan plutôt qu'un saut direct vers le difficile.",
+              "La simplicité des actions demandées à ce stade.",
+              "La séparation entre gestion de crise légère et reprise des discussions profondes."
+            ],
+            "warnings": [
+              "Éviter de présenter le signal de pause comme suffisant pour reprendre immédiatement les sujets sensibles.",
+              "Éviter d'ajouter une étape de réparation trop ambitieuse, trop longue ou trop analytique, car elle recréerait de la pression.",
+              "Éviter de changer la nature du plan vers une résolution complète de conflit ou une conversation de fond prématurée.",
+              "Éviter d'empiler plusieurs nouvelles phases si une seule étape intermédiaire suffit à restaurer la cohérence.",
+              "Éviter une formulation qui laisserait penser que le plan recule sur l'objectif initial."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Action: garder au signal de pause sa fonction d'arrêt, et lui adjoindre un pont de réparation sans changer sa nature.",
+              "Intention preservée: sécuriser le lien avant toute réouverture de sujets sensibles; la réparation doit servir la reprise, pas la remplacer.",
+              "Pont mini: proposer une transition très courte et praticable entre conflit stoppé et conversation plus profonde, par exemple un geste, une phrase ou un temps bref de reconnexion.",
+              "Pas de changement de nature sans demande explicite: ne pas transformer l'étape en médiation complète, en analyse du conflit ou en résolution détaillée.",
+              "Niveau: maintenir une charge faible à modérée dans la phase de sécurité; introduire une baisse temporaire d'exigence après conflit sans globalement alléger tout le plan.",
+              "Boundary de fin de niveau: ne pas entrer dans les conversations sensibles tant qu'une réparation minimale n'a pas eu lieu et n'a pas été rendue explicite.",
+              "Coeur du niveau préservé: désamorcer, recréer de la sécurité, puis seulement réouvrir progressivement.",
+              "Whole plan: préserver la trajectoire en trois temps - interruption, réparation simple, reprise graduelle - avec des prérequis clairs avant les phases plus profondes.",
+              "Whole plan: garder l'objectif relationnel intact et conserver le questionnaire/les observations comme base de lecture, sans les mélanger avec l'étape de réparation.",
+              "Whole plan: veiller à la cohérence globale entre les phases pour que chaque étape prépare la suivante au lieu de la court-circuiter."
+            ],
+            "observation": "La demande ne vise pas un simple réglage local, mais une réorganisation de la progression du plan. Le besoin réel est de préserver l'objectif de fond tout en créant un sas intermédiaire après conflit: une étape de réparation simple, concrète et moins exigeante émotionnellement, avant de réouvrir des échanges plus profonds. Le point sensible n'est pas seulement la vitesse, mais le risque de faire porter au signal de pause une fonction qu'il ne peut pas assurer à lui seul: couper l'escalade sans encore réparer le lien.",
+            "recommendation": "Orienter la prochaine proposition vers une séquence plus graduelle: pause d'abord, puis réparation minimale, puis seulement reprise des conversations sensibles. Le bon cadrage coaching est de montrer que l'objectif est maintenu, mais que la trajectoire devient plus sûre et plus cohérente avec l'état émotionnel après conflit. La réponse doit proposer un pont simple entre interruption et approfondissement, sans transformer le plan en thérapie de conflit ni alourdir la phase de sécurité.",
+            "options_to_discuss": [
+              "Insérer une micro-étape de réparation très simple après la pause, avant toute conversation sensible.",
+              "Prévoir un mini-rituel de retour au calme et de reconnexion avant de reparler du sujet.",
+              "Séparer explicitement les conversations de réparation des conversations d'exploration profonde.",
+              "Ajouter un critère de passage clair: la discussion sensible ne reprend qu'une fois la réparation minimale accomplie.",
+              "Décaler les sujets plus profonds à un moment ultérieur du plan, sans les supprimer."
+            ],
+            "questions_to_clarify": []
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 48160,
+        "created_at": "2026-05-20T12:15:26.078402+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t02",
+    "user": "Avant de valider, je veux être sûre: tu vas vraiment changer la trajectoire du plan, pas juste reformuler deux actions isolées ?",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-postfix-rerun2-r63-whole-plan-direction",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je n'ai encore rien applique. Le brouillon porte sur la trajectoire du plan, pas seulement sur deux actions.\n\nAvant: Le plan avance du désamorçage vers des conversations plus sensibles.\n\nApres: Le plan garde ce cap, mais ajoute d'abord une étape de consolidation pour sécuriser le retour au calme et la réparation simple.\n\nEtape ajoutee: Une étape intermédiaire de sécurité émotionnelle et de réparation simple après conflit.\n\nCe qui reste stable: L'objectif global du plan et l'apprentissage du désamorçage restent la base.\n\nPourquoi ca aide: La réparation après conflit devient plus réaliste si le couple a d'abord un protocole de pause et de reprise calme.\n\nReperes du plan utilises pour ancrer ce changement: Convenir d'un signal de pause, Faire le point sur le signal de pause.\n\nSi ca te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "dc9df167-3a98-4612-82e9-da4f227a0f03",
+        "ts": "2026-05-20T12:15:54.562+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11496,
+          "latency_ms": 3314,
+          "model_used": "gpt-5.4-mini",
+          "tokens_out": 817,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "level:1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel autour de la sécurité et des conversations sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "topic:adjust_plan_confirmation",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "validation de la trajectoire du plan et de l'ajustement global",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [
+              "Aucun indice de risque safety dans le message utilisateur."
+            ],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "level:1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau actuel autour de la sécurité et des conversations sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "topic:adjust_plan_confirmation",
+                "type": "topic",
+                "priority": "medium",
+                "query_hint": "validation de la trajectoire du plan et de l'ajustement global",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=0",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "dc9df167-3a98-4612-82e9-da4f227a0f03",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "le plan global / la trajectoire du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "changer la trajectoire du plan"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "je veux être sûre",
+                    "tu vas vraiment changer la trajectoire du plan, pas juste reformuler deux actions isolées ?"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une action isolée",
+                    "pas une simple reformulation"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "draft_review_details",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "128fc97d-2449-4074-af42-fb24ca207734",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas présenter le changement comme une simple reformulation locale.",
+              "Ne pas laisser croire que rien ne change dans l'ordre du plan.",
+              "Ne pas proposer une étape de réparation trop lourde, trop vague ou trop thérapeutique.",
+              "Ne pas supprimer le signal de pause ou en diluer la fonction.",
+              "Ne pas ouvrir immédiatement les sujets sensibles sans condition de passage."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global de sécurité relationnelle et de conversations plus sereines.",
+              "Le rôle du signal de pause comme outil d'arrêt de l'escalade.",
+              "La progression graduelle du plan.",
+              "La simplicité des actions à ce stade.",
+              "Le fait que la réparation simple serve de prérequis à la reprise des discussions plus profondes."
+            ],
+            "warnings": [
+              "Éviter toute formulation qui donnerait l'impression d'un simple renommage d'actions existantes.",
+              "Éviter de réduire la demande à une micro-édition sans impact sur l'ordre des phases.",
+              "Éviter de laisser entendre que la trajectoire vers les conversations sensibles reste inchangée alors qu'elle doit être conditionnée par une réparation minimale.",
+              "Éviter de surpromettre une transformation plus large que celle demandée: il s'agit d'une réorganisation ciblée, pas d'un nouveau plan de fond."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Action: préserver le rôle du signal de pause, mais l'inscrire dans une séquence plus large qui inclut une réparation minimale avant toute reprise sensible.",
+              "Intention préservée: sécuriser le lien avant de réouvrir les discussions difficiles; la réparation doit préparer la reprise, non la remplacer.",
+              "Pont mini: expliciter un passage court et praticable entre conflit stoppé et retour à un échange plus profond.",
+              "Pas de changement de nature sans demande explicite: ne pas transformer la réparation en médiation complète, en analyse de fond ou en résolution exhaustive.",
+              "Niveau: garder une charge faible à modérée dans la phase de sécurité, avec une baisse temporaire d'exigence après conflit.",
+              "Boundary de fin de niveau: ne pas entrer dans les conversations sensibles tant qu'une réparation minimale n'a pas été posée comme prérequis.",
+              "Coeur du niveau préservé: désamorcer, recréer de la sécurité, puis seulement réouvrir progressivement.",
+              "Whole plan: traiter la demande comme une décision de trajectoire, avec un ordre des phases et des prérequis explicites.",
+              "Whole plan: garder l'objectif relationnel intact et ne pas mélanger l'étape de réparation avec le cadre d'observation ou de clarification.",
+              "Whole plan: faire en sorte que chaque phase prépare la suivante au lieu de la court-circuiter."
+            ],
+            "observation": "La demande révèle une inquiétude de cohérence plus qu'un doute technique : le user veut s'assurer que la modification porte bien sur l'architecture du plan, pas sur un simple habillage de deux actions. Le point humain pertinent est la peur d'une réponse trop locale alors que le besoin exprimé est structurel: réordonner la progression pour qu'il y ait un vrai sas de réparation avant toute réouverture de discussions sensibles.",
+            "recommendation": "Confirmer implicitement, dans le cadrage coaching, qu'il s'agit bien d'une décision de trajectoire globale: on ne touche pas seulement au libellé d'actions isolées, on recompose l'enchaînement des phases et leurs prérequis. La bonne direction est de maintenir l'objectif, de préserver le signal de pause, et de faire apparaître clairement l'étape intermédiaire de réparation simple comme une brique de séquence, pas comme un patch local.",
+            "options_to_discuss": [
+              "Reformuler la réponse autour d'une trajectoire en trois temps: pause, réparation simple, reprise graduelle.",
+              "Expliciter que les deux actions citées servent d'appuis, mais que la modification vise leur position et leur fonction dans l'ensemble du plan.",
+              "Ajouter une phrase sur le fait que la reprise des sujets sensibles sera conditionnée par une étape de reconnexion minimale.",
+              "Proposer, si besoin, de distinguer les éléments qui sont réordonnés de ceux qui restent strictement identiques.",
+              "Vérifier s'il faut rendre visible une nouvelle étape ou seulement un pont explicite entre les phases existantes."
+            ],
+            "questions_to_clarify": []
+          },
+          "draft_review_decision": {
+            "decision": "explain",
+            "evidence": [
+              "Question de clarification sur la portée réelle du changement",
+              "Pas de nouvelle contrainte ni correction explicite",
+              "Le brouillon précédent décrit déjà une réorganisation de trajectoire"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 13107,
+        "created_at": "2026-05-20T12:15:54.564114+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t03",
+    "user": "Oui, applique cette version globale: même objectif, mais étape intermédiaire de réparation simple avant les conversations sensibles.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-20-adjust-plan-postfix-rerun2-r63-whole-plan-direction",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde le même objectif, mais la suite est régénérée pour ralentir la transition et consolider le signal de pause avec une réparation simple avant les conversations plus sensibles. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "success",
+        "executed_tools": [
+          "adjust_plan_item"
+        ]
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "856eb094-15c7-44bd-becc-333dca0c23fe",
+        "ts": "2026-05-20T12:17:38.811+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 11771,
+          "latency_ms": 4896,
+          "model_used": "gpt-5.4-mini",
+          "tokens_out": 731,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "level:1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau global du plan autour de la sécurité émotionnelle et de la réparation simple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-20-adjust-plan-whole-plan-r63-whole-plan-direction-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "level:1",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "niveau global du plan autour de la sécurité émotionnelle et de la réparation simple",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0,0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "856eb094-15c7-44bd-becc-333dca0c23fe",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "version globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "version globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "applique cette version globale"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "même objectif, mais étape intermédiaire de réparation simple avant les conversations sensibles"
+                  ],
+                  "confidence": "high",
+                  "negative_evidence": [
+                    "pas une carte"
+                  ]
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [
+          {
+            "outcome": "success",
+            "tool_id": "adjust_plan_item"
+          }
+        ],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "executed",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "128fc97d-2449-4074-af42-fb24ca207734",
+          "plan_patch_id": "6a23ec6d-17bd-4970-be07-465572b885e3",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Ne pas proposer de supprimer ou de contourner le signal de pause.",
+              "Ne pas proposer une étape de réparation vague ou trop psychologisante.",
+              "Ne pas faire croire que la reprise des discussions profondes peut être immédiate après n'importe quelle pause.",
+              "Ne pas modifier la finalité du plan vers autre chose qu'un mieux dans la qualité des échanges.",
+              "Ne pas multiplier les demandes de clarification si la direction générale est déjà claire."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global de meilleure sécurité relationnelle et de conversations plus sereines.",
+              "Le rôle du signal de pause comme outil d'arrêt de l'escalade.",
+              "La progression graduelle du plan plutôt qu'un saut direct vers le difficile.",
+              "La simplicité des actions demandées à ce stade.",
+              "La séparation entre gestion de crise légère et reprise des discussions profondes."
+            ],
+            "warnings": [
+              "Éviter de présenter le signal de pause comme suffisant pour reprendre immédiatement les sujets sensibles.",
+              "Éviter d'ajouter une étape de réparation trop ambitieuse, trop longue ou trop analytique, car elle recréerait de la pression.",
+              "Éviter de changer la nature du plan vers une résolution complète de conflit ou une conversation de fond prématurée.",
+              "Éviter d'empiler plusieurs nouvelles phases si une seule étape intermédiaire suffit à restaurer la cohérence.",
+              "Éviter une formulation qui laisserait penser que le plan recule sur l'objectif initial."
+            ],
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Action: garder au signal de pause sa fonction d'arrêt, et lui adjoindre un pont de réparation sans changer sa nature.",
+              "Intention preservée: sécuriser le lien avant toute réouverture de sujets sensibles; la réparation doit servir la reprise, pas la remplacer.",
+              "Pont mini: proposer une transition très courte et praticable entre conflit stoppé et conversation plus profonde, par exemple un geste, une phrase ou un temps bref de reconnexion.",
+              "Pas de changement de nature sans demande explicite: ne pas transformer l'étape en médiation complète, en analyse du conflit ou en résolution détaillée.",
+              "Niveau: maintenir une charge faible à modérée dans la phase de sécurité; introduire une baisse temporaire d'exigence après conflit sans globalement alléger tout le plan.",
+              "Boundary de fin de niveau: ne pas entrer dans les conversations sensibles tant qu'une réparation minimale n'a pas eu lieu et n'a pas été rendue explicite.",
+              "Coeur du niveau préservé: désamorcer, recréer de la sécurité, puis seulement réouvrir progressivement.",
+              "Whole plan: préserver la trajectoire en trois temps - interruption, réparation simple, reprise graduelle - avec des prérequis clairs avant les phases plus profondes.",
+              "Whole plan: garder l'objectif relationnel intact et conserver le questionnaire/les observations comme base de lecture, sans les mélanger avec l'étape de réparation.",
+              "Whole plan: veiller à la cohérence globale entre les phases pour que chaque étape prépare la suivante au lieu de la court-circuiter."
+            ],
+            "observation": "La demande ne vise pas un simple réglage local, mais une réorganisation de la progression du plan. Le besoin réel est de préserver l'objectif de fond tout en créant un sas intermédiaire après conflit: une étape de réparation simple, concrète et moins exigeante émotionnellement, avant de réouvrir des échanges plus profonds. Le point sensible n'est pas seulement la vitesse, mais le risque de faire porter au signal de pause une fonction qu'il ne peut pas assurer à lui seul: couper l'escalade sans encore réparer le lien.",
+            "recommendation": "Orienter la prochaine proposition vers une séquence plus graduelle: pause d'abord, puis réparation minimale, puis seulement reprise des conversations sensibles. Le bon cadrage coaching est de montrer que l'objectif est maintenu, mais que la trajectoire devient plus sûre et plus cohérente avec l'état émotionnel après conflit. La réponse doit proposer un pont simple entre interruption et approfondissement, sans transformer le plan en thérapie de conflit ni alourdir la phase de sécurité.",
+            "options_to_discuss": [
+              "Insérer une micro-étape de réparation très simple après la pause, avant toute conversation sensible.",
+              "Prévoir un mini-rituel de retour au calme et de reconnexion avant de reparler du sujet.",
+              "Séparer explicitement les conversations de réparation des conversations d'exploration profonde.",
+              "Ajouter un critère de passage clair: la discussion sensible ne reprend qu'une fois la réparation minimale accomplie.",
+              "Décaler les sujets plus profonds à un moment ultérieur du plan, sans les supprimer."
+            ],
+            "questions_to_clarify": []
+          },
+          "bridge_plan_item_id": null,
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 85737,
+        "created_at": "2026-05-20T12:17:38.81223+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

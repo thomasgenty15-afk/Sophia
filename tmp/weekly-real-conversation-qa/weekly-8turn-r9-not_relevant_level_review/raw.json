@@ -1,0 +1,3435 @@
+{
+  "run_id": "weekly-8turn-r9-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+  "email": "qa-weekly-deep-weekly-8turn-r9-not_relevant_level_review@example.com",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+  "created_at": "2026-05-21T14:50:11.396Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-21T14:50:11.397Z",
+      "user": "Je vais etre chiant : le plan ne me convient plus, mais je ne veux pas tout jeter. Je veux garder l'objectif et changer tres precisement les actions.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "D’accord, je garde l’objectif. Dis-moi quelles actions précises du plan tu veux changer en premier, et si le souci vient du contenu, du rythme ou du format. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t01",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "D’accord, je garde l’objectif. Dis-moi quelles actions précises du plan tu veux changer en premier, et si le souci vient du contenu, du rythme ou du format. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t01",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "5f4c7875-2a42-4dad-9b76-feb8d49223de",
+          "ts": "2026-05-21T14:50:32.511+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11593,
+            "latency_ms": 4992,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 698,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t01",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_review",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "5f4c7875-2a42-4dad-9b76-feb8d49223de",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "actions du plan",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "niveau actuel",
+                    "status": "identified",
+                    "evidence": [
+                      "le plan ne me convient plus"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "le user veut changer très précisément les actions mais garder l'objectif"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "current_level.affected_items"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un nouveau plan complet.",
+                "Ne pas modifier l’objectif.",
+                "Ne pas combler les manques par des hypothèses sur les actions à changer.",
+                "Ne pas brouiller la distinction entre ajustement précis et reconstruction du plan."
+              ],
+              "scope": "level",
+              "preserve": [
+                "L’objectif global du plan.",
+                "La logique de progression du niveau courant.",
+                "Les éléments déjà jugés utiles ou acceptables.",
+                "Le principe d’un ajustement ciblé plutôt qu’une refonte totale."
+              ],
+              "warnings": [
+                "Éviter de proposer une refonte complète alors que le user veut conserver l’objectif.",
+                "Éviter de supposer quels items sont concernés sans les avoir explicitement nommés.",
+                "Éviter de changer la nature du plan vers une autre trajectoire sans demande claire.",
+                "Éviter de parler en termes de validation d’optimisation tant que les actions à modifier ne sont pas identifiées."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter la demande comme un ajustement sélectif du niveau courant, pas comme un changement de direction.",
+                "Conserver l’intention initiale et ne toucher qu’aux actions explicitement visées.",
+                "Distinguer clairement ce qui relève d’un problème de contenu, de rythme ou de format.",
+                "Demander les éléments manquants avant toute proposition opérationnelle.",
+                "Préserver la cohérence globale du niveau et le contrat implicite de non-régression vers une refonte inutile."
+              ],
+              "observation": "La demande exprime un rejet partiel du plan : l’objectif reste valable, mais la composition des actions ne colle plus. Humainement, il s’agit moins d’un changement de cap que d’un besoin de recalibrer finement la manière d’avancer, avec une forte volonté de ne pas repartir de zéro.",
+              "change_family": null,
+              "recommendation": "Rester en mode diagnostic et cadrer le changement comme un ajustement ciblé du niveau courant : identifier précisément quelles actions, quels rythmes ou quels formats doivent être remplacés, allégés ou rééquilibrés, tout en protégeant l’objectif et la logique d’ensemble du plan.",
+              "next_best_question": "Quelles actions précises du plan veux-tu changer en premier, et est-ce un problème de contenu, de rythme ou de format ?",
+              "options_to_discuss": [
+                "Remplacer seulement une ou deux actions jugées inadaptées.",
+                "Alléger le rythme de certaines actions sans toucher à l’objectif.",
+                "Changer le format de quelques actions pour les rendre plus acceptables ou plus réalistes.",
+                "Garder la structure générale et rééquilibrer l’effort entre actions de fond et actions de soutien.",
+                "Retirer les éléments les moins utiles et les remplacer par des actions équivalentes plus cohérentes."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [
+                "Quelles actions précises du plan tu veux changer en priorité ?",
+                "Est-ce que le problème vient du contenu des actions, de leur rythme, ou de leur format ?",
+                "Y a-t-il des actions que tu veux absolument garder telles quelles ?"
+              ],
+              "trajectory_hypothesis": "La trajectoire actuelle conserve l’objectif du niveau mais les actions associées ne conviennent plus; la trajectoire possible est un rééquilibrage ciblé des actions, sans changer le but.",
+              "must_not_execute_reason": "Les actions précises à modifier ne sont pas identifiées, donc il faut d’abord comprendre quels éléments du plan posent problème avant de proposer un ajustement."
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 21064,
+          "created_at": "2026-05-21T14:50:32.514763+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-21T14:50:32.713Z",
+      "user": "Non, pas une revue vague du niveau. Je veux remplacer la respiration par une deconnexion de 7 minutes apres le diner, mardi et jeudi uniquement.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je dois juste clarifier le motif précis du remplacement : qu’est-ce qui ne convient pas dans la respiration, et qu’est-ce que la déconnexion de 7 minutes doit mieux faire à la place ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t02",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je dois juste clarifier le motif précis du remplacement : qu’est-ce qui ne convient pas dans la respiration, et qu’est-ce que la déconnexion de 7 minutes doit mieux faire à la place ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t02",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "0457d1b9-3722-4e77-aadb-193f04449989",
+          "ts": "2026-05-21T14:50:54.565+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 14601,
+            "latency_ms": 5363,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 809,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t02",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_providing_specific_adjustments_during_weekly_review",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 3.1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": true,
+                  "evidence": "non, pas",
+                  "contribution": 1.5
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "repetition_or_correction",
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "0457d1b9-3722-4e77-aadb-193f04449989",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Respiration de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "niveau actuel",
+                    "status": "identified",
+                    "evidence": [
+                      "Non, pas une revue vague du niveau"
+                    ]
+                  },
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "deconnexion de 7 minutes",
+                      "apres le diner",
+                      "mardi et jeudi uniquement"
+                    ],
+                    "evidence": [
+                      "deconnexion de 7 minutes apres le diner, mardi et jeudi uniquement"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Respiration de pause"
+                    ],
+                    "evidence": [
+                      "remplacer la respiration"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "Je veux remplacer la respiration par une deconnexion de 7 minutes apres le diner, mardi et jeudi uniquement"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "active_tool_skill_continue",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "current_level.reason_change"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un nouveau plan complet.",
+                "Ne pas toucher aux autres items du niveau.",
+                "Ne pas élargir le rythme au-delà des deux jours demandés.",
+                "Ne pas déplacer l’action à un autre moment de la journée sans demande explicite."
+              ],
+              "scope": "level",
+              "preserve": [
+                "L’objectif de récupération/pause.",
+                "La structure du niveau courant.",
+                "Les autres actions déjà présentes dans le plan.",
+                "Les contraintes explicites: 7 minutes, après le dîner, mardi et jeudi uniquement."
+              ],
+              "warnings": [
+                "Éviter de reformuler cela comme une revue globale du niveau.",
+                "Éviter d’ajouter d’autres jours, d’autres horaires ou une durée différente.",
+                "Éviter de modifier les autres éléments du niveau qui n’ont pas été visés.",
+                "Éviter de présenter ce changement comme une validation d’optimisation générale du plan."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter la demande comme un remplacement local d’un format de pause, pas comme un changement de direction.",
+                "Préserver l’intention fonctionnelle de la respiration: créer une coupure récupératrice.",
+                "Respecter strictement le périmètre temporel demandé: après le dîner, mardi et jeudi uniquement.",
+                "Ne pas étendre le changement aux autres composantes du niveau.",
+                "Distinguer clairement le besoin humain pertinent (pause plus acceptable) de ce qui est techniquement possible (remplacer un item par un autre).",
+                "Si un pont est nécessaire, garder une continuité de rôle entre respiration et déconnexion: même fonction de pause, autre modalité.",
+                "Ne pas transformer une adaptation ciblée en refonte de séquence ou de niveau.",
+                "Conserver la cohérence globale du plan et le contrat implicite de non-régression vers un recalibrage excessif."
+              ],
+              "observation": "La demande ne porte pas sur une revue du niveau, mais sur un remplacement très ciblé d’un item précis par une forme plus compatible avec le quotidien. Humainement, le besoin central est de garder l’intention de pause tout en changeant le format pour qu’il soit plus réaliste et mieux ancré après le dîner, avec une contrainte de jours explicite.",
+              "change_family": null,
+              "recommendation": "Rester sur un ajustement de niveau très ciblé: préserver l’objectif de pause/récupération, remplacer uniquement la respiration concernée par une déconnexion de 7 minutes après le dîner, mardi et jeudi seulement, sans ouvrir la porte à une refonte plus large du niveau.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Remplacer strictement la respiration par une déconnexion de 7 minutes aux mêmes repères temporels demandés.",
+                "Garder le principe de pause mais ajuster le format exact de la déconnexion si le user veut quelque chose de plus concret.",
+                "Conserver les autres items du niveau inchangés et n’appliquer le changement qu’à l’item concerné.",
+                "Si besoin, aligner le libellé de l’action sur un terme plus simple ou plus facile à mémoriser, sans changer la contrainte de fond."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle garde l’objectif de pause mais le moyen initial ne convient plus; la trajectoire possible est un remplacement local du format par une déconnexion courte et bornée après le dîner.",
+              "must_not_execute_reason": "Le changement est déjà formulé de façon concrète, mais cette guidance ne doit pas appliquer l’ajustement elle-même; elle doit seulement cadrer la prochaine réponse opérationnelle sans dépasser le périmètre demandé."
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 21808,
+          "created_at": "2026-05-21T14:50:54.566293+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-21T14:50:54.809Z",
+      "user": "Le point positif ne doit pas etre quotidien. Je veux le mettre samedi matin seulement, parce que la semaine je n'y crois pas.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose de rééquilibrer uniquement le point positif pour le rendre crédible dans ton contexte: le garder comme geste de valorisation, mais le ramener à un unique rendez 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t03",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose de rééquilibrer uniquement le point positif pour le rendre crédible dans ton contexte: le garder comme geste de valorisation, mais le ramener à un unique rendez 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t03",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "75a6c3df-ac74-411e-a6f0-f37c8f600648",
+          "ts": "2026-05-21T14:51:34.298+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 15322,
+            "latency_ms": 12221,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 807,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t03",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "Le user est en plein bilan hebdomadaire mais effectue une parenthese d'ajustement de plan",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2.7,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,3.1;decay=0.55;recovery=0",
+                  "contribution": 1.7
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                3.1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "75a6c3df-ac74-411e-a6f0-f37c8f600648",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Partager un point positif",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "niveau actuel",
+                    "status": "identified",
+                    "evidence": [
+                      "le plan ne me convient plus",
+                      "changer tres precisement les actions"
+                    ]
+                  },
+                  "constraints": {
+                    "status": "identified",
+                    "values": [
+                      "samedi matin seulement",
+                      "pas quotidien"
+                    ],
+                    "evidence": [
+                      "Je veux le mettre samedi matin seulement",
+                      "ne doit pas etre quotidien"
+                    ]
+                  },
+                  "affected_items": {
+                    "status": "identified",
+                    "values": [
+                      "Partager un point positif"
+                    ],
+                    "evidence": [
+                      "Le point positif ne doit pas etre quotidien"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "Le user modifie la structure de ses actions dans le bloc actuel"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "Je veux le mettre samedi matin seulement",
+                    "Le point positif ne doit pas etre quotidien",
+                    "frequency:non_daily",
+                    "scheduled_time:samedi matin",
+                    "strict_affected_items_only",
+                    "preserve:Fiche support: repere de fatigue",
+                    "preserve:Convenir d'un signal de pause",
+                    "preserve:Respiration de pause",
+                    "coach_observation:La demande exprime un ajustement très ciblé d’un item du niveau: le besoin n’est pas d’augmenter la pratique, mais de la rendre acceptable en la concentrant sur un seul moment hebdomadaire. Humainement, le point clé est la crédibilité du geste: garder la valeur du rituel sans imposer une fréquence quotidienne qui ne “tient” pas pour le user.",
+                    "coach_recommendation:Orienter la prochaine réponse vers un rééquilibrage local de cadence: préserver l’intention du point positif, le déplacer vers un ancrage hebdomadaire stable le samedi matin, et éviter toute tentative de maintenir une fréquence quotidienne si elle est déjà vécue comme non crédible.",
+                    "coach_warning:Éviter de présenter cela comme une optimisation globale du niveau.",
+                    "coach_warning:Éviter de défendre la fréquence quotidienne contre l’intuition explicite du user.",
+                    "coach_warning:Éviter d’ajouter d’autres créneaux ou de diluer le caractère “samedi matin seulement”.",
+                    "coach_warning:Éviter de transformer ce choix en modification de direction ou en refonte du plan.",
+                    "coach_preserve:L’intention du point positif comme geste de valorisation.",
+                    "coach_preserve:La structure générale du niveau courant.",
+                    "coach_preserve:Les autres items du plan qui ne sont pas visés.",
+                    "coach_preserve:La contrainte explicite: samedi matin seulement, pas quotidien.",
+                    "coach_avoid:Ne pas proposer un maintien à fréquence quotidienne.",
+                    "coach_avoid:Ne pas ouvrir la discussion à d’autres jours ou à une fréquence mixte sans demande.",
+                    "coach_avoid:Ne pas toucher aux autres éléments du niveau.",
+                    "coach_avoid:Ne pas vendre ce changement comme une amélioration générale du plan plutôt que comme un ajustement de crédibilité.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Traiter la demande comme un ajustement de cadence au sein du niveau courant.",
+                    "coach_guideline:Préserver la fonction du point positif: soutien, ancrage, valorisation.",
+                    "coach_guideline:Respecter strictement la borne temporelle demandée: samedi matin seulement.",
+                    "coach_guideline:Ne pas compenser une baisse de fréquence par l’ajout d’un autre rituel non demandé.",
+                    "coach_guideline:Distinguer le besoin humain pertinent — rendre la pratique plausible — de ce qui est techniquement faisable — changer la cadence d’un item.",
+                    "coach_guideline:Si un pont est nécessaire, garder la continuité de sens entre l’ancien et le nouveau rythme: même intention, moindre répétition.",
+                    "coach_guideline:Ne pas transformer un réajustement de fréquence en refonte de niveau ou de trajectoire.",
+                    "coach_guideline:Conserver la cohérence globale du plan et la lisibilité du contrat d’effort.",
+                    "coach_must_not_execute:La demande est déjà formulée de manière concrète; il ne faut pas l’appliquer ici, seulement cadrer la prochaine réponse opérationnelle sans élargir le périmètre.",
+                    "coach_trajectory_hypothesis:La trajectoire actuelle gardait un point positif régulier; la trajectoire possible est de le consolider en rituel hebdomadaire le samedi matin pour préserver l’adhésion.",
+                    "affected_item:Partager un point positif"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "intensity",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "same",
+                  "level_adjustment": "rebalance"
+                },
+                "title": "Ajustement - niveau actuel",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "niveau actuel: charge ajustée vers \"same\"",
+                    "cible de changement: intensity"
+                  ],
+                  "unchanged": [
+                    "le cœur du niveau reste préservé",
+                    "chaque action n'est pas réécrite automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                  "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+                },
+                "scope_label": "niveau actuel",
+                "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+                "decision_basis": {
+                  "evidence": [
+                    "Le point positif ne doit pas etre quotidien. Je veux le mettre samedi matin seulement, parce que la semaine je n'y crois pas.",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Je veux le mettre samedi matin seulement",
+                    "Le point positif ne doit pas etre quotidien"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "reequilibrer le niveau actuel",
+                "change_rationale": {
+                  "why_this_change": "Alléger intensity répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                  "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                  "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [
+                      "Les autres actions exactes du niveau à modifier fine-grained ne sont pas explicitement détaillées."
+                    ],
+                    "user_problem": "Le niveau actuel paraît trop lourd ou mal calibré pour le contexte, surtout parce que le point positif n’est pas vécu comme tenable au quotidien.",
+                    "expected_effect": "Le geste devient plus plausible, plus simple à tenir, et le niveau retrouve de l’adhésion sans perdre son intention principale.",
+                    "why_this_change": "En concentrant le point positif sur le samedi matin, on garde sa fonction de soutien et de valorisation tout en retirant la pression d’une fréquence quotidienne."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement reste limité au niveau courant: on change seulement la cadence et l’ancrage du point positif, sans modifier la direction du plan.",
+                    "affected_scope": "niveau actuel uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "structure complète du plan",
+                      "autres niveaux"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Rééquilibrage local du niveau autour du point positif, ramené à un rendez-vous hebdomadaire le samedi matin, sans modifier le reste du niveau.",
+                    "changed_items": [
+                      {
+                        "id": "17fa35ab-7b74-4dd1-a47d-ebd7ead7bfe5",
+                        "kind": "habit",
+                        "after": "1x/semaine",
+                        "title": "Partager un point positif",
+                        "before": "3x/semaine",
+                        "reason": "Tu m’as indiqué que ce point ne doit pas être quotidien et doit rester crédible dans ton contexte.",
+                        "capability": "change_action_frequency"
+                      },
+                      {
+                        "id": "17fa35ab-7b74-4dd1-a47d-ebd7ead7bfe5",
+                        "kind": "habit",
+                        "after": "Samedi matin seulement",
+                        "title": "Partager un point positif",
+                        "before": "Cadence répartie sur la semaine",
+                        "reason": "Tu veux un ancrage stable et unique, sans ajouter d’autre créneau.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "b8d896bc-0644-4570-a986-672978f6885a",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Tu ne m’as pas demandé d’y toucher, et il reste hors du périmètre visé."
+                      },
+                      {
+                        "id": "eda8438b-ec42-4d65-84ec-3fe6786748df",
+                        "kind": "habit",
+                        "title": "Respiration de pause",
+                        "reason": "Tu ne m’as pas demandé de le modifier, et il doit rester inchangé."
+                      },
+                      {
+                        "id": null,
+                        "kind": "level",
+                        "title": "Niveau actuel",
+                        "reason": "Le cœur du niveau reste préservé; l’ajustement porte seulement sur la crédibilité du point positif."
+                      }
+                    ],
+                    "trajectory_change": null
+                  },
+                  "user_message_brief": "Je te propose de garder le point positif, mais en le limitant au samedi matin, sans toucher au reste du niveau.",
+                  "user_message_detailed": "Je te propose deux ajustements précis sur le point positif. Avant, il était pensé sur la semaine avec une cadence trop présente pour toi; après, je le ramène à un seul rendez-vous le samedi matin, ce qui respecte ta demande de ne pas le rendre quotidien. Avant, sa cadence restait répartie; après, son ancrage devient stable et unique le samedi matin, ce qui aide parce que le geste reste motivant sans te mettre en difficulté. Ce qui ne bouge pas: la fiche support sur la fatigue, le signal de pause et la respiration de pause. Le niveau reste le même, seule la crédibilité du point positif est rééquilibrée. J’ai une confiance moyenne dans cette proposition, car elle suit exactement ton cadre mais je n’ai pas les détails de toutes les autres actions du niveau."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C’est ajusté pour le niveau actuel: le point positif n’est plus pensé comme quotidien, mais comme un rendez-vous unique le samedi matin. J’ai gardé l’intention du geste — te laisser un repère de valorisation — tout en retirant la pression d’une répétition quotidienne qui ne te paraît pas tenable. Rien d’autre n’a bougé: la fiche support sur la fatigue, le signal de pause et la respiration de pause restent inchangés. J’ai une bonne confiance dans ce rééquilibrage, parce qu’il suit exactement ta contrainte et garde le cœur du niveau intact.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de rééquilibrer uniquement le point positif pour le rendre crédible dans ton contexte: le garder comme geste de valorisation, mais le ramener à un unique rendez-vous hebdomadaire le samedi matin, sans autre jour ajouté. Ça aide parce que tu gardes l’intention du rituel sans te forcer à une pratique quotidienne qui ne tient pas pour toi. Je ne touche pas au cœur du niveau, ni aux autres éléments comme la fiche support sur la fatigue, le signal de pause ou la respiration de pause. Si ça te va, je prépare cette version; sinon, je peux l’ajuster encore."
+            },
+            "status": "draft_review",
+            "reason_code": "active_tool_skill_continue",
+            "operation_id": "ca443aaa-ee4a-4ee9-8859-2ea0a8d056f6",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un maintien à fréquence quotidienne.",
+                "Ne pas ouvrir la discussion à d’autres jours ou à une fréquence mixte sans demande.",
+                "Ne pas toucher aux autres éléments du niveau.",
+                "Ne pas vendre ce changement comme une amélioration générale du plan plutôt que comme un ajustement de crédibilité."
+              ],
+              "scope": "level",
+              "preserve": [
+                "L’intention du point positif comme geste de valorisation.",
+                "La structure générale du niveau courant.",
+                "Les autres items du plan qui ne sont pas visés.",
+                "La contrainte explicite: samedi matin seulement, pas quotidien."
+              ],
+              "warnings": [
+                "Éviter de présenter cela comme une optimisation globale du niveau.",
+                "Éviter de défendre la fréquence quotidienne contre l’intuition explicite du user.",
+                "Éviter d’ajouter d’autres créneaux ou de diluer le caractère “samedi matin seulement”.",
+                "Éviter de transformer ce choix en modification de direction ou en refonte du plan."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter la demande comme un ajustement de cadence au sein du niveau courant.",
+                "Préserver la fonction du point positif: soutien, ancrage, valorisation.",
+                "Respecter strictement la borne temporelle demandée: samedi matin seulement.",
+                "Ne pas compenser une baisse de fréquence par l’ajout d’un autre rituel non demandé.",
+                "Distinguer le besoin humain pertinent — rendre la pratique plausible — de ce qui est techniquement faisable — changer la cadence d’un item.",
+                "Si un pont est nécessaire, garder la continuité de sens entre l’ancien et le nouveau rythme: même intention, moindre répétition.",
+                "Ne pas transformer un réajustement de fréquence en refonte de niveau ou de trajectoire.",
+                "Conserver la cohérence globale du plan et la lisibilité du contrat d’effort."
+              ],
+              "observation": "La demande exprime un ajustement très ciblé d’un item du niveau: le besoin n’est pas d’augmenter la pratique, mais de la rendre acceptable en la concentrant sur un seul moment hebdomadaire. Humainement, le point clé est la crédibilité du geste: garder la valeur du rituel sans imposer une fréquence quotidienne qui ne “tient” pas pour le user.",
+              "change_family": null,
+              "recommendation": "Orienter la prochaine réponse vers un rééquilibrage local de cadence: préserver l’intention du point positif, le déplacer vers un ancrage hebdomadaire stable le samedi matin, et éviter toute tentative de maintenir une fréquence quotidienne si elle est déjà vécue comme non crédible.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Passer le point positif à un unique rendez-vous hebdomadaire, samedi matin.",
+                "Conserver le contenu de l’action mais alléger fortement la cadence pour restaurer l’adhésion.",
+                "Si nécessaire, reformuler l’action pour qu’elle reste motivante tout en restant strictement non quotidienne.",
+                "Garder les autres actions du niveau inchangées et ne modifier que cette habitude."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle gardait un point positif régulier; la trajectoire possible est de le consolider en rituel hebdomadaire le samedi matin pour préserver l’adhésion.",
+              "must_not_execute_reason": "La demande est déjà formulée de manière concrète; il ne faut pas l’appliquer ici, seulement cadrer la prochaine réponse opérationnelle sans élargir le périmètre."
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 39440,
+          "created_at": "2026-05-21T14:51:34.300392+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-21T14:51:34.494Z",
+      "user": "La mission signal de pause, je ne veux pas la supprimer. Je veux la renommer en phrase de sortie et la mettre vendredi, 10 minutes max.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose un ajustement local du niveau actuel, sans toucher au reste du plan: renommer \"Convenir d'un signal de pause\" en \"phrase de sortie\" et le cadrer à vendredi pour 7 minutes, avec un plafond de 10 minutes maximum. Je garde intacte la fonction de transition et je ne touche ni au cœur du niveau ni aux autres actions. Ce choix aide à rendre le geste plus simple, plus naturel et moins intrusif, tout en gardant sa fonction de protection. Si ça te va, je peux valider ce cadrage; sinon, je peux l’ajuster sans élargir le périmètre. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t04",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t04",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose un ajustement local du niveau actuel, sans toucher au reste du plan: renommer \"Convenir d'un signal de pause\" en \"phrase de sortie\" et le cadrer à vendredi pour 7 minutes, avec un plafond de 10 minutes maximum. Je garde intacte la fonction de transition et je ne touche ni au cœur du niveau ni aux autres actions. Ce choix aide à rendre le geste plus simple, plus naturel et moins intrusif, tout en gardant sa fonction de protection. Si ça te va, je peux valider ce cadrage; sinon, je peux l’ajuster sans élargir le périmètre. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t04",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "6f6dd001-5f47-47dc-a7d4-5077e42bb39c",
+          "ts": "2026-05-21T14:52:04.704+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12111,
+            "latency_ms": 5157,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 719,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t04",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_refining_plan_during_weekly_review",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2.5,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,3.1,2.7;decay=0.55;recovery=0",
+                  "contribution": 1.5
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                3.1,
+                2.7
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "6f6dd001-5f47-47dc-a7d4-5077e42bb39c",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Convenir d'un signal de pause",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "specific_action",
+                    "label": "Convenir d'un signal de pause",
+                    "status": "identified",
+                    "evidence": [
+                      "La mission signal de pause"
+                    ],
+                    "plan_item_id": "b8d896bc-0644-4570-a986-672978f6885a"
+                  },
+                  "target_granularity": {
+                    "value": "specific_action",
+                    "status": "identified",
+                    "evidence": [
+                      "La mission signal de pause"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "specific_action"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "phrase de sortie",
+                    "vendredi",
+                    "10 minutes max",
+                    "rename_action_keep_item",
+                    "strict_affected_items_only",
+                    "duration:7 minutes",
+                    "duration_minutes:7",
+                    "coach_observation:La demande ne cherche pas à supprimer le signal de pause, mais à en changer la forme et l’ancrage: le geste reste une action de transition, avec une intention préservée, mais le user veut un libellé plus concret (“phrase de sortie”) et un cadrage temporel plus léger (vendredi, 10 minutes max). Humainement, ce qui se joue est la recherche d’une sortie plus simple, plus parlante et moins intrusive, sans perdre la fonction de protection du rituel.",
+                    "coach_recommendation:Traiter cela comme un ajustement ciblé d’une action du niveau, pas comme une refonte du niveau lui-même. Garder la fonction de pause/séparation, accepter le changement de nom vers une phrase de sortie, et orienter la prochaine réponse vers une reformulation localisée avec un seul créneau vendredi et un plafond de 10 minutes, sans élargir le périmètre à d’autres éléments.",
+                    "coach_warning:Éviter de présenter ce changement comme une annulation du signal de pause.",
+                    "coach_warning:Éviter de déplacer la discussion vers tout le niveau alors que le besoin porte sur une seule mission.",
+                    "coach_warning:Éviter de conserver le nom initial si le user demande explicitement une renaming vers une phrase de sortie.",
+                    "coach_warning:Éviter d’ajouter d’autres jours, d’autres durées ou une flexibilité qui dilue le cadre demandé.",
+                    "coach_warning:Éviter de transformer ce changement en modification de direction globale du plan.",
+                    "coach_preserve:La fonction de transition/protection du signal de pause.",
+                    "coach_preserve:Le périmètre limité à cette seule mission.",
+                    "coach_preserve:L’intention de ne pas supprimer l’action.",
+                    "coach_preserve:Le reste du niveau et les autres items non visés.",
+                    "coach_preserve:La contrainte de durée courte et de faible charge.",
+                    "coach_avoid:Ne pas proposer la suppression pure et simple de la mission.",
+                    "coach_avoid:Ne pas garder l’ancien intitulé si le user demande un renommage.",
+                    "coach_avoid:Ne pas déplacer le changement vers une autre action du niveau.",
+                    "coach_avoid:Ne pas proposer une version plus longue ou plus complexe.",
+                    "coach_avoid:Ne pas faire de ce point un débat sur le sens global du plan.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Traiter l’action comme une unité locale: nom, intention, cadence et bornes peuvent bouger sans toucher au niveau entier.",
+                    "coach_guideline:Préserver la fonction humaine du geste avant de valider la forme technique.",
+                    "coach_guideline:Si le user demande un renommage, garder la continuité de sens mais changer le vocabulaire pour qu’il soit crédible et appropriable.",
+                    "coach_guideline:Respecter strictement la borne temporelle demandée: vendredi et 10 minutes max.",
+                    "coach_guideline:Ne pas élargir la proposition à d’autres jours ni à d’autres missions sans demande explicite.",
+                    "coach_guideline:Garder la mission de sortie comme un repère simple, léger et lisible.",
+                    "coach_guideline:Distinguer le besoin humain pertinent — une sortie plus acceptable — de ce qui est techniquement faisable — modifier le nom et le créneau de l’action.",
+                    "coach_guideline:Ne pas transformer un réajustement local en changement de trajectoire.",
+                    "coach_must_not_execute:Le user formule déjà un changement concret; il ne faut pas l’appliquer ici, seulement guider la réponse suivante sans élargir le cadre ni toucher aux autres éléments.",
+                    "coach_trajectory_hypothesis:La trajectoire actuelle conserve un signal de pause; la trajectoire possible est de le reformuler en phrase de sortie, ancrée vendredi et limitée à 10 minutes, pour maintenir la fonction sans surcharge.",
+                    "affected_item:Convenir d'un signal de pause",
+                    "affected_item:Partager un point positif",
+                    "affected_item:Respiration de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "intensity",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "same",
+                  "level_adjustment": "rebalance"
+                },
+                "title": "Ajustement - niveau actuel",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "niveau actuel: charge ajustée vers \"same\"",
+                    "cible de changement: intensity"
+                  ],
+                  "unchanged": [
+                    "le cœur du niveau reste préservé",
+                    "chaque action n'est pas réécrite automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                  "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+                },
+                "scope_label": "niveau actuel",
+                "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+                "decision_basis": {
+                  "evidence": [
+                    "La mission signal de pause, je ne veux pas la supprimer. Je veux la renommer en phrase de sortie et la mettre vendredi, 10 minutes max.",
+                    "Le point positif ne doit pas etre quotidien",
+                    "rebalance",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Je veux le mettre samedi matin seulement",
+                    "Le point positif ne doit pas etre quotidien"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "reequilibrer le niveau actuel",
+                "change_rationale": {
+                  "why_this_change": "Alléger intensity répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                  "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                  "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [
+                      "actions exactes du niveau à choisir pour une modification fine"
+                    ],
+                    "user_problem": "Le niveau actuel est trop lourd ou mal calibré pour le contexte du moment, et le signal de pause doit être plus simple et plus naturel.",
+                    "expected_effect": "Le rituel devient plus facile à faire, plus lisible, et moins intrusif, tout en restant protecteur.",
+                    "why_this_change": "Renommer l’action en \"phrase de sortie\" et la cadrer sur vendredi avec 7 minutes réduit la friction sans supprimer la fonction de transition."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement se limite à une reformulation et un cadrage local d’une action du niveau actuel. Le plan global, les autres niveaux et la structure d’ensemble restent inchangés.",
+                    "affected_scope": "niveau actuel uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "structure complète du plan",
+                      "autres niveaux"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Renommer l’action de transition en \"phrase de sortie\" et la cadrer sur vendredi avec 7 minutes, tout en gardant la fonction de pause et le reste du niveau inchangés.",
+                    "changed_items": [
+                      {
+                        "id": "b8d896bc-0644-4570-a986-672978f6885a",
+                        "kind": "action",
+                        "after": "Phrase de sortie, vendredi, 7 minutes (maximum 10 minutes)",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le renommage rend l’action plus concrète et plus appropriable, tout en gardant sa fonction de transition et en respectant le cadre demandé.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "17fa35ab-7b74-4dd1-a47d-ebd7ead7bfe5",
+                        "kind": "habit",
+                        "after": "3x/semaine",
+                        "title": "Partager un point positif",
+                        "before": "3x/semaine",
+                        "reason": "Je le laisse inchangé pour préserver la cadence prévue et éviter d’élargir le changement au-delà de la mission visée.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "eda8438b-ec42-4d65-84ec-3fe6786748df",
+                        "kind": "habit",
+                        "title": "Respiration de pause",
+                        "reason": "Je la garde intacte pour préserver la fonction de transition/protection et le cœur du niveau."
+                      },
+                      {
+                        "id": null,
+                        "kind": "level",
+                        "title": "Niveau actuel",
+                        "reason": "L’ajustement reste limité au niveau actuel et ne modifie pas la trajectoire globale."
+                      }
+                    ],
+                    "trajectory_change": null
+                  },
+                  "user_message_brief": "Je te propose de renommer le signal de pause en \"phrase de sortie\" et de le cadrer à vendredi pour 7 minutes, sans toucher au reste du niveau.",
+                  "user_message_detailed": "Je te propose deux changements précis, limités au niveau actuel. D’abord, \"Convenir d'un signal de pause\" devient \"Phrase de sortie, vendredi, 7 minutes (maximum 10 minutes)\": avant, c’était un signal de pause plus général; après, c’est une formulation plus concrète et plus simple, qui garde la fonction de transition tout en allégeant la charge. Ensuite, \"Partager un point positif\" reste à 3x/semaine: avant, la cadence était 3x/semaine; après, elle reste 3x/semaine, pour ne pas déplacer le cadre vers d’autres actions. Je laisse aussi \"Respiration de pause\" inchangée afin de préserver le cœur du niveau et le reste du plan. Le niveau de confiance est moyen: le sens du besoin est clair, mais je garde un ajustement local sans élargir le périmètre."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "J’ai préparé le niveau actuel pour qu’il soit plus léger et plus clair: \"Convenir d'un signal de pause\" devient \"phrase de sortie\" avec un ancrage vendredi et une durée de 7 minutes, dans une borne maximale de 10 minutes. Le reste ne bouge pas: la fonction de transition est conservée, et les autres éléments du niveau restent inchangés. Ça aide à garder le rituel utile sans le rendre trop lourd. J’ai un bon niveau de confiance sur cet ajustement.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose un ajustement local du niveau actuel, sans toucher au reste du plan: renommer \"Convenir d'un signal de pause\" en \"phrase de sortie\" et le cadrer à vendredi pour 7 minutes, avec un plafond de 10 minutes maximum. Je garde intacte la fonction de transition et je ne touche ni au cœur du niveau ni aux autres actions. Ce choix aide à rendre le geste plus simple, plus naturel et moins intrusif, tout en gardant sa fonction de protection. Si ça te va, je peux valider ce cadrage; sinon, je peux l’ajuster sans élargir le périmètre."
+            },
+            "status": "draft_review_updated",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "ac7daead-9ae7-4680-8bf4-171cdf808817",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer la suppression pure et simple de la mission.",
+                "Ne pas garder l’ancien intitulé si le user demande un renommage.",
+                "Ne pas déplacer le changement vers une autre action du niveau.",
+                "Ne pas proposer une version plus longue ou plus complexe.",
+                "Ne pas faire de ce point un débat sur le sens global du plan."
+              ],
+              "scope": "level",
+              "preserve": [
+                "La fonction de transition/protection du signal de pause.",
+                "Le périmètre limité à cette seule mission.",
+                "L’intention de ne pas supprimer l’action.",
+                "Le reste du niveau et les autres items non visés.",
+                "La contrainte de durée courte et de faible charge."
+              ],
+              "warnings": [
+                "Éviter de présenter ce changement comme une annulation du signal de pause.",
+                "Éviter de déplacer la discussion vers tout le niveau alors que le besoin porte sur une seule mission.",
+                "Éviter de conserver le nom initial si le user demande explicitement une renaming vers une phrase de sortie.",
+                "Éviter d’ajouter d’autres jours, d’autres durées ou une flexibilité qui dilue le cadre demandé.",
+                "Éviter de transformer ce changement en modification de direction globale du plan."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter l’action comme une unité locale: nom, intention, cadence et bornes peuvent bouger sans toucher au niveau entier.",
+                "Préserver la fonction humaine du geste avant de valider la forme technique.",
+                "Si le user demande un renommage, garder la continuité de sens mais changer le vocabulaire pour qu’il soit crédible et appropriable.",
+                "Respecter strictement la borne temporelle demandée: vendredi et 10 minutes max.",
+                "Ne pas élargir la proposition à d’autres jours ni à d’autres missions sans demande explicite.",
+                "Garder la mission de sortie comme un repère simple, léger et lisible.",
+                "Distinguer le besoin humain pertinent — une sortie plus acceptable — de ce qui est techniquement faisable — modifier le nom et le créneau de l’action.",
+                "Ne pas transformer un réajustement local en changement de trajectoire."
+              ],
+              "observation": "La demande ne cherche pas à supprimer le signal de pause, mais à en changer la forme et l’ancrage: le geste reste une action de transition, avec une intention préservée, mais le user veut un libellé plus concret (“phrase de sortie”) et un cadrage temporel plus léger (vendredi, 10 minutes max). Humainement, ce qui se joue est la recherche d’une sortie plus simple, plus parlante et moins intrusive, sans perdre la fonction de protection du rituel.",
+              "change_family": null,
+              "recommendation": "Traiter cela comme un ajustement ciblé d’une action du niveau, pas comme une refonte du niveau lui-même. Garder la fonction de pause/séparation, accepter le changement de nom vers une phrase de sortie, et orienter la prochaine réponse vers une reformulation localisée avec un seul créneau vendredi et un plafond de 10 minutes, sans élargir le périmètre à d’autres éléments.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Renommer l’action en “phrase de sortie” tout en conservant sa fonction de transition.",
+                "La placer vendredi avec une durée bornée à 10 minutes maximum.",
+                "Conserver la logique de pause, mais adapter le vocabulaire pour qu’il soit plus naturel pour le user.",
+                "Si besoin, vérifier si le vendredi est un point de sortie pertinent dans sa semaine, sans ouvrir davantage la cadence."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle conserve un signal de pause; la trajectoire possible est de le reformuler en phrase de sortie, ancrée vendredi et limitée à 10 minutes, pour maintenir la fonction sans surcharge.",
+              "must_not_execute_reason": "Le user formule déjà un changement concret; il ne faut pas l’appliquer ici, seulement guider la réponse suivante sans élargir le cadre ni toucher aux autres éléments."
+            },
+            "draft_review_decision": {
+              "decision": "revise",
+              "evidence": [
+                "La mission signal de pause, je ne veux pas la supprimer.",
+                "Je veux la renommer en phrase de sortie",
+                "et la mettre vendredi, 10 minutes max."
+              ],
+              "confidence": "high",
+              "apply_after_revision": false
+            },
+            "previous_operation_id": "ca443aaa-ee4a-4ee9-8859-2ea0a8d056f6",
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 30161,
+          "created_at": "2026-05-21T14:52:04.706555+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-21T14:52:04.899Z",
+      "user": "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose une version allégée du niveau actuel, sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.\n\nCe qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t05",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose une version allégée du niveau actuel, sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.\n\nCe qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t05",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "b6a938a1-0a95-437f-a049-ccf8ad43604e",
+          "ts": "2026-05-21T14:52:56.484+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12209,
+            "latency_ms": 3976,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 781,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t05",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_refining_adjustments_within_weekly_flow",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2.4,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,3.1,2.7,2.5;decay=0.55;recovery=0",
+                  "contribution": 1.4
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                3.1,
+                2.7,
+                2.5
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "b6a938a1-0a95-437f-a049-ccf8ad43604e",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global.",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "trajectoire globale du plan",
+                    "status": "identified",
+                    "evidence": [
+                      "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global."
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global."
+                    ],
+                    "confidence": "high",
+                    "negative_evidence": []
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "phrase de sortie",
+                    "vendredi",
+                    "10 minutes max",
+                    "rename_action_keep_item",
+                    "strict_affected_items_only",
+                    "duration:7 minutes",
+                    "duration_minutes:7",
+                    "level_boundary_note:appliquer l'allegement au niveau actuel; si la demande depasse la fin du niveau, garder ce repere pour le prochain niveau plutot que modifier la trajectoire globale",
+                    "coach_observation:La demande porte sur un ajustement local du niveau actuel: le user ne veut ni supprimer ni refondre, il veut reformuler et recadrer des actions précises du bloc courant. Le vrai enjeu humain est d’obtenir un geste plus crédible, plus léger et plus appropriable, sans perdre la fonction de transition/protection ni déplacer la discussion vers le plan entier.",
+                    "coach_recommendation:Rester au niveau de l’action locale et décrire uniquement ce qui change concrètement: renommer l’item visé, conserver sa fonction, et ajuster son créneau et sa durée dans les bornes demandées. Ne pas parler du plan global; préserver le cœur du niveau et le reste des items inchangés.",
+                    "coach_warning:Éviter toute formulation qui ressemble à une refonte du niveau entier.",
+                    "coach_warning:Éviter d’élargir à d’autres actions que celles explicitement visées.",
+                    "coach_warning:Éviter d’ajouter de nouveaux jours, de nouvelles durées ou des options plus lourdes que demandé.",
+                    "coach_warning:Éviter de transformer le renommage en changement de sens.",
+                    "coach_warning:Éviter de présenter l’ajustement comme une validation d’exécution finale si le brouillon n’est pas encore confirmé.",
+                    "coach_preserve:La fonction humaine de protection / transition.",
+                    "coach_preserve:Le périmètre limité aux actions visées.",
+                    "coach_preserve:Le cœur du niveau actuel.",
+                    "coach_preserve:Le reste du plan et des autres items non concernés.",
+                    "coach_preserve:La contrainte de simplicité et de faible charge.",
+                    "coach_avoid:Ne pas proposer une modification globale du plan.",
+                    "coach_avoid:Ne pas suggérer de supprimer l’action si le user demande un remplacement local.",
+                    "coach_avoid:Ne pas déplacer la discussion vers des objectifs ou des phases non demandés.",
+                    "coach_avoid:Ne pas surcharger la proposition avec plusieurs variantes simultanées.",
+                    "coach_avoid:Ne pas conserver l’ancien intitulé si le user demande explicitement un renommage.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Traiter la demande comme un changement de forme et de cadrage, pas comme un changement de trajectoire.",
+                    "coach_guideline:Décrire l’action modifiée avec ses bornes précises: nom, fréquence, durée, et, si demandé, jour d’ancrage.",
+                    "coach_guideline:Préserver l’intention initiale du geste avant sa forme technique.",
+                    "coach_guideline:Respecter strictement le périmètre de niveau courant sans réouvrir le plan global.",
+                    "coach_guideline:Si un changement local suffit, ne pas proposer de restructuration plus large.",
+                    "coach_guideline:Garder le message centré sur l’ajustement concret demandé par le user.",
+                    "coach_guideline:Distinguer ce qui est humainement pertinent d’une meilleure appropriabilité de ce qui est techniquement faisable dans l’édition de l’item.",
+                    "coach_guideline:Ne pas introduire d’éléments non demandés sous prétexte d’amélioration.",
+                    "coach_must_not_execute:Le contexte contient déjà une demande concrète de modification locale; il faut guider la reformulation du changement, pas élargir ni appliquer au-delà du périmètre demandé.",
+                    "coach_trajectory_hypothesis:La trajectoire actuelle garde le même niveau avec des actions peu adaptées; la trajectoire possible est de conserver le cœur du bloc tout en reformulant localement l’action pour la rendre plus crédible et moins lourde.",
+                    "affected_item:Partager un point positif",
+                    "affected_item:Convenir d'un signal de pause",
+                    "affected_item:Respiration de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "intensity",
+                  "reason_change": "context_changed"
+                },
+                "title": "Alléger le niveau actuel",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "Convenir d'un signal de pause",
+                    "Partager un point positif",
+                    "Respiration de pause"
+                  ],
+                  "unchanged": [
+                    "Plan global",
+                    "objectif du niveau actuel"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge baisse sans casser la direction du plan.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "niveau actuel",
+                "why_it_helps": "Cela réduit la charge immédiate sans changer l'objectif de fond.",
+                "decision_basis": {
+                  "evidence": [
+                    "Avant d'appliquer quoi que ce soit, redis-moi exactement ce que tu comptes modifier, sans parler de plan global.",
+                    "Le point positif ne doit pas etre quotidien",
+                    "rebalance",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Je veux le mettre samedi matin seulement",
+                    "Le point positif ne doit pas etre quotidien"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                "change_rationale": {
+                  "why_this_change": "La difficulté porte sur la charge du niveau actuel, pas sur une action isolée ni sur tout le plan.",
+                  "success_condition": "Le user peut tenir les appuis principaux sans se cramer en fin de semaine.",
+                  "expected_mechanism": "Des versions plus petites diminuent le coût d'entrée et rendent la semaine plus tenable."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [],
+                    "user_problem": "La semaine est partielle et le niveau actuel demande trop d'énergie.",
+                    "expected_effect": "La semaine suivante devient plus concrète et plus tenable.",
+                    "why_this_change": "Alléger les appuis principaux répond au blocage sans refaire tout le plan."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement baisse la charge du niveau actuel sans réorienter la trajectoire globale.",
+                    "affected_scope": "niveau actuel",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "plan global",
+                      "objectif de fond"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                    "changed_items": [
+                      {
+                        "id": "b8d896bc-0644-4570-a986-672978f6885a",
+                        "kind": "action",
+                        "after": "Terminer seulement la version simple du signal de pause cette semaine.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "17fa35ab-7b74-4dd1-a47d-ebd7ead7bfe5",
+                        "kind": "habit",
+                        "after": "1 fois en début de semaine, avec une phrase très courte.",
+                        "title": "Partager un point positif",
+                        "before": "Partager un point positif",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "eda8438b-ec42-4d65-84ec-3fe6786748df",
+                        "kind": "habit",
+                        "after": "1 pause courte de 2 minutes, sans chercher à faire parfait.",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": []
+                  },
+                  "user_message_brief": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                  "user_message_detailed": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose une version allégée du niveau actuel, sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.\n\nCe qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas."
+            },
+            "status": "draft_review_updated",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "041a788f-224d-47af-92e6-016ad38ff5c0",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer une modification globale du plan.",
+                "Ne pas suggérer de supprimer l’action si le user demande un remplacement local.",
+                "Ne pas déplacer la discussion vers des objectifs ou des phases non demandés.",
+                "Ne pas surcharger la proposition avec plusieurs variantes simultanées.",
+                "Ne pas conserver l’ancien intitulé si le user demande explicitement un renommage."
+              ],
+              "scope": "level",
+              "preserve": [
+                "La fonction humaine de protection / transition.",
+                "Le périmètre limité aux actions visées.",
+                "Le cœur du niveau actuel.",
+                "Le reste du plan et des autres items non concernés.",
+                "La contrainte de simplicité et de faible charge."
+              ],
+              "warnings": [
+                "Éviter toute formulation qui ressemble à une refonte du niveau entier.",
+                "Éviter d’élargir à d’autres actions que celles explicitement visées.",
+                "Éviter d’ajouter de nouveaux jours, de nouvelles durées ou des options plus lourdes que demandé.",
+                "Éviter de transformer le renommage en changement de sens.",
+                "Éviter de présenter l’ajustement comme une validation d’exécution finale si le brouillon n’est pas encore confirmé."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter la demande comme un changement de forme et de cadrage, pas comme un changement de trajectoire.",
+                "Décrire l’action modifiée avec ses bornes précises: nom, fréquence, durée, et, si demandé, jour d’ancrage.",
+                "Préserver l’intention initiale du geste avant sa forme technique.",
+                "Respecter strictement le périmètre de niveau courant sans réouvrir le plan global.",
+                "Si un changement local suffit, ne pas proposer de restructuration plus large.",
+                "Garder le message centré sur l’ajustement concret demandé par le user.",
+                "Distinguer ce qui est humainement pertinent d’une meilleure appropriabilité de ce qui est techniquement faisable dans l’édition de l’item.",
+                "Ne pas introduire d’éléments non demandés sous prétexte d’amélioration."
+              ],
+              "observation": "La demande porte sur un ajustement local du niveau actuel: le user ne veut ni supprimer ni refondre, il veut reformuler et recadrer des actions précises du bloc courant. Le vrai enjeu humain est d’obtenir un geste plus crédible, plus léger et plus appropriable, sans perdre la fonction de transition/protection ni déplacer la discussion vers le plan entier.",
+              "change_family": null,
+              "recommendation": "Rester au niveau de l’action locale et décrire uniquement ce qui change concrètement: renommer l’item visé, conserver sa fonction, et ajuster son créneau et sa durée dans les bornes demandées. Ne pas parler du plan global; préserver le cœur du niveau et le reste des items inchangés.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Renommer l’action en une expression plus concrète tout en gardant la fonction de transition.",
+                "Fixer un seul créneau explicite et une durée plafonnée pour réduire la friction.",
+                "Conserver le reste du niveau intact afin de ne pas diluer l’intention initiale.",
+                "Si plusieurs actions sont touchées, les traiter une par une plutôt que par lot."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle garde le même niveau avec des actions peu adaptées; la trajectoire possible est de conserver le cœur du bloc tout en reformulant localement l’action pour la rendre plus crédible et moins lourde.",
+              "must_not_execute_reason": "Le contexte contient déjà une demande concrète de modification locale; il faut guider la reformulation du changement, pas élargir ni appliquer au-delà du périmètre demandé."
+            },
+            "draft_review_decision": {
+              "decision": "revise",
+              "evidence": [
+                "Le user demande de reformuler exactement le changement envisagé avant application",
+                "Il précise de ne pas parler du plan global",
+                "Un previous_draft existe déjà, donc on est en révision du brouillon"
+              ],
+              "confidence": "high",
+              "apply_after_revision": false
+            },
+            "previous_operation_id": "ac7daead-9ae7-4680-8bf4-171cdf808817",
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 51544,
+          "created_at": "2026-05-21T14:52:56.486688+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "started_at": "2026-05-21T14:52:56.690Z",
+      "user": "Ce n'est toujours pas assez precis : mardi/jeudi pour deconnexion, samedi matin pour point positif, vendredi pour phrase de sortie. Rien lundi, rien mercredi.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok, version exacte, sans plan global.\n\nProposition d'ajustement:\n- Remplacer Respiration de pause par Deconnexion de 7 minutes apres le diner: mardi et jeudi uniquement.\n- Partager un point positif: samedi matin seulement.\n- Convenir d'un signal de pause devient Phrase de sortie: vendredi, 10 minutes maximum.\n\nJe ne touche pas aux supports, je ne change pas l'objectif du niveau, et je n'ajoute pas de nouvelle action. Rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t06",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t06",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, version exacte, sans plan global.\n\nProposition d'ajustement:\n- Remplacer Respiration de pause par Deconnexion de 7 minutes apres le diner: mardi et jeudi uniquement.\n- Partager un point positif: samedi matin seulement.\n- Convenir d'un signal de pause devient Phrase de sortie: vendredi, 10 minutes maximum.\n\nJe ne touche pas aux supports, je ne change pas l'objectif du niveau, et je n'ajoute pas de nouvelle action. Rien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t06",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "35be7297-93df-497b-9acc-25dc6632e0fe",
+          "ts": "2026-05-21T14:53:39.207+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12292,
+            "latency_ms": 4674,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 756,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t06",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_refining_the_level_review_within_weekly_flow",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 2.3,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,3.1,2.7,2.5,2.4;decay=0.55;recovery=0",
+                  "contribution": 1.3
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                3.1,
+                2.7,
+                2.5,
+                2.4
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "35be7297-93df-497b-9acc-25dc6632e0fe",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "niveau actuel",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "niveau actuel",
+                    "status": "identified",
+                    "evidence": [
+                      "redis-moi exactement ce que tu comptes modifier, sans parler de plan global"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "Le user donne un planning complet pour plusieurs actions du niveau",
+                      "mardi/jeudi pour deconnexion, samedi matin pour point positif, vendredi pour phrase de sortie"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "samedi matin seulement",
+                    "pas quotidien",
+                    "duration:7 minutes",
+                    "duration_minutes:7",
+                    "coach_observation:Le user ne remet pas en cause l’objectif: il veut un ajustement très local et très précis des actions du niveau actuel. Le besoin humain n’est pas une nouvelle stratégie, mais une réécriture crédible des repères concrets pour que le bloc reste tenable: deconnexion mardi/jeudi, point positif samedi matin, phrase de sortie vendredi, sans ajout lundi/mercredi.",
+                    "coach_recommendation:Rester strictement sur le périmètre du niveau courant et formuler le changement comme une série de modifications locales, action par action. Garder l’intention de protection/transition, mais décrire exactement les bornes demandées: jours, durée, et renommage, sans réouvrir le plan global ni proposer d’autres variantes.",
+                    "coach_warning:Éviter de reformuler cela comme une refonte du niveau entier.",
+                    "coach_warning:Éviter d’ajouter des jours non demandés ou de déplacer les actions vers lundi/mercredi.",
+                    "coach_warning:Éviter d’introduire des options alternatives plus lourdes que le cadrage demandé.",
+                    "coach_warning:Éviter de changer le sens de l’action au moment du renommage.",
+                    "coach_warning:Éviter de présenter la proposition comme appliquée tant qu’il n’y a pas confirmation explicite.",
+                    "coach_preserve:L’objectif du niveau actuel.",
+                    "coach_preserve:La fonction humaine de transition/protection des actions.",
+                    "coach_preserve:Le périmètre limité aux actions explicitement visées.",
+                    "coach_preserve:Le reste du plan et les items non mentionnés.",
+                    "coach_preserve:Une charge globale basse et un cadrage simple.",
+                    "coach_avoid:Ne pas proposer un plan global ou une trajectoire nouvelle.",
+                    "coach_avoid:Ne pas supprimer une action si le user demande un remplacement local.",
+                    "coach_avoid:Ne pas mélanger plusieurs modifications sans les nommer clairement.",
+                    "coach_avoid:Ne pas conserver l’ancien intitulé si le user demande un renommage.",
+                    "coach_avoid:Ne pas élargir le périmètre aux autres jours ou aux autres phases.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Décrire uniquement ce qui change concrètement: nom, jour, durée, fréquence.",
+                    "coach_guideline:Garder la discussion au niveau du bloc courant, sans remontée vers le plan global.",
+                    "coach_guideline:Préserver la fonction de chaque geste avant sa forme technique.",
+                    "coach_guideline:Respecter strictement les jours indiqués par le user et n’en inventer aucun autre.",
+                    "coach_guideline:Si un changement local suffit, ne pas proposer de restructuration plus large.",
+                    "coach_guideline:Traiter le renommage comme un cadrage de sens, pas comme une nouvelle intention.",
+                    "coach_guideline:Séparer clairement ce qui est humainement pertinent de ce qui est techniquement faisable.",
+                    "coach_guideline:Maintenir la simplicité et la faible charge comme critère principal de cohérence.",
+                    "coach_must_not_execute:Un brouillon de modification locale existe déjà, mais il n’est pas encore validé et le user demande une précision supplémentaire avant toute application.",
+                    "coach_trajectory_hypothesis:La trajectoire actuelle garde le même niveau avec des actions trop génériques; la trajectoire possible est de conserver le bloc tout en le reconfigurant localement pour qu’il soit crédible, léger et calé sur les bons jours.",
+                    "affected_item:Partager un point positif",
+                    "affected_item:Convenir d'un signal de pause",
+                    "affected_item:Respiration de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "intensity",
+                  "reason_change": "context_changed"
+                },
+                "title": "Alléger le niveau actuel",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "Convenir d'un signal de pause",
+                    "Partager un point positif",
+                    "Respiration de pause"
+                  ],
+                  "unchanged": [
+                    "Plan global",
+                    "objectif du niveau actuel"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge baisse sans casser la direction du plan.",
+                  "follow_up_needed": null
+                },
+                "scope_label": "niveau actuel",
+                "why_it_helps": "Cela réduit la charge immédiate sans changer l'objectif de fond.",
+                "decision_basis": {
+                  "evidence": [
+                    "Ce n'est toujours pas assez precis : mardi/jeudi pour deconnexion, samedi matin pour point positif, vendredi pour phrase de sortie. Rien lundi, rien mercredi.",
+                    "Le point positif ne doit pas etre quotidien",
+                    "rebalance",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Le point positif ne doit pas etre quotidien",
+                    "Je veux le mettre samedi matin seulement",
+                    "Le point positif ne doit pas etre quotidien"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                "change_rationale": {
+                  "why_this_change": "La difficulté porte sur la charge du niveau actuel, pas sur une action isolée ni sur tout le plan.",
+                  "success_condition": "Le user peut tenir les appuis principaux sans se cramer en fin de semaine.",
+                  "expected_mechanism": "Des versions plus petites diminuent le coût d'entrée et rendent la semaine plus tenable."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [],
+                    "user_problem": "La semaine est partielle et le niveau actuel demande trop d'énergie.",
+                    "expected_effect": "La semaine suivante devient plus concrète et plus tenable.",
+                    "why_this_change": "Alléger les appuis principaux répond au blocage sans refaire tout le plan."
+                  },
+                  "boundaries": {
+                    "explanation": "Le changement baisse la charge du niveau actuel sans réorienter la trajectoire globale.",
+                    "affected_scope": "niveau actuel",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "plan global",
+                      "objectif de fond"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                    "changed_items": [
+                      {
+                        "id": "b8d896bc-0644-4570-a986-672978f6885a",
+                        "kind": "action",
+                        "after": "Terminer seulement la version simple du signal de pause cette semaine.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "17fa35ab-7b74-4dd1-a47d-ebd7ead7bfe5",
+                        "kind": "habit",
+                        "after": "1 fois en début de semaine, avec une phrase très courte.",
+                        "title": "Partager un point positif",
+                        "before": "Partager un point positif",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "eda8438b-ec42-4d65-84ec-3fe6786748df",
+                        "kind": "habit",
+                        "after": "1 pause courte de 2 minutes, sans chercher à faire parfait.",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause",
+                        "reason": "Le niveau actuel reste dans la même direction, mais la charge baisse pour tenir avec moins d'énergie.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": []
+                  },
+                  "user_message_brief": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine.",
+                  "user_message_detailed": "Alléger le niveau actuel sans changer le plan global: garder les mêmes appuis, mais avec une charge plus basse cette semaine."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose une version allégée du niveau actuel, sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait.\n\nCe qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas."
+            },
+            "status": "draft_review_updated",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "c85872be-cfc4-46f7-b8b8-1398cbf98ca0",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un plan global ou une trajectoire nouvelle.",
+                "Ne pas supprimer une action si le user demande un remplacement local.",
+                "Ne pas mélanger plusieurs modifications sans les nommer clairement.",
+                "Ne pas conserver l’ancien intitulé si le user demande un renommage.",
+                "Ne pas élargir le périmètre aux autres jours ou aux autres phases."
+              ],
+              "scope": "level",
+              "preserve": [
+                "L’objectif du niveau actuel.",
+                "La fonction humaine de transition/protection des actions.",
+                "Le périmètre limité aux actions explicitement visées.",
+                "Le reste du plan et les items non mentionnés.",
+                "Une charge globale basse et un cadrage simple."
+              ],
+              "warnings": [
+                "Éviter de reformuler cela comme une refonte du niveau entier.",
+                "Éviter d’ajouter des jours non demandés ou de déplacer les actions vers lundi/mercredi.",
+                "Éviter d’introduire des options alternatives plus lourdes que le cadrage demandé.",
+                "Éviter de changer le sens de l’action au moment du renommage.",
+                "Éviter de présenter la proposition comme appliquée tant qu’il n’y a pas confirmation explicite."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Décrire uniquement ce qui change concrètement: nom, jour, durée, fréquence.",
+                "Garder la discussion au niveau du bloc courant, sans remontée vers le plan global.",
+                "Préserver la fonction de chaque geste avant sa forme technique.",
+                "Respecter strictement les jours indiqués par le user et n’en inventer aucun autre.",
+                "Si un changement local suffit, ne pas proposer de restructuration plus large.",
+                "Traiter le renommage comme un cadrage de sens, pas comme une nouvelle intention.",
+                "Séparer clairement ce qui est humainement pertinent de ce qui est techniquement faisable.",
+                "Maintenir la simplicité et la faible charge comme critère principal de cohérence."
+              ],
+              "observation": "Le user ne remet pas en cause l’objectif: il veut un ajustement très local et très précis des actions du niveau actuel. Le besoin humain n’est pas une nouvelle stratégie, mais une réécriture crédible des repères concrets pour que le bloc reste tenable: deconnexion mardi/jeudi, point positif samedi matin, phrase de sortie vendredi, sans ajout lundi/mercredi.",
+              "change_family": null,
+              "recommendation": "Rester strictement sur le périmètre du niveau courant et formuler le changement comme une série de modifications locales, action par action. Garder l’intention de protection/transition, mais décrire exactement les bornes demandées: jours, durée, et renommage, sans réouvrir le plan global ni proposer d’autres variantes.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Modifier une action à la fois pour garder le cadre lisible.",
+                "Ancrer la déconnexion uniquement mardi et jeudi, après le dîner, avec durée fixe.",
+                "Conserver le point positif comme geste de fin de semaine, limité à samedi matin.",
+                "Renommer la mission de pause en phrase de sortie sans toucher à sa fonction.",
+                "Laisser le reste du niveau inchangé pour préserver la cohérence et la charge basse."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle garde le même niveau avec des actions trop génériques; la trajectoire possible est de conserver le bloc tout en le reconfigurant localement pour qu’il soit crédible, léger et calé sur les bons jours.",
+              "must_not_execute_reason": "Un brouillon de modification locale existe déjà, mais il n’est pas encore validé et le user demande une précision supplémentaire avant toute application."
+            },
+            "draft_review_decision": {
+              "decision": "revise",
+              "evidence": [
+                "Ce n'est toujours pas assez precis",
+                "mardi/jeudi pour deconnexion",
+                "samedi matin pour point positif",
+                "vendredi pour phrase de sortie",
+                "Rien lundi, rien mercredi"
+              ],
+              "confidence": "high",
+              "apply_after_revision": false
+            },
+            "previous_operation_id": "041a788f-224d-47af-92e6-016ad38ff5c0",
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 42470,
+          "created_at": "2026-05-21T14:53:39.208705+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 7,
+      "started_at": "2026-05-21T14:53:39.413Z",
+      "user": "Ok applique seulement ca. Ne touche pas aux supports, ne change pas l'objectif du niveau, et ne rajoute pas de nouvelle action.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t07",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t07",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.\n\n- Convenir d'un signal de pause: Terminer seulement la version simple du signal de pause cette semaine.\n- Partager un point positif: 1 fois en début de semaine, avec une phrase très courte.\n- Respiration de pause: 1 pause courte de 2 minutes, sans chercher à faire parfait. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "adjust_plan_item"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t07",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "3c5c5c2a-6fe0-40f6-98ec-d116182602de",
+          "ts": "2026-05-21T14:55:10.856+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12364,
+            "latency_ms": 3864,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 784,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t07",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_confirming_adjustments_within_weekly_flow",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "3.1,2.7,2.5,2.4,2.3;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                3.1,
+                2.7,
+                2.5,
+                2.4,
+                2.3
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "3c5c5c2a-6fe0-40f6-98ec-d116182602de",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Ok applique seulement ca. Ne touche pas aux supports, ne change pas l'objectif du niveau, et ne rajoute pas de nouvelle action.",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "current_level",
+                    "label": "niveau actuel",
+                    "status": "identified",
+                    "evidence": [
+                      "Ok applique seulement ca. Ne touche pas aux supports, ne change pas l'objectif du niveau, et ne rajoute pas de nouvelle action."
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "current_level",
+                    "status": "identified",
+                    "evidence": [
+                      "Ok applique seulement ca. Ne touche pas aux supports, ne change pas l'objectif du niveau, et ne rajoute pas de nouvelle action."
+                    ],
+                    "confidence": "medium",
+                    "negative_evidence": []
+                  }
+                },
+                "adjust_plan_scope": "current_level"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "adjust_plan_item"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "c85872be-cfc4-46f7-b8b8-1398cbf98ca0",
+            "plan_patch_id": "6834ea9c-1eca-4fab-ba17-3ffd515049a8",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un plan global ou une trajectoire nouvelle.",
+                "Ne pas supprimer une action si le user demande un remplacement local.",
+                "Ne pas mélanger plusieurs modifications sans les nommer clairement.",
+                "Ne pas conserver l’ancien intitulé si le user demande un renommage.",
+                "Ne pas élargir le périmètre aux autres jours ou aux autres phases."
+              ],
+              "scope": "level",
+              "preserve": [
+                "L’objectif du niveau actuel.",
+                "La fonction humaine de transition/protection des actions.",
+                "Le périmètre limité aux actions explicitement visées.",
+                "Le reste du plan et les items non mentionnés.",
+                "Une charge globale basse et un cadrage simple."
+              ],
+              "warnings": [
+                "Éviter de reformuler cela comme une refonte du niveau entier.",
+                "Éviter d’ajouter des jours non demandés ou de déplacer les actions vers lundi/mercredi.",
+                "Éviter d’introduire des options alternatives plus lourdes que le cadrage demandé.",
+                "Éviter de changer le sens de l’action au moment du renommage.",
+                "Éviter de présenter la proposition comme appliquée tant qu’il n’y a pas confirmation explicite."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Décrire uniquement ce qui change concrètement: nom, jour, durée, fréquence.",
+                "Garder la discussion au niveau du bloc courant, sans remontée vers le plan global.",
+                "Préserver la fonction de chaque geste avant sa forme technique.",
+                "Respecter strictement les jours indiqués par le user et n’en inventer aucun autre.",
+                "Si un changement local suffit, ne pas proposer de restructuration plus large.",
+                "Traiter le renommage comme un cadrage de sens, pas comme une nouvelle intention.",
+                "Séparer clairement ce qui est humainement pertinent de ce qui est techniquement faisable.",
+                "Maintenir la simplicité et la faible charge comme critère principal de cohérence."
+              ],
+              "observation": "Le user ne remet pas en cause l’objectif: il veut un ajustement très local et très précis des actions du niveau actuel. Le besoin humain n’est pas une nouvelle stratégie, mais une réécriture crédible des repères concrets pour que le bloc reste tenable: deconnexion mardi/jeudi, point positif samedi matin, phrase de sortie vendredi, sans ajout lundi/mercredi.",
+              "change_family": null,
+              "recommendation": "Rester strictement sur le périmètre du niveau courant et formuler le changement comme une série de modifications locales, action par action. Garder l’intention de protection/transition, mais décrire exactement les bornes demandées: jours, durée, et renommage, sans réouvrir le plan global ni proposer d’autres variantes.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Modifier une action à la fois pour garder le cadre lisible.",
+                "Ancrer la déconnexion uniquement mardi et jeudi, après le dîner, avec durée fixe.",
+                "Conserver le point positif comme geste de fin de semaine, limité à samedi matin.",
+                "Renommer la mission de pause en phrase de sortie sans toucher à sa fonction.",
+                "Laisser le reste du niveau inchangé pour préserver la cohérence et la charge basse."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle garde le même niveau avec des actions trop génériques; la trajectoire possible est de conserver le bloc tout en le reconfigurant localement pour qu’il soit crédible, léger et calé sur les bons jours.",
+              "must_not_execute_reason": "Un brouillon de modification locale existe déjà, mais il n’est pas encore validé et le user demande une précision supplémentaire avant toute application."
+            },
+            "bridge_plan_item_id": null,
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 90815,
+          "created_at": "2026-05-21T14:55:10.857315+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 8,
+      "started_at": "2026-05-21T14:55:11.041Z",
+      "user": "Maintenant dis-moi si la validation de la semaine prochaine est dispo, et ce que je dois verifier avant de valider.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ok, je garde ça comme un point à traiter après le bilan si tu veux.\n\nPour l'instant, on reste sur le point weekly: est-ce qu'on part sur une semaine plus légère pour éviter que la fatigue de fin de semaine casse le rythme ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-8turn-r9-not_relevant_level_review-t08",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-8turn-r9-not_relevant_level_review-t08",
+        "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r9",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, je garde ça comme un point à traiter après le bilan si tu veux.\n\nPour l'instant, on reste sur le point weekly: est-ce qu'on part sur une semaine plus légère pour éviter que la fatigue de fin de semaine casse le rythme ? 🙂",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-8turn-r9-not_relevant_level_review-t08",
+          "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+          "source_message_id": "a3e03beb-6a07-4577-9dd8-0e63743d106f",
+          "ts": "2026-05-21T14:55:17.201+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "Maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 13015,
+            "latency_ms": 3202,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 589,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-8turn-r9-not_relevant_level_review-t08",
+            "user_id": "2fb80a14-35f7-456d-8c0e-d050d86a6871",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "active": true,
+                  "reason": "user_asking_about_weekly_validation_status",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.7,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "2.7,2.5,2.4,2.3,1;decay=0.55;recovery=0",
+                  "contribution": 0.7
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                2.7,
+                2.5,
+                2.4,
+                2.3,
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "a3e03beb-6a07-4577-9dd8-0e63743d106f",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "weekly_planning_validation_locked_until_review",
+            "blocked_paths": [
+              {
+                "path": "tool_skill.adjust_plan_item",
+                "reason_code": "weekly_planning_validation_locked_until_review"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_planning_locked_until_review",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "normal_reply",
+          "total_latency_ms": 6124,
+          "created_at": "2026-05-21T14:55:17.20204+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-21T14:55:17.245Z"
+}

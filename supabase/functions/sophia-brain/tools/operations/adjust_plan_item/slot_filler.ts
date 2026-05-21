@@ -253,6 +253,13 @@ export async function fillAdjustPlanSlotsWithAi(
     "En revision de brouillon, ne demande jamais pourquoi une formulation exacte aide si le user a déjà donné le texte exact et que le périmètre est clair.",
     'Scope rule forte: une demande de calme, d\'allegement, de rythme, de charge, de frequence ou de plusieurs actions sur cette semaine / deux prochaines semaines / quelques jours / temporairement relève du niveau actuel, pas du plan global, même si le user dit "tout le plan" ou "plan entier".',
     "Scope whole_plan est reserve aux changements structurels de trajectoire: objectif global, coherence du plan, prochaine etape, troisieme partie/phase future, ordre des phases, progression globale, duree globale, ou plan qui ne fait plus sens.",
+    "Pour whole_plan_intake, classe toujours la demande dans payload.whole_plan_change_family.value avec une de ces familles: sequence_order_issue, missing_bridge_or_level, direction_change, success_criteria_change, future_phase_mismatch, style_or_method_mismatch, maintenance_or_consolidation_gap, global_capacity_change, value_preference_conflict, plan_no_longer_relevant, split_merge_restructure, diagnostic_unclear, cancel_or_reject.",
+    "Pour whole_plan_intake, renseigne payload.candidate_operation: diagnostic_only, reorder, insert_phase, replace_phase, change_emphasis, change_success_criteria, pace_change, maintenance_layer, split_or_merge_phase, cancel_or_revise.",
+    "Pour whole_plan_intake, renseigne payload.readiness: diagnose si la demande est vague et nécessite du coaching; draft_ready si le user donne une solution concrete; needs_confirmation si un brouillon précis existe; execute_after_confirmation uniquement après approbation explicite du brouillon courant.",
+    "Si le user parle d'un niveau futur qui ne fait pas sens, classe future_phase_mismatch et readiness=diagnose sauf s'il donne déjà la correction concrète.",
+    "Si le user demande d'ajouter un niveau ou une étape dans le plan global, classe missing_bridge_or_level et candidate_operation=insert_phase.",
+    "Si le user dit que le plan ne va plus dans la bonne direction ou veut un autre axe, classe direction_change ou value_preference_conflict selon le cas.",
+    "Si le user dit stop, annule, n'applique rien, ce n'est pas ça, hors sujet, classe cancel_or_reject et candidate_operation=cancel_or_revise.",
     "Si une demande de niveau deborde possiblement la fin du niveau courant, garde current_level et ajoute dans payload.constraints.values: level_boundary_note:appliquer l'allegement au niveau actuel; si la demande depasse la fin du niveau, garder ce repere pour le prochain niveau plutot que modifier la trajectoire globale.",
     "Si current_state.scope.kind vaut current_level ou whole_plan, ne retrograde jamais vers specific_plan_item seulement parce que le user cite une action: traite cette action comme affected_items/change_target dans le scope deja actif, sauf si le user dit explicitement qu'il ne parle plus que de cette action.",
     'Si le user dit seulement "signal de pause" ou demande que le signal soit plus court/simple/5 minutes, vise l\'action de mise en place du signal, par exemple "Convenir d\'un signal de pause". Ne vise "Faire le point sur le signal de pause" que si le user parle explicitement de bilan, faire le point, review, retour d\'experience ou evaluation.',
@@ -310,6 +317,16 @@ export async function fillAdjustPlanSlotsWithAi(
         payload: {
           scope_kind: "specific_plan_item|current_level|whole_plan",
           adjustment_type: "slot object",
+          whole_plan_change_family: {
+            status: "missing|identified",
+            value:
+              "sequence_order_issue|missing_bridge_or_level|direction_change|success_criteria_change|future_phase_mismatch|style_or_method_mismatch|maintenance_or_consolidation_gap|global_capacity_change|value_preference_conflict|plan_no_longer_relevant|split_merge_restructure|diagnostic_unclear|cancel_or_reject",
+            evidence: ["string"],
+          },
+          candidate_operation:
+            "diagnostic_only|reorder|insert_phase|replace_phase|change_emphasis|change_success_criteria|pace_change|maintenance_layer|split_or_merge_phase|cancel_or_revise|null",
+          readiness:
+            "diagnose|draft_ready|needs_confirmation|execute_after_confirmation|null",
           reason: "slot object",
           reason_change: "slot object for level/whole_plan",
           change_target: "slot object for level/whole_plan",

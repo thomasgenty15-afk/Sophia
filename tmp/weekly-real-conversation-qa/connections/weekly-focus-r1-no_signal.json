@@ -1,0 +1,8 @@
+{
+  "user_id": "5648ddf4-66e2-405c-89a1-740da6c0d34d",
+  "email": "qa-weekly-deep-weekly-focus-r1-no_signal@example.com",
+  "password": "1234567",
+  "scope": "weekly-deep-no_signal-weekly-focus-r1",
+  "persona": "qa-weekly-deep",
+  "is_temporary_qa_connection": true
+}

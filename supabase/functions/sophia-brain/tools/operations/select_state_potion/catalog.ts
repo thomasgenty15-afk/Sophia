@@ -15,14 +15,10 @@ export const STATE_POTION_TYPES: PotionType[] = [
 ];
 
 function formatQuestion(question: PotionQuestion): string {
-  const optionLabels = question.options.map((option) => option.label).join(
-    " | ",
-  );
   return [
     `question: ${question.label}`,
     question.helper_text ? `aide: ${question.helper_text}` : null,
     question.placeholder ? `exemple: ${question.placeholder}` : null,
-    optionLabels ? `options: ${optionLabels}` : null,
   ].filter(Boolean).join(" ; ");
 }
 
@@ -56,6 +52,7 @@ export function buildStatePotionCatalogPrompt(): string {
     "## Catalogue canonique des potions d'etat",
     "Utilise ce catalogue pour comprendre les nuances, recommander les deux meilleures potions, poser une question dans le bon ton, et rediger le draft.",
     "Ne recopie pas mecaniquement les questions: elles servent d'exemples de ton et de niveau de precision.",
+    "Les options internes ne doivent jamais devenir une liste visible. Elles servent a classer mentalement, pas a interroger le user comme un formulaire.",
     "Les questions visibles doivent rester courtes, tutoyantes, humaines, non medicales, sans jargon et sans pression.",
     "Le suivi par defaut est un reminder court sur 7 jours, mais courage, clarte et rappel peuvent etre cales sur une action ponctuelle ou recurrente quand le user donne ce contexte.",
     ...STATE_POTION_TYPES.map((type) =>

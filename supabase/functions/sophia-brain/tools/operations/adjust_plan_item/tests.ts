@@ -106,10 +106,39 @@ function levelPayload(options: {
 function wholePlanPayload(options: {
   complete?: boolean;
   constraints?: string[];
+  family?:
+    | "sequence_order_issue"
+    | "missing_bridge_or_level"
+    | "direction_change"
+    | "success_criteria_change"
+    | "future_phase_mismatch"
+    | "style_or_method_mismatch"
+    | "split_merge_restructure";
 } = {}) {
   const complete = options.complete ?? true;
   return {
     scope_kind: "whole_plan",
+    whole_plan_change_family: options.family
+      ? {
+        status: "identified",
+        value: options.family,
+        evidence: ["test whole-plan family"],
+      }
+      : { status: "missing", evidence: [] },
+    candidate_operation: options.family === "missing_bridge_or_level"
+      ? "insert_phase"
+      : options.family === "direction_change"
+      ? "change_emphasis"
+      : options.family === "success_criteria_change"
+      ? "change_success_criteria"
+      : options.family === "future_phase_mismatch"
+      ? "replace_phase"
+      : options.family === "style_or_method_mismatch"
+      ? "change_emphasis"
+      : options.family === "split_merge_restructure"
+      ? "split_or_merge_phase"
+      : null,
+    readiness: options.family ? "draft_ready" : null,
     adjustment_type: {
       status: "identified",
       value: "reduce_global_load",
@@ -198,7 +227,9 @@ function levelOperationInput(options: {
   };
 }
 
-function wholePlanOperationInput(options: { complete?: boolean } = {}) {
+function wholePlanOperationInput(
+  options: Parameters<typeof wholePlanPayload>[0] = {},
+) {
   return {
     target_granularity: {
       status: "identified",
@@ -258,14 +289,37 @@ const testAdjustPlanResultWriter: AdjustPlanResultWriter = async (
     : input.scope_kind === "whole_plan"
     ? "plan_setting" as const
     : "action" as const;
-  const changedItems: AdjustPlanResultV1["applied_change"]["changed_items"] = [{
-    kind: changeKind,
-    id: null,
-    title: changedTitle,
-    before: null,
-    after: input.proposed_change,
-    reason: input.change_rationale.why_this_change,
-  }];
+  const wholePlanCandidates = input.scope_kind === "whole_plan"
+    ? (input.materialization_candidates ?? [])
+      .filter((candidate) =>
+        candidate.clarification_type !== "clarification" &&
+        candidate.dimension !== "clarifications"
+      )
+      .slice(0, 2)
+    : [];
+  const changedItems: AdjustPlanResultV1["applied_change"]["changed_items"] =
+    wholePlanCandidates.length >= 2
+      ? wholePlanCandidates.map((candidate) => ({
+        kind: String(candidate.kind ?? candidate.item_type ?? "").includes(
+            "habit",
+          )
+          ? "habit" as const
+          : "action" as const,
+        capability: "modify_existing_action" as const,
+        id: candidate.id,
+        title: candidate.title,
+        before: candidate.description ?? candidate.cadence_label ?? null,
+        after: input.proposed_change,
+        reason: input.change_rationale.why_this_change,
+      }))
+      : [{
+        kind: changeKind,
+        id: null,
+        title: changedTitle,
+        before: null,
+        after: input.proposed_change,
+        reason: input.change_rationale.why_this_change,
+      }];
   if (input.scope_kind !== "action") {
     changedItems.push({
       kind: changeKind,
@@ -297,6 +351,20 @@ const testAdjustPlanResultWriter: AdjustPlanResultWriter = async (
       scope: input.scope_kind,
       applied_change: {
         summary: `Test writer summary for ${input.scope_label}`,
+        trajectory_change: input.scope_kind === "whole_plan"
+          ? {
+            before: "Le plan avançait trop directement.",
+            after: "Le plan ajoute une étape intermédiaire plus progressive.",
+            inserted_step: "Étape de consolidation avant la suite.",
+            reordered_steps: [
+              "Consolider",
+              "Reprendre progressivement",
+            ],
+            preserved_direction: "L'objectif global reste inchangé.",
+            coaching_reason:
+              "La progression devient plus cohérente avec le rythme du user.",
+          }
+          : null,
         changed_items: changedItems,
         preserved_items: [{
           kind: input.scope_kind === "action" ? "action" : "plan",
@@ -710,6 +778,72 @@ Deno.test("adjust_plan result rejects clarification as a changed item", async ()
   );
 });
 
+Deno.test("adjust_plan result rejects user-facing technical ids", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "Je veux alléger cette action.",
+    plan_snapshot: {
+      items: [{
+        id: "action-1",
+        title: "Partager un point positif",
+        description: "Dire une chose positive.",
+        status: "active",
+        kind: "habit",
+      }],
+    },
+    operation_input: actionOperationInput({
+      plan_item_id: "action-1",
+      label: "Partager un point positif",
+    }),
+    trigger_message_id: "m-technical-id-leak",
+    safety_pregate_risk_band: "none",
+    adjust_plan_result_writer: async () => ({
+      confirmation_message:
+        "Je propose de modifier l'action ID: 123e4567-e89b-12d3-a456-426614174000.",
+      execution_message:
+        "J'ai modifié plan_item_id 123e4567-e89b-12d3-a456-426614174000.",
+      adjust_plan_result: {
+        scope: "action",
+        applied_change: {
+          summary: "Action allégée.",
+          changed_items: [{
+            id: "action-1",
+            kind: "habit",
+            capability: "modify_existing_action",
+            title: "Partager un point positif",
+            before: "Dire une chose positive.",
+            after: "Dire un merci très simple.",
+            reason: "Réduit la charge.",
+          }],
+          preserved_items: [],
+        },
+        boundaries: {
+          affected_scope: "action ciblée",
+          explicitly_not_affected: ["reste du plan"],
+          global_plan_impact: "none",
+          explanation: "Le reste ne change pas.",
+        },
+        rationale: {
+          user_problem: "L'action est trop lourde.",
+          why_this_change: "La version courte réduit la charge.",
+          expected_effect: "L'action redevient faisable.",
+          confidence: "high",
+          missing_info: [],
+        },
+        user_message_brief: "Action allégée.",
+        user_message_detailed: "Action allégée.",
+      },
+    }),
+  });
+
+  assertEquals(output.status, "ask_question");
+  assertEquals(output.state_patch.missing_slots, [
+    "draft_generation_retry_needed",
+  ]);
+});
+
 Deno.test("adjust_plan level writer excludes pending future actions unless targeted", async () => {
   const seenCandidateTitles: string[] = [];
   await runPlanAdjustmentGenerator({
@@ -888,6 +1022,109 @@ Deno.test("adjust_plan_item exposes the global skill plus five sub-skills", () =
       operation_input: wholePlanOperationInput(),
     }).trace.status,
     "ready",
+  );
+});
+
+Deno.test("adjust_plan draft validation blocks vague whole-plan diagnostics", () => {
+  const validation = runAdjustPlanDraftValidationSubSkill({
+    draft: {
+      operation_type: "adjust_plan_item",
+      output_schema: "plan_adjustment_draft_v1",
+      confirmation_message:
+        "Je te propose une piste, rien n'est encore appliqué.",
+      execution_message: "J'ai ajusté le plan.",
+      confirmation_actions: ["yes", "no"],
+      draft: {
+        title: "Ajustement - plan global",
+        scope_label: "plan global",
+        adjustment_type: "rebalance",
+        execution_strategy: "whole_plan_adjustment",
+        proposed_change: "Revoir une phase future.",
+        why_it_helps: "La trajectoire sera plus cohérente.",
+        confidence: "medium",
+        decision_basis: {
+          user_problem: "Une phase future ne fait pas sens.",
+          inferred_need: "Diagnostiquer avant de modifier.",
+          confidence: "medium",
+          evidence: [],
+          uncertainty: [],
+          must_preserve: ["objectif global"],
+        },
+        change_rationale: {
+          why_this_change: "Le user signale une incohérence future.",
+          expected_mechanism: "Une clarification évite une mauvaise refonte.",
+          success_condition: "La phase future est mieux cadrée.",
+        },
+        ack_summary: {
+          changed: ["phase future"],
+          unchanged: ["objectif global"],
+          why_it_helps: "Clarifier la trajectoire.",
+          confidence: "medium",
+        },
+        patch: {
+          scope_kind: "whole_plan",
+          constraints: [
+            "whole_plan_change_family:future_phase_mismatch",
+            "whole_plan_readiness:diagnose",
+          ],
+        },
+        allowed_patch_fields: ["scope_kind", "constraints"],
+        adjust_plan_result: {
+          scope: "whole_plan",
+          applied_change: {
+            summary: "Phase future à revoir.",
+            trajectory_change: {
+              before: "Une phase future paraît incohérente.",
+              after: "La phase future doit être rediagnostiquée.",
+              inserted_step: "Diagnostic de la phase future.",
+              reordered_steps: ["Diagnostic", "Révision"],
+              preserved_direction: "L'objectif global reste stable.",
+              coaching_reason:
+                "Il faut comprendre le décalage avant de changer le plan.",
+            },
+            changed_items: [{
+              kind: "action",
+              capability: "modify_existing_action",
+              id: "a1",
+              title: "Action 1",
+              before: "Avant",
+              after: "Après",
+              reason: "Exemple 1",
+            }, {
+              kind: "action",
+              capability: "modify_existing_action",
+              id: "a2",
+              title: "Action 2",
+              before: "Avant",
+              after: "Après",
+              reason: "Exemple 2",
+            }],
+            preserved_items: [],
+          },
+          boundaries: {
+            affected_scope: "plan global",
+            explicitly_not_affected: ["objectif global"],
+            global_plan_impact: "indirect",
+            explanation: "Trajectoire globale.",
+          },
+          rationale: {
+            user_problem: "Une phase future ne fait pas sens.",
+            why_this_change: "Clarifier avant de modifier.",
+            expected_effect: "Moins de risque de mauvaise refonte.",
+            confidence: "medium",
+            missing_info: [],
+          },
+          user_message_brief: "Phase future à revoir.",
+          user_message_detailed: "Phase future à revoir.",
+        },
+      },
+    },
+  });
+
+  assertEquals(validation.trace.status, "needs_clarification");
+  assertEquals(
+    validation.review.issues.includes("whole_plan_diagnostic_not_draft_ready"),
+    true,
   );
 });
 
@@ -1331,6 +1568,11 @@ Deno.test("adjust_plan_item uses scope-specific intake payloads from structured 
       .length,
     2,
   );
+  assertStringIncludes(
+    wholePlanReady.draft?.draft.adjust_plan_result.applied_change
+      .trajectory_change?.after ?? "",
+    "étape intermédiaire",
+  );
   assertEquals(
     wholePlanReady.draft?.draft.adjust_plan_result.boundaries
       .global_plan_impact,
@@ -1528,6 +1770,60 @@ Deno.test("adjust_plan_item keeps structural next-step concern as whole plan", a
   );
 });
 
+Deno.test("adjust_plan_item treats concrete whole-plan trajectory proposal as draft-ready", async () => {
+  const partialWholePlanInput = {
+    ...wholePlanOperationInput({ complete: false }),
+    payload: {
+      ...wholePlanPayload({ complete: false }),
+      constraints: { status: "missing", values: [], evidence: [] },
+      affected_items: { status: "missing", values: [], evidence: [] },
+    },
+  };
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui, je veux une étape intermédiaire dans la trajectoire globale: d'abord une mission ponctuelle pour définir un protocole de retour au calme, puis une petite habitude de réparation simple avant les conversations sensibles.",
+    plan_snapshot: {
+      items: [{
+        id: "signal-1",
+        title: "Convenir d'un signal de pause",
+        description: "Choisir un signal commun.",
+        status: "active",
+        kind: "task",
+      }, {
+        id: "positive-1",
+        title: "Partager un point positif",
+        description: "Partager une phrase positive.",
+        status: "active",
+        kind: "habit",
+      }],
+    },
+    operation_input: partialWholePlanInput,
+    trigger_message_id: "m-whole-plan-concrete-trajectory-ready",
+    safety_pregate_risk_band: "none",
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    slot_filler: slotFillerFromOperationInput(
+      partialWholePlanInput,
+      "whole_plan_intake",
+      ["whole_plan.affected_items"],
+    ),
+  });
+
+  const payload = output.state_patch.intake_state?.payload as any;
+  assertEquals(output.state_patch.intake_state?.scope.kind, "whole_plan");
+  assertEquals(payload?.affected_items?.status, "identified");
+  assertEquals(payload?.affected_items?.values?.length >= 2, true);
+  assertEquals(
+    payload?.constraints?.values?.includes(
+      "avoid_repetitive_clarification_when_user_gives_solution",
+    ),
+    true,
+  );
+  assertEquals(output.draft?.draft.execution_strategy, "whole_plan_adjustment");
+});
+
 Deno.test("adjust_plan_item completes current-level affected items from a concrete user transcript", async () => {
   const partialLevelInput = {
     ...levelOperationInput({ complete: false }),
@@ -1663,6 +1959,77 @@ Deno.test("adjust_plan_item completes current-level affected items from a concre
   );
   assertEquals(
     seenConstraints.includes("affected_item:Convenir d'un signal de pause"),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item extends current level unchanged when user asks copy-forward week", async () => {
+  const partialLevelInput = {
+    ...levelOperationInput({ complete: false }),
+    payload: {
+      ...levelPayload({ complete: false }),
+      adjustment_type: { status: "missing", evidence: [] },
+      reason: { status: "missing", evidence: [] },
+      reason_change: { status: "missing", evidence: [] },
+      change_target: { status: "missing", evidence: [] },
+      constraints: { status: "missing", values: [], evidence: [] },
+      affected_items: { status: "missing", values: [], evidence: [] },
+    },
+  };
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux garder le niveau actuel une semaine de plus. Ne change pas les actions ni le rythme, copie conforme pour consolider.",
+    plan_snapshot: {
+      items: [{
+        id: "signal-1",
+        title: "Convenir d'un signal de pause",
+        description: "Choisir un signal commun.",
+        status: "active",
+        kind: "task",
+        item_nature: "one_shot_mission",
+      }, {
+        id: "positive-1",
+        title: "Partager un point positif",
+        description: "Partager une phrase positive.",
+        status: "active",
+        kind: "habit",
+        item_nature: "recurring_habit",
+        cadence_label: "3 jours / semaine",
+        target_reps: 3,
+      }],
+    },
+    operation_input: partialLevelInput,
+    trigger_message_id: "m-level-copy-forward-week",
+    safety_pregate_risk_band: "none",
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    slot_filler: slotFillerFromOperationInput(
+      partialLevelInput,
+      "level_intake",
+      ["current_level.affected_items"],
+    ),
+  });
+
+  const payload = output.state_patch.intake_state?.payload as any;
+  const confirmation = output.draft?.confirmation_message ?? "";
+  const execution = output.draft?.execution_message ?? "";
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.execution_strategy, "level_adjustment");
+  assertEquals(
+    payload?.constraints?.values?.includes("extend_current_level_same_plan"),
+    true,
+  );
+  assertEquals(
+    payload?.constraints?.values?.includes("preserve_cadence"),
+    true,
+  );
+  assertEquals(/\ball[eé]g/.test(confirmation + "\n" + execution), false);
+  assertEquals(
+    /mêmes actions|meme actions|mêmes repères|meme reperes|inchang/i.test(
+      confirmation,
+    ),
     true,
   );
 });
@@ -1907,6 +2274,15 @@ Deno.test("adjust_plan_item skips draft-generation confirmation for explicit who
         scope: "whole_plan",
         applied_change: {
           summary: "Deux points du plan sont allégés.",
+          trajectory_change: {
+            before: "Le plan avançait avec trop de charge.",
+            after:
+              "Le plan garde son objectif mais passe par une progression plus légère.",
+            inserted_step: "Étape d'allègement avant la suite.",
+            reordered_steps: [],
+            preserved_direction: "L'objectif global reste stable.",
+            coaching_reason: "Réduire la charge rend la suite plus tenable.",
+          },
           changed_items: [{
             id: "choice-1",
             kind: "action",
@@ -1999,17 +2375,67 @@ function fakePreviousDraftPayload() {
   };
 }
 
-Deno.test("adjust_plan_item shortcut: confirmation_response.kind=yes approves the pending draft without touching the AI", async () => {
+function fakeWholePlanPreviousDraftPayload(
+  family:
+    | "sequence_order_issue"
+    | "missing_bridge_or_level"
+    | "direction_change"
+    | "success_criteria_change"
+    | "style_or_method_mismatch"
+    | "split_merge_restructure",
+) {
+  return {
+    operation_type: "adjust_plan_item" as const,
+    output_schema: "plan_adjustment_draft_v1" as const,
+    confirmation_message:
+      "Je te propose ce changement de trajectoire. Rien n'est encore appliqué.",
+    execution_message: "J'ai ajusté la trajectoire du plan.",
+    draft: {
+      execution_strategy: "whole_plan_adjustment",
+      patch: {
+        scope_kind: "whole_plan",
+        constraints: [
+          `whole_plan_change_family:${family}`,
+          "whole_plan_readiness:draft_ready",
+        ],
+      },
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          summary: "Trajectoire ajustée.",
+          trajectory_change: {
+            before: "Avant.",
+            after: "Après.",
+            inserted_step: "Étape.",
+            reordered_steps: ["Étape", "Suite"],
+            preserved_direction: "Objectif stable.",
+            coaching_reason: "Progression plus cohérente.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+}
+
+Deno.test("adjust_plan_item draft_validation AI approves a pending draft", async () => {
   let aiCalled = false;
   const slotFiller: AdjustPlanSlotFiller = async (): Promise<
     AdjustPlanSlotFillerOutput
   > => {
     aiCalled = true;
     return {
-      current_sub_skill: "level_intake",
+      current_sub_skill: "draft_validation",
       missing_slots: [],
       next_question: null,
-      state_patch: { decision: "revise" },
+      state_patch: {
+        draft_review_decision: {
+          decision: "approve",
+          confidence: "high",
+          evidence: ["draft_validation_ai_approve"],
+        },
+      },
     } as unknown as AdjustPlanSlotFillerOutput;
   };
 
@@ -2025,39 +2451,100 @@ Deno.test("adjust_plan_item shortcut: confirmation_response.kind=yes approves th
     trigger_message_id: "m-shortcut-yes",
     safety_pregate_risk_band: "none",
     slot_filler: slotFiller,
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
     operation_input: {
       previous_draft: fakePreviousDraftPayload(),
       revision_request:
         "Oui, applique cette version: 2 jours / semaine, phrase neutre, sans creneau.",
-      confirmation_response_kind: "yes",
     },
     force_ai_slot_filling: true,
   });
 
-  assertEquals(aiCalled, false);
+  assertEquals(aiCalled, true);
   assertEquals(output.status, "draft_review_decision");
   assertEquals(output.state_patch.draft_review_decision?.decision, "approve");
   assertEquals(output.state_patch.draft_review_decision?.confidence, "high");
   assertEquals(output.state_patch.missing_slots, []);
   assertEquals(
-    output.state_patch.sub_skill_trace?.some((trace) =>
-      trace.reason_code === "deterministic_approve_shortcut"
+    output.state_patch.draft_review_decision?.evidence.includes(
+      "draft_validation_ai_approve",
     ),
     true,
   );
 });
 
-Deno.test("adjust_plan_item shortcut: confirmation_response.kind=no rejects the pending draft without touching the AI", async () => {
+Deno.test("adjust_plan_item treats approval plus new concrete constraint as revision", async () => {
+  const slotFiller: AdjustPlanSlotFiller = async (): Promise<
+    AdjustPlanSlotFillerOutput
+  > => ({
+    current_sub_skill: "draft_validation",
+    missing_slots: [],
+    next_question: null,
+    state_patch: {
+      draft_review_decision: {
+        decision: "approve",
+        confidence: "high",
+        evidence: ["draft_validation_ai_approve"],
+      },
+    },
+  } as unknown as AdjustPlanSlotFillerOutput);
+
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui, et concrètement je veux une mission ponctuelle puis une petite habitude avant la suite.",
+    plan_snapshot: {
+      items: [
+        { id: "habit-1", title: "Partager un point positif" },
+        { id: "pause-1", title: "Convenir d'un signal de pause" },
+      ],
+    },
+    trigger_message_id: "m-approval-plus-new-constraint",
+    safety_pregate_risk_band: "none",
+    slot_filler: slotFiller,
+    operation_input: {
+      previous_draft: fakePreviousDraftPayload(),
+      revision_request:
+        "Oui, et concrètement je veux une mission ponctuelle puis une petite habitude avant la suite.",
+    },
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: true,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertEquals(
+    output.state_patch.draft_review_decision?.evidence.includes(
+      "approval_with_new_concrete_constraint_requires_revision",
+    ),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item draft_validation AI rejects a pending draft", async () => {
   let aiCalled = false;
   const slotFiller: AdjustPlanSlotFiller = async (): Promise<
     AdjustPlanSlotFillerOutput
   > => {
     aiCalled = true;
     return {
-      current_sub_skill: "level_intake",
+      current_sub_skill: "draft_validation",
       missing_slots: [],
       next_question: null,
-      state_patch: { decision: "approve" },
+      state_patch: {
+        draft_review_decision: {
+          decision: "reject",
+          confidence: "high",
+          evidence: ["draft_validation_ai_reject"],
+        },
+      },
     } as unknown as AdjustPlanSlotFillerOutput;
   };
 
@@ -2075,7 +2562,6 @@ Deno.test("adjust_plan_item shortcut: confirmation_response.kind=no rejects the 
     operation_input: {
       previous_draft: fakePreviousDraftPayload(),
       revision_request: "Non, laisse tomber.",
-      confirmation_response_kind: "no",
     },
     force_ai_slot_filling: true,
   });
@@ -2084,14 +2570,900 @@ Deno.test("adjust_plan_item shortcut: confirmation_response.kind=no rejects the 
   assertEquals(output.status, "draft_review_decision");
   assertEquals(output.state_patch.draft_review_decision?.decision, "reject");
   assertEquals(
-    output.state_patch.sub_skill_trace?.some((trace) =>
-      trace.reason_code === "deterministic_reject_shortcut"
+    output.state_patch.draft_review_decision?.evidence.includes(
+      "user_cancelled_or_rejected_pending_adjust_plan_draft",
     ),
     true,
   );
 });
 
-Deno.test("adjust_plan_item shortcut: correction_to_pending falls through to the AI slot filler", async () => {
+Deno.test("adjust_plan_item guard: whole-plan family change blocks approval", async () => {
+  const slotFiller: AdjustPlanSlotFiller = async (): Promise<
+    AdjustPlanSlotFillerOutput
+  > => ({
+    current_sub_skill: "draft_validation",
+    missing_slots: [],
+    next_question: null,
+    state_patch: {
+      draft_review_decision: {
+        decision: "approve",
+        confidence: "high",
+        evidence: ["misclassified_family_change_as_approval"],
+      },
+      target_granularity: {
+        status: "identified",
+        value: "whole_plan",
+        confidence: "high",
+        evidence: ["user changes whole-plan direction"],
+        negative_evidence: [],
+      },
+      scope: {
+        status: "identified",
+        kind: "whole_plan",
+        plan_item_id: null,
+        label: "plan global",
+        evidence: ["user changes whole-plan direction"],
+      },
+      payload: wholePlanPayload({ family: "direction_change" }),
+    },
+  } as unknown as AdjustPlanSlotFillerOutput);
+
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui mais non, en fait je veux surtout changer la direction du plan vers plus de complicité.",
+    plan_snapshot: {
+      items: [
+        { id: "habit-1", title: "Partager un point positif" },
+        { id: "pause-1", title: "Convenir d'un signal de pause" },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-family-change",
+    safety_pregate_risk_band: "none",
+    slot_filler: slotFiller,
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    operation_input: {
+      previous_draft: fakeWholePlanPreviousDraftPayload(
+        "sequence_order_issue",
+      ),
+      revision_request:
+        "Oui mais non, en fait je veux surtout changer la direction du plan vers plus de complicité.",
+    },
+    force_ai_slot_filling: true,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertEquals(
+    output.state_patch.draft_review_decision?.evidence.some((item) =>
+      item.includes(
+        "whole_plan_family_changed:sequence_order_issue->direction_change",
+      ) || item === "pre_validation_concrete_constraint_requires_revision"
+    ),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan success criteria rewrite stays revision and no auto-apply", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Non, ce brouillon n'est pas le bon. Ne l'applique surtout pas. Je veux que tu reformules un brouillon centre sur les indicateurs de succes du plan, avec une progression vers comprehension mutuelle et lien preserve, sans toucher l'ordre des actions pour l'instant.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-success-criteria-no-apply",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: fakeWholePlanPreviousDraftPayload(
+        "sequence_order_issue",
+      ),
+      revision_request:
+        "Non, ce brouillon n'est pas le bon. Ne l'applique surtout pas. Je veux que tu reformules un brouillon centre sur les indicateurs de succes du plan.",
+      ...wholePlanOperationInput({ family: "sequence_order_issue" }),
+    },
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertEquals(
+    output.state_patch.draft_review_decision?.evidence.some((item) =>
+      item === "explicit_no_apply_revision_requires_new_draft" ||
+      item === "pre_validation_concrete_constraint_requires_revision" ||
+      item.startsWith("whole_plan_family_changed:")
+    ),
+    true,
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "critères de réussite",
+  );
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "whole_plan_change_family:success_criteria_change",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan success criteria can draft without named affected items", async () => {
+  const operationInput = wholePlanOperationInput({
+    family: "success_criteria_change",
+  });
+  (operationInput.payload as any).affected_items = {
+    status: "missing",
+    values: [],
+    evidence: [],
+  };
+
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Formule-le comme ca : reussir le plan, c est traverser une discussion tendue sans perdre le lien, avec moins de disputes comme indicateur secondaire.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-success-criteria-no-named-items",
+    safety_pregate_risk_band: "none",
+    operation_input: operationInput,
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.missing_slots, []);
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "critères de réussite",
+  );
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "Convenir d'un signal de pause",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan family constraint drafts without retry marker", async () => {
+  const operationInput = wholePlanOperationInput({
+    family: "success_criteria_change",
+  });
+  const constraints = (operationInput.payload as any).constraints;
+  constraints.values = constraints.values.filter((value: string) =>
+    value !== "whole_plan_directional_draft_ready"
+  );
+
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui, c'est dans cette direction, mais garde moins de disputes comme repere secondaire. Le critere principal doit etre la comprehension mutuelle et le lien preserve apres une discussion tendue. Ne l'applique pas encore.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-family-no-retry-marker",
+    safety_pregate_risk_band: "none",
+    operation_input: operationInput,
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.missing_slots, []);
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "repère secondaire",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan concrete answer upgrades diagnose readiness", async () => {
+  const operationInput = wholePlanOperationInput({
+    family: "success_criteria_change",
+  });
+  (operationInput.payload as any).readiness = "diagnose";
+  (operationInput.payload as any).constraints = {
+    status: "identified",
+    values: [
+      "whole_plan_change_family:success_criteria_change",
+      "whole_plan_candidate_operation:change_success_criteria",
+      "whole_plan_readiness:diagnose",
+      "whole_plan_directional_draft_ready",
+    ],
+    evidence: ["previous coach asked to diagnose first"],
+  };
+  (operationInput.payload as any).affected_items = {
+    status: "missing",
+    values: [],
+    evidence: [],
+  };
+
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux que ca devienne le critere principal. Garde moins de disputes comme repere secondaire, mais la vraie reussite c est la comprehension mutuelle et le lien preserve apres une discussion tendue.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-success-criteria-diagnose-upgrade",
+    safety_pregate_risk_band: "none",
+    operation_input: operationInput,
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.missing_slots, []);
+  const operationInputText = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(operationInputText, "whole_plan_readiness:draft_ready");
+  assertEquals(
+    operationInputText.includes("whole_plan_readiness:diagnose"),
+    false,
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan pre-validation concrete revision regenerates draft", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui c'est la bonne direction, mais je veux garder moins de disputes comme repere secondaire, pas comme critere principal. Ne l'applique pas encore, montre-moi juste la version ajustee.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-prevalidation-concrete-revision",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: fakeWholePlanPreviousDraftPayload(
+        "success_criteria_change",
+      ),
+      revision_request:
+        "Oui c'est la bonne direction, mais je veux garder moins de disputes comme repere secondaire.",
+      ...wholePlanOperationInput({ family: "success_criteria_change" }),
+    },
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertEquals(
+    output.state_patch.draft_review_decision?.evidence.some((item) =>
+      [
+        "explicit_no_apply_revision_requires_new_draft",
+        "pre_validation_concrete_constraint_requires_revision",
+      ].includes(item)
+    ),
+    true,
+  );
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "whole_plan_change_family:success_criteria_change",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan approval-like constraint revises without applying", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Oui, mais je ne veux pas que ca baisse le niveau. Je veux que ca reste ambitieux, juste moins mental. Garde la discussion apres l experience, pas avant. Ne l'applique pas encore.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-approval-like-constraint-revises",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: fakeWholePlanPreviousDraftPayload(
+        "style_or_method_mismatch",
+      ),
+      revision_request:
+        "Oui, mais je veux que ca reste ambitieux, juste moins mental. Ne l'applique pas encore.",
+      ...wholePlanOperationInput({ family: "style_or_method_mismatch" }),
+    },
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertEquals(
+    output.state_patch.draft_review_decision?.evidence.includes(
+      "pre_validation_concrete_constraint_requires_revision",
+    ),
+    true,
+  );
+  assertStringIncludes(output.draft?.confirmation_message ?? "", "ambition");
+});
+
+Deno.test("adjust_plan_item whole-plan split/merge accepts repeated enum answer", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "La difference principale, c'est la difficulte du contenu. Niveau besoins = petits sujets neutres. Niveau sujets sensibles = argent, famille, intimite. Je veux que le plan fasse une vraie marche entre les deux, pas deux phases floues.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-split-merge-enum-answer",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.missing_slots, []);
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "séparation",
+  );
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "whole_plan_change_family:split_merge_restructure",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan split/merge does not add bridge when user rejects it", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Ca me va, mais je veux eviter une etape pont en plus si ce n est pas necessaire. Je prefere garder deux niveaux distincts : besoins simples, puis sujets sensibles.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-split-merge-rejects-bridge",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput({
+      family: "split_merge_restructure",
+    }),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "whole_plan_change_family:split_merge_restructure",
+  );
+  assertStringIncludes(
+    JSON.stringify(output.state_patch.operation_input ?? {}),
+    "split_merge_no_bridge_step",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "sans ajouter d'étape pont",
+  );
+  assertEquals(
+    (output.draft?.confirmation_message ?? "").includes(
+      "j'insère une étape intermédiaire",
+    ),
+    false,
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan passage criterion stays split/merge and drafts", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Marque la separation par un critere de passage : on passe aux sujets sensibles seulement quand on arrive a faire une demande simple sans tension forte deux fois d'affilee. Ne l'applique pas encore, montre-moi le brouillon.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-split-merge-passage-criterion",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput({
+      family: "split_merge_restructure",
+    }),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:split_merge_restructure",
+  );
+  assertStringIncludes(
+    operationInput,
+    "split_merge_transition_criterion:two_consecutive_simple_requests_without_high_tension",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "deux demandes simples d'affilée",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan direction change names complicity axis", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux changer l'axe global du plan : garder l'apaisement comme base, mais orienter la suite vers plus de complicite, de plaisir simple et d'initiatives positives de lien.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-direction-complicity-axis",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:direction_change",
+  );
+  assertStringIncludes(
+    operationInput,
+    "direction_axis:complicity_and_simple_pleasure",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "complicité",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan value preference without additions stays change emphasis", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réorienter le cap vers chaleur et fiabilité, sans ajouter d'actions.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-value-preference-no-add",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:value_preference_conflict",
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_candidate_operation:change_emphasis",
+  );
+  if (
+    operationInput.includes("whole_plan_change_family:missing_bridge_or_level")
+  ) {
+    throw new Error("sans ajouter d'actions must not insert a bridge level");
+  }
+  if (
+    (output.draft?.confirmation_message ?? "").includes("niveau intermédiaire")
+  ) {
+    throw new Error(
+      "value preference change must not propose an intermediate level",
+    );
+  }
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "moins de performance",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "plus de chaleur et de fiabilité",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan repair reconnection step is concrete", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je préfère ajouter une étape explicite, mais pas un truc lourd : reconnaître brièvement ce qui s'est passé, puis proposer un petit geste de retour au contact.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-repair-reconnection-step",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "insert_phase_kind:repair_reconnection_after_tension",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "reconnaître brièvement la tension",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "geste de retour au contact",
+  );
+  if (
+    (output.draft?.confirmation_message ?? "").includes(
+      "avec un niveau intermédiaire avec",
+    )
+  ) {
+    throw new Error(
+      "repair reconnection draft must not use generic duplicate copy",
+    );
+  }
+});
+
+Deno.test("adjust_plan_item whole-plan missing bridge materializes short consolidation level", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux vraiment ajouter un niveau court en plus, un sas d'une semaine avant les sujets sensibles, avec deux actions: observer ce qui apaise et faire une demande simple sans débat.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-short-consolidation-level",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:missing_bridge_or_level",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "niveau court de consolidation",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "observer ce qui apaise",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "demande simple sans débat",
+  );
+});
+
+Deno.test("adjust_plan_item whole-plan ne valide pas revises without applying", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Ne valide pas. Le brouillon doit nommer explicitement l'axe complicite/plaisir simple et expliquer que les prochains niveaux auront des initiatives positives, pas seulement le signal de pause.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-ne-valide-pas-revises",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      previous_draft: fakeWholePlanPreviousDraftPayload("direction_change"),
+      revision_request:
+        "Ne valide pas. Le brouillon doit nommer explicitement l'axe complicite/plaisir simple.",
+      ...wholePlanOperationInput({ family: "direction_change" }),
+    },
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.state_patch.draft_review_decision?.decision, "revise");
+  assertEquals(
+    output.state_patch.draft_review_decision?.apply_after_revision,
+    false,
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "complicité",
+  );
+});
+
+Deno.test("adjust_plan_item correction_to_pending is handled by the AI slot filler", async () => {
   let aiCalled = false;
   const slotFiller: AdjustPlanSlotFiller = async (): Promise<
     AdjustPlanSlotFillerOutput
@@ -2120,7 +3492,6 @@ Deno.test("adjust_plan_item shortcut: correction_to_pending falls through to the
     operation_input: {
       previous_draft: fakePreviousDraftPayload(),
       revision_request: "Plutot 1 jour par semaine, le mardi.",
-      confirmation_response_kind: "correction_to_pending",
     },
     force_ai_slot_filling: true,
   });
@@ -2135,7 +3506,7 @@ Deno.test("adjust_plan_item shortcut: correction_to_pending falls through to the
   );
 });
 
-Deno.test("adjust_plan_item shortcut: kind=yes with a question mark in the message does NOT trigger the shortcut (defensive guard)", async () => {
+Deno.test("adjust_plan_item pre-validation question stays in AI draft_validation", async () => {
   let aiCalled = false;
   const slotFiller: AdjustPlanSlotFiller = async (): Promise<
     AdjustPlanSlotFillerOutput
@@ -2166,7 +3537,6 @@ Deno.test("adjust_plan_item shortcut: kind=yes with a question mark in the messa
       previous_draft: fakePreviousDraftPayload(),
       revision_request:
         "Avant que je dise oui, tu peux me dire concretement les deux changements ?",
-      confirmation_response_kind: "yes",
     },
     force_ai_slot_filling: true,
   });
@@ -2216,7 +3586,6 @@ Deno.test("adjust_plan_item guard: pre-validation detail request cannot approve 
       previous_draft: fakePreviousDraftPayload(),
       revision_request:
         "Avant validation, confirme que Faire le point reste inchangé et que l'objectif global ne bouge pas.",
-      confirmation_response_kind: "yes",
     },
     force_ai_slot_filling: true,
   });
@@ -2294,7 +3663,6 @@ Deno.test("adjust_plan_item guard: pre-validation revision cannot auto-apply aft
       previous_draft: fakePreviousDraftPayload(),
       revision_request:
         "Corrige juste ça avant validation: les 5 minutes concernent seulement le signal de pause.",
-      confirmation_response_kind: "correction_to_pending",
     },
     adjust_plan_result_writer: testAdjustPlanResultWriter,
     question_writer: testAdjustPlanQuestionWriter,
@@ -2317,7 +3685,7 @@ Deno.test("adjust_plan_item guard: pre-validation revision cannot auto-apply aft
   );
 });
 
-Deno.test("adjust_plan_item shortcut: yes without previous_draft does NOT trigger the shortcut", async () => {
+Deno.test("adjust_plan_item yes without previous_draft stays in normal intake", async () => {
   let aiCalled = false;
   const slotFiller: AdjustPlanSlotFiller = async (): Promise<
     AdjustPlanSlotFillerOutput
@@ -2341,9 +3709,7 @@ Deno.test("adjust_plan_item shortcut: yes without previous_draft does NOT trigge
     safety_pregate_risk_band: "none",
     slot_filler: slotFiller,
     question_writer: testAdjustPlanQuestionWriter,
-    operation_input: {
-      confirmation_response_kind: "yes",
-    },
+    operation_input: {},
     force_ai_slot_filling: true,
   });
 

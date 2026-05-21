@@ -1,0 +1,2128 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t01",
+    "user": "J'ai relu la suite du plan, et je pense qu'il manque un petit niveau de consolidation avant d'attaquer les sujets sensibles. Pas un gros truc, plutôt un sas.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t01",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Si je comprends bien, tu souhaites ajouter un petit niveau de consolidation, comme un sas, avant d'aborder les sujets plus sensibles du plan. Est-ce que je peux te préparer une proposition concrète pour cela ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t01",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "180165d8-b89c-4fe2-9656-1c94f11c5904",
+        "ts": "2026-05-21T12:57:21.543+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 12655,
+          "latency_ms": 4458,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 811,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux suivants",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "J'ai relu la suite du plan, et je pense qu'il manque un petit niveau de consolidation avant d'attaquer les sujets sensibles. Pas un gros truc, plutôt un sas.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "low",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t01",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux suivants",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "J'ai relu la suite du plan, et je pense qu'il manque un petit niveau de consolidation avant d'attaquer les sujets sensibles. Pas un gros truc, plutôt un sas.",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 0,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [],
+            "context_summary": null,
+            "previous_scores": [],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "180165d8-b89c-4fe2-9656-1c94f11c5904",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "suite du plan / sujets sensibles",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "suite du plan",
+                    "niveau de consolidation"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "relu la suite du plan",
+                    "manque un petit niveau de consolidation",
+                    "avant d'attaquer les sujets sensibles"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "plan_item_id": null,
+          "target_title": null,
+          "missing_slots": [
+            "draft_generation_confirmation"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions concrètes pour ce 'sas' sans avoir clarifié l'intention et les besoins du user.",
+              "Minimiser l'importance de ce besoin de 'sas' ou le considérer comme un simple retard."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "L'objectif global du plan d'aborder et de gérer les sujets sensibles.",
+              "La cohérence et l'intention des phases déjà établies.",
+              "Les actions et habitudes qui fonctionnent bien, comme 'Convenir d'un signal de pause' et 'Partager un point positif'."
+            ],
+            "warnings": [
+              "Éviter de proposer une phase de consolidation trop lourde ou complexe, le user ayant spécifié 'pas un gros truc' et 'plutôt un sas'.",
+              "Ne pas interpréter cette demande comme une remise en question des phases existantes, mais comme un besoin d'un pont supplémentaire.",
+              "Ne pas anticiper le contenu de ce sas sans l'implication du user."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+              "**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés."
+            ],
+            "observation": "Le user exprime le besoin d'une phase intermédiaire de consolidation, perçue comme un 'sas' léger, avant d'aborder des sujets plus délicats. Il s'agit d'une préoccupation pour la progression et la sécurité émotionnelle dans le plan.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Reconnaître la pertinence de cette demande pour la sécurité et la progression du user, et explorer la nature et le positionnement de ce 'sas' de consolidation pour l'intégrer de manière cohérente dans la trajectoire du plan.",
+            "next_best_question": "Pour vous, qu'est-ce qui rendrait ce 'sas' de consolidation vraiment efficace et utile avant d'aborder les sujets sensibles ?",
+            "options_to_discuss": [
+              "La nature exacte des activités qui composeraient ce 'sas' de consolidation (ex: bilan léger, renforcement de pratiques acquises, moment de détente partagé).",
+              "La durée et le rythme souhaités pour cette nouvelle phase.",
+              "Les critères de succès pour ce 'sas' : qu'est-ce qui ferait que le user se sentirait prêt à passer aux sujets sensibles après cette phase ?"
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [
+              "Pour vous, qu'est-ce qui rendrait ce 'sas' de consolidation vraiment efficace et utile avant d'aborder les sujets sensibles ?",
+              "Après quelle phase actuelle du plan ce 'sas' devrait-il être inséré pour avoir le plus de sens ?"
+            ],
+            "trajectory_hypothesis": "Le plan actuel semble passer directement à des sujets sensibles. Le user souhaite insérer une phase de consolidation légère comme un 'sas' avant cette transition.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 17968,
+        "created_at": "2026-05-21T12:57:21.544865+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t02",
+    "user": "Oui, prépare une proposition. Je veux que ce sas dure une semaine, avec seulement deux micro-actions de stabilité : remarquer ce qui apaise et faire une demande simple sans débat.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t02",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire, avec une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t02",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "9af6b028-52f5-42b9-ba39-c15db101d6a0",
+        "ts": "2026-05-21T12:57:51.416+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 16009,
+          "latency_ms": 4754,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 753,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau actuel pour insertion de sas",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t02",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "contexte du niveau actuel pour insertion de sas",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": false,
+                "evidence": "0;decay=0.55;recovery=1.5",
+                "contribution": 0
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "9af6b028-52f5-42b9-ba39-c15db101d6a0",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "relu la suite du plan",
+                    "manque un petit niveau de consolidation",
+                    "plutôt un sas"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "prépare une proposition",
+                    "sas dure une semaine",
+                    "deux micro-actions de stabilité",
+                    "avant d'attaquer les sujets sensibles"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "active_tool_skill_continue",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "continue_active",
+            "reason_code": "active_tool_skill_continue",
+            "active_owner": "tool_skill",
+            "resume_policy": "none",
+            "selected_owner": "tool_skill"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "un petit niveau de consolidation",
+                  "plutôt un sas",
+                  "avant d'attaquer les sujets sensibles",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "coach_observation:Le user fournit une proposition concrète pour l'insertion d'une nouvelle phase ('sas') d'une semaine, incluant deux micro-actions spécifiques axées sur la stabilité. Il ne s'agit plus d'un diagnostic mais d'une demande de concrétisation d'une idée.",
+                  "coach_recommendation:Accueillir la proposition concrète du user pour le 'sas' et ses actions. Le sous-skill doit maintenant se concentrer sur l'intégration cohérente de cette nouvelle phase dans la trajectoire du plan, en respectant scrupuleusement la durée et le contenu spécifiés par le user, tout en clarifiant son positionnement et son intention profonde.",
+                  "coach_warning:Ne pas modifier la durée d'une semaine ou le nombre/nature des deux micro-actions proposées par le user.",
+                  "coach_warning:Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+                  "coach_warning:Ne pas remettre en question la pertinence du 'sas' lui-même, mais plutôt son intégration et son efficacité.",
+                  "coach_warning:Ne pas anticiper le positionnement du 'sas' sans la clarification du user.",
+                  "coach_preserve:La durée d'une semaine pour le 'sas'.",
+                  "coach_preserve:Les deux micro-actions spécifiques : 'remarquer ce qui apaise' et 'faire une demande simple sans débat'.",
+                  "coach_preserve:L'objectif global du plan d'aborder et de gérer les sujets sensibles, en s'assurant que ce 'sas' serve de pont.",
+                  "coach_preserve:La cohérence et l'intention des phases déjà établies.",
+                  "coach_avoid:Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+                  "coach_avoid:Faire des suppositions sur le placement du 'sas' sans l'avis du user.",
+                  "coach_avoid:Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+                  "coach_guideline:**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_trajectory_hypothesis:Le user souhaite insérer une nouvelle phase de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, avant d'aborder des sujets plus sensibles dans le plan.",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+              "decision_basis": {
+                "evidence": [
+                  "Oui, prépare une proposition. Je veux que ce sas dure une semaine, avec seulement deux micro-actions de stabilité : remarquer ce qui apaise et faire une demande simple sans débat.",
+                  "operation_input.scope",
+                  "deterministic whole-plan structural/family signal",
+                  "deterministic whole-plan fit/complexity signal",
+                  "manque un petit niveau de consolidation avant d'attaquer les sujets sensibles",
+                  "manque un petit niveau de consolidation"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+                "expected_mechanism": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan passait trop directement d'un bloc au suivant.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+                    "before": "Le plan passait trop directement d'un bloc au suivant.",
+                    "inserted_step": "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "coaching_reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                    "reordered_steps": [
+                      "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "Reprendre ensuite la progression avec un prérequis consolidé"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "user_message_detailed": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire, avec une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review",
+          "reason_code": "active_tool_skill_continue",
+          "operation_id": "d0cd035c-0229-47cc-9233-560d64fa01e7",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+              "Faire des suppositions sur le placement du 'sas' sans l'avis du user.",
+              "Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La durée d'une semaine pour le 'sas'.",
+              "Les deux micro-actions spécifiques : 'remarquer ce qui apaise' et 'faire une demande simple sans débat'.",
+              "L'objectif global du plan d'aborder et de gérer les sujets sensibles, en s'assurant que ce 'sas' serve de pont.",
+              "La cohérence et l'intention des phases déjà établies."
+            ],
+            "warnings": [
+              "Ne pas modifier la durée d'une semaine ou le nombre/nature des deux micro-actions proposées par le user.",
+              "Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+              "Ne pas remettre en question la pertinence du 'sas' lui-même, mais plutôt son intégration et son efficacité.",
+              "Ne pas anticiper le positionnement du 'sas' sans la clarification du user."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+              "**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés."
+            ],
+            "observation": "Le user fournit une proposition concrète pour l'insertion d'une nouvelle phase ('sas') d'une semaine, incluant deux micro-actions spécifiques axées sur la stabilité. Il ne s'agit plus d'un diagnostic mais d'une demande de concrétisation d'une idée.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Accueillir la proposition concrète du user pour le 'sas' et ses actions. Le sous-skill doit maintenant se concentrer sur l'intégration cohérente de cette nouvelle phase dans la trajectoire du plan, en respectant scrupuleusement la durée et le contenu spécifiés par le user, tout en clarifiant son positionnement et son intention profonde.",
+            "next_best_question": null,
+            "options_to_discuss": [
+              "Le positionnement exact de ce 'sas' d'une semaine dans le plan (avant quelle phase existante ?).",
+              "Comment les deux micro-actions proposées ('remarquer ce qui apaise' et 'faire une demande simple sans débat') contribuent-elles spécifiquement à l'objectif de 'stabilité' recherché par le user ?",
+              "Quels seraient les critères de succès pour ce 'sas' : qu'est-ce qui indiquerait au user qu'il est prêt à passer à la suite après cette phase ?"
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [
+              "À quel moment précis dans le plan actuel ce 'sas' d'une semaine serait-il le plus utile pour vous ?",
+              "Comment ces deux micro-actions ('remarquer ce qui apaise' et 'faire une demande simple sans débat') s'intègrent-elles dans l'objectif plus large de 'stabilité' que vous recherchez avec ce sas ?"
+            ],
+            "trajectory_hypothesis": "Le user souhaite insérer une nouvelle phase de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, avant d'aborder des sujets plus sensibles dans le plan.",
+            "must_not_execute_reason": null
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 15282,
+        "created_at": "2026-05-21T12:57:51.418542+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t03",
+    "user": "Non, ce n'est pas exactement ça. Je ne veux pas une étape pont autour du signal de pause. Je veux vraiment ajouter un niveau court en plus, avant les sujets sensibles, avec ces deux actions : observer ce qui apaise et faire une demande simple sans débat. Ne valide pas encore.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t03",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "D'accord, je comprends que ma proposition précédente ne correspondait pas exactement à ce que tu avais en tête. Je dois reprendre le brouillon proprement.\n\nPour ce nouveau niveau d'une semaine avec les actions « observer ce qui apaise » et « faire une demande simple sans débat », avant quelles phases spécifiques du plan actuel souhaites-tu l'insérer ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t03",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "1e06ddff-0038-4045-9c37-de4af2fb8078",
+        "ts": "2026-05-21T12:59:56.6+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13227,
+          "latency_ms": 4579,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 853,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux futurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Non, ce n'est pas exactement ça. Je ne veux pas une étape pont autour du signal de pause. Je veux vraiment ajouter un niveau court en plus, avant les sujets sen",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t03",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et niveaux futurs",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Non, ce n'est pas exactement ça. Je ne veux pas une étape pont autour du signal de pause. Je veux vraiment ajouter un niveau court en plus, avant les sujets sen",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 3.1,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": true,
+                "evidence": "non, ce n'est pas",
+                "contribution": 1.5
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1;decay=0.55;recovery=0",
+                "contribution": 0.6
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "repetition_or_correction",
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "1e06ddff-0038-4045-9c37-de4af2fb8078",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajouter un niveau court en plus, avant les sujets sensibles"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajouter un niveau court en plus, avant les sujets sensibles",
+                    "Je ne veux pas une étape pont autour du signal de pause"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "draft_review": true,
+          "operation_id": "d0cd035c-0229-47cc-9233-560d64fa01e7",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+              "Faire des suppositions sur le placement du 'sas' sans l'avis du user.",
+              "Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur.",
+              "Toute mention d'une 'étape pont' ou d'un lien avec le 'signal de pause' pour ce nouveau niveau."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "Le concept d'ajouter un 'niveau court'.",
+              "La durée d'une semaine pour ce nouveau niveau.",
+              "Les deux actions spécifiques : 'observer ce qui apaise' et 'faire une demande simple sans débat'.",
+              "Le positionnement 'avant les sujets sensibles'.",
+              "L'objectif global du plan."
+            ],
+            "warnings": [
+              "Ne pas reproposer une 'étape pont' ou lier ce nouveau niveau aux actions existantes du 'signal de pause'.",
+              "Ne pas modifier la durée d'une semaine ou le nombre/la nature des deux micro-actions proposées par le user.",
+              "Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+              "Ne pas anticiper le positionnement du 'sas' sans la clarification du user."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+              "**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés."
+            ],
+            "observation": "Le user corrige la proposition précédente, rejetant l'idée d'une 'étape pont' autour du signal de pause. Il réaffirme sa volonté d'ajouter un 'niveau court' d'une semaine, avec deux actions spécifiques et nouvelles ('observer ce qui apaise' et 'faire une demande simple sans débat'), avant d'aborder les sujets sensibles. La demande est maintenant très précise sur le contenu et la durée, mais le positionnement exact reste à clarifier.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Accueillir la clarification du user et sa proposition concrète pour l'insertion d'un nouveau niveau. Le sous-skill doit maintenant se concentrer sur l'intégration cohérente de cette nouvelle phase dans la trajectoire du plan, en respectant scrupuleusement la durée et le contenu spécifiés par le user, tout en clarifiant son positionnement précis et son intention profonde.",
+            "next_best_question": "Avant quelles phases spécifiques du plan actuel souhaitez-vous insérer ce nouveau niveau d'une semaine ?",
+            "options_to_discuss": [
+              "Le positionnement exact de ce 'sas' d'une semaine dans le plan (avant quelle phase existante ?).",
+              "Comment les deux micro-actions proposées ('observer ce qui apaise' et 'faire une demande simple sans débat') contribuent-elles spécifiquement à l'objectif de 'stabilité' ou de 'sas' recherché par le user ?",
+              "Quels seraient les critères de succès pour ce 'sas' : qu'est-ce qui indiquerait au user qu'il est prêt à passer à la suite après cette phase ?"
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [
+              "Avant quelles phases spécifiques du plan actuel souhaitez-vous insérer ce nouveau niveau d'une semaine ?",
+              "Quel est l'objectif principal de ce nouveau niveau 'sas' pour vous, au-delà des actions spécifiques ?"
+            ],
+            "trajectory_hypothesis": "Le user souhaite insérer un nouveau niveau de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, avant d'aborder des sujets plus sensibles dans le plan, rejetant la proposition précédente d'une 'étape pont'.",
+            "must_not_execute_reason": "Le user a explicitement demandé de ne pas valider et la position exacte du nouveau niveau dans le plan reste à clarifier."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "pre_validation_concrete_constraint_requires_revision"
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 89919,
+        "created_at": "2026-05-21T12:59:56.601497+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t05",
+    "user": "Je reformule pour être claire : ajoute ce niveau juste après le signal de pause, avant les sujets sensibles. Le but du niveau est de consolider une semaine avec deux actions seulement : observer ce qui apaise et faire une demande simple sans débat.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t05",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Merci pour cette clarification. Pour que je puisse bien placer ce nouveau niveau d'une semaine avec « observer ce qui apaise » et « faire une demande simple sans débat », peux-tu me dire quelles sont les phases ou les thèmes spécifiques du plan actuel que tu considères comme les \"sujets sensibles\" ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t05",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "33690b55-3f7d-4513-9942-20a0df9a90e3",
+        "ts": "2026-05-21T13:03:59.035+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13394,
+          "latency_ms": 5069,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 851,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je reformule pour être claire : ajoute ce niveau juste après le signal de pause, avant les sujets sensibles. Le but du niveau est de consolider une semaine avec",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t05",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "current_trajectory",
+                "type": "level",
+                "priority": "high",
+                "query_hint": "structure du plan et sujets sensibles",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": "Je reformule pour être claire : ajoute ce niveau juste après le signal de pause, avant les sujets sensibles. Le but du niveau est de consolider une semaine avec",
+                "expansion_policy": "include_level_execution_handoff",
+                "retrieval_policy": "semantic_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "taxonomy_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": "level_reference",
+            "status": "current_level",
+            "detected": true,
+            "expansion_policy": "include_level_execution_handoff"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 2.7,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,3.1;decay=0.55;recovery=0",
+                "contribution": 1.7
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              3.1
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "33690b55-3f7d-4513-9942-20a0df9a90e3",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajoute ce niveau",
+                    "avant les sujets sensibles"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajoute ce niveau juste après le signal de pause, avant les sujets sensibles",
+                    "Le but du niveau est de consolider une semaine avec deux actions seulement"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "status": "ask_question",
+          "reason_code": "tool_skill_intent_start",
+          "draft_review": true,
+          "operation_id": "d0cd035c-0229-47cc-9233-560d64fa01e7",
+          "missing_slots": [
+            "draft_generation_retry_needed"
+          ],
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+              "Faire des suppositions sur le contenu ou le positionnement des 'sujets sensibles' sans l'avis du user.",
+              "Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur.",
+              "Appliquer tout changement sans validation explicite du user."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La durée d'une semaine pour le 'sas'.",
+              "Les deux micro-actions spécifiques : 'observer ce qui apaise' et 'faire une demande simple sans débat'.",
+              "L'objectif global du plan d'aborder et de gérer les sujets sensibles, en s'assurant que ce 'sas' serve de pont préparatoire.",
+              "La cohérence et l'intention des phases déjà établies, notamment le 'signal de pause' comme point d'ancrage pour l'insertion."
+            ],
+            "warnings": [
+              "Ne pas modifier la durée d'une semaine ou le nombre/nature des deux micro-actions proposées par le user.",
+              "Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+              "Ne pas remettre en question la pertinence du 'sas' lui-même, mais plutôt son intégration et son efficacité.",
+              "Ne pas anticiper le positionnement exact des 'sujets sensibles' sans la clarification du user."
+            ],
+            "readiness": "diagnose",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape ou architecture globale.",
+              "Vérifier que le changement reste cohérent avec l'objectif global et les réponses du questionnaire.",
+              "Préserver explicitement ce que le user veut garder avant de proposer une réorganisation.",
+              "Raisonner en prérequis, séquençage et phases futures plutôt qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle coaching.",
+              "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+              "**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés."
+            ],
+            "observation": "Le user corrige l'interprétation précédente et fournit une spécification très claire et détaillée pour l'insertion d'une nouvelle phase ('sas') : sa durée (une semaine), ses deux actions précises ('observer ce qui apaise' et 'faire une demande simple sans débat'), et son positionnement relatif ('juste après le signal de pause, avant les sujets sensibles'). Il ne s'agit plus d'un diagnostic sur le besoin, mais d'une demande de concrétisation d'une idée bien définie.",
+            "change_family": "missing_bridge_or_level",
+            "recommendation": "Accueillir la proposition concrète et détaillée du user pour le 'sas' et ses actions. Le sous-skill doit maintenant se concentrer sur l'intégration précise et cohérente de cette nouvelle phase dans la trajectoire du plan, en respectant scrupuleusement la durée et le contenu spécifiés par le user, tout en clarifiant le positionnement exact des 'sujets sensibles' pour une insertion optimale.",
+            "next_best_question": "Quelles sont les phases ou les thèmes spécifiques que vous considérez comme les 'sujets sensibles' que ce nouveau niveau doit précéder dans le plan actuel ?",
+            "options_to_discuss": [
+              "La définition précise des 'sujets sensibles' dans le contexte du plan actuel, pour assurer un placement exact du 'sas'.",
+              "Comment les deux micro-actions proposées ('observer ce qui apaise' et 'faire une demande simple sans débat') contribuent-elles spécifiquement à l'objectif de 'consolidation' et de 'stabilité' recherché par le user avant d'aborder les phases plus difficiles ?",
+              "Quels seraient les critères de succès pour ce 'sas' : qu'est-ce qui indiquerait au user qu'il est prêt à passer à la suite après cette phase ?"
+            ],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [
+              "Quelles sont les phases ou les thèmes spécifiques que vous considérez comme les 'sujets sensibles' que ce nouveau niveau doit précéder dans le plan actuel ?",
+              "Comment ces deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat') s'intègrent-elles dans l'objectif plus large de 'stabilité' que vous recherchez avec ce sas, et comment cela vous prépare-t-il pour les sujets sensibles ?"
+            ],
+            "trajectory_hypothesis": "Le user souhaite insérer une nouvelle phase de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, immédiatement après le 'signal de pause' et avant les phases considérées comme 'sujets sensibles' dans le plan.",
+            "must_not_execute_reason": "Le user a explicitement demandé de ne pas valider ('Ne valide pas encore') et une clarification est nécessaire pour le positionnement exact ('avant les sujets sensibles')."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Non, ce n'est pas exactement ça. Je ne veux pas une étape pont autour du signal de pause.",
+              "Je reformule pour être claire : ajoute ce niveau juste après le signal de pause, avant les sujets sensibles. Le but du niveau est de consolider une semaine avec deux actions seulement : observer ce qui apaise et faire une demande simple sans débat."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 97957,
+        "created_at": "2026-05-21T13:03:59.037331+00:00"
+      },
+      "trace_error": null
+    }
+  },
+  {
+    "turn": 6,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t06",
+    "user": "Par sujets sensibles, je parle des conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions. Avant ça je veux juste une semaine de stabilité basique, pas de débat profond.",
+    "status": 200,
+    "body": {
+      "ok": true,
+      "request_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t06",
+      "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+      "channel": "web",
+      "scope": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "logged_message_id": null,
+      "latest_message_id": null,
+      "response": {
+        "content": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire, avec une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "conversation_turn_trace": {
+        "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t06",
+        "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+        "source_message_id": "e76ce8b0-ab06-42e7-8317-c5fea6284c60",
+        "ts": "2026-05-21T13:04:42.031+00:00",
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "dispatcher_run": {
+          "tokens_in": 13537,
+          "latency_ms": 5509,
+          "model_used": "gemini-3-flash-preview",
+          "tokens_out": 807,
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sujets_sensibles",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "reproches attentes non dites tensions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+        },
+        "turn_frame": {
+          "safety": {
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": []
+          },
+          "channel": "web",
+          "turn_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r104-missing-consolidation-level-postfix-t06",
+          "user_id": "02dc9ae2-4128-412b-b0be-56712bf775a8",
+          "memory_plan": {
+            "targets": [
+              {
+                "key": "sujets_sensibles",
+                "type": "topic",
+                "priority": "high",
+                "query_hint": "reproches attentes non dites tensions",
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "semantic_first"
+              },
+              {
+                "key": "current_level",
+                "type": "level",
+                "priority": "medium",
+                "query_hint": null,
+                "entity_type": null,
+                "expansion_policy": null,
+                "retrieval_policy": "taxonomy_first"
+              }
+            ],
+            "memory_mode": "light",
+            "context_need": "targeted",
+            "model_tier_hint": "lite",
+            "plan_confidence": 0.7,
+            "response_intent": "reflection",
+            "retrieval_policy": "semantic_first",
+            "context_budget_tier": "small",
+            "reasoning_complexity": "low"
+          },
+          "skill_signals": {
+            "exit": {},
+            "entry": {},
+            "lifecycle": {}
+          },
+          "direct_effects": [],
+          "needs_research": {
+            "query": null,
+            "value": false,
+            "reason": null,
+            "detected": false,
+            "confidence": 0,
+            "domain_hint": null
+          },
+          "level_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "action_reference": {
+            "reason": null,
+            "status": "none",
+            "detected": false,
+            "expansion_policy": "none"
+          },
+          "conversation_risk": {
+            "score": 2.5,
+            "matrix": [
+              {
+                "signal": "system_misunderstanding",
+                "weight": 3.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "explicit_stop_or_abandon",
+                "weight": 2.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "anger_or_profanity",
+                "weight": 2,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "repetition_or_correction",
+                "weight": 1.5,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "typographic_intensity",
+                "weight": 0.7,
+                "detected": false,
+                "evidence": null,
+                "contribution": 0
+              },
+              {
+                "signal": "active_flow_pressure",
+                "weight": 1,
+                "detected": true,
+                "evidence": "active_skill_or_operation_state",
+                "contribution": 1
+              },
+              {
+                "signal": "previous_risk",
+                "weight": 10,
+                "detected": true,
+                "evidence": "0,1,3.1,2.7;decay=0.55;recovery=0",
+                "contribution": 1.5
+              }
+            ],
+            "threshold": 8,
+            "reason_codes": [
+              "active_flow_pressure",
+              "previous_risk"
+            ],
+            "context_summary": null,
+            "previous_scores": [
+              0,
+              1,
+              3.1,
+              2.7
+            ],
+            "flow_exit_context": null,
+            "should_exit_flows": false
+          },
+          "source_message_id": "e76ce8b0-ab06-42e7-8317-c5fea6284c60",
+          "tool_skill_intents": [
+            {
+              "ambiguity": "none",
+              "target_hint": "trajectoire globale du plan",
+              "user_intent": "adjust",
+              "explicitness": "explicit",
+              "operation_type": "adjust_plan_item",
+              "confidence_band": "high",
+              "operation_input": {
+                "scope": {
+                  "kind": "whole_plan",
+                  "label": "trajectoire globale du plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajoute ce niveau juste après le signal de pause, avant les sujets sensibles"
+                  ]
+                },
+                "target_granularity": {
+                  "value": "whole_plan",
+                  "status": "identified",
+                  "evidence": [
+                    "ajoute ce niveau juste après le signal de pause, avant les sujets sensibles",
+                    "Je reformule pour être claire",
+                    "Le but du niveau est de consolider une semaine"
+                  ],
+                  "confidence": "high"
+                }
+              },
+              "adjust_plan_scope": "whole_plan"
+            }
+          ],
+          "confirmation_response": null,
+          "tool_skill_opportunity": {
+            "type": "none",
+            "surface_id": null,
+            "prop_reason": null,
+            "source_span": null,
+            "target_hint": null,
+            "offer_timing": "never",
+            "should_offer": false,
+            "target_status": "none",
+            "operation_type": null,
+            "confidence_band": "low",
+            "must_not_execute": true,
+            "suggested_question_intent": null
+          }
+        },
+        "route_decision": {
+          "reason_code": "tool_skill_intent_start",
+          "blocked_paths": [],
+          "route_version": "v1",
+          "response_owner": "tool_skill",
+          "memory_use_kind": "none",
+          "selected_handler": "adjust_plan_item",
+          "direct_effects_to_run": [],
+          "memory_used_for_route": false,
+          "active_flow_arbitration": {
+            "decision": "none",
+            "reason_code": "no_active_flow",
+            "active_owner": "none",
+            "resume_policy": "none",
+            "selected_owner": "none"
+          },
+          "memory_item_ids_used_for_route": []
+        },
+        "direct_effects": [],
+        "skill_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "patch": {
+                "scope_kind": "whole_plan",
+                "constraints": [
+                  "no_pressure",
+                  "minimal_patch",
+                  "preserve_plan_intent",
+                  "no_schedule_day_change",
+                  "ask_confirmation_before_write",
+                  "un petit niveau de consolidation",
+                  "plutôt un sas",
+                  "avant d'attaquer les sujets sensibles",
+                  "whole_plan_change_family:missing_bridge_or_level",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "whole_plan_directional_draft_ready",
+                  "preserve_plan_intent",
+                  "avoid_repetitive_clarification_when_user_gives_solution",
+                  "sas dure une semaine",
+                  "deux micro-actions de stabilité : remarquer ce qui apaise et faire une demande simple sans débat",
+                  "ajouter ce niveau juste après le signal de pause, avant les sujets sensibles",
+                  "but du niveau est de consolider une semaine avec deux actions seulement : observer ce qui apaise et faire une demande simple sans débat",
+                  "sujets sensibles = conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions",
+                  "avant ça je veux juste une semaine de stabilité basique, pas de débat profond",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "split_merge_no_bridge_step",
+                  "coach_observation:Le user clarifie explicitement la nature des 'sujets sensibles' et réaffirme la demande d'insertion d'une nouvelle phase de 'stabilité basique' d'une semaine, avec deux micro-actions précises, juste après le 'signal de pause' et avant ces sujets sensibles. Cela confirme le rejet de la proposition précédente et fournit toutes les informations nécessaires pour une proposition concrète.",
+                  "coach_recommendation:Accueillir la clarification détaillée du user. Le sous-skill doit maintenant élaborer une proposition concrète pour insérer une nouvelle phase d'une semaine avec les deux actions spécifiées, en la positionnant précisément après les actions liées au 'signal de pause' et avant la phase des 'sujets sensibles' tels que définis par le user.",
+                  "coach_warning:Ne pas réintroduire l'idée d'une 'étape pont centrée sur le signal de pause', car cela a été explicitement rejeté.",
+                  "coach_warning:Ne pas modifier la durée d'une semaine ou les deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat') pour le nouveau niveau.",
+                  "coach_warning:Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+                  "coach_warning:Ne pas remettre en question la pertinence du 'sas' lui-même, mais se concentrer sur son intégration cohérente.",
+                  "coach_preserve:La durée d'une semaine pour le nouveau niveau de 'stabilité basique'.",
+                  "coach_preserve:Les deux micro-actions spécifiques : 'observer ce qui apaise' et 'faire une demande simple sans débat'.",
+                  "coach_preserve:Le positionnement du nouveau niveau : après le 'signal de pause' et avant les 'sujets sensibles'.",
+                  "coach_preserve:La définition des 'sujets sensibles' : 'conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions'.",
+                  "coach_preserve:L'objectif global du plan d'aborder et de gérer les sujets sensibles, en s'assurant que ce 'sas' serve de préparation.",
+                  "coach_preserve:La cohérence et l'intention des phases déjà établies, notamment le 'signal de pause'.",
+                  "coach_avoid:Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+                  "coach_avoid:Faire des suppositions sur le contenu des 'sujets sensibles' au-delà de la clarification du user.",
+                  "coach_avoid:Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur d'action.",
+                  "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                  "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                  "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                  "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                  "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                  "coach_guideline:**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+                  "coach_guideline:**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés.",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:insert_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "coach_must_not_execute:User rejected previous draft and provided further clarification, requiring a new draft.",
+                  "coach_trajectory_hypothesis:Le user souhaite insérer une nouvelle phase de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, positionnée après les actions liées au 'signal de pause' et juste avant la phase des 'sujets sensibles' (reproches, attentes non dites, déclencheurs de tensions).",
+                  "whole_plan_change_family:split_merge_restructure",
+                  "whole_plan_candidate_operation:split_or_merge_phase",
+                  "whole_plan_readiness:draft_ready",
+                  "affected_item:Convenir d'un signal de pause",
+                  "affected_item:Faire le point sur le signal de pause"
+                ],
+                "reason_type": "bad_fit",
+                "change_target": "global_load",
+                "reason_change": "context_changed"
+              },
+              "title": "Ajuster la trajectoire du plan",
+              "confidence": "medium",
+              "ack_summary": {
+                "changed": [
+                  "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+                ],
+                "unchanged": [
+                  "Objectif global du plan",
+                  "Actions de soutien existantes sauf changement explicitement validé"
+                ],
+                "confidence": "medium",
+                "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+              },
+              "scope_label": "plan global",
+              "why_it_helps": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+              "decision_basis": {
+                "evidence": [
+                  "Par sujets sensibles, je parle des conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions. Avant ça je veux juste une semaine de stabilité basique, pas de débat profond.",
+                  "operation_input.scope",
+                  "rebalance",
+                  "deterministic whole-plan fit/complexity signal",
+                  "manque un petit niveau de consolidation avant d'attaquer les sujets sensibles",
+                  "manque un petit niveau de consolidation"
+                ],
+                "confidence": "medium",
+                "uncertainty": [
+                  "semaines ou blocs exacts a affiner ensuite"
+                ],
+                "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                "must_preserve": [
+                  "intention du plan",
+                  "direction globale du plan"
+                ]
+              },
+              "adjustment_type": "rebalance",
+              "proposed_change": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+              "change_rationale": {
+                "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+                "success_condition": "Le plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+                "expected_mechanism": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+              },
+              "adjust_plan_result": {
+                "scope": "whole_plan",
+                "rationale": {
+                  "confidence": "medium",
+                  "missing_info": [],
+                  "user_problem": "Le plan passait trop directement d'un bloc au suivant.",
+                  "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+                  "why_this_change": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste."
+                },
+                "boundaries": {
+                  "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+                  "affected_scope": "trajectoire globale du plan",
+                  "global_plan_impact": "requires_review",
+                  "explicitly_not_affected": [
+                    "objectif global",
+                    "identité du plan",
+                    "demande de ne pas transformer cela en simple ajustement d'action"
+                  ]
+                },
+                "applied_change": {
+                  "summary": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                  "changed_items": [
+                    {
+                      "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Convenir d'un signal de pause",
+                      "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    },
+                    {
+                      "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                      "kind": "action",
+                      "after": "À placer dans la trajectoire ajustée: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "title": "Faire le point sur le signal de pause",
+                      "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                      "reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                      "capability": "modify_existing_action"
+                    }
+                  ],
+                  "preserved_items": [
+                    {
+                      "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                      "kind": "habit",
+                      "title": "Partager un point positif",
+                      "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                    }
+                  ],
+                  "trajectory_change": {
+                    "after": "Le plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+                    "before": "Le plan passait trop directement d'un bloc au suivant.",
+                    "inserted_step": "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                    "coaching_reason": "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
+                    "reordered_steps": [
+                      "Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                      "Reprendre ensuite la progression avec un prérequis consolidé"
+                    ],
+                    "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+                  }
+                },
+                "user_message_brief": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.",
+                "user_message_detailed": "j'insère une étape intermédiaire: Une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause."
+              },
+              "execution_strategy": "whole_plan_adjustment",
+              "allowed_patch_fields": [
+                "scope_kind",
+                "plan_adjustment",
+                "load_adjustment",
+                "goal_adjustment",
+                "sequence_adjustment",
+                "reason_type",
+                "reason_change",
+                "change_target",
+                "confidence",
+                "constraints"
+              ]
+            },
+            "output_schema": "plan_adjustment_draft_v1",
+            "operation_type": "adjust_plan_item",
+            "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde son objectif, mais ajoute une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause avant de monter d'un cran.",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: j'insère une étape intermédiaire, avec une étape pont centrée sur Convenir d'un signal de pause et Faire le point sur le signal de pause.\n\nCe qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+          },
+          "status": "draft_review_updated",
+          "reason_code": "tool_skill_intent_start",
+          "operation_id": "c3f43a95-4acf-43d4-a9e2-c0912ddfbe26",
+          "selected_handler": "adjust_plan_item",
+          "coaching_guidance": {
+            "avoid": [
+              "Proposer des actions alternatives ou une durée différente pour le 'sas'.",
+              "Faire des suppositions sur le contenu des 'sujets sensibles' au-delà de la clarification du user.",
+              "Minimiser l'importance de cette demande de 'sas' ou la traiter comme un simple ajustement mineur d'action."
+            ],
+            "scope": "whole_plan",
+            "preserve": [
+              "La durée d'une semaine pour le nouveau niveau de 'stabilité basique'.",
+              "Les deux micro-actions spécifiques : 'observer ce qui apaise' et 'faire une demande simple sans débat'.",
+              "Le positionnement du nouveau niveau : après le 'signal de pause' et avant les 'sujets sensibles'.",
+              "La définition des 'sujets sensibles' : 'conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions'.",
+              "L'objectif global du plan d'aborder et de gérer les sujets sensibles, en s'assurant que ce 'sas' serve de préparation.",
+              "La cohérence et l'intention des phases déjà établies, notamment le 'signal de pause'."
+            ],
+            "warnings": [
+              "Ne pas réintroduire l'idée d'une 'étape pont centrée sur le signal de pause', car cela a été explicitement rejeté.",
+              "Ne pas modifier la durée d'une semaine ou les deux micro-actions ('observer ce qui apaise' et 'faire une demande simple sans débat') pour le nouveau niveau.",
+              "Éviter d'ajouter de la complexité ou d'autres actions au 'sas' au-delà de ce qui a été explicitement demandé.",
+              "Ne pas remettre en question la pertinence du 'sas' lui-même, mais se concentrer sur son intégration cohérente."
+            ],
+            "readiness": "draft_ready",
+            "confidence": "high",
+            "guidelines": [
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "**Guidelines whole_plan**: La trajectoire du plan doit rester cohérente. Les prérequis des phases futures doivent être respectés. L'objectif et le questionnaire du plan doivent être préservés. L'ordre des phases est modifiable si cela améliore la progression du user.",
+              "**Guidelines niveau**: La charge et le rythme du niveau courant doivent être pris en compte. Une baisse temporaire de charge n'est pas une baisse globale. Les limites de fin de niveau et le cœur du niveau doivent être préservés."
+            ],
+            "observation": "Le user clarifie explicitement la nature des 'sujets sensibles' et réaffirme la demande d'insertion d'une nouvelle phase de 'stabilité basique' d'une semaine, avec deux micro-actions précises, juste après le 'signal de pause' et avant ces sujets sensibles. Cela confirme le rejet de la proposition précédente et fournit toutes les informations nécessaires pour une proposition concrète.",
+            "change_family": "split_merge_restructure",
+            "recommendation": "Accueillir la clarification détaillée du user. Le sous-skill doit maintenant élaborer une proposition concrète pour insérer une nouvelle phase d'une semaine avec les deux actions spécifiées, en la positionnant précisément après les actions liées au 'signal de pause' et avant la phase des 'sujets sensibles' tels que définis par le user.",
+            "next_best_question": null,
+            "options_to_discuss": [],
+            "candidate_operation": "insert_phase",
+            "questions_to_clarify": [],
+            "trajectory_hypothesis": "Le user souhaite insérer une nouvelle phase de consolidation d'une semaine, avec deux micro-actions de stabilité spécifiques, positionnée après les actions liées au 'signal de pause' et juste avant la phase des 'sujets sensibles' (reproches, attentes non dites, déclencheurs de tensions).",
+            "must_not_execute_reason": "User rejected previous draft and provided further clarification, requiring a new draft."
+          },
+          "draft_review_decision": {
+            "decision": "revise",
+            "evidence": [
+              "Par sujets sensibles, je parle des conversations sur les reproches, les attentes non dites et ce qui déclenche les tensions. Avant ça je veux juste une semaine de stabilité basique, pas de débat profond."
+            ],
+            "confidence": "high",
+            "apply_after_revision": false
+          },
+          "previous_operation_id": "d0cd035c-0229-47cc-9233-560d64fa01e7",
+          "coaching_guidance_audit": {
+            "scope": "whole_plan",
+            "source": "runner",
+            "status": "generated"
+          }
+        },
+        "recommendation_tool_run": null,
+        "confirmation_token_outcomes": [],
+        "memory_write_candidates_emitted": 0,
+        "response_owner": "tool_skill",
+        "total_latency_ms": 29022,
+        "created_at": "2026-05-21T13:04:42.033055+00:00"
+      },
+      "trace_error": null
+    }
+  }
+]

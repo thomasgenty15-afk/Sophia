@@ -1,0 +1,510 @@
+{
+  "run_id": "global15_20260521_n2_r10",
+  "scope": "qa-global-normal-conversation-15t-20260521-n2-r10",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global15_20260521_n2_r10-1779372649999@example.com",
+  "user_id": "b64b804b-2f49-49e5-9877-e549856c598e",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJiNjRiODA0Yi0yZjQ5LTQ5ZTUtOTg3Ny1lNTQ5ODU2YzU5OGUiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5Mzc2MjUwLCJpYXQiOjE3NzkzNzI2NTAsImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbDE1XzIwMjYwNTIxX24yX3IxMC0xNzc5MzcyNjQ5OTk5QGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1nbG9iYWwxNV8yMDI2MDUyMV9uMl9yMTAtMTc3OTM3MjY0OTk5OUBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiZ2xvYmFsMTVfMjAyNjA1MjFfbjJfcjEwIiwic3ViIjoiYjY0YjgwNGItMmY0OS00OWU1LTk4NzctZTU0OTg1NmM1OThlIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3NzkzNzI2NTB9XSwic2Vzc2lvbl9pZCI6IjcxYTI2MDUzLTllZTAtNDdkNS04ODU1LTU2ZjQxODgzMzRiOCIsImlzX2Fub255bW91cyI6ZmFsc2V9.4xeXcZeYZr-mLhpwNp86VzhOvSf9Lp02DX_isrsjN2w",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-21T14:10:50.293Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-21T14:11:06.453Z",
+      "user": "Salut Sophia, je rentre du boulot completement vide. J'ai promis de ranger la cuisine et de preparer mon sac de sport, mais je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree sans me mettre la pression.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ah merde… t’es rincé, donc normal que ton cerveau te tire vers le téléphone. 😮‍💨 On va sauver la soirée sans te faire une usine.\n\nOn vise petit, maintenant, et seulement pour “ne pas finir à minuit sur le tel” :\n1) Téléphone: tu le poses hors de portée 10 minutes (même sur une autre pièce).\n2) Cuisine: juste 1 micro-action de 2 minutes (ex: débarrasser la table / lancer le lave-vaisselle / essuyer un plan de travail).\n3) Sac sport: 3 objets max à préparer (les trucs indispensables seulement).\n\nFais-le en mode “c’est déjà une victoire” : quand les 10 minutes sont passées, tu choisis soit de continuer, soit de faire une pause. Le but c’est de reprendre l’élan, pas de tout terminer.\n\nTu veux que ta micro-action de cuisine soit plutôt “débarasser/lancer” ou “nettoyer rapide” ?",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "demotivation_repair",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "demotivation_repair"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "state_potion",
+        "opportunity_operation": "select_state_potion",
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "demotivation_repair",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-21T14:11:06.388Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-21T14:11:06.388Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-21T14:11:06.388Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-21T14:11:06.388Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-21T14:11:06.388Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "demotivation_repair",
+                  "started_at": "2026-05-21T14:11:06.388Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-05-21T14:11:06.388Z",
+                  "working_state": {
+                    "summary": "Demotivation diagnosis: fatigue."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-21T14:11:06.387Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "53eb419f-fc62-4328-aae3-a4cfec8c24f0",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-05-21T14:11:06.358Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0
+                ]
+              },
+              "updated_at": "2026-05-21T14:11:06.392982+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 400,
+          "ok": false,
+          "body": {
+            "code": "42703",
+            "details": null,
+            "hint": null,
+            "message": "column scheduled_checkins.channel does not exist"
+          }
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260521_n2_r10-t01",
+        "user_id": "b64b804b-2f49-49e5-9877-e549856c598e",
+        "channel": "web",
+        "scope": "qa-global-normal-conversation-15t-20260521-n2-r10",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah merde… t’es rincé, donc normal que ton cerveau te tire vers le téléphone. 😮‍💨 On va sauver la soirée sans te faire une usine.\n\nOn vise petit, maintenant, et seulement pour “ne pas finir à minuit sur le tel” :\n1) Téléphone: tu le poses hors de portée 10 minutes (même sur une autre pièce).\n2) Cuisine: juste 1 micro-action de 2 minutes (ex: débarrasser la table / lancer le lave-vaisselle / essuyer un plan de travail).\n3) Sac sport: 3 objets max à préparer (les trucs indispensables seulement).\n\nFais-le en mode “c’est déjà une victoire” : quand les 10 minutes sont passées, tu choisis soit de continuer, soit de faire une pause. Le but c’est de reprendre l’élan, pas de tout terminer.\n\nTu veux que ta micro-action de cuisine soit plutôt “débarasser/lancer” ou “nettoyer rapide” ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260521_n2_r10-t01",
+          "user_id": "b64b804b-2f49-49e5-9877-e549856c598e",
+          "source_message_id": "53eb419f-fc62-4328-aae3-a4cfec8c24f0",
+          "ts": "2026-05-21T14:11:06.358+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8505,
+            "latency_ms": 2810,
+            "model_used": "gpt-5.4-mini",
+            "tokens_out": 560,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260521_n2_r10-t01",
+            "user_id": "b64b804b-2f49-49e5-9877-e549856c598e",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "demotivation_repair": {
+                  "reason": "energy_low_and_need_to_save_evening",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "53eb419f-fc62-4328-aae3-a4cfec8c24f0",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "state_potion",
+              "surface_id": "potion.state",
+              "prop_reason": "user_mentions_state_regulation_need",
+              "source_span": "pression.",
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": "select_state_potion",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_state_potion"
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_entry_signal",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "demotivation_repair",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "On ne va pas modifier ton plan juste parce que tu as un moment de decrochage. D'abord, je veux comprendre ce qui bloque: energie trop basse, premiere etape floue, ou peur de refaire le meme schema ?",
+              "status": "continue",
+              "skill_id": "demotivation_repair",
+              "diagnosis": {
+                "motivation_state": "fatigue"
+              },
+              "state_patch": {
+                "summary": "Demotivation diagnosis: fatigue."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "motivation_diagnosis",
+              "recommendation_need": {
+                "type": "motivation_repair",
+                "needed": true,
+                "urgency": "medium",
+                "constraints": [
+                  "no_moralizing",
+                  "prefer_attack_card_over_plan_edit",
+                  "understand_before_solution"
+                ]
+              },
+              "operation_suggestions": [
+                {
+                  "reason": "demotivation_state_regulation_before_action",
+                  "urgency": "medium",
+                  "operation_type": "select_state_potion",
+                  "confidence_band": "medium",
+                  "source_skill_id": "demotivation_repair",
+                  "operation_input_hint": {
+                    "state": "decrochage",
+                    "potion_type": "rappel"
+                  },
+                  "requires_user_consent": true
+                }
+              ],
+              "memory_write_candidates": [
+                {
+                  "kind": "statement",
+                  "scope_hint": "session",
+                  "content_text": "Salut Sophia, je rentre du boulot completement vide. J'ai promis de ranger la cuisine et de preparer mon sac de sport, mais je sens que je vais finir sur mon telephone jusqu'a minuit. Je veux juste sauver ma soiree sans me mettre la pression.",
+                  "confidence_band": "medium",
+                  "sensitivity_level": 2,
+                  "evidence_source_ids": [
+                    "53eb419f-fc62-4328-aae3-a4cfec8c24f0"
+                  ],
+                  "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true
+                }
+              ]
+            },
+            "reason_code": "skill_entry_signal",
+            "selected_skill_id": "demotivation_repair"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 5400,
+          "created_at": "2026-05-21T14:11:06.363439+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-21T14:11:06.453Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 404,
+      "ok": false
+    }
+  ],
+  "cleaned_at": "2026-05-21T14:34:18.117Z"
+}

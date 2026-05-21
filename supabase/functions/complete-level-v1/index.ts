@@ -215,6 +215,67 @@ function summarizePhaseForPrompt(phase: PlanContentV3["phases"][number] | null):
   ].join("\n");
 }
 
+function findNextBlueprintLevel(
+  plan: PlanContentV3,
+  currentPhase: PlanContentV3["phases"][number],
+): NonNullable<PlanContentV3["plan_blueprint"]>["levels"][number] | null {
+  const levels = plan.plan_blueprint?.levels;
+  if (!Array.isArray(levels)) return null;
+  return levels
+    .filter((level) => level.level_order > currentPhase.phase_order)
+    .sort((left, right) => left.level_order - right.level_order)[0] ?? null;
+}
+
+function summarizeNextLevelForPrompt(args: {
+  plan: PlanContentV3;
+  currentPhase: PlanContentV3["phases"][number];
+  nextPhase: PlanContentV3["phases"][number] | null;
+}): string {
+  if (args.nextPhase) return summarizePhaseForPrompt(args.nextPhase);
+
+  const blueprintLevel = findNextBlueprintLevel(args.plan, args.currentPhase);
+  if (!blueprintLevel) return summarizePhaseForPrompt(null);
+
+  return [
+    `Niveau ${blueprintLevel.level_order} (blueprint): ${cleanPromptText(blueprintLevel.title, 120)}`,
+    `Objectif prévu: ${cleanPromptText(blueprintLevel.preview_summary ?? blueprintLevel.intention, 220)}`,
+    `Pourquoi maintenant: ${cleanPromptText(blueprintLevel.intention, 220)}`,
+    `Durée estimée: ${blueprintLevel.estimated_duration_weeks} semaines`,
+    "Items: à générer maintenant par l'IA à partir du bilan et du plan précédent.",
+  ].join("\n");
+}
+
+function summarizeLevelItemsForPrompt(items: UserPlanItemRow[]): string {
+  if (items.length === 0) return "- Aucun item matériel retrouvé pour ce niveau.";
+
+  return items
+    .slice(0, 20)
+    .map((item) => {
+      const progress = item.target_reps
+        ? `, progression ${item.current_reps ?? 0}/${item.target_reps}`
+        : item.current_reps != null
+        ? `, progression ${item.current_reps}`
+        : "";
+      const cadence = item.cadence_label ? `, cadence ${item.cadence_label}` : "";
+      const completed = item.completed_at ? `, terminé le ${item.completed_at}` : "";
+      return `- [${item.dimension}/${item.kind}] ${
+        cleanPromptText(item.title, 90)
+      }: statut ${item.status}${progress}${cadence}${completed}. ${
+        cleanPromptText(item.description, 180)
+      }`;
+    })
+    .join("\n");
+}
+
+function summarizeWeeklySignalsForPrompt(signals: Array<Record<string, unknown>>): string {
+  if (signals.length === 0) return "- Aucun bilan hebdo récent disponible.";
+
+  return signals.slice(0, 3).map((signal, index) => {
+    const compact = JSON.stringify(signal);
+    return `- Bilan hebdo ${index + 1}: ${cleanPromptText(compact, 900)}`;
+  }).join("\n");
+}
+
 function formatAnswerForPrompt(
   schema: ReturnType<typeof buildLevelReviewSchema>,
   answers: Record<string, string>,
@@ -234,11 +295,14 @@ function buildLevelCompletionRegenerationFeedback(args: {
   plan: PlanContentV3;
   currentPhase: PlanContentV3["phases"][number];
   nextPhase: PlanContentV3["phases"][number] | null;
+  levelItems: UserPlanItemRow[];
   schema: ReturnType<typeof buildLevelReviewSchema>;
   answers: Record<string, string>;
   summary: Record<string, unknown>;
+  weeklySignals: Array<Record<string, unknown>>;
   decision: string;
   decisionReason: string;
+  reviewMode: "user_review" | "auto_timeout";
 }): string {
   const futureBlueprint = args.plan.plan_blueprint?.levels?.length
     ? args.plan.plan_blueprint.levels
@@ -255,27 +319,42 @@ Objectif de cet appel IA:
 - générer le prochain niveau comme nouveau current_level_runtime
 - modifier les niveaux suivants dans le même plan si les informations du bilan l'exigent
 - ne pas repartir de zéro: utiliser le plan précédent comme base, conserver ce qui reste pertinent, et changer uniquement ce que le bilan justifie
+- raisonner comme un coach: préserver ce qui a donné de la traction, simplifier ce qui a créé de la friction, et ne jamais augmenter la charge si la disponibilité réelle du user baisse
 
 Niveau terminé:
 ${summarizePhaseForPrompt(args.currentPhase)}
 
+État réel des actions du niveau terminé:
+${summarizeLevelItemsForPrompt(args.levelItems)}
+
 Prochain niveau prévu avant bilan:
-${summarizePhaseForPrompt(args.nextPhase)}
+${summarizeNextLevelForPrompt({
+    plan: args.plan,
+    currentPhase: args.currentPhase,
+    nextPhase: args.nextPhase,
+  })}
 
 Blueprint futur avant bilan:
 ${futureBlueprint}
 
-Réponses utilisateur:
+Mode de bilan: ${args.reviewMode === "auto_timeout" ? "validation automatique sans questionnaire utilisateur direct" : "questionnaire utilisateur complété"}.
+
+Réponses de bilan:
 ${formatAnswerForPrompt(args.schema, args.answers)}
 
 Synthèse structurée du bilan:
 ${JSON.stringify(args.summary, null, 2)}
+
+Signaux hebdo récents à utiliser comme contexte secondaire:
+${summarizeWeeklySignalsForPrompt(args.weeklySignals)}
 
 Décision initiale de Sophia avant génération: ${args.decision}.
 Raison: ${args.decisionReason}
 
 Contraintes de génération:
 - le nouveau current_level_runtime doit commencer après le niveau ${args.currentPhase.phase_order}
+- l'objectif du prochain niveau doit faire avancer explicitement l'objectif global de transformation, via la primary_metric ou un prérequis clairement relié à cette métrique
+- le prochain niveau doit rester cohérent avec la logique globale du plan: il ajoute une couche à ce qui précède, prépare correctement ce qui suit, et ne change pas de direction sans signal fort dans le bilan
 - si la suite paraît cohérente et les difficultés sont faibles, garde la logique globale et ajuste seulement le dosage
 - si la suite ne paraît pas cohérente, explique implicitement ce qui change via le nouveau niveau et le blueprint futur
 - réutilise explicitement la fierté déclarée comme signal de ce qui doit être conservé
@@ -494,20 +573,32 @@ export async function completeLevelV1(args: {
   const nextPhase = [...planContent.phases]
     .sort((left, right) => left.phase_order - right.phase_order)
     .find((phase) => phase.phase_order > currentPhase.phase_order) ?? null;
+  const nextBlueprintLevel = findNextBlueprintLevel(planContent, currentPhase);
+  const shouldGenerateNextLevel = Boolean(transition.nextRuntime || nextBlueprintLevel);
+  const transitionDecisionReason = transition.nextRuntime
+    ? transition.preview.reason
+    : nextBlueprintLevel
+    ? "Le niveau suivant est généré depuis le blueprint futur du plan, puis recalibré avec le bilan de fin de niveau."
+    : transition.preview.reason;
   let resultingPlanContent: PlanContentV3;
   let resultingPlanId = plan.id;
   let nextRuntime = transition.nextRuntime;
 
-  if (transition.nextRuntime) {
+  if (shouldGenerateNextLevel) {
     const regenerationFeedback = buildLevelCompletionRegenerationFeedback({
       plan: planContent,
       currentPhase,
       nextPhase,
+      levelItems: planItems.filter((item) =>
+        item.phase_id === currentPhase.phase_id
+      ),
       schema,
       answers,
       summary: summary as unknown as Record<string, unknown>,
+      weeklySignals,
       decision: transition.preview.decision,
-      decisionReason: transition.preview.reason,
+      decisionReason: transitionDecisionReason,
+      reviewMode,
     });
 
     const generated = await generatePlanV2ForTransformation({
@@ -530,7 +621,7 @@ export async function completeLevelV1(args: {
         userChangeSummary: reviewMode === "auto_timeout"
           ? "Validation automatique sans bilan utilisateur."
           : null,
-        assistantMessage: transition.preview.reason,
+        assistantMessage: transitionDecisionReason,
       },
     });
 
@@ -573,13 +664,13 @@ export async function completeLevelV1(args: {
       from_phase_id: currentPhase.phase_id,
       to_phase_id: nextRuntime?.phase_id ?? null,
       decision: transition.preview.decision,
-      decision_reason: transition.preview.reason,
+      decision_reason: transitionDecisionReason,
       generation_input: {
         review_summary: summary,
         weekly_signals: weeklySignals,
         source_plan_id: plan.id,
         resulting_plan_id: resultingPlanId,
-        used_ai_generation: Boolean(transition.nextRuntime),
+        used_ai_generation: shouldGenerateNextLevel,
       },
       previous_current_level_runtime: currentLevelRuntime as unknown as Record<string, unknown>,
       next_current_level_runtime: nextRuntime as unknown as Record<string, unknown> | null,
@@ -635,14 +726,14 @@ export async function completeLevelV1(args: {
   }
 
   const summaryText = nextRuntime
-    ? `Niveau suivant prêt: ${nextRuntime.title}. ${transition.preview.reason}`
+    ? `Niveau suivant prêt: ${nextRuntime.title}. ${transitionDecisionReason}`
     : "Dernier niveau validé. Le plan est maintenant terminé.";
 
   return {
     reviewId,
     generationEventId,
     decision: transition.preview.decision,
-    decisionReason: transition.preview.reason,
+    decisionReason: transitionDecisionReason,
     summary: summaryText,
     nextLevel: nextRuntime
       ? {

@@ -1,0 +1,194 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r122-value-warmth-final2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Je veux ajuster le plan global : il me donne une impression de performance, comme si je devais cocher des cases. Je veux garder l'objectif de couple, mais réorienter le cap vers chaleur et fiabilité, sans ajouter d'actions.",
+    "assistant": "Je comprends le changement: tu veux garder l’objectif de couple, mais réorienter le plan vers plus de chaleur et de fiabilité, sans ajouter d’actions. Rien n’est encore appliqué. Est-ce que je te prépare une proposition concrète de réajustement du plan global ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer d’ajout d’actions ou de mini-défis.",
+          "Ne pas reformuler le plan en langage de performance, d’efficacité ou d’optimisation.",
+          "Ne pas déplacer le plan vers une logique de résultats mesurables à tout prix.",
+          "Ne pas présenter le changement comme une correction technique locale ; c’est un recentrage de sens.",
+          "Ne pas noyer la demande dans des détails opérationnels alors que le sujet est d’abord une question de tonalité et de cap."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’objectif de couple comme cap principal.",
+          "Les actions déjà en place, tant qu’elles servent la sécurité et le lien.",
+          "La logique de progression globale, sans ajout de nouvelles missions.",
+          "Le besoin de fiabilité et de continuité.",
+          "Le fait de ne pas augmenter la charge cognitive ou émotionnelle."
+        ],
+        "warnings": [
+          "Éviter de proposer une nouvelle action, même légère, puisque le besoin exprimé est explicitement de ne rien ajouter.",
+          "Éviter de répondre comme si le problème était un simple manque d’exécution ou de discipline.",
+          "Éviter de conserver un vocabulaire trop métrique, évaluatif ou orienté performance dans le cadrage.",
+          "Éviter de déplacer l’objectif vers de la productivité conjugale au lieu de la qualité du lien.",
+          "Éviter de modifier la structure globale du plan si le seul besoin est un changement d’emphase.",
+          "Ne pas interpréter cette demande comme une demande de suppression des éléments actuels ; la demande porte sur le sens et la tonalité, pas sur l’abandon du plan."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action : rester un support au lien, pas un test de performance.",
+          "Intention préservée : garder l’objectif de couple tout en faisant sentir davantage de chaleur et de fiabilité.",
+          "Pont mini si besoin : reformuler le cap sans toucher au contenu des actions.",
+          "Pas de changement de nature sans demande explicite : ne pas transformer le plan en programme de mesure ou en suite d’exercices.",
+          "Pour le niveau courant, préserver la charge basse et le rythme soutenable ; ne pas augmenter l’exigence implicite.",
+          "La fin de niveau doit rester une consolidation du lien, pas un examen de réussite.",
+          "Le cœur du niveau à préserver est la sécurité relationnelle ; les actions doivent être lues comme des appuis à cette sécurité.",
+          "Whole plan : maintenir la trajectoire générale, l’ordre logique des phases et les prérequis déjà posés, tout en changeant l’emphase narrative vers chaleur, fiabilité et continuité."
+        ],
+        "observation": "La demande ne remet pas en cause l’objectif de couple ni la structure du plan ; elle signale surtout un décalage de ton et de posture. Le plan est perçu comme orienté performance et cases à cocher, alors que le besoin réel est de faire sentir davantage de chaleur, de fiabilité et de lien, sans ajouter de charge ni multiplier les actions.",
+        "change_family": "value_preference_conflict",
+        "recommendation": "Orienter la prochaine réponse comme un recentrage de cap, pas comme une nouvelle tâche. Le bon angle coaching est de préserver les gestes existants mais de reformuler leur intention, leur langage et leurs critères de réussite pour qu’ils servent d’abord la sécurité relationnelle, puis seulement la progression. Il faut distinguer ce qui est humainement pertinent (sentiment de pression, besoin de douceur, confiance) de ce qui est techniquement faisable (réécriture du cadrage du plan sans ajout d’items).",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Reformuler le plan avec une intention directrice centrée sur chaleur, stabilité et fiabilité.",
+          "Garder les mêmes actions mais changer leur présentation en termes de soutien au lien plutôt qu’en termes d’objectifs à cocher.",
+          "Alléger le registre de réussite : privilégier \"présence utile\" et \"fiabilité relationnelle\" plutôt que \"performance\".",
+          "Identifier quels items du plan donnent une impression d’évaluation afin de les recadrer verbalement sans les supprimer.",
+          "Redéfinir le cap global comme une consolidation du climat de couple plutôt qu’une montée en intensité."
+        ],
+        "candidate_operation": "change_emphasis",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle reste centrée sur la progression du couple via des actions structurées ; la trajectoire possible consiste à garder ces actions mais à les présenter et les cadrer comme des soutiens à la chaleur et à la fiabilité plutôt que comme des cases à valider.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer d’ajout d’actions ou de mini-défis.",
+        "Ne pas reformuler le plan en langage de performance, d’efficacité ou d’optimisation.",
+        "Ne pas déplacer le plan vers une logique de résultats mesurables à tout prix.",
+        "Ne pas présenter le changement comme une correction technique locale ; c’est un recentrage de sens.",
+        "Ne pas noyer la demande dans des détails opérationnels alors que le sujet est d’abord une question de tonalité et de cap."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’objectif de couple comme cap principal.",
+        "Les actions déjà en place, tant qu’elles servent la sécurité et le lien.",
+        "La logique de progression globale, sans ajout de nouvelles missions.",
+        "Le besoin de fiabilité et de continuité.",
+        "Le fait de ne pas augmenter la charge cognitive ou émotionnelle."
+      ],
+      "warnings": [
+        "Éviter de proposer une nouvelle action, même légère, puisque le besoin exprimé est explicitement de ne rien ajouter.",
+        "Éviter de répondre comme si le problème était un simple manque d’exécution ou de discipline.",
+        "Éviter de conserver un vocabulaire trop métrique, évaluatif ou orienté performance dans le cadrage.",
+        "Éviter de déplacer l’objectif vers de la productivité conjugale au lieu de la qualité du lien.",
+        "Éviter de modifier la structure globale du plan si le seul besoin est un changement d’emphase.",
+        "Ne pas interpréter cette demande comme une demande de suppression des éléments actuels ; la demande porte sur le sens et la tonalité, pas sur l’abandon du plan."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action : rester un support au lien, pas un test de performance.",
+        "Intention préservée : garder l’objectif de couple tout en faisant sentir davantage de chaleur et de fiabilité.",
+        "Pont mini si besoin : reformuler le cap sans toucher au contenu des actions.",
+        "Pas de changement de nature sans demande explicite : ne pas transformer le plan en programme de mesure ou en suite d’exercices.",
+        "Pour le niveau courant, préserver la charge basse et le rythme soutenable ; ne pas augmenter l’exigence implicite.",
+        "La fin de niveau doit rester une consolidation du lien, pas un examen de réussite.",
+        "Le cœur du niveau à préserver est la sécurité relationnelle ; les actions doivent être lues comme des appuis à cette sécurité.",
+        "Whole plan : maintenir la trajectoire générale, l’ordre logique des phases et les prérequis déjà posés, tout en changeant l’emphase narrative vers chaleur, fiabilité et continuité."
+      ],
+      "observation": "La demande ne remet pas en cause l’objectif de couple ni la structure du plan ; elle signale surtout un décalage de ton et de posture. Le plan est perçu comme orienté performance et cases à cocher, alors que le besoin réel est de faire sentir davantage de chaleur, de fiabilité et de lien, sans ajouter de charge ni multiplier les actions.",
+      "change_family": "value_preference_conflict",
+      "recommendation": "Orienter la prochaine réponse comme un recentrage de cap, pas comme une nouvelle tâche. Le bon angle coaching est de préserver les gestes existants mais de reformuler leur intention, leur langage et leurs critères de réussite pour qu’ils servent d’abord la sécurité relationnelle, puis seulement la progression. Il faut distinguer ce qui est humainement pertinent (sentiment de pression, besoin de douceur, confiance) de ce qui est techniquement faisable (réécriture du cadrage du plan sans ajout d’items).",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Reformuler le plan avec une intention directrice centrée sur chaleur, stabilité et fiabilité.",
+        "Garder les mêmes actions mais changer leur présentation en termes de soutien au lien plutôt qu’en termes d’objectifs à cocher.",
+        "Alléger le registre de réussite : privilégier \"présence utile\" et \"fiabilité relationnelle\" plutôt que \"performance\".",
+        "Identifier quels items du plan donnent une impression d’évaluation afin de les recadrer verbalement sans les supprimer.",
+        "Redéfinir le cap global comme une consolidation du climat de couple plutôt qu’une montée en intensité."
+      ],
+      "candidate_operation": "change_emphasis",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle reste centrée sur la progression du couple via des actions structurées ; la trajectoire possible consiste à garder ces actions mais à les présenter et les cadrer comme des soutiens à la chaleur et à la fiabilité plutôt que comme des cases à valider.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r122-value-warmth-final2-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r122-value-warmth-final2-t02",
+    "status": 502,
+    "ok": null,
+    "user": "Oui, prépare la proposition, sans l'appliquer. Pour moi ça veut dire : prévenir quand je suis indisponible, garder un petit moment positif même en semaine tendue, et réparer vite après une maladresse.",
+    "assistant": "",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": true,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason_code": null,
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r122-value-warmth-final2-t02",
+    "trace_error": null
+  }
+]

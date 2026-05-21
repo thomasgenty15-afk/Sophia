@@ -1,0 +1,197 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "fbde44d7-8b6c-4bc6-ac79-d57376b8297d",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "37af3bc8-5933-45f3-8f56-c5210e4931c6",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "f302589c-80b7-488b-8097-a6b65c3f1b0b",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "c76b0da0-c0cc-4bec-b722-b406d3664314",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [
+        {
+          "id": "446ba805-786f-415c-8302-f281179ff455",
+          "message_instruction": "soutien",
+          "rationale": "Rappel récurrent créé depuis la conversation web Sophia : Rappel récurrent : soutien",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "status": "active",
+          "initiative_kind": "base_free",
+          "source_kind": "user_created",
+          "source_potion_session_id": null,
+          "initiative_metadata": {
+            "draft": {
+              "draft": {
+                "days": [],
+                "time": "09:00",
+                "title": "Rappel récurrent : soutien",
+                "message": "soutien",
+                "timezone": "Europe/Paris",
+                "frequency": "daily",
+                "destination": "base_de_vie",
+                "target_binding": {
+                  "target_kind": "none",
+                  "target_label": null,
+                  "binding_policy": "none",
+                  "lifecycle_policy": "independent",
+                  "target_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "related_plan_item_id": null
+              },
+              "output_schema": "recurring_reminder_draft_v1",
+              "operation_type": "create_recurring_reminder",
+              "revision_message": "D'accord, je modifie le rappel. Tu peux le retrouver et le gérer dans ta Base de vie sur la plateforme.",
+              "execution_message": "C'est noté ! Je t'ai créé un rappel quotidien à 09h00 avec le message 'soutien'. Tu peux le retrouver et le gérer dans ta Base de vie sur la plateforme. Si tu veux le modifier ou l'annuler, tu devras le faire depuis la plateforme, dans la Base de vie, section Initiatives et rappels.",
+              "user_message_brief": "Rappel quotidien à 09h00 : soutien",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je vais te créer un rappel quotidien à 09h00 avec le message 'soutien'. C'est bien ça ?",
+              "user_message_detailed": "Je vais créer un rappel quotidien à 09h00 avec le message 'soutien'. Ce rappel sera enregistré dans ta Base de vie et tu pourras le modifier ou l'annuler depuis la plateforme."
+            },
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r25_hard2_green-clarte-t05-a1",
+            "operation_id": "0a0b2a29-01c6-4d2f-a73c-464a19da335c",
+            "active_plan_id": "90441c78-3d31-47df-8414-3b6f225f5379",
+            "operation_type": "create_recurring_reminder",
+            "target_binding": {
+              "target_kind": "none",
+              "target_label": null,
+              "target_plan_item_id": null,
+              "target_binding_policy": "none",
+              "target_lifecycle_policy": "independent",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "active_cycle_id": "f53f9bab-d547-46c8-a8c6-44be8d3ee814",
+            "active_plan_title": "Plan QA clarte",
+            "related_plan_item": null,
+            "source_message_id": "002378d7-c82d-4b05-8d19-077028d68e38",
+            "destination_resolved": "base_de_vie",
+            "destination_requested": "base_de_vie",
+            "active_transformation_id": "c60748e4-9267-4291-bad0-58436bc53df7",
+            "active_transformation_title": "Retrouver une priorite simple"
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T13:33:53.241+00:00",
+          "created_at": "2026-05-21T13:33:53.243283+00:00",
+          "updated_at": "2026-05-21T13:34:06.468+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "a7d2da20-505f-49f3-90b3-9c478a1c3197",
+          "recurring_reminder_id": "446ba805-786f-415c-8302-f281179ff455",
+          "event_context": "recurring_reminder:446ba805-786f-415c-8302-f281179ff455",
+          "draft_message": "Je passe te glisser un peu de soutien pour aujourd’hui.\nTu n’as pas à tout porter seul·e, même si ça ressemble à ça.\nChoisis un petit pas faisable, et laisse le reste attendre.\nJe suis là si tu veux déposer ce qui pèse.",
+          "scheduled_for": "2026-05-22T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:34:06.460218+00:00"
+        },
+        {
+          "id": "599d9359-b14c-466d-9001-7e2dfc565c62",
+          "recurring_reminder_id": "446ba805-786f-415c-8302-f281179ff455",
+          "event_context": "recurring_reminder:446ba805-786f-415c-8302-f281179ff455",
+          "draft_message": "Je pense à toi ce matin.\nSi ça tangue, prends 30 secondes pour respirer et te recentrer.\nQuelle est la chose la plus importante à faire, et le reste peut suivre après.\nTu peux m’écrire quand tu veux, vraiment.",
+          "scheduled_for": "2026-05-23T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:34:06.463354+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "d4cda84a-5945-48bb-b6bc-cdc39f79eeff",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "b3f856bd-884e-434c-8f57-6b9386fe6548",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r25_hard2_green_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

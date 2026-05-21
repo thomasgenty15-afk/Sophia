@@ -25,6 +25,10 @@ import {
 } from "../_shared/action_occurrences.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 import {
+  randomEveningReviewLocalTime,
+  randomMorningEncouragementLocalTime,
+} from "../_shared/proactive_checkin_timing.ts";
+import {
   allowsContactWindow,
   getUserRelationPreferences,
 } from "../sophia-brain/relation_preferences_engine.ts";
@@ -46,9 +50,7 @@ import {
   weeklyPlanningDashboardUrl,
 } from "../_shared/weekly_progress_review.ts";
 
-const TARGET_LOCAL_TIME = "07:00";
-const EVENING_REVIEW_START_LOCAL_TIME = "19:00";
-const EVENING_REVIEW_END_LOCAL_TIME = "21:30";
+const MORNING_ENCOURAGEMENT_START_LOCAL_TIME = "08:00";
 const WEEKLY_PLANNING_PROMPT_LOCAL_TIME = "10:30";
 const WEEKLY_PROGRESS_REVIEW_LOCAL_TIME = "18:30";
 const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
@@ -56,42 +58,6 @@ const MORNING_PENDING_STATUSES = ["pending", "retrying", "awaiting_user"];
 function cleanText(value: unknown, fallback = ""): string {
   const text = String(value ?? "").trim();
   return text || fallback;
-}
-
-function minutesFromHHMM(value: string): number {
-  const match = cleanText(value).match(/^(\d{1,2}):(\d{2})$/);
-  if (!match) throw new Error("invalid_hhmm");
-  return Math.max(0, Math.min(23, Number(match[1]))) * 60 +
-    Math.max(0, Math.min(59, Number(match[2])));
-}
-
-function hhmmFromMinutes(value: number): string {
-  const minutes = Math.max(0, Math.min(23 * 60 + 59, Math.floor(value)));
-  const hh = Math.floor(minutes / 60);
-  const mm = minutes % 60;
-  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
-}
-
-function stableHashInt(value: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-export function randomEveningReviewLocalTime(params: {
-  userId: string;
-  localDate: string;
-}): string {
-  const start = minutesFromHHMM(EVENING_REVIEW_START_LOCAL_TIME);
-  const end = minutesFromHHMM(EVENING_REVIEW_END_LOCAL_TIME);
-  const span = Math.max(0, end - start);
-  const seed = stableHashInt(
-    `${params.userId}:${params.localDate}:daily_review`,
-  );
-  return hhmmFromMinutes(start + (seed % (span + 1)));
 }
 
 function normalizeDayPart(value: unknown): string {
@@ -416,21 +382,36 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      const todaySchedule = await loadTodayActionOccurrences(
+      const todayScheduleRaw = await loadTodayActionOccurrences(
         supabaseAdmin as any,
         {
           userId,
           timezone,
-          localTimeHHMM: TARGET_LOCAL_TIME,
+          localTimeHHMM: MORNING_ENCOURAGEMENT_START_LOCAL_TIME,
           now,
         },
       );
+      const morningEncouragementLocalTime = randomMorningEncouragementLocalTime(
+        {
+          userId,
+          localDate: todayScheduleRaw.local_date,
+        },
+      );
+      const todaySchedule = {
+        ...todayScheduleRaw,
+        scheduled_for: computeScheduledForFromLocal({
+          timezone,
+          dayOffset: 0,
+          localTimeHHMM: morningEncouragementLocalTime,
+          now,
+        }),
+      };
       const yesterdayScheduleRaw = await loadTodayActionOccurrences(
         supabaseAdmin as any,
         {
           userId,
           timezone,
-          localTimeHHMM: TARGET_LOCAL_TIME,
+          localTimeHHMM: MORNING_ENCOURAGEMENT_START_LOCAL_TIME,
           now: new Date(now.getTime() - 24 * 60 * 60 * 1000),
         },
       );
@@ -540,6 +521,8 @@ Deno.serve(async (req) => {
                 reviewed_local_date: hasOpenActionsFromYesterday
                   ? yesterdaySchedule.local_date
                   : null,
+                morning_encouragement_local_time:
+                  morningEncouragementLocalTime,
                 transformations: selectedSchedule.transformations,
                 occurrence_ids: selectedSchedule.transformations.flatMap((
                   entry,

@@ -1,0 +1,1639 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En lisant la suite du plan, j'ai l'impression qu'il manque une vraie etape de consolidation avant les sujets plus sensibles. On passe trop vite du signal de pause a des discussions qui demandent deja beaucoup. Tu peux voir si le plan global devrait ajouter une marche entre les deux ?",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "maintenir l'intention de sécurité et de désamorçage avant d'aborder des sujets plus sensibles",
+              "ajouter une étape de consolidation intermédiaire sans sauter directement à des discussions exigeantes",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne vise pas un simple ajustement local, mais une restructuration de trajectoire: le plan saute probablement trop vite d’une phase de sécurisation très basique vers des échanges plus exigeants, sans étape intermédiaire de consolidation. Humainement, l’enjeu est de préserver l’élan sans mettre trop tôt le couple en situation de surcharge ou d’échec; techniquement, il s’agit surtout d’un besoin de séquencer mieux la progression.",
+              "coach_recommendation:Orienter la réponse vers l’ajout d’une marche intermédiaire de consolidation, avec une fonction explicite de pont entre désamorçage et sujets plus sensibles. Le sous-skill peut proposer un brouillon de split/merge de phase ou d’insertion de sous-phase, en gardant l’intention de sécurité comme fil conducteur et sans ouvrir un nouveau chantier de fond.",
+              "coach_warning:Éviter de présenter cela comme un simple changement de formulation: le signal porte sur l’architecture du plan.",
+              "coach_warning:Éviter d’accélérer vers les sujets sensibles sous prétexte que les étapes précédentes sont ‘acquises’.",
+              "coach_warning:Éviter de supprimer la consolidation au profit d’une transition directe entre pause et discussion profonde.",
+              "coach_warning:Éviter de multiplier les micro-clarifications sur le besoin; la solution implicite est déjà assez claire.",
+              "coach_warning:Éviter de changer la nature du plan: il faut un pont, pas une nouvelle direction relationnelle.",
+              "coach_preserve:L’intention centrale de désamorçage et de recréation de sécurité.",
+              "coach_preserve:Le rôle du signal de pause comme base de sécurité.",
+              "coach_preserve:La progressivité du plan avant les sujets à fort enjeu.",
+              "coach_preserve:Les acquis déjà installés dans les premières étapes, sans les requalifier comme inutiles.",
+              "coach_preserve:Le principe d’éviter les discussions lourdes tant que la stabilité n’est pas assez consolidée.",
+              "coach_avoid:Ne pas proposer d’attaquer plus vite les sujets sensibles.",
+              "coach_avoid:Ne pas reformuler la demande comme un simple changement de rythme quotidien.",
+              "coach_avoid:Ne pas ajouter une étape sans lui donner une fonction de pont claire.",
+              "coach_avoid:Ne pas casser la logique ‘sécurité d’abord, profondeur ensuite’.",
+              "coach_avoid:Ne pas suggérer une refonte complète si une insertion ou un split de phase suffit.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Rôle de l’action: l’étape ajoutée doit servir de pont opérationnel entre deux niveaux de difficulté, pas d’objectif indépendant.",
+              "coach_guideline:Intention préservée: garder la sécurité relationnelle comme prérequis avant toute conversation plus exigeante.",
+              "coach_guideline:Pont mini si besoin: proposer une consolidation courte, concrète, et observable, plutôt qu’une phase lourde ou abstraite.",
+              "coach_guideline:Pas de changement de nature sans demande explicite: ne pas transformer un plan de désescalade en plan de résolution de conflits profonds.",
+              "coach_guideline:Whole plan: vérifier que l’ordre des phases respecte une montée graduelle de charge, avec un jalon de consolidation avant les sujets sensibles.",
+              "coach_guideline:Whole plan: préserver la cohérence globale, les prérequis et l’objectif de progression graduelle plutôt que de traiter chaque item isolément.",
+              "coach_guideline:Whole plan: si une étape intermédiaire est ajoutée, elle doit avoir un critère de sortie clair pour éviter l’infini de la sécurisation.",
+              "coach_guideline:Guideline de rédaction: parler en termes de trajectoire, de pont et de consolidation, pas seulement d’ajout d’item.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_trajectory_hypothesis:La trajectoire actuelle va de la sécurisation initiale vers des sujets plus sensibles; la trajectoire possible ajoute une marche de consolidation pour vérifier que la sécurité tient avant d’ouvrir ces sujets.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause",
+              "affected_item:Partager un point positif"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+          "decision_basis": {
+            "evidence": [
+              "En lisant la suite du plan, j'ai l'impression qu'il manque une vraie etape de consolidation avant les sujets plus sensibles. On passe trop vite du signal de pause a des discussions qui demandent deja beaucoup. Tu peux voir si le plan global devrait ajouter une marche entre les deux ?",
+              "operation_input.scope",
+              "deterministic whole-plan structural/family signal",
+              "deterministic whole-plan fit/complexity signal",
+              "il manque une vraie etape de consolidation",
+              "on passe trop vite du signal de pause a des discussions qui demandent deja beaucoup",
+              "ajouter une marche entre les deux",
+              "avant les sujets plus sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "reordered_steps": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "Garder une marche claire avant d'aborder les sujets sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+            "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "fa4e7501-082a-4ac8-abd8-71990ddf8bc7",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer d’attaquer plus vite les sujets sensibles.",
+          "Ne pas reformuler la demande comme un simple changement de rythme quotidien.",
+          "Ne pas ajouter une étape sans lui donner une fonction de pont claire.",
+          "Ne pas casser la logique ‘sécurité d’abord, profondeur ensuite’.",
+          "Ne pas suggérer une refonte complète si une insertion ou un split de phase suffit."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention centrale de désamorçage et de recréation de sécurité.",
+          "Le rôle du signal de pause comme base de sécurité.",
+          "La progressivité du plan avant les sujets à fort enjeu.",
+          "Les acquis déjà installés dans les premières étapes, sans les requalifier comme inutiles.",
+          "Le principe d’éviter les discussions lourdes tant que la stabilité n’est pas assez consolidée."
+        ],
+        "warnings": [
+          "Éviter de présenter cela comme un simple changement de formulation: le signal porte sur l’architecture du plan.",
+          "Éviter d’accélérer vers les sujets sensibles sous prétexte que les étapes précédentes sont ‘acquises’.",
+          "Éviter de supprimer la consolidation au profit d’une transition directe entre pause et discussion profonde.",
+          "Éviter de multiplier les micro-clarifications sur le besoin; la solution implicite est déjà assez claire.",
+          "Éviter de changer la nature du plan: il faut un pont, pas une nouvelle direction relationnelle."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Rôle de l’action: l’étape ajoutée doit servir de pont opérationnel entre deux niveaux de difficulté, pas d’objectif indépendant.",
+          "Intention préservée: garder la sécurité relationnelle comme prérequis avant toute conversation plus exigeante.",
+          "Pont mini si besoin: proposer une consolidation courte, concrète, et observable, plutôt qu’une phase lourde ou abstraite.",
+          "Pas de changement de nature sans demande explicite: ne pas transformer un plan de désescalade en plan de résolution de conflits profonds.",
+          "Whole plan: vérifier que l’ordre des phases respecte une montée graduelle de charge, avec un jalon de consolidation avant les sujets sensibles.",
+          "Whole plan: préserver la cohérence globale, les prérequis et l’objectif de progression graduelle plutôt que de traiter chaque item isolément.",
+          "Whole plan: si une étape intermédiaire est ajoutée, elle doit avoir un critère de sortie clair pour éviter l’infini de la sécurisation.",
+          "Guideline de rédaction: parler en termes de trajectoire, de pont et de consolidation, pas seulement d’ajout d’item."
+        ],
+        "observation": "La demande ne vise pas un simple ajustement local, mais une restructuration de trajectoire: le plan saute probablement trop vite d’une phase de sécurisation très basique vers des échanges plus exigeants, sans étape intermédiaire de consolidation. Humainement, l’enjeu est de préserver l’élan sans mettre trop tôt le couple en situation de surcharge ou d’échec; techniquement, il s’agit surtout d’un besoin de séquencer mieux la progression.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Orienter la réponse vers l’ajout d’une marche intermédiaire de consolidation, avec une fonction explicite de pont entre désamorçage et sujets plus sensibles. Le sous-skill peut proposer un brouillon de split/merge de phase ou d’insertion de sous-phase, en gardant l’intention de sécurité comme fil conducteur et sans ouvrir un nouveau chantier de fond.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une mini-phase de consolidation avant les sujets sensibles, centrée sur vérification de sécurité, tolérance et petites réussites.",
+          "Fusionner certaines étapes de sécurisation si elles font doublon, pour libérer une marche intermédiaire sans alourdir le plan.",
+          "Rendre la consolidation plus explicite en la reliant à un objectif concret: tester si le signal de pause et le climat général tiennent dans le temps.",
+          "Décaler les sujets sensibles d’un cran et les introduire seulement après un jalon observable de stabilité.",
+          "Ajouter une phase de transition courte et légère plutôt qu’une longue phase supplémentaire."
+        ],
+        "candidate_operation": "split_or_merge_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle va de la sécurisation initiale vers des sujets plus sensibles; la trajectoire possible ajoute une marche de consolidation pour vérifier que la sécurité tient avant d’ouvrir ces sujets.",
+        "must_not_execute_reason": null
+      },
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer d’attaquer plus vite les sujets sensibles.",
+        "Ne pas reformuler la demande comme un simple changement de rythme quotidien.",
+        "Ne pas ajouter une étape sans lui donner une fonction de pont claire.",
+        "Ne pas casser la logique ‘sécurité d’abord, profondeur ensuite’.",
+        "Ne pas suggérer une refonte complète si une insertion ou un split de phase suffit."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention centrale de désamorçage et de recréation de sécurité.",
+        "Le rôle du signal de pause comme base de sécurité.",
+        "La progressivité du plan avant les sujets à fort enjeu.",
+        "Les acquis déjà installés dans les premières étapes, sans les requalifier comme inutiles.",
+        "Le principe d’éviter les discussions lourdes tant que la stabilité n’est pas assez consolidée."
+      ],
+      "warnings": [
+        "Éviter de présenter cela comme un simple changement de formulation: le signal porte sur l’architecture du plan.",
+        "Éviter d’accélérer vers les sujets sensibles sous prétexte que les étapes précédentes sont ‘acquises’.",
+        "Éviter de supprimer la consolidation au profit d’une transition directe entre pause et discussion profonde.",
+        "Éviter de multiplier les micro-clarifications sur le besoin; la solution implicite est déjà assez claire.",
+        "Éviter de changer la nature du plan: il faut un pont, pas une nouvelle direction relationnelle."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Rôle de l’action: l’étape ajoutée doit servir de pont opérationnel entre deux niveaux de difficulté, pas d’objectif indépendant.",
+        "Intention préservée: garder la sécurité relationnelle comme prérequis avant toute conversation plus exigeante.",
+        "Pont mini si besoin: proposer une consolidation courte, concrète, et observable, plutôt qu’une phase lourde ou abstraite.",
+        "Pas de changement de nature sans demande explicite: ne pas transformer un plan de désescalade en plan de résolution de conflits profonds.",
+        "Whole plan: vérifier que l’ordre des phases respecte une montée graduelle de charge, avec un jalon de consolidation avant les sujets sensibles.",
+        "Whole plan: préserver la cohérence globale, les prérequis et l’objectif de progression graduelle plutôt que de traiter chaque item isolément.",
+        "Whole plan: si une étape intermédiaire est ajoutée, elle doit avoir un critère de sortie clair pour éviter l’infini de la sécurisation.",
+        "Guideline de rédaction: parler en termes de trajectoire, de pont et de consolidation, pas seulement d’ajout d’item."
+      ],
+      "observation": "La demande ne vise pas un simple ajustement local, mais une restructuration de trajectoire: le plan saute probablement trop vite d’une phase de sécurisation très basique vers des échanges plus exigeants, sans étape intermédiaire de consolidation. Humainement, l’enjeu est de préserver l’élan sans mettre trop tôt le couple en situation de surcharge ou d’échec; techniquement, il s’agit surtout d’un besoin de séquencer mieux la progression.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Orienter la réponse vers l’ajout d’une marche intermédiaire de consolidation, avec une fonction explicite de pont entre désamorçage et sujets plus sensibles. Le sous-skill peut proposer un brouillon de split/merge de phase ou d’insertion de sous-phase, en gardant l’intention de sécurité comme fil conducteur et sans ouvrir un nouveau chantier de fond.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une mini-phase de consolidation avant les sujets sensibles, centrée sur vérification de sécurité, tolérance et petites réussites.",
+        "Fusionner certaines étapes de sécurisation si elles font doublon, pour libérer une marche intermédiaire sans alourdir le plan.",
+        "Rendre la consolidation plus explicite en la reliant à un objectif concret: tester si le signal de pause et le climat général tiennent dans le temps.",
+        "Décaler les sujets sensibles d’un cran et les introduire seulement après un jalon observable de stabilité.",
+        "Ajouter une phase de transition courte et légère plutôt qu’une longue phase supplémentaire."
+      ],
+      "candidate_operation": "split_or_merge_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle va de la sécurisation initiale vers des sujets plus sensibles; la trajectoire possible ajoute une marche de consolidation pour vérifier que la sécurité tient avant d’ouvrir ces sujets.",
+      "must_not_execute_reason": null
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Pas seulement clarifier la separation. Je pense qu'il faut ajouter un niveau court de consolidation, comme un sas, avant les sujets sensibles. L'objectif serait de pratiquer le signal de pause et une reparation simple deux fois avant de monter. Ne l'applique pas encore.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande précise maintenant une structure de transition plus riche qu’une simple séparation: il faut probablement insérer un sas court de consolidation avant les sujets sensibles, avec une répétition minimale et observable (signal de pause + réparation simple) pour tester la tenue de la sécurité avant montée en charge. Humainement, il s’agit de protéger l’élan sans exposer trop tôt à des échanges à fort enjeu; techniquement, on est sur un changement de séquençage et de rôle de phase, pas sur un simple renommage.",
+              "coach_recommendation:Faire évoluer la lecture vers une insertion de phase ou un split/merge plus concret: proposer un sas de consolidation court, explicitement utile comme pont, centré sur deux répétitions du signal de pause et d’une réparation simple avant l’accès aux sujets sensibles. Garder l’intention de sécurité intacte et éviter de réduire la demande à une clarification de séparation seulement.",
+              "coach_warning:Éviter de traiter cela comme un simple ajustement stylistique de la frontière entre phases.",
+              "coach_warning:Éviter de rendre le sas trop vague: il doit avoir une fonction, des contenus précis et un critère de sortie.",
+              "coach_warning:Éviter d’augmenter la complexité du plan sans réduire la charge perçue; le sas doit alléger la transition, pas l’alourdir.",
+              "coach_warning:Éviter d’anticiper les sujets sensibles avant que les deux répétitions de consolidation aient été faites.",
+              "coach_warning:Éviter de proposer une refonte globale du plan si une insertion courte suffit à répondre au besoin.",
+              "coach_warning:Éviter de laisser le sas devenir une phase sans fin de sécurisation sans jalon de fin.",
+              "coach_preserve:L’intention de sécurité avant profondeur.",
+              "coach_preserve:Le rôle du signal de pause comme base centrale.",
+              "coach_preserve:La progressivité du plan et l’évitement des sujets sensibles trop tôt.",
+              "coach_preserve:La volonté de garder le plan soutenable et non trop ambitieux.",
+              "coach_preserve:Le principe de ne rien appliquer tant que la modification n’est pas explicitement validée.",
+              "coach_avoid:Ne pas proposer seulement une séparation plus nette sans consolidation.",
+              "coach_avoid:Ne pas faire semblant que deux phases très différentes peuvent s’enchaîner sans pont.",
+              "coach_avoid:Ne pas introduire un sas sans contenu concret ni mesure de sortie.",
+              "coach_avoid:Ne pas accélérer vers les sujets sensibles comme si la consolidation était optionnelle.",
+              "coach_avoid:Ne pas parler d’un simple rééquilibrage local; le changement demandé touche la trajectoire.",
+              "coach_avoid:Ne pas exécuter ou reformuler comme si c’était déjà validé.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter la demande comme une modification de trajectoire globale, pas comme un micro-patch.",
+              "coach_guideline:Distinguer clairement ce qui est humainement utile (sécurité, tolérance, charge) de ce qui est techniquement faisable (insertion, split, fusion de phases).",
+              "coach_guideline:Si un sas est proposé, lui donner un rôle de pont observable entre deux niveaux de difficulté.",
+              "coach_guideline:Préserver l’objectif initial tout en ajoutant un prérequis de consolidation lisible.",
+              "coach_guideline:Éviter les changements de nature sans demande explicite: il faut un pont, pas un nouveau projet relationnel.",
+              "coach_guideline:Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+              "coach_guideline:Rédiger en termes de consolidation, répétition minimale et montée graduelle, pas seulement de séparation.",
+              "coach_guideline:Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+              "coach_guideline:Whole plan: vérifier l’ordre des phases et la charge émotionnelle avant d’autoriser l’accès aux sujets sensibles.",
+              "coach_guideline:Whole plan: garder un critère de fin clair pour le sas afin d’éviter une sécurisation infinie.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:La demande corrige la trajectoire proposée: il ne faut pas appliquer une simple séparation, et encore moins exécuter quoi que ce soit, tant que le brouillon d’un sas de consolidation n’a pas été explicitement validé.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle saute trop directement vers des sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant d’ouvrir cette étape.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+          "decision_basis": {
+            "evidence": [
+              "Pas seulement clarifier la separation. Je pense qu'il faut ajouter un niveau court de consolidation, comme un sas, avant les sujets sensibles. L'objectif serait de pratiquer le signal de pause et une reparation simple deux fois avant de monter. Ne l'applique pas encore.",
+              "operation_input.scope",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "il manque une vraie etape de consolidation",
+              "on passe trop vite du signal de pause a des discussions qui demandent deja beaucoup",
+              "ajouter une marche entre les deux",
+              "avant les sujets plus sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "reordered_steps": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "Garder une marche claire avant d'aborder les sujets sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+            "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "6f1f74e7-c000-4fa0-827e-1a911ad310e9",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Ne pas proposer seulement une séparation plus nette sans consolidation.",
+          "Ne pas faire semblant que deux phases très différentes peuvent s’enchaîner sans pont.",
+          "Ne pas introduire un sas sans contenu concret ni mesure de sortie.",
+          "Ne pas accélérer vers les sujets sensibles comme si la consolidation était optionnelle.",
+          "Ne pas parler d’un simple rééquilibrage local; le changement demandé touche la trajectoire.",
+          "Ne pas exécuter ou reformuler comme si c’était déjà validé."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L’intention de sécurité avant profondeur.",
+          "Le rôle du signal de pause comme base centrale.",
+          "La progressivité du plan et l’évitement des sujets sensibles trop tôt.",
+          "La volonté de garder le plan soutenable et non trop ambitieux.",
+          "Le principe de ne rien appliquer tant que la modification n’est pas explicitement validée."
+        ],
+        "warnings": [
+          "Éviter de traiter cela comme un simple ajustement stylistique de la frontière entre phases.",
+          "Éviter de rendre le sas trop vague: il doit avoir une fonction, des contenus précis et un critère de sortie.",
+          "Éviter d’augmenter la complexité du plan sans réduire la charge perçue; le sas doit alléger la transition, pas l’alourdir.",
+          "Éviter d’anticiper les sujets sensibles avant que les deux répétitions de consolidation aient été faites.",
+          "Éviter de proposer une refonte globale du plan si une insertion courte suffit à répondre au besoin.",
+          "Éviter de laisser le sas devenir une phase sans fin de sécurisation sans jalon de fin."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme une modification de trajectoire globale, pas comme un micro-patch.",
+          "Distinguer clairement ce qui est humainement utile (sécurité, tolérance, charge) de ce qui est techniquement faisable (insertion, split, fusion de phases).",
+          "Si un sas est proposé, lui donner un rôle de pont observable entre deux niveaux de difficulté.",
+          "Préserver l’objectif initial tout en ajoutant un prérequis de consolidation lisible.",
+          "Éviter les changements de nature sans demande explicite: il faut un pont, pas un nouveau projet relationnel.",
+          "Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+          "Rédiger en termes de consolidation, répétition minimale et montée graduelle, pas seulement de séparation.",
+          "Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+          "Whole plan: vérifier l’ordre des phases et la charge émotionnelle avant d’autoriser l’accès aux sujets sensibles.",
+          "Whole plan: garder un critère de fin clair pour le sas afin d’éviter une sécurisation infinie."
+        ],
+        "observation": "La demande précise maintenant une structure de transition plus riche qu’une simple séparation: il faut probablement insérer un sas court de consolidation avant les sujets sensibles, avec une répétition minimale et observable (signal de pause + réparation simple) pour tester la tenue de la sécurité avant montée en charge. Humainement, il s’agit de protéger l’élan sans exposer trop tôt à des échanges à fort enjeu; techniquement, on est sur un changement de séquençage et de rôle de phase, pas sur un simple renommage.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Faire évoluer la lecture vers une insertion de phase ou un split/merge plus concret: proposer un sas de consolidation court, explicitement utile comme pont, centré sur deux répétitions du signal de pause et d’une réparation simple avant l’accès aux sujets sensibles. Garder l’intention de sécurité intacte et éviter de réduire la demande à une clarification de séparation seulement.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer un sas court entre la sécurisation initiale et les sujets sensibles, avec 2 essais du signal de pause et 2 réparations simples.",
+          "Transformer une étape existante en consolidation active, plutôt que d’ajouter une phase lourde nouvelle.",
+          "Définir un critère de sortie concret du sas: par exemple, le signal est utilisé sans escalade et la réparation est reconnue deux fois.",
+          "Décaler l’entrée dans les sujets sensibles jusqu’après un mini-jalon de stabilité observée.",
+          "Fusionner des micro-étapes redondantes pour faire de la place au sas sans allonger excessivement le plan."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle saute trop directement vers des sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant d’ouvrir cette étape.",
+        "must_not_execute_reason": "La demande corrige la trajectoire proposée: il ne faut pas appliquer une simple séparation, et encore moins exécuter quoi que ce soit, tant que le brouillon d’un sas de consolidation n’a pas été explicitement validé."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "pre_validation_concrete_constraint_requires_revision"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "fa4e7501-082a-4ac8-abd8-71990ddf8bc7",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Ne pas proposer seulement une séparation plus nette sans consolidation.",
+        "Ne pas faire semblant que deux phases très différentes peuvent s’enchaîner sans pont.",
+        "Ne pas introduire un sas sans contenu concret ni mesure de sortie.",
+        "Ne pas accélérer vers les sujets sensibles comme si la consolidation était optionnelle.",
+        "Ne pas parler d’un simple rééquilibrage local; le changement demandé touche la trajectoire.",
+        "Ne pas exécuter ou reformuler comme si c’était déjà validé."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L’intention de sécurité avant profondeur.",
+        "Le rôle du signal de pause comme base centrale.",
+        "La progressivité du plan et l’évitement des sujets sensibles trop tôt.",
+        "La volonté de garder le plan soutenable et non trop ambitieux.",
+        "Le principe de ne rien appliquer tant que la modification n’est pas explicitement validée."
+      ],
+      "warnings": [
+        "Éviter de traiter cela comme un simple ajustement stylistique de la frontière entre phases.",
+        "Éviter de rendre le sas trop vague: il doit avoir une fonction, des contenus précis et un critère de sortie.",
+        "Éviter d’augmenter la complexité du plan sans réduire la charge perçue; le sas doit alléger la transition, pas l’alourdir.",
+        "Éviter d’anticiper les sujets sensibles avant que les deux répétitions de consolidation aient été faites.",
+        "Éviter de proposer une refonte globale du plan si une insertion courte suffit à répondre au besoin.",
+        "Éviter de laisser le sas devenir une phase sans fin de sécurisation sans jalon de fin."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme une modification de trajectoire globale, pas comme un micro-patch.",
+        "Distinguer clairement ce qui est humainement utile (sécurité, tolérance, charge) de ce qui est techniquement faisable (insertion, split, fusion de phases).",
+        "Si un sas est proposé, lui donner un rôle de pont observable entre deux niveaux de difficulté.",
+        "Préserver l’objectif initial tout en ajoutant un prérequis de consolidation lisible.",
+        "Éviter les changements de nature sans demande explicite: il faut un pont, pas un nouveau projet relationnel.",
+        "Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+        "Rédiger en termes de consolidation, répétition minimale et montée graduelle, pas seulement de séparation.",
+        "Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+        "Whole plan: vérifier l’ordre des phases et la charge émotionnelle avant d’autoriser l’accès aux sujets sensibles.",
+        "Whole plan: garder un critère de fin clair pour le sas afin d’éviter une sécurisation infinie."
+      ],
+      "observation": "La demande précise maintenant une structure de transition plus riche qu’une simple séparation: il faut probablement insérer un sas court de consolidation avant les sujets sensibles, avec une répétition minimale et observable (signal de pause + réparation simple) pour tester la tenue de la sécurité avant montée en charge. Humainement, il s’agit de protéger l’élan sans exposer trop tôt à des échanges à fort enjeu; techniquement, on est sur un changement de séquençage et de rôle de phase, pas sur un simple renommage.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Faire évoluer la lecture vers une insertion de phase ou un split/merge plus concret: proposer un sas de consolidation court, explicitement utile comme pont, centré sur deux répétitions du signal de pause et d’une réparation simple avant l’accès aux sujets sensibles. Garder l’intention de sécurité intacte et éviter de réduire la demande à une clarification de séparation seulement.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer un sas court entre la sécurisation initiale et les sujets sensibles, avec 2 essais du signal de pause et 2 réparations simples.",
+        "Transformer une étape existante en consolidation active, plutôt que d’ajouter une phase lourde nouvelle.",
+        "Définir un critère de sortie concret du sas: par exemple, le signal est utilisé sans escalade et la réparation est reconnue deux fois.",
+        "Décaler l’entrée dans les sujets sensibles jusqu’après un mini-jalon de stabilité observée.",
+        "Fusionner des micro-étapes redondantes pour faire de la place au sas sans allonger excessivement le plan."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle saute trop directement vers des sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant d’ouvrir cette étape.",
+      "must_not_execute_reason": "La demande corrige la trajectoire proposée: il ne faut pas appliquer une simple séparation, et encore moins exécuter quoi que ce soit, tant que le brouillon d’un sas de consolidation n’a pas été explicitement validé."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Non, je veux vraiment ajouter un niveau en plus, pas seulement mieux separer deux niveaux existants. Ce niveau serait une semaine de consolidation active : signal de pause, petite reparation, et seulement apres on ouvre les sujets sensibles. Montre-moi ce brouillon sans appliquer.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "une semaine de consolidation active : signal de pause, petite reparation, et seulement apres on ouvre les sujets sensibles.",
+              "preserve_plan_intent",
+              "no_application_yet",
+              "insert_phase_before_sensitive_topics",
+              "keep_signal_of_pause_as_base",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande ne vise plus une simple meilleure séparation entre deux étapes: elle demande l'ajout explicite d'un sas de consolidation d'une semaine, avec un rôle fonctionnel précis (signal de pause, petite réparation, puis seulement ensuite accès aux sujets sensibles). Humainement, la demande cherche à protéger la sécurité et l'élan avant de monter en difficulté; techniquement, cela correspond à une insertion de phase dans la trajectoire globale, pas à un simple réaménagement local.",
+              "coach_recommendation:Orienter le brouillon vers une insertion de phase courte et clairement bornée: un sas de consolidation actif, présenté comme un pont entre la sécurisation initiale et les sujets sensibles. Le brouillon doit garder l'objectif global stable, expliciter le rôle du sas, et montrer un critère de sortie simple avant d'ouvrir la suite.",
+              "coach_warning:Ne pas reformuler cela comme une simple clarification de séparation entre deux niveaux existants.",
+              "coach_warning:Ne pas proposer un sas vague ou purement symbolique: il doit avoir un contenu concret et un rôle observable.",
+              "coach_warning:Ne pas laisser entendre que les sujets sensibles peuvent commencer avant les répétitions de consolidation demandées.",
+              "coach_warning:Ne pas transformer ce besoin en refonte globale du plan si une insertion courte suffit.",
+              "coach_warning:Ne pas supprimer le caractère borné du sas; éviter toute phase de consolidation sans fin.",
+              "coach_preserve:L'intention de sécurité avant profondeur.",
+              "coach_preserve:Le rôle central du signal de pause.",
+              "coach_preserve:La progressivité du plan.",
+              "coach_preserve:L'objectif global du plan.",
+              "coach_preserve:Le principe de ne rien appliquer avant validation explicite.",
+              "coach_avoid:Évoquer seulement une meilleure séparation sans ajout de phase.",
+              "coach_avoid:Présenter le sas comme une simple astuce de rythme plutôt que comme un prérequis.",
+              "coach_avoid:Donner l'impression que la consolidation est optionnelle.",
+              "coach_avoid:Ouvrir les sujets sensibles trop tôt dans le brouillon.",
+              "coach_avoid:Parler comme si la modification était déjà appliquée.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter la demande comme une modification de trajectoire globale.",
+              "coach_guideline:Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+              "coach_guideline:Préserver explicitement l'objectif initial et l'intention de sécurité.",
+              "coach_guideline:Donner au sas un rôle de pont observable entre deux niveaux de difficulté.",
+              "coach_guideline:Éviter les changements de nature sans demande explicite.",
+              "coach_guideline:Formuler la consolidation en termes de répétition minimale, sécurité et montée graduelle.",
+              "coach_guideline:Garder un jalon de fin clair pour éviter une sécurisation infinie.",
+              "coach_guideline:Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+              "coach_guideline:Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+              "coach_guideline:Ne pas exécuter ni suggérer une application avant validation.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:La demande précise une nouvelle structure de plan et demande un brouillon seulement: il faut donc produire une proposition, sans appliquer ni présenter cela comme validé.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle passe trop vite de la sécurisation aux sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+          "decision_basis": {
+            "evidence": [
+              "Non, je veux vraiment ajouter un niveau en plus, pas seulement mieux separer deux niveaux existants. Ce niveau serait une semaine de consolidation active : signal de pause, petite reparation, et seulement apres on ouvre les sujets sensibles. Montre-moi ce brouillon sans appliquer.",
+              "operation_input.scope",
+              "ajouter un niveau en plus",
+              "rebalance",
+              "Pas seulement clarifier la separation.",
+              "il faut ajouter un niveau en plus",
+              "il manque une vraie etape de consolidation",
+              "on passe trop vite du signal de pause a des discussions qui demandent deja beaucoup",
+              "une semaine de consolidation active",
+              "signal de pause, petite reparation, et seulement apres on ouvre les sujets sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "reordered_steps": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "Garder une marche claire avant d'aborder les sujets sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+            "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "805eba21-2481-4dd8-839a-83152847c527",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Évoquer seulement une meilleure séparation sans ajout de phase.",
+          "Présenter le sas comme une simple astuce de rythme plutôt que comme un prérequis.",
+          "Donner l'impression que la consolidation est optionnelle.",
+          "Ouvrir les sujets sensibles trop tôt dans le brouillon.",
+          "Parler comme si la modification était déjà appliquée."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'intention de sécurité avant profondeur.",
+          "Le rôle central du signal de pause.",
+          "La progressivité du plan.",
+          "L'objectif global du plan.",
+          "Le principe de ne rien appliquer avant validation explicite."
+        ],
+        "warnings": [
+          "Ne pas reformuler cela comme une simple clarification de séparation entre deux niveaux existants.",
+          "Ne pas proposer un sas vague ou purement symbolique: il doit avoir un contenu concret et un rôle observable.",
+          "Ne pas laisser entendre que les sujets sensibles peuvent commencer avant les répétitions de consolidation demandées.",
+          "Ne pas transformer ce besoin en refonte globale du plan si une insertion courte suffit.",
+          "Ne pas supprimer le caractère borné du sas; éviter toute phase de consolidation sans fin."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme une modification de trajectoire globale.",
+          "Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+          "Préserver explicitement l'objectif initial et l'intention de sécurité.",
+          "Donner au sas un rôle de pont observable entre deux niveaux de difficulté.",
+          "Éviter les changements de nature sans demande explicite.",
+          "Formuler la consolidation en termes de répétition minimale, sécurité et montée graduelle.",
+          "Garder un jalon de fin clair pour éviter une sécurisation infinie.",
+          "Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+          "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+          "Ne pas exécuter ni suggérer une application avant validation."
+        ],
+        "observation": "La demande ne vise plus une simple meilleure séparation entre deux étapes: elle demande l'ajout explicite d'un sas de consolidation d'une semaine, avec un rôle fonctionnel précis (signal de pause, petite réparation, puis seulement ensuite accès aux sujets sensibles). Humainement, la demande cherche à protéger la sécurité et l'élan avant de monter en difficulté; techniquement, cela correspond à une insertion de phase dans la trajectoire globale, pas à un simple réaménagement local.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Orienter le brouillon vers une insertion de phase courte et clairement bornée: un sas de consolidation actif, présenté comme un pont entre la sécurisation initiale et les sujets sensibles. Le brouillon doit garder l'objectif global stable, expliciter le rôle du sas, et montrer un critère de sortie simple avant d'ouvrir la suite.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+          "Définir 2 essais du signal de pause et 2 petites réparations simples comme contenu minimum du sas.",
+          "Fixer un critère de sortie explicite: pas d'escalade majeure et réparation reconnue deux fois.",
+          "Décaler l'entrée dans les sujets sensibles jusqu'après ce mini-jalon de stabilité.",
+          "Si nécessaire, alléger une micro-étape existante pour faire de la place au sas sans alourdir le plan."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle passe trop vite de la sécurisation aux sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+        "must_not_execute_reason": "La demande précise une nouvelle structure de plan et demande un brouillon seulement: il faut donc produire une proposition, sans appliquer ni présenter cela comme validé."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "pre_validation_concrete_constraint_requires_revision"
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "6f1f74e7-c000-4fa0-827e-1a911ad310e9",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Évoquer seulement une meilleure séparation sans ajout de phase.",
+        "Présenter le sas comme une simple astuce de rythme plutôt que comme un prérequis.",
+        "Donner l'impression que la consolidation est optionnelle.",
+        "Ouvrir les sujets sensibles trop tôt dans le brouillon.",
+        "Parler comme si la modification était déjà appliquée."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'intention de sécurité avant profondeur.",
+        "Le rôle central du signal de pause.",
+        "La progressivité du plan.",
+        "L'objectif global du plan.",
+        "Le principe de ne rien appliquer avant validation explicite."
+      ],
+      "warnings": [
+        "Ne pas reformuler cela comme une simple clarification de séparation entre deux niveaux existants.",
+        "Ne pas proposer un sas vague ou purement symbolique: il doit avoir un contenu concret et un rôle observable.",
+        "Ne pas laisser entendre que les sujets sensibles peuvent commencer avant les répétitions de consolidation demandées.",
+        "Ne pas transformer ce besoin en refonte globale du plan si une insertion courte suffit.",
+        "Ne pas supprimer le caractère borné du sas; éviter toute phase de consolidation sans fin."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme une modification de trajectoire globale.",
+        "Raisonner en phases, prérequis et critères de sortie avant de raisonner en contenu détaillé.",
+        "Préserver explicitement l'objectif initial et l'intention de sécurité.",
+        "Donner au sas un rôle de pont observable entre deux niveaux de difficulté.",
+        "Éviter les changements de nature sans demande explicite.",
+        "Formuler la consolidation en termes de répétition minimale, sécurité et montée graduelle.",
+        "Garder un jalon de fin clair pour éviter une sécurisation infinie.",
+        "Ne pas multiplier les clarifications si la solution implicite est déjà suffisamment nette.",
+        "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+        "Ne pas exécuter ni suggérer une application avant validation."
+      ],
+      "observation": "La demande ne vise plus une simple meilleure séparation entre deux étapes: elle demande l'ajout explicite d'un sas de consolidation d'une semaine, avec un rôle fonctionnel précis (signal de pause, petite réparation, puis seulement ensuite accès aux sujets sensibles). Humainement, la demande cherche à protéger la sécurité et l'élan avant de monter en difficulté; techniquement, cela correspond à une insertion de phase dans la trajectoire globale, pas à un simple réaménagement local.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Orienter le brouillon vers une insertion de phase courte et clairement bornée: un sas de consolidation actif, présenté comme un pont entre la sécurisation initiale et les sujets sensibles. Le brouillon doit garder l'objectif global stable, expliciter le rôle du sas, et montrer un critère de sortie simple avant d'ouvrir la suite.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+        "Définir 2 essais du signal de pause et 2 petites réparations simples comme contenu minimum du sas.",
+        "Fixer un critère de sortie explicite: pas d'escalade majeure et réparation reconnue deux fois.",
+        "Décaler l'entrée dans les sujets sensibles jusqu'après ce mini-jalon de stabilité.",
+        "Si nécessaire, alléger une micro-étape existante pour faire de la place au sas sans alourdir le plan."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle passe trop vite de la sécurisation aux sujets sensibles; la trajectoire probable ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+      "must_not_execute_reason": "La demande précise une nouvelle structure de plan et demande un brouillon seulement: il faut donc produire une proposition, sans appliquer ni présenter cela comme validé."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Ne valide pas. Le brouillon ne correspond pas : il doit dire 'ajouter un niveau de consolidation', pas 'clarifier la separation'.",
+    "assistant": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_intents": [],
+    "direct_effects": [],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "draft": {
+        "draft": {
+          "patch": {
+            "scope_kind": "whole_plan",
+            "constraints": [
+              "no_pressure",
+              "minimal_patch",
+              "preserve_plan_intent",
+              "no_schedule_day_change",
+              "ask_confirmation_before_write",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "whole_plan_directional_draft_ready",
+              "preserve_plan_intent",
+              "avoid_repetitive_clarification_when_user_gives_solution",
+              "coach_observation:La demande corrige le sens du brouillon: le besoin n'est pas une simple séparation plus nette entre deux niveaux, mais l'insertion d'un niveau intermédiaire court et utile, avec une fonction de sas de consolidation avant l'accès aux sujets sensibles. Humainement, cela sert à sécuriser la montée en intensité; techniquement, cela implique une insertion de phase dans la trajectoire globale du plan, pas un réétiquetage des étapes existantes.",
+              "coach_recommendation:Recentrer le brouillon sur l'ajout explicite d'une phase de consolidation bornée, présentée comme un pont opérationnel entre le signal de pause et les sujets sensibles. Garder l'objectif global intact, décrire un contenu concret pour ce sas, et montrer clairement qu'il sert de prérequis avant la suite.",
+              "coach_warning:Ne pas reformuler le besoin comme une simple clarification de séparation.",
+              "coach_warning:Ne pas présenter le sas comme une astuce de rythme sans rôle de prérequis.",
+              "coach_warning:Ne pas laisser entendre que les sujets sensibles peuvent démarrer avant la consolidation demandée.",
+              "coach_warning:Ne pas ouvrir une refonte globale si une insertion courte suffit.",
+              "coach_warning:Ne pas donner l'impression que le changement est déjà appliqué.",
+              "coach_preserve:L'objectif global du plan.",
+              "coach_preserve:L'intention de sécurité avant profondeur.",
+              "coach_preserve:Le rôle central du signal de pause.",
+              "coach_preserve:La progressivité de la trajectoire.",
+              "coach_preserve:Le principe de ne rien appliquer avant validation explicite.",
+              "coach_avoid:Proposer seulement une meilleure séparation.",
+              "coach_avoid:Parler d'un sas vague ou purement symbolique.",
+              "coach_avoid:Faire commencer les sujets sensibles trop tôt.",
+              "coach_avoid:Transformer cela en refonte complète inutile.",
+              "coach_avoid:Parler comme si la modification était déjà validée.",
+              "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+              "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+              "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+              "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+              "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+              "coach_guideline:Traiter la demande comme une modification de trajectoire globale, pas comme un patch local.",
+              "coach_guideline:Raisonner en phases, prérequis et critères de sortie avant de détailler le contenu.",
+              "coach_guideline:Préserver explicitement l'intention de sécurité et l'objectif global.",
+              "coach_guideline:Donner au sas un rôle observable de pont entre deux niveaux de difficulté.",
+              "coach_guideline:Garder un jalon de fin clair pour éviter une consolidation sans limite.",
+              "coach_guideline:Éviter les changements de nature sans demande explicite.",
+              "coach_guideline:Ne pas multiplier les clarifications si la solution implicite est déjà nette.",
+              "coach_guideline:Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+              "coach_guideline:Ne pas exécuter ni suggérer une application avant validation.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:insert_phase",
+              "whole_plan_readiness:draft_ready",
+              "coach_must_not_execute:La demande vise un brouillon de restructuration du plan, pas une application: il faut proposer l'insertion de phase sans la valider ni la déployer.",
+              "coach_trajectory_hypothesis:La trajectoire actuelle va trop vite de la sécurisation vers les sujets sensibles; la trajectoire ajustée ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+              "whole_plan_change_family:split_merge_restructure",
+              "whole_plan_candidate_operation:split_or_merge_phase",
+              "whole_plan_readiness:draft_ready",
+              "affected_item:Convenir d'un signal de pause",
+              "affected_item:Faire le point sur le signal de pause"
+            ],
+            "reason_type": "bad_fit",
+            "change_target": "global_load",
+            "reason_change": "context_changed"
+          },
+          "title": "Ajuster la trajectoire du plan",
+          "confidence": "medium",
+          "ack_summary": {
+            "changed": [
+              "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+            ],
+            "unchanged": [
+              "Objectif global du plan",
+              "Actions de soutien existantes sauf changement explicitement validé"
+            ],
+            "confidence": "medium",
+            "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+            "follow_up_needed": "Valider avant régénération; le détail exact sera produit dans le plan ajusté."
+          },
+          "scope_label": "plan global",
+          "why_it_helps": "Le user demande une structure plus lisible entre deux phases futures proches.",
+          "decision_basis": {
+            "evidence": [
+              "Ne valide pas. Le brouillon ne correspond pas : il doit dire 'ajouter un niveau de consolidation', pas 'clarifier la separation'.",
+              "operation_input.scope",
+              "ajouter un niveau en plus",
+              "rebalance",
+              "deterministic whole-plan fit/complexity signal",
+              "il manque une vraie etape de consolidation",
+              "on passe trop vite du signal de pause a des discussions qui demandent deja beaucoup",
+              "une semaine de consolidation active",
+              "signal de pause, petite reparation, et seulement apres on ouvre les sujets sensibles"
+            ],
+            "confidence": "medium",
+            "uncertainty": [
+              "semaines ou blocs exacts a affiner ensuite"
+            ],
+            "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+            "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+            "must_preserve": [
+              "intention du plan",
+              "direction globale du plan"
+            ]
+          },
+          "adjustment_type": "rebalance",
+          "proposed_change": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+          "change_rationale": {
+            "why_this_change": "Le user demande une modification structurelle de trajectoire, pas un simple patch d'action.",
+            "success_condition": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+            "expected_mechanism": "Le user demande une structure plus lisible entre deux phases futures proches."
+          },
+          "adjust_plan_result": {
+            "scope": "whole_plan",
+            "rationale": {
+              "confidence": "medium",
+              "missing_info": [],
+              "user_problem": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+              "expected_effect": "Le plan avance avec une trajectoire plus cohérente sans casser l'objectif global.",
+              "why_this_change": "Le user demande une structure plus lisible entre deux phases futures proches."
+            },
+            "boundaries": {
+              "explanation": "Le changement touche l'ordre et les prérequis de progression, donc il doit passer par une régénération contrôlée du plan.",
+              "affected_scope": "trajectoire globale du plan",
+              "global_plan_impact": "requires_review",
+              "explicitly_not_affected": [
+                "objectif global",
+                "identité du plan",
+                "demande de ne pas transformer cela en simple ajustement d'action"
+              ]
+            },
+            "applied_change": {
+              "summary": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+              "changed_items": [
+                {
+                  "id": "3f7b6192-4335-4c4b-8f4e-72ac39f7b6f5",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Convenir d'un signal de pause",
+                  "before": "À un moment calme, mettez-vous d'accord sur un mot ou un geste simple pour faire 'pause' dès que le ton monte, avant que la défensive ne prenne le dessus.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                },
+                {
+                  "id": "931da8a1-2576-43d9-9831-b427ec6d3ada",
+                  "kind": "action",
+                  "after": "À replacer comme appui d'une marche claire: petits sujets du quotidien avant les sujets sensibles.",
+                  "title": "Faire le point sur le signal de pause",
+                  "before": "Discutez 10 minutes à froid pour voir si le signal de pause a été utile cette semaine et s'il est respecté par vous deux.",
+                  "reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                  "capability": "modify_existing_action"
+                }
+              ],
+              "preserved_items": [
+                {
+                  "id": "9dd77821-b33c-45b3-be5c-ae2766549a6c",
+                  "kind": "habit",
+                  "title": "Partager un point positif",
+                  "reason": "L'action reste comme soutien; le changement concerne la trajectoire et l'ordre de progression."
+                }
+              ],
+              "trajectory_change": {
+                "after": "Le plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+                "before": "Deux étapes futures risquaient de se répéter ou de se chevaucher.",
+                "inserted_step": "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                "coaching_reason": "Le user demande une structure plus lisible entre deux phases futures proches.",
+                "reordered_steps": [
+                  "Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+                  "Garder une marche claire avant d'aborder les sujets sensibles"
+                ],
+                "preserved_direction": "L'objectif global du plan reste stable, sauf demande explicite de le changer."
+              }
+            },
+            "user_message_brief": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.",
+            "user_message_detailed": "je clarifie la séparation entre deux étapes du plan: Une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité."
+          },
+          "execution_strategy": "whole_plan_adjustment",
+          "allowed_patch_fields": [
+            "scope_kind",
+            "plan_adjustment",
+            "load_adjustment",
+            "goal_adjustment",
+            "sequence_adjustment",
+            "reason_type",
+            "reason_change",
+            "change_target",
+            "confidence",
+            "constraints"
+          ]
+        },
+        "output_schema": "plan_adjustment_draft_v1",
+        "operation_type": "adjust_plan_item",
+        "execution_message": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite.",
+        "confirmation_actions": [
+          "yes",
+          "no"
+        ],
+        "confirmation_message": "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.\n\nCe qui changerait: je clarifie la séparation entre deux étapes du plan, avec une marche plus nette entre les petits sujets du quotidien et les sujets sensibles comme l'argent, la famille ou l'intimité.\n\nCe qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette.\n\nCe que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement."
+      },
+      "status": "draft_review_updated",
+      "reason_code": "tool_skill_intent_start",
+      "operation_id": "97c016eb-1902-4858-ba13-71e84e28e08c",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer seulement une meilleure séparation.",
+          "Parler d'un sas vague ou purement symbolique.",
+          "Faire commencer les sujets sensibles trop tôt.",
+          "Transformer cela en refonte complète inutile.",
+          "Parler comme si la modification était déjà validée."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan.",
+          "L'intention de sécurité avant profondeur.",
+          "Le rôle central du signal de pause.",
+          "La progressivité de la trajectoire.",
+          "Le principe de ne rien appliquer avant validation explicite."
+        ],
+        "warnings": [
+          "Ne pas reformuler le besoin comme une simple clarification de séparation.",
+          "Ne pas présenter le sas comme une astuce de rythme sans rôle de prérequis.",
+          "Ne pas laisser entendre que les sujets sensibles peuvent démarrer avant la consolidation demandée.",
+          "Ne pas ouvrir une refonte globale si une insertion courte suffit.",
+          "Ne pas donner l'impression que le changement est déjà appliqué."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme une modification de trajectoire globale, pas comme un patch local.",
+          "Raisonner en phases, prérequis et critères de sortie avant de détailler le contenu.",
+          "Préserver explicitement l'intention de sécurité et l'objectif global.",
+          "Donner au sas un rôle observable de pont entre deux niveaux de difficulté.",
+          "Garder un jalon de fin clair pour éviter une consolidation sans limite.",
+          "Éviter les changements de nature sans demande explicite.",
+          "Ne pas multiplier les clarifications si la solution implicite est déjà nette.",
+          "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+          "Ne pas exécuter ni suggérer une application avant validation."
+        ],
+        "observation": "La demande corrige le sens du brouillon: le besoin n'est pas une simple séparation plus nette entre deux niveaux, mais l'insertion d'un niveau intermédiaire court et utile, avec une fonction de sas de consolidation avant l'accès aux sujets sensibles. Humainement, cela sert à sécuriser la montée en intensité; techniquement, cela implique une insertion de phase dans la trajectoire globale du plan, pas un réétiquetage des étapes existantes.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Recentrer le brouillon sur l'ajout explicite d'une phase de consolidation bornée, présentée comme un pont opérationnel entre le signal de pause et les sujets sensibles. Garder l'objectif global intact, décrire un contenu concret pour ce sas, et montrer clairement qu'il sert de prérequis avant la suite.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+          "Définir un contenu minimal concret: signal de pause, petite réparation, puis répétition.",
+          "Fixer un critère de sortie simple avant passage au niveau suivant.",
+          "Alléger ou déplacer une micro-étape existante pour laisser de la place au sas.",
+          "Maintenir le signal de pause comme base stable du plan."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle va trop vite de la sécurisation vers les sujets sensibles; la trajectoire ajustée ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+        "must_not_execute_reason": "La demande vise un brouillon de restructuration du plan, pas une application: il faut proposer l'insertion de phase sans la valider ni la déployer."
+      },
+      "draft_review_decision": {
+        "decision": "revise",
+        "evidence": [
+          "Le user dit explicitement que le brouillon ne correspond pas.",
+          "Il précise que le brouillon doit dire \"ajouter un niveau de consolidation\" et non \"clarifier la separation\".",
+          "Le user demande de montrer le brouillon sans l'appliquer."
+        ],
+        "confidence": "high",
+        "apply_after_revision": false
+      },
+      "previous_operation_id": "805eba21-2481-4dd8-839a-83152847c527",
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer seulement une meilleure séparation.",
+        "Parler d'un sas vague ou purement symbolique.",
+        "Faire commencer les sujets sensibles trop tôt.",
+        "Transformer cela en refonte complète inutile.",
+        "Parler comme si la modification était déjà validée."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan.",
+        "L'intention de sécurité avant profondeur.",
+        "Le rôle central du signal de pause.",
+        "La progressivité de la trajectoire.",
+        "Le principe de ne rien appliquer avant validation explicite."
+      ],
+      "warnings": [
+        "Ne pas reformuler le besoin comme une simple clarification de séparation.",
+        "Ne pas présenter le sas comme une astuce de rythme sans rôle de prérequis.",
+        "Ne pas laisser entendre que les sujets sensibles peuvent démarrer avant la consolidation demandée.",
+        "Ne pas ouvrir une refonte globale si une insertion courte suffit.",
+        "Ne pas donner l'impression que le changement est déjà appliqué."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme une modification de trajectoire globale, pas comme un patch local.",
+        "Raisonner en phases, prérequis et critères de sortie avant de détailler le contenu.",
+        "Préserver explicitement l'intention de sécurité et l'objectif global.",
+        "Donner au sas un rôle observable de pont entre deux niveaux de difficulté.",
+        "Garder un jalon de fin clair pour éviter une consolidation sans limite.",
+        "Éviter les changements de nature sans demande explicite.",
+        "Ne pas multiplier les clarifications si la solution implicite est déjà nette.",
+        "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+        "Ne pas exécuter ni suggérer une application avant validation."
+      ],
+      "observation": "La demande corrige le sens du brouillon: le besoin n'est pas une simple séparation plus nette entre deux niveaux, mais l'insertion d'un niveau intermédiaire court et utile, avec une fonction de sas de consolidation avant l'accès aux sujets sensibles. Humainement, cela sert à sécuriser la montée en intensité; techniquement, cela implique une insertion de phase dans la trajectoire globale du plan, pas un réétiquetage des étapes existantes.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Recentrer le brouillon sur l'ajout explicite d'une phase de consolidation bornée, présentée comme un pont opérationnel entre le signal de pause et les sujets sensibles. Garder l'objectif global intact, décrire un contenu concret pour ce sas, et montrer clairement qu'il sert de prérequis avant la suite.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+        "Définir un contenu minimal concret: signal de pause, petite réparation, puis répétition.",
+        "Fixer un critère de sortie simple avant passage au niveau suivant.",
+        "Alléger ou déplacer une micro-étape existante pour laisser de la place au sas.",
+        "Maintenir le signal de pause comme base stable du plan."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle va trop vite de la sécurisation vers les sujets sensibles; la trajectoire ajustée ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+      "must_not_execute_reason": "La demande vise un brouillon de restructuration du plan, pas une application: il faut proposer l'insertion de phase sans la valider ni la déployer."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t04",
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "requestId": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t05",
+    "status": 200,
+    "ok": true,
+    "user": "Stop, on n'applique rien sur ce brouillon. Je veux qu'on garde le plan tel quel pour ce test.",
+    "assistant": "C'est fait: j'ai ajusté la trajectoire du plan.\n\nLe plan garde deux étapes distinctes, mais les différencie par la difficulté du contenu: besoins simples d'abord, sujets sensibles ensuite. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "success",
+    "response_executed_tools": [
+      "adjust_plan_item"
+    ],
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason_code": "normal_reply_default",
+    "operation_intents": [],
+    "direct_effects": [
+      {
+        "outcome": "success",
+        "tool_id": "adjust_plan_item"
+      }
+    ],
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "executed",
+      "reason_code": "normal_reply_default",
+      "operation_id": "97c016eb-1902-4858-ba13-71e84e28e08c",
+      "plan_patch_id": "3808d0e7-947e-43f2-8a5b-95ac04cdd96f",
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer seulement une meilleure séparation.",
+          "Parler d'un sas vague ou purement symbolique.",
+          "Faire commencer les sujets sensibles trop tôt.",
+          "Transformer cela en refonte complète inutile.",
+          "Parler comme si la modification était déjà validée."
+        ],
+        "scope": "whole_plan",
+        "preserve": [
+          "L'objectif global du plan.",
+          "L'intention de sécurité avant profondeur.",
+          "Le rôle central du signal de pause.",
+          "La progressivité de la trajectoire.",
+          "Le principe de ne rien appliquer avant validation explicite."
+        ],
+        "warnings": [
+          "Ne pas reformuler le besoin comme une simple clarification de séparation.",
+          "Ne pas présenter le sas comme une astuce de rythme sans rôle de prérequis.",
+          "Ne pas laisser entendre que les sujets sensibles peuvent démarrer avant la consolidation demandée.",
+          "Ne pas ouvrir une refonte globale si une insertion courte suffit.",
+          "Ne pas donner l'impression que le changement est déjà appliqué."
+        ],
+        "readiness": "draft_ready",
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+          "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+          "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+          "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+          "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+          "Traiter la demande comme une modification de trajectoire globale, pas comme un patch local.",
+          "Raisonner en phases, prérequis et critères de sortie avant de détailler le contenu.",
+          "Préserver explicitement l'intention de sécurité et l'objectif global.",
+          "Donner au sas un rôle observable de pont entre deux niveaux de difficulté.",
+          "Garder un jalon de fin clair pour éviter une consolidation sans limite.",
+          "Éviter les changements de nature sans demande explicite.",
+          "Ne pas multiplier les clarifications si la solution implicite est déjà nette.",
+          "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+          "Ne pas exécuter ni suggérer une application avant validation."
+        ],
+        "observation": "La demande corrige le sens du brouillon: le besoin n'est pas une simple séparation plus nette entre deux niveaux, mais l'insertion d'un niveau intermédiaire court et utile, avec une fonction de sas de consolidation avant l'accès aux sujets sensibles. Humainement, cela sert à sécuriser la montée en intensité; techniquement, cela implique une insertion de phase dans la trajectoire globale du plan, pas un réétiquetage des étapes existantes.",
+        "change_family": "split_merge_restructure",
+        "recommendation": "Recentrer le brouillon sur l'ajout explicite d'une phase de consolidation bornée, présentée comme un pont opérationnel entre le signal de pause et les sujets sensibles. Garder l'objectif global intact, décrire un contenu concret pour ce sas, et montrer clairement qu'il sert de prérequis avant la suite.",
+        "next_best_question": null,
+        "options_to_discuss": [
+          "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+          "Définir un contenu minimal concret: signal de pause, petite réparation, puis répétition.",
+          "Fixer un critère de sortie simple avant passage au niveau suivant.",
+          "Alléger ou déplacer une micro-étape existante pour laisser de la place au sas.",
+          "Maintenir le signal de pause comme base stable du plan."
+        ],
+        "candidate_operation": "insert_phase",
+        "questions_to_clarify": [],
+        "trajectory_hypothesis": "La trajectoire actuelle va trop vite de la sécurisation vers les sujets sensibles; la trajectoire ajustée ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+        "must_not_execute_reason": "La demande vise un brouillon de restructuration du plan, pas une application: il faut proposer l'insertion de phase sans la valider ni la déployer."
+      },
+      "bridge_plan_item_id": null,
+      "coaching_guidance_audit": {
+        "scope": "whole_plan",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer seulement une meilleure séparation.",
+        "Parler d'un sas vague ou purement symbolique.",
+        "Faire commencer les sujets sensibles trop tôt.",
+        "Transformer cela en refonte complète inutile.",
+        "Parler comme si la modification était déjà validée."
+      ],
+      "scope": "whole_plan",
+      "preserve": [
+        "L'objectif global du plan.",
+        "L'intention de sécurité avant profondeur.",
+        "Le rôle central du signal de pause.",
+        "La progressivité de la trajectoire.",
+        "Le principe de ne rien appliquer avant validation explicite."
+      ],
+      "warnings": [
+        "Ne pas reformuler le besoin comme une simple clarification de séparation.",
+        "Ne pas présenter le sas comme une astuce de rythme sans rôle de prérequis.",
+        "Ne pas laisser entendre que les sujets sensibles peuvent démarrer avant la consolidation demandée.",
+        "Ne pas ouvrir une refonte globale si une insertion courte suffit.",
+        "Ne pas donner l'impression que le changement est déjà appliqué."
+      ],
+      "readiness": "draft_ready",
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+        "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+        "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+        "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+        "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+        "Traiter la demande comme une modification de trajectoire globale, pas comme un patch local.",
+        "Raisonner en phases, prérequis et critères de sortie avant de détailler le contenu.",
+        "Préserver explicitement l'intention de sécurité et l'objectif global.",
+        "Donner au sas un rôle observable de pont entre deux niveaux de difficulté.",
+        "Garder un jalon de fin clair pour éviter une consolidation sans limite.",
+        "Éviter les changements de nature sans demande explicite.",
+        "Ne pas multiplier les clarifications si la solution implicite est déjà nette.",
+        "Distinguer ce qui est humainement utile de ce qui est techniquement faisable.",
+        "Ne pas exécuter ni suggérer une application avant validation."
+      ],
+      "observation": "La demande corrige le sens du brouillon: le besoin n'est pas une simple séparation plus nette entre deux niveaux, mais l'insertion d'un niveau intermédiaire court et utile, avec une fonction de sas de consolidation avant l'accès aux sujets sensibles. Humainement, cela sert à sécuriser la montée en intensité; techniquement, cela implique une insertion de phase dans la trajectoire globale du plan, pas un réétiquetage des étapes existantes.",
+      "change_family": "split_merge_restructure",
+      "recommendation": "Recentrer le brouillon sur l'ajout explicite d'une phase de consolidation bornée, présentée comme un pont opérationnel entre le signal de pause et les sujets sensibles. Garder l'objectif global intact, décrire un contenu concret pour ce sas, et montrer clairement qu'il sert de prérequis avant la suite.",
+      "next_best_question": null,
+      "options_to_discuss": [
+        "Insérer une semaine de consolidation active entre la sécurisation initiale et les sujets sensibles.",
+        "Définir un contenu minimal concret: signal de pause, petite réparation, puis répétition.",
+        "Fixer un critère de sortie simple avant passage au niveau suivant.",
+        "Alléger ou déplacer une micro-étape existante pour laisser de la place au sas.",
+        "Maintenir le signal de pause comme base stable du plan."
+      ],
+      "candidate_operation": "insert_phase",
+      "questions_to_clarify": [],
+      "trajectory_hypothesis": "La trajectoire actuelle va trop vite de la sécurisation vers les sujets sensibles; la trajectoire ajustée ajoute un sas court de consolidation avec répétitions minimales avant l'ouverture de cette étape.",
+      "must_not_execute_reason": "La demande vise un brouillon de restructuration du plan, pas une application: il faut proposer l'insertion de phase sans la valider ni la déployer."
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-21-adjust-plan-whole-plan-taxonomy-r103-whole-plan-missing-consolidation-level-t05",
+    "trace_error": null
+  }
+]

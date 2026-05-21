@@ -1,0 +1,1163 @@
+{
+  "run_id": "weekly-broad-none-1779281270-none_done",
+  "variant": "none_done",
+  "persona": "paul",
+  "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+  "email": "qa-weekly-deep-weekly-broad-none-1779281270-none_done@example.com",
+  "scope": "weekly-deep-none_done-weekly-broad-none-1779281270",
+  "created_at": "2026-05-20T12:50:18.173Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T12:50:18.173Z",
+      "user": "Je vais être honnête : j'ai rien fait cette semaine. Pas une habitude, pas la mission. J'ai évité le truc toute la semaine. Je ne veux pas passer à la suite comme si de rien n'était.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Ah merde… si t’as évité toute la semaine, c’est normal de ne pas vouloir “faire semblant”. 😕\n\nDans le bilan, on va pas partir sur “comme si de rien n’était”. On part sur un truc simple :\n1) Qu’est-ce qui t’a fait éviter : trop dur/prise de tête, manque d’énergie, trop de pression, ou tu avais autre chose de plus urgent ?\n2) Pour la semaine prochaine, tu veux qu’on fasse une version allégée (juste le minimum pour ne pas casser la dynamique) ou tu préfères qu’on revoie d’abord le cadre/les objectifs pour que ça colle vraiment à ta réalité ?",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-broad-none-1779281270-none_done-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-broad-none-1779281270-none_done-t01",
+        "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+        "channel": "web",
+        "scope": "weekly-deep-none_done-weekly-broad-none-1779281270",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah merde… si t’as évité toute la semaine, c’est normal de ne pas vouloir “faire semblant”. 😕\n\nDans le bilan, on va pas partir sur “comme si de rien n’était”. On part sur un truc simple :\n1) Qu’est-ce qui t’a fait éviter : trop dur/prise de tête, manque d’énergie, trop de pression, ou tu avais autre chose de plus urgent ?\n2) Pour la semaine prochaine, tu veux qu’on fasse une version allégée (juste le minimum pour ne pas casser la dynamique) ou tu préfères qu’on revoie d’abord le cadre/les objectifs pour que ça colle vraiment à ta réalité ?",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-broad-none-1779281270-none_done-t01",
+          "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+          "source_message_id": "0ca43317-3473-454a-a9d1-ba5d0359f76c",
+          "ts": "2026-05-20T12:50:24.01+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10331,
+            "latency_ms": 3818,
+            "model_used": "gpt-5.4-mini",
+            "tokens_out": 754,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "week_current",
+                  "type": "event",
+                  "priority": "high",
+                  "query_hint": "bilan de cette semaine, refus de passer à la suite",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "weekly_adaptive_review_v1",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "ajustement de la semaine prochaine après semaine non tenue",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [
+                "Aucun signal de crise ou de danger immédiat.",
+                "Le message exprime une frustration sur la semaine, sans indicateur safety."
+              ],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-broad-none-1779281270-none_done-t01",
+            "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "week_current",
+                  "type": "event",
+                  "priority": "high",
+                  "query_hint": "bilan de cette semaine, refus de passer à la suite",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "weekly_adaptive_review_v1",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "ajustement de la semaine prochaine après semaine non tenue",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "reason": "Le user reste dans le bilan hebdomadaire et demande explicitement de ne pas avancer vers la suite sans ajustement.",
+                "status": "continue",
+                "skill_id": "weekly_adaptive_review_v1",
+                "confidence_band": "high",
+                "weekly_adaptive_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "0ca43317-3473-454a-a9d1-ba5d0359f76c",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 5798,
+          "created_at": "2026-05-20T12:50:24.012472+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T12:50:39.060Z",
+      "user": "C'était surtout trop de pression. Je ne veux pas changer le plan ni inventer autre chose maintenant. Je veux refaire la même semaine, mais en assumant que l'objectif c'est juste de démarrer.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je comprends : tu veux garder la même semaine, enlever la pression et viser juste un démarrage simple, sans changer le fond. Je n’applique rien pour l’instant. Si tu veux, je peux te préparer la proposition concrète allégée. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-broad-none-1779281270-none_done-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-broad-none-1779281270-none_done-t02",
+        "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+        "channel": "web",
+        "scope": "weekly-deep-none_done-weekly-broad-none-1779281270",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je comprends : tu veux garder la même semaine, enlever la pression et viser juste un démarrage simple, sans changer le fond. Je n’applique rien pour l’instant. Si tu veux, je peux te préparer la proposition concrète allégée. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-broad-none-1779281270-none_done-t02",
+          "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+          "source_message_id": "9b922cdb-6d38-4a2a-9962-e246c64098ef",
+          "ts": "2026-05-20T12:50:55.156+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 10581,
+            "latency_ms": 3549,
+            "model_used": "gpt-5.4-mini",
+            "tokens_out": 738,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-broad-none-1779281270-none_done-t02",
+            "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "status": "continue",
+                  "evidence": [
+                    "contexte de bilan hebdo actif",
+                    "le user répond au cadrage de la semaine prochaine"
+                  ]
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "9b922cdb-6d38-4a2a-9962-e246c64098ef",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "la semaine",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "la même semaine / organisation de la semaine prochaine",
+                    "status": "identified",
+                    "evidence": [
+                      "refaire la même semaine"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "je ne veux pas changer le plan",
+                      "je veux refaire la même semaine"
+                    ],
+                    "confidence": "high",
+                    "negative_evidence": [
+                      "pas une carte",
+                      "pas inventer autre chose maintenant"
+                    ]
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "draft_generation_confirmation"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer un nouveau plan ou une nouvelle semaine différente.",
+                "Ne pas parler en termes de progression ambitieuse ou d’augmentation de charge.",
+                "Ne pas ajouter de contenus de soutien non demandés.",
+                "Ne pas reformuler la demande comme un besoin de restructuration complète.",
+                "Ne pas déplacer le centre de gravité du coaching vers l’optimisation plutôt que l’adhérence."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "La structure générale de la semaine.",
+                "Les items déjà présents dans le plan.",
+                "L’intention de continuité et de reprise.",
+                "Le cadre de travail sans invention de nouvelles tâches.",
+                "La logique de démarrage comme objectif principal."
+              ],
+              "warnings": [
+                "Éviter de proposer un nouveau plan, même “plus simple”, car cela contredirait la demande de garder la même semaine.",
+                "Éviter de transformer l’objectif en objectif de régularité ou de performance; le cadre demandé est seulement de démarrer.",
+                "Ne pas sur-interpréter la baisse de pression comme une demande de réduction massive du nombre d’items si ce n’est pas explicitement demandé.",
+                "Ne pas ajouter de nouvelles missions, variantes, outils ou rituels pour “optimiser” la semaine."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Action: conserver la même nature du plan; intention: réduire la pression et restaurer l’engagement; pont mini: présenter la semaine comme une reprise simple; pas de changement de nature sans demande explicite.",
+                "Niveau: maintenir la charge et le rythme du niveau courant comme référence; baisse temporaire de l’exigence interprétative, pas changement global du niveau; boundary de fin de niveau: le plan reste identique, seul le seuil de réussite baisse; cœur du niveau préservé: la même semaine et les mêmes repères.",
+                "Whole plan: préserver la trajectoire générale, l’ordre des phases et la cohérence des objectifs; ne pas modifier les prérequis ni le questionnaire implicite; l’objectif devient démarrer sans renoncer à la structure existante."
+              ],
+              "observation": "La demande porte moins sur un changement de contenu que sur une baisse de pression et une remise à niveau de l’intention. Le besoin réel est de conserver la structure actuelle tout en la requalifiant comme une semaine de démarrage, donc avec une exigence de performance nettement réduite. Le signal important est la volonté de stabilité: ne pas réinventer, ne pas complexifier, ne pas ouvrir un nouveau cycle, mais rendre le plan à nouveau praticable.",
+              "recommendation": "Orienter la réponse vers un allègement global sans modification de fond: conserver les mêmes éléments du plan, les mêmes enchaînements et la même logique de semaine, mais expliciter que le critère de réussite devient simplement le démarrage. Le coaching doit préserver la continuité et transformer la pression en permission d’entrer doucement dans l’action, sans proposer de nouveau design ni de refonte de la semaine.",
+              "options_to_discuss": [
+                "Conserver exactement les mêmes items, mais présenter la semaine comme une reprise à charge minimale.",
+                "Garder les mêmes jours et la même structure, avec une consigne d’entrée en matière très simple pour chaque action.",
+                "Définir un seuil de succès très bas: faire le premier pas compte, même si le reste n’est pas tenu.",
+                "Marquer explicitement qu’il s’agit d’une semaine de redémarrage et non d’une semaine d’exécution complète.",
+                "Si besoin, préciser quel élément de pression venait du volume, du rythme ou de l’attente implicite, sans changer la structure tout de suite."
+              ],
+              "questions_to_clarify": []
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 16059,
+          "created_at": "2026-05-20T12:50:55.156854+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-20T12:51:06.135Z",
+      "user": "Non, pas une proposition allégée. Je veux refaire la même semaine, même contenu, et juste considérer que cette semaine n'est pas validée. Conclus le weekly comme ça, sans ajust_plan.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose une reprise à pression réduite, sans rien appliquer encore: la même semaine, le même contenu et le même ordre restent en place, mais la semaine serait considérée comme non validée pour que tu puisses la refaire simplement. Ça aide parce que l’objectif devient juste de démarrer, sans ajouter de nouveau design ni de version plus simple. Je ne touche pas à la direction du plan ni à son contenu de fond. Par exemple, le signal de pause resterait tel quel, et la respiration de pause garderait sa place et son rythme actuel; seule l’intention de reprise changerait. Si ça te va, je prépare cette proposition dans ce sens. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-broad-none-1779281270-none_done-t03",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-broad-none-1779281270-none_done-t03",
+        "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+        "channel": "web",
+        "scope": "weekly-deep-none_done-weekly-broad-none-1779281270",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose une reprise à pression réduite, sans rien appliquer encore: la même semaine, le même contenu et le même ordre restent en place, mais la semaine serait considérée comme non validée pour que tu puisses la refaire simplement. Ça aide parce que l’objectif devient juste de démarrer, sans ajouter de nouveau design ni de version plus simple. Je ne touche pas à la direction du plan ni à son contenu de fond. Par exemple, le signal de pause resterait tel quel, et la respiration de pause garderait sa place et son rythme actuel; seule l’intention de reprise changerait. Si ça te va, je prépare cette proposition dans ce sens. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-broad-none-1779281270-none_done-t03",
+          "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+          "source_message_id": "82b108ca-f26d-4592-8082-df87183a5b98",
+          "ts": "2026-05-20T12:51:30.277+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 13843,
+            "latency_ms": 3977,
+            "model_used": "gpt-5.4-mini",
+            "tokens_out": 671,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "weekly_adaptive_review_v1",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "refaire la meme semaine sans validation",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s14"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-broad-none-1779281270-none_done-t03",
+            "user_id": "07b6efc6-94c9-42ed-96c3-55458991a13d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "weekly_adaptive_review_v1",
+                  "type": "topic",
+                  "priority": "high",
+                  "query_hint": "refaire la meme semaine sans validation",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "status": "continue",
+                "evidence": [
+                  "Conclus le weekly comme ça",
+                  "je veux refaire la même semaine"
+                ],
+                "skill_id": "weekly_adaptive_review_v1",
+                "weekly_adaptive_review_v1": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 3.4,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": true,
+                  "evidence": "non, pas",
+                  "contribution": 1.5
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "repetition_or_correction",
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "82b108ca-f26d-4592-8082-df87183a5b98",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "whole_plan",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "keep_plan_same:true",
+                    "goal:start_only",
+                    "reduce_pressure:true",
+                    "coach_observation:La demande n’exprime pas une volonté de refondre le plan, mais une volonté de préserver exactement la même semaine tout en annulant son statut de validation. Le sens coaching est celui d’une reprise à pression réduite: garder la même architecture, les mêmes contenus et la même trajectoire, mais requalifier la semaine comme non validée afin de pouvoir la refaire sans charge symbolique supplémentaire. Le point humain central est la restauration de la praticabilité, pas l’optimisation.",
+                    "coach_recommendation:Maintenir une réponse alignée sur la continuité: même semaine, même contenu, même ordre, mais avec un statut de semaine non validée et une intention de redémarrage simple. Le sous-skill doit aider à cadrer ce changement comme une décision de trajectoire et de seuil de réussite, sans ouvrir un nouveau design ni introduire une version allégée distincte.",
+                    "coach_warning:Éviter de transformer la demande en proposition de semaine plus simple: cela contredirait explicitement la conservation du contenu.",
+                    "coach_warning:Éviter de présenter la reprise comme une progression ou une montée en charge; le cadre demandé est un redémarrage, pas une optimisation.",
+                    "coach_warning:Ne pas introduire de nouveaux items, variantes ou rituels pour sécuriser la semaine.",
+                    "coach_warning:Ne pas requalifier la demande en refonte du plan ou en restructuration de niveau.",
+                    "coach_warning:Ne pas glisser vers un discours de performance ou de validation complète; la semaine est précisément à considérer comme non validée.",
+                    "coach_preserve:La structure générale de la semaine.",
+                    "coach_preserve:Les contenus déjà présents dans le plan.",
+                    "coach_preserve:L’ordre des étapes et la logique de continuité.",
+                    "coach_preserve:L’intention de démarrage sans complexification.",
+                    "coach_preserve:Le cadre existant de la semaine, sans ajout de nouvelle nature d’action.",
+                    "coach_avoid:Proposer une nouvelle semaine différente.",
+                    "coach_avoid:Proposer une version allégée du plan.",
+                    "coach_avoid:Ajouter des contenus de soutien non demandés.",
+                    "coach_avoid:Réinterpréter la demande comme un besoin de restructuration complète.",
+                    "coach_avoid:Déplacer le centre de gravité vers l’optimisation plutôt que vers l’adhérence.",
+                    "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                    "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                    "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                    "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                    "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                    "coach_guideline:Action: conserver la même nature du plan; intention: réduire la pression et restaurer l’engagement; pont mini: présenter la semaine comme une reprise simple; pas de changement de nature sans demande explicite.",
+                    "coach_guideline:Niveau: maintenir la charge et le rythme du niveau courant comme référence; baisse temporaire de l’exigence interprétative, pas changement global du niveau; boundary de fin de niveau: le plan reste identique, seul le seuil de réussite baisse; cœur du niveau préservé: la même semaine et les mêmes repères.",
+                    "coach_guideline:Whole plan: préserver la trajectoire générale, l’ordre des phases et la cohérence des objectifs; ne pas modifier les prérequis ni le questionnaire implicite; l’objectif devient démarrer sans renoncer à la structure existante.",
+                    "coach_guideline:Raisonner en prérequis, séquençage et phases futures plutôt qu’en patch arbitraire d’actions courantes.",
+                    "affected_item:Fiche support: repere de fatigue",
+                    "affected_item:Convenir d'un signal de pause",
+                    "affected_item:Partager un point positif",
+                    "affected_item:Respiration de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "global_load",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "lighter",
+                  "plan_adjustment": "reduce_global_load"
+                },
+                "title": "Ajustement - refaire la même semaine avec un objectif de simple démarrage",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "plan global: reduce_global_load",
+                    "cible de changement: global_load"
+                  ],
+                  "unchanged": [
+                    "l'objectif/direction reste préservé sauf demande contraire explicite",
+                    "le plan canonique n'est pas reconstruit automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                  "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+                },
+                "scope_label": "refaire la même semaine avec un objectif de simple démarrage",
+                "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+                "decision_basis": {
+                  "evidence": [
+                    "Non, pas une proposition allégée. Je veux refaire la même semaine, même contenu, et juste considérer que cette semaine n'est pas validée. Conclus le weekly comme ça, sans ajust_plan.",
+                    "Je veux refaire la même semaine",
+                    "l'objectif c'est juste de démarrer",
+                    "C'était surtout trop de pression",
+                    "je veux refaire la même semaine",
+                    "C'était surtout trop de pression",
+                    "Je ne veux pas changer le plan ni inventer autre chose maintenant",
+                    "l'objectif c'est juste de démarrer",
+                    "Je ne veux pas changer le plan",
+                    "Je veux refaire la même semaine"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "semaines ou blocs exacts a affiner ensuite"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                  "must_preserve": [
+                    "direction globale du plan"
+                  ]
+                },
+                "adjustment_type": "reduce",
+                "proposed_change": "reduire la charge globale du plan",
+                "change_rationale": {
+                  "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                  "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                  "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+                },
+                "adjust_plan_result": {
+                  "scope": "whole_plan",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [
+                      "Le niveau exact de formalisme attendu pour considérer la semaine non validée dans le suivi."
+                    ],
+                    "user_problem": "Le plan est devenu trop lourd à tenir dans le contexte actuel et tu veux repartir sans pression supplémentaire.",
+                    "expected_effect": "Tu peux redémarrer sur les mêmes repères, sans avoir l’impression de devoir prouver une validation complète.",
+                    "why_this_change": "Garder la même semaine évite de casser la continuité, tandis que le fait de la considérer non validée enlève la charge symbolique qui bloque le démarrage."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement porte sur la manière de rejouer la semaine et sur le seuil de réussite, pas sur une refonte du plan.",
+                    "affected_scope": "Le niveau actuel et la semaine en cours, sans modifier le plan global.",
+                    "global_plan_impact": "indirect",
+                    "explicitly_not_affected": [
+                      "l’objectif principal",
+                      "l’identité du plan",
+                      "l’ordre général des étapes",
+                      "le contenu déjà prévu"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Reprendre exactement la même semaine, sans allègement du contenu, en la considérant comme non validée afin de réduire la pression et de permettre un redémarrage simple.",
+                    "changed_items": [
+                      {
+                        "id": "9808ceaf-5772-42ff-a331-6f56d7bb6eb2",
+                        "kind": "action",
+                        "after": "Convenir d'un signal de pause",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Convenir d'un signal de pause",
+                        "reason": "Cet appui reste identique et sert de repère de continuité dans la même semaine, sans ajouter de complexité ni changer le contenu.",
+                        "capability": "modify_existing_action"
+                      },
+                      {
+                        "id": "58302679-e54e-4d12-ac48-05fa09fdae70",
+                        "kind": "habit",
+                        "after": "Respiration de pause",
+                        "title": "Respiration de pause",
+                        "before": "Respiration de pause",
+                        "reason": "Cette habitude conserve sa cadence et sa place, ce qui permet de garder la même architecture tout en abaissant la pression de validation.",
+                        "capability": "modify_existing_action"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "14e10849-1d6c-4842-a1cd-4366592a2c47",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "Le contenu reste inchangé et continue de faire partie de la même semaine, sans ajout ni simplification."
+                      },
+                      {
+                        "id": "58302679-e54e-4d12-ac48-05fa09fdae70",
+                        "kind": "habit",
+                        "title": "Respiration de pause",
+                        "reason": "La cadence et la logique de continuité restent stables."
+                      },
+                      {
+                        "id": "9808ceaf-5772-42ff-a331-6f56d7bb6eb2",
+                        "kind": "action",
+                        "title": "Convenir d'un signal de pause",
+                        "reason": "Le repère reste en place tel quel."
+                      }
+                    ],
+                    "trajectory_change": {
+                      "after": "La trajectoire devient une reprise de la même semaine, au même rythme et avec le même contenu, mais sans la considérer comme validée, pour repartir simplement.",
+                      "before": "La trajectoire actuelle demande une semaine tenue comme validation, avec une charge symbolique trop lourde dans le contexte actuel.",
+                      "inserted_step": "null",
+                      "coaching_reason": "Le sens coaching est de restaurer la praticabilité sans refondre le plan: on garde les mêmes repères, mais on baisse le seuil de réussite pour permettre un démarrage réel plutôt qu’une optimisation.",
+                      "reordered_steps": [],
+                      "preserved_direction": "La direction générale du plan, la structure de la semaine, les contenus déjà prévus et l’ordre des étapes restent stables."
+                    }
+                  },
+                  "user_message_brief": "Je te propose de garder la même semaine, sans l’alléger, mais de la considérer comme non validée pour repartir simplement.",
+                  "user_message_detailed": "Je te propose une reprise à pression réduite, sans changer la semaine elle-même. Le premier changement concret est que la semaine est traitée comme non validée au lieu d’être tenue comme une validation: cela enlève la charge symbolique et aide à redémarrer. Le second changement concret est que les repères déjà présents, comme « Convenir d'un signal de pause » et « Respiration de pause », restent en place avec le même rôle: cela garde la continuité et évite d’inventer une version plus simple. Ce qui ne bouge pas: la structure générale de la semaine, les contenus déjà présents, l’ordre des étapes et la logique de continuité. Ça aide parce que ton objectif reste juste de démarrer, sans refonte ni optimisation. Le niveau de confiance est moyen à bon: l’intention est claire, mais le niveau exact de formalisme pour le statut non validé peut encore être précisé."
+                },
+                "execution_strategy": "whole_plan_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "plan_adjustment",
+                  "load_adjustment",
+                  "goal_adjustment",
+                  "sequence_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C’est pris en compte dans la proposition: la semaine reste identique dans sa structure, son contenu et son ordre, mais elle est requalifiée comme non validée pour repartir sans pression supplémentaire. Concrètement, le signal de pause reste un repère inchangé, et la respiration de pause garde sa cadence habituelle; je ne transforme pas le plan en version plus simple ni en nouvelle semaine. Ce réglage aide à restaurer la praticabilité tout en gardant la même trajectoire. Le niveau de confiance est bon, même si le cadrage exact de la reprise non validée peut encore être affiné si tu veux.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose une reprise à pression réduite, sans rien appliquer encore: la même semaine, le même contenu et le même ordre restent en place, mais la semaine serait considérée comme non validée pour que tu puisses la refaire simplement. Ça aide parce que l’objectif devient juste de démarrer, sans ajouter de nouveau design ni de version plus simple. Je ne touche pas à la direction du plan ni à son contenu de fond. Par exemple, le signal de pause resterait tel quel, et la respiration de pause garderait sa place et son rythme actuel; seule l’intention de reprise changerait. Si ça te va, je prépare cette proposition dans ce sens."
+            },
+            "status": "draft_review",
+            "reason_code": "active_tool_skill_continue",
+            "operation_id": "bcefad61-6acc-4d0a-a7d0-a357013be1c8",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer une nouvelle semaine différente.",
+                "Proposer une version allégée du plan.",
+                "Ajouter des contenus de soutien non demandés.",
+                "Réinterpréter la demande comme un besoin de restructuration complète.",
+                "Déplacer le centre de gravité vers l’optimisation plutôt que vers l’adhérence."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "La structure générale de la semaine.",
+                "Les contenus déjà présents dans le plan.",
+                "L’ordre des étapes et la logique de continuité.",
+                "L’intention de démarrage sans complexification.",
+                "Le cadre existant de la semaine, sans ajout de nouvelle nature d’action."
+              ],
+              "warnings": [
+                "Éviter de transformer la demande en proposition de semaine plus simple: cela contredirait explicitement la conservation du contenu.",
+                "Éviter de présenter la reprise comme une progression ou une montée en charge; le cadre demandé est un redémarrage, pas une optimisation.",
+                "Ne pas introduire de nouveaux items, variantes ou rituels pour sécuriser la semaine.",
+                "Ne pas requalifier la demande en refonte du plan ou en restructuration de niveau.",
+                "Ne pas glisser vers un discours de performance ou de validation complète; la semaine est précisément à considérer comme non validée."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Action: conserver la même nature du plan; intention: réduire la pression et restaurer l’engagement; pont mini: présenter la semaine comme une reprise simple; pas de changement de nature sans demande explicite.",
+                "Niveau: maintenir la charge et le rythme du niveau courant comme référence; baisse temporaire de l’exigence interprétative, pas changement global du niveau; boundary de fin de niveau: le plan reste identique, seul le seuil de réussite baisse; cœur du niveau préservé: la même semaine et les mêmes repères.",
+                "Whole plan: préserver la trajectoire générale, l’ordre des phases et la cohérence des objectifs; ne pas modifier les prérequis ni le questionnaire implicite; l’objectif devient démarrer sans renoncer à la structure existante.",
+                "Traiter le whole plan comme une décision de trajectoire: objectif, cohérence, ordre des phases, prochaine étape ou architecture globale.",
+                "Vérifier que le changement reste cohérent avec l’objectif global et les réponses du questionnaire.",
+                "Préserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prérequis, séquençage et phases futures plutôt qu’en patch arbitraire d’actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accélérer une étape qui sert de socle coaching."
+              ],
+              "observation": "La demande n’exprime pas une volonté de refondre le plan, mais une volonté de préserver exactement la même semaine tout en annulant son statut de validation. Le sens coaching est celui d’une reprise à pression réduite: garder la même architecture, les mêmes contenus et la même trajectoire, mais requalifier la semaine comme non validée afin de pouvoir la refaire sans charge symbolique supplémentaire. Le point humain central est la restauration de la praticabilité, pas l’optimisation.",
+              "recommendation": "Maintenir une réponse alignée sur la continuité: même semaine, même contenu, même ordre, mais avec un statut de semaine non validée et une intention de redémarrage simple. Le sous-skill doit aider à cadrer ce changement comme une décision de trajectoire et de seuil de réussite, sans ouvrir un nouveau design ni introduire une version allégée distincte.",
+              "options_to_discuss": [
+                "Garder la semaine identique et simplement la remettre en statut de reprise non validée.",
+                "Conserver les mêmes items et mêmes repères, avec un critère de réussite limité au démarrage.",
+                "Présenter explicitement cette semaine comme une répétition à faible pression de la semaine précédente.",
+                "Si utile, distinguer ce qui relève du contenu inchangé et ce qui relève du changement de statut ou d’intention.",
+                "Clarifier seulement si nécessaire le niveau de formalisme attendu pour “considérer non validée” dans le suivi."
+              ],
+              "questions_to_clarify": []
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 24101,
+          "created_at": "2026-05-20T12:51:30.278505+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T12:51:30.290Z"
+}

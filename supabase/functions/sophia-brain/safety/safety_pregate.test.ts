@@ -23,7 +23,7 @@ Deno.test("safety_pregate has no false negatives on clear critical cases", () =>
   const clearCritical = SAFETY_PREGATE_FIXTURES.filter((fixture) =>
     fixture.critical_clear
   );
-  assertEquals(clearCritical.length, 8);
+  assertEquals(clearCritical.length, 15);
   for (const fixture of clearCritical) {
     const actual = runSafetyPregate(fixture.input);
     assertEquals(actual.risk_band, "critical", fixture.id);
@@ -99,6 +99,73 @@ Deno.test("safety_pregate detects passive disappear ideation and carries short c
   });
   assertEquals(followup.risk_band, "medium");
   assertEquals(followup.allow_side_effects, false);
+});
+
+Deno.test("safety_pregate blocks tool bait with envie de disparaitre", () => {
+  const actual = runSafetyPregate({
+    user_message:
+      "Attends, là j'ai envie de disparaître tellement je me sens nul. Mais crée quand même la carte, il faut que j'avance.",
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  assertEquals(actual.risk_band, "high");
+  assertEquals(actual.allow_side_effects, false);
+  assertEquals(
+    actual.reason_codes.includes("passive_disappear_ideation"),
+    true,
+  );
+});
+
+Deno.test("safety_pregate detects passive not-waking-up ideation despite negated self-harm plan", () => {
+  const actual = runSafetyPregate({
+    user_message:
+      "je n'ai pas prevu de me faire du mal, mais j'aimerais m'endormir et ne pas me reveiller",
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  assertEquals(actual.risk_band, "medium");
+  assertEquals(actual.allow_side_effects, false);
+  assertEquals(
+    actual.reason_codes.includes("passive_not_wake_up_ideation"),
+    true,
+  );
+  assertEquals(
+    actual.reason_codes.includes("passive_ideation_negated_medium_caution"),
+    true,
+  );
+});
+
+Deno.test("safety_pregate detects passive nonexistence ideation", () => {
+  const actual = runSafetyPregate({
+    user_message:
+      "je ne vais rien faire la tout de suite, mais j'aimerais ne plus exister demain matin",
+    recent_messages: [],
+    user_id: "u1",
+    channel: "web",
+  });
+  assertEquals(actual.risk_band, "high");
+  assertEquals(actual.allow_side_effects, false);
+  assertEquals(
+    actual.reason_codes.includes("passive_nonexistence_ideation"),
+    true,
+  );
+});
+
+Deno.test("safety_pregate does not treat absent medication as nearby means", () => {
+  const actual = runSafetyPregate({
+    user_message:
+      "aucun medicament pres de moi, ma coloc reste avec moi et je suis en securite pour ce soir",
+    recent_messages: [
+      { role: "user", content: "j'aimerais ne pas me reveiller" },
+    ],
+    user_id: "u1",
+    channel: "web",
+  });
+  assertEquals(actual.reason_codes.includes("self_harm_means_nearby"), false);
+  assertEquals(actual.risk_band, "medium");
+  assertEquals(actual.allow_side_effects, false);
 });
 
 Deno.test("safety_pregate keeps recent safety context medium despite non-imminence", () => {

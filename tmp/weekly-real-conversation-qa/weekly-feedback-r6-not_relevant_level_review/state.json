@@ -1,0 +1,832 @@
+{
+  "run_id": "weekly-feedback-r6-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+  "email": "qa-weekly-deep-weekly-feedback-r6-not_relevant_level_review@example.com",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r6",
+  "created_at": "2026-05-20T16:53:05.087Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T16:53:05.088Z",
+      "user": "Cette semaine m'a montre que ce n'est pas juste une action: le plan global ne colle plus a ma situation. Prepare une proposition de changement du plan global, n'applique rien maintenant.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui, là ça touche plutôt le plan global. Avant de proposer une nouvelle organisation, il me manque le point précis: qu'est-ce qui ne colle plus aujourd'hui ? L'objectif, l'ordre des étapes, la charge, ou les actions elles-mêmes ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-feedback-r6-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-feedback-r6-not_relevant_level_review-t01",
+        "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, là ça touche plutôt le plan global. Avant de proposer une nouvelle organisation, il me manque le point précis: qu'est-ce qui ne colle plus aujourd'hui ? L'objectif, l'ordre des étapes, la charge, ou les actions elles-mêmes ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-feedback-r6-not_relevant_level_review-t01",
+          "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+          "source_message_id": "5356454f-6d4f-4f3f-bb19-504768a68f64",
+          "ts": "2026-05-20T16:53:09.547+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11498,
+            "latency_ms": 4340,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 684,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-feedback-r6-not_relevant_level_review-t01",
+            "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_with_structural_change_request",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "5356454f-6d4f-4f3f-bb19-504768a68f64",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "plan global",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "plan global",
+                    "status": "identified",
+                    "evidence": [
+                      "plan global"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "le plan global ne colle plus a ma situation"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "collecting",
+            "reason_code": "whole_plan_vague_needs_context",
+            "missing_slots": [
+              "whole_plan_change_reason"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": null,
+            "coaching_guidance_audit": null
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4417,
+          "created_at": "2026-05-20T16:53:09.479045+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T16:53:33.659Z",
+      "user": "C'est surtout l'ordre des etapes: on va trop vite vers les conversations sensibles. Je veux une etape intermediaire avec deux actions maximum avant de reprendre.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose de réordonner le plan pour qu’il garde la même direction, mais avec un sas de préparation avant d’entrer dans les conversations sensibles. Rien n’est encore appliqué. Concrètement, je propose d’insérer une courte étape intermédiaire limitée à deux actions maximum, avec d’abord \"Convenir d'un signal de pause\" puis \"Respiration de pause\", avant de reprendre la progression vers les conversations sensibles. Ça aide à réduire la charge perçue, à préserver la sécurité et à garder l’adhésion sans changer le fond du plan. Ce qui ne bouge pas: l’objectif final, la progression générale et le périmètre du plan. Si tu veux, je peux valider cette version telle quelle ou l’ajuster pour que le sas soit encore plus bref. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-feedback-r6-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-feedback-r6-not_relevant_level_review-t02",
+        "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose de réordonner le plan pour qu’il garde la même direction, mais avec un sas de préparation avant d’entrer dans les conversations sensibles. Rien n’est encore appliqué. Concrètement, je propose d’insérer une courte étape intermédiaire limitée à deux actions maximum, avec d’abord \"Convenir d'un signal de pause\" puis \"Respiration de pause\", avant de reprendre la progression vers les conversations sensibles. Ça aide à réduire la charge perçue, à préserver la sécurité et à garder l’adhésion sans changer le fond du plan. Ce qui ne bouge pas: l’objectif final, la progression générale et le périmètre du plan. Si tu veux, je peux valider cette version telle quelle ou l’ajuster pour que le sas soit encore plus bref. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-feedback-r6-not_relevant_level_review-t02",
+          "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+          "source_message_id": "58b45a28-6168-4168-9f32-27f02f1d9626",
+          "ts": "2026-05-20T16:54:20.054+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11844,
+            "latency_ms": 12640,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 781,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "relations.limites",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "conversations sensibles",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-feedback-r6-not_relevant_level_review-t02",
+            "user_id": "e786ac3b-40e4-43bb-ba7b-be7606762002",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "relations.limites",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "conversations sensibles",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "state": "active",
+                  "reason": "user_providing_details_for_plan_adjustment_during_weekly"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "58b45a28-6168-4168-9f32-27f02f1d9626",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "plan global",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "plan global",
+                    "status": "identified",
+                    "evidence": [
+                      "ordre des etapes"
+                    ]
+                  },
+                  "constraints": "une etape intermediaire avec deux actions maximum",
+                  "reason_change": "ordre des etapes: on va trop vite vers les conversations sensibles",
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "ordre des etapes",
+                      "etape intermediaire",
+                      "reprendre"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "whole_plan",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "intermediate_step_with_max_two_actions",
+                    "progression_before_sensitive_conversations",
+                    "coach_observation:La demande porte sur un problème de séquencement, pas sur le fond: la trajectoire actuelle va trop vite vers des conversations sensibles. Ce qui se joue humainement est le besoin d’un sas de préparation pour préserver la sécurité, la fluidité et l’adhésion avant d’entrer dans le contenu délicat. La contrainte clé est explicite: ajouter une étape intermédiaire très contenue, avec au plus deux actions, avant de reprendre la progression.",
+                    "coach_recommendation:Orienter la réponse vers un réordonnancement avec pont intermédiaire: insérer une courte phase de transition qui prépare sans exposer, limite la charge, puis relance vers les conversations sensibles. Garder le sens du plan intact, mais déplacer le moment d’entrée dans le sensible.",
+                    "coach_warning:Éviter de proposer d’aller directement aux conversations sensibles sans étape de préparation.",
+                    "coach_warning:Éviter d’ajouter plus de deux actions dans la phase intermédiaire, sinon la transition perd son rôle de sas.",
+                    "coach_warning:Éviter de transformer cette demande en changement de contenu ou d’objectif: le besoin exprimé concerne l’ordre, pas la nature du plan.",
+                    "coach_warning:Ne pas surcharger la nouvelle étape avec des sous-objectifs multiples ou des critères complexes.",
+                    "coach_preserve:L’intention finale d’aller vers les conversations sensibles.",
+                    "coach_preserve:La progression générale du plan.",
+                    "coach_preserve:Le périmètre global du plan.",
+                    "coach_preserve:La logique de montée en intensité, simplement re-temporisée.",
+                    "coach_preserve:La simplicité et la lisibilité du parcours.",
+                    "coach_avoid:Ne pas proposer une refonte complète du plan.",
+                    "coach_avoid:Ne pas ajouter de nouvelles conversations sensibles dans l’étape intermédiaire.",
+                    "coach_avoid:Ne pas multiplier les actions de préparation au-delà de la limite demandée.",
+                    "coach_avoid:Ne pas présenter la transition comme une régression ou un abandon du sujet.",
+                    "coach_guideline:Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                    "coach_guideline:Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                    "coach_guideline:Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                    "coach_guideline:Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                    "coach_guideline:Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                    "coach_guideline:Rôle de l’action: réordonner pour créer un pont de préparation avant le sensible.",
+                    "coach_guideline:Intention préservée: conserver la direction vers les conversations sensibles, mais avec une montée en charge plus graduelle.",
+                    "coach_guideline:Pont minimal: proposer une étape intermédiaire courte, limitée à deux actions maximum.",
+                    "coach_guideline:Pas de changement de nature sans demande explicite: rester sur du séquençage, pas sur un changement de contenu.",
+                    "coach_guideline:Niveau: maintenir la charge globale, mais baisser temporairement l’intensité perçue avant le passage sensible.",
+                    "coach_guideline:Boundary de fin de niveau: l’étape intermédiaire doit clairement se terminer avant l’entrée dans le sujet délicat.",
+                    "coach_guideline:Whole plan: préserver la trajectoire d’ensemble, l’objectif final et la cohérence des prérequis.",
+                    "coach_guideline:Whole plan: vérifier que l’ordre des phases respecte une montée progressive en confiance et en exposition.",
+                    "coach_guideline:Whole plan: ne pas casser le questionnaire ou la structure globale, seulement repositionner le moment d’accès au sensible.",
+                    "affected_item:plan global"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "global_load",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "review",
+                  "plan_adjustment": "resequence"
+                },
+                "title": "Ajustement - plan global",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "plan global: resequence",
+                    "cible de changement: global_load"
+                  ],
+                  "unchanged": [
+                    "l'objectif/direction reste préservé sauf demande contraire explicite",
+                    "le plan canonique n'est pas reconstruit automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel.",
+                  "follow_up_needed": "identifier ensuite les semaines ou blocs les plus lourds pour affiner"
+                },
+                "scope_label": "plan global",
+                "why_it_helps": "Le changement traite la trajectoire globale du plan au lieu de forcer une cible action.",
+                "decision_basis": {
+                  "evidence": [
+                    "C'est surtout l'ordre des etapes: on va trop vite vers les conversations sensibles. Je veux une etape intermediaire avec deux actions maximum avant de reprendre.",
+                    "operation_input.scope",
+                    "deterministic whole-plan structural sequence signal",
+                    "on va trop vite vers les conversations sensibles",
+                    "ordre des etapes: on va trop vite vers les conversations sensibles",
+                    "ajouter une etape intermediaire",
+                    "limiter cette etape a deux actions maximum",
+                    "reprendre ensuite vers les conversations sensibles"
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "semaines ou blocs exacts a affiner ensuite"
+                  ],
+                  "user_problem": "Le plan global n'est plus assez tenable dans le contexte actuel.",
+                  "inferred_need": "garder la direction du plan et reduire la charge globale ciblee",
+                  "must_preserve": [
+                    "direction globale du plan"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "reordonner le plan dans son ensemble",
+                "change_rationale": {
+                  "why_this_change": "Réduire global_load répond au problème \"context_changed\" sans changer la direction du plan.",
+                  "success_condition": "Le plan paraît tenable sans reconstruction complète ni changement d'objectif implicite.",
+                  "expected_mechanism": "Le plan garde ses rails, mais la charge baisse pour redevenir compatible avec le contexte actuel."
+                },
+                "adjust_plan_result": {
+                  "scope": "whole_plan",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [
+                      "La durée exacte de la phase intermédiaire",
+                      "Le positionnement précis des étapes suivantes après le sas"
+                    ],
+                    "user_problem": "Le plan global va trop vite vers les conversations sensibles et devient moins tenable dans le contexte actuel.",
+                    "expected_effect": "Le parcours devient plus fluide, plus sécurisant et plus facile à suivre, sans perdre l’objectif final.",
+                    "why_this_change": "Un sas de préparation très contenu permet de garder la direction du plan tout en baissant la charge perçue avant l’entrée dans le sensible."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement agit sur l’ordre des phases et non sur le fond du plan.",
+                    "affected_scope": "Le plan dans son ensemble, avec un réordonnancement limité de la trajectoire.",
+                    "global_plan_impact": "indirect",
+                    "explicitly_not_affected": [
+                      "L’objectif principal",
+                      "L’identité du plan",
+                      "La nature des conversations sensibles"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Réordonner le plan pour insérer une étape intermédiaire très contenue avant les conversations sensibles, sans changer la direction globale.",
+                    "changed_items": [
+                      {
+                        "id": "7e13b40a-2756-4d76-98b4-baa57a34fbfb",
+                        "kind": "action",
+                        "after": "Première action du sas de préparation avant les conversations sensibles.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Action isolée, sans rôle explicite de préparation avant l’entrée dans le sujet sensible.",
+                        "reason": "Elle sert de point d’ancrage simple pour sécuriser la transition sans ajouter de contenu sensible.",
+                        "capability": "reorder_actions"
+                      },
+                      {
+                        "id": "e51a79a7-d218-4b13-a1b1-25bda5d9b80e",
+                        "kind": "habit",
+                        "after": "Deuxième action du sas de préparation, pour soutenir la montée en confiance avant le sujet sensible.",
+                        "title": "Respiration de pause",
+                        "before": "Habitude séparée, non structurée comme appui de transition.",
+                        "reason": "Elle allège l’entrée dans la phase délicate sans changer la nature de l’habitude ni la direction du plan.",
+                        "capability": "reorder_actions"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": null,
+                        "kind": "plan",
+                        "title": "Plan global",
+                        "reason": "La direction générale, l’objectif principal et le périmètre du plan restent inchangés."
+                      }
+                    ],
+                    "trajectory_change": {
+                      "after": "Le plan passe d’abord par un court sas de préparation limité à deux actions maximum, puis reprend sa progression vers les conversations sensibles.",
+                      "before": "Le plan allait directement vers les conversations sensibles, avec une montée en intensité trop rapide pour le contexte actuel.",
+                      "inserted_step": "Insérer une étape intermédiaire courte de préparation et de cadrage avant l’entrée dans les conversations sensibles.",
+                      "coaching_reason": "Ce réordonnancement crée un pont minimal qui réduit l’exposition immédiate, protège l’adhésion et remet la montée en intensité au bon rythme sans changer le fond du plan.",
+                      "reordered_steps": [
+                        "Convenir d'un signal de pause",
+                        "Respiration de pause"
+                      ],
+                      "preserved_direction": "La direction vers les conversations sensibles reste la même, avec la progression générale, le périmètre du plan et la simplicité du parcours préservés."
+                    }
+                  },
+                  "user_message_brief": "Je propose de garder la direction du plan, mais d’insérer un petit sas de préparation à deux actions maximum avant les conversations sensibles. Rien n’est encore appliqué: tu peux valider ou me demander de resserrer encore la transition.",
+                  "user_message_detailed": "Je te propose un réordonnancement du plan, pas un changement de fond. Avant, le parcours allait trop vite vers les conversations sensibles; après, il passe par un sas de préparation très court, limité à deux actions maximum, puis reprend sa progression normale.\n\nChangement 1: \"Convenir d'un signal de pause\".\nAvant: l’action apparaissait comme une étape isolée, sans rôle clair de transition.\nAprès: elle devient la première marche du sas de préparation avant l’entrée dans le sujet sensible.\nPourquoi ça aide: ça donne un repère simple et sécurisant pour ne pas attaquer le sensible trop vite.\n\nChangement 2: \"Respiration de pause\".\nAvant: l’habitude était séparée et ne servait pas explicitement à préparer la suite.\nAprès: elle devient la deuxième action du sas, pour accompagner la montée en confiance avant le sujet délicat.\nPourquoi ça aide: ça réduit la charge perçue sans changer la cadence de l’habitude ni la direction du plan.\n\nCe qui ne bouge pas: l’objectif principal, la progression générale, le périmètre du plan et l’intention finale d’aller vers les conversations sensibles. Le niveau de confiance est moyen: l’ajustement est cohérent et simple, mais la durée exacte du sas et le placement précis de la suite restent à affiner."
+                },
+                "execution_strategy": "whole_plan_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "plan_adjustment",
+                  "load_adjustment",
+                  "goal_adjustment",
+                  "sequence_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "J’ai réordonné le plan pour garder la même direction, tout en ajoutant un sas de préparation avant les conversations sensibles. Le changement reste limité au niveau actuel du parcours: l’objectif final ne bouge pas, et le plan global reste intact.\n\nDeux repères concrets ont été ajustés. \"Convenir d'un signal de pause\" passe au début du sas de transition: avant, il arrivait sans rôle clair de préparation; après, il sert à sécuriser l’entrée dans le sujet sensible. \"Respiration de pause\" rejoint la même courte phase intermédiaire: avant, elle restait une action isolée; après, elle soutient la montée en confiance sans alourdir l’étape.\n\nCe que ça change, en simple: on ne va pas trop vite vers le sensible, et on garde une progression plus fluide, avec au plus deux actions dans la phase de transition. Ce qui ne change pas: la direction du plan, l’intention d’aller vers les conversations sensibles et la simplicité du parcours. Je suis assez confiant sur cet ajustement, car il répond directement au problème de séquencement sans toucher au fond.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de réordonner le plan pour qu’il garde la même direction, mais avec un sas de préparation avant d’entrer dans les conversations sensibles. Rien n’est encore appliqué. Concrètement, je propose d’insérer une courte étape intermédiaire limitée à deux actions maximum, avec d’abord \"Convenir d'un signal de pause\" puis \"Respiration de pause\", avant de reprendre la progression vers les conversations sensibles. Ça aide à réduire la charge perçue, à préserver la sécurité et à garder l’adhésion sans changer le fond du plan. Ce qui ne bouge pas: l’objectif final, la progression générale et le périmètre du plan. Si tu veux, je peux valider cette version telle quelle ou l’ajuster pour que le sas soit encore plus bref."
+            },
+            "status": "draft_review",
+            "reason_code": "active_tool_skill_continue",
+            "operation_id": "271acde5-2e6e-48df-a17d-30e0817a5404",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer une refonte complète du plan.",
+                "Ne pas ajouter de nouvelles conversations sensibles dans l’étape intermédiaire.",
+                "Ne pas multiplier les actions de préparation au-delà de la limite demandée.",
+                "Ne pas présenter la transition comme une régression ou un abandon du sujet."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "L’intention finale d’aller vers les conversations sensibles.",
+                "La progression générale du plan.",
+                "Le périmètre global du plan.",
+                "La logique de montée en intensité, simplement re-temporisée.",
+                "La simplicité et la lisibilité du parcours."
+              ],
+              "warnings": [
+                "Éviter de proposer d’aller directement aux conversations sensibles sans étape de préparation.",
+                "Éviter d’ajouter plus de deux actions dans la phase intermédiaire, sinon la transition perd son rôle de sas.",
+                "Éviter de transformer cette demande en changement de contenu ou d’objectif: le besoin exprimé concerne l’ordre, pas la nature du plan.",
+                "Ne pas surcharger la nouvelle étape avec des sous-objectifs multiples ou des critères complexes."
+              ],
+              "readiness": "draft_ready",
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Rôle de l’action: réordonner pour créer un pont de préparation avant le sensible.",
+                "Intention préservée: conserver la direction vers les conversations sensibles, mais avec une montée en charge plus graduelle.",
+                "Pont minimal: proposer une étape intermédiaire courte, limitée à deux actions maximum.",
+                "Pas de changement de nature sans demande explicite: rester sur du séquençage, pas sur un changement de contenu.",
+                "Niveau: maintenir la charge globale, mais baisser temporairement l’intensité perçue avant le passage sensible.",
+                "Boundary de fin de niveau: l’étape intermédiaire doit clairement se terminer avant l’entrée dans le sujet délicat.",
+                "Whole plan: préserver la trajectoire d’ensemble, l’objectif final et la cohérence des prérequis.",
+                "Whole plan: vérifier que l’ordre des phases respecte une montée progressive en confiance et en exposition.",
+                "Whole plan: ne pas casser le questionnaire ou la structure globale, seulement repositionner le moment d’accès au sensible."
+              ],
+              "observation": "La demande porte sur un problème de séquencement, pas sur le fond: la trajectoire actuelle va trop vite vers des conversations sensibles. Ce qui se joue humainement est le besoin d’un sas de préparation pour préserver la sécurité, la fluidité et l’adhésion avant d’entrer dans le contenu délicat. La contrainte clé est explicite: ajouter une étape intermédiaire très contenue, avec au plus deux actions, avant de reprendre la progression.",
+              "change_family": "sequence_order_issue",
+              "recommendation": "Orienter la réponse vers un réordonnancement avec pont intermédiaire: insérer une courte phase de transition qui prépare sans exposer, limite la charge, puis relance vers les conversations sensibles. Garder le sens du plan intact, mais déplacer le moment d’entrée dans le sensible.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Insérer une étape tampon centrée sur la préparation et le cadrage, avec deux actions maximum.",
+                "Replacer les conversations sensibles après un jalon de consolidation ou de familiarisation.",
+                "Si nécessaire, convertir une action actuelle en action de préparation pour réduire l’exposition immédiate.",
+                "Définir si la transition doit être très brève ou simplement modérée, selon la tolérance à la charge."
+              ],
+              "candidate_operation": "reorder",
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle enchaîne trop vite vers le sensible; la trajectoire ajustée insère un court sas de transition à deux actions maximum avant de reprendre la progression.",
+              "must_not_execute_reason": null
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 46341,
+          "created_at": "2026-05-20T16:54:20.059812+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T16:54:20.078Z"
+}

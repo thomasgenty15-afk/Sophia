@@ -204,23 +204,6 @@ export function runActiveFlowArbitrator(input: {
         blocked_paths: opportunityBlocks,
       };
     }
-    if (highConversationSkill === "execution_breakdown") {
-      return {
-        decision: "continue_active",
-        active_owner: activeOwner,
-        selected_owner: "tool_skill",
-        selected_handler: activeToolOperation ?? input.tool_skill.operation_type,
-        resume_policy: "none",
-        reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
-        blocked_paths: [
-          ...opportunityBlocks,
-          {
-            path: "skill_signals.execution_breakdown",
-            reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
-          },
-        ],
-      };
-    }
 
     const explicitOtherIntent = input.turn_frame.tool_skill_intents.find((
       intent,
@@ -245,6 +228,24 @@ export function runActiveFlowArbitrator(input: {
             },
           ]
           : opportunityBlocks,
+      };
+    }
+
+    if (highConversationSkill === "execution_breakdown") {
+      return {
+        decision: "continue_active",
+        active_owner: activeOwner,
+        selected_owner: "tool_skill",
+        selected_handler: activeToolOperation ?? input.tool_skill.operation_type,
+        resume_policy: "none",
+        reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
+        blocked_paths: [
+          ...opportunityBlocks,
+          {
+            path: "skill_signals.execution_breakdown",
+            reason_code: "execution_breakdown_absorbed_by_active_tool_skill",
+          },
+        ],
       };
     }
 

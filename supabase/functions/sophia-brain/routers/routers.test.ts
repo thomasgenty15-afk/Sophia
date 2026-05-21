@@ -179,6 +179,56 @@ Deno.test("skill_router covers start, continue, handoff, none and safety", () =>
     }).selected_skill_id,
     "safety_crisis",
   );
+  const activeSafety = runSkillRouter({
+    active_skill_state: {
+      skill_id: "safety_crisis",
+      working_state: { phase: "stabilizing" },
+    },
+    turn_frame: frame({
+      safety: {
+        risk_band: "medium",
+        reason_codes: ["active_safety_flow_caution"],
+        evidence: [],
+      },
+    }),
+  });
+  assertEquals(activeSafety.status, "continue");
+  assertEquals(activeSafety.reason_code, "active_safety_crisis_continue");
+  const activeSafetyResolvedTurn = runSkillRouter({
+    active_skill_state: {
+      skill_id: "safety_crisis",
+      working_state: { phase: "exit_check" },
+    },
+    turn_frame: frame({
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user_says_security",
+          },
+        },
+      },
+    }),
+  });
+  assertEquals(activeSafetyResolvedTurn.status, "continue");
+  assertEquals(activeSafetyResolvedTurn.selected_skill_id, "safety_crisis");
+});
+
+Deno.test("skill_router ignores malformed entry skill signal values", () => {
+  const decision = runSkillRouter({
+    turn_frame: frame({
+      skill_signals: {
+        entry: {
+          noisy_skill: undefined,
+          emotional_repair: { detected: true, confidence_band: "high" },
+        } as any,
+      },
+    }),
+  });
+  assertEquals(decision.status, "start");
+  assertEquals(decision.selected_skill_id, "emotional_repair");
 });
 
 Deno.test("tool_skill_router covers start, continue, confirmation paths, blocked and none", () => {
@@ -344,6 +394,34 @@ Deno.test("conversation routers keep emotional_repair owner over new tool skill 
   );
 });
 
+Deno.test("conversation routers keep active safety owner while deferring tool skills", () => {
+  const route = runConversationRouters({
+    active_skill_state: { skill_id: "safety_crisis" },
+    turn_frame: frame({
+      skill_signals: {
+        lifecycle: {
+          safety_crisis: {
+            detected: true,
+            confidence_band: "high",
+            reason: "active_safety_followup",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "create_recurring_reminder",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_pregate_risk_band: "none",
+  });
+  assertEquals(route.response_owner, "safety");
+  assertEquals(route.selected_handler, "safety_crisis");
+  assertEquals(route.direct_effects_to_run, []);
+});
+
 Deno.test("conversation routers let explicit tool skill interrupt active emotional repair continuation", () => {
   const route = runConversationRouters({
     active_skill_state: { skill_id: "emotional_repair" },
@@ -435,7 +513,10 @@ Deno.test("active tool flow answers product_help inline and keeps direct effects
   });
 
   assertEquals(route.response_owner, "product_help");
-  assertEquals(route.reason_code, "product_help_inline_resume_active_tool_skill");
+  assertEquals(
+    route.reason_code,
+    "product_help_inline_resume_active_tool_skill",
+  );
   assertEquals(
     route.active_flow_arbitration?.decision,
     "inline_answer_then_resume",
@@ -575,6 +656,35 @@ Deno.test("active tool flow can be superseded by explicit high-confidence differ
 
   assertEquals(route.response_owner, "tool_skill");
   assertEquals(route.selected_handler, "create_recurring_reminder");
+  assertEquals(route.reason_code, "explicit_tool_intent_supersedes_active");
+});
+
+Deno.test("active tool flow lets explicit different tool intent beat execution breakdown absorption", () => {
+  const route = runConversationRouters({
+    active_tool_skill_intake: { operation_type: "create_recurring_reminder" },
+    turn_frame: frame({
+      skill_signals: {
+        entry: {
+          execution_breakdown: {
+            detected: true,
+            confidence_band: "high",
+            reason: "execution_blocked",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+    safety_pregate_risk_band: "none",
+  });
+
+  assertEquals(route.response_owner, "tool_skill");
+  assertEquals(route.selected_handler, "prepare_attack_card");
   assertEquals(route.reason_code, "explicit_tool_intent_supersedes_active");
 });
 

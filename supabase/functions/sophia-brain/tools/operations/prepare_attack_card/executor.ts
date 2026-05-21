@@ -80,6 +80,10 @@ export async function executePrepareAttackCard(input: {
     status: "executed",
     attack_card_id: written.attack_card_id,
     ack:
-      `C'est fait. J'ai cree une carte d'attaque pour ${input.target.title} : ${input.draft.draft.generated_asset}. Tu peux la retrouver dans ${attackCardResourceLabel(input.target)} pour la relire et l'utiliser. Si c'est une carte Mot de bascule, le mot peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation.`,
+      `C'est fait. J'ai cree une carte d'attaque pour ${input.target.title} : ${input.draft.draft.generated_asset}. Tu peux la retrouver dans ${attackCardResourceLabel(input.target)} pour la relire et l'utiliser.${
+        input.draft.draft.technique === "pre_engagement"
+          ? " Le mot de cette carte peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation."
+          : " Pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation."
+      }`,
   };
 }

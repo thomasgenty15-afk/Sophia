@@ -37,9 +37,9 @@ function loadSupabaseStatus() {
     if (match) env[match[1]] = match[2].replace(/^["']|["']$/g, "");
   }
   return {
-    API_URL: env.VITE_SUPABASE_URL ?? env.SUPABASE_URL ??
+    API_URL: env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ??
       "http://127.0.0.1:54321",
-    ANON_KEY: env.VITE_SUPABASE_ANON_KEY ?? env.SUPABASE_ANON_KEY ?? "",
+    ANON_KEY: env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? "",
     SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
     SECRET_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   };
@@ -133,6 +133,8 @@ if (!runId || !text) {
 }
 
 const status = loadSupabaseStatus();
+const testSendMessageUrl = process.env.SOPHIA_TEST_SEND_MESSAGE_URL ||
+  `${status.API_URL}/functions/v1/test-send-message`;
 const connectionFileArg = argValue(
   "connection-file",
   path.join("tests", "real-personas", persona, "connection.json"),
@@ -141,6 +143,7 @@ const connectionPath = path.isAbsolute(connectionFileArg)
   ? connectionFileArg
   : path.join(root, connectionFileArg);
 const connection = readJson(connectionPath);
+const effectiveScope = scope || connection.scope || `weekly-real-${runId}`;
 const accessToken = await signIn(status, connection);
 const state = loadState(runId) ?? {
   run_id: runId,
@@ -148,7 +151,7 @@ const state = loadState(runId) ?? {
   persona,
   user_id: connection.user_id,
   email: connection.email,
-  scope,
+  scope: effectiveScope,
   created_at: new Date().toISOString(),
   force_full_ai: true,
   turns: [],
@@ -156,7 +159,7 @@ const state = loadState(runId) ?? {
 
 const turnNumber = state.turns.length + 1;
 const startedAt = new Date().toISOString();
-const result = await jsonFetch(`${status.API_URL}/functions/v1/test-send-message`, {
+const result = await jsonFetch(testSendMessageUrl, {
   method: "POST",
   headers: {
     apikey: status.ANON_KEY,
@@ -168,7 +171,7 @@ const result = await jsonFetch(`${status.API_URL}/functions/v1/test-send-message
   body: JSON.stringify({
     user_id: connection.user_id,
     channel: "web",
-    scope,
+    scope: effectiveScope,
     content: text,
     force_full_ai: true,
     disable_debounce: true,

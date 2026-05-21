@@ -1,0 +1,8 @@
+{
+  "user_id": "49aba9ba-ebba-473d-ab13-cc0d36d65c5e",
+  "email": "qa-weekly-deep-weekly-8turn-r16-not_relevant_level_review@example.com",
+  "password": "1234567",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-8turn-r16",
+  "persona": "qa-weekly-deep",
+  "is_temporary_qa_connection": true
+}

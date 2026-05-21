@@ -78,6 +78,15 @@ Deno.test("dispatcher keeps dashboard explanation questions out of tool skills",
   }
 });
 
+Deno.test("dispatcher treats product capability questions as product_help, not tool creation", async () => {
+  const frame = await runDispatcher(
+    baseInput("Est-ce que je peux créer une carte d'attaque ici ?"),
+  );
+
+  assertEquals(frame.skill_signals.entry?.product_help?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
 Deno.test("dispatcher keeps product follow-up pronouns in product_help", async () => {
   const frame = await runDispatcher({
     ...baseInput(
@@ -154,6 +163,29 @@ Deno.test("dispatcher routes direct plan adjustment as adjust_plan_item", async 
     false,
   );
   assertEquals(frame.tool_skill_intents[0]?.operation_type, "adjust_plan_item");
+});
+
+Deno.test("dispatcher routes natural structural trajectory request as whole-plan adjust_plan", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "En regardant la suite du plan, je trouve que la prochaine étape arrive trop vite. Avant les conversations sensibles, je voudrais une étape intermédiaire plus sécurisante.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [],
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents[0]?.operation_type, "adjust_plan_item");
+  assertEquals(frame.tool_skill_intents[0]?.adjust_plan_scope, "whole_plan");
+  assertEquals(
+    (frame.tool_skill_intents[0]?.operation_input as any)?.target_granularity
+      ?.value,
+    "whole_plan",
+  );
+  assertEquals(
+    (frame.tool_skill_intents[0]?.operation_input as any)?.scope?.kind,
+    "whole_plan",
+  );
 });
 
 Deno.test("dispatcher preserves structured current-level adjust_plan operation_input", async () => {
@@ -298,6 +330,62 @@ Deno.test("dispatcher keeps explicit tool skill intent separate from opportunity
   assertEquals(frame.tool_skill_opportunity.should_offer, false);
 });
 
+Deno.test("dispatcher blocks tool skills and opportunities under high safety", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("J'ai envie de disparaître, aide-moi à alléger le plan."),
+    safety_pregate_output: {
+      detected: true,
+      risk_band: "high" as const,
+      reason_codes: ["self_harm_ideation"],
+      evidence: ["envie de disparaître"],
+      layer_contributions: {
+        lexical: true,
+        heuristic: true,
+        dispatcher_llm: false as const,
+      },
+      allow_side_effects: false,
+    },
+    llm_runner: async () => ({
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "adjust",
+        explicitness: "explicit",
+        target_hint: "plan",
+        confidence_band: "high",
+        ambiguity: "none",
+        operation_input: {
+          target_granularity: {
+            status: "ambiguous",
+            value: "whole_plan",
+            confidence: "medium",
+            evidence: ["alléger le plan"],
+            negative_evidence: [],
+          },
+        },
+      }],
+      tool_skill_opportunity: {
+        type: "plan_adjustment",
+        operation_type: "adjust_plan_item",
+        surface_id: "plan.adjust",
+        confidence_band: "high",
+        should_offer: true,
+        prop_reason: "plan adjustment mentioned",
+        source_span: "alléger le plan",
+        target_hint: "plan",
+        target_status: "ambiguous",
+        suggested_question_intent: "offer_plan_adjustment",
+        offer_timing: "now",
+        must_not_execute: true,
+      },
+    }),
+  });
+
+  assertEquals(frame.safety.risk_band, "high");
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+  assertEquals(frame.tool_skill_opportunity.should_offer, false);
+});
+
 Deno.test("dispatcher treats explicit attack card creation as tool skill even with product words", async () => {
   const frame = await runDispatcher(
     baseInput(
@@ -312,6 +400,23 @@ Deno.test("dispatcher treats explicit attack card creation as tool skill even wi
   assertEquals(
     frame.tool_skill_intents[0]?.operation_type,
     "prepare_attack_card",
+  );
+});
+
+Deno.test("dispatcher routes explicit defense card creation despite product-surface words", async () => {
+  const frame = await runDispatcher(
+    baseInput(
+      "Prépare une carte de défense pour ce soir quand je risque de craquer sur Instagram.",
+    ),
+  );
+
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
+  assertEquals(
+    frame.tool_skill_intents[0]?.operation_type,
+    "prepare_defense_card",
   );
 });
 
@@ -330,6 +435,228 @@ Deno.test("dispatcher proposes plan adjustment when an action no longer fits", a
     "offer_plan_adjustment",
   );
   assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+});
+
+Deno.test("dispatcher demotes plan difficulty sharing from adjust intent to opportunity", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Cette semaine mon plan est trop lourd, je n'arrive pas à tenir les actions prévues et je décroche.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "adjust",
+        explicitness: "explicit",
+        target_hint: "plan de la semaine",
+        confidence_band: "high",
+        ambiguity: "none",
+      }],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "portion");
+  assertEquals(frame.tool_skill_opportunity.operation_type, "adjust_plan_item");
+  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+});
+
+Deno.test("dispatcher turns coach style sharing into coach preferences opportunity", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Quand tu me poses trop de questions d'affilée, je me ferme un peu ; j'avance mieux avec une seule question courte.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [{
+        operation_type: "update_coach_preferences",
+        user_intent: "update",
+        explicitness: "explicit",
+        target_hint: "style de communication",
+        confidence_band: "high",
+        ambiguity: "none",
+      }],
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "coach_preferences");
+  assertEquals(
+    frame.tool_skill_opportunity.operation_type,
+    "update_coach_preferences",
+  );
+  assertEquals(
+    frame.tool_skill_opportunity.surface_id,
+    "dashboard.preferences",
+  );
+  assertEquals(frame.tool_skill_opportunity.must_not_execute, true);
+});
+
+Deno.test("dispatcher keeps corrected final tool intent when LLM emits two intents", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "J'aimerais bien créer une carte d'attaque, mais en vrai c'est mieux d'ajuster la semaine.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [
+        {
+          operation_type: "prepare_attack_card",
+          user_intent: "create",
+          explicitness: "explicit",
+          target_hint: "carte d'attaque",
+          confidence_band: "high",
+          ambiguity: "none",
+          operation_input: {
+            target_action: {
+              status: "identified",
+              value: "semaine",
+            },
+          },
+        },
+        {
+          operation_type: "adjust_plan_item",
+          user_intent: "adjust",
+          explicitness: "explicit",
+          target_hint: "semaine",
+          confidence_band: "high",
+          ambiguity: "none",
+          rejected_operations: ["prepare_attack_card"],
+          adjust_plan_scope: "current_level",
+          operation_input: {
+            target_granularity: {
+              status: "identified",
+              value: "current_level",
+            },
+            scope: {
+              status: "identified",
+              kind: "current_level",
+            },
+          },
+        },
+      ],
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 1);
+  assertEquals(frame.tool_skill_intents[0]?.operation_type, "adjust_plan_item");
+  assertEquals(frame.tool_skill_intents[0]?.rejected_operations, [
+    "prepare_attack_card",
+  ]);
+});
+
+Deno.test("dispatcher lets explicit final card choice beat earlier plan adjustment", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "On pourrait ajuster la semaine, mais non, fais plutôt une carte d'attaque pour le dossier client.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [
+        {
+          operation_type: "adjust_plan_item",
+          user_intent: "adjust",
+          explicitness: "explicit",
+          target_hint: "semaine",
+          confidence_band: "high",
+          ambiguity: "none",
+          adjust_plan_scope: "current_level",
+          operation_input: {
+            target_granularity: {
+              status: "identified",
+              value: "current_level",
+            },
+            scope: {
+              status: "identified",
+              kind: "current_level",
+            },
+          },
+        },
+        {
+          operation_type: "prepare_attack_card",
+          user_intent: "create",
+          explicitness: "explicit",
+          target_hint: "dossier client",
+          confidence_band: "high",
+          ambiguity: "none",
+          rejected_operations: ["adjust_plan_item"],
+          operation_input: {
+            target_action: {
+              status: "identified",
+              value: "dossier client",
+            },
+          },
+        },
+      ],
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 1);
+  assertEquals(
+    frame.tool_skill_intents[0]?.operation_type,
+    "prepare_attack_card",
+  );
+  assertEquals(frame.tool_skill_intents[0]?.rejected_operations, [
+    "adjust_plan_item",
+  ]);
+});
+
+Deno.test("dispatcher chooses plan adjustment over card when both remain high confidence", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Je pense à une carte d'attaque, et aussi à rendre la semaine plus légère.",
+    ),
+    llm_runner: async () => ({
+      tool_skill_intents: [
+        {
+          operation_type: "prepare_attack_card",
+          user_intent: "create",
+          explicitness: "explicit",
+          target_hint: "carte d'attaque",
+          confidence_band: "high",
+          ambiguity: "none",
+          operation_input: {
+            target_action: {
+              status: "identified",
+              value: "semaine",
+            },
+          },
+        },
+        {
+          operation_type: "adjust_plan_item",
+          user_intent: "adjust",
+          explicitness: "explicit",
+          target_hint: "semaine",
+          confidence_band: "high",
+          ambiguity: "none",
+          adjust_plan_scope: "current_level",
+          operation_input: {
+            target_granularity: {
+              status: "identified",
+              value: "current_level",
+            },
+            scope: {
+              status: "identified",
+              kind: "current_level",
+            },
+          },
+        },
+      ],
+    }),
+  });
+
+  assertEquals(frame.tool_skill_intents.length, 1);
+  assertEquals(frame.tool_skill_intents[0]?.operation_type, "adjust_plan_item");
 });
 
 Deno.test("dispatcher delays opportunity offer while an operation intake is active", async () => {
@@ -366,6 +693,116 @@ Deno.test("dispatcher rejects LLM recurring reminder false positive without expl
     }),
   });
 
+  assertEquals(frame.tool_skill_intents.length, 0);
+});
+
+Deno.test("dispatcher suppresses tool skill intents when acute emotional repair dominates", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Je me sens nul et complètement en vrac, j'ai envie de tout laisser tomber ; lance-moi une potion de clarté.",
+    ),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          emotional_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "self_attack_or_shame",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "select_state_potion",
+        user_intent: "select",
+        explicitness: "explicit",
+        target_hint: "potion de clarté",
+        confidence_band: "high",
+        ambiguity: "none",
+        operation_input: {
+          potion_type: "clarity",
+        },
+      }],
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
+Deno.test("dispatcher removes execution overlap when acute emotional repair dominates", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("Je me déteste quand je craque, prépare une carte pour ne pas replonger ce soir."),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          emotional_repair: {
+            detected: true,
+            confidence_band: "high",
+            reason: "self_attack_or_shame",
+          },
+          execution_breakdown: {
+            detected: true,
+            confidence_band: "medium",
+            reason: "unclear_start",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        user_intent: "create",
+        explicitness: "explicit",
+        target_hint: "ce soir",
+        confidence_band: "high",
+        ambiguity: "none",
+        operation_input: {
+          risk_context: "ne pas replonger ce soir",
+        },
+      }],
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.emotional_repair?.detected, true);
+  assertEquals(
+    frame.skill_signals.entry?.execution_breakdown?.detected ?? false,
+    false,
+  );
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
+  assertEquals(frame.tool_skill_intents.length, 0);
+  assertEquals(frame.tool_skill_opportunity.type, "none");
+});
+
+Deno.test("dispatcher respects explicit negation of state potion", async () => {
+  const frame = await runDispatcher({
+    ...baseInput("Ne lance pas de potion, aide-moi juste à comprendre par où commencer."),
+    llm_runner: async () => ({
+      skill_signals: {
+        entry: {
+          execution_breakdown: {
+            detected: true,
+            confidence_band: "high",
+            reason: "unclear_start",
+          },
+        },
+      },
+      tool_skill_intents: [{
+        operation_type: "select_state_potion",
+        user_intent: "select",
+        explicitness: "explicit",
+        target_hint: "potion",
+        confidence_band: "high",
+        ambiguity: "none",
+        operation_input: {
+          potion_type: "clarity",
+        },
+      }],
+    }),
+  });
+
+  assertEquals(frame.skill_signals.entry?.execution_breakdown?.detected, true);
   assertEquals(frame.tool_skill_intents.length, 0);
 });
 
@@ -751,11 +1188,16 @@ Deno.test("dispatcher heuristic emits needs_research when LLM is unavailable", a
 
 Deno.test("dispatcher emits one-shot direct effect for natural one-hour reminder", async () => {
   const frame = await runDispatcher(
-    baseInput("Tu peux aussi me rappeler dans une heure de remettre la pate au frais ?"),
+    baseInput(
+      "Tu peux aussi me rappeler dans une heure de remettre la pate au frais ?",
+    ),
   );
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.direct_effects[0]?.effect_type, "create_one_shot_reminder");
+  assertEquals(
+    frame.direct_effects[0]?.effect_type,
+    "create_one_shot_reminder",
+  );
   assertEquals(frame.direct_effects[0]?.target_status, "identified");
   assertEquals(frame.direct_effects[0]?.confidence_band, "high");
 });
@@ -766,7 +1208,10 @@ Deno.test("dispatcher emits one-shot direct effect for dis-moi tomorrow reminder
   );
 
   assertEquals(frame.tool_skill_intents.length, 0);
-  assertEquals(frame.direct_effects[0]?.effect_type, "create_one_shot_reminder");
+  assertEquals(
+    frame.direct_effects[0]?.effect_type,
+    "create_one_shot_reminder",
+  );
   assertEquals(frame.direct_effects[0]?.target_status, "identified");
 });
 

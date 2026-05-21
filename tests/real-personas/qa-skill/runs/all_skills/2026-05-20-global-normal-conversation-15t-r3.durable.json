@@ -1,0 +1,683 @@
+{
+  "scheduled_checkins": [],
+  "chat_messages": [
+    {
+      "id": "dd32f180-81ed-4211-8087-f7e3dd82f612",
+      "role": "user",
+      "content": "Salut Sophia, j'ai une note client à reprendre aujourd'hui. Ce n'est pas énorme, mais je sens déjà que je vais ouvrir trois onglets au lieu de commencer. J'ai besoin d'un départ très simple.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r3",
+      "created_at": "2026-05-20T16:50:04.640537+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r3-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "98030f7c-f86d-43b9-a148-70e1652500fe",
+      "role": "assistant",
+      "content": "Oh je vois le genre 😅 On vise “zéro friction” : tu lances juste la reprise de la note en 2 minutes, sans chercher à l’améliorer.\n\nMicro-geste maintenant :\n1) Ouvre la note client\n2) Fais un copier-coller dans un coin “A reprendre” : 1 phrase “où j’en suis” + 1 point “ce qu’il manque”\n\nEt après, tu fais juste la prochaine action évidente (même petite). ✅\n\nTu veux que je te fasse une Carte d’attaque “Reprendre une note client” pour que tu aies exactement quoi faire dès que tu l’ouvres ? (oui/non) 😊",
+      "scope": "qa-global-normal-conversation-15t-20260520-r3",
+      "created_at": "2026-05-20T16:50:11.535853+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r3-t01",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "surface_id": null,
+          "agent_model": "gpt-5.4-nano",
+          "target_mode": "companion",
+          "outage_error": null,
+          "safety_level": "NONE",
+          "stop_checkup": false,
+          "surface_level": null,
+          "checkup_active": false,
+          "interrupt_kind": "NONE",
+          "research_query": null,
+          "outage_fallback": false,
+          "agent_model_tier": "lite",
+          "llm_retry_job_id": null,
+          "llm_retry_queued": false,
+          "research_executed": false,
+          "agent_model_source": "memory_plan_lite",
+          "outage_failed_mode": null,
+          "research_requested": false,
+          "research_sources_count": 0,
+          "conversation_risk_score": 0,
+          "conversation_risk_exit_flows": false,
+          "coaching_intervention_pending": null
+        }
+      }
+    },
+    {
+      "id": "c00bc71a-fe8a-4acd-b74a-2291feb7e18a",
+      "role": "user",
+      "content": "Oui, fais-la. La cible c'est relire la note et sortir trois puces imparfaites. Mon piège habituel: vouloir comprendre toute la logique avant d'écrire une première version.",
+      "scope": "qa-global-normal-conversation-15t-20260520-r3",
+      "created_at": "2026-05-20T16:50:18.91085+00:00",
+      "metadata": {
+        "request_id": "global15_20260520_r3-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message"
+      }
+    },
+    {
+      "id": "44e6196b-02f6-4b93-9081-94ad03511cd2",
+      "role": "assistant",
+      "content": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ? 🙂",
+      "scope": "qa-global-normal-conversation-15t-20260520-r3",
+      "created_at": "2026-05-20T16:50:46.759225+00:00",
+      "metadata": {
+        "channel": "web",
+        "request_id": "global15_20260520_r3-t02",
+        "test_persona": true,
+        "force_full_ai": true,
+        "test_endpoint": "test-send-message",
+        "router_decision_v2": {
+          "next_mode": "companion",
+          "risk_score": 2,
+          "target_mode": "companion",
+          "safety_level": "NONE",
+          "tool_skill_runtime": {
+            "draft": {
+              "draft": {
+                "title": "Terrain prêt pour l'imperfection",
+                "technique": "preparer_terrain",
+                "instruction": "Prépare ton espace pour limiter la réflexion et favoriser l'action brute.",
+                "mode_emploi": "Prépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.",
+                "target_label": "Relire la note et sortir trois puces imparfaites",
+                "why_it_helps": "Cela réduit la friction visuelle et mentale qui te pousse à vouloir tout comprendre avant d'agir.",
+                "generated_asset": "Ouvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.",
+                "technique_title": "Préparer le terrain",
+                "supporting_points": [
+                  "L'objectif n'est pas de comprendre, mais de produire.",
+                  "Trois puces suffisent.",
+                  "L'imperfection est la clé du démarrage."
+                ],
+                "activation_keyword": null
+              },
+              "output_schema": "attack_card_draft_v1",
+              "operation_type": "prepare_attack_card",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ?"
+            },
+            "source": "recommendation_tool",
+            "status": "pending_confirmation",
+            "operation_id": "854ef3ed-ae13-4ccb-b38a-733ba14056a8",
+            "selected_handler": "prepare_attack_card",
+            "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260520_r3-t01"
+          }
+        },
+        "multi_message_count": 1,
+        "multi_message_index": 0
+      }
+    }
+  ],
+  "memory_items": [],
+  "user_topic_memories": [],
+  "user_attack_cards": [],
+  "user_profile_facts": [
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.message_length",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.tone",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.challenge_level",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.feedback_style",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.talk_propensity",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.message_format",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.primary_focus",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.emotional_personalization",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    },
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "status": "active",
+      "confidence": 1,
+      "source_type": "system_default",
+      "last_source_message_id": null,
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-20T16:49:55.895178+00:00",
+      "updated_at": "2026-05-20T16:49:55.895178+00:00",
+      "last_confirmed_at": null,
+      "version": 1,
+      "previous_values": []
+    }
+  ],
+  "user_chat_states": [
+    {
+      "user_id": "f9ec2a57-5da2-4c0c-9f33-f20b202234b1",
+      "current_mode": "companion",
+      "risk_level": 2,
+      "investigation_state": null,
+      "short_term_context": "",
+      "last_interaction_at": "2026-05-20T16:50:46.747+00:00",
+      "updated_at": "2026-05-20T16:50:46.751141+00:00",
+      "unprocessed_msg_count": 2,
+      "last_processed_at": "2026-05-20T16:50:04.652+00:00",
+      "scope": "qa-global-normal-conversation-15t-20260520-r3",
+      "temp_memory": {
+        "__momentum_state_v2": {
+          "posture": {
+            "confidence": "high",
+            "recommended_posture": "simplify"
+          },
+          "version": 2,
+          "blockers": {
+            "blocker_kind": null,
+            "blocker_repeat_score": 0
+          },
+          "_internal": {
+            "sources": {
+              "router_updated_at": "2026-05-20T16:50:11.507Z",
+              "last_classified_by": "router"
+            },
+            "stability": {
+              "stable_since_at": "2026-05-20T16:50:11.507Z"
+            },
+            "signal_log": {
+              "consent_events": [],
+              "emotional_turns": [],
+              "response_quality_events": [
+                {
+                  "at": "2026-05-20T16:50:11.507Z",
+                  "quality": "substantive"
+                }
+              ]
+            },
+            "metrics_cache": {
+              "last_user_turn_at": "2026-05-20T16:50:11.507Z",
+              "last_user_turn_quality": "substantive",
+              "days_since_last_user_message": 0
+            }
+          },
+          "assessment": {
+            "top_risk": null,
+            "confidence": "low",
+            "top_blocker": null
+          },
+          "dimensions": {
+            "consent": {
+              "level": "open",
+              "reason": "no_decline_detected"
+            },
+            "plan_fit": {
+              "level": "uncertain"
+            },
+            "engagement": {
+              "level": "high",
+              "reason": "substantive_recent_reply"
+            },
+            "load_balance": {
+              "level": "balanced"
+            },
+            "emotional_load": {
+              "level": "low",
+              "reason": "no_emotional_marker"
+            },
+            "execution_traction": {
+              "level": "unknown"
+            }
+          },
+          "updated_at": "2026-05-20T16:50:11.507Z",
+          "active_load": {
+            "needs_reduce": false,
+            "needs_consolidate": false,
+            "current_load_score": 0,
+            "mission_slots_used": 0,
+            "support_slots_used": 0,
+            "habit_building_slots_used": 0
+          },
+          "memory_links": {
+            "last_useful_support_ids": [],
+            "last_failed_technique_ids": []
+          },
+          "state_reason": "engaged_but_not_clearly_progressing",
+          "current_state": "friction_legere"
+        },
+        "__active_skill_state": {
+          "skill_id": "execution_breakdown",
+          "turn_count": 1,
+          "updated_at": "2026-05-20T16:50:11.507Z",
+          "previous_skill_id": null
+        },
+        "__conversation_risk_last": {
+          "at": "2026-05-20T16:50:24.032Z",
+          "score": 1,
+          "threshold": 8,
+          "reason_codes": [
+            "active_flow_pressure"
+          ],
+          "flow_exit_context": null,
+          "should_exit_flows": false
+        },
+        "__memory_payload_state_v2": {
+          "items": [],
+          "budget": {
+            "max_items": 12,
+            "max_entities": 5,
+            "tokens_target": 1800
+          },
+          "modules": {},
+          "version": 2,
+          "entities": [],
+          "last_turn_id": "dd32f180-81ed-4211-8087-f7e3dd82f612",
+          "active_topic_id": null
+        },
+        "companion_question_rhythm": {
+          "preference": "normal",
+          "recent_turns": [
+            1
+          ],
+          "last_updated_at": "2026-05-20T16:50:11.488Z",
+          "last_turn_had_question": true,
+          "turns_since_last_question": 0
+        },
+        "__conversation_risk_history": [
+          0,
+          1
+        ],
+        "__coaching_intervention_history": [],
+        "__pending_tool_skill_confirmation": {
+          "draft": {
+            "draft": {
+              "title": "Terrain prêt pour l'imperfection",
+              "technique": "preparer_terrain",
+              "instruction": "Prépare ton espace pour limiter la réflexion et favoriser l'action brute.",
+              "mode_emploi": "Prépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.",
+              "target_label": "Relire la note et sortir trois puces imparfaites",
+              "why_it_helps": "Cela réduit la friction visuelle et mentale qui te pousse à vouloir tout comprendre avant d'agir.",
+              "generated_asset": "Ouvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "L'objectif n'est pas de comprendre, mais de produire.",
+                "Trois puces suffisent.",
+                "L'imperfection est la clé du démarrage."
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ?"
+          },
+          "source": "recommendation_tool",
+          "target": {
+            "kind": "personal_action",
+            "title": "Relire la note et sortir trois puces imparfaites",
+            "plan_item_id": null
+          },
+          "summary": "Terrain prêt pour l'imperfection",
+          "created_at": "2026-05-20T16:50:46.746Z",
+          "turn_count": 0,
+          "intake_state": {
+            "target": {
+              "kind": "personal_action",
+              "title": "Relire la note et sortir trois puces imparfaites",
+              "status": "identified",
+              "evidence": [
+                "relire la note et sortir trois puces imparfaites"
+              ],
+              "confidence": "high",
+              "plan_item_id": null
+            },
+            "blocker": {
+              "type": "action_too_heavy",
+              "evidence": [
+                "vouloir comprendre toute la logique avant d'écrire une première version"
+              ],
+              "confidence": 0.9
+            },
+            "skill_id": "prepare_attack_card",
+            "technique": {
+              "value": "preparer_terrain",
+              "status": "identified",
+              "options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "Pour recadrer le besoin de tout comprendre avant de produire.",
+                  "example": "Exemple: un texte de 3 lignes a relire quand tu commences a negocier.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Ancre visuelle",
+                  "reason": "Pour transformer l'environnement en signal concret de depart.",
+                  "example": "Exemple: un carnet visible avec une phrase de depart.",
+                  "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                  "recommended": false,
+                  "technique_key": "ancre_visuelle"
+                }
+              ],
+              "evidence": [
+                "Oui, fais-la"
+              ],
+              "confidence": "high",
+              "fit_warning": null,
+              "explicitly_requested": false
+            },
+            "confidence": "high",
+            "constraints": [
+              "viser l'imperfection",
+              "limiter à trois puces"
+            ],
+            "current_step": "draft_generation",
+            "missing_slots": [],
+            "activation_keyword": {
+              "value": null,
+              "status": "not_applicable",
+              "options": [],
+              "evidence": [],
+              "confidence": "high",
+              "rejected_value": null
+            },
+            "generated_user_message": "Pour ce blocage de demarrage, je te propose deux options: 'Le texte magique' pour recadrer le perfectionnisme, ou 'Ancre visuelle' pour avoir un signal concret de depart. Laquelle te semble la plus utile ?"
+          },
+          "operation_id": "854ef3ed-ae13-4ccb-b38a-733ba14056a8",
+          "operation_type": "prepare_attack_card",
+          "expires_after_turns": 2
+        }
+      }
+    }
+  ],
+  "conversation_turn_traces": [
+    {
+      "turn_id": "global15_20260520_r3-t01",
+      "source_message_id": "dd32f180-81ed-4211-8087-f7e3dd82f612",
+      "ts": "2026-05-20T16:50:11.489+00:00",
+      "route_decision": {
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "conversation_handler",
+        "memory_use_kind": "none",
+        "selected_handler": "execution_breakdown",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "none",
+          "reason_code": "no_active_flow",
+          "active_owner": "none",
+          "resume_policy": "none",
+          "selected_owner": "none"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "conversation_handler",
+      "direct_effects": [],
+      "skill_run": {
+        "output": {
+          "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+          "status": "continue",
+          "skill_id": "execution_breakdown",
+          "diagnosis": {
+            "stage": "target_resolution",
+            "blocker_candidates": [
+              "flou",
+              "energie",
+              "friction_demarrage"
+            ]
+          },
+          "state_patch": {
+            "summary": "Need concrete target."
+          },
+          "memory_trace": {
+            "correction_detected": false,
+            "memory_item_ids_used": [],
+            "memory_used_for_response": false,
+            "correction_target_item_ids": []
+          },
+          "response_intent": "target_resolution",
+          "recommendation_need": {
+            "type": "execution_repair",
+            "needed": false,
+            "urgency": "medium",
+            "constraints": [
+              "understand_before_solution"
+            ]
+          },
+          "operation_suggestions": [],
+          "memory_write_candidates": [
+            {
+              "kind": "statement",
+              "scope_hint": "session",
+              "content_text": "Salut Sophia, j'ai une note client à reprendre aujourd'hui. Ce n'est pas énorme, mais je sens déjà que je vais ouvrir trois onglets au lieu de commencer. J'ai besoin d'un départ très simple.",
+              "confidence_band": "medium",
+              "sensitivity_level": 1,
+              "evidence_source_ids": [
+                "dd32f180-81ed-4211-8087-f7e3dd82f612"
+              ],
+              "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+              "should_persist_default": false,
+              "anti_identity_freeze_checked": true
+            }
+          ]
+        },
+        "reason_code": "skill_entry_signal",
+        "selected_skill_id": "execution_breakdown"
+      },
+      "tool_skill_run": null,
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 6861
+    },
+    {
+      "turn_id": "global15_20260520_r3-t02",
+      "source_message_id": "c00bc71a-fe8a-4acd-b74a-2291feb7e18a",
+      "ts": "2026-05-20T16:50:46.765+00:00",
+      "route_decision": {
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "route_version": "v1",
+        "response_owner": "tool_skill",
+        "memory_use_kind": "none",
+        "selected_handler": "prepare_attack_card",
+        "direct_effects_to_run": [],
+        "memory_used_for_route": false,
+        "active_flow_arbitration": {
+          "decision": "supersede_active",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "active_owner": "conversation_skill",
+          "resume_policy": "user_reopens",
+          "selected_owner": "tool_skill"
+        },
+        "memory_item_ids_used_for_route": []
+      },
+      "response_owner": "tool_skill",
+      "direct_effects": [],
+      "skill_run": null,
+      "tool_skill_run": {
+        "draft": {
+          "draft": {
+            "title": "Terrain prêt pour l'imperfection",
+            "technique": "preparer_terrain",
+            "instruction": "Prépare ton espace pour limiter la réflexion et favoriser l'action brute.",
+            "mode_emploi": "Prépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.",
+            "target_label": "Relire la note et sortir trois puces imparfaites",
+            "why_it_helps": "Cela réduit la friction visuelle et mentale qui te pousse à vouloir tout comprendre avant d'agir.",
+            "generated_asset": "Ouvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.",
+            "technique_title": "Préparer le terrain",
+            "supporting_points": [
+              "L'objectif n'est pas de comprendre, mais de produire.",
+              "Trois puces suffisent.",
+              "L'imperfection est la clé du démarrage."
+            ],
+            "activation_keyword": null
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ton attaque pour sortir tes trois puces :\n*Terrain prêt pour l'imperfection* (Préparer le terrain)\nOuvre ta note, masque le reste de l'écran, et écris 'BROUILLON IMPARFAIT' en haut.\nPrépare ce setup avant de commencer, puis lance-toi sans réfléchir à la logique globale.\nEst-ce que je valide cette carte ?"
+        },
+        "source": "recommendation_tool",
+        "status": "pending_confirmation",
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "operation_id": "854ef3ed-ae13-4ccb-b38a-733ba14056a8",
+        "selected_handler": "prepare_attack_card",
+        "recommendation_id": "dispatcher_opportunity:attack_card:global15_20260520_r3-t01"
+      },
+      "memory_write_candidates_emitted": 0,
+      "total_latency_ms": 27856
+    }
+  ]
+}

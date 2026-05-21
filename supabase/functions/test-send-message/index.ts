@@ -201,7 +201,7 @@ function classifyQaFailure(error: unknown): {
   };
 }
 
-Deno.serve(async (req) => {
+Deno.serve({ port: Number(Deno.env.get("PORT") ?? "8000") }, async (req) => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   if (req.method !== "POST") {
     return jsonResponse(req, { error: "Method not allowed" }, { status: 405 });

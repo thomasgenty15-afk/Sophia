@@ -102,6 +102,20 @@ export function runConversationRouters(input: {
       arbitration.decision === "suspend_active") &&
     arbitration.selected_handler
   ) {
+    if (arbitration.selected_handler === "safety_crisis") {
+      return {
+        route_version: "v1",
+        response_owner: "safety",
+        selected_handler: "safety_crisis",
+        blocked_paths: blockedPaths,
+        direct_effects_to_run: [],
+        reason_code: arbitration.reason_code,
+        memory_used_for_route: false,
+        memory_item_ids_used_for_route: [],
+        memory_use_kind: "none",
+        active_flow_arbitration: arbitrationForRoute,
+      };
+    }
     return {
       route_version: "v1",
       response_owner: "conversation_handler",
@@ -122,6 +136,20 @@ export function runConversationRouters(input: {
       arbitration.decision === "inline_answer_then_resume") &&
     arbitration.selected_handler
   ) {
+    if (arbitration.selected_handler === "safety_crisis") {
+      return {
+        route_version: "v1",
+        response_owner: "safety",
+        selected_handler: "safety_crisis",
+        blocked_paths: blockedPaths,
+        direct_effects_to_run: [],
+        reason_code: arbitration.reason_code,
+        memory_used_for_route: false,
+        memory_item_ids_used_for_route: [],
+        memory_use_kind: "none",
+        active_flow_arbitration: arbitrationForRoute,
+      };
+    }
     return {
       route_version: "v1",
       response_owner: "conversation_handler",

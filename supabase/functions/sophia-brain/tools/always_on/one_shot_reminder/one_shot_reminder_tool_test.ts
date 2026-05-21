@@ -3,6 +3,7 @@ import {
   assertExists,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  buildOneShotReminderAddon,
   isLikelyOneShotReminderRequest,
   parseOneShotReminderRequest,
   runCreateOneShotReminderV2,
@@ -87,6 +88,26 @@ Deno.test("parseOneShotReminderRequest parses tomorrow local hour", () => {
   assertEquals(parsed.scheduledFor, "2026-03-19T07:00:00.000Z");
 });
 
+Deno.test("parseOneShotReminderRequest preserves colon instruction after programme-moi", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme-moi un rappel demain à 8h30: relire une fois, garder le brouillon, sortir trois puces telles quelles.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-20T18:20:11.075Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "relire une fois, garder le brouillon, sortir trois puces telles quelles",
+  );
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:relire_une_fois_garder_le_brouillon_sortir_trois_puces_telle",
+  );
+  assertEquals(parsed.scheduledFor, "2026-05-21T06:30:00.000Z");
+});
+
 Deno.test("parseOneShotReminderRequest parses natural one-hour phrasing", () => {
   const parsed = parseOneShotReminderRequest({
     message: "Rappelle-moi dans une heure de fermer la fenetre du salon",
@@ -150,6 +171,23 @@ Deno.test("parseOneShotReminderRequest preserves d-apostrophe target before safe
   assertEquals(parsed.scheduledFor, "2026-05-07T07:00:00.000Z");
 });
 
+Deno.test("parseOneShotReminderRequest strips side coach preference from reminder text", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme juste un rappel demain a 9h pour envoyer les trois premieres lignes, et retiens aussi que je prefere les consignes tres courtes.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-06T08:51:39.575Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "envoyer les trois premieres lignes");
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:envoyer_les_trois_premieres_lignes",
+  );
+  assertEquals(parsed.scheduledFor, "2026-05-07T07:00:00.000Z");
+});
+
 Deno.test("parseOneShotReminderRequest ignores recurring reminder requests", () => {
   const parsed = parseOneShotReminderRequest({
     message: "Rappelle-moi tous les lundis à 8h d'appeler Paul",
@@ -207,6 +245,24 @@ Deno.test("isLikelyOneShotReminderRequest matches natural me faire un rappel phr
     ),
     true,
   );
+  assertEquals(
+    isLikelyOneShotReminderRequest(
+      "Programme-moi un rappel demain à 8h30: relire une fois le brouillon.",
+    ),
+    true,
+  );
+});
+
+Deno.test("one-shot reminder addon forbids timezone confirmation after success", () => {
+  const addon = buildOneShotReminderAddon({
+    detected: true,
+    status: "success",
+    inserted_checkin_id: "checkin-1",
+    scheduled_for_local_label: "jeudi 21 mai à 08:30",
+    reminder_instruction: "relire le brouillon",
+    parse_source: "strict_absolute",
+  } as any);
+  assertEquals(addon.includes("Ne demande pas au user de confirmer le fuseau"), true);
 });
 
 Deno.test("isLikelyOneShotReminderRequest ignores memory recall phrasing", () => {

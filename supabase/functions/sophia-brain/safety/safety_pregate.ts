@@ -53,10 +53,44 @@ const EXPLICIT_SELF_HARM_PATTERNS: Array<[RegExp, RiskScore, string]> = [
   [/\benvie de mourir\b/i, 4, "explicit_death_wish"],
   [/\bje veux mourir\b/i, 4, "explicit_death_wish"],
   [/\bpas la peine de continuer\b/i, 3, "explicit_no_reason_to_continue"],
+  [/\bfaire une connerie\b/i, 3, "ambiguous_self_harm_euphemism"],
+  [/\bid[eé]e\b.{0,80}\btout arr[eê]ter\b/i, 3, "explicit_final_stop"],
   [/\btout arreter pour de bon\b/i, 3, "explicit_final_stop"],
+  [/\btout arr[eê]ter\b.{0,60}\b(ce soir|pour de bon|maintenant|serait plus simple)\b/i, 3, "explicit_final_stop"],
+  [
+    /\blettre\b.{0,140}\bpont\b|\bpont\b.{0,140}\blettre\b/i,
+    3,
+    "farewell_bridge_context",
+  ],
+  [
+    /\b(prendre|avaler)\b.{0,50}\b(tous|toutes|tout|toute|le reste|la boite|la boîte)\b.{0,60}\b(cachets?|m[eé]dicaments?)\b/i,
+    4,
+    "explicit_overdose_intent",
+  ],
+  [
+    /\bfoncer\b.{0,80}\b(mur(?!\s+(du|de|d['’])\s+(dossier|projet|sujet|travail|boulot|tache|tâche))|camion|arbre|barriere|barrière)\b/i,
+    4,
+    "explicit_vehicle_crash_intent",
+  ],
+  [/\bme jeter\b.{0,80}\b(train|metro|métro|rails?|voiture|pont)\b/i, 4, "explicit_jump_intent"],
+  [/\b(sauter|me jeter)\b.{0,80}\b(balcon|fen[eê]tre|pont)\b/i, 4, "explicit_jump_intent"],
+  [
+    /\b(corde|lame|couteau)\b.{0,80}\b(dans ma main|dans ma poche|sur moi|devant moi|a cote de moi|à côté de moi|pres de moi|près de moi|dans ma chambre)\b/i,
+    3,
+    "self_harm_means_nearby",
+  ],
+  [
+    /(?<!aucun )(?<!aucuns )(?<!aucune )(?<!pas de )\b(cachets?|m[eé]dicaments?)\b.{0,80}\b(devant moi|sur la table|dans ma main|sur moi|a cote de moi|à côté de moi|pres de moi|près de moi)\b/i,
+    3,
+    "self_harm_means_nearby",
+  ],
 ];
 
 const PASSIVE_SELF_HARM_PATTERNS: Array<[RegExp, RiskScore, string]> = [
+  [/\bne plus exister\b/i, 3, "passive_nonexistence_ideation"],
+  [/\bplus exister\b/i, 3, "passive_nonexistence_ideation"],
+  [/\bne pas me r[eé]veiller\b/i, 3, "passive_not_wake_up_ideation"],
+  [/\bpas me r[eé]veiller\b/i, 3, "passive_not_wake_up_ideation"],
   [/\bpensees?\b.{0,80}\bdisparaitre\b/i, 3, "passive_disappear_ideation"],
   [/\bpense\b.{0,80}\bdisparaitre\b/i, 3, "passive_disappear_ideation"],
   [
@@ -65,6 +99,12 @@ const PASSIVE_SELF_HARM_PATTERNS: Array<[RegExp, RiskScore, string]> = [
     "passive_disappear_ideation",
   ],
   [/\bpens[eé]\b.{0,80}\bdispara[iî]tre\b/i, 3, "passive_disappear_ideation"],
+  [/\benvie\b.{0,60}\bdisparaitre\b/i, 3, "passive_disappear_ideation"],
+  [
+    /\benvie\b.{0,60}\bdispara[iî]tre\b/i,
+    3,
+    "passive_disappear_ideation",
+  ],
   [
     /\bdisparaitre\b.{0,60}\bferait une pause\b/i,
     3,
@@ -104,6 +144,10 @@ const NEGATION_PATTERNS = [
   /\bpas envie de mourir\b/i,
   /\bje ne vais pas me faire du mal\b/i,
   /\bje vais pas me faire du mal\b/i,
+  /\bje n['’]?ai pas prevu de me faire du mal\b/i,
+  /\bje n['’]?ai pas prévu de me faire du mal\b/i,
+  /\bpas prevu de me faire du mal\b/i,
+  /\bpas prévu de me faire du mal\b/i,
   /\bje ne veux pas me faire du mal\b/i,
   /\bje veux pas me faire du mal\b/i,
   /\bje ne suis pas en danger\b/i,
@@ -213,7 +257,11 @@ export function runSafetyPregate(
     heuristicRisk = maxRisk(heuristicRisk, 1);
   }
 
-  if (lexicalRisk >= 3 && hasImmediacy) {
+  const explicitNoActionNow =
+    /\bje ne vais rien faire\b/i.test(text) ||
+    /\bje vais rien faire\b/i.test(text);
+
+  if (lexicalRisk >= 3 && hasImmediacy && !(matchedPassiveSelfHarm && explicitNoActionNow)) {
     heuristic = true;
     heuristicRisk = maxRisk(heuristicRisk, 4);
     reasonCodes.push("immediacy_escalates_self_harm");

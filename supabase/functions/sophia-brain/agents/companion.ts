@@ -324,7 +324,7 @@ function isStandaloneOneShotReminderMessage(message: string): boolean {
     .toLowerCase()
     .trim();
   if (
-    !/\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’ ]?envoyer un rappel\b|\benvoie[- ]?moi un rappel\b|\bfais[- ]?moi un rappel\b|\bdis[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
+    !/\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’ ]?envoyer un rappel\b|\benvoie[- ]?moi un rappel\b|\bfais[- ]?moi un rappel\b|\bprogramme[- ]?moi\b|\bprogramme un rappel\b|\bprogrammer un rappel\b|\bplanifie[- ]?moi\b|\bdis[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
       .test(normalized)
   ) {
     return false;
@@ -427,7 +427,7 @@ function recentSafetyContextBlocksSideEffects(
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
-  return /\bme faire du mal\b|\bsuicid|\ben finir\b|\benvie de mourir\b|\bje veux mourir\b|\bpensees?\b.{0,80}\bdisparaitre\b|\bdisparaitre\b.{0,60}\bferait une pause\b/
+  return /\bme faire du mal\b|\bsuicid|\ben finir\b|\benvie de mourir\b|\bje veux mourir\b|\benvie\b.{0,60}\bdisparaitre\b|\bpensees?\b.{0,80}\bdisparaitre\b|\bdisparaitre\b.{0,60}\bferait une pause\b|\bne plus exister\b|\bne pas me reveiller\b/
     .test(recentUserText);
 }
 
@@ -962,6 +962,7 @@ export async function runCompanion(
     forceRealAi?: boolean;
     channel?: "web" | "whatsapp";
     model?: string;
+    blockSideEffects?: boolean;
   },
 ): Promise<CompanionRunResult> {
   const lastAssistantMessage =
@@ -969,7 +970,7 @@ export async function runCompanion(
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp";
   if (
     isLikelyOneShotReminderRequest(message) &&
-    recentSafetyContextBlocksSideEffects(history)
+    (meta?.blockSideEffects || recentSafetyContextBlocksSideEffects(history))
   ) {
     return {
       text:

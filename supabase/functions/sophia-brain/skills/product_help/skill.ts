@@ -182,6 +182,41 @@ function directAttackCardLocationReply(
   ].join("\n");
 }
 
+function directOneShotReminderReply(
+  text: string,
+  contextText = "",
+): string | null {
+  const lookupText = `${text}\n${contextText}`.trim();
+  const asksReminderPlace = includesAny(text, [
+    "rappel",
+    "rappels",
+    "retrouve",
+    "retrouver",
+    "voir",
+    "modifier",
+    "ou",
+    "où",
+  ]);
+  const recentOneShotProgrammed = includesAny(lookupText, [
+    "c'est programme",
+    "c est programme",
+    "programmé",
+    "programme",
+    "demain",
+    "8h30",
+    "08:30",
+    "ponctuel",
+    "celui que tu viens",
+  ]) &&
+    includesAny(lookupText, ["rappel", "rappelle", "programmé", "programme"]);
+  if (!asksReminderPlace || !recentOneShotProgrammed) return null;
+  return [
+    "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.",
+    "",
+    'Pour le modifier ou l\'annuler, le plus fiable est de me le redire ici clairement, par exemple: "change le rappel de demain à 9h" ou "annule le rappel de demain".',
+  ].join("\n");
+}
+
 function renderReply(feature: ProductHelpFeature, intent: ProductHelpIntent) {
   const locationText = formatLocations(feature);
   if (intent === "benefits") {
@@ -222,6 +257,38 @@ export function runProductHelpSkill(input: RunSkillInput) {
     .map((turn) => normalizeText(turn.content))
     .join("\n")
     .slice(-1600);
+  const directOneShotReminder = directOneShotReminderReply(text, contextText);
+  if (directOneShotReminder) {
+    const feature = PRODUCT_HELP_FEATURES.find((item) =>
+      item.id === "initiatives"
+    )!;
+    return baseOutput("product_help", {
+      status: "complete",
+      response_intent: "how_to",
+      reply: directOneShotReminder,
+      diagnosis: {
+        feature_id: "one_shot_reminder.chat",
+        feature_label: feature.label,
+        operation_bridge: null,
+        locations: ["Chat"],
+      },
+      recommendation_need: {
+        needed: false,
+        type: "none",
+        urgency: "none",
+        constraints: [
+          "one_shot_reminder_already_programmed",
+          "do_not_restart_reminder_slot_filling",
+          "product_help_does_not_execute_operations",
+        ],
+      },
+      operation_suggestions: [],
+      state_patch: {
+        summary:
+          "Product help answered for already programmed one-shot reminder.",
+      },
+    });
+  }
   const directAttackLocation = directAttackCardLocationReply(text, contextText);
   if (directAttackLocation) {
     const feature = PRODUCT_HELP_FEATURES.find((item) =>

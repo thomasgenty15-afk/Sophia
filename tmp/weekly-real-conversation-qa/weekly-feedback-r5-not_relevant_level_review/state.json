@@ -1,0 +1,635 @@
+{
+  "run_id": "weekly-feedback-r5-not_relevant_level_review",
+  "variant": "not_relevant_level_review",
+  "persona": "paul",
+  "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+  "email": "qa-weekly-deep-weekly-feedback-r5-not_relevant_level_review@example.com",
+  "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r5",
+  "created_at": "2026-05-20T16:47:59.492Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-20T16:47:59.492Z",
+      "user": "Cette semaine m'a montre que ce n'est pas juste une action: le plan global ne colle plus a ma situation. Prepare une proposition de changement du plan global, n'applique rien maintenant.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui, là ça touche plutôt le plan global. Avant de proposer une nouvelle organisation, il me manque le point précis: qu'est-ce qui ne colle plus aujourd'hui ? L'objectif, l'ordre des étapes, la charge, ou les actions elles-mêmes ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-feedback-r5-not_relevant_level_review-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-feedback-r5-not_relevant_level_review-t01",
+        "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r5",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui, là ça touche plutôt le plan global. Avant de proposer une nouvelle organisation, il me manque le point précis: qu'est-ce qui ne colle plus aujourd'hui ? L'objectif, l'ordre des étapes, la charge, ou les actions elles-mêmes ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-feedback-r5-not_relevant_level_review-t01",
+          "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+          "source_message_id": "62533bd1-f701-4c5c-88b2-854152a188e6",
+          "ts": "2026-05-20T16:48:04.193+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "maintenant"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_now"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11498,
+            "latency_ms": 4609,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 689,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-feedback-r5-not_relevant_level_review-t01",
+            "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_responding_to_weekly_with_structural_change_request",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "62533bd1-f701-4c5c-88b2-854152a188e6",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "plan global",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "plan global",
+                    "status": "identified",
+                    "evidence": [
+                      "plan global"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "le plan global ne colle plus a ma situation"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "collecting",
+            "reason_code": "whole_plan_vague_needs_context",
+            "missing_slots": [
+              "whole_plan_change_reason"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": null,
+            "coaching_guidance_audit": null
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4659,
+          "created_at": "2026-05-20T16:48:04.193745+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-20T16:49:26.627Z",
+      "user": "C'est surtout l'ordre des etapes: on va trop vite vers les conversations sensibles. Je veux une etape intermediaire avec deux actions maximum avant de reprendre.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je dois reprendre le brouillon proprement. Dans l’étape intermédiaire, tu veux que je commence par « Respiration de pause » ou par « Partager un point positif » ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-feedback-r5-not_relevant_level_review-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-feedback-r5-not_relevant_level_review-t02",
+        "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+        "channel": "web",
+        "scope": "weekly-deep-not_relevant_level_review-weekly-feedback-r5",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je dois reprendre le brouillon proprement. Dans l’étape intermédiaire, tu veux que je commence par « Respiration de pause » ou par « Partager un point positif » ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-feedback-r5-not_relevant_level_review-t02",
+          "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+          "source_message_id": "5f404b5b-60c4-461c-abd2-f691fe8327b2",
+          "ts": "2026-05-20T16:50:15.561+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11844,
+            "latency_ms": 5241,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 782,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s15"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-feedback-r5-not_relevant_level_review-t02",
+            "user_id": "bc8ce078-82a1-4cc2-8049-911e6a3407bf",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_is_providing_feedback_for_plan_adjustment_during_weekly",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "5f404b5b-60c4-461c-abd2-f691fe8327b2",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "plan global",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high",
+                "operation_input": {
+                  "scope": {
+                    "kind": "whole_plan",
+                    "label": "plan global",
+                    "status": "identified",
+                    "evidence": [
+                      "plan global"
+                    ]
+                  },
+                  "constraints": {
+                    "value": "deux actions maximum avant de reprendre",
+                    "status": "identified",
+                    "evidence": [
+                      "deux actions maximum avant de reprendre"
+                    ]
+                  },
+                  "reason_change": {
+                    "value": "on va trop vite vers les conversations sensibles",
+                    "status": "identified",
+                    "evidence": [
+                      "on va trop vite vers les conversations sensibles"
+                    ]
+                  },
+                  "target_granularity": {
+                    "value": "whole_plan",
+                    "status": "identified",
+                    "evidence": [
+                      "le plan global ne colle plus a ma situation",
+                      "ordre des etapes",
+                      "etape intermediaire"
+                    ],
+                    "confidence": "high"
+                  }
+                },
+                "adjust_plan_scope": "whole_plan"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "active_tool_skill_continue",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "draft_generation_retry_needed"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer une reprise immédiate des conversations sensibles.",
+                "Multiplier les actions intermédiaires au-delà de deux.",
+                "Modifier la nature du plan vers une intensité plus forte ou une exposition directe.",
+                "Rendre l'étape intermédiaire ambiguë sur son rôle de préparation.",
+                "Présenter la progression comme purement technique sans reconnaître le besoin de sécurité."
+              ],
+              "scope": "whole_plan",
+              "preserve": [
+                "Le cap global du plan et son objectif de fond.",
+                "La progressivité du parcours avant les conversations sensibles.",
+                "La limite explicite de deux actions maximum dans l'étape intermédiaire.",
+                "Le rôle de soutien et de régulation des actions déjà présentes.",
+                "La cohérence du rythme avec la capacité réelle à aborder des sujets sensibles."
+              ],
+              "warnings": [
+                "Éviter de présenter les conversations sensibles comme immédiatement réactivées sans sas intermédiaire.",
+                "Éviter d'ajouter plus de deux actions dans l'étape tampon, sinon la demande de ralentissement perd sa cohérence.",
+                "Éviter de changer le type du plan vers un format plus thérapeutique, plus d'exposition ou plus intensif sans demande explicite.",
+                "Éviter d'optimiser uniquement l'efficacité technique au détriment du rythme humain et du sentiment de sécurité.",
+                "Éviter de conserver un ordre qui fait passer des actions de préparation directement à des sujets sensibles."
+              ],
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le whole plan comme une decision de trajectoire: objectif, coherence, ordre des phases, prochaine etape ou architecture globale.",
+                "Verifier que le changement reste coherent avec l'objectif global et les reponses du questionnaire.",
+                "Preserver explicitement ce que le user veut garder avant de proposer une reorganisation.",
+                "Raisonner en prerequis, sequencing et phases futures plutot qu'en patch arbitraire d'actions courantes.",
+                "Signaler les risques de supprimer, inverser ou accelerer une etape qui sert de socle coaching.",
+                "Guidelines action: l'étape intermédiaire doit avoir une fonction de préparation, de régulation ou de mise en confiance; préserver l'intention de protection; faire un pont minimal vers la suite; ne pas changer la nature du plan sans demande explicite.",
+                "Guidelines niveau: garder une charge faible à modérée pendant la phase tampon; baisser temporairement le rythme sans modifier le niveau de fond; respecter la borne de fin de niveau en n'ouvrant pas le sensible avant la fin du sas; préserver le cœur du niveau courant, qui est la progression graduelle.",
+                "Guidelines whole_plan: préserver la trajectoire globale; assurer la cohérence entre préparation et reprise; garder les prérequis d'abord, puis l'ordre des phases; maintenir l'objectif final et le questionnaire/repère de fond tout en insérant une étape de transition explicite."
+              ],
+              "observation": "La demande porte moins sur le contenu des actions que sur la logique de progression du plan: il faut ralentir l'accès aux conversations sensibles en réintroduisant une séquence intermédiaire simple, courte et rassurante. Le point humain central est la préservation de la sécurité et de la faisabilité: avant d'ouvrir du sensible, le plan doit recréer un sas de préparation avec un volume très limité.",
+              "recommendation": "Réordonner le plan global pour insérer une étape tampon explicite, limitée à deux actions maximum, dont le rôle est de préparer sans exposer. La prochaine proposition doit montrer une progression en trois temps: stabilisation, étape intermédiaire courte, puis reprise des conversations sensibles. Garder un langage de transition claire et de charge maîtrisée, sans transformer la nature du plan.",
+              "options_to_discuss": [
+                "Créer une étape tampon dédiée à la préparation, avec deux micro-actions maximum avant toute conversation sensible.",
+                "Réordonner les actions existantes pour placer en premier les gestes de régulation ou d'appui, puis repousser le sensible.",
+                "Transformer l'étape intermédiaire en phase de validation de stabilité avant reprise du sujet délicat.",
+                "Scinder la reprise en deux sous-paliers: d'abord des actions non sensibles, ensuite seulement la conversation sensible.",
+                "Conserver les actions actuelles mais en réduire la densité et la fréquence avant la reprise."
+              ],
+              "questions_to_clarify": []
+            },
+            "coaching_guidance_audit": {
+              "scope": "whole_plan",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 48892,
+          "created_at": "2026-05-20T16:50:15.563673+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-20T16:50:15.577Z"
+}

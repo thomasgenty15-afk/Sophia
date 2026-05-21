@@ -1,0 +1,535 @@
+{
+  "runId": "tool-intent-opportunity-20260520-r2",
+  "user_id": "34eddb8d-66ba-4c5d-a46e-dded03883923",
+  "email": "qa-skill-toolintopp_20260520_r2-1779277634838@example.com",
+  "scope": "tool-intent-opportunity-20260520-r2",
+  "auth_user_verify_status": 200,
+  "started_at": "2026-05-20T11:47:15.123Z",
+  "turns": [
+    {
+      "turn": "t01",
+      "request_id": "qa-toolintopp_20260520_r2-t01",
+      "user": "J’ai un gros dossier client demain matin et je sens que je vais tourner autour au lieu de commencer.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response": {
+        "content": "C'est le syndrome classique du démarrage, on connaît bien ça... On peut déjà essayer de découper la toute première micro-étape pour demain matin, histoire de ne pas te laisser face à la montagne.\n\nJe vois surtout une friction de lancement pour ce dossier. Si tu veux, on peut en faire une petite Carte d'attaque pour rendre le démarrage plus simple ? ⚡️",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "trace_error": null,
+      "qa_diagnostic": null,
+      "error": null,
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "reason_code": "skill_entry_signal",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "attack_card",
+          "surface_id": "attack_card",
+          "prop_reason": "user_anticipates_startup_friction_and_procrastination",
+          "source_span": "je sens que je vais tourner autour au lieu de commencer",
+          "target_hint": "Dossier client demain matin",
+          "offer_timing": "now",
+          "should_offer": true,
+          "target_status": "identified",
+          "operation_type": "prepare_attack_card",
+          "confidence_band": "high",
+          "must_not_execute": true,
+          "suggested_question_intent": "offer_attack_card"
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {
+            "execution_breakdown": {
+              "reason": "anticipated_startup_friction",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {}
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "confirmation_response": null,
+        "recommendation_tool_run": {
+          "stats": null,
+          "recommendation": {
+            "reason": "user_anticipates_startup_friction_and_procrastination",
+            "timing": "now",
+            "decision": "recommend_operation",
+            "cta_style": "soft",
+            "confidence": 0.86,
+            "surface_id": "attack_card",
+            "alternatives": [],
+            "operation_type": "prepare_attack_card",
+            "operation_input": {
+              "target": {
+                "kind": "personal_action",
+                "title": "Dossier client demain matin"
+              },
+              "blocker": {
+                "type": "friction",
+                "reason": "user_anticipates_startup_friction_and_procrastination",
+                "source_span": "je sens que je vais tourner autour au lieu de commencer"
+              },
+              "desired_attack_angle": "preparer_terrain"
+            },
+            "do_not_recommend": [],
+            "executor_tool_id": "prepare_attack_card",
+            "requires_consent": true,
+            "recommendation_id": "dispatcher_opportunity:attack_card:qa-toolintopp_20260520_r2-t01",
+            "user_facing_offer": "Je vois surtout une friction de lancement pour \"Dossier client demain matin\". Si tu veux, on peut en faire une petite Carte d'attaque pour rendre le démarrage plus simple.",
+            "presentation_level": 2
+          }
+        },
+        "tool_skill_run": null,
+        "operation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "procrastination démarrage travail",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "travail.performance",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "gestion dossier client stress",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "standard",
+          "plan_confidence": 0.7,
+          "response_intent": "inventory",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "medium"
+        }
+      }
+    },
+    {
+      "turn": "t02",
+      "request_id": "qa-toolintopp_20260520_r2-t02",
+      "user": "Tu peux me préparer une carte d’attaque pour ce dossier client ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response": {
+        "content": "Voici ton brouillon pour demain :\n\n*Dossier client : Préparer le terrain*\nTechnique : Préparer le terrain\nAction : Dossier ouvert sur la première page, téléphone dans une autre pièce, et un verre d'eau prêt.\nInstalle ce setup ce soir pour laisser l'environnement t'aider à démarrer.\nEst-ce que je valide cette carte ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "trace_error": null,
+      "qa_diagnostic": null,
+      "error": null,
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "direct_effects": [],
+        "tool_skill_intents": [
+          {
+            "ambiguity": "none",
+            "target_hint": "dossier client",
+            "user_intent": "create",
+            "explicitness": "explicit",
+            "operation_type": "prepare_attack_card",
+            "confidence_band": "high"
+          }
+        ],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        },
+        "skill_signals": {
+          "exit": {
+            "execution_breakdown": {
+              "reason": "transition_to_tool_skill_prepare_attack_card",
+              "detected": true,
+              "confidence_band": "medium"
+            }
+          },
+          "entry": {
+            "execution_breakdown": {
+              "reason": "execution_blocked",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {
+            "execution_breakdown": {
+              "reason": "user_accepts_tool_within_skill_context",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "confirmation_response": null,
+        "recommendation_tool_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "title": "Dossier client : Préparer le terrain",
+              "technique": "preparer_terrain",
+              "instruction": "Mets en place ton environnement dès maintenant pour faciliter le démarrage demain.",
+              "mode_emploi": "Installe ce setup ce soir ou juste avant de commencer pour laisser l'environnement te guider.",
+              "target_label": "Dossier client demain matin",
+              "why_it_helps": "En retirant les obstacles physiques et numériques, tu empêches ton cerveau de négocier le départ.",
+              "generated_asset": "Dossier ouvert sur la première page, téléphone dans une autre pièce, et un verre d'eau prêt.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "Réduit la friction au démarrage",
+                "Évite les distractions immédiates",
+                "Crée un signal visuel d'engagement"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton brouillon pour demain :\n\n*Dossier client : Préparer le terrain*\nTechnique : Préparer le terrain\nAction : Dossier ouvert sur la première page, téléphone dans une autre pièce, et un verre d'eau prêt.\nInstalle ce setup ce soir pour laisser l'environnement t'aider à démarrer.\nEst-ce que je valide cette carte ?"
+          },
+          "source": "recommendation_tool",
+          "status": "pending_confirmation",
+          "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+          "operation_id": "a673c922-4ced-454f-9c9b-0270fde32b4b",
+          "selected_handler": "prepare_attack_card",
+          "recommendation_id": "dispatcher_opportunity:attack_card:qa-toolintopp_20260520_r2-t01"
+        },
+        "operation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "dossier client",
+              "type": "topic",
+              "priority": "medium",
+              "query_hint": "dossier client travail",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            },
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "low",
+              "query_hint": "difficulté démarrage travail",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "standard",
+          "plan_confidence": 0.7,
+          "response_intent": "inventory",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "medium"
+        }
+      }
+    },
+    {
+      "turn": "t03",
+      "request_id": "qa-toolintopp_20260520_r2-t03",
+      "user": "En fait non, je veux juste comprendre pourquoi je bloque, pas créer de carte pour l’instant.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response": {
+        "content": "Ah je vois. Tu ne bloques pas “par flemme”, tu bloques parce qu’il y a une friction à l’endroit exact du démarrage 😕\n\nSouvent, c’est une de ces 3 choses :\n1) Trop gros / pas de prochaine étape claire (ton cerveau ne sait pas quoi faire dans les 2 premières minutes)\n2) Perte de contrôle perçue (peur de rater, de te faire aspirer, ou de “prendre trop de temps”)\n3) Émotion collée au dossier (pression, enjeu client, charge mentale)\n\nLà, pour cerner ton cas, dis-moi juste : quand tu dis “je bloque”, c’est plutôt 1) parce que c’est flou, 2) parce que ça fait peur, ou 3) parce que tu sens une pression ? 🙂",
+        "mode": "companion",
+        "tool_execution": "none",
+        "executed_tools": []
+      },
+      "trace_error": null,
+      "qa_diagnostic": null,
+      "error": null,
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "reason_code": "active_conversation_skill_continue",
+        "blocked_paths": [],
+        "direct_effects_to_run": [],
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {
+            "execution_breakdown": {
+              "reason": "execution_blocked",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {
+            "execution_breakdown": {
+              "reason": "user_wants_to_understand_blockage_mechanism",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [],
+          "risk_band": "none",
+          "reason_codes": [],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": false,
+            "dispatcher_llm": false
+          }
+        },
+        "confirmation_response": {
+          "kind": "no",
+          "evidence": "En fait non, [...] pas créer de carte pour l’instant",
+          "confidence_band": "high"
+        },
+        "recommendation_tool_run": null,
+        "tool_skill_run": null,
+        "operation": null,
+        "memory_plan": {
+          "targets": [
+            {
+              "key": "habitudes.procrastination",
+              "type": "domain_key",
+              "priority": "medium",
+              "query_hint": "mécanismes de blocage et procrastination",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "taxonomy_first"
+            },
+            {
+              "key": "work:client_dossier",
+              "type": "action",
+              "priority": "high",
+              "query_hint": "dossier client blocage",
+              "entity_type": null,
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first"
+            }
+          ],
+          "memory_mode": "light",
+          "context_need": "targeted",
+          "model_tier_hint": "lite",
+          "plan_confidence": 0.7,
+          "response_intent": "reflection",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "small",
+          "reasoning_complexity": "low"
+        }
+      }
+    },
+    {
+      "turn": "t04",
+      "request_id": "qa-toolintopp_20260520_r2-t04",
+      "user": "Ok, rappelle-moi quand même demain à 9h10 de préparer le dossier client.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "response": {
+        "content": "Voici ton brouillon pour \"Dossier client\" :\nTechnique : Préparer le terrain\nAction : Ouvre le dossier sur ton écran et pose ton stylo préféré sur ton bureau.\nMode d'emploi : Prépare ton environnement avant le moment visé pour que le premier geste soit automatique.\nJe valide cette carte pour demain 9h10 ? 🙂",
+        "additional_contents": [],
+        "mode": "companion",
+        "tool_execution": "blocked",
+        "executed_tools": []
+      },
+      "trace_error": null,
+      "qa_diagnostic": null,
+      "error": null,
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "execution_breakdown",
+        "reason_code": "active_conversation_skill_continue",
+        "blocked_paths": [
+          {
+            "path": "create_one_shot_reminder",
+            "reason_code": "pending_confirmation_active"
+          }
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects": [],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "surface_id": null,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "offer_timing": "never",
+          "should_offer": false,
+          "target_status": "none",
+          "operation_type": null,
+          "confidence_band": "low",
+          "must_not_execute": true,
+          "suggested_question_intent": null
+        },
+        "skill_signals": {
+          "exit": {},
+          "entry": {
+            "execution_breakdown": {
+              "reason": "execution_blocked",
+              "detected": true,
+              "confidence_band": "high"
+            }
+          },
+          "lifecycle": {
+            "execution_breakdown": {
+              "reason": "user_is_still_discussing_friction_but_prefers_reminder",
+              "detected": true,
+              "confidence_band": "medium"
+            }
+          }
+        },
+        "safety_pregate": {
+          "detected": false,
+          "evidence": [
+            "demain"
+          ],
+          "risk_band": "none",
+          "reason_codes": [
+            "immediacy_tomorrow",
+            "bounded_context_lowers_risk"
+          ],
+          "allow_side_effects": true,
+          "layer_contributions": {
+            "lexical": false,
+            "heuristic": true,
+            "dispatcher_llm": false
+          }
+        },
+        "confirmation_response": null,
+        "recommendation_tool_run": null,
+        "tool_skill_run": {
+          "draft": {
+            "draft": {
+              "title": "Dossier client",
+              "technique": "preparer_terrain",
+              "instruction": "Prépare ton espace de travail dès maintenant pour faciliter le démarrage demain à 9h10.",
+              "mode_emploi": "Prépare ton environnement avant le moment visé pour que le premier geste soit automatique.",
+              "target_label": "Dossier client demain matin",
+              "why_it_helps": "Cela transforme l'intention en un environnement prêt à l'emploi, supprimant les excuses de dernière minute.",
+              "generated_asset": "Ouvre le dossier sur ton écran et pose ton stylo préféré sur ton bureau.",
+              "technique_title": "Préparer le terrain",
+              "supporting_points": [
+                "Réduit la friction au démarrage",
+                "Évite la procrastination matinale"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Voici ton brouillon pour \"Dossier client\" :\nTechnique : Préparer le terrain\nAction : Ouvre le dossier sur ton écran et pose ton stylo préféré sur ton bureau.\nMode d'emploi : Prépare ton environnement avant le moment visé pour que le premier geste soit automatique.\nJe valide cette carte pour demain 9h10 ?"
+          },
+          "status": "pending_confirmation_updated",
+          "reason_code": "active_conversation_skill_continue",
+          "operation_id": "ad1e1082-a936-415b-ad11-0ba78472c5ce",
+          "selected_handler": "prepare_attack_card",
+          "draft_review_decision": null,
+          "previous_operation_id": "a673c922-4ced-454f-9c9b-0270fde32b4b"
+        },
+        "operation": null,
+        "memory_plan": {
+          "targets": [],
+          "memory_mode": "none",
+          "context_need": "minimal",
+          "model_tier_hint": "standard",
+          "plan_confidence": 0.7,
+          "response_intent": "inventory",
+          "retrieval_policy": "semantic_first",
+          "context_budget_tier": "tiny",
+          "reasoning_complexity": "medium"
+        }
+      }
+    }
+  ]
+}

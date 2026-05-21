@@ -1,0 +1,319 @@
+[
+  {
+    "potion": "rappel",
+    "user_id": "946e3f6f-d45a-471f-b2ee-fe42a0c00d52",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_rappel",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "courage",
+    "user_id": "b0e33415-b5da-46dc-9e37-43a299f05f47",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_courage",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "guerison",
+    "user_id": "f8822abd-7904-46ff-8744-9e1315cf1774",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_guerison",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  },
+  {
+    "potion": "clarte",
+    "user_id": "53abc5a4-e27b-4525-a287-be27827a3cd2",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_clarte",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [
+        {
+          "id": "f2ffa611-9eee-4050-bfd9-9bb1f832294d",
+          "message_instruction": "Mets le soutien",
+          "rationale": "Rappel récurrent créé depuis la conversation web Sophia : Rappel récurrent : Mets le soutien",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "status": "active",
+          "initiative_kind": "base_free",
+          "source_kind": "user_created",
+          "source_potion_session_id": null,
+          "initiative_metadata": {
+            "draft": {
+              "draft": {
+                "days": [],
+                "time": "09:00",
+                "title": "Rappel récurrent : Mets le soutien",
+                "message": "Mets le soutien",
+                "timezone": "Europe/Paris",
+                "frequency": "daily",
+                "destination": "base_de_vie",
+                "target_binding": {
+                  "target_kind": "none",
+                  "target_label": null,
+                  "binding_policy": "none",
+                  "lifecycle_policy": "independent",
+                  "target_plan_item_id": null,
+                  "target_action_family_key": null,
+                  "target_generated_temp_id": null
+                },
+                "related_plan_item_id": null
+              },
+              "output_schema": "recurring_reminder_draft_v1",
+              "operation_type": "create_recurring_reminder",
+              "revision_message": "D'accord, je modifie ton rappel. Il sera désormais quotidien à 09h00 avec le message 'Mets le soutien'. Tu pourras le modifier ou le supprimer à tout moment depuis ta Base de vie.",
+              "execution_message": "C'est noté ! Je crée ton rappel quotidien à 09h00 avec le message 'Mets le soutien'. Tu pourras le modifier ou le supprimer à tout moment depuis ta Base de vie. Si tu veux le modifier ou l'annuler, tu devras le faire depuis la plateforme, dans la Base de vie, section Initiatives et rappels.",
+              "user_message_brief": "Rappel quotidien à 09h00 : Mets le soutien",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de créer un rappel quotidien à 09h00 avec le message 'Mets le soutien'. C'est bien ça ?",
+              "user_message_detailed": "Je vais créer un rappel quotidien à 09h00 avec le message 'Mets le soutien'. Ce rappel sera enregistré dans ta Base de vie et sera actif tant que tu ne le désactives pas."
+            },
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r26_hard2_green-clarte-t05-a1",
+            "operation_id": "d87e3794-7891-4b5a-a76a-9f7391a18854",
+            "active_plan_id": "235e1b56-2669-494b-be0a-d3553ce5e946",
+            "operation_type": "create_recurring_reminder",
+            "target_binding": {
+              "target_kind": "none",
+              "target_label": null,
+              "target_plan_item_id": null,
+              "target_binding_policy": "none",
+              "target_lifecycle_policy": "independent",
+              "target_action_family_key": null,
+              "target_generated_temp_id": null
+            },
+            "active_cycle_id": "c1bc5b4d-f155-4f22-a337-2688327a9270",
+            "active_plan_title": "Plan QA clarte",
+            "related_plan_item": null,
+            "source_message_id": "e087ba40-a523-4312-b7cf-6c0ffacab077",
+            "destination_resolved": "base_de_vie",
+            "destination_requested": "base_de_vie",
+            "active_transformation_id": "6d668a70-79fd-4556-9a9e-124641b4fbd3",
+            "active_transformation_title": "Retrouver une priorite simple"
+          },
+          "target_kind": "none",
+          "target_plan_item_id": null,
+          "target_action_family_key": null,
+          "target_binding_policy": "none",
+          "target_lifecycle_policy": "independent",
+          "starts_at": "2026-05-21T13:48:56.513+00:00",
+          "created_at": "2026-05-21T13:48:56.515416+00:00",
+          "updated_at": "2026-05-21T13:49:01.449+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "7c327a6b-43fe-4cce-91f0-b05d687b473b",
+          "recurring_reminder_id": "f2ffa611-9eee-4050-bfd9-9bb1f832294d",
+          "event_context": "recurring_reminder:f2ffa611-9eee-4050-bfd9-9bb1f832294d",
+          "draft_message": "Petit pense-bête du matin :\nmets le soutien.\nÇa prend 2 secondes et tu es tranquille pour la journée.",
+          "scheduled_for": "2026-05-22T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:49:01.438638+00:00"
+        },
+        {
+          "id": "1ea15b61-c7ce-4c28-b3bb-4bf16e46bdf9",
+          "recurring_reminder_id": "f2ffa611-9eee-4050-bfd9-9bb1f832294d",
+          "event_context": "recurring_reminder:f2ffa611-9eee-4050-bfd9-9bb1f832294d",
+          "draft_message": "Avant de démarrer ta matinée :\nmets le soutien.\nConfort + maintien, et tu n’y penses plus après.",
+          "scheduled_for": "2026-05-23T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:49:01.442842+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "amour",
+    "user_id": "890d98ed-d3f9-41c0-a976-79dc7c294503",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_amour",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [
+        {
+          "id": "41352b15-e86f-4a24-a650-28224d355cc1",
+          "message_instruction": "Ca m'aiderait à ne pas commencer par me taper dessus.",
+          "rationale": "Rappel récurrent créé depuis la conversation Sophia pour soutenir Changer le ton interieur : Rappel récurrent : ne pas commencer par me taper dessus",
+          "local_time_hhmm": "09:00",
+          "scheduled_days": [
+            "mon",
+            "tue",
+            "wed",
+            "thu",
+            "fri",
+            "sat",
+            "sun"
+          ],
+          "status": "active",
+          "initiative_kind": "plan_free",
+          "source_kind": "user_created",
+          "source_potion_session_id": null,
+          "initiative_metadata": {
+            "draft": {
+              "draft": {
+                "days": [],
+                "time": "09:00",
+                "title": "Rappel récurrent : ne pas commencer par me taper dessus",
+                "message": "Ca m'aiderait à ne pas commencer par me taper dessus.",
+                "timezone": "Europe/Paris",
+                "frequency": "daily",
+                "destination": "current_plan",
+                "target_binding": {
+                  "target_kind": "action_family",
+                  "target_label": "Me parler avec plus de douceur",
+                  "binding_policy": "live_action_family",
+                  "lifecycle_policy": "while_family_in_current_plan",
+                  "target_plan_item_id": "277a04c1-95d0-4550-a81b-950cd35e20b2",
+                  "target_action_family_key": "habit:me_parler_plus_douceur",
+                  "target_generated_temp_id": null
+                },
+                "related_plan_item_id": "277a04c1-95d0-4550-a81b-950cd35e20b2"
+              },
+              "output_schema": "recurring_reminder_draft_v1",
+              "operation_type": "create_recurring_reminder",
+              "revision_message": "D'accord, je mets à jour le rappel. Tu pourras le modifier ou l'annuler depuis les Initiatives de ton plan.",
+              "execution_message": "C'est noté ! Je t'enverrai un rappel quotidien à 09:00 avec le message 'Ca m'aiderait à ne pas commencer par me taper dessus'. Tu pourras le modifier ou l'annuler depuis les Initiatives de ton plan. Si tu veux le modifier ou l'annuler, tu devras le faire depuis la plateforme, dans la partie Initiatives du plan.",
+              "user_message_brief": "Rappel quotidien à 09:00 pour 'Me parler avec plus de douceur'.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose de créer un rappel quotidien à 09:00 avec le message 'Ca m'aiderait à ne pas commencer par me taper dessus'. Il sera lié à ton habitude 'Me parler avec plus de douceur' et restera actif tant que cette habitude sera dans ton plan. Est-ce que c'est bon pour toi ?",
+              "user_message_detailed": "Je t'enverrai un rappel tous les jours à 09:00 avec le message 'Ca m'aiderait à ne pas commencer par me taper dessus'. Ce rappel est lié à ton habitude 'Me parler avec plus de douceur' et restera actif tant que cette habitude sera dans ton plan. Tu pourras le modifier ou l'annuler depuis les Initiatives de ton plan."
+            },
+            "source": "sophia_brain_tool_skill",
+            "request_id": "qa-state-potion-state_potion_6subskills_r26_hard2_green-amour-t05-a1",
+            "operation_id": "fbfb14a5-9849-45c3-87d5-a89a8435b17b",
+            "active_plan_id": "9eed525c-1a5a-407d-968c-0d07ebea71a5",
+            "operation_type": "create_recurring_reminder",
+            "target_binding": {
+              "target_kind": "action_family",
+              "target_label": "Me parler avec plus de douceur",
+              "target_plan_item_id": "277a04c1-95d0-4550-a81b-950cd35e20b2",
+              "target_binding_policy": "live_action_family",
+              "target_lifecycle_policy": "while_family_in_current_plan",
+              "target_action_family_key": "habit:me_parler_plus_douceur",
+              "target_generated_temp_id": null
+            },
+            "active_cycle_id": "7c4cff33-95e5-4cf3-b6cb-12c1011dfd5b",
+            "active_plan_title": "Plan QA amour",
+            "related_plan_item": {
+              "id": "277a04c1-95d0-4550-a81b-950cd35e20b2",
+              "kind": "habit",
+              "title": "Me parler avec plus de douceur",
+              "dimension": "habits",
+              "week_scope": null,
+              "description": "Action QA active visible par le skill potion.",
+              "item_nature": "recurring_habit",
+              "target_reps": 1,
+              "time_of_day": "09:00",
+              "current_reps": 0,
+              "cadence_label": "quotidien",
+              "scheduled_days": [
+                "thu"
+              ],
+              "action_family_key": "habit:me_parler_plus_douceur",
+              "generated_temp_id": null
+            },
+            "source_message_id": "82a6188e-55fa-4759-8087-41508ed1e881",
+            "destination_resolved": "current_plan",
+            "destination_requested": "current_plan",
+            "active_transformation_id": "3e23bc4d-322e-4670-af76-bf9111d84062",
+            "active_transformation_title": "Changer le ton interieur"
+          },
+          "target_kind": "action_family",
+          "target_plan_item_id": "277a04c1-95d0-4550-a81b-950cd35e20b2",
+          "target_action_family_key": "habit:me_parler_plus_douceur",
+          "target_binding_policy": "live_action_family",
+          "target_lifecycle_policy": "while_family_in_current_plan",
+          "starts_at": "2026-05-21T13:50:35.253+00:00",
+          "created_at": "2026-05-21T13:50:35.255725+00:00",
+          "updated_at": "2026-05-21T13:50:40.508+00:00"
+        }
+      ],
+      "checkins": [
+        {
+          "id": "338dab07-6f65-47ae-9d03-98539584d907",
+          "recurring_reminder_id": "41352b15-e86f-4a24-a650-28224d355cc1",
+          "event_context": "recurring_reminder:41352b15-e86f-4a24-a650-28224d355cc1",
+          "draft_message": "Avant de démarrer ta journée,\nprends 20 secondes pour te parler avec plus de douceur.\nSi une critique arrive, remplace-la par une phrase simple :\n« je fais de mon mieux, et j’avance ».",
+          "scheduled_for": "2026-05-22T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:50:40.494883+00:00"
+        },
+        {
+          "id": "c207c875-ea0c-4f09-95a4-ce573256daa1",
+          "recurring_reminder_id": "41352b15-e86f-4a24-a650-28224d355cc1",
+          "event_context": "recurring_reminder:41352b15-e86f-4a24-a650-28224d355cc1",
+          "draft_message": "Quand tu sens le réflexe de te juger,\nstop une seconde et reviens à la bienveillance.\nChoisis une petite phrase qui t’aide à ne pas te taper dessus,\net répète-la une fois, juste pour lancer le mouvement.",
+          "scheduled_for": "2026-05-23T07:00:00+00:00",
+          "status": "pending",
+          "origin": "rendez_vous",
+          "created_at": "2026-05-21T13:50:40.498949+00:00"
+        }
+      ]
+    }
+  },
+  {
+    "potion": "apaisement",
+    "user_id": "b07a3c25-f2c4-4cfb-abed-3d91d19bf94f",
+    "connection_name": "state_potion_6subskills_state_potion_6subskills_r26_hard2_green_apaisement",
+    "before": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    },
+    "after": {
+      "sessions": [],
+      "reminders": [],
+      "checkins": []
+    }
+  }
+]

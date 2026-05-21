@@ -1,0 +1,78 @@
+{
+  "inspection_type": "pre_cleanup_observed_summary",
+  "note": "The full pre-cleanup REST dump was inspected before cleanup. A later post-cleanup verification overwrote the raw durable dump; this file preserves the durable observations used in the report. The empty post-cleanup verification is stored in 2026-05-20-global-normal-conversation-15t-r2.post-cleanup.json.",
+  "scheduled_checkins": [
+    {
+      "status": "pending",
+      "scheduled_for": "2026-05-21T06:30:00+00:00",
+      "scheduled_for_local": "2026-05-21 08:30 Europe/Paris",
+      "reminder_kind": "one_shot",
+      "source": "companion_one_shot_reminder_tool",
+      "instruction": "reprendre le dossier client par trois puces moches, pas plus"
+    }
+  ],
+  "user_attack_cards": [
+    {
+      "status": "active",
+      "scope_kind": "out_of_plan",
+      "operation_type": "prepare_attack_card",
+      "title": "Relire deux pages de compte rendu",
+      "technique": "texte_recadrage",
+      "generated_asset": "Je n'ai pas besoin de tout comprendre pour avancer. Je produis une version imparfaite maintenant pour libérer mon esprit."
+    }
+  ],
+  "user_profile_facts": [
+    {
+      "scope": "global",
+      "key": "coach.question_tendency",
+      "value": {
+        "value": "low",
+        "label": "Peu de questions"
+      },
+      "status": "active",
+      "source_type": "explicit_user"
+    }
+  ],
+  "conversation_turn_traces": {
+    "count": 15,
+    "notable_turns": [
+      {
+        "turn_id": "global15_20260520_r2-t09",
+        "response_owner": "normal_reply",
+        "direct_effects": ["create_one_shot_reminder"]
+      },
+      {
+        "turn_id": "global15_20260520_r2-t10",
+        "response_owner": "product_help",
+        "selected_skill_id": "product_help",
+        "constraints": [
+          "one_shot_reminder_already_programmed",
+          "do_not_restart_reminder_slot_filling",
+          "product_help_does_not_execute_operations"
+        ]
+      },
+      {
+        "turn_id": "global15_20260520_r2-t11",
+        "response_owner": "normal_reply",
+        "reason": "product_help exit to conversation"
+      },
+      {
+        "turn_id": "global15_20260520_r2-t13",
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "status": "pending_confirmation"
+      },
+      {
+        "turn_id": "global15_20260520_r2-t14",
+        "response_owner": "tool_skill",
+        "direct_effects": ["update_coach_preferences"],
+        "preferences_update_id": "coach.question_tendency"
+      },
+      {
+        "turn_id": "global15_20260520_r2-t15",
+        "response_owner": "normal_reply",
+        "reason": "active_skill_exit_requested"
+      }
+    ]
+  }
+}

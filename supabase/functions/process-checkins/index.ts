@@ -66,6 +66,9 @@ import {
   buildWeeklyAdaptiveReviewInstruction,
 } from "../_shared/weekly_adaptive_review.ts";
 import {
+  generateWeeklyAdaptiveReviewOpening,
+} from "../_shared/weekly_adaptive_review_opening.ts";
+import {
   buildWeeklyPlanningConfirmationMessage,
   WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT,
   type WeeklyPlanningConfirmationPayload,
@@ -102,6 +105,7 @@ const QUIET_WINDOW_MINUTES = Number.parseInt(
   (Deno.env.get("WHATSAPP_QUIET_WINDOW_MINUTES") ?? "").trim() || "20",
   10,
 );
+const PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS = 6;
 const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5;
 const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template";
 const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000;
@@ -645,103 +649,6 @@ function openingCoversDailyReviewTargets(
     ).length;
     return presentCount >= requiredCount;
   });
-}
-
-function weeklyOpeningLooksValid(message: string): boolean {
-  const text = String(message ?? "").trim();
-  if (!text) return false;
-  const questionCount = (text.match(/\?/g) ?? []).length;
-  if (questionCount > 1) return false;
-  const normalized = text.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  if (
-    /\bbridge\b|bridge_week|semaine pont|carry_over|mode advance|repeat_week|level_review|not_relevant|item_decision|plan_patch|\boperation\b|brouillon/
-      .test(normalized)
-  ) return false;
-  if (/%|\b\d+\s*\/\s*\d+\b|adherence|ratio|pourcentage/.test(normalized)) {
-    return false;
-  }
-  return /bilan de la semaine|point de fin de semaine/.test(normalized);
-}
-
-async function generateWeeklyAdaptiveReviewOpening(params: {
-  supabaseAdmin: ReturnType<typeof createClient>;
-  userId: string;
-  scheduledFor: string;
-  requestId: string;
-  review: unknown;
-  adaptiveReview: unknown;
-  momentumSnapshot?: MomentumSnapshotV2 | null;
-  allowGreeting: boolean;
-}): Promise<string> {
-  const tempMemory = await fetchWhatsappTempMemory(
-    params.supabaseAdmin,
-    params.userId,
-  ).catch(() => ({}));
-  const previousWeeklySummary =
-    (tempMemory as any)?.__last_weekly_adaptive_review_summary ?? null;
-  const eventGrounding = [
-    buildWeeklyProgressReviewGrounding(params.review as any),
-    `weekly_adaptive_review=${
-      buildWeeklyAdaptiveReviewGrounding(params.adaptiveReview as any)
-    }`,
-    params.momentumSnapshot
-      ? `momentum_snapshot_v2=${JSON.stringify(params.momentumSnapshot)}`
-      : "",
-    previousWeeklySummary
-      ? `previous_weekly_summary=${JSON.stringify(previousWeeklySummary)}`
-      : "",
-  ].filter(Boolean).join("\n\n");
-  const baseInstruction = [
-    buildWeeklyAdaptiveReviewInstruction(params.adaptiveReview as any),
-    "",
-    "Generation du message d'ouverture weekly:",
-    "- Tu dois ecrire le premier message envoye par Sophia, pas une reponse au user.",
-    "- Message court WhatsApp, naturel, 4 a 8 lignes maximum.",
-    params.allowGreeting
-      ? "- La derniere interaction est assez ancienne: commence par une salutation courte et naturelle, comme le daily."
-      : "- La conversation est recente: ne commence pas par une salutation.",
-    "- Dis toujours clairement que c'est le moment du bilan de la semaine ou du point de fin de semaine.",
-    "- Parle a un humain: pas de ratio, pas de pourcentage, pas de '5/6', pas de '83%'.",
-    "- Tu peux utiliser un petit compteur simple s'il clarifie l'etat, par exemple '6 actions prevues' ou '6 en attente', mais jamais comme score de performance.",
-    "- Si tu dois resumer les actions, privilegie des mots humains: la plupart, une partie, presque tout, peu de retours fiables, plusieurs points restes ouverts.",
-    "- Structure: annonce du bilan de la semaine, mini synthese humaine, lecture claire des actions sans chiffres, option d'organisation de la semaine prochaine, puis une seule question large.",
-    previousWeeklySummary
-      ? "- Si previous_weekly_summary existe, utilise-le seulement comme contexte discret pour voir le point a surveiller, sans le reciter."
-      : "",
-    "- La question unique doit inviter le user a raconter la semaine dans l'ensemble; elle ne doit pas separer progression ressentie et etat/energie en deux questions.",
-    "- Ne conclus pas encore que la validation est disponible: elle ne se debloque qu'apres la discussion weekly terminee.",
-  ].join("\n");
-
-  const attempts: string[] = [];
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const body = await generateDynamicWhatsAppCheckinMessage({
-      admin: params.supabaseAdmin as any,
-      userId: params.userId,
-      eventContext: WEEKLY_PROGRESS_REVIEW_EVENT_CONTEXT,
-      scheduledFor: params.scheduledFor,
-      instruction: attempt === 0 ? baseInstruction : [
-        baseInstruction,
-        "",
-        "Correction obligatoire: le message precedent ne respectait pas les regles weekly.",
-        "Regenere avec une seule question maximum, aucun vocabulaire interne, aucun ratio/pourcentage, une mention claire du bilan de la semaine, et sans dire que la validation est deja disponible.",
-        `Tentatives precedentes: ${JSON.stringify(attempts)}`,
-      ].join("\n"),
-      eventGrounding,
-      source: attempt === 0
-        ? "process-checkins:weekly_adaptive_review_opening"
-        : "process-checkins:weekly_adaptive_review_opening_repair",
-      requestId: params.requestId,
-      fallbackMessage: null,
-    });
-    const normalizedBody = applyScheduledCheckinGreetingPolicy({
-      text: body,
-      allowRelaunchGreeting: params.allowGreeting,
-    });
-    attempts.push(normalizedBody);
-    if (weeklyOpeningLooksValid(normalizedBody)) return normalizedBody;
-  }
-  throw new Error("weekly_adaptive_review_opening_invalid");
 }
 
 function getRecurringReminderIdFromEventContext(
@@ -2732,7 +2639,7 @@ Deno.serve(async (req) => {
               ?.whatsapp_last_inbound_at,
             lastOutboundAt: (profileForGreeting as any)
               ?.whatsapp_last_outbound_at,
-            thresholdHours: 6,
+            thresholdHours: PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS,
           });
           openingPlan = await generateDailyActionReviewOpening({
             supabaseAdmin,
@@ -3456,7 +3363,7 @@ Deno.serve(async (req) => {
       }
 
       // Greeting policy for scheduled_checkins only:
-      // - if messages were exchanged today (local user day): no greeting prefix
+      // - if a message was exchanged recently: no greeting prefix
       // - otherwise: prepend a short cold-open greeting variant
       try {
         const { data: profileForGreeting } = await supabaseAdmin
@@ -3468,6 +3375,7 @@ Deno.serve(async (req) => {
           lastInboundAt: (profileForGreeting as any)?.whatsapp_last_inbound_at,
           lastOutboundAt: (profileForGreeting as any)
             ?.whatsapp_last_outbound_at,
+          thresholdHours: PROACTIVE_GREETING_RELAUNCH_THRESHOLD_HOURS,
         });
         bodyText = applyScheduledCheckinGreetingPolicy({
           text: bodyText,

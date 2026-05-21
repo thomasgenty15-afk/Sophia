@@ -1,0 +1,467 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+    "status": 200,
+    "ok": true,
+    "user": "En regardant la suite du plan, je ne pense pas que la prochaine étape soit la bonne. Avant d'aller vers plus de discussions, je voudrais une étape intermédiaire sur la sécurité émotionnelle et le retour au calme.",
+    "assistant": "Pour que je puisse bien intégrer cette étape sur la sécurité émotionnelle et le retour au calme, peux-tu me dire ce que tu as en tête concrètement ? Est-ce que tu penses à une nouvelle action à ajouter, ou à ajuster une action existante comme \"Partager un point positif\" ou \"Cartographier les déclencheurs\" ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "tool_skill_intent_start",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "current_level.affected_items"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Toute proposition qui ignorerait la demande explicite de l'utilisateur de renforcer la sécurité émotionnelle.",
+          "Des solutions qui ne seraient pas ancrées dans la réalité des interactions du couple ou qui seraient trop théoriques."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'intention globale du niveau 1 : 'Désamorcer et recréer de la sécurité', qui est en parfaite adéquation avec la demande de l'utilisateur.",
+          "Le 'signal de pause' comme outil fondamental de désescalade, et l'importance de son évaluation future.",
+          "L'habitude 'Partager un point positif' et le framework 'Cartographier les déclencheurs', qui contribuent déjà à la sécurité et à la conscience de soi."
+        ],
+        "warnings": [
+          "Éviter d'ajouter une étape générique ou trop abstraite qui ne se traduirait pas par une action concrète et pertinente pour la dynamique relationnelle.",
+          "Éviter de supprimer ou de repousser indéfiniment 'Faire le point sur le signal de pause' sans comprendre la nature exacte de la réticence du user, car cette mission est clé pour consolider un acquis.",
+          "Éviter de proposer une solution qui augmenterait significativement la charge mentale ou le nombre d'actions, risquant de créer un sentiment d'écrasement."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: Toute nouvelle action ou modification doit servir directement l'intention de 'sécurité émotionnelle et retour au calme' sans dénaturer les actions existantes. Elle doit être un pont concret et mini vers la prochaine étape, et non un détour. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: Le niveau actuel est déjà axé sur la sécurité. L'ajustement doit renforcer le cœur de ce niveau en s'assurant que la charge et le rythme restent gérables. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+          "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+        ],
+        "observation": "L'utilisateur exprime un besoin de renforcer la sécurité émotionnelle et le retour au calme avant d'aborder la prochaine étape du plan, qui est une discussion sur le signal de pause. Cela suggère une perception d'un manque de préparation ou de ressources émotionnelles pour une interaction potentiellement délicate, même si elle vise à consolider un outil de désescalade. Le cœur de la demande est de solidifier les fondations émotionnelles du niveau actuel avant de progresser.",
+        "recommendation": "Guider le sous-skill à explorer comment intégrer ou renforcer des actions concrètes de sécurité émotionnelle et de retour au calme *au sein* du niveau actuel, en lien avec l'objectif de 'Désamorcer et recréer de la sécurité'. Il s'agit de s'assurer que le user se sente suffisamment outillé et en sécurité pour aborder les discussions prévues, plutôt que d'ajouter une étape déconnectée.",
+        "options_to_discuss": [
+          "Proposer une micro-action ou une modification d'une action existante pour inclure une pratique de retour au calme ou de renforcement de la sécurité émotionnelle (ex: une courte routine individuelle avant une discussion, une reformulation de l'habitude 'Partager un point positif' pour inclure une dimension de 'sécurité ressentie').",
+          "Explorer la possibilité de décomposer 'Faire le point sur le signal de pause' en étapes plus petites, si la difficulté réside dans l'ampleur perçue de cette discussion.",
+          "Questionner si la 'sécurité émotionnelle' recherchée est une pratique individuelle ou une interaction avec le partenaire, et si elle doit être proactive ou réactive (après une tension)."
+        ],
+        "questions_to_clarify": [
+          "Qu'est-ce qui, spécifiquement, dans 'Faire le point sur le signal de pause', fait que l'utilisateur ne pense pas que ce soit la bonne prochaine étape ? Y a-t-il une appréhension liée à la discussion elle-même ou à l'état émotionnel pour l'aborder ?",
+          "Comment l'utilisateur définirait-il concrètement 'sécurité émotionnelle et retour au calme' dans le contexte de son couple ? Quels seraient les signes que cette étape a été réussie pour lui ?",
+          "Est-ce que l'utilisateur recherche une action à faire seul(e) ou avec son/sa partenaire pour cette 'étape intermédiaire' ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Toute proposition qui ignorerait la demande explicite de l'utilisateur de renforcer la sécurité émotionnelle.",
+        "Des solutions qui ne seraient pas ancrées dans la réalité des interactions du couple ou qui seraient trop théoriques."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'intention globale du niveau 1 : 'Désamorcer et recréer de la sécurité', qui est en parfaite adéquation avec la demande de l'utilisateur.",
+        "Le 'signal de pause' comme outil fondamental de désescalade, et l'importance de son évaluation future.",
+        "L'habitude 'Partager un point positif' et le framework 'Cartographier les déclencheurs', qui contribuent déjà à la sécurité et à la conscience de soi."
+      ],
+      "warnings": [
+        "Éviter d'ajouter une étape générique ou trop abstraite qui ne se traduirait pas par une action concrète et pertinente pour la dynamique relationnelle.",
+        "Éviter de supprimer ou de repousser indéfiniment 'Faire le point sur le signal de pause' sans comprendre la nature exacte de la réticence du user, car cette mission est clé pour consolider un acquis.",
+        "Éviter de proposer une solution qui augmenterait significativement la charge mentale ou le nombre d'actions, risquant de créer un sentiment d'écrasement."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: Toute nouvelle action ou modification doit servir directement l'intention de 'sécurité émotionnelle et retour au calme' sans dénaturer les actions existantes. Elle doit être un pont concret et mini vers la prochaine étape, et non un détour. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: Le niveau actuel est déjà axé sur la sécurité. L'ajustement doit renforcer le cœur de ce niveau en s'assurant que la charge et le rythme restent gérables. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+        "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+      ],
+      "observation": "L'utilisateur exprime un besoin de renforcer la sécurité émotionnelle et le retour au calme avant d'aborder la prochaine étape du plan, qui est une discussion sur le signal de pause. Cela suggère une perception d'un manque de préparation ou de ressources émotionnelles pour une interaction potentiellement délicate, même si elle vise à consolider un outil de désescalade. Le cœur de la demande est de solidifier les fondations émotionnelles du niveau actuel avant de progresser.",
+      "recommendation": "Guider le sous-skill à explorer comment intégrer ou renforcer des actions concrètes de sécurité émotionnelle et de retour au calme *au sein* du niveau actuel, en lien avec l'objectif de 'Désamorcer et recréer de la sécurité'. Il s'agit de s'assurer que le user se sente suffisamment outillé et en sécurité pour aborder les discussions prévues, plutôt que d'ajouter une étape déconnectée.",
+      "options_to_discuss": [
+        "Proposer une micro-action ou une modification d'une action existante pour inclure une pratique de retour au calme ou de renforcement de la sécurité émotionnelle (ex: une courte routine individuelle avant une discussion, une reformulation de l'habitude 'Partager un point positif' pour inclure une dimension de 'sécurité ressentie').",
+        "Explorer la possibilité de décomposer 'Faire le point sur le signal de pause' en étapes plus petites, si la difficulté réside dans l'ampleur perçue de cette discussion.",
+        "Questionner si la 'sécurité émotionnelle' recherchée est une pratique individuelle ou une interaction avec le partenaire, et si elle doit être proactive ou réactive (après une tension)."
+      ],
+      "questions_to_clarify": [
+        "Qu'est-ce qui, spécifiquement, dans 'Faire le point sur le signal de pause', fait que l'utilisateur ne pense pas que ce soit la bonne prochaine étape ? Y a-t-il une appréhension liée à la discussion elle-même ou à l'état émotionnel pour l'aborder ?",
+        "Comment l'utilisateur définirait-il concrètement 'sécurité émotionnelle et retour au calme' dans le contexte de son couple ? Quels seraient les signes que cette étape a été réussie pour lui ?",
+        "Est-ce que l'utilisateur recherche une action à faire seul(e) ou avec son/sa partenaire pour cette 'étape intermédiaire' ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t01",
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+    "status": 200,
+    "ok": true,
+    "user": "Je pense à une mission ponctuelle puis une habitude légère. Mission : définir notre protocole de pause. Habitude : après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre.",
+    "assistant": "Tu souhaites ajouter une étape intermédiaire axée sur la sécurité émotionnelle et le retour au calme. Pour cela, tu proposes de te concentrer sur 'Convenir d'un signal de pause' et d'introduire une nouvelle habitude : 'après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre'. Est-ce bien cela ? Je peux te préparer une proposition concrète pour ces ajustements. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_confirmation"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+          "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+          "Modifier le plan de manière radicale sans comprendre la nuance derrière la demande de l'utilisateur."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle.",
+          "Le principe d'un \"signal de pause\" comme outil de désescalade.",
+          "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel."
+        ],
+        "warnings": [
+          "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence.",
+          "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause.",
+          "Éviter de modifier radicalement le plan ou de supprimer des actions existantes sans une compréhension claire de l'intention de l'utilisateur."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+          "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+        ],
+        "observation": "L'utilisateur propose deux actions concrètes pour répondre à son besoin de renforcer la \"sécurité émotionnelle et le retour au calme\". L'habitude proposée (\"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\") est très pertinente et s'aligne directement avec l'objectif du niveau actuel. Cependant, la mission proposée (\"définir notre protocole de pause\") semble faire écho à une mission déjà existante et complétée (\"Convenir d'un signal de pause\"). Cela suggère soit une insatisfaction quant à la clarté ou l'efficacité de la définition initiale, soit un désir de formaliser davantage les étapes post-signal, ce qui nécessite une clarification pour éviter la redondance et s'assurer que le besoin réel est adressé.",
+        "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme. Pour la mission, inciter le sous-skill à explorer la relation entre la nouvelle proposition et la mission existante sur le signal de pause. Il est crucial de comprendre si l'utilisateur souhaite affiner, redéfinir ou compléter le protocole de pause déjà en place, plutôt que de simplement ajouter une action potentiellement dupliquée. L'objectif est de renforcer la sécurité émotionnelle sans créer de confusion ou de charge inutile.",
+        "options_to_discuss": [
+          "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\").",
+          "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\".",
+          "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé."
+        ],
+        "questions_to_clarify": [
+          "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné ?",
+          "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques ?",
+          "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+        "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+        "Modifier le plan de manière radicale sans comprendre la nuance derrière la demande de l'utilisateur."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle.",
+        "Le principe d'un \"signal de pause\" comme outil de désescalade.",
+        "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel."
+      ],
+      "warnings": [
+        "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence.",
+        "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause.",
+        "Éviter de modifier radicalement le plan ou de supprimer des actions existantes sans une compréhension claire de l'intention de l'utilisateur."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues. Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+        "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés."
+      ],
+      "observation": "L'utilisateur propose deux actions concrètes pour répondre à son besoin de renforcer la \"sécurité émotionnelle et le retour au calme\". L'habitude proposée (\"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\") est très pertinente et s'aligne directement avec l'objectif du niveau actuel. Cependant, la mission proposée (\"définir notre protocole de pause\") semble faire écho à une mission déjà existante et complétée (\"Convenir d'un signal de pause\"). Cela suggère soit une insatisfaction quant à la clarté ou l'efficacité de la définition initiale, soit un désir de formaliser davantage les étapes post-signal, ce qui nécessite une clarification pour éviter la redondance et s'assurer que le besoin réel est adressé.",
+      "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme. Pour la mission, inciter le sous-skill à explorer la relation entre la nouvelle proposition et la mission existante sur le signal de pause. Il est crucial de comprendre si l'utilisateur souhaite affiner, redéfinir ou compléter le protocole de pause déjà en place, plutôt que de simplement ajouter une action potentiellement dupliquée. L'objectif est de renforcer la sécurité émotionnelle sans créer de confusion ou de charge inutile.",
+      "options_to_discuss": [
+        "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\").",
+        "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\".",
+        "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé."
+      ],
+      "questions_to_clarify": [
+        "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné ?",
+        "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques ?",
+        "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t02",
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+    "status": 200,
+    "ok": true,
+    "user": "Oui, prépare la proposition concrète. Je veux que ce soit une étape intermédiaire dans la trajectoire globale, pas juste un ajout isolé d'action.",
+    "assistant": "Je ne peux pas encore te montrer le brouillon précis pour l'instant. Pour que je puisse bien préparer cette proposition concrète et qu'elle s'intègre comme une vraie étape intermédiaire, j'ai besoin de quelques précisions sur la mission « définir notre protocole de pause ».\n\nTu as déjà une mission « Convenir d'un signal de pause » qui est terminée, et une autre « Faire le point sur le signal de pause » qui est prévue.\n\nEst-ce que cette nouvelle mission « définir notre protocole de pause » vise à :\n1. Détailler ce qui se passe *après* que le signal de pause a été donné ?\n2. Renforcer ou formaliser le signal de pause existant ?\n3. Ou a-t-elle un autre objectif spécifique ? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "blocked",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "adjust_plan_item",
+    "route_selected_handler": "adjust_plan_item",
+    "route_reason_code": "active_tool_skill_continue",
+    "operation_flow_run": null,
+    "tool_skill_run": {
+      "status": "ask_question",
+      "reason_code": "active_tool_skill_continue",
+      "plan_item_id": null,
+      "target_title": null,
+      "missing_slots": [
+        "draft_generation_retry_needed"
+      ],
+      "selected_handler": "adjust_plan_item",
+      "coaching_guidance": {
+        "avoid": [
+          "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+          "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+          "Modifier le plan de manière radicale ou ajouter des éléments sans lien clair avec la progression du niveau et du plan global.",
+          "Présenter la nouvelle étape comme un simple ajout sans expliquer comment elle s'intègre dans la trajectoire."
+        ],
+        "scope": "level",
+        "preserve": [
+          "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle du niveau.",
+          "Le principe d'un \"signal de pause\" comme outil de désescalade, déjà établi.",
+          "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel.",
+          "La contrainte que toute nouvelle action doit être une \"étape intermédiaire dans la trajectoire globale\" et non un \"ajout isolé d'action\"."
+        ],
+        "warnings": [
+          "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence, allant à l'encontre de la demande d'une \"étape intermédiaire dans la trajectoire globale\".",
+          "Éviter de proposer des actions qui ne sont pas clairement connectées aux étapes précédentes ou suivantes du plan, car l'utilisateur a explicitement demandé que ce ne soit \"pas juste un ajout isolé d'action\".",
+          "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause."
+        ],
+        "confidence": "high",
+        "guidelines": [
+          "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+          "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+          "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+          "Traiter le niveau comme le périmètre courant: rythme, charge, focus, ordre ou intensité du bloc actuel.",
+          "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+          "Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+          "Préserver le cœur du niveau et identifier ce qui peut être allégé en premier.",
+          "Éviter de supprimer une action structurante quand une simplification ou un rééquilibrage suffit.",
+          "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine, en s'inscrivant comme un pont logique. Ne pas changer la nature d'une action sans demande explicite.",
+          "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues, servant de véritable \"étape intermédiaire\". Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+          "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés. La nouvelle étape doit clairement servir de pont vers la suite."
+        ],
+        "observation": "L'utilisateur insiste sur l'intégration de la nouvelle proposition comme une \"étape intermédiaire dans la trajectoire globale\", et non comme un \"ajout isolé d'action\". Cela renforce la nécessité d'une cohérence forte avec les actions existantes et à venir. L'habitude proposée est bien alignée avec le besoin de \"sécurité émotionnelle et retour au calme\". La mission sur le \"protocole de pause\" nécessite toujours une clarification pour s'assurer qu'elle s'inscrit logiquement dans la progression du plan et ne duplique pas ou ne crée pas de confusion avec les missions existantes sur le signal de pause.",
+        "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme et s'intègre naturellement. Pour la mission, inciter le sous-skill à s'assurer que la proposition s'inscrit comme une étape logique et non redondante dans la trajectoire. Il est crucial de comprendre si l'utilisateur souhaite affiner, formaliser ou ajouter des étapes *après* le signal de pause déjà convenu, en lien avec la mission de 'Faire le point' à venir, plutôt que de simplement réitérer la définition d'un signal.",
+        "options_to_discuss": [
+          "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\") pour clarifier la progression.",
+          "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\" afin d'intégrer le besoin dans une action existante.",
+          "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé de retour au calme et s'inscrit bien comme une étape intermédiaire concrète."
+        ],
+        "questions_to_clarify": [
+          "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné, pour une meilleure gestion du retour au calme ?",
+          "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques pour le retour au calme ?",
+          "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion en y ajoutant une dimension plus formelle ?"
+        ]
+      },
+      "coaching_guidance_audit": {
+        "scope": "level",
+        "source": "runner",
+        "status": "generated"
+      }
+    },
+    "coaching_guidance_audit": {
+      "scope": "level",
+      "source": "runner",
+      "status": "generated"
+    },
+    "coaching_guidance": {
+      "avoid": [
+        "Proposer des actions qui ne sont pas concrètes ou qui ne répondent pas directement au besoin de sécurité émotionnelle et de retour au calme.",
+        "Ignorer la duplication potentielle de la mission sur le protocole de pause sans chercher à comprendre le besoin sous-jacent.",
+        "Modifier le plan de manière radicale ou ajouter des éléments sans lien clair avec la progression du niveau et du plan global.",
+        "Présenter la nouvelle étape comme un simple ajout sans expliquer comment elle s'intègre dans la trajectoire."
+      ],
+      "scope": "level",
+      "preserve": [
+        "L'intention de renforcer la \"sécurité émotionnelle et le retour au calme\" comme priorité actuelle du niveau.",
+        "Le principe d'un \"signal de pause\" comme outil de désescalade, déjà établi.",
+        "L'habitude \"Partager un point positif\" et le framework \"Cartographier les déclencheurs\" qui sont des fondations importantes du niveau actuel.",
+        "La contrainte que toute nouvelle action doit être une \"étape intermédiaire dans la trajectoire globale\" et non un \"ajout isolé d'action\"."
+      ],
+      "warnings": [
+        "Éviter d'ajouter la mission \"définir notre protocole de pause\" telle quelle sans clarifier sa relation avec la mission \"Convenir d'un signal de pause\" déjà complétée et la mission \"Faire le point sur le signal de pause\" à venir. Cela pourrait entraîner une duplication d'effort et une perte de cohérence, allant à l'encontre de la demande d'une \"étape intermédiaire dans la trajectoire globale\".",
+        "Éviter de proposer des actions qui ne sont pas clairement connectées aux étapes précédentes ou suivantes du plan, car l'utilisateur a explicitement demandé que ce ne soit \"pas juste un ajout isolé d'action\".",
+        "Éviter de rejeter la proposition de mission sans comprendre le besoin sous-jacent de l'utilisateur concernant la formalisation ou l'efficacité du protocole de pause."
+      ],
+      "confidence": "high",
+      "guidelines": [
+        "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+        "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+        "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+        "Traiter le niveau comme le périmètre courant: rythme, charge, focus, ordre ou intensité du bloc actuel.",
+        "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+        "Si la période demandée dépasse la fin du niveau, garder ce repère pour le prochain niveau sans modifier toute la trajectoire.",
+        "Préserver le cœur du niveau et identifier ce qui peut être allégé en premier.",
+        "Éviter de supprimer une action structurante quand une simplification ou un rééquilibrage suffit.",
+        "Guidelines action: La nouvelle habitude est un bon exemple d'action concrète servant l'intention. Pour la mission, s'assurer qu'elle ne duplique pas l'existant mais le complète ou le raffine, en s'inscrivant comme un pont logique. Ne pas changer la nature d'une action sans demande explicite.",
+        "Guidelines niveau: L'ajout de l'habitude renforce le cœur du niveau actuel. La mission doit être intégrée de manière à ne pas surcharger le niveau et à maintenir la cohérence avec les actions déjà prévues, servant de véritable \"étape intermédiaire\". Ne pas modifier les boundaries de fin de niveau sans raison claire.",
+        "Guidelines whole_plan: L'ajustement doit s'inscrire dans la trajectoire globale de rétablissement de la sécurité et de la communication. Il ne doit pas compromettre la cohérence globale du plan ni les prérequis des phases ultérieures. L'objectif et le questionnaire du plan doivent rester préservés. La nouvelle étape doit clairement servir de pont vers la suite."
+      ],
+      "observation": "L'utilisateur insiste sur l'intégration de la nouvelle proposition comme une \"étape intermédiaire dans la trajectoire globale\", et non comme un \"ajout isolé d'action\". Cela renforce la nécessité d'une cohérence forte avec les actions existantes et à venir. L'habitude proposée est bien alignée avec le besoin de \"sécurité émotionnelle et retour au calme\". La mission sur le \"protocole de pause\" nécessite toujours une clarification pour s'assurer qu'elle s'inscrit logiquement dans la progression du plan et ne duplique pas ou ne crée pas de confusion avec les missions existantes sur le signal de pause.",
+      "recommendation": "Guider le sous-skill à valider l'intégration de l'habitude proposée, car elle répond directement et concrètement au besoin de retour au calme et s'intègre naturellement. Pour la mission, inciter le sous-skill à s'assurer que la proposition s'inscrit comme une étape logique et non redondante dans la trajectoire. Il est crucial de comprendre si l'utilisateur souhaite affiner, formaliser ou ajouter des étapes *après* le signal de pause déjà convenu, en lien avec la mission de 'Faire le point' à venir, plutôt que de simplement réitérer la définition d'un signal.",
+      "options_to_discuss": [
+        "Si la mission \"définir notre protocole de pause\" vise à détailler ce qui se passe *après* le signal, envisager de la reformuler comme une nouvelle mission complémentaire (ex: \"Établir les étapes post-signal de pause\") pour clarifier la progression.",
+        "Si la mission vise à renforcer la clarté du signal existant, proposer de modifier la description de la mission \"Faire le point sur le signal de pause\" pour y inclure un objectif de \"raffinement et formalisation du protocole\" afin d'intégrer le besoin dans une action existante.",
+        "Intégrer l'habitude \"après une tension, attendre 20 minutes puis revenir avec une phrase calme pour reprendre\" comme une nouvelle habitude légère, car elle est directement alignée avec le besoin exprimé de retour au calme et s'inscrit bien comme une étape intermédiaire concrète."
+      ],
+      "questions_to_clarify": [
+        "Concernant la mission \"définir notre protocole de pause\" : Est-ce que le \"signal de pause\" convenu précédemment n'est pas suffisant, ou est-ce que vous souhaitez clarifier ce qui se passe *après* que le signal ait été donné, pour une meilleure gestion du retour au calme ?",
+        "Quel est l'objectif précis de ce nouveau \"protocole de pause\" par rapport au \"signal de pause\" déjà en place ? S'agit-il de le renforcer, de le détailler, ou d'ajouter des étapes spécifiques pour le retour au calme ?",
+        "La mission \"Faire le point sur le signal de pause\" est prévue pour la semaine 3. Est-ce que la proposition de \"définir notre protocole de pause\" vise à remplacer ou à préparer cette discussion en y ajoutant une dimension plus formelle ?"
+      ]
+    },
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t03",
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "requestId": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+    "status": 200,
+    "ok": true,
+    "user": "Option 1 : détailler ce qui se passe après le signal de pause. Le signal dit stop, puis le protocole dit comment chacun redescend et comment on reprend calmement ensuite.",
+    "assistant": "Option 1, je valide à fond. 😌\nSi on structure ça comme une vraie étape intermédiaire (sécurité émotionnelle + retour au calme), le contenu peut devenir un mini “protocole de pause” qui décrit clairement 2-3 moments : stop, redescente, reprise.\n\nProposition concrète (étape intermédiaire dans la trajectoire globale) :\n1) Signal stop (tout le monde est aligné)\n- Qui observe quoi : “quand X apparaît (ton/rythme/phrases), on dit stop”\n- But immédiat : “on ne discute pas du fond maintenant”\n\n2) Redescente guidée (comment chacun se régule)\n- 20 minutes comme base (mécanique simple)\n- Ce que chacun fait pendant : respiration lente / eau / marcher un peu (au choix, mais cadré)\n- Règle sécurité : pas de “réparations à chaud” ni de justification longue\n\n3) Reprise calme (comment on revient)\n- 1 phrase “calme” avant de relancer (exemples à choisir) :\n  - “Je reviens à tête plus posée : tu me répètes le point clé ?”\n  - “Je veux comprendre sans repartir au conflit : on repart où précisément ?”\n- Objectif : revenir au sujet, pas au jugement\n\n4) Clôture/feedback ultra court (optionnel mais puissant)\n- Après reprise : chacun dit une phrase sur “ce qui a aidé à redescendre”\n- Ça sert à ajuster la prochaine version du protocole\n\nEt pour l’intégration au plan : tu peux faire en sorte que la mission “définir notre protocole de pause” contienne précisément ces éléments, puis que l’habitude “après tension attendre 20 minutes puis revenir avec une phrase calme” devienne le mode d’exécution concret de la reprise.\n\nTu veux que le protocole soit plutôt “très strict (liste courte + règles non négociables)” ou “souple (cadre + options pour chacun)”? 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "none",
+    "response_executed_tools": [],
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_selected_handler": "product_help",
+    "route_reason_code": "skill_entry_signal",
+    "operation_flow_run": null,
+    "tool_skill_run": null,
+    "coaching_guidance_audit": null,
+    "coaching_guidance": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": {
+      "detected": false,
+      "evidence": [],
+      "risk_band": "none",
+      "reason_codes": [],
+      "allow_side_effects": true,
+      "layer_contributions": {
+        "lexical": false,
+        "heuristic": false,
+        "dispatcher_llm": false
+      }
+    },
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-rose-2026-05-19-adjust-plan-whole-plan-r61-whole-plan-next-step-t04",
+    "trace_error": null
+  }
+]
