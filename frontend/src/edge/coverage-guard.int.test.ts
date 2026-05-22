@@ -22,14 +22,15 @@ function listEdgeFunctionsWithIndexTs() {
 function discoverTriggers(): string[] {
   const triggers = new Set<string>();
 
+  const migDir = repoPathFromFrontend("supabase", "migrations");
+
   // From squashed schema
-  const squashed = repoPathFromFrontend(
-    "supabase",
-    "migrations",
-    "20241210120000_squashed_schema.sql",
-  );
-  if (fs.existsSync(squashed)) {
-    const text = fs.readFileSync(squashed, "utf8");
+  const squashedFiles = fs
+    .readdirSync(migDir)
+    .filter((f) => f.endsWith("_squashed_schema.sql"))
+    .sort();
+  for (const f of squashedFiles) {
+    const text = fs.readFileSync(path.join(migDir, f), "utf8");
     for (
       const m of text.matchAll(/CREATE\s+OR\s+REPLACE\s+TRIGGER\s+"([^"]+)"/gi)
     ) {
@@ -38,7 +39,6 @@ function discoverTriggers(): string[] {
   }
 
   // From migrations (exclude *_OLD.sql)
-  const migDir = repoPathFromFrontend("supabase", "migrations");
   const files = fs
     .readdirSync(migDir)
     .filter((f) => f.endsWith(".sql"))

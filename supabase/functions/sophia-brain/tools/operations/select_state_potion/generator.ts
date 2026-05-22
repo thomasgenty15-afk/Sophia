@@ -264,11 +264,14 @@ function assertConfirmationVoiceIsNatural(message: string) {
     /\bje te propose d activer\b/,
     /\bje peux t envoyer\b/,
     /\bon part sur cette potion\b/,
-    /\bon (essaie|tente|lance|commence|part|garde|valide)[^?]{0,90}\?/,
+    /\bon (essaie|tente|lance|commence|part|garde|valide|se cale)[^?]{0,90}\?/,
     /\bpetit (signe|mot|soutien|coucou|rituel)\b/,
     /\bca te va\s*\?/,
+    /\bsi ca te va\b/,
     /\bca te convient\s*\?/,
     /\best ce que ca te convient\s*\?/,
+    /\bpour qu on avance\b/,
+    /\bdis[-\s]moi si\b/,
     /\bsi tu confirmes,\s*je\b/,
   ];
   if (forbiddenPatterns.some((pattern) => pattern.test(text))) {
@@ -392,10 +395,11 @@ export async function generatePotionSessionDraftWithAi(
     "Le message potion_info_message est le deuxieme message apres activation: il explique la potion activee et le suivi/reminder qui va etre mis en place.",
     "Utilise le contexte de base DB quand il est fourni, sans inventer de faits absents de ce contexte ou du message user.",
     "Les messages et details explicites du user dans le flow courant sont prioritaires sur le contexte DB/plan. Si le user donne un horaire, une date relative ou une fenetre ('demain matin a 08h15'), tu dois la respecter au lieu de reprendre un rythme du plan.",
+    "Si input.details.answers contient question_id='support_timing', cette reponse est la source prioritaire pour follow_up.schedule_plan, follow_up.local_time_hhmm, target_binding.date_or_window_hint et la description du reminder.",
     "Pour les dates relatives, utilise input.context.current_local_date et input.context.timezone. Exemple: si current_local_date=2026-05-21 et le user dit demain, local_dates doit contenir 2026-05-22.",
     "confirmation_message presente le draft, inclut le rythme du reminder, et demande une validation explicite avant activation.",
     "Voix du confirmation_message: conversation naturelle, specifique au user, jamais formulaire produit.",
-    "Interdits dans confirmation_message: 'Je te propose d'activer', 'Je peux t'envoyer', 'On essaie ça ?', 'On lance ça ?', 'On commence ?', 'On part là-dessus ?', 'On part sur cette Potion', un titre sec du type 'Potion de Rappel', 'petit signe', 'petit mot', 'petit coucou', 'Ça te va ?', 'Ça te convient ?', 'Est-ce que ça te convient ?', 'Est-ce que ce moment te semble bien choisi ?', 'Valide avec oui', 'Si tu confirmes, je le mets en place', 'Si tu confirmes, je mets ça en place'.",
+    "Interdits dans confirmation_message: 'Je te propose d'activer', 'Je peux t'envoyer', 'On essaie ça ?', 'On lance ça ?', 'On commence ?', 'On part là-dessus ?', 'On se cale ?', 'On part sur cette Potion', un titre sec du type 'Potion de Rappel', 'petit signe', 'petit mot', 'petit coucou', 'Ça te va ?', 'Si ça te va', 'Dis-moi si', 'pour qu'on avance', 'Ça te convient ?', 'Est-ce que ça te convient ?', 'Est-ce que ce moment te semble bien choisi ?', 'Valide avec oui', 'Si tu confirmes, je le mets en place', 'Si tu confirmes, je mets ça en place'.",
     "Ne commence pas confirmation_message par le titre de la potion. Commence par le contexte vivant du user ou par ce que tu gardes de sa demande.",
     "Ne repete pas toujours la meme structure. Varie syntaxe, longueur et ordre: parfois le rappel d'abord, parfois le sens, parfois le moment. Evite les diminutifs automatiques comme 'petit signe' ou 'petit mot'.",
     "La validation finale doit etre courte et explicite, mais non repetitive. Elle doit sonner comme une phrase de conversation, pas comme un CTA ou un bouton.",
@@ -460,7 +464,7 @@ export async function generatePotionSessionDraftWithAi(
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const retryInstruction = attempt === 0
       ? ""
-      : `\nRappel critique: ton precedent JSON a ete rejete (${String((lastError as Error | null)?.message ?? lastError ?? "erreur inconnue")}). Corrige uniquement le JSON. Respecte le dernier timing explicite du user avant le contexte DB. Si confirmation_message sonnait comme un template, recris-le avec une syntaxe differente, sans 'Je peux t'envoyer', sans 'petit signe/mot', sans question finale en 'On ... ?', sans 'ce moment te semble bien choisi', sans 'Valide avec oui', sans 'Si tu confirmes, je...', sans 'ca te va/convient', et sans nom de potion en titre.`;
+      : `\nRappel critique: ton precedent JSON a ete rejete (${String((lastError as Error | null)?.message ?? lastError ?? "erreur inconnue")}). Corrige uniquement le JSON. Respecte le dernier timing explicite du user avant le contexte DB. Si confirmation_message sonnait comme un template, recris-le avec une syntaxe differente, sans 'Je peux t'envoyer', sans 'petit signe/mot', sans question finale en 'On ... ?', sans 'On se cale ?', sans 'Dis-moi si', sans 'ce moment te semble bien choisi', sans 'Valide avec oui', sans 'Si tu confirmes, je...', sans 'ca te va/convient', sans 'pour qu'on avance', et sans nom de potion en titre.`;
     try {
       const raw = await generateWithGemini(
         `${systemPrompt}${retryInstruction}`,

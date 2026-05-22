@@ -1,0 +1,235 @@
+{
+  "run_id": "weekly-live-r4-all_habits_done_mission_missed",
+  "variant": "all_habits_done_mission_missed",
+  "user_id": "88ac78e3-0804-4e28-a33a-6525adffc3f7",
+  "email": "qa-weekly-deep-weekly-live-r4-all_habits_done_mission_missed@example.com",
+  "password_redacted": true,
+  "scope": "weekly-deep-all_habits_done_mission_missed-weekly-live-r4",
+  "connection_file": "tmp/weekly-real-conversation-qa/connections/weekly-live-r4-all_habits_done_mission_missed.json",
+  "week_start_date": "2026-05-18",
+  "week_end_date": "2026-05-24",
+  "scheduled_checkin_id": "05b9a65e-2b7e-4056-979c-f40bdf4d57ad",
+  "opening": "C'est le moment de faire le point sur ta semaine ! J'ai vu que tu avais bien avancé sur la plupart de tes actions pour stabiliser ton rythme. Comment tu as vécu ces derniers jours de ton côté ?",
+  "expected": {
+    "habit_verdict": {
+      "status": "validated",
+      "completion_rate": 1,
+      "planned_count": 5,
+      "done_points": 5,
+      "reason": "La cible d'habitudes est atteinte ou suffisamment tenue."
+    },
+    "daily_evidence_summary": {
+      "source": "daily_action_review_v1",
+      "coverage": "complete",
+      "covered_count": 6,
+      "action_count": 6,
+      "dominant_blockers": [
+        "context"
+      ],
+      "rescheduled_open_count": 0,
+      "not_answered_count": 0,
+      "confidence": "high"
+    },
+    "week_strategy": {
+      "decision": "advance",
+      "reason": "Les habitudes pilotent la progression et sont validees.",
+      "preserve_level_objective": true,
+      "preserve_level_architecture": true
+    },
+    "question": {
+      "id": "weekly_global_progress_and_state",
+      "text": "Les habitudes semblent assez tenues cette semaine. Tu sens une difference vers ton objectif, et tu ressors comment de la semaine ?",
+      "reason": "Verifier les deux signaux humains avant de confirmer le passage a la suite.",
+      "blocks_decision": false
+    },
+    "plan_patch": {
+      "requires_confirmation": true,
+      "operations": [
+        {
+          "op": "advance_week",
+          "details": {
+            "decision": "advance"
+          }
+        },
+        {
+          "op": "carry_over_item",
+          "plan_item_id": "7a7e71ca-2e85-4307-a15b-53a1411e6819",
+          "occurrence_id": "d787aa06-6f72-4ccf-a83f-cfe81a473c5a",
+          "details": {
+            "reason": "Les habitudes permettent d'avancer; cet item peut etre reporte s'il reste utile."
+          }
+        }
+      ]
+    },
+    "item_decisions": [
+      {
+        "plan_item_id": "a94f61ee-3e81-408a-b7f2-57725c631fd4",
+        "occurrence_id": "93492349-5009-43e2-8f95-9ceac7f410d7",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "a94f61ee-3e81-408a-b7f2-57725c631fd4",
+        "occurrence_id": "7fae2efa-c712-4f12-82a2-f7e13caab1bb",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "a94f61ee-3e81-408a-b7f2-57725c631fd4",
+        "occurrence_id": "3c7d4d23-c5ed-427d-8b7c-353da6dada2a",
+        "title": "Partager un point positif",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "a32ebb18-1bd9-4817-a49d-ff6fbb4c3244",
+        "occurrence_id": "76ba92e6-0e7e-4eb1-831c-6557b019c95b",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "a32ebb18-1bd9-4817-a49d-ff6fbb4c3244",
+        "occurrence_id": "bdd04745-f78c-40f9-b449-715b6082e35d",
+        "title": "Respiration de pause",
+        "family": "habit",
+        "current_week_status": "done",
+        "evidence_done": true,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "none",
+          "reason_text": "fait comme prevu",
+          "still_relevant": true,
+          "reschedule_decision": "none",
+          "confidence": "high"
+        },
+        "decision": "keep",
+        "reason": "L'occurrence d'habitude est deja comptabilisee."
+      },
+      {
+        "plan_item_id": "7a7e71ca-2e85-4307-a15b-53a1411e6819",
+        "occurrence_id": "d787aa06-6f72-4ccf-a83f-cfe81a473c5a",
+        "title": "Convenir d'un signal de pause",
+        "family": "mission",
+        "current_week_status": "missed",
+        "evidence_done": false,
+        "daily_evidence": {
+          "source": "daily_action_review_v1",
+          "reason_category": "context",
+          "reason_text": "la discussion avec la personne concernee n'a pas eu lieu",
+          "still_relevant": true,
+          "reschedule_decision": "carry_over",
+          "confidence": "high"
+        },
+        "decision": "carry_over",
+        "reason": "Les habitudes permettent d'avancer; cet item peut etre reporte s'il reste utile."
+      }
+    ],
+    "supports_out_of_scope": true
+  },
+  "review_summary": [
+    {
+      "transformation_id": "0f461cc0-5760-48de-9710-721a3a6293bd",
+      "plan_id": "6f0d61f7-3755-474d-9aee-40288e1af25d",
+      "summary": {
+        "planned_count": 6,
+        "done_count": 5,
+        "partial_count": 0,
+        "missed_count": 1,
+        "unanswered_count": 0,
+        "rescheduled_count": 0,
+        "adherence_rate": 0.83
+      },
+      "actions": [
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Partager un point positif",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Respiration de pause",
+          "dimension": "habits",
+          "deviation": "on_plan",
+          "had_entry": true,
+          "reason_category": "none"
+        },
+        {
+          "title": "Convenir d'un signal de pause",
+          "dimension": "missions",
+          "deviation": "missed",
+          "had_entry": true,
+          "reason_category": "context"
+        }
+      ]
+    }
+  ]
+}

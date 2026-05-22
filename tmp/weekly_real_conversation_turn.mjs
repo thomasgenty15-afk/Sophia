@@ -37,11 +37,15 @@ function loadSupabaseStatus() {
     if (match) env[match[1]] = match[2].replace(/^["']|["']$/g, "");
   }
   return {
-    API_URL: env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ??
+    API_URL: process.env.SUPABASE_URL ?? env.SUPABASE_URL ??
+      env.VITE_SUPABASE_URL ??
       "http://127.0.0.1:54321",
-    ANON_KEY: env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? "",
-    SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-    SECRET_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    ANON_KEY: process.env.SUPABASE_ANON_KEY ?? env.SUPABASE_ANON_KEY ??
+      env.VITE_SUPABASE_ANON_KEY ?? "",
+    SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ??
+      env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    SECRET_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ??
+      env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   };
 }
 
@@ -193,9 +197,13 @@ const turn = {
   trace_short: traceShort(result.body?.conversation_turn_trace ?? null),
   raw_response: result.body,
 };
-state.turns.push(turn);
-state.updated_at = new Date().toISOString();
-saveState(state);
+const skipFailedRetryState = process.env.SOPHIA_QA_SKIP_502_STATE === "1" &&
+  result.status === 502;
+if (!skipFailedRetryState) {
+  state.turns.push(turn);
+  state.updated_at = new Date().toISOString();
+  saveState(state);
+}
 
 console.log(JSON.stringify({
   run_id: runId,

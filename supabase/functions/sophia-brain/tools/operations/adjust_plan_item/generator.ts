@@ -213,7 +213,9 @@ export function planAdjustmentMaterializationBlockReason(
   const changedItems =
     draft.draft.adjust_plan_result?.applied_change?.changed_items ?? [];
   const concretePlanItems = changedItems.filter((item) =>
-    (item.kind === "action" || item.kind === "habit") &&
+    (String(item.kind ?? "") === "action" ||
+      String(item.kind ?? "") === "habit" ||
+      String(item.kind ?? "") === "task") &&
     typeof item.id === "string" &&
     item.id.trim().length > 0
   );
@@ -1134,6 +1136,9 @@ export async function generateAdjustPlanResultWithAi(
     "coaching_guidance n'est pas une validation bloquante: ne dis jamais au user qu'un coach specialise a valide ou refuse. Integre simplement ses recommandations dans ta proposition.",
     "Respecte les warnings et avoid de coaching_guidance: ne propose pas une option explicitement marquee comme a eviter sauf si le dernier message user la demande clairement.",
     "Respecte preserve de coaching_guidance: ce qui doit rester stable doit apparaitre comme inchangé ou preserve dans le brouillon.",
+    "Pour action, lis action_request_category dans user_constraints comme classification de la demande: feasibility_load=alleger/rendre faisable; challenge_intensity=augmenter l'ambition; timing_duration=changer moment/duree/frequence; method_format=changer la maniere; scope_focus=recentrer/decouper; replacement_alternative=remplacer; support_guardrail=ajouter aide/preparation/plan B.",
+    "Pour level, lis level_request_category dans user_constraints comme classification de la demande: pacing_workload=rythme/charge; difficulty_progression=difficulte/progression; sequence_priority=ordre/priorite; level_focus=centre du niveau; action_mix=composition d'actions; context_constraints=contrainte externe; recovery_reset=reprendre apres retard/decrochage/confusion.",
+    "Les request_category action/level guident l'interpretation de la demande, mais ne remplacent jamais adjustment_type, change_target, affected_items, user_constraints concretes ni materialization_candidates.",
     "Pour whole_plan, si coaching_guidance parle de prerequis, sequence, phase future ou coherence globale, raisonne en trajectoire et non en patch arbitraire d'actions courantes.",
     "Pour whole_plan, lis whole_plan_change_family dans user_constraints. Cette famille determine la trajectoire a materialiser: sequence_order_issue=reordonner/ralentir; missing_bridge_or_level=ajouter une phase ou un niveau pont; direction_change=changer l'axe du plan; success_criteria_change=changer les criteres de reussite; future_phase_mismatch=reprendre une phase future; style_or_method_mismatch=changer la methode; maintenance_or_consolidation_gap=ajouter consolidation; global_capacity_change=changer le rythme global; plan_no_longer_relevant=re-diagnostiquer avant refonte.",
     "Pour whole_plan, si whole_plan_readiness vaut diagnose, ne fabrique pas une application definitive: le brouillon doit signaler les informations manquantes et ne pas demander une execution immediate.",
@@ -1152,7 +1157,7 @@ export async function generateAdjustPlanResultWithAi(
     "Pour un ajustement de niveau ou de plan global, respecte strictement level_adjustment_contract: chaque changement concret doit choisir une capability autorisée et cibler une action/habitude existante par id depuis materialization_candidates.",
     "Pour un ajustement de niveau ou de plan global, n'utilise jamais level_setting/plan_setting comme faux exemple si aucune action réelle n'est modifiée. Si les actions exactes manquent, le JSON sera rejeté.",
     "Aucune phrase de réponse n'est fournie: rédige le message toi-même à partir des faits.",
-    "N'utilise pas les noms d'enums, les clés JSON, les mots id, uuid, plan_item_id, operation_id, patch, scope, confidence, payload, current_level, whole_plan, changed_items, preserved_items, lighter, global_load, reason_change ou change_target dans les messages destinés à l'utilisateur.",
+    "N'utilise pas les noms d'enums, les clés JSON, les mots id, uuid, plan_item_id, operation_id, patch, scope, confidence, payload, current_level, whole_plan, action_request_category, level_request_category, changed_items, preserved_items, lighter, global_load, reason_change ou change_target dans les messages destinés à l'utilisateur.",
     "Pour un ajustement de niveau, indique clairement que le changement reste limité au niveau actuel et ne modifie pas le plan global.",
     "Pour un ajustement de niveau, ne parle pas de version mini, de pont, ni de repousser une version complète, sauf si le user demande explicitement une action-pont. Le niveau se modifie en ajustant des actions/habitudes existantes, leur fréquence, leur durée, leur timing ou leur ordre.",
     "Pour une action réduite, indique clairement la version mini créée, son rôle de pont, et que l'action d'origine reste prévue après.",

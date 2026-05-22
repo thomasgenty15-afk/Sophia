@@ -263,6 +263,9 @@ export async function fillAdjustPlanSlotsWithAi(
     "Si une demande de niveau deborde possiblement la fin du niveau courant, garde current_level et ajoute dans payload.constraints.values: level_boundary_note:appliquer l'allegement au niveau actuel; si la demande depasse la fin du niveau, garder ce repere pour le prochain niveau plutot que modifier la trajectoire globale.",
     "Si current_state.scope.kind vaut current_level ou whole_plan, ne retrograde jamais vers specific_plan_item seulement parce que le user cite une action: traite cette action comme affected_items/change_target dans le scope deja actif, sauf si le user dit explicitement qu'il ne parle plus que de cette action.",
     'Si le user dit seulement "signal de pause" ou demande que le signal soit plus court/simple/5 minutes, vise l\'action de mise en place du signal, par exemple "Convenir d\'un signal de pause". Ne vise "Faire le point sur le signal de pause" que si le user parle explicitement de bilan, faire le point, review, retour d\'experience ou evaluation.',
+    "Pour action_intake, classe toujours la demande dans payload.action_request_category.value: feasibility_load=trop dur/long/cher en energie/intimidant; challenge_intensity=pas assez ambitieux ou besoin de plus d'impact; timing_duration=moment/duree/echeance/frequence/report; method_format=changer la maniere de faire sans changer le but; scope_focus=recentrer/reduire/elargir une partie; replacement_alternative=remplacer par autre chose; support_guardrail=ajouter aide, preparation, rappel, plan B ou securite emotionnelle.",
+    "Pour level_intake, classe toujours la demande dans payload.level_request_category.value: pacing_workload=rythme/charge/densite/etalement; difficulty_progression=difficulte ou progression trop brutale/lente; sequence_priority=ordre/priorite/quoi faire d'abord; level_focus=changer le centre du niveau; action_mix=ajouter/retirer/remplacer/varier plusieurs actions; context_constraints=adapter a une contrainte temps/sante/voyage/travail/energie/budget/sociale; recovery_reset=reprendre apres retard/abandon/confusion/surcharge/perte de motivation.",
+    "Les request_category action/level disent quel genre de demande user est exprimé. Elles ne remplacent jamais adjustment_type, reason_change, change_target, constraints ou affected_items.",
     "Pour action_intake, minimum: plan_item_id, adjustment_type, reason, desired effect/constraints si disponibles.",
     "Pour level_intake, minimum: reason_change, change_target, constraints, affected_items; le niveau ne doit pas toucher le plan global.",
     "Pour whole_plan_intake, minimum: reason_change, global change target, preserved intent, affected_items/impact examples si disponibles.",
@@ -316,6 +319,18 @@ export async function fillAdjustPlanSlotsWithAi(
         },
         payload: {
           scope_kind: "specific_plan_item|current_level|whole_plan",
+          action_request_category: {
+            status: "missing|identified",
+            value:
+              "feasibility_load|challenge_intensity|timing_duration|method_format|scope_focus|replacement_alternative|support_guardrail",
+            evidence: ["string"],
+          },
+          level_request_category: {
+            status: "missing|identified",
+            value:
+              "pacing_workload|difficulty_progression|sequence_priority|level_focus|action_mix|context_constraints|recovery_reset",
+            evidence: ["string"],
+          },
           adjustment_type: "slot object",
           whole_plan_change_family: {
             status: "missing|identified",

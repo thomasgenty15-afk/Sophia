@@ -1,0 +1,802 @@
+{
+  "run_id": "global15_20260522_n2_strict_r7",
+  "scope": "qa-normal-conversation-global15_20260522_n2_strict_r7",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global15_20260522_n2_strict_r7-1779451585362@example.com",
+  "user_id": "1f7077f4-a8a6-42fa-a0b9-68dde2b57f6b",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIxZjcwNzdmNC1hOGE2LTQyZmEtYTBiOS02OGRkZTJiNTdmNmIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5NDU1MTg1LCJpYXQiOjE3Nzk0NTE1ODUsImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbDE1XzIwMjYwNTIyX24yX3N0cmljdF9yNy0xNzc5NDUxNTg1MzYyQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1nbG9iYWwxNV8yMDI2MDUyMl9uMl9zdHJpY3RfcjctMTc3OTQ1MTU4NTM2MkBleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiZ2xvYmFsMTVfMjAyNjA1MjJfbjJfc3RyaWN0X3I3Iiwic3ViIjoiMWY3MDc3ZjQtYThhNi00MmZhLWEwYjktNjhkZGUyYjU3ZjZiIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Nzk0NTE1ODV9XSwic2Vzc2lvbl9pZCI6IjcwZTkzYjg5LTY1MWItNGRiYS1hNjE4LTMzZmI2MTg0MTljMSIsImlzX2Fub255bW91cyI6ZmFsc2V9.1iJrFWnay6MtA0ST0qqHvNRB2Fq7Tf_2W0LGLibFhSw",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-22T12:06:25.835Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-22T12:06:51.963Z",
+      "user": "Salut Sophia, je rentre tard et je suis vidé. Je dois juste sortir mon carnet du sac et mettre ma tasse dans l'évier, mais je sens que je vais m'asseoir avec le téléphone. Aide-moi à sauver le minimum, sans grand plan.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ? 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_attack_card",
+        "route_reason": "tool_skill_intent_start",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "prepare_attack_card"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-05-22T12:06:42.938Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__active_tool_skill_intake": {
+                  "phase": "technique_selection",
+                  "slot_state": {
+                    "slot": "technique",
+                    "needed": true,
+                    "reason": "structured_ai_missing_technique",
+                    "status": "missing",
+                    "question": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?",
+                    "known_slots": {
+                      "target": {
+                        "kind": "personal_action",
+                        "title": "Sortir ton carnet et ranger ta tasse",
+                        "plan_item_id": null
+                      },
+                      "intake_state": {
+                        "target": {
+                          "kind": "personal_action",
+                          "title": "Sortir ton carnet et ranger ta tasse",
+                          "status": "identified",
+                          "evidence": [
+                            "Je dois juste sortir mon carnet du sac et mettre ma tasse dans l'évier",
+                            "sauver le minimum"
+                          ],
+                          "confidence": "high",
+                          "plan_item_id": null
+                        },
+                        "blocker": {
+                          "type": "mixed",
+                          "evidence": [
+                            "je suis vidé",
+                            "je vais m'asseoir avec le téléphone"
+                          ],
+                          "confidence": 0.9
+                        },
+                        "skill_id": "prepare_attack_card",
+                        "technique": {
+                          "value": null,
+                          "status": "ambiguous",
+                          "options": [
+                            {
+                              "title": "Le texte magique",
+                              "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                              "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                              "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                              "recommended": true,
+                              "technique_key": "texte_recadrage"
+                            },
+                            {
+                              "title": "Ancre visuelle",
+                              "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                              "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                              "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                              "recommended": false,
+                              "technique_key": "ancre_visuelle"
+                            }
+                          ],
+                          "evidence": [
+                            "je suis vidé",
+                            "je sens que je vais m'asseoir avec le téléphone",
+                            "sans grand plan"
+                          ],
+                          "confidence": "medium",
+                          "fit_warning": null,
+                          "explicitly_requested": false
+                        },
+                        "confidence": "high",
+                        "constraints": [
+                          "sauver le minimum",
+                          "sans grand plan"
+                        ],
+                        "current_step": "technique_selection",
+                        "missing_slots": [
+                          "technique"
+                        ],
+                        "activation_keyword": {
+                          "value": null,
+                          "status": "not_applicable",
+                          "options": [],
+                          "evidence": [],
+                          "confidence": "low",
+                          "rejected_value": null
+                        },
+                        "generated_user_message": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?"
+                      },
+                      "technique_options": [
+                        {
+                          "title": "Le texte magique",
+                          "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                          "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                          "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                          "recommended": true,
+                          "technique_key": "texte_recadrage"
+                        },
+                        {
+                          "title": "Ancre visuelle",
+                          "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                          "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                          "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                          "recommended": false,
+                          "technique_key": "ancre_visuelle"
+                        }
+                      ]
+                    },
+                    "technique_options": [
+                      {
+                        "title": "Le texte magique",
+                        "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                        "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                        "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                        "recommended": true,
+                        "technique_key": "texte_recadrage"
+                      },
+                      {
+                        "title": "Ancre visuelle",
+                        "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                        "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                        "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                        "recommended": false,
+                        "technique_key": "ancre_visuelle"
+                      }
+                    ],
+                    "activation_keyword_options": []
+                  },
+                  "turn_count": 1,
+                  "updated_at": "2026-05-22T12:06:51.924Z",
+                  "missing_slots": [
+                    "technique"
+                  ],
+                  "operation_type": "prepare_attack_card",
+                  "operation_input": {
+                    "target": {
+                      "kind": "personal_action",
+                      "title": "Sortir ton carnet et ranger ta tasse",
+                      "plan_item_id": null
+                    },
+                    "intake_state": {
+                      "target": {
+                        "kind": "personal_action",
+                        "title": "Sortir ton carnet et ranger ta tasse",
+                        "status": "identified",
+                        "evidence": [
+                          "Je dois juste sortir mon carnet du sac et mettre ma tasse dans l'évier",
+                          "sauver le minimum"
+                        ],
+                        "confidence": "high",
+                        "plan_item_id": null
+                      },
+                      "blocker": {
+                        "type": "mixed",
+                        "evidence": [
+                          "je suis vidé",
+                          "je vais m'asseoir avec le téléphone"
+                        ],
+                        "confidence": 0.9
+                      },
+                      "skill_id": "prepare_attack_card",
+                      "technique": {
+                        "value": null,
+                        "status": "ambiguous",
+                        "options": [
+                          {
+                            "title": "Le texte magique",
+                            "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                            "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                            "recommended": true,
+                            "technique_key": "texte_recadrage"
+                          },
+                          {
+                            "title": "Ancre visuelle",
+                            "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                            "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                            "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                            "recommended": false,
+                            "technique_key": "ancre_visuelle"
+                          }
+                        ],
+                        "evidence": [
+                          "je suis vidé",
+                          "je sens que je vais m'asseoir avec le téléphone",
+                          "sans grand plan"
+                        ],
+                        "confidence": "medium",
+                        "fit_warning": null,
+                        "explicitly_requested": false
+                      },
+                      "confidence": "high",
+                      "constraints": [
+                        "sauver le minimum",
+                        "sans grand plan"
+                      ],
+                      "current_step": "technique_selection",
+                      "missing_slots": [
+                        "technique"
+                      ],
+                      "activation_keyword": {
+                        "value": null,
+                        "status": "not_applicable",
+                        "options": [],
+                        "evidence": [],
+                        "confidence": "low",
+                        "rejected_value": null
+                      },
+                      "generated_user_message": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?"
+                    },
+                    "occupied_activation_keywords": []
+                  },
+                  "tool_skill_state": {
+                    "status": "collecting",
+                    "skill_id": "prepare_attack_card",
+                    "confidence": "high",
+                    "current_step": "technique_selection",
+                    "intake_state": {
+                      "target": {
+                        "kind": "personal_action",
+                        "title": "Sortir ton carnet et ranger ta tasse",
+                        "status": "identified",
+                        "evidence": [
+                          "Je dois juste sortir mon carnet du sac et mettre ma tasse dans l'évier",
+                          "sauver le minimum"
+                        ],
+                        "confidence": "high",
+                        "plan_item_id": null
+                      },
+                      "blocker": {
+                        "type": "mixed",
+                        "evidence": [
+                          "je suis vidé",
+                          "je vais m'asseoir avec le téléphone"
+                        ],
+                        "confidence": 0.9
+                      },
+                      "skill_id": "prepare_attack_card",
+                      "technique": {
+                        "value": null,
+                        "status": "ambiguous",
+                        "options": [
+                          {
+                            "title": "Le texte magique",
+                            "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                            "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                            "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                            "recommended": true,
+                            "technique_key": "texte_recadrage"
+                          },
+                          {
+                            "title": "Ancre visuelle",
+                            "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                            "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                            "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                            "recommended": false,
+                            "technique_key": "ancre_visuelle"
+                          }
+                        ],
+                        "evidence": [
+                          "je suis vidé",
+                          "je sens que je vais m'asseoir avec le téléphone",
+                          "sans grand plan"
+                        ],
+                        "confidence": "medium",
+                        "fit_warning": null,
+                        "explicitly_requested": false
+                      },
+                      "confidence": "high",
+                      "constraints": [
+                        "sauver le minimum",
+                        "sans grand plan"
+                      ],
+                      "current_step": "technique_selection",
+                      "missing_slots": [
+                        "technique"
+                      ],
+                      "activation_keyword": {
+                        "value": null,
+                        "status": "not_applicable",
+                        "options": [],
+                        "evidence": [],
+                        "confidence": "low",
+                        "rejected_value": null
+                      },
+                      "generated_user_message": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?"
+                    },
+                    "missing_slots": [
+                      "technique"
+                    ],
+                    "conversation_summary": "Structured AI intake is collecting attack card slots."
+                  }
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-22T12:06:51.926321+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260522_n2_strict_r7-t01",
+        "user_id": "1f7077f4-a8a6-42fa-a0b9-68dde2b57f6b",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260522_n2_strict_r7",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260522_n2_strict_r7-t01",
+          "user_id": "1f7077f4-a8a6-42fa-a0b9-68dde2b57f6b",
+          "source_message_id": "81217ff1-2421-4313-b25e-8b0ce11f810a",
+          "ts": "2026-05-22T12:06:51.932+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8568,
+            "latency_ms": 4717,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 705,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "friction de démarrage soir fatigue",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "fatigue fin de journée",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260522_n2_strict_r7-t01",
+            "user_id": "1f7077f4-a8a6-42fa-a0b9-68dde2b57f6b",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "friction de démarrage soir fatigue",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "sante.energie",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "fatigue fin de journée",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "81217ff1-2421-4313-b25e-8b0ce11f810a",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "sortir le carnet et mettre la tasse dans l'évier",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_attack_card",
+                "confidence_band": "high",
+                "operation_input": {
+                  "target_action": {
+                    "value": "sortir le carnet et mettre la tasse dans l'évier",
+                    "status": "identified",
+                    "evidence": [
+                      "le user liste deux micro-actions concrètes"
+                    ],
+                    "confidence": "high"
+                  }
+                }
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "tool_skill_intent_start",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "prepare_attack_card",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "slot_state": {
+              "slot": "technique",
+              "needed": true,
+              "reason": "structured_ai_missing_technique",
+              "status": "missing",
+              "question": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?",
+              "known_slots": {
+                "target": {
+                  "kind": "personal_action",
+                  "title": "Sortir ton carnet et ranger ta tasse",
+                  "plan_item_id": null
+                },
+                "intake_state": {
+                  "target": {
+                    "kind": "personal_action",
+                    "title": "Sortir ton carnet et ranger ta tasse",
+                    "status": "identified",
+                    "evidence": [
+                      "Je dois juste sortir mon carnet du sac et mettre ma tasse dans l'évier",
+                      "sauver le minimum"
+                    ],
+                    "confidence": "high",
+                    "plan_item_id": null
+                  },
+                  "blocker": {
+                    "type": "mixed",
+                    "evidence": [
+                      "je suis vidé",
+                      "je vais m'asseoir avec le téléphone"
+                    ],
+                    "confidence": 0.9
+                  },
+                  "skill_id": "prepare_attack_card",
+                  "technique": {
+                    "value": null,
+                    "status": "ambiguous",
+                    "options": [
+                      {
+                        "title": "Le texte magique",
+                        "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                        "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                        "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                        "recommended": true,
+                        "technique_key": "texte_recadrage"
+                      },
+                      {
+                        "title": "Ancre visuelle",
+                        "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                        "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                        "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                        "recommended": false,
+                        "technique_key": "ancre_visuelle"
+                      }
+                    ],
+                    "evidence": [
+                      "je suis vidé",
+                      "je sens que je vais m'asseoir avec le téléphone",
+                      "sans grand plan"
+                    ],
+                    "confidence": "medium",
+                    "fit_warning": null,
+                    "explicitly_requested": false
+                  },
+                  "confidence": "high",
+                  "constraints": [
+                    "sauver le minimum",
+                    "sans grand plan"
+                  ],
+                  "current_step": "technique_selection",
+                  "missing_slots": [
+                    "technique"
+                  ],
+                  "activation_keyword": {
+                    "value": null,
+                    "status": "not_applicable",
+                    "options": [],
+                    "evidence": [],
+                    "confidence": "low",
+                    "rejected_value": null
+                  },
+                  "generated_user_message": "C'est noté, on va sauver l'essentiel : sortir ton carnet et ranger cette tasse. Pour t'aider à ne pas finir sur ton téléphone alors que tu es vidé, je te propose deux options : « Le texte magique » pour calmer la négociation dans ta tête, ou « Ancre visuelle » pour transformer un objet en signal de départ immédiat. Laquelle te semble la plus simple là tout de suite ?"
+                },
+                "technique_options": [
+                  {
+                    "title": "Le texte magique",
+                    "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                    "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                    "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                    "recommended": true,
+                    "technique_key": "texte_recadrage"
+                  },
+                  {
+                    "title": "Ancre visuelle",
+                    "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                    "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                    "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                    "recommended": false,
+                    "technique_key": "ancre_visuelle"
+                  }
+                ]
+              },
+              "technique_options": [
+                {
+                  "title": "Le texte magique",
+                  "reason": "Parfait pour contrer la petite voix qui te dit que tu es trop vidé pour ces deux gestes.",
+                  "example": "Un texte de 3 lignes à relire quand tu sens l'appel du téléphone.",
+                  "description": "Faire baisser le combat interieur quand l'utilisateur commence a negocier avec lui-meme.",
+                  "recommended": true,
+                  "technique_key": "texte_recadrage"
+                },
+                {
+                  "title": "Ancre visuelle",
+                  "reason": "Pour transformer ton sac ou ta tasse en un signal physique qui déclenche l'action sans réfléchir.",
+                  "example": "Associer le contact de ton sac à l'ouverture immédiate du carnet.",
+                  "description": "Utiliser l'environnement comme rappel concret de l'engagement.",
+                  "recommended": false,
+                  "technique_key": "ancre_visuelle"
+                }
+              ],
+              "activation_keyword_options": []
+            },
+            "reason_code": "tool_skill_intent_start",
+            "missing_slots": [
+              "technique"
+            ],
+            "selected_handler": "prepare_attack_card"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 13797,
+          "created_at": "2026-05-22T12:06:51.934409+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-22T12:06:51.963Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-05-22T12:07:04.423Z"
+}

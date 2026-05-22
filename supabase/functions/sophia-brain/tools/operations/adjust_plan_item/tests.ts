@@ -33,12 +33,25 @@ import type {
 const SECRET = "s6-test-secret";
 
 function actionPayload(options: {
+  action_request_category?:
+    | "feasibility_load"
+    | "challenge_intensity"
+    | "timing_duration"
+    | "method_format"
+    | "scope_focus"
+    | "replacement_alternative"
+    | "support_guardrail";
   adjustment_type?: "reduce" | "clarify" | "pause" | "replace" | "rebalance";
   reason?: "too_heavy" | "bad_fit" | "too_vague" | "context_changed";
   constraints?: string[];
 } = {}) {
   return {
     scope_kind: "specific_plan_item",
+    action_request_category: {
+      status: "identified",
+      value: options.action_request_category ?? "feasibility_load",
+      evidence: ["structured action request category"],
+    },
     adjustment_type: {
       status: "identified",
       value: options.adjustment_type ?? "reduce",
@@ -60,6 +73,14 @@ function actionPayload(options: {
 function levelPayload(options: {
   complete?: boolean;
   constraints?: string[];
+  level_request_category?:
+    | "pacing_workload"
+    | "difficulty_progression"
+    | "sequence_priority"
+    | "level_focus"
+    | "action_mix"
+    | "context_constraints"
+    | "recovery_reset";
   target?:
     | "entry_cost"
     | "number_of_actions"
@@ -70,6 +91,11 @@ function levelPayload(options: {
   const complete = options.complete ?? true;
   return {
     scope_kind: "current_level",
+    level_request_category: {
+      status: "identified",
+      value: options.level_request_category ?? "pacing_workload",
+      evidence: ["structured level request category"],
+    },
     adjustment_type: {
       status: "identified",
       value: "reduce_load",
@@ -175,6 +201,14 @@ function wholePlanPayload(options: {
 function actionOperationInput(options: {
   plan_item_id?: string;
   label?: string;
+  action_request_category?:
+    | "feasibility_load"
+    | "challenge_intensity"
+    | "timing_duration"
+    | "method_format"
+    | "scope_focus"
+    | "replacement_alternative"
+    | "support_guardrail";
   adjustment_type?: "reduce" | "clarify" | "pause" | "replace" | "rebalance";
   reason?: "too_heavy" | "bad_fit" | "too_vague" | "context_changed";
 } = {}) {
@@ -201,6 +235,14 @@ function actionOperationInput(options: {
 function levelOperationInput(options: {
   complete?: boolean;
   label?: string;
+  level_request_category?:
+    | "pacing_workload"
+    | "difficulty_progression"
+    | "sequence_priority"
+    | "level_focus"
+    | "action_mix"
+    | "context_constraints"
+    | "recovery_reset";
   target?:
     | "entry_cost"
     | "number_of_actions"
@@ -1022,6 +1064,86 @@ Deno.test("adjust_plan_item exposes the global skill plus five sub-skills", () =
       operation_input: wholePlanOperationInput(),
     }).trace.status,
     "ready",
+  );
+});
+
+Deno.test("adjust_plan action and level intake require request categories", () => {
+  const missingActionCategory = actionOperationInput();
+  delete (missingActionCategory.payload as any).action_request_category;
+  const action = runAdjustPlanActionSubSkill({
+    message: "rends cette action plus simple",
+    operation_input: missingActionCategory,
+  });
+  assertEquals(action.trace.status, "needs_clarification");
+  assertEquals(action.trace.missing_slots, [
+    "specific_plan_item.action_request_category",
+  ]);
+
+  const invalidLevelCategory = levelOperationInput();
+  (invalidLevelCategory.payload as any).level_request_category = {
+    status: "identified",
+    value: "unexpected_category",
+    evidence: ["invalid test category"],
+  };
+  const level = runAdjustPlanLevelSubSkill({
+    message: "ce niveau est trop dense cette semaine",
+    operation_input: invalidLevelCategory,
+  });
+  assertEquals(level.trace.status, "needs_clarification");
+  assertEquals(level.trace.missing_slots, [
+    "current_level.level_request_category",
+  ]);
+});
+
+Deno.test("adjust_plan propagates action and level request categories to generator constraints", async () => {
+  const seenConstraints: string[][] = [];
+  const writer: AdjustPlanResultWriter = async (input) => {
+    seenConstraints.push(input.user_constraints ?? []);
+    return testAdjustPlanResultWriter(input);
+  };
+
+  await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "Pas par écrit, je veux plutôt faire cette action en vocal.",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-action-category",
+    safety_pregate_risk_band: "none",
+    adjust_plan_result_writer: writer,
+    slot_filler: slotFillerFromOperationInput(
+      actionOperationInput({ action_request_category: "method_format" }),
+      "action_intake",
+    ),
+  });
+
+  await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "J'ai décroché, reprends-moi ce niveau proprement.",
+    plan_snapshot: {
+      items: [
+        { id: "a", title: "Faire le choix du brut" },
+        { id: "b", title: "Préparer tes alternatives d'avance" },
+      ],
+    },
+    trigger_message_id: "m-level-category",
+    safety_pregate_risk_band: "none",
+    adjust_plan_result_writer: writer,
+    slot_filler: slotFillerFromOperationInput(
+      levelOperationInput({ level_request_category: "recovery_reset" }),
+      "level_intake",
+    ),
+  });
+
+  assertEquals(
+    seenConstraints[0].includes("action_request_category:method_format"),
+    true,
+  );
+  assertEquals(
+    seenConstraints[1].includes("level_request_category:recovery_reset"),
+    true,
   );
 });
 
@@ -3344,6 +3466,13 @@ Deno.test("adjust_plan_item whole-plan repair reconnection step is concrete", as
     "geste de retour au contact",
   );
   if (
+    (output.draft?.confirmation_message ?? "").includes("niveau intermédiaire")
+  ) {
+    throw new Error(
+      "repair reconnection draft must not call this a generic intermediate level",
+    );
+  }
+  if (
     (output.draft?.confirmation_message ?? "").includes(
       "avec un niveau intermédiaire avec",
     )
@@ -3351,6 +3480,121 @@ Deno.test("adjust_plan_item whole-plan repair reconnection step is concrete", as
     throw new Error(
       "repair reconnection draft must not use generic duplicate copy",
     );
+  }
+});
+
+Deno.test("adjust_plan_item whole-plan dispute bridge is not sensitive-topics split", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "J'ai relu la suite du plan et je trouve qu'il manque une marche. On passe trop vite vers comprendre les tensions, alors que j'aimerais d'abord apprendre à se retrouver après une dispute.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-dispute-bridge",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:missing_bridge_or_level",
+  );
+  assertStringIncludes(
+    operationInput,
+    "insert_phase_kind:repair_reconnection_after_tension",
+  );
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "réparation",
+  );
+  const confirmation = output.draft?.confirmation_message ?? "";
+  for (const forbidden of ["argent", "famille", "intimité"]) {
+    if (confirmation.includes(forbidden)) {
+      throw new Error(`dispute repair bridge must not mention ${forbidden}`);
+    }
+  }
+});
+
+Deno.test("adjust_plan_item whole-plan implicit return-in-link bridge is repair step", async () => {
+  const output = await runAdjustPlanItemIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
+    plan_snapshot: {
+      items: [
+        {
+          id: "pause-1",
+          title: "Convenir d'un signal de pause",
+          description: "Choisir un signal commun.",
+          status: "active",
+          kind: "task",
+          item_nature: "one_shot_mission",
+        },
+        {
+          id: "positive-1",
+          title: "Partager un point positif",
+          description: "Partager une phrase positive.",
+          status: "active",
+          kind: "habit",
+          item_nature: "recurring_habit",
+        },
+      ],
+    },
+    trigger_message_id: "m-whole-plan-return-in-link",
+    safety_pregate_risk_band: "none",
+    operation_input: wholePlanOperationInput(),
+    adjust_plan_result_writer: testAdjustPlanResultWriter,
+    question_writer: testAdjustPlanQuestionWriter,
+    force_ai_slot_filling: false,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  const operationInput = JSON.stringify(
+    output.state_patch.operation_input ?? {},
+  );
+  assertStringIncludes(
+    operationInput,
+    "whole_plan_change_family:missing_bridge_or_level",
+  );
+  assertStringIncludes(
+    operationInput,
+    "insert_phase_kind:repair_reconnection_after_tension",
+  );
+  assertStringIncludes(output.draft?.confirmation_message ?? "", "réparation");
+  const confirmation = output.draft?.confirmation_message ?? "";
+  for (const forbidden of ["argent", "famille", "intimité"]) {
+    if (confirmation.includes(forbidden)) {
+      throw new Error(`return-in-link bridge must not mention ${forbidden}`);
+    }
   }
 });
 

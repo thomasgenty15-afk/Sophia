@@ -26,6 +26,8 @@ import {
   buildPotionDetailSubskillPrompt,
   chatDetailQuestionIds,
   POTION_DETAIL_SUBSKILLS,
+  SUPPORT_TIMING_QUESTION_ID,
+  SUPPORT_TIMING_SLOT,
 } from "./subskills/potion_detail_intake.ts";
 import { buildPotionFollowUpSchedulePlannerPrompt } from "./subskills/follow_up_schedule_planner.ts";
 import { normalizePotionSessionDraft } from "./generator.ts";
@@ -142,6 +144,9 @@ Deno.test("select_state_potion rejects robotic confirmation voice", () => {
     "Je peux t'envoyer un petit signe chaque soir. On essaie ça ?",
     "Je te propose d'activer cette Potion de Rappel. Ça te convient ?",
     "Je t'enverrai un petit mot à 19h. On lance ça ?",
+    "Je t'envoie un appui unique à 07h45. Dis-moi si ça te va pour qu'on avance.",
+    "Je me manifesterai demain à 07h45. On se cale sur ce rendez-vous unique ?",
+    "Je viendrai demain à 07h45. Dis-moi si on se retrouve à cette heure-là.",
   ];
   for (const confirmation_message of badMessages) {
     let failed = false;
@@ -659,6 +664,353 @@ Deno.test("select_state_potion asks two chat detail fields before draft", async 
   });
   assertEquals(ready.status, "pending_confirmation");
   assertEquals(ready.draft?.draft.potion_type, "courage");
+});
+
+Deno.test("select_state_potion action-aware potion asks timing before draft when action timing is absent", async () => {
+  const askTiming = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "C'est un message a mon associe, j'ai peur que ca parte en conflit.",
+    trigger_message_id: "m-timing-1",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      state: {
+        kind: "fear_avoidance",
+        intensity: "medium",
+        evidence: ["peur conflit"],
+      },
+      potion_type: "courage",
+    },
+    slot_filler: async () => ({
+      current_sub_skill: "detail_intake",
+      state_patch: {
+        state: {
+          status: "identified",
+          kind: "fear_avoidance",
+          intensity: "medium",
+          confidence: "high",
+          evidence: ["peur conflit"],
+        },
+        selected_potion: {
+          status: "identified",
+          value: "courage",
+          confidence: "high",
+          evidence: ["courage"],
+        },
+        details: {
+          status: "identified",
+          required_question_ids: ["avoidance_target", "blocker_kind"],
+          answers: [{
+            question_id: "avoidance_target",
+            label: "Qu'est-ce que tu evites en ce moment ?",
+            answer: "Envoyer le message a mon associe.",
+            evidence: ["message associe"],
+          }, {
+            question_id: "blocker_kind",
+            label: "Qu'est-ce qui bloque le plus ?",
+            answer: "La peur du conflit.",
+            evidence: ["conflit"],
+          }],
+          evidence: ["detail"],
+        },
+        missing_slots: [SUPPORT_TIMING_SLOT],
+        generated_user_message:
+          "Tu voudrais que je sois la a quel moment autour de ce message ?",
+        confidence: "high",
+      },
+      missing_slots: [SUPPORT_TIMING_SLOT],
+      confidence: "high",
+      generated_user_message:
+        "Tu voudrais que je sois la a quel moment autour de ce message ?",
+      evidence: ["detail"],
+    }),
+    draft_generator: async () => {
+      throw new Error("draft_generator_should_wait_for_support_timing");
+    },
+  });
+
+  assertEquals(askTiming.status, "ask_question");
+  assertEquals(askTiming.phase, "detail_intake");
+  assertEquals(askTiming.state_patch.missing_slots, [SUPPORT_TIMING_SLOT]);
+  assertEquals(
+    askTiming.state_patch.intake_state?.details.required_question_ids,
+    ["avoidance_target", "blocker_kind", SUPPORT_TIMING_QUESTION_ID],
+  );
+
+  const ready = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "Demain matin a 08h15, juste avant de l'envoyer.",
+    trigger_message_id: "m-timing-2",
+    safety_pregate_risk_band: "none",
+    operation_input: askTiming.state_patch.operation_input,
+    slot_filler: async () => ({
+      current_sub_skill: "draft_generation",
+      state_patch: {
+        details: {
+          status: "identified",
+          required_question_ids: [
+            "avoidance_target",
+            "blocker_kind",
+            SUPPORT_TIMING_QUESTION_ID,
+          ],
+          answers: [{
+            question_id: SUPPORT_TIMING_QUESTION_ID,
+            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            answer: "Demain matin a 08h15, juste avant de l'envoyer.",
+            evidence: ["demain 08h15"],
+          }],
+          evidence: ["timing"],
+        },
+        missing_slots: [],
+        generated_user_message: null,
+        confidence: "high",
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["timing"],
+    }),
+    draft_generator: async (input) => {
+      assertEquals(input.details?.required_question_ids, [
+        "avoidance_target",
+        "blocker_kind",
+        SUPPORT_TIMING_QUESTION_ID,
+      ]);
+      assertEquals(
+        input.details?.answers.some((answer) =>
+          answer.question_id === SUPPORT_TIMING_QUESTION_ID &&
+          answer.answer.includes("08h15")
+        ),
+        true,
+      );
+      return await structuredStatePotionDraftGenerator()(input);
+    },
+  });
+
+  assertEquals(ready.status, "pending_confirmation");
+});
+
+Deno.test("select_state_potion does not confirm action-aware draft when timing was inferred from vague window", async () => {
+  const output = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Surtout savoir par ou commencer pour la reunion demain matin.",
+    trigger_message_id: "m-vague-timing",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      state: {
+        kind: "confusion_overload",
+        intensity: "medium",
+        evidence: ["tout se melange"],
+      },
+      potion_type: "clarte",
+    },
+    slot_filler: async () => ({
+      current_sub_skill: "draft_generation",
+      state_patch: {
+        state: {
+          status: "identified",
+          kind: "confusion_overload",
+          intensity: "medium",
+          confidence: "high",
+          evidence: ["tout se melange"],
+        },
+        selected_potion: {
+          status: "identified",
+          value: "clarte",
+          confidence: "high",
+          evidence: ["potion de clarte"],
+        },
+        details: {
+          status: "identified",
+          required_question_ids: [
+            "clarity_problem",
+            "clarity_need",
+            SUPPORT_TIMING_QUESTION_ID,
+          ],
+          answers: [{
+            question_id: "clarity_problem",
+            label: "Qu'est-ce qui est flou pour toi en ce moment ?",
+            answer: "L'angle de la reunion demain matin.",
+            evidence: ["reunion demain matin"],
+          }, {
+            question_id: "clarity_need",
+            label: "Tu as surtout besoin de comprendre quoi ?",
+            answer: "Savoir par ou commencer.",
+            evidence: ["par ou commencer"],
+          }, {
+            question_id: SUPPORT_TIMING_QUESTION_ID,
+            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            answer: "demain matin",
+            evidence: ["demain matin"],
+          }],
+          evidence: ["detail"],
+        },
+        missing_slots: [],
+        generated_user_message: null,
+        confidence: "high",
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["detail"],
+    }),
+    draft_generator: async (input) => {
+      const draft = await structuredStatePotionDraftGenerator()(input);
+      if (!draft) throw new Error("missing_structured_draft");
+      const adjusted = structuredClone(draft);
+      adjusted.draft.target_binding = {
+        ...adjusted.draft.target_binding,
+        kind: "one_off_action",
+        label: "reunion demain matin",
+        date_or_window_hint: "demain matin",
+        evidence: ["reunion demain matin"],
+      };
+      adjusted.draft.follow_up = {
+        ...adjusted.draft.follow_up,
+        local_time_hhmm: "08:30",
+        schedule_plan: {
+          mode: "single_before_event",
+          duration_days: null,
+          local_time_hhmm: "08:30",
+          scheduled_days: [],
+          local_dates: ["2026-05-23"],
+          timing_relation: "before",
+          reason: "Horaire deduit depuis une fenetre vague.",
+        },
+      };
+      return adjusted;
+    },
+  });
+
+  assertEquals(output.status, "ask_question");
+  assertEquals(output.phase, "detail_intake");
+  assertEquals(output.state_patch.missing_slots, [SUPPORT_TIMING_SLOT]);
+  assertEquals(
+    output.state_patch.intake_state?.details.required_question_ids.includes(
+      SUPPORT_TIMING_QUESTION_ID,
+    ),
+    true,
+  );
+});
+
+Deno.test("select_state_potion preserves selected potion when reminder wording appears during active flow", async () => {
+  const output = await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux seulement ce rappel-la demain a 08h15 pour ma potion de courage.",
+    trigger_message_id: "m-locked-potion",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      intake_state: {
+        skill_id: "select_state_potion",
+        current_sub_skill: "detail_intake",
+        state: {
+          status: "identified",
+          kind: "fear_avoidance",
+          intensity: "medium",
+          confidence: "high",
+          evidence: ["peur conflit"],
+        },
+        explicit_potion_request: {
+          status: "identified",
+          potion_type: "courage",
+          evidence: ["potion de courage"],
+        },
+        shortlist: { status: "missing", options: [], evidence: [] },
+        selected_potion: {
+          status: "identified",
+          value: "courage",
+          confidence: "high",
+          evidence: ["potion de courage"],
+        },
+        details: {
+          status: "missing",
+          required_question_ids: [
+            "avoidance_target",
+            "blocker_kind",
+            SUPPORT_TIMING_QUESTION_ID,
+          ],
+          answers: [{
+            question_id: "avoidance_target",
+            label: "Qu'est-ce que tu evites en ce moment ?",
+            answer: "Envoyer le message a mon associe.",
+            evidence: ["message"],
+          }, {
+            question_id: "blocker_kind",
+            label: "Qu'est-ce qui bloque le plus ?",
+            answer: "La peur du conflit.",
+            evidence: ["conflit"],
+          }],
+          evidence: ["detail"],
+        },
+        context: {},
+        missing_slots: [SUPPORT_TIMING_SLOT],
+        confidence: "high",
+        generated_user_message: null,
+      },
+      potion_type: "courage",
+      explicit_potion_type: "courage",
+    },
+    slot_filler: async () => ({
+      current_sub_skill: "draft_generation",
+      state_patch: {
+        selected_potion: {
+          status: "identified",
+          value: "rappel",
+          confidence: "medium",
+          evidence: ["rappel-la"],
+        },
+        details: {
+          status: "identified",
+          required_question_ids: [
+            "avoidance_target",
+            "blocker_kind",
+            SUPPORT_TIMING_QUESTION_ID,
+          ],
+          answers: [{
+            question_id: "avoidance_target",
+            label: "Qu'est-ce que tu evites en ce moment ?",
+            answer: "Envoyer le message a mon associe.",
+            evidence: ["message"],
+          }, {
+            question_id: "blocker_kind",
+            label: "Qu'est-ce qui bloque le plus ?",
+            answer: "La peur du conflit.",
+            evidence: ["conflit"],
+          }, {
+            question_id: SUPPORT_TIMING_QUESTION_ID,
+            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            answer: "Demain a 08h15, une seule fois.",
+            evidence: ["rappel-la demain 08h15"],
+          }],
+          evidence: ["timing"],
+        },
+        missing_slots: [],
+        generated_user_message: null,
+        confidence: "high",
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["timing"],
+    }),
+    draft_generator: async (input) => {
+      assertEquals(input.potion_type, "courage");
+      return await structuredStatePotionDraftGenerator()(input);
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.potion_type, "courage");
 });
 
 Deno.test("select_state_potion detail fallback asks missing fields without technical wording", async () => {

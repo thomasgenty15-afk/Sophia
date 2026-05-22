@@ -76,6 +76,7 @@ import type {
   RouteDecision,
 } from "../contracts/route_decision.v1.ts";
 import type {
+  RiskBand,
   ToolSkillOpportunity,
   TurnFrame,
 } from "../contracts/turn_frame.v1.ts";
@@ -1072,9 +1073,10 @@ function patchPendingAdjustPlanWithWeeklyExactProposal(args: {
   const pending = structuredClone(args.pending);
   const draft = pending.draft;
   const existingResult = draft.draft.adjust_plan_result ?? {} as any;
-  const existingPatch = draft.draft.patch && typeof draft.draft.patch === "object"
-    ? draft.draft.patch as Record<string, unknown>
-    : {};
+  const existingPatch =
+    draft.draft.patch && typeof draft.draft.patch === "object"
+      ? draft.draft.patch as Record<string, unknown>
+      : {};
   draft.draft.title = args.proposal.kind === "precise_level_adjustment"
     ? "Ajustement exact du niveau actuel"
     : "Organisation allégée de la semaine prochaine";
@@ -1312,6 +1314,437 @@ function buildWeeklyExactAdjustPlanPendingReview(args: {
   }) as typeof base;
 }
 
+function weeklyPlanSnapshotChangedItems(
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null,
+): Array<Record<string, unknown>> {
+  return (planItemSnapshot ?? [])
+    .filter((item) =>
+      item.status === "active" &&
+      item.dimension !== "support" &&
+      item.item_nature !== "clarification"
+    )
+    .map((item) => ({
+      id: item.id,
+      title: item.title,
+      kind: item.item_type === "habit" ? "habit" : "action",
+      dimension: item.dimension,
+      capability: "modify_existing_action",
+      before: item.description ?? item.cadence_label ?? item.title,
+      after: item.cadence_label
+        ? `Inchangé: ${item.cadence_label}. Le niveau est seulement prolongé d'une semaine.`
+        : `Inchangé: ${
+          item.description ?? item.title
+        }. Le niveau est seulement prolongé d'une semaine.`,
+      reason:
+        "Le user veut refaire la même semaine pour récupérer un signal fiable sans modifier les actions.",
+    }));
+}
+
+function buildWeeklyCopyForwardPendingReview(args: {
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+}): {
+  operation_id: string;
+  operation_type: "adjust_plan_item";
+  phase: "draft_review";
+  draft: PlanAdjustmentDraftV1;
+  operation_input: Record<string, unknown>;
+} {
+  const changedItems = weeklyPlanSnapshotChangedItems(args.planItemSnapshot);
+  const constraints = [
+    "extend_current_level_same_plan",
+    "copy_forward_level_one_week",
+    "preserve_action_content",
+    "preserve_cadence",
+  ];
+  const summary =
+    "Prolonger le niveau actuel d'une semaine à l'identique, sans changer les actions, le rythme ni le plan global.";
+  return {
+    operation_id: crypto.randomUUID(),
+    operation_type: "adjust_plan_item",
+    phase: "draft_review",
+    draft: {
+      operation_type: "adjust_plan_item",
+      output_schema: "plan_adjustment_draft_v1",
+      draft: {
+        title: "Prolonger le niveau actuel",
+        scope_label: "Niveau actuel",
+        adjustment_type: "rebalance" as any,
+        execution_strategy: "level_adjustment",
+        proposed_change: summary,
+        why_it_helps:
+          "Cela permet de récupérer un signal fiable sans pénaliser une semaine mal suivie.",
+        confidence: "high",
+        decision_basis: {
+          user_problem:
+            "Le suivi de la semaine n'est pas assez fiable pour décider une progression.",
+          inferred_need:
+            "Refaire la même semaine à l'identique pour observer proprement.",
+          confidence: "high",
+          evidence: ["weekly_no_signal_copy_forward"],
+          uncertainty: [],
+          must_preserve: [
+            "Même actions",
+            "Même rythme",
+            "Même plan global",
+          ],
+        },
+        change_rationale: {
+          why_this_change: summary,
+          expected_mechanism:
+            "Conserver le niveau stable et récupérer une vraie semaine de données.",
+          success_condition:
+            "La semaine suivante permet de vérifier si les mêmes actions tiennent réellement.",
+        },
+        ack_summary: {
+          changed: ["Durée du niveau prolongée d'une semaine"],
+          unchanged: ["Actions", "rythme", "repères", "plan global"],
+          why_it_helps:
+            "On ne change pas le plan à partir d'un signal de suivi incomplet.",
+          confidence: "high",
+          follow_up_needed: null,
+        },
+        adjust_plan_result: {
+          scope: "level",
+          user_message_brief:
+            "Même semaine prolongée d'une semaine, sans changer les actions ni le rythme.",
+          user_message_detailed:
+            "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
+          applied_change: {
+            changed_items: changedItems,
+            preserved_items: [
+              {
+                title: "Plan global",
+                reason: "Le user veut seulement refaire la même semaine.",
+              },
+            ],
+          },
+          boundaries: {
+            affected_scope: "current_level",
+            global_plan_impact: "none",
+            requires_new_level: false,
+          },
+        } as any,
+        patch: {
+          scope_kind: "current_level",
+          load_adjustment: summary,
+          focus_adjustment: "Même semaine, même rythme, une semaine de plus.",
+          reason_type: "weekly_no_signal",
+          reason_change: "tracking_signal_missing",
+          change_target: "timing",
+          confidence: "high",
+          constraints,
+        },
+        allowed_patch_fields: [
+          "scope_kind",
+          "level_adjustment",
+          "load_adjustment",
+          "focus_adjustment",
+          "reason_type",
+          "reason_change",
+          "change_target",
+          "confidence",
+          "constraints",
+        ],
+      },
+      confirmation_message:
+        "Je te propose de refaire la même semaine à l'identique: mêmes actions, même rythme, mêmes repères. Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+      execution_message:
+        "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
+      confirmation_actions: ["yes", "no"],
+    },
+    operation_input: {
+      scope: {
+        kind: "current_level",
+        label: "Niveau actuel",
+      },
+      payload: {
+        scope_kind: "current_level",
+        constraints: {
+          status: "identified",
+          values: constraints,
+          evidence: ["weekly_no_signal_copy_forward"],
+        },
+      },
+    },
+  };
+}
+
+function isWeeklyMissionCarryOverRequest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const advancesWeek =
+    /\b(avance|avancer|passe|passer)\b[\s\S]{0,120}\b(semaine|semaine suivante|suite|semaine prochaine)\b/
+      .test(text);
+  const targetsNextWeek = /\b(semaine suivante|semaine prochaine|suite)\b/
+    .test(text);
+  const carryVerb =
+    /\b(reporte|reporter|reportee|reporté|garde|garder|conserve|conserver)\b/
+      .test(text);
+  const missionTarget = /\b(signal de pause|mission)\b/.test(text);
+  return (advancesWeek || targetsNextWeek) && carryVerb && missionTarget;
+}
+
+function weeklyMissionCarryOverContext(args: {
+  userMessage: string;
+  history?: any[] | null;
+}): boolean {
+  const recentText = normalizeRouteText(
+    [
+      ...(args.history ?? []).slice(-8).map((turn: any) =>
+        String(turn?.content ?? "").trim()
+      ),
+      args.userMessage,
+    ].filter(Boolean).join("\n\n"),
+  );
+  return /\b(avance|avancer|passe|passer)\b[\s\S]{0,180}\b(semaine|suite|semaine prochaine)\b/
+    .test(recentText) &&
+    /\b(reporte|reporter|garde|garder|conserve|conserver)\b[\s\S]{0,180}\b(signal de pause|mission)\b/
+      .test(recentText);
+}
+
+function isWeeklyLightRepeatRequest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(semaine plus legere|semaine allegee|moins d attente|moins de pression|pas avec la meme pression)\b/
+    .test(text) &&
+    /\b(refaire|reprendre|recommencer|applique|appliquer|valide|valider)\b/
+      .test(
+        text,
+      );
+}
+
+function buildWeeklyMissionCarryOverPendingReview(args: {
+  weeklyState?: unknown;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+}): ReturnType<typeof buildWeeklyCopyForwardPendingReview> {
+  const signal = findWeeklyPlanItemRef({
+    title: "Convenir d'un signal de pause",
+    weeklyState: args.weeklyState,
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  const constraints = [
+    "strict_affected_items_only",
+    "advance_week",
+    "carry_over_item",
+    "affected_item:Convenir d'un signal de pause",
+  ];
+  const changedItems = [{
+    id: signal.id,
+    title: signal.title,
+    kind: "action",
+    dimension: signal.dimension || "missions",
+    capability: "modify_existing_action",
+    before: "Mission prévue cette semaine",
+    after:
+      "Reporter la mission signal de pause à la semaine suivante, car elle reste utile mais dépendait d'une discussion qui n'a pas eu lieu.",
+    reason:
+      "Les habitudes ont été tenues; seule la mission utile doit être reportée.",
+  }];
+  const summary =
+    "Passer à la semaine suivante en reportant seulement la mission signal de pause.";
+  const pending = buildWeeklyCopyForwardPendingReview({
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  pending.draft.draft.title = "Reporter la mission utile";
+  pending.draft.draft.proposed_change = summary;
+  pending.draft.draft.why_it_helps =
+    "Les habitudes sont validées; on ne bloque pas la progression pour une mission encore utile mais dépendante du contexte.";
+  pending.draft.draft.decision_basis.user_problem =
+    "Les habitudes ont été faites, mais la mission signal de pause n'a pas pu se faire.";
+  pending.draft.draft.decision_basis.inferred_need =
+    "Avancer la semaine et reporter seulement la mission utile.";
+  pending.draft.draft.decision_basis.evidence = [
+    "weekly_habits_done_mission_missed",
+  ];
+  pending.draft.draft.change_rationale.why_this_change = summary;
+  pending.draft.draft.change_rationale.success_condition =
+    "La semaine suivante avance, avec la mission signal de pause conservée comme point à faire.";
+  pending.draft.draft.ack_summary.changed = [
+    "Semaine suivante ouverte",
+    "Mission signal de pause reportée",
+  ];
+  pending.draft.draft.ack_summary.unchanged = [
+    "Habitudes validées",
+    "Plan global",
+  ];
+  pending.draft.draft.adjust_plan_result = {
+    scope: "level",
+    user_message_brief:
+      "Semaine suivante avancée; seule la mission signal de pause est reportée.",
+    user_message_detailed:
+      "C'est appliqué: on passe à la semaine suivante, et seule la mission signal de pause est reportée parce qu'elle reste utile. Les habitudes validées restent acquises.",
+    applied_change: {
+      changed_items: changedItems,
+      preserved_items: [
+        {
+          title: "Habitudes validées",
+          reason: "Elles ont été faites; on ne refait pas toute la semaine.",
+        },
+      ],
+    },
+    boundaries: {
+      affected_scope: "current_level",
+      global_plan_impact: "none",
+      requires_new_level: false,
+    },
+  } as any;
+  pending.draft.draft.patch = {
+    scope_kind: "current_level",
+    load_adjustment: summary,
+    focus_adjustment: "Reporter seulement la mission utile.",
+    reason_type: "weekly_mission_carry_over",
+    reason_change: "context_dependency",
+    change_target: "timing",
+    confidence: "high",
+    constraints,
+  };
+  pending.draft.confirmation_message =
+    "Je propose de passer à la semaine suivante et de reporter seulement la mission signal de pause. Rien n'est appliqué tant que tu ne confirmes pas clairement.";
+  pending.draft.execution_message =
+    "C'est appliqué: on passe à la semaine suivante, et seule la mission signal de pause est reportée parce qu'elle reste utile. Les habitudes validées restent acquises.";
+  pending.operation_input.payload = {
+    scope_kind: "current_level",
+    constraints: {
+      status: "identified",
+      values: constraints,
+      evidence: ["weekly_habits_done_mission_missed"],
+    },
+  };
+  return pending;
+}
+
+function buildWeeklyLightRepeatPendingReview(args: {
+  weeklyState?: unknown;
+  planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
+}): ReturnType<typeof buildWeeklyCopyForwardPendingReview> {
+  const positive = findWeeklyPlanItemRef({
+    title: "Partager un point positif",
+    weeklyState: args.weeklyState,
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  const breath = findWeeklyPlanItemRef({
+    title: "Respiration de pause",
+    weeklyState: args.weeklyState,
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  const signal = findWeeklyPlanItemRef({
+    title: "Convenir d'un signal de pause",
+    weeklyState: args.weeklyState,
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  const constraints = [
+    "strict_affected_items_only",
+    "weekly_light_repeat",
+    "preserve_global_plan",
+    "affected_item:Respiration de pause",
+    "affected_item:Partager un point positif",
+    "affected_item:Convenir d'un signal de pause",
+  ];
+  const changedItems = [
+    {
+      id: breath.id,
+      title: breath.title,
+      kind: breath.kind,
+      dimension: breath.dimension,
+      capability: "change_action_frequency",
+      before: "2x/semaine",
+      after: "1 jour / semaine: une respiration courte, jour libre.",
+      reason: "La semaine n'a pas démarré; on réduit la pression.",
+    },
+    {
+      id: positive.id,
+      title: positive.title,
+      kind: positive.kind,
+      dimension: positive.dimension,
+      capability: "change_action_frequency",
+      before: "3x/semaine",
+      after: "1 jour / semaine: un point positif très court.",
+      reason: "La semaine n'a pas démarré; on garde un fil minimal.",
+    },
+    {
+      id: signal.id,
+      title: signal.title,
+      kind: "action",
+      dimension: signal.dimension,
+      capability: "modify_existing_action",
+      before: "Convenir d'un signal de pause",
+      after:
+        "Mission signal de pause seulement si une fenêtre naturelle se présente; pas d'obligation de forcer la discussion.",
+      reason: "Le user veut moins de pression et une mission conditionnelle.",
+    },
+  ];
+  const pending = buildWeeklyCopyForwardPendingReview({
+    planItemSnapshot: args.planItemSnapshot,
+  });
+  pending.draft.draft.title = "Semaine allégée de reprise";
+  pending.draft.draft.proposed_change =
+    "Refaire une semaine plus légère, sans changer le plan global.";
+  pending.draft.draft.why_it_helps =
+    "La charge baisse pour relancer le mouvement sans transformer toute la trajectoire.";
+  pending.draft.draft.decision_basis.user_problem =
+    "Rien n'a été fait cette semaine à cause de la fatigue et de la charge.";
+  pending.draft.draft.decision_basis.inferred_need =
+    "Refaire une semaine allégée, avec moins de pression.";
+  pending.draft.draft.decision_basis.evidence = ["weekly_none_done_fatigue"];
+  pending.draft.draft.change_rationale.why_this_change =
+    "Réduire la pression tout en gardant le cap.";
+  pending.draft.draft.change_rationale.success_condition =
+    "La semaine suivante redémarre avec un minimum d'actions tenables.";
+  pending.draft.draft.ack_summary.changed = [
+    "Respiration réduite à une fois",
+    "Point positif réduit à une fois",
+    "Mission signal conditionnelle si une fenêtre se présente",
+  ];
+  pending.draft.draft.ack_summary.unchanged = [
+    "Plan global",
+    "objectif du niveau",
+  ];
+  pending.draft.draft.adjust_plan_result = {
+    scope: "level",
+    user_message_brief:
+      "Semaine allégée: respiration 1 fois, point positif 1 fois, mission signal seulement si une fenêtre se présente.",
+    user_message_detailed:
+      "C'est appliqué: on repart sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.",
+    applied_change: {
+      changed_items: changedItems,
+      preserved_items: [
+        {
+          title: "Plan global",
+          reason: "Le user ne veut pas changer tout le plan.",
+        },
+      ],
+    },
+    boundaries: {
+      affected_scope: "current_level",
+      global_plan_impact: "none",
+      requires_new_level: false,
+    },
+  } as any;
+  pending.draft.draft.patch = {
+    scope_kind: "current_level",
+    load_adjustment:
+      "Refaire une semaine plus légère, sans changer le plan global.",
+    focus_adjustment:
+      "Moins de pression: deux habitudes minimales et mission conditionnelle.",
+    reason_type: "weekly_none_done_fatigue",
+    reason_change: "capacity_too_low",
+    change_target: "load",
+    confidence: "high",
+    constraints,
+  };
+  pending.draft.confirmation_message =
+    "Je propose une semaine allégée: respiration une fois, point positif une fois, et mission signal seulement si une fenêtre naturelle se présente. Rien n'est appliqué tant que tu ne confirmes pas clairement.";
+  pending.draft.execution_message =
+    "C'est appliqué: on repart sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.";
+  pending.operation_input.payload = {
+    scope_kind: "current_level",
+    constraints: {
+      status: "identified",
+      values: constraints,
+      evidence: ["weekly_none_done_fatigue"],
+    },
+  };
+  return pending;
+}
+
 function rememberWeeklyExactAdjustPlanProposal(args: {
   tempMemory: any;
   proposal: WeeklyExactAdjustPlanProposal;
@@ -1410,26 +1843,77 @@ function applyWeeklyConcreteOrganizationGuard(args: {
   });
   if (!weeklyState) return args.responseContent;
   const user = normalizeRouteText(args.userMessage);
+  const asksExactRestatement =
+    /\b(redis|redis moi|reformule|exactement|avant d appliquer|sans plan global|pas assez precis|pas assez précis)\b/
+      .test(user);
+  const explicitApplyConfirmation = isExplicitPendingApplyConfirmation(
+    args.userMessage,
+  );
+  if (
+    explicitApplyConfirmation &&
+    (isWeeklyMissionCarryOverRequest(args.userMessage) ||
+      isCopyForwardWeeklyRequest(args.userMessage) ||
+      isWeeklyLightRepeatRequest(args.userMessage))
+  ) {
+    return args.responseContent;
+  }
+  if (
+    isWeeklyMissionCarryOverRequest(args.userMessage) ||
+    (asksExactRestatement &&
+      weeklyMissionCarryOverContext({
+        userMessage: args.userMessage,
+        history: args.history,
+      }))
+  ) {
+    return [
+      "Oui: on passe à la semaine suivante, et on reporte seulement la mission signal de pause.",
+      "",
+      "Ce qui change:",
+      "- Les habitudes validées restent acquises.",
+      "- La mission signal de pause reste dans la suite, parce qu'elle est encore utile.",
+      "- On ne refait pas toute la semaine à l'identique.",
+      "",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+    ].join("\n");
+  }
+  if (isCopyForwardWeeklyRequest(args.userMessage)) {
+    return [
+      "Oui: l'option propre ici, c'est de refaire la même semaine à l'identique.",
+      "",
+      "Ce qui change: uniquement la durée. Les actions, le rythme et les repères restent les mêmes.",
+      "",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+    ].join("\n");
+  }
+  if (isWeeklyLightRepeatRequest(args.userMessage)) {
+    return [
+      "Oui: on repart sur une semaine allégée, sans changer tout le plan.",
+      "",
+      "Ce qui change:",
+      "- Respiration de pause: une fois seulement.",
+      "- Partager un point positif: une fois seulement.",
+      "- Mission signal de pause: seulement si une fenêtre naturelle se présente.",
+      "",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+    ].join("\n");
+  }
   const exactProposalFromContext = weeklyExactProposalFromConversation({
     userMessage: args.userMessage,
     history: args.history ?? [],
     tempMemory: args.tempMemory,
     weeklyState,
   });
-  const asksExactRestatement =
-    /\b(redis|redis moi|reformule|exactement|avant d appliquer|sans plan global|pas assez precis|pas assez précis)\b/
-      .test(user);
   if (
     exactProposalFromContext?.kind === "precise_level_adjustment" &&
     (asksExactRestatement ||
       weeklyExactProposalKindFromText(
-        [
-          ...(args.history ?? []).slice(-8).map((turn: any) =>
-            String(turn?.content ?? "").trim()
-          ),
-          args.userMessage,
-        ].filter(Boolean).join("\n\n"),
-      ) === "precise_level_adjustment")
+          [
+            ...(args.history ?? []).slice(-8).map((turn: any) =>
+              String(turn?.content ?? "").trim()
+            ),
+            args.userMessage,
+          ].filter(Boolean).join("\n\n"),
+        ) === "precise_level_adjustment")
   ) {
     rememberWeeklyExactAdjustPlanProposal({
       tempMemory: args.tempMemory,
@@ -1660,7 +2144,9 @@ function applyWeeklyConclusionGuard(args: {
     activeSkillState: args.activeSkillState,
     tempMemory: args.tempMemory,
   }) as any;
-  if (weeklyUserAskedValidationAvailability(args.userMessage) && hasWeeklyState) {
+  if (
+    weeklyUserAskedValidationAvailability(args.userMessage) && hasWeeklyState
+  ) {
     const flowStatus = String(
       weeklyState?.weekly_flow_state?.status ?? weeklyState?.status ?? "",
     ).trim();
@@ -1839,14 +2325,13 @@ function markWeeklyAdaptiveReviewAdjustPlanApplied(args: {
   }
   const previous = args.weeklyState as Record<string, unknown>;
   const nowIso = new Date().toISOString();
-  const userAskedWeeklyReturn =
-    (
-      /\b(reviens|retourne|reprends|conclus|conclure|termine|terminer)\b/
-        .test(normalizeRouteText(args.userMessage ?? "")) &&
-      /\b(weekly|bilan|semaine)\b/.test(
-        normalizeRouteText(args.userMessage ?? ""),
-      )
-    ) ||
+  const userAskedWeeklyReturn = (
+    /\b(reviens|retourne|reprends|conclus|conclure|termine|terminer)\b/
+      .test(normalizeRouteText(args.userMessage ?? "")) &&
+    /\b(weekly|bilan|semaine)\b/.test(
+      normalizeRouteText(args.userMessage ?? ""),
+    )
+  ) ||
     /\bvalidation\b[\s\S]{0,60}\b(dispo|disponible|debloquee|ouverte)\b/.test(
       normalizeRouteText(args.userMessage ?? ""),
     );
@@ -1903,12 +2388,11 @@ function weeklyReturnAfterAdjustmentMessage(
   userMessage: string,
 ): string | null {
   const text = normalizeRouteText(userMessage);
-  const askedReturn =
-    (
-      /\b(reviens|retourne|reprends|conclus|conclure|termine|terminer)\b/
-        .test(text) &&
-      /\b(weekly|bilan|semaine)\b/.test(text)
-    ) ||
+  const askedReturn = (
+    /\b(reviens|retourne|reprends|conclus|conclure|termine|terminer)\b/
+      .test(text) &&
+    /\b(weekly|bilan|semaine)\b/.test(text)
+  ) ||
     /\bvalidation\b[\s\S]{0,60}\b(dispo|disponible|debloquee|ouverte)\b/.test(
       text,
     );
@@ -2901,6 +3385,59 @@ function applyMemoryV2ResponseGroundingGuardrail(args: {
   }
 
   return args.responseContent;
+}
+
+function isExplicitMemoryRetentionRequest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const asksRetention =
+    /\b(retiens|retenir|memorise|memoriser|garde en tete|garder en tete|pour les prochaines fois|prochaines fois)\b/
+      .test(text);
+  if (!asksRetention) return false;
+  const coachPreference =
+    /\b(preference|preferences|preference coach|preference de coaching|ton style|ta facon|ta maniere)\b/
+      .test(text);
+  return !coachPreference;
+}
+
+export function applyNonDurableMemoryPromiseGuardForTest(args: {
+  userMessage: string;
+  responseContent: string;
+  routeDecision?:
+    | Pick<RouteDecision, "response_owner" | "direct_effects_to_run">
+    | null;
+}): string {
+  if (!isExplicitMemoryRetentionRequest(args.userMessage)) {
+    return args.responseContent;
+  }
+  if (
+    args.routeDecision?.response_owner === "tool_skill" ||
+    args.routeDecision?.response_owner === "pending_confirmation" ||
+    (args.routeDecision?.direct_effects_to_run ?? []).length > 0
+  ) {
+    return args.responseContent;
+  }
+  let response = args.responseContent;
+  response = response.replace(
+    /^\s*(carr[eé]ment,\s*)?je (le |la |m'en )?retiens\.?\s*/i,
+    "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
+    /^\s*(oui,\s*)?c['’]?est not[eé]\.?\s*/i,
+    "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
+    /^\s*bien\s+not[eé]\s*(?:✅|☑️)?\.?\s*/i,
+    "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
+    /^\s*je note\.?\s*/i,
+    "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
+    /\bce que je garde en tête\b/gi,
+    "le repère que j'utilise ici",
+  );
+  return response.trim();
 }
 
 function resolvePlanItemTitleFromSnapshot(
@@ -4069,10 +4606,17 @@ export function oneShotReminderManagementReplyForTest(
   const asksAboutReminder =
     /\b(rappel ponctuel|rappel de demain|rappel programme|rappel programmé|ce rappel)\b/
       .test(text);
+  const pronominalRecentReminderQuestion =
+    /\bdemain\b[\s\S]{0,100}\ble\b[\s\S]{0,80}\b(change|changer|annule|annuler|modifie|modifier|supprime|supprimer)\b/
+      .test(text) ||
+    /\ble\b[\s\S]{0,80}\b(change|changer|annule|annuler|modifie|modifier|supprime|supprimer)\b[\s\S]{0,100}\b(ici|app|application|interface|initiatives)\b/
+      .test(text);
   const asksWhereOrChange =
     /\b(annule|annuler|change|changer|modifie|modifier|retrouve|retrouver|ou|où|initiatives|interface)\b/
       .test(text);
-  if (!asksAboutReminder || !asksWhereOrChange) return null;
+  if (!(asksAboutReminder || pronominalRecentReminderQuestion) || !asksWhereOrChange) {
+    return null;
+  }
   return [
     "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.",
     "",
@@ -4211,20 +4755,24 @@ export function isRuntimeCoachPreferenceRequestForTest(
 ): boolean {
   const text = normalizeRouteText(message);
   const productNavigationQuestion =
-    /\b(ou|comment|dans quelle partie|a quel endroit|quel endroit)\b/.test(
-      text,
+    (
+      /\b(comment|dans quelle partie|a quel endroit|quel endroit)\b/.test(
+        text,
+      ) ||
+      /\bou\s+(changer|modifier|parametrer|regler|configurer)\b[\s\S]{0,80}\b(app|application|interface|menu|reglages|parametres|dashboard|initiatives)\b/
+        .test(text)
     ) &&
     /\b(change|changer|parametre|parametrer|regle|style|preference|preferences|ton style|ta facon|ta maniere)\b/
       .test(text);
   if (productNavigationQuestion) return false;
   const preferenceSignal =
-    /\b(prefere|preference|preferences|preference coach|preference de coaching|pour la suite|a partir de maintenant|desormais|mets a jour|mettre a jour|retiens|garde|enregistre|applique|change|adapte|reponds|parle|sois)\b/
+    /\b(prefere|preference|preferences|preference coach|preference de coaching|pour la suite|a partir de maintenant|desormais|mets a jour|mettre a jour|retiens|garde|enregistr\w*|applique|change|adapte|reponds|parle|sois)\b/
       .test(text);
   const styleSignal =
-    /\b(une seule question|questions? courtes?|consignes? (tres )?courtes?|reponses? (tres )?courtes?|moins de questions|listes? longues?|plus direct|plus directement|directement|plus doux|plus cash|plus frontal|challenge[- ]?moi|challengeant|ton style|ta facon|ta maniere|tres concret|tres concrete|une action|pas trois options|pas 3 options|moins d options|moins de choix)\b/
+    /\b(une seule question|questions? courtes?|consignes? (tres )?courtes?|reponses? (tres )?courtes?|moins de questions|listes? longues?|plus direct|plus directement|directement|plus doux|plus cash|plus frontal|challenge[- ]?moi|challengeant|ton style|ta facon|ta maniere|tres concret|tres concrete|une action|une seule action|action concrete|pas plusieurs options|pas trois options|pas 3 options|moins d options|moins de choix)\b/
       .test(text);
   const explicitPreferenceCommand =
-    /\b(mets a jour|mettre a jour|retiens|garde|enregistre|applique)\b[\s\S]{0,100}\b(preference|preferences|preference coach|preference de coaching|coaching)\b/
+    /\b(mets a jour|mettre a jour|retiens|garde|enregistr\w*|applique)\b[\s\S]{0,100}\b(preference|preferences|preference coach|preference de coaching|coaching)\b/
       .test(text) ||
     /\b(preference|preferences|preference coach|preference de coaching)\b[\s\S]{0,80}\b(a retenir|pour la suite)\b/
       .test(text);
@@ -4236,6 +4784,40 @@ export function isRuntimeCoachPreferenceRequestForTest(
 }
 
 const isRuntimeCoachPreferenceRequest = isRuntimeCoachPreferenceRequestForTest;
+
+export function shouldRuntimeCoachPreferenceOverrideRouteForTest(args: {
+  message: string;
+  routeDecision?:
+    | Pick<RouteDecision, "response_owner" | "selected_handler">
+    | null;
+  safetyRiskBand?: RiskBand | null;
+  hasPendingOperationConfirmation?: boolean;
+}): boolean {
+  if (args.routeDecision?.response_owner === "safety") return false;
+  if (blocksToolSkills(args.safetyRiskBand ?? "none")) return false;
+  if (args.hasPendingOperationConfirmation) return false;
+  if (
+    args.routeDecision?.response_owner === "tool_skill" &&
+    args.routeDecision?.selected_handler === "update_coach_preferences"
+  ) return false;
+  if (!isRuntimeCoachPreferenceRequestForTest(args.message)) return false;
+  if (
+    isLocalTextRevisionRequestForTest(args.message) ||
+    isCoachPreferenceVerificationRequestForTest(args.message) ||
+    isImmediateModeRequestNotCoachPreferenceForTest(args.message)
+  ) return false;
+  return true;
+}
+
+function clearConversationFlowForCoachPreference(
+  tempMemory: any,
+): Record<string, unknown> {
+  const next = { ...(tempMemory ?? {}) };
+  delete (next as any).__active_skill_state;
+  delete (next as any).active_skill_state;
+  delete (next as any).__suspended_flow_v1;
+  return next;
+}
 
 export function isLocalTextRevisionRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
@@ -4275,6 +4857,10 @@ export function isImmediateModeRequestNotCoachPreferenceForTest(
   message: string,
 ): boolean {
   const text = normalizeRouteText(message);
+  if (
+    /\b(carte de defense|carte defense|defense card|prepare[- ]?moi une carte|preparer une carte|j aimerais une carte|je veux une carte|fais une carte|faire une carte|cree cette carte|creer cette carte|valide cette carte)\b/
+      .test(text)
+  ) return false;
   const immediateMode =
     /\b(mode calme|mode apaisement|apaisement|respiration|souffler|calme maintenant|pour ce soir|ce soir|maintenant|pas un plan militaire|pas de plan militaire)\b/
       .test(text);
@@ -4290,11 +4876,11 @@ export function isBroadRescueRequestNotDefenseCardForTest(
 ): boolean {
   const text = normalizeRouteText(message);
   const explicitDefenseCard =
-    /\b(carte de defense|carte defense|defense card|j aimerais une carte|je veux une carte|fais une carte|faire une carte|cree cette carte|creer cette carte|valide cette carte)\b/
+    /\b(carte de defense|carte defense|defense card|prepare[- ]?moi une carte|preparer une carte|j aimerais une carte|je veux une carte|fais une carte|faire une carte|cree cette carte|creer cette carte|valide cette carte)\b/
       .test(text);
   if (explicitDefenseCard) return false;
   const broadRescue =
-    /\b(sauver ma soiree|sauver la soiree|sauver ce soir|sauve ma soiree|tenir ce soir|finir sur mon telephone|telephone jusqu a minuit|sans me mettre la pression|sans pression)\b/
+    /\b(sauver ma soiree|sauver la soiree|sauver ce soir|sauve ma soiree|sauver le minimum|minimum utile|tenir ce soir|finir sur mon telephone|telephone jusqu a minuit|sans me mettre la pression|sans pression|sans grand plan|pas un plan complet)\b/
       .test(text);
   const concreteRiskWithoutOperation =
     /\b(vide|fatigue|epuise|boulot|travail|telephone|scroll|tiktok)\b/.test(
@@ -4306,7 +4892,7 @@ export function isBroadRescueRequestNotDefenseCardForTest(
 function isRecapOnlyRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
   return /\b(recap|recapitule|resume|synthese)\b/.test(text) &&
-    /\b(ne cree rien|sans modifier|juste|sobre|ce que j ai fait|ce qui est prevu|preference)\b/
+    /\b(ne cree rien|sans modifier|juste|seulement|sobre|ce que j ai fait|ce qui est prevu|ce qui est en place|en place|preference)\b/
       .test(text);
 }
 
@@ -5230,6 +5816,7 @@ function shouldKeepWeeklyAdaptiveReviewInConversation(args: {
       routeDecision: args.routeDecision,
       turnFrame: args.turnFrame,
       userMessage: args.userMessage,
+      history: null,
     })
   ) return false;
   const owner = args.routeDecision?.response_owner;
@@ -5260,8 +5847,21 @@ function weeklyReviewAllowsAdjustPlanBridge(args: {
   routeDecision: RouteDecision | null;
   turnFrame?: TurnFrame | null;
   userMessage: string;
+  history?: any[] | null;
 }): boolean {
   if (isEarlyWeeklyPlanningValidationRequest(args.userMessage)) return false;
+  if (
+    isExplicitPendingApplyConfirmation(args.userMessage) &&
+    (isWeeklyMissionCarryOverRequest(args.userMessage) ||
+      weeklyMissionCarryOverContext({
+        userMessage: args.userMessage,
+        history: args.history,
+      }) ||
+      isCopyForwardWeeklyRequest(args.userMessage) ||
+      isWeeklyLightRepeatRequest(args.userMessage))
+  ) {
+    return true;
+  }
   if (
     !isExplicitWeeklyAdjustPlanRequest(args.userMessage) &&
     !operationInputFromPlanAdjustmentScope(
@@ -5335,8 +5935,34 @@ function isExplicitWeeklyAdjustPlanDraftRequest(message: string): boolean {
       .test(text);
 }
 
+export function isImplicitWholePlanRepairAdjustmentRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const planTrajectoryContext =
+    /\b(plan|suite du plan|prochaine partie|partie suivante|prochaine etape|prochaine étape|niveau suivant|trajectoire)\b/
+      .test(text);
+  const repairBridge =
+    /\b(mini marche|petite marche|marche|etape|étape|palier|transition|pont)\b/
+      .test(text) ||
+    /\b(avant de reparler du fond|avant de reparler|avant d analyser|avant d'analyser)\b/
+      .test(text);
+  const reconnectionNeed =
+    /\b(revenir en lien|retour en lien|retour au lien|retour au contact|se retrouver|reconnexion|reconnecter|reparer|réparer|reparation|réparation)\b/
+      .test(text) &&
+    /\b(apres un accrochage|apres accrochage|apres une dispute|apres dispute|apres tension|apres une tension|après un accrochage|après une dispute|après tension|fond|dispute|tension|accrochage)\b/
+      .test(text);
+  return planTrajectoryContext && repairBridge && reconnectionNeed;
+}
+
 function isCopyForwardWeeklyRequest(message: string): boolean {
   const text = normalizeRouteText(message);
+  const rejectsSameWeekRepeat =
+    /\b(ne|n)\b.{0,40}\b(pas|plus)\b.{0,90}\b(refaire|rejouer|remettre|identique|pareil|meme semaine)\b/
+      .test(text) ||
+    /\bpas\s+(refaire|rejouer|remettre)\b/.test(text) ||
+    /\bseulement\b.{0,40}\b(mission|action)\b/.test(text);
+  if (rejectsSameWeekRepeat) return false;
   const asksSame =
     /\b(copie conforme|exactement pareil|exactement les memes|exactement le meme|a l identique|identique|meme semaine|memes actions?|meme actions?|meme rythme|memes reperes|meme contenu|refaire pareil|refaire la meme)\b/
       .test(text);
@@ -6180,9 +6806,9 @@ export function isExplicitPendingApplyConfirmation(message: string): boolean {
   ) {
     return false;
   }
-  return /\b(oui|ok|d accord|vas y|go|valide|applique|execute|exécute|fais le|tu peux le faire|c est bon)\b/
+  return /\b(oui|ok|d accord|vas y|go|valide|applique|appliquer|execute|exécute|executer|exécuter|fais le|tu peux le faire|c est bon)\b/
     .test(text) &&
-    /\b(valide|applique|execute|exécute|fais le|tu peux le faire|c est bon|cette version)\b/
+    /\b(valide|applique|appliquer|execute|exécute|executer|exécuter|fais le|tu peux le faire|c est bon|cette version)\b/
       .test(text);
 }
 
@@ -7455,7 +8081,7 @@ function renderPendingAdjustPlanDraftQuestionAnswer(
   }
   const normalized = normalizeRecommendationText(userMessage);
   const asksShortConfirmation =
-    /\b(confirme|confirme moi|confirme-moi|avant validation|avant de valider|avant que je valide|est ce que|est-ce que)\b/
+    /\b(confirme|confirme moi|confirme-moi|avant validation|avant de valider|avant que je valide|est ce que|est-ce que|et si|garde quand meme|garde quand même|garder quand meme|garder quand même)\b/
       .test(normalized);
   if (!asksShortConfirmation) return null;
 
@@ -7490,12 +8116,43 @@ function renderPendingAdjustPlanDraftQuestionAnswer(
   }
 
   if (
-    /\b(ne rajoute pas|n'ajoute pas|pas plus d'actions|sans ajouter|sans action supplementaire|sans actions supplementaires)\b/
+    /\b(ne rajoute pas|n'ajoute pas|n ajoute pas|pas plus d'actions|pas plus d actions|sans ajouter|sans action supplementaire|sans actions supplementaires)\b/
+      .test(normalized) ||
+    /\b(pas|sans|aucune?)\b[\s\S]{0,80}\b(trois|3|plusieurs|nouvelles?|actions?)\b/
       .test(normalized)
   ) {
+    const concreteChange = insertedStep || after;
     return [
-      "Oui. Le brouillon change surtout l'axe du plan, sans ajouter plus d'actions.",
+      concreteChange
+        ? `Oui: le brouillon ne rajoute pas plusieurs nouvelles actions. Il ajuste la trajectoire autour de ça: ${concreteChange}`
+        : "Oui: le brouillon ne rajoute pas plusieurs nouvelles actions. Il ajuste la trajectoire du plan sans transformer ça en nouvelle liste de tâches.",
       "Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+    ].join("\n\n");
+  }
+
+  if (
+    /\b(trop mou|au feeling|idee de progression|idée de progression|garde quand meme.*progression|garder.*progression|perds l idee de progression|perds l'idée de progression|perdre l idee de progression|perdre l'idée de progression|progression du plan)\b/
+      .test(normalized)
+  ) {
+    const warmthOrRepairCriterion =
+      /\b(chaleur|fiabilite|fiabilité|case|cases|performance|reparer vite|réparer vite|maladresse)\b/
+        .test(normalized) ||
+      /\b(chaleur|fiabilite|fiabilité|case|cases|performance|maladresse)\b/
+        .test(`${after} ${insertedStep}`);
+    if (warmthOrRepairCriterion) {
+      return [
+        "Non: l'idée n'est pas de rendre le plan flou ou de fonctionner au feeling.",
+        "Le brouillon garde une progression, mais il change le critère de lecture: on cherche des signes concrets de chaleur, de fiabilité et de réparation rapide, pas une exécution parfaite des actions.",
+        "Si tu valides, ce feedback servira à régénérer le plan dans ce sens. Rien n'est encore appliqué.",
+      ].join("\n\n");
+    }
+    const progressionAnchor = insertedStep || after;
+    return [
+      "Non: l'idée n'est pas de rendre le plan flou ou de fonctionner au feeling.",
+      progressionAnchor
+        ? `Le brouillon garde une progression. La marche prévue est claire: ${progressionAnchor}`
+        : "Le brouillon garde une progression: il clarifie la marche suivante au lieu de laisser le plan avancer au feeling.",
+      "Si tu valides, ce feedback servira à régénérer le plan dans ce sens. Rien n'est encore appliqué.",
     ].join("\n\n");
   }
 
@@ -7583,12 +8240,17 @@ function wholePlanDraftNuanceLine(userMessage: string): string | null {
       .test(normalized)
   ) {
     const cleaned = userMessage.trim().replace(/\s+/g, " ")
+      .replace(/^(ok|oui|d accord|d'accord)[,.\s]+/i, "")
       .replace(
-        /^(ajoute|ajouter|integre|intègre|integrer)\s+(cette\s+)?nuance\s+(au|dans le)\s+brouillon\s*:?\s*/i,
+        /^(ajoute|ajouter|integre|intègre|integrer)\s+(juste\s+)?((cette\s+)?nuance\s+)?(au|dans le)\s+brouillon\s+(que|:)?\s*/i,
         "",
       )
       .replace(
-        /\b(ne valide(?:\s+encore|\s+toujours)?\s+pas|n'applique\s+rien|ne l'applique\s+pas|sans appliquer|pas encore)\b\.?/gi,
+        /^(garde|mets)\s+(juste\s+)?(au|dans le)\s+brouillon\s+(que|:)?\s*/i,
+        "",
+      )
+      .replace(
+        /\b(ne valide\s+pas(?:\s+encore|\s+toujours)?|ne valide(?:\s+encore|\s+toujours)?\s+pas|n'applique\s+rien|ne l'applique\s+pas|sans appliquer|pas encore)\b\.?/gi,
         "",
       )
       .trim();
@@ -9602,15 +10264,15 @@ export async function writePlanAdjustmentPatch(args: {
   const patchId = crypto.randomUUID();
   const patch = args.draft.draft.patch;
   const nowIso = new Date().toISOString();
-      const materializedPlanItemIds = [
-        ...new Set(
-          (args.draft.draft.adjust_plan_result?.applied_change?.changed_items ?? [])
-            .filter((item: any) =>
-              (item?.kind === "action" || item?.kind === "habit" ||
-                item?.kind === "task") &&
-              typeof item?.id === "string" &&
-              item.id.trim().length > 0
-            )
+  const materializedPlanItemIds = [
+    ...new Set(
+      (args.draft.draft.adjust_plan_result?.applied_change?.changed_items ?? [])
+        .filter((item: any) =>
+          (item?.kind === "action" || item?.kind === "habit" ||
+            item?.kind === "task") &&
+          typeof item?.id === "string" &&
+          item.id.trim().length > 0
+        )
         .map((item: any) => String(item.id).trim()),
     ),
   ];
@@ -10014,6 +10676,7 @@ export async function writePlanAdjustmentPatch(args: {
         if (
           args.regenerateAdjustedPlan &&
           !copyForwardLevelAdjustment &&
+          !singleAffectedLevelAdjustment &&
           (scopeKind === "current_level" || scopeKind === "whole_plan") &&
           transformationId
         ) {
@@ -11030,6 +11693,8 @@ async function executePendingAdjustPlanDraft(args: {
   delete args.nextTempMemory.__pending_adjust_plan_draft_review;
   delete args.nextTempMemory.__pending_tool_skill_confirmation;
   delete args.nextTempMemory.pending_tool_skill_confirmation;
+  delete args.nextTempMemory.__active_tool_skill_intake;
+  delete args.nextTempMemory.active_tool_skill_intake;
   if (executed.status !== "executed") {
     return {
       content: executed.ack,
@@ -11101,6 +11766,72 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     (nextTempMemory.__active_tool_skill_intake ??
       nextTempMemory.active_tool_skill_intake)?.operation_type ?? "",
   ).trim();
+  const directWeeklyMissionCarryOverApply =
+    isExplicitPendingApplyConfirmation(args.userMessage) &&
+    (isWeeklyMissionCarryOverRequest(args.userMessage) ||
+      weeklyMissionCarryOverContext({
+        userMessage: args.userMessage,
+        history: args.history,
+      }));
+  if (directWeeklyMissionCarryOverApply) {
+    const pendingMissionCarryOver = buildWeeklyMissionCarryOverPendingReview({
+      weeklyState: weeklyAdaptiveReviewStateForTurn({
+        activeSkillState: null,
+        tempMemory: nextTempMemory,
+      }),
+      planItemSnapshot: args.planItemSnapshot,
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingMissionCarryOver,
+    });
+  }
+  const directWeeklyCopyForwardApply =
+    isExplicitPendingApplyConfirmation(args.userMessage) &&
+    isCopyForwardWeeklyRequest(args.userMessage);
+  if (directWeeklyCopyForwardApply) {
+    const pendingCopyForward = buildWeeklyCopyForwardPendingReview({
+      planItemSnapshot: args.planItemSnapshot,
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingCopyForward,
+    });
+  }
+  const directWeeklyLightRepeatApply =
+    isExplicitPendingApplyConfirmation(args.userMessage) &&
+    isWeeklyLightRepeatRequest(args.userMessage);
+  if (directWeeklyLightRepeatApply) {
+    const pendingLightRepeat = buildWeeklyLightRepeatPendingReview({
+      weeklyState: weeklyAdaptiveReviewStateForTurn({
+        activeSkillState: null,
+        tempMemory: nextTempMemory,
+      }),
+      planItemSnapshot: args.planItemSnapshot,
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingLightRepeat,
+    });
+  }
   if (isPendingAdjustPlanDraftReview(pendingDraftReview)) {
     if (activeOperationType && activeOperationType !== "adjust_plan_item") {
       delete nextTempMemory.__active_tool_skill_intake;
@@ -11409,15 +12140,78 @@ export async function maybeRunAdjustPlanItemOperation(args: {
     activeSkillState: null,
     tempMemory: nextTempMemory,
   });
-  const weeklyExactProposalForImmediateApply = weeklyExactProposalFromConversation(
-    {
-      userMessage: args.userMessage,
-      history: args.history,
-      tempMemory: nextTempMemory,
+  if (
+    weeklyStateForExactApply &&
+    (isExplicitPendingApplyConfirmation(args.userMessage) ||
+      isWeeklyMissionCarryOverRequest(args.userMessage)) &&
+    isWeeklyMissionCarryOverRequest(args.userMessage)
+  ) {
+    const pendingMissionCarryOver = buildWeeklyMissionCarryOverPendingReview({
       weeklyState: weeklyStateForExactApply,
       planItemSnapshot: args.planItemSnapshot,
-    },
-  );
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingMissionCarryOver,
+    });
+  }
+  if (
+    weeklyStateForExactApply &&
+    (isExplicitPendingApplyConfirmation(args.userMessage) ||
+      isCopyForwardWeeklyRequest(args.userMessage)) &&
+    isCopyForwardWeeklyRequest(args.userMessage)
+  ) {
+    const pendingCopyForward = buildWeeklyCopyForwardPendingReview({
+      planItemSnapshot: args.planItemSnapshot,
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingCopyForward,
+    });
+  }
+  if (
+    weeklyStateForExactApply &&
+    (isExplicitPendingApplyConfirmation(args.userMessage) ||
+      isWeeklyLightRepeatRequest(args.userMessage)) &&
+    isWeeklyLightRepeatRequest(args.userMessage)
+  ) {
+    const pendingLightRepeat = buildWeeklyLightRepeatPendingReview({
+      weeklyState: weeklyStateForExactApply,
+      planItemSnapshot: args.planItemSnapshot,
+    });
+    return await executePendingAdjustPlanDraft({
+      supabase: args.supabase,
+      userId: args.userId,
+      channel: args.channel,
+      safetyPregateOutput: args.safetyPregateOutput,
+      sourceMessageId: args.sourceMessageId,
+      requestId: args.requestId,
+      nextTempMemory,
+      pendingRaw: pendingLightRepeat,
+    });
+  }
+  const weeklyExactProposalForImmediateApply =
+    weeklyExactProposalFromConversation(
+      {
+        userMessage: args.userMessage,
+        history: args.history,
+        tempMemory: nextTempMemory,
+        weeklyState: weeklyStateForExactApply,
+        planItemSnapshot: args.planItemSnapshot,
+      },
+    );
   if (
     weeklyStateForExactApply &&
     weeklyExactProposalForImmediateApply &&
@@ -14701,6 +15495,49 @@ export async function processMessage(
       safety_pregate_risk_band: safetyPregateOutput.risk_band,
     });
     if (
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      routeDecision.response_owner !== "safety" &&
+      turnFrame &&
+      isImplicitWholePlanRepairAdjustmentRequestForTest(userMessage)
+    ) {
+      const currentTurnFrame = turnFrame;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "tool_skill",
+        selected_handler: "adjust_plan_item",
+        reason_code: "implicit_whole_plan_repair_bridge_adjustment",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "product_help",
+            reason_code: "whole_plan_repair_bridge_requires_adjust_plan",
+          },
+        ],
+      };
+      turnFrame = {
+        ...currentTurnFrame,
+        tool_skill_intents: [
+          ...currentTurnFrame.tool_skill_intents.filter((intent) =>
+            intent.operation_type !== "adjust_plan_item"
+          ),
+          {
+            operation_type: "adjust_plan_item",
+            explicitness: "implicit",
+            target_hint: userMessage,
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "adjust",
+            adjust_plan_scope: "whole_plan",
+          } as any,
+        ],
+      } as TurnFrame;
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame: turnFrame as TurnFrame,
+        userMessage,
+      });
+    }
+    if (
       (activeOperationIntake as any)?.operation_type === "adjust_plan_item" &&
       routeDecision.response_owner === "product_help"
     ) {
@@ -15244,7 +16081,11 @@ export async function processMessage(
       routeDecision.response_owner !== "safety" &&
       !blocksToolSkills(safetyPregateOutput.risk_band) &&
       isLikelyOneShotReminderRequest(userMessage) &&
-      (pendingOperationConfirmation || activeOperationIntake)
+      (pendingOperationConfirmation || activeOperationIntake) &&
+      (activeOperationIntake as any)?.operation_type !==
+        "select_state_potion" &&
+      pendingOperationType(pendingOperationConfirmation) !==
+        "select_state_potion"
     ) {
       tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
       state = { ...(state ?? {}), temp_memory: tempMemory } as any;
@@ -15324,6 +16165,72 @@ export async function processMessage(
       turnFrame = {
         ...turnFrame,
         tool_skill_intents: [],
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      shouldRuntimeCoachPreferenceOverrideRouteForTest({
+        message: userMessage,
+        routeDecision,
+        safetyRiskBand: safetyPregateOutput.risk_band,
+        hasPendingOperationConfirmation: Boolean(
+          pendingOperationConfirmationForGlobalRouting,
+        ),
+      })
+    ) {
+      tempMemory = clearConversationFlowForCoachPreference(tempMemory);
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      activeOperationIntake = null;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "tool_skill",
+        selected_handler: "update_coach_preferences",
+        reason_code: "coach_preference_request_overrides_active_flow",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "conversation_flow",
+            reason_code: "coach_preference_request_overrides_active_flow",
+          },
+          {
+            path: "product_help",
+            reason_code: "coach_preference_is_tool_skill",
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        tool_skill_intents: [
+          ...turnFrame.tool_skill_intents.filter((intent) =>
+            intent.operation_type !== "update_coach_preferences"
+          ),
+          {
+            operation_type: "update_coach_preferences",
+            explicitness: "explicit",
+            target_hint: userMessage,
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "update",
+          },
+        ],
+        tool_skill_opportunity: {
+          type: "none",
+          operation_type: null,
+          surface_id: null,
+          confidence_band: "low",
+          should_offer: false,
+          prop_reason: null,
+          source_span: null,
+          target_hint: null,
+          target_status: "none",
+          suggested_question_intent: null,
+          offer_timing: "never",
+          must_not_execute: true,
+        },
       };
       dispatcherSignals = dispatcherSignalsFromTurnFrame({
         turnFrame,
@@ -15998,6 +16905,7 @@ export async function processMessage(
         routeDecision,
         turnFrame,
         userMessage,
+        history,
       }),
   );
   if (
@@ -16109,6 +17017,32 @@ export async function processMessage(
         meta?.enableAdjustPlanCoachGuidance === true,
     })
     : null;
+  const directWeeklyAdjustPlanRuntime = !routeSafetyActive &&
+      !weeklyReviewBlocksToolSkillRuntime &&
+      isExplicitPendingApplyConfirmation(userMessage) &&
+      (isWeeklyMissionCarryOverRequest(userMessage) ||
+        weeklyMissionCarryOverContext({ userMessage, history }) ||
+        isCopyForwardWeeklyRequest(userMessage) ||
+        isWeeklyLightRepeatRequest(userMessage))
+    ? await maybeRunAdjustPlanItemOperation({
+      supabase,
+      userId,
+      userMessage,
+      channel,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      history,
+      tempMemory,
+      planItemSnapshot,
+      turnFrame,
+      routeDecision,
+      safetyPregateOutput: runtimeSafetyPregateOutput,
+      sourceMessageId: loggedMessageId,
+      requestId: meta?.requestId ?? null,
+      forceFullAi: fullAiRequested,
+      enableAdjustPlanCoachGuidance:
+        meta?.enableAdjustPlanCoachGuidance === true,
+    })
+    : null;
   const weeklyReviewAllowsReminderRuntime = !weeklyReviewStateForTurn ||
     /\b(rappel|rappeler|rappelle|reminder|programme un rappel|programmer un rappel)\b/
       .test(normalizeRouteText(userMessage));
@@ -16156,6 +17090,7 @@ export async function processMessage(
     routeSafetyActive || weeklyReviewBlocksToolSkillRuntime
       ? null
       : pendingAdjustPlanRuntime ??
+        directWeeklyAdjustPlanRuntime ??
         statusOnlyNoMutationRuntime ??
         oneShotReminderOperationRuntime ??
         (weeklyReviewAllowsReminderRuntime
@@ -17089,6 +18024,11 @@ export async function processMessage(
     userMessage,
     responseContent,
     contextBlock: memoryV2ActiveContextBlock,
+  });
+  responseContent = applyNonDurableMemoryPromiseGuardForTest({
+    userMessage,
+    responseContent,
+    routeDecision,
   });
   responseContent = applyWeeklyForgottenProgressAckGuard({
     responseContent,

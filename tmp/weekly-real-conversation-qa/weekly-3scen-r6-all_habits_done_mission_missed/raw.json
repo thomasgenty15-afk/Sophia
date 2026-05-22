@@ -1,0 +1,1852 @@
+{
+  "run_id": "weekly-3scen-r6-all_habits_done_mission_missed",
+  "variant": "all_habits_done_mission_missed",
+  "persona": "paul",
+  "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+  "email": "qa-weekly-deep-weekly-3scen-r6-all_habits_done_mission_missed@example.com",
+  "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+  "created_at": "2026-05-22T10:05:51.650Z",
+  "force_full_ai": true,
+  "turns": [
+    {
+      "turn": 1,
+      "started_at": "2026-05-22T10:05:51.655Z",
+      "user": "Globalement ca a bien marche. Les habitudes sont passees, mais la mission signal de pause n'a pas pu se faire parce que la discussion n'a pas eu lieu.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "C'est déjà une super victoire pour tes habitudes, ça montre que ton rythme de base commence à être solide.\n\nPour le signal de pause, c'est pas grave, ça arrive souvent que le timing avec les autres ne s'aligne pas. On peut simplement la reporter à la semaine prochaine si tu penses que c'est toujours important de caler ce signal.\n\nÀ part ce petit décalage de discussion, comment tu t'es senti au niveau de ton énergie cette semaine ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t01",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t01",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est déjà une super victoire pour tes habitudes, ça montre que ton rythme de base commence à être solide.\n\nPour le signal de pause, c'est pas grave, ça arrive souvent que le timing avec les autres ne s'aligne pas. On peut simplement la reporter à la semaine prochaine si tu penses que c'est toujours important de caler ce signal.\n\nÀ part ce petit décalage de discussion, comment tu t'es senti au niveau de ton énergie cette semaine ? 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t01",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "160e590b-59fe-484e-b06c-63644c8ec326",
+          "ts": "2026-05-22T10:05:57.928+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11525,
+            "latency_ms": 3491,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 591,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t01",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "state": "active",
+                  "reason": "Le user répond à la question globale du bilan hebdomadaire en confirmant le succès des habitudes et en expliquant l'échec de la mission."
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "160e590b-59fe-484e-b06c-63644c8ec326",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 5639,
+          "created_at": "2026-05-22T10:05:57.930098+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "started_at": "2026-05-22T10:05:58.177Z",
+      "user": "Je veux passer a la semaine suivante, mais garder la mission signal de pause parce qu'elle reste utile.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui: on passe à la semaine suivante, et on reporte seulement la mission signal de pause.\n\nCe qui change:\n- Les habitudes validées restent acquises.\n- La mission signal de pause reste dans la suite, parce qu'elle est encore utile.\n- On ne refait pas toute la semaine à l'identique.\n\nRien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t02",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t02",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui: on passe à la semaine suivante, et on reporte seulement la mission signal de pause.\n\nCe qui change:\n- Les habitudes validées restent acquises.\n- La mission signal de pause reste dans la suite, parce qu'elle est encore utile.\n- On ne refait pas toute la semaine à l'identique.\n\nRien n'est appliqué tant que tu ne confirmes pas clairement. 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t02",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "8f47aa46-e7e0-4f13-94c0-6ca16f1cfedd",
+          "ts": "2026-05-22T10:06:03.901+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11726,
+            "latency_ms": 4081,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 586,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t02",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_answering_weekly_question_and_confirming_trajectory",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "8f47aa46-e7e0-4f13-94c0-6ca16f1cfedd",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 5686,
+          "created_at": "2026-05-22T10:06:03.902714+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "started_at": "2026-05-22T10:06:04.112Z",
+      "user": "Avant d'appliquer, redis-moi exactement ce qui change: on avance la semaine ou on refait la meme ?",
+      "http_status": 502,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": null,
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    },
+    {
+      "turn": 4,
+      "started_at": "2026-05-22T10:06:06.343Z",
+      "user": "Avant d'appliquer, redis-moi exactement ce qui change: on avance la semaine ou on refait la meme ?",
+      "http_status": 502,
+      "ok": false,
+      "assistant": "",
+      "empty_response": null,
+      "aborted": null,
+      "abort_reason": null,
+      "request_id": null,
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    },
+    {
+      "turn": 5,
+      "started_at": "2026-05-22T10:06:06.585Z",
+      "user": "Avant d'appliquer, redis-moi exactement ce qui change: on avance la semaine ou on refait la meme ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je dois juste clarifier ça : tu veux avancer d’une semaine, ou refaire exactement la même pour consolider ? 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t05",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t05",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je dois juste clarifier ça : tu veux avancer d’une semaine, ou refaire exactement la même pour consolider ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t05",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "6687d014-6f3c-4310-ba98-254d06948d01",
+          "ts": "2026-05-22T10:06:23.192+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 11886,
+            "latency_ms": 3776,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 641,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t05",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_asks_for_clarification_on_weekly_proposal",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.9,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "6687d014-6f3c-4310-ba98-254d06948d01",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Avant d'appliquer, redis-moi exactement ce qui change: on avance la semaine ou on refait la meme ?",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "ask_question",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "plan_item_id": null,
+            "target_title": null,
+            "missing_slots": [
+              "scope"
+            ],
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Proposer une modification du contenu des items sans demande explicite.",
+                "Requalifier la demande en changement de plan global.",
+                "Introduire une nouvelle phase ou une restructuration du niveau à ce stade.",
+                "Supposer qu'il faut accélérer parce qu'on parle d'avancer."
+              ],
+              "scope": "level",
+              "preserve": [
+                "Le cœur du niveau courant et son intention de travail.",
+                "L'ordre logique du plan tant qu'aucun changement de trajectoire n'est confirmé.",
+                "Les critères de passage déjà en place, si ils existent.",
+                "La distinction entre progression et consolidation."
+              ],
+              "warnings": [
+                "Éviter de traiter cela comme une validation implicite d'un changement de plan.",
+                "Ne pas proposer tout de suite une nouvelle structure de semaine ou une réorganisation des items.",
+                "Ne pas confondre répétition du même niveau avec stagnation; cela peut être une consolidation utile.",
+                "Ne pas basculer vers une phase suivante sans signal explicite de préparation."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Rester sur la décision de rythme du niveau courant, pas sur la transformation du plan.",
+                "Mettre en avant l'intention de fond: continuer, consolider, ou corriger.",
+                "Si besoin, faire un pont minimal entre répéter et progresser sans changer la nature du niveau.",
+                "Ne pas déplacer le plan vers une phase suivante sans confirmation claire.",
+                "Préserver la cohérence du niveau: charge, rythme et frontière de fin doivent rester stables tant que la décision n'est pas explicitée."
+              ],
+              "observation": "La demande ne porte pas encore sur un changement identifié du plan, mais sur la clarification du rythme d'exécution du niveau courant: avancer dans la semaine ou répéter à l'identique. Le vrai enjeu humain est de savoir si l'on cherche de la progression, de la consolidation, ou une reprise parce que le niveau actuel n'est pas encore stable.",
+              "change_family": null,
+              "recommendation": "Rester en posture d'exploration courte et concrète. Aider à distinguer clairement entre progression temporelle et répétition de sécurisation, sans présumer qu'il faut modifier le contenu du niveau. Le bon angle est de clarifier l'intention: continuité, consolidation, ou correction de trajectoire.",
+              "next_best_question": "Souhaites-tu avancer d'une semaine, ou refaire exactement la même pour consolider ?",
+              "options_to_discuss": [
+                "Avancer la semaine à l'identique si le niveau est stable mais non encore consolidé.",
+                "Refaire la même semaine si le besoin principal est de sécuriser l'exécution et le ressenti.",
+                "Ajuster seulement le rythme ou la charge sans changer le contenu du niveau.",
+                "Garder le même cap mais préciser un critère simple de passage à la semaine suivante."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [
+                "Souhaites-tu avancer d'une semaine, ou refaire exactement la même pour consolider ?"
+              ],
+              "trajectory_hypothesis": "La trajectoire actuelle semble être une semaine à répéter ou à faire progresser; la trajectoire possible est soit la continuité vers la semaine suivante, soit la consolidation par répétition à l'identique.",
+              "must_not_execute_reason": "La demande reste une demande de clarification sur le rythme, sans confirmation d'un ajustement concret du plan; il faut d'abord comprendre si l'intention est d'avancer ou de répéter."
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 16014,
+          "created_at": "2026-05-22T10:06:23.194969+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "started_at": "2026-05-22T10:06:23.372Z",
+      "user": "Ok applique: on avance la semaine, et on reporte seulement la mission signal de pause.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je te propose un ajustement très ciblé du niveau actuel: on garde le cœur du bloc de semaine tel quel, et on reporte seulement la mission \"Convenir d'un signal de pause\". Ce choix aide à faire avancer la semaine sans forcer un point qui semble trop lourd pour le contexte, tout en laissant inchangés les autres éléments, l’ordre du bloc et l’intention de consolidation. Rien n’est encore appliqué: si tu valides, je prépare ce report unique, et je ne touche pas aux autres items ni à la structure du niveau. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t06",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t06",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je te propose un ajustement très ciblé du niveau actuel: on garde le cœur du bloc de semaine tel quel, et on reporte seulement la mission \"Convenir d'un signal de pause\". Ce choix aide à faire avancer la semaine sans forcer un point qui semble trop lourd pour le contexte, tout en laissant inchangés les autres éléments, l’ordre du bloc et l’intention de consolidation. Rien n’est encore appliqué: si tu valides, je prépare ce report unique, et je ne touche pas aux autres items ni à la structure du niveau. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t06",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "c8f39380-6a44-4239-a494-439ce6b52361",
+          "ts": "2026-05-22T10:07:07.85+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 14794,
+            "latency_ms": 3555,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 583,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t06",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_clarifying_weekly_decision_within_flow",
+                  "status": "active",
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "1,1.6,1.9;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "c8f39380-6a44-4239-a494-439ce6b52361",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_tool_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_tool_skill_continue",
+              "active_owner": "tool_skill",
+              "resume_policy": "none",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "patch": {
+                  "confidence": "medium",
+                  "scope_kind": "current_level",
+                  "constraints": [
+                    "no_pressure",
+                    "minimal_patch",
+                    "preserve_plan_intent",
+                    "no_schedule_day_change",
+                    "ask_confirmation_before_write",
+                    "report_only:la mission signal de pause",
+                    "reporte seulement la mission signal de pause",
+                    "strict_affected_items_only",
+                    "preserve:Fiche support: repere de fatigue",
+                    "preserve:Partager un point positif",
+                    "preserve:Respiration de pause",
+                    "coach_observation:La demande vise un ajustement local du niveau courant: faire progresser la semaine tout en retirant un seul point de la cadence, la mission de signal de pause. L’enjeu humain n’est pas une refonte, mais un arbitrage de charge: garder l’élan sans forcer un item qui semble nécessiter un report ciblé.",
+                    "coach_recommendation:Rester sur une logique de rythme et de protection du niveau: avancer le bloc de semaine, préserver les autres éléments tels quels, et traiter la mission signal de pause comme l’unique exception à reporter. Le point de vigilance est de ne pas présenter ce report comme un changement de nature du niveau, mais comme un allègement ponctuel cohérent avec la continuité.",
+                    "coach_warning:Ne pas transformer ce report ciblé en réorganisation générale de la semaine.",
+                    "coach_warning:Ne pas laisser entendre que tous les items doivent être reprogrammés parce qu’un seul est décalé.",
+                    "coach_warning:Ne pas remplacer le report par une suppression ou une reformulation du contenu de la mission.",
+                    "coach_warning:Ne pas présenter l’avancée de la semaine comme une accélération globale si le reste du niveau doit rester stable.",
+                    "coach_preserve:Le cœur du niveau courant et son intention de consolidation.",
+                    "coach_preserve:Les autres items du plan, qui doivent rester stables.",
+                    "coach_preserve:L’ordre logique du bloc hebdomadaire tant qu’aucune restructuration n’est demandée.",
+                    "coach_preserve:La distinction entre un report ponctuel et une refonte du plan.",
+                    "coach_avoid:Ne pas proposer une nouvelle phase ou une montée de niveau.",
+                    "coach_avoid:Ne pas suggérer un changement de contenu des autres items.",
+                    "coach_avoid:Ne pas surinterpréter le report comme un signal d’abandon.",
+                    "coach_avoid:Ne pas déplacer la décision vers un arbitrage global du plan.",
+                    "coach_guideline:Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                    "coach_guideline:Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                    "coach_guideline:Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                    "coach_guideline:Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                    "coach_guideline:Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                    "coach_guideline:Traiter la demande comme un ajustement de rythme du niveau courant, pas comme une modification de trajectoire globale.",
+                    "coach_guideline:Conserver l’intention de continuité: avancer la semaine tout en protégeant un seul point sensible.",
+                    "coach_guideline:Faire un pont minimal entre progression et consolidation: avancer, mais sans toucher au reste du bloc.",
+                    "coach_guideline:Respecter la frontière du niveau courant; ne pas ouvrir de nouvelle phase sans demande explicite.",
+                    "coach_guideline:Distinguer clairement l’allègement ponctuel de la simplification structurelle.",
+                    "coach_guideline:Préserver le rythme et la cohérence du niveau en maintenant stables les éléments non mentionnés.",
+                    "coach_must_not_execute:La demande contient une instruction opérationnelle ciblée, mais le sous-skill doit rester dans une logique de guidage et de cohérence; il ne doit pas appliquer lui-même le changement ni élargir le report à d’autres éléments.",
+                    "coach_trajectory_hypothesis:La trajectoire actuelle est une semaine à poursuivre avec un seul report ponctuel; la trajectoire possible consiste à maintenir le niveau stable tout en ajustant localement la cadence d’un item.",
+                    "affected_item:Convenir d'un signal de pause"
+                  ],
+                  "reason_type": "context_changed",
+                  "change_target": "global_load",
+                  "reason_change": "context_changed",
+                  "load_adjustment": "same",
+                  "level_adjustment": "rebalance"
+                },
+                "title": "Ajustement - semaine / niveau courant",
+                "confidence": "medium",
+                "ack_summary": {
+                  "changed": [
+                    "niveau actuel: charge ajustée vers \"same\"",
+                    "cible de changement: global_load"
+                  ],
+                  "unchanged": [
+                    "le cœur du niveau reste préservé",
+                    "chaque action n'est pas réécrite automatiquement"
+                  ],
+                  "confidence": "medium",
+                  "why_it_helps": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale.",
+                  "follow_up_needed": "identifier ensuite les actions exactes à alléger si tu veux une modification fine"
+                },
+                "scope_label": "semaine / niveau courant",
+                "why_it_helps": "Le changement agit au niveau du bloc courant, sans pretendre modifier une seule action.",
+                "decision_basis": {
+                  "evidence": [
+                    "Ok applique: on avance la semaine, et on reporte seulement la mission signal de pause.",
+                    "La demande parle d'avancer la semaine.",
+                    "La demande reste dans le périmètre du niveau courant avec un report ciblé d'une mission.",
+                    "On avance la semaine plutôt que de refaire exactement la même.",
+                    "Le user dit: 'Ok applique: on avance la semaine, et on reporte seulement la mission signal de pause.'",
+                    "Le user demande explicitement d'avancer la semaine.",
+                    "La demande porte sur le rythme du niveau courant, pas sur une refonte globale."
+                  ],
+                  "confidence": "medium",
+                  "uncertainty": [
+                    "actions exactes du niveau a choisir pour une modification fine"
+                  ],
+                  "user_problem": "Le niveau actuel est trop lourd ou mal calibre pour le contexte de l'utilisateur.",
+                  "inferred_need": "preserver le coeur du niveau et reduire la charge ciblee autour",
+                  "must_preserve": [
+                    "coeur du niveau"
+                  ]
+                },
+                "adjustment_type": "rebalance",
+                "proposed_change": "reequilibrer le niveau actuel",
+                "change_rationale": {
+                  "why_this_change": "Alléger global_load répond au problème \"context_changed\" tout en gardant le cœur du niveau.",
+                  "success_condition": "Le niveau peut être repris avec moins de friction, puis réaugmenté seulement si l'énergie et le contexte suivent.",
+                  "expected_mechanism": "La charge autour baisse, donc le niveau redevient faisable sans effacer l'intention principale."
+                },
+                "adjust_plan_result": {
+                  "scope": "level",
+                  "rationale": {
+                    "confidence": "medium",
+                    "missing_info": [
+                      "La fenêtre exacte de report n’est pas précisée."
+                    ],
+                    "user_problem": "Le niveau actuel est trop lourd ou mal calibré pour le contexte, et un point précis doit être reporté.",
+                    "expected_effect": "Le niveau redevient plus facile à suivre, avec moins de friction, tout en gardant les autres éléments en place.",
+                    "why_this_change": "Reporter uniquement la mission de signal de pause réduit la charge ciblée sans casser l’intention du niveau."
+                  },
+                  "boundaries": {
+                    "explanation": "L’ajustement reste limité au niveau courant et ne change pas la trajectoire globale du plan.",
+                    "affected_scope": "niveau actuel uniquement",
+                    "global_plan_impact": "none",
+                    "explicitly_not_affected": [
+                      "objectif global",
+                      "structure complète du plan",
+                      "autres niveaux"
+                    ]
+                  },
+                  "applied_change": {
+                    "summary": "Report unique de la mission \"Convenir d'un signal de pause\" afin d'alléger le niveau actuel sans modifier le reste du bloc.",
+                    "changed_items": [
+                      {
+                        "id": "c931b6c1-6151-41c2-b0bd-e1373e2539b7",
+                        "kind": "action",
+                        "after": "Mission reportée hors de cette semaine, sans autre modification du niveau.",
+                        "title": "Convenir d'un signal de pause",
+                        "before": "Mission ponctuelle prévue dans le niveau courant.",
+                        "reason": "Alléger le niveau actuel en ne décalant qu’un seul point sensible, tout en gardant le cœur du bloc stable.",
+                        "capability": "remove_action_from_level"
+                      }
+                    ],
+                    "preserved_items": [
+                      {
+                        "id": "bb1f9b30-68cf-4ba6-b466-2f0ba13aeed4",
+                        "kind": "habit",
+                        "title": "Partager un point positif",
+                        "reason": "Doit rester stable dans le niveau courant."
+                      },
+                      {
+                        "id": "6fcbd49e-9c2c-46b5-a3ba-6f2c8ed4a1bf",
+                        "kind": "habit",
+                        "title": "Respiration de pause",
+                        "reason": "Doit rester stable dans le niveau courant."
+                      },
+                      {
+                        "id": null,
+                        "kind": "level",
+                        "title": "Niveau actuel",
+                        "reason": "Le cœur du niveau, son intention de consolidation et l’ordre du bloc restent inchangés."
+                      }
+                    ],
+                    "trajectory_change": null
+                  },
+                  "user_message_brief": "Je te propose de reporter seulement la mission de signal de pause et de garder le reste du niveau inchangé.",
+                  "user_message_detailed": "Je te propose un seul changement concret: \"Convenir d'un signal de pause\" passe hors de cette semaine. Avant, cette mission faisait partie du niveau courant; après, elle est reportée sans toucher au reste du bloc. Ça aide parce que tu allèges un point précis sans réorganiser toute la semaine. Je laisse inchangés \"Partager un point positif\", \"Respiration de pause\" et le cœur du niveau actuel. Le niveau reste donc dans la même logique de consolidation, avec un ajustement limité et un niveau de confiance moyen."
+                },
+                "execution_strategy": "level_adjustment",
+                "allowed_patch_fields": [
+                  "scope_kind",
+                  "level_adjustment",
+                  "load_adjustment",
+                  "focus_adjustment",
+                  "reason_type",
+                  "reason_change",
+                  "change_target",
+                  "confidence",
+                  "constraints"
+                ]
+              },
+              "output_schema": "plan_adjustment_draft_v1",
+              "operation_type": "adjust_plan_item",
+              "execution_message": "C’est prêt: j’ai préparé un report unique de la mission \"Convenir d'un signal de pause\" pour alléger le niveau courant, sans bouger le reste. Par exemple, la mission de signal de pause est sortie de ce bloc, tandis que \"Partager un point positif\" et \"Respiration de pause\" restent inchangées. Ça aide à garder l’élan de la semaine sans surcharger un seul point, avec un niveau de confiance moyen.",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Je te propose un ajustement très ciblé du niveau actuel: on garde le cœur du bloc de semaine tel quel, et on reporte seulement la mission \"Convenir d'un signal de pause\". Ce choix aide à faire avancer la semaine sans forcer un point qui semble trop lourd pour le contexte, tout en laissant inchangés les autres éléments, l’ordre du bloc et l’intention de consolidation. Rien n’est encore appliqué: si tu valides, je prépare ce report unique, et je ne touche pas aux autres items ni à la structure du niveau."
+            },
+            "status": "draft_review",
+            "reason_code": "active_tool_skill_continue",
+            "operation_id": "8df3b8dc-4c6d-4c40-b314-711ccd54e3aa",
+            "selected_handler": "adjust_plan_item",
+            "coaching_guidance": {
+              "avoid": [
+                "Ne pas proposer une nouvelle phase ou une montée de niveau.",
+                "Ne pas suggérer un changement de contenu des autres items.",
+                "Ne pas surinterpréter le report comme un signal d’abandon.",
+                "Ne pas déplacer la décision vers un arbitrage global du plan."
+              ],
+              "scope": "level",
+              "preserve": [
+                "Le cœur du niveau courant et son intention de consolidation.",
+                "Les autres items du plan, qui doivent rester stables.",
+                "L’ordre logique du bloc hebdomadaire tant qu’aucune restructuration n’est demandée.",
+                "La distinction entre un report ponctuel et une refonte du plan."
+              ],
+              "warnings": [
+                "Ne pas transformer ce report ciblé en réorganisation générale de la semaine.",
+                "Ne pas laisser entendre que tous les items doivent être reprogrammés parce qu’un seul est décalé.",
+                "Ne pas remplacer le report par une suppression ou une reformulation du contenu de la mission.",
+                "Ne pas présenter l’avancée de la semaine comme une accélération globale si le reste du niveau doit rester stable."
+              ],
+              "readiness": null,
+              "confidence": "high",
+              "guidelines": [
+                "Traiter le niveau comme le perimetre courant: rythme, charge, focus, ordre ou intensite du bloc actuel.",
+                "Respecter le rythme du user sans transformer une baisse temporaire en refonte globale.",
+                "Si la periode demandee depasse la fin du niveau, garder ce repere pour le prochain niveau sans modifier toute la trajectoire.",
+                "Preserver le coeur du niveau et identifier ce qui peut etre allege en premier.",
+                "Eviter de supprimer une action structurante quand une simplification ou un reequilibrage suffit.",
+                "Traiter la demande comme un ajustement de rythme du niveau courant, pas comme une modification de trajectoire globale.",
+                "Conserver l’intention de continuité: avancer la semaine tout en protégeant un seul point sensible.",
+                "Faire un pont minimal entre progression et consolidation: avancer, mais sans toucher au reste du bloc.",
+                "Respecter la frontière du niveau courant; ne pas ouvrir de nouvelle phase sans demande explicite.",
+                "Distinguer clairement l’allègement ponctuel de la simplification structurelle.",
+                "Préserver le rythme et la cohérence du niveau en maintenant stables les éléments non mentionnés."
+              ],
+              "observation": "La demande vise un ajustement local du niveau courant: faire progresser la semaine tout en retirant un seul point de la cadence, la mission de signal de pause. L’enjeu humain n’est pas une refonte, mais un arbitrage de charge: garder l’élan sans forcer un item qui semble nécessiter un report ciblé.",
+              "change_family": null,
+              "recommendation": "Rester sur une logique de rythme et de protection du niveau: avancer le bloc de semaine, préserver les autres éléments tels quels, et traiter la mission signal de pause comme l’unique exception à reporter. Le point de vigilance est de ne pas présenter ce report comme un changement de nature du niveau, mais comme un allègement ponctuel cohérent avec la continuité.",
+              "next_best_question": null,
+              "options_to_discuss": [
+                "Avancer la semaine en gardant le contenu du niveau stable, avec report unique de la mission signal de pause.",
+                "Reporter seulement cette mission à la prochaine fenêtre utile tout en conservant les autres items à leur place.",
+                "Si la charge est encore haute, alléger temporairement l’intensité sans modifier la structure du niveau.",
+                "Préserver le cap de la semaine actuelle et utiliser ce report comme simple ajustement de cadence."
+              ],
+              "candidate_operation": null,
+              "questions_to_clarify": [],
+              "trajectory_hypothesis": "La trajectoire actuelle est une semaine à poursuivre avec un seul report ponctuel; la trajectoire possible consiste à maintenir le niveau stable tout en ajustant localement la cadence d’un item.",
+              "must_not_execute_reason": "La demande contient une instruction opérationnelle ciblée, mais le sous-skill doit rester dans une logique de guidage et de cohérence; il ne doit pas appliquer lui-même le changement ni élargir le report à d’autres éléments."
+            },
+            "coaching_guidance_audit": {
+              "scope": "level",
+              "source": "runner",
+              "status": "generated"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 44437,
+          "created_at": "2026-05-22T10:07:07.852457+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 7,
+      "started_at": "2026-05-22T10:07:08.050Z",
+      "user": "Et du coup la validation de la semaine prochaine est dispo ? Qu'est-ce que je dois verifier ?",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Oui. Le proposition prévoit bien: Je te propose un ajustement très ciblé du niveau actuel: on garde le cœur du bloc de semaine tel quel, et on reporte seulement la mission \"Convenir d'un signal de pause\". Ce choix aide à faire avancer la semaine sans forcer un point qui semble trop lourd pour le contexte, tout en laissant inchangés les autres éléments, l’ordre du bloc et l’intention de consolidation. Rien n’est encore appliqué: si tu valides, je prépare ce report unique, et je ne touche pas aux autres items ni à la structure du niveau.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t07",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "tool_skill",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t07",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Oui. Le proposition prévoit bien: Je te propose un ajustement très ciblé du niveau actuel: on garde le cœur du bloc de semaine tel quel, et on reporte seulement la mission \"Convenir d'un signal de pause\". Ce choix aide à faire avancer la semaine sans forcer un point qui semble trop lourd pour le contexte, tout en laissant inchangés les autres éléments, l’ordre du bloc et l’intention de consolidation. Rien n’est encore appliqué: si tu valides, je prépare ce report unique, et je ne touche pas aux autres items ni à la structure du niveau.\n\nJe n'applique rien tant que tu ne me le confirmes pas clairement. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t07",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "24878a34-19ec-44db-81da-6a7ffcd9ad75",
+          "ts": "2026-05-22T10:07:11.636+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12278,
+            "latency_ms": 3500,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 608,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "none",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t07",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "taxonomy_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_asking_about_weekly_validation_availability_and_process",
+                  "status": "active"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6,1.9,1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9,
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "24878a34-19ec-44db-81da-6a7ffcd9ad75",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_handoff_requested",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "product_help",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "skill_handoff_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "auto_after_answer",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "draft_review_details",
+            "reason_code": "skill_handoff_requested",
+            "operation_id": "8df3b8dc-4c6d-4c40-b314-711ccd54e3aa",
+            "selected_handler": "adjust_plan_item",
+            "draft_review_decision": {
+              "decision": "explain",
+              "evidence": [
+                "pre_validation_detail_request_deterministic_answer"
+              ],
+              "confidence": "high",
+              "apply_after_revision": false
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 3544,
+          "created_at": "2026-05-22T10:07:11.637133+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 8,
+      "started_at": "2026-05-22T10:07:11.809Z",
+      "user": "Oui conclus le weekly, et garde en tete pour le prochain bilan qu'il faut verifier si la mission reportee a enfin pu se faire.",
+      "http_status": 200,
+      "ok": true,
+      "assistant": "Je le garde comme repère dans cette conversation. , je garde ça précieusement dans un coin de ma tête : on fera un check spécifique sur cette mission reportée au prochain bilan pour voir si elle a enfin pu passer.\n\nLe point de fin de semaine est terminé et la validation de la semaine prochaine est disponible. Tu peux maintenant confirmer l'organisation qu'on a prévue pour attaquer la suite. 👊",
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t08",
+      "trace_short": {
+        "trace_id": null,
+        "response_owner": "conversation_handler",
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "memory_plan": null,
+        "executed_tools": null,
+        "active_skill_state": null,
+        "pending_confirmation": null
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "weekly-3scen-r6-all_habits_done_mission_missed-t08",
+        "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+        "channel": "web",
+        "scope": "weekly-deep-all_habits_done_mission_missed-weekly-3scen-r6",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je le garde comme repère dans cette conversation. , je garde ça précieusement dans un coin de ma tête : on fera un check spécifique sur cette mission reportée au prochain bilan pour voir si elle a enfin pu passer.\n\nLe point de fin de semaine est terminé et la validation de la semaine prochaine est disponible. Tu peux maintenant confirmer l'organisation qu'on a prévue pour attaquer la suite. 👊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t08",
+          "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+          "source_message_id": "ab0fd210-cd38-4796-9469-5b166b8d78a6",
+          "ts": "2026-05-22T10:07:43.11+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 12327,
+            "latency_ms": 3285,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 584,
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "weekly-3scen-r6-all_habits_done_mission_missed-t08",
+            "user_id": "bc83bb20-9b6a-4727-9511-c01070f2eb7b",
+            "memory_plan": {
+              "targets": [],
+              "memory_mode": "none",
+              "context_need": "minimal",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "tiny",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "weekly_adaptive_review_v1": {
+                  "reason": "user_confirms_weekly_conclusion",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": "review_skill_owns_level_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": "review_skill_owns_action_context",
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "1,1.6,1.9,1,1.6;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9,
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "ab0fd210-cd38-4796-9469-5b166b8d78a6",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_conversation_skill_continue",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "weekly_adaptive_review_v1",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": null,
+            "reason_code": "active_conversation_skill_continue",
+            "selected_skill_id": "weekly_adaptive_review_v1"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 31264,
+          "created_at": "2026-05-22T10:07:43.112262+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-22T10:07:43.165Z"
+}

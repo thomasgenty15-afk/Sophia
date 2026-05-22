@@ -227,7 +227,8 @@ async function send() {
       include_debug: true,
       include_trace: true,
       disable_debounce: true,
-      client_now_iso: "2026-05-21T10:00:00.000+02:00",
+      client_now_iso: process.env.SOPHIA_CLIENT_NOW_ISO ||
+        "2026-05-22T10:00:00.000+02:00",
     }),
   }, FUNCTION_BASE_URL);
   const assistant = String(response.body?.response?.content ?? response.body?.content ?? "").trim();
@@ -241,7 +242,7 @@ async function send() {
     scheduled_checkins: await restSelect(
       state.service_key,
       "scheduled_checkins",
-      `user_id=eq.${state.user_id}&select=id,status,channel,scheduled_at,payload,created_at&order=created_at.desc&limit=5`,
+      `user_id=eq.${state.user_id}&select=id,status,event_context,draft_message,scheduled_for,created_at&order=created_at.desc&limit=5`,
     ),
   };
   const turn = {

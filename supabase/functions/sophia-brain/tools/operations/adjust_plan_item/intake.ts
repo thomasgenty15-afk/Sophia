@@ -105,6 +105,36 @@ type WholePlanChangeFamilySlot = {
   evidence: string[];
 };
 
+type ActionRequestCategory =
+  | "feasibility_load"
+  | "challenge_intensity"
+  | "timing_duration"
+  | "method_format"
+  | "scope_focus"
+  | "replacement_alternative"
+  | "support_guardrail";
+
+type ActionRequestCategorySlot = {
+  status: "missing" | "identified";
+  value?: ActionRequestCategory;
+  evidence: string[];
+};
+
+type LevelRequestCategory =
+  | "pacing_workload"
+  | "difficulty_progression"
+  | "sequence_priority"
+  | "level_focus"
+  | "action_mix"
+  | "context_constraints"
+  | "recovery_reset";
+
+type LevelRequestCategorySlot = {
+  status: "missing" | "identified";
+  value?: LevelRequestCategory;
+  evidence: string[];
+};
+
 type AdjustPlanCoachGuidanceAudit = {
   status: "not_run" | "generated" | "empty" | "error";
   scope: "action" | "level" | "whole_plan" | null;
@@ -364,6 +394,7 @@ export type AdjustPlanScopeSlot = {
 
 export type ActionAdjustmentPayload = {
   scope_kind: "specific_plan_item";
+  action_request_category?: ActionRequestCategorySlot;
   adjustment_type: {
     status: "missing" | "identified";
     value?:
@@ -394,6 +425,7 @@ export type ActionAdjustmentPayload = {
 
 export type LevelAdjustmentPayload = {
   scope_kind: "current_level";
+  level_request_category?: LevelRequestCategorySlot;
   adjustment_type: {
     status: "missing" | "identified";
     value?: "reduce_load" | "change_focus" | "pause_level" | "rebalance";
@@ -607,6 +639,40 @@ function normalizedTargetGranularity(value: unknown): TargetGranularity | null {
   return null;
 }
 
+function normalizedActionRequestCategory(
+  value: unknown,
+): ActionRequestCategory | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "feasibility_load",
+      "challenge_intensity",
+      "timing_duration",
+      "method_format",
+      "scope_focus",
+      "replacement_alternative",
+      "support_guardrail",
+    ].includes(raw)
+    ? raw as ActionRequestCategory
+    : null;
+}
+
+function normalizedLevelRequestCategory(
+  value: unknown,
+): LevelRequestCategory | null {
+  const raw = String(value ?? "").trim();
+  return [
+      "pacing_workload",
+      "difficulty_progression",
+      "sequence_priority",
+      "level_focus",
+      "action_mix",
+      "context_constraints",
+      "recovery_reset",
+    ].includes(raw)
+    ? raw as LevelRequestCategory
+    : null;
+}
+
 function normalizedWholePlanChangeFamily(
   value: unknown,
 ): WholePlanChangeFamily | null {
@@ -732,6 +798,7 @@ function emptyScopeSlot(): AdjustPlanScopeSlot {
 function emptyActionPayload(): ActionAdjustmentPayload {
   return {
     scope_kind: "specific_plan_item",
+    action_request_category: { status: "missing", evidence: [] },
     adjustment_type: { status: "missing", evidence: [] },
     reason: { status: "missing", evidence: [] },
     constraints: { status: "missing", values: [], evidence: [] },
@@ -741,6 +808,7 @@ function emptyActionPayload(): ActionAdjustmentPayload {
 function emptyLevelPayload(): LevelAdjustmentPayload {
   return {
     scope_kind: "current_level",
+    level_request_category: { status: "missing", evidence: [] },
     adjustment_type: { status: "missing", evidence: [] },
     reason: { status: "missing", evidence: [] },
     reason_change: { status: "missing", evidence: [] },
@@ -849,11 +917,29 @@ function loosePayloadFromOperationInput(
   if (
     source.adjustment_type == null && source.reason == null &&
     source.reason_change == null && source.change_target == null &&
-    source.constraints == null
+    source.constraints == null &&
+    (source as any).action_request_category == null &&
+    (source as any).level_request_category == null
   ) return null;
   if (scopeKind === "specific_plan_item") {
     return {
       ...emptyActionPayload(),
+      action_request_category: (() => {
+        const sourceValue = (source as any).action_request_category;
+        const raw = objectValue(sourceValue);
+        const value = normalizedActionRequestCategory(
+          raw?.value ?? sourceValue,
+        );
+        return value
+          ? {
+            status: "identified" as const,
+            value,
+            evidence: stringList(raw?.evidence).length
+              ? stringList(raw?.evidence)
+              : ["operation_input.action_request_category"],
+          }
+          : { status: "missing" as const, evidence: [] };
+      })(),
       adjustment_type: looseEvidenceSlot(
         source.adjustment_type,
         ["reduce", "clarify", "pause", "replace", "rebalance", "simplify"],
@@ -868,6 +954,20 @@ function loosePayloadFromOperationInput(
   if (scopeKind === "current_level") {
     return {
       ...emptyLevelPayload(),
+      level_request_category: (() => {
+        const sourceValue = (source as any).level_request_category;
+        const raw = objectValue(sourceValue);
+        const value = normalizedLevelRequestCategory(raw?.value ?? sourceValue);
+        return value
+          ? {
+            status: "identified" as const,
+            value,
+            evidence: stringList(raw?.evidence).length
+              ? stringList(raw?.evidence)
+              : ["operation_input.level_request_category"],
+          }
+          : { status: "missing" as const, evidence: [] };
+      })(),
       adjustment_type: looseEvidenceSlot(
         source.adjustment_type,
         ["reduce_load", "change_focus", "pause_level", "rebalance"],
@@ -1046,6 +1146,9 @@ export function runAdjustPlanActionSubSkill(input: {
     ? state.payload
     : emptyActionPayload();
   const missing = [];
+  if (payload.action_request_category?.status === "missing") {
+    missing.push("specific_plan_item.action_request_category");
+  }
   if (payload.adjustment_type.status === "missing") {
     missing.push("specific_plan_item.adjustment_type");
   }
@@ -1075,6 +1178,9 @@ export function runAdjustPlanLevelSubSkill(input: {
     ? state.payload
     : emptyLevelPayload();
   const missing = [];
+  if (payload.level_request_category?.status === "missing") {
+    missing.push("current_level.level_request_category");
+  }
   if (payload.adjustment_type.status === "missing") {
     missing.push("current_level.adjustment_type");
   }
@@ -1170,6 +1276,18 @@ function missingSlots(state: AdjustPlanIntakeState): string[] {
   const missing = [];
   if (state.payload.adjustment_type.status === "missing") {
     missing.push(`${state.payload.scope_kind}.adjustment_type`);
+  }
+  if (
+    state.payload.scope_kind === "specific_plan_item" &&
+    state.payload.action_request_category?.status === "missing"
+  ) {
+    missing.push(`${state.payload.scope_kind}.action_request_category`);
+  }
+  if (
+    state.payload.scope_kind === "current_level" &&
+    state.payload.level_request_category?.status === "missing"
+  ) {
+    missing.push(`${state.payload.scope_kind}.level_request_category`);
   }
   if (
     state.payload.scope_kind === "specific_plan_item" &&
@@ -1508,6 +1626,44 @@ function mergeAiStatePatch(
     );
     if (scopeKind === next.payload.scope_kind) {
       const payload: any = mergeSlotObject(next.payload as any, payloadPatch);
+      if (next.payload.scope_kind === "specific_plan_item") {
+        const category: ActionRequestCategorySlot = mergeEvidenceSlot(
+          (next.payload as ActionAdjustmentPayload).action_request_category ??
+            { status: "missing", evidence: [] } as ActionRequestCategorySlot,
+          (payloadPatch as any).action_request_category,
+          [
+            "feasibility_load",
+            "challenge_intensity",
+            "timing_duration",
+            "method_format",
+            "scope_focus",
+            "replacement_alternative",
+            "support_guardrail",
+          ],
+        );
+        payload.action_request_category = category.value
+          ? category
+          : { status: "missing", evidence: category.evidence };
+      }
+      if (next.payload.scope_kind === "current_level") {
+        const category: LevelRequestCategorySlot = mergeEvidenceSlot(
+          (next.payload as LevelAdjustmentPayload).level_request_category ??
+            { status: "missing", evidence: [] } as LevelRequestCategorySlot,
+          (payloadPatch as any).level_request_category,
+          [
+            "pacing_workload",
+            "difficulty_progression",
+            "sequence_priority",
+            "level_focus",
+            "action_mix",
+            "context_constraints",
+            "recovery_reset",
+          ],
+        );
+        payload.level_request_category = category.value
+          ? category
+          : { status: "missing", evidence: category.evidence };
+      }
       payload.adjustment_type = mergeEvidenceSlot(
         (next.payload as any).adjustment_type,
         payloadPatch.adjustment_type,
@@ -2517,6 +2673,18 @@ function inferWholePlanFamilyFromText(text: string): {
   const transitionCriterionSignal =
     /\b(critere de passage|regle de passage|seuil de passage|frontiere|marche|passage aux sujets sensibles|deux fois d affilee|2 fois d affilee|deux demandes simples|2 demandes simples)\b/
       .test(normalized);
+  const repairReconnectionStepSignal = (
+    /\b(reconnaitre|nommer|acter|dire|dire brievement)\b.{0,100}\b(tension|dispute|ce qui s est passe|accroc|accrochage|emporte|maladresse)\b/
+      .test(normalized) &&
+    /\b(retour au contact|revenir au contact|retour en lien|revenir en lien|retour au lien|relancer le lien|relancer un moment de lien|geste de retour|petit geste|se remettre ensemble|reparler du fond)\b/
+      .test(normalized)
+  ) ||
+    (
+      /\b(manque une marche|ajouter une marche|ajoute une marche|mini marche|petite marche|marche pour revenir|petite etape|etape explicite|vraie etape|transition|pont|apprendre a se retrouver|se retrouver)\b/
+        .test(normalized) &&
+      /\b(apres un accrochage|apres accrochage|apres une dispute|apres dispute|dispute|tension|emporte|accroc|accrochage|reparler du fond)\b/
+        .test(normalized)
+    );
   if (
     /\b(stop|annule|annuler|n applique rien|ne l applique pas|laisse tomber|ce n est pas ca|c est pas ca|hors sujet|pas ce brouillon)\b/
       .test(normalized) && !reviewOnlyNoApply
@@ -2526,6 +2694,15 @@ function inferWholePlanFamilyFromText(text: string): {
       operation: "cancel_or_revise",
       readiness: "diagnose",
       evidence: ["user rejects or cancels the pending whole-plan draft"],
+    };
+  }
+  if (repairReconnectionStepSignal && !noAdditionRequested) {
+    evidence.push("repair reconnection step signal");
+    return {
+      family: "missing_bridge_or_level",
+      operation: "insert_phase",
+      readiness: "draft_ready",
+      evidence,
     };
   }
   if (
@@ -2722,6 +2899,20 @@ function wholePlanFamilyConstraint(
   const family = payload?.whole_plan_change_family?.value ??
     guidance?.change_family ?? null;
   return family ? `whole_plan_change_family:${family}` : null;
+}
+
+function actionRequestCategoryConstraint(
+  payload: ActionAdjustmentPayload | null | undefined,
+): string | null {
+  const category = payload?.action_request_category?.value ?? null;
+  return category ? `action_request_category:${category}` : null;
+}
+
+function levelRequestCategoryConstraint(
+  payload: LevelAdjustmentPayload | null | undefined,
+): string | null {
+  const category = payload?.level_request_category?.value ?? null;
+  return category ? `level_request_category:${category}` : null;
 }
 
 function wholePlanOperationConstraint(
@@ -2999,6 +3190,9 @@ function completeCurrentLevelStateFromTranscript(input: {
   ]);
   const nextPayload: LevelAdjustmentPayload = {
     ...payload,
+    level_request_category: payload.level_request_category
+      ? { ...payload.level_request_category }
+      : { status: "missing", evidence: [] },
     adjustment_type: { ...payload.adjustment_type },
     reason: { ...payload.reason },
     reason_change: { ...payload.reason_change },
@@ -3008,6 +3202,31 @@ function completeCurrentLevelStateFromTranscript(input: {
   };
   const evidence: string[] = [];
   const copyForwardRequested = isCurrentLevelCopyForwardText(normalized);
+
+  if (nextPayload.level_request_category?.status === "missing") {
+    const category: LevelRequestCategory = copyForwardRequested ||
+        /\b(retard|decroche|reprend|reprendre|perdu|perdue|surcharge|a la bourre)\b/
+          .test(normalized)
+      ? "recovery_reset"
+      : /\b(ordre|priorite|d abord|commencer|sequence)\b/.test(normalized)
+      ? "sequence_priority"
+      : /\b(focus|centre|concentre|moins de|plus de)\b/.test(normalized)
+      ? "level_focus"
+      : /\b(voyage|sante|travail|budget|contexte|semaine chargee|temps)\b/
+          .test(normalized)
+      ? "context_constraints"
+      : /\b(difficile|facile|progression|brutal|brutale)\b/.test(normalized)
+      ? "difficulty_progression"
+      : /\b(ajoute|retire|remplace|varie|actions)\b/.test(normalized)
+      ? "action_mix"
+      : "pacing_workload";
+    nextPayload.level_request_category = {
+      status: "identified",
+      value: category,
+      evidence: ["deterministic transcript level request category"],
+    };
+    evidence.push("level_request_category");
+  }
 
   if (
     affectedValues.length >= 2 ||
@@ -3300,11 +3519,18 @@ function completeWholePlanStateFromTranscript(input: {
     /\bpont\b.{0,40}\b(pas necessaire|pas besoin|eviter|sans l ajouter|ne l ajoute pas)\b/
       .test(normalized);
   const familyInference = inferWholePlanFamilyFromText(text);
-  const repairReconnectionStepSignal =
-    /\b(reconnaitre|nommer|acter|dire|dire brievement)\b.{0,90}\b(tension|dispute|ce qui s est passe|accroc|emporte|maladresse)\b/
+  const repairReconnectionStepSignal = (
+    /\b(reconnaitre|nommer|acter|dire|dire brievement)\b.{0,100}\b(tension|dispute|ce qui s est passe|accroc|accrochage|emporte|maladresse)\b/
       .test(normalized) &&
-    /\b(retour au contact|revenir au contact|relancer le lien|relancer un moment de lien|geste de retour|petit geste|se remettre ensemble)\b/
-      .test(normalized);
+    /\b(retour au contact|revenir au contact|retour en lien|revenir en lien|retour au lien|relancer le lien|relancer un moment de lien|geste de retour|petit geste|se remettre ensemble|reparler du fond)\b/
+      .test(normalized)
+  ) ||
+    (
+      /\b(manque une marche|ajouter une marche|ajoute une marche|mini marche|petite marche|marche pour revenir|petite etape|etape explicite|vraie etape|transition|pont|apprendre a se retrouver|se retrouver)\b/
+        .test(normalized) &&
+      /\b(apres un accrochage|apres accrochage|apres une dispute|apres dispute|dispute|tension|emporte|accroc|accrochage|reparler du fond)\b/
+        .test(normalized)
+    );
   const familyIsConcreteWholePlan =
     familyInference.family === "missing_bridge_or_level" ||
     familyInference.family === "direction_change" ||
@@ -3669,12 +3895,12 @@ function deterministicWholePlanDirectionalDraft(
         };
       }
       return {
-        changeVerb: "j'insère un niveau intermédiaire",
+        changeVerb: "j'ajoute une marche de transition",
         inserted:
-          "Un niveau intermédiaire avec un rôle clair, un contenu limité et un critère de passage explicite.",
+          "Une courte étape avec un objectif précis, un contenu limité et un critère de passage explicite.",
         before: "Le plan passait trop directement d'un bloc au suivant.",
         after:
-          "Le plan garde son objectif, mais ajoute un niveau intermédiaire avant de monter d'un cran.",
+          "Le plan garde son objectif, mais ajoute une marche claire avant de monter d'un cran.",
         reason:
           "Le user demande d'ajouter un niveau ou une étape pour rendre la progression plus réaliste.",
         nextStep:
@@ -3866,10 +4092,32 @@ function deterministicWholePlanDirectionalDraft(
   const maxTwoActions = input.constraints.some((constraint) =>
     normalizeForLooseMatch(constraint) === "max two actions next step"
   );
+  const changeLine = family === "value_preference_conflict"
+    ? `Je garderais les actions, mais je demanderais au plan régénéré de les relire autrement: ${insertedInline}`
+    : family === "success_criteria_change"
+    ? `Je demanderais au plan régénéré de changer la façon de reconnaître le progrès: ${insertedInline}`
+    : family === "style_or_method_mismatch"
+    ? `Je demanderais au plan régénéré de changer sa méthode d'entrée: ${insertedInline}`
+    : family === "missing_bridge_or_level" && insertsRepairReconnectionStep
+    ? `Je formulerais l'ajustement comme une courte étape de réparation: ${familyCopy.inserted}`
+    : family === "missing_bridge_or_level"
+    ? `${familyCopy.changeVerb}: ${familyCopy.inserted}`
+    : `${familyCopy.changeVerb}: ${familyCopy.inserted}`;
+  const stableLine = family === "success_criteria_change"
+    ? "L'objectif global, les actions actuelles et le signal de pause restent les appuis; on change surtout le critère qui dit si ça progresse."
+    : family === "style_or_method_mismatch"
+    ? "L'objectif global, l'ambition et la charge restent stables; c'est la manière d'entrer dans chaque étape qui change."
+    : family === "split_merge_restructure"
+    ? "L'objectif global et la progression par étapes restent stables; on rend surtout la frontière entre deux étapes plus nette."
+    : family === "value_preference_conflict"
+    ? "L'objectif global et les actions existantes restent là. Le changement porte sur l'intention: moins de performance, plus de chaleur et de fiabilité."
+    : "L'objectif global reste stable, et les actions de soutien ne changent pas sauf si la régénération montre qu'il faut les reformuler.";
   const confirmationMessage = [
-    "Je peux te proposer un ajustement du plan global, sans changer l'objectif de fond.",
+    family === "missing_bridge_or_level" && insertsRepairReconnectionStep
+      ? "Oui, je vois mieux la marche à ajouter. Je ne la formulerais pas comme un bloc abstrait."
+      : "Je peux préparer cet ajustement du plan global sans changer l'objectif de fond.",
     "",
-    `Ce qui changerait: ${familyCopy.changeVerb}, avec ${insertedInline}`,
+    changeLine,
     "",
     ...(maxTwoActions
       ? [
@@ -3877,17 +4125,9 @@ function deterministicWholePlanDirectionalDraft(
         "",
       ]
       : []),
-    family === "success_criteria_change"
-      ? "Ce qui reste stable: l'objectif global, les actions actuelles et le signal de pause. On change surtout la façon de reconnaître le progrès."
-      : family === "style_or_method_mismatch"
-      ? "Ce qui reste stable: l'objectif global, l'ambition et la charge du plan. On change surtout la méthode d'entrée dans chaque étape."
-      : family === "split_merge_restructure"
-      ? "Ce qui reste stable: l'objectif global et l'idée de progresser par étapes. On rend surtout la frontière entre deux étapes plus nette."
-      : family === "value_preference_conflict"
-      ? "Ce qui reste stable: l'objectif global du plan et les actions existantes. On change surtout leur intention: moins de performance, plus de chaleur et de fiabilité."
-      : "Ce qui reste stable: l'objectif global du plan, le rôle du signal de pause, et les actions de soutien qui restent utiles.",
+    stableLine,
     "",
-    "Ce que ça implique: si tu valides, je régénère le plan dans ce sens. Rien n'est encore appliqué tant que tu ne valides pas clairement.",
+    "Si tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué.",
   ].join("\n");
   const executionMessage = [
     "C'est fait: j'ai ajusté la trajectoire du plan.",
@@ -5107,6 +5347,12 @@ export async function runAdjustPlanItemIntake(input: {
   const wholePlanPayload = payload.scope_kind === "whole_plan"
     ? payload as WholePlanAdjustmentPayload
     : null;
+  const actionPayload = payload.scope_kind === "specific_plan_item"
+    ? payload as ActionAdjustmentPayload
+    : null;
+  const levelPayload = payload.scope_kind === "current_level"
+    ? payload as LevelAdjustmentPayload
+    : null;
   const generatorConstraints = [
     "ask_confirmation_before_write",
     ...sanitizeGeneratorConstraints(
@@ -5132,6 +5378,16 @@ export async function runAdjustPlanItemIntake(input: {
       )
       : []),
     ...coachGuidanceConstraints(state.coaching_guidance),
+    ...(payload.scope_kind === "specific_plan_item"
+      ? dedupeStrings([
+        actionRequestCategoryConstraint(actionPayload) ?? "",
+      ])
+      : []),
+    ...(payload.scope_kind === "current_level"
+      ? dedupeStrings([
+        levelRequestCategoryConstraint(levelPayload) ?? "",
+      ])
+      : []),
     ...(payload.scope_kind === "whole_plan"
       ? dedupeStrings([
         wholePlanFamilyConstraint(wholePlanPayload, state.coaching_guidance) ??

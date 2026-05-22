@@ -95,11 +95,15 @@ function loadSupabaseStatus(): Record<string, string> {
     env[match[1]] = match[2].replace(/^["']|["']$/g, "");
   }
   return {
-    API_URL: env.SUPABASE_URL ?? env.VITE_SUPABASE_URL ??
+    API_URL: Deno.env.get("SUPABASE_URL") ?? env.SUPABASE_URL ??
+      env.VITE_SUPABASE_URL ??
       "http://127.0.0.1:54321",
-    ANON_KEY: env.SUPABASE_ANON_KEY ?? env.VITE_SUPABASE_ANON_KEY ?? "",
-    SERVICE_ROLE_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
-    SECRET_KEY: env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY") ?? env.SUPABASE_ANON_KEY ??
+      env.VITE_SUPABASE_ANON_KEY ?? "",
+    SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+      env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+    SECRET_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+      env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   };
 }
 

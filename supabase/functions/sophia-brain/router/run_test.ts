@@ -5,6 +5,7 @@ import {
   deterministicStaleBilanDecision,
   effectiveResponseOwnerForOperationRuntime,
   isExplicitPendingApplyConfirmation,
+  isImplicitWholePlanRepairAdjustmentRequestForTest,
   logPlanItemProgressV2,
   mapMomentumStateV2ToCoachingContext,
   maybeRunAdjustPlanItemOperation,
@@ -87,6 +88,21 @@ Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before vali
   assertEquals(
     isExplicitPendingApplyConfirmation(
       "Ajoute juste cette nuance au brouillon. Ne valide toujours pas.",
+    ),
+    false,
+  );
+});
+
+Deno.test("implicit whole-plan repair bridge request is detected", () => {
+  assertEquals(
+    isImplicitWholePlanRepairAdjustmentRequestForTest(
+      "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
+    ),
+    true,
+  );
+  assertEquals(
+    isImplicitWholePlanRepairAdjustmentRequestForTest(
+      "Apres un accrochage, tu me conseilles quoi pour revenir en lien ?",
     ),
     false,
   );
@@ -740,6 +756,246 @@ Deno.test("adjust plan whole-plan detail request answers directly without repeat
   assertStringIncludes(result?.content ?? "", "après le retour au calme");
 });
 
+Deno.test("adjust plan whole-plan pre-validation progression concern gets coaching answer", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change:
+        "Réorienter le plan vers chaleur, fiabilité et réparation rapide.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          trajectory_change: {
+            before:
+              "Le plan pouvait être vécu comme une suite de cases à cocher.",
+            after:
+              "Le plan garde les mêmes appuis, mais leur rôle devient plus clair: soutenir la présence fiable, les petits moments positifs et la réparation après maladresse.",
+            inserted_step:
+              "Une lecture moins performative des actions existantes.",
+            preserved_direction: "L'objectif global du plan reste stable.",
+            coaching_reason:
+              "Changer le sens et les critères implicites du plan sans augmenter la charge.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Et si ça devient trop mou, est-ce que ça veut dire que je perds l'idée de progression du plan ? Je veux éviter de juste faire au feeling.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-progression",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "yes", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "explain_only",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-progression",
+    requestId: "req-whole-progression",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "none");
+  assertEquals(result?.executedTools, []);
+  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
+  assertStringIncludes(result?.content ?? "", "pas de rendre le plan flou");
+  assertStringIncludes(result?.content ?? "", "garde une progression");
+  if ((result?.content ?? "").includes("Le brouillon prévoit bien")) {
+    throw new Error("progression concern should not get a generic draft recap");
+  }
+});
+
+Deno.test("adjust plan whole-plan no-extra-actions confirmation is concrete", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change: "Ajouter une marche de réparation légère.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          trajectory_change: {
+            before:
+              "La suite du plan passait trop vite de la tension à l'analyse.",
+            after:
+              "Le plan ajoute un passage court après dispute avant d'analyser le fond.",
+            inserted_step:
+              "Reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+            preserved_direction: "L'objectif global du plan reste stable.",
+            coaching_reason:
+              "Le user demande une marche de réparation relationnelle.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Avant de valider, confirme-moi que ça ne rajoute pas trois nouvelles actions, juste une petite marche dans le plan.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-no-extra-actions",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "yes", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "explain_only",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-no-extra-actions",
+    requestId: "req-whole-no-extra-actions",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "none");
+  assertEquals(result?.executedTools, []);
+  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
+  assertStringIncludes(result?.content ?? "", "ne rajoute pas");
+  assertStringIncludes(result?.content ?? "", "Reconnaître brièvement");
+  if ((result?.content ?? "").includes("change surtout l'axe du plan")) {
+    throw new Error("no-extra-actions answer should not stay generic");
+  }
+});
+
+Deno.test("adjust plan whole-plan repair progression concern stays specific", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change: "Ajouter une marche de réparation légère.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          trajectory_change: {
+            before:
+              "La suite du plan passait trop vite de la tension à l'analyse.",
+            after:
+              "Le plan ajoute un passage court après dispute avant d'analyser le fond.",
+            inserted_step:
+              "Reconnaître brièvement la tension, puis proposer un petit geste de retour au contact.",
+            preserved_direction: "L'objectif global du plan reste stable.",
+            coaching_reason:
+              "Le user demande une marche de réparation relationnelle.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Avec cette marche prévue, on garde quand même l'idée de progression ? Je ne veux pas que ça devienne au feeling.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-repair-progression",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "yes", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "explain_only",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-repair-progression",
+    requestId: "req-whole-repair-progression",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "none");
+  assertEquals(result?.executedTools, []);
+  assertEquals(result?.toolSkillRun?.status, "draft_review_details");
+  assertStringIncludes(result?.content ?? "", "garde une progression");
+  assertStringIncludes(result?.content ?? "", "Reconnaître brièvement");
+  if ((result?.content ?? "").includes("signes concrets de chaleur")) {
+    throw new Error("repair progression answer should not use warmth template");
+  }
+  if ((result?.content ?? "").includes("Avant:")) {
+    throw new Error(
+      "repair progression answer should not dump full trajectory",
+    );
+  }
+});
+
 Deno.test("adjust plan whole-plan pre-validation nuance updates draft without executing", async () => {
   const draft: any = {
     operation_type: "adjust_plan_item",
@@ -810,6 +1066,83 @@ Deno.test("adjust plan whole-plan pre-validation nuance updates draft without ex
     Boolean((result?.nextTempMemory as any).__pending_adjust_plan_draft_review),
     true,
   );
+});
+
+Deno.test("adjust plan whole-plan pre-validation nuance strips command wrapper", async () => {
+  const draft: any = {
+    operation_type: "adjust_plan_item",
+    output_schema: "plan_adjustment_draft_v1",
+    confirmation_message:
+      "Je peux préparer cet ajustement du plan global. Rien n'est encore appliqué.",
+    execution_message: "C'est fait.",
+    confirmation_actions: ["yes", "no"],
+    draft: {
+      title: "Ajuster la trajectoire du plan",
+      scope_label: "plan global",
+      execution_strategy: "whole_plan_adjustment",
+      proposed_change: "Ajouter une étape légère de réparation.",
+      adjust_plan_result: {
+        scope: "whole_plan",
+        applied_change: {
+          trajectory_change: {
+            after:
+              "Reconnaître brièvement la tension, puis revenir au contact.",
+          },
+          changed_items: [],
+          preserved_items: [],
+        },
+      },
+    },
+  };
+  const result = await maybeRunAdjustPlanItemOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage:
+      "Ok, ajoute juste au brouillon que cette étape doit rester légère : une phrase de reconnaissance suffit, pas une longue discussion. Ne valide pas encore.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    history: [],
+    tempMemory: {
+      __pending_adjust_plan_draft_review: {
+        operation_type: "adjust_plan_item",
+        phase: "draft_review",
+        operation_id: "op-whole-clean-nuance",
+        draft,
+        operation_input: {
+          scope: { kind: "whole_plan", title: "plan global" },
+        },
+        turn_count: 0,
+      },
+    },
+    turnFrame: {
+      confirmation_response: { kind: "no", confidence_band: "high" },
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        user_intent: "adjust",
+        confidence_band: "high",
+      }],
+    } as any,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "msg-whole-clean-nuance",
+    requestId: "req-whole-clean-nuance",
+    planItemSnapshot: [],
+  });
+
+  assertEquals(result?.toolExecution, "blocked");
+  assertEquals(result?.executedTools, []);
+  assertEquals(result?.toolSkillRun?.status, "draft_review_updated");
+  assertStringIncludes(result?.content ?? "", "Nuance intégrée");
+  assertStringIncludes(
+    result?.content ?? "",
+    "cette étape doit rester légère",
+  );
+  const content = result?.content ?? "";
+  for (const forbidden of ["Ok, ajoute", "Ne valide", "discussion. encore"]) {
+    if (content.includes(forbidden)) {
+      throw new Error(`nuance reply leaked command wrapper: ${forbidden}`);
+    }
+  }
 });
 
 Deno.test("resolveCoachingTargetPlanItem: matches exact active plan item title", () => {

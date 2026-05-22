@@ -12,6 +12,8 @@ import {
   isLocalTextRevisionRequestForTest,
   isRuntimeCoachPreferenceRequestForTest,
   oneShotReminderManagementReplyForTest,
+  applyNonDurableMemoryPromiseGuardForTest,
+  shouldRuntimeCoachPreferenceOverrideRouteForTest,
 } from "./run.ts";
 
 Deno.test("product_help one-shot reminder reply override keeps the factual skill answer", () => {
@@ -174,6 +176,47 @@ Deno.test("concrete future style request is a coach preference", () => {
     ),
     true,
   );
+  assertEquals(
+    isRuntimeCoachPreferenceRequestForTest(
+      "Je veux vraiment que tu enregistres ça comme préférence de coaching: quand je suis fatigué, une seule action concrète à la fois, pas plusieurs options.",
+    ),
+    true,
+  );
+  assertEquals(
+    isRuntimeCoachPreferenceRequestForTest(
+      "Pour la suite, enregistre une préférence de coaching: quand je dis que je suis vidé ou vraiment crevé, je veux une seule action concrète à la fois, pas trois options.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit coach preference overrides active conversation/product routes", () => {
+  assertEquals(
+    shouldRuntimeCoachPreferenceOverrideRouteForTest({
+      message:
+        "Pour la suite, quand je suis fatigué comme ça, je veux une seule action concrète à la fois, pas trois options.",
+      routeDecision: {
+        response_owner: "conversation_handler",
+        selected_handler: "execution_breakdown",
+      } as any,
+      safetyRiskBand: "none",
+      hasPendingOperationConfirmation: false,
+    }),
+    true,
+  );
+  assertEquals(
+    shouldRuntimeCoachPreferenceOverrideRouteForTest({
+      message:
+        "Je veux vraiment que tu enregistres ça comme préférence de coaching: une seule action concrète à la fois.",
+      routeDecision: {
+        response_owner: "product_help",
+        selected_handler: "product_help",
+      } as any,
+      safetyRiskBand: "none",
+      hasPendingOperationConfirmation: false,
+    }),
+    true,
+  );
 });
 
 Deno.test("immediate calm mode request is not a durable coach preference", () => {
@@ -200,7 +243,25 @@ Deno.test("broad evening rescue request is not a defense card start", () => {
   );
   assertEquals(
     isBroadRescueRequestNotDefenseCardForTest(
+      "Je rentre tard et je suis vide. Aide-moi a sauver le minimum avec mon telephone dans la main, sans grand plan.",
+    ),
+    true,
+  );
+  assertEquals(
+    isBroadRescueRequestNotDefenseCardForTest(
       "J'aimerais une carte de defense pour le moment ou je m'assois sur le canape et que j'ouvre TikTok.",
+    ),
+    false,
+  );
+  assertEquals(
+    isBroadRescueRequestNotDefenseCardForTest(
+      "Maintenant le vrai piege c'est TikTok. Prepare-moi une carte de defense pour ce moment precis.",
+    ),
+    false,
+  );
+  assertEquals(
+    isImmediateModeRequestNotCoachPreferenceForTest(
+      "Maintenant le vrai piege c'est TikTok. Prepare-moi une carte de defense pour ce moment precis.",
     ),
     false,
   );
@@ -228,4 +289,53 @@ Deno.test("one-shot reminder management question gets factual product wording", 
     true,
   );
   assertEquals(reply?.includes("pas besoin d'aller dans Initiatives"), false);
+});
+
+Deno.test("one-shot reminder management handles pronominal follow-up", () => {
+  const reply = oneShotReminderManagementReplyForTest(
+    "Et si demain je veux le changer ou l'annuler, je dois aller où ou je peux te le dire ici ?",
+  );
+  assertEquals(
+    reply?.includes("se gère côté Initiatives"),
+    true,
+  );
+  assertEquals(
+    reply?.includes("me le redire ici clairement"),
+    true,
+  );
+  assertEquals(reply?.includes("Ressources"), false);
+  assertEquals(reply?.includes("Cartes"), false);
+});
+
+Deno.test("explicit memory retention wording does not overpromise durable memory", () => {
+  const guarded = applyNonDurableMemoryPromiseGuardForTest({
+    userMessage:
+      "Retiens pour les prochaines fois: le moment risqué c'est le retour du soir.",
+    responseContent:
+      "Carrément, je le retiens. Pour toi, le moment risqué c'est le retour du soir.",
+    routeDecision: {
+      response_owner: "normal_reply",
+      direct_effects_to_run: [],
+    } as any,
+  });
+  assertEquals(
+    guarded.startsWith("Je le garde comme repère dans cette conversation."),
+    true,
+  );
+  const guardedBienNote = applyNonDurableMemoryPromiseGuardForTest({
+    userMessage:
+      "Retiens pour les prochaines fois: mon garde-fou du soir, c'est la commode.",
+    responseContent:
+      "Bien noté ✅ Ton garde-fou du soir, c'est la commode.",
+    routeDecision: {
+      response_owner: "normal_reply",
+      direct_effects_to_run: [],
+    } as any,
+  });
+  assertEquals(
+    guardedBienNote.startsWith(
+      "Je le garde comme repère dans cette conversation.",
+    ),
+    true,
+  );
 });

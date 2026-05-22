@@ -17,6 +17,9 @@ import {
   chatDetailQuestionIds,
   chatDetailQuestionLabel,
   fillPotionDetailSlotsWithAi,
+  isActionAwarePotion,
+  SUPPORT_TIMING_QUESTION_ID,
+  SUPPORT_TIMING_SLOT,
 } from "./subskills/potion_detail_intake.ts";
 import { fillPotionRouterSlotsWithAi } from "./subskills/potion_router.ts";
 
@@ -487,10 +490,27 @@ function mergeState(
     next.shortlist = { ...next.shortlist, ...normalized.shortlist };
   }
   if (normalized.selected_potion) {
-    next.selected_potion = {
-      ...next.selected_potion,
-      ...normalized.selected_potion,
-    };
+    const lockedPotion = next.selected_potion.value;
+    const incomingPotion = normalized.selected_potion.value;
+    const canSetPotion = !lockedPotion ||
+      next.current_sub_skill === "potion_choice" ||
+      next.missing_slots.includes("potion_type");
+    next.selected_potion = lockedPotion && incomingPotion &&
+        incomingPotion !== lockedPotion && !canSetPotion
+      ? {
+        ...next.selected_potion,
+        confidence: next.selected_potion.confidence === "low"
+          ? normalized.selected_potion.confidence
+          : next.selected_potion.confidence,
+        evidence: [
+          ...next.selected_potion.evidence,
+          "locked_selected_potion_preserved",
+        ],
+      }
+      : {
+        ...next.selected_potion,
+        ...normalized.selected_potion,
+      };
   }
   if (normalized.details) {
     const answerById = new Map(
@@ -543,6 +563,7 @@ function stateFromOperationInput(
   const selectedPotionValue = selectedPotion?.value ?? inputPotionValue ??
     previousDraftPotion;
   const existingDetails = objectValue(existing?.details);
+  const existingState = objectValue(existing?.state);
   const existingDetailAnswers = Array.isArray(existingDetails?.answers)
     ? existingDetails.answers.length
     : 0;
@@ -566,7 +587,7 @@ function stateFromOperationInput(
       evidence: ["previous_draft"],
     }))
     : [];
-  const inputStateKind = state?.kind ?? input.state ??
+  const inputStateKind = state?.kind ?? input.state ?? existingState?.kind ??
     (previousDraftPotion
       ? stateKindForPotion(previousDraftPotion)
       : inputPotionObject && inputPotionValue
@@ -575,14 +596,17 @@ function stateFromOperationInput(
   return mergeState(defaultState(), {
     ...(existing ?? {}),
     state: {
-      ...(objectValue(existing?.state) ?? {}),
+      ...(existingState ?? {}),
       ...(state ?? {}),
       kind: inputStateKind,
-      intensity: state?.intensity ?? input.state_intensity,
+      intensity: state?.intensity ?? input.state_intensity ??
+        existingState?.intensity,
       status: state?.status ??
+        existingState?.status ??
         (stateKind(inputStateKind) ? "identified" : undefined),
-      evidence: state?.evidence ?? ["structured_operation_input"],
-      confidence: state?.confidence ?? "high",
+      evidence: state?.evidence ?? existingState?.evidence ??
+        ["structured_operation_input"],
+      confidence: state?.confidence ?? existingState?.confidence ?? "high",
     },
     explicit_potion_request: {
       ...(objectValue(existing?.explicit_potion_request) ?? {}),
@@ -652,9 +676,21 @@ function recalculateReadiness(
 ): SelectStatePotionIntakeState {
   const selectedFromExplicit = state.explicit_potion_request.potion_type;
   const selectedPotion = state.selected_potion.value ?? selectedFromExplicit;
-  const requiredDetailIds = chatDetailQuestionIds(selectedPotion);
+  const baseRequiredDetailIds = chatDetailQuestionIds(selectedPotion);
+  const supportTimingWasRequested = isActionAwarePotion(selectedPotion) &&
+    (state.missing_slots.includes(SUPPORT_TIMING_SLOT) ||
+      state.details.required_question_ids.includes(SUPPORT_TIMING_QUESTION_ID) ||
+      state.details.answers.some((answer) =>
+        answer.question_id === SUPPORT_TIMING_QUESTION_ID
+      ));
+  const requiredDetailIds = supportTimingWasRequested
+    ? [...baseRequiredDetailIds, SUPPORT_TIMING_QUESTION_ID]
+    : baseRequiredDetailIds;
   const detailAnswers = state.details.answers.filter((answer) =>
-    requiredDetailIds.includes(answer.question_id) && answer.answer.trim()
+    requiredDetailIds.includes(answer.question_id) &&
+    answer.answer.trim() &&
+    (answer.question_id !== SUPPORT_TIMING_QUESTION_ID ||
+      supportTimingAnswerIsPrecise(answer.answer))
   );
   const answeredDetailIds = new Set(
     detailAnswers.map((answer) => answer.question_id),
@@ -926,12 +962,16 @@ function fallbackQuestionForState(
         "Qu'est-ce que tu veux surtout ne pas laisser filer en ce moment ?",
       drift_style:
         "Je vois ce qui glisse. Ça part plutôt comment, chez toi, au moment où tu décroches ?",
+      support_timing:
+        "Tu voudrais que Sophia te rattrape à quel moment autour de ça ?",
     },
     courage: {
       avoidance_target:
         "C'est quel passage concret que tu évites là ?",
       blocker_kind:
         "Je vois le passage à franchir. Qu'est-ce qui serre le plus quand tu t'en approches ?",
+      support_timing:
+        "Tu voudrais que Sophia soit là à quel moment autour de ce passage ?",
     },
     guerison: {
       recent_hurt:
@@ -944,6 +984,8 @@ function fallbackQuestionForState(
         "Qu'est-ce qui est le plus mélangé là, concrètement ?",
       clarity_need:
         "Je vois le brouillard. Tu as surtout besoin de retrouver quel fil en premier ?",
+      support_timing:
+        "Tu voudrais placer ce soutien à quel moment, pour que ça aide vraiment ?",
     },
     amour: {
       self_talk:
@@ -1017,6 +1059,38 @@ function recoverableQuestionOutput(
       intake_state: state,
     },
   };
+}
+
+function hasSupportTimingAnswer(state: SelectStatePotionIntakeState): boolean {
+  return state.details.answers.some((answer) =>
+    answer.question_id === SUPPORT_TIMING_QUESTION_ID &&
+    supportTimingAnswerIsPrecise(answer.answer)
+  );
+}
+
+function supportTimingAnswerIsPrecise(answer: string): boolean {
+  const text = answer.toLowerCase().normalize("NFD").replace(
+    /\p{Diacritic}/gu,
+    "",
+  );
+  return /\b([01]?\d|2[0-3])\s*(h|:)\s*([0-5]\d)?\b/.test(text) ||
+    /\b(midi|minuit)\b/.test(text) ||
+    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/.test(text) ||
+    /\b(tous les|toutes les|chaque)\b/.test(text);
+}
+
+function draftNeedsSupportTimingClarification(
+  draft: PotionSessionDraftV1,
+  state: SelectStatePotionIntakeState,
+): boolean {
+  const selectedPotion = state.selected_potion.value ??
+    state.explicit_potion_request.potion_type;
+  if (!isActionAwarePotion(selectedPotion) || hasSupportTimingAnswer(state)) {
+    return false;
+  }
+  const targetKind = draft.draft.target_binding.kind;
+  const scheduleMode = draft.draft.follow_up.schedule_plan.mode;
+  return targetKind !== "none" || scheduleMode !== "daily_series";
 }
 
 export async function runSelectStatePotionIntake(input: {
@@ -1204,6 +1278,47 @@ export async function runSelectStatePotionIntake(input: {
     base_context: input.base_context ?? null,
   });
   if (!draft) return technicalErrorOutput(source, nextState);
+  if (draftNeedsSupportTimingClarification(draft, nextState)) {
+    const timingState = mergeState(nextState, {
+      details: {
+        ...nextState.details,
+        required_question_ids: [
+          ...nextState.details.required_question_ids.filter((id) =>
+            id !== SUPPORT_TIMING_QUESTION_ID
+          ),
+          SUPPORT_TIMING_QUESTION_ID,
+        ],
+      },
+      missing_slots: [SUPPORT_TIMING_SLOT],
+      generated_user_message: fallbackQuestionForState({
+        ...nextState,
+        missing_slots: [SUPPORT_TIMING_SLOT],
+      }) ??
+        "Tu voudrais placer ce soutien à quel moment, pour que ça aide vraiment ?",
+      confidence: "medium",
+    });
+    const timingOperationInput = operationInputFromState(timingState);
+    return {
+      operation_type: "select_state_potion",
+      status: "ask_question",
+      source,
+      phase: "detail_intake",
+      next_question: {
+        needed: true,
+        question: timingState.generated_user_message ?? undefined,
+        reason: SUPPORT_TIMING_SLOT,
+      },
+      state_patch: {
+        summary:
+          "Potion intake needs explicit action support timing before draft confirmation.",
+        phase: "detail_intake",
+        missing_slots: [SUPPORT_TIMING_SLOT],
+        turn_count_increment: 1,
+        operation_input: timingOperationInput,
+        intake_state: timingState,
+      },
+    };
+  }
   return {
     operation_type: "select_state_potion",
     status: "pending_confirmation",
