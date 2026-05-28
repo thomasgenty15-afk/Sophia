@@ -1,0 +1,305 @@
+{
+  "run_id": "global_run_A3_20260528_strict_r6",
+  "user_id": "b9730473-9256-492a-8239-5730d16e16f0",
+  "chat_messages": {
+    "status": 200,
+    "count": 30,
+    "rows": [
+      {
+        "id": "05083f70-bf69-42e9-b73c-0a46ec79a07f",
+        "role": "user",
+        "created_at": "2026-05-28T17:25:14.214837+00:00"
+      },
+      {
+        "id": "14ff976c-731b-46c5-a23e-73ff9ed640db",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:25:20.115665+00:00"
+      },
+      {
+        "id": "f61bdfe5-21b6-41e5-928f-64560c553d8a",
+        "role": "user",
+        "created_at": "2026-05-28T17:25:28.76404+00:00"
+      },
+      {
+        "id": "fbd75179-e583-4245-bf36-43a29e88d00a",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:25:35.745067+00:00"
+      },
+      {
+        "id": "c99f16b0-7bf0-482c-93a2-26cc63aa18cb",
+        "role": "user",
+        "created_at": "2026-05-28T17:25:43.451114+00:00"
+      },
+      {
+        "id": "c2af6f66-5c76-44a9-8fdc-76a0bb059472",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:26:16.63528+00:00"
+      },
+      {
+        "id": "4aa9c0b2-c7c6-4fb8-9d17-e3dddb9a4d3a",
+        "role": "user",
+        "created_at": "2026-05-28T17:26:25.178484+00:00"
+      },
+      {
+        "id": "119e07ce-3a90-4902-aa66-77e868726ccb",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:26:28.251159+00:00"
+      },
+      {
+        "id": "02469953-bd11-4364-9d70-d466583ad64c",
+        "role": "user",
+        "created_at": "2026-05-28T17:26:44.531228+00:00"
+      },
+      {
+        "id": "af459097-b87a-4c77-853e-87577b73f3f6",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:26:48.4977+00:00"
+      },
+      {
+        "id": "bddcaa39-486f-4971-9b22-bd90b689cbaf",
+        "role": "user",
+        "created_at": "2026-05-28T17:27:02.573927+00:00"
+      },
+      {
+        "id": "c6c2f391-eaae-4092-9872-48c6e117eb68",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:27:06.288536+00:00"
+      },
+      {
+        "id": "0a3ccec3-a09e-4273-8fc0-4b2eb6c33aa5",
+        "role": "user",
+        "created_at": "2026-05-28T17:27:15.824442+00:00"
+      },
+      {
+        "id": "a15c5694-e678-4678-93af-d324424436e7",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:27:22.74576+00:00"
+      },
+      {
+        "id": "e04ca7f7-19dd-48f3-a0f9-4a011bb6e172",
+        "role": "user",
+        "created_at": "2026-05-28T17:27:30.232909+00:00"
+      },
+      {
+        "id": "7e061761-7f8a-4331-9c46-d82f20e3c485",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:27:32.767843+00:00"
+      },
+      {
+        "id": "8479dbff-547a-4504-af8f-0b32aa770110",
+        "role": "user",
+        "created_at": "2026-05-28T17:27:44.341931+00:00"
+      },
+      {
+        "id": "9e05dbd2-e0da-4204-bcc3-659894c4f1c5",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:27:58.839026+00:00"
+      },
+      {
+        "id": "c9312b75-4de8-4b15-b249-7e088e298e2a",
+        "role": "user",
+        "created_at": "2026-05-28T17:28:10.50952+00:00"
+      },
+      {
+        "id": "8069ea15-fb9a-447d-9589-d5eb949489d4",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:28:35.718669+00:00"
+      },
+      {
+        "id": "c5255149-ef0a-4f04-9c9d-712a5fc5d3a5",
+        "role": "user",
+        "created_at": "2026-05-28T17:28:42.955823+00:00"
+      },
+      {
+        "id": "395332da-9464-4e29-9f96-76014073f60a",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:28:46.680865+00:00"
+      },
+      {
+        "id": "32b6a56a-61f5-43aa-9151-aea290bbfd3c",
+        "role": "user",
+        "created_at": "2026-05-28T17:28:56.386395+00:00"
+      },
+      {
+        "id": "809369c5-cba0-4283-9fe1-1af691829e7b",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:29:04.605225+00:00"
+      },
+      {
+        "id": "7be9d148-6b7e-4620-a954-c4028439f374",
+        "role": "user",
+        "created_at": "2026-05-28T17:29:13.491602+00:00"
+      },
+      {
+        "id": "be82e6a7-a918-4e9c-991d-86b0ccaaa367",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:29:18.677653+00:00"
+      },
+      {
+        "id": "684eea84-dc5d-4d7f-b05e-5601c87e1a70",
+        "role": "user",
+        "created_at": "2026-05-28T17:29:28.041564+00:00"
+      },
+      {
+        "id": "4a636607-d611-42bb-86b0-99cc6beb3c0d",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:29:33.211896+00:00"
+      },
+      {
+        "id": "5077eb00-6c7d-4a65-b258-082acbeb2ea4",
+        "role": "user",
+        "created_at": "2026-05-28T17:29:41.869784+00:00"
+      },
+      {
+        "id": "377e4e93-3e6f-4adb-9f1d-fa0efa07ec57",
+        "role": "assistant",
+        "created_at": "2026-05-28T17:29:53.791616+00:00"
+      }
+    ]
+  },
+  "attack_cards": {
+    "status": 400,
+    "count": null,
+    "rows": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_attack_cards.title does not exist"
+    }
+  },
+  "defense_cards": {
+    "status": 400,
+    "count": null,
+    "rows": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column user_defense_cards.title does not exist"
+    }
+  },
+  "scheduled_checkins": {
+    "status": 400,
+    "count": null,
+    "rows": {
+      "code": "42703",
+      "details": null,
+      "hint": null,
+      "message": "column scheduled_checkins.request_id does not exist"
+    }
+  },
+  "profile_facts": {
+    "status": 200,
+    "count": 9,
+    "rows": [
+      {
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "source_type": "system_default",
+        "reason": "Default coach preferences (v4 canonical)",
+        "updated_at": "2026-05-28T17:24:55.604638+00:00"
+      },
+      {
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "source_type": "explicit_user",
+        "reason": "Pour la suite, retiens une préférence : quand je suis brouillé, pose-moi une seule question de tri, jamais plusieurs options à la suite.",
+        "updated_at": "2026-05-28T17:27:32.761+00:00"
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "count": 0,
+    "rows": []
+  },
+  "topic_memories": {
+    "status": 200,
+    "count": 0,
+    "rows": []
+  }
+}

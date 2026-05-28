@@ -1,0 +1,22 @@
+{
+  "n": 13,
+  "user": "Ne lance rien maintenant, pas de potion, pas de nouveau rappel. Fais seulement le récap: fait, prévu, fragile, en trois lignes. Pas de question.",
+  "assistant": "C'est entendu, pas de potion ni de rappel. Je m'occupe de ton récap en trois lignes.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t13",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "explicit_no_tool_request_blocks_tool_start",
+    "safety": "none",
+    "operation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "ask_question",
+    "skill_id": null
+  }
+}

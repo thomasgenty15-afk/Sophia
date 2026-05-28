@@ -85,6 +85,14 @@ export interface LoadedContext {
   bilanJustStoppedAddon?: string;
   defenseCardWinAddon?: string;
   defenseCardPendingTriggersAddon?: string;
+  /**
+   * Résumé compact des effets durables en cours côté DB (carte d'attaque
+   * active, carte de défense active, rappels ponctuels en attente,
+   * préférences coach actives). Injecté en mode `companion` pour empêcher
+   * le LLM d'halluciner "on n'a pas validé/créé X" alors que la DB confirme
+   * X. Voir chantier 2 phase B, 2026-05-28.
+   */
+  durableEffectsSummary?: string;
 }
 
 /**

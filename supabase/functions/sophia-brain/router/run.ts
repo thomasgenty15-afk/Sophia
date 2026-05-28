@@ -65,6 +65,7 @@ import {
   runEffectGateOrchestrator,
 } from "../routers/effect_gate_orchestrator.ts";
 import { runConversationRouters } from "../routers/routers.ts";
+import { arbitrateTurnIntent } from "./turn_intent_arbitrator.ts";
 import { runSafetyPregate } from "../safety/safety_pregate.ts";
 import {
   blocksDirectEffects,
@@ -2987,7 +2988,97 @@ async function loadAttackKeywordMatch(args: {
     : null;
 }
 
-async function loadActiveAttackKeywordOptions(args: {
+/**
+ * Chantier 4 (2026-05-28): détection d'une carte d'attaque active fraîchement
+ * créée. Sert de garde-fou: si le user déclenche un nouveau flow
+ * prepare_attack_card alors qu'il vient juste d'en créer une, on lui demande
+ * de clarifier (utiliser celle-ci ou en faire une nouvelle) plutôt que de
+ * démarrer un slot filling à blanc.
+ *
+ * Voir A2-r4 Tour 8: le dispatcher routait à tort vers prepare_attack_card
+ * quand le user demandait "donne juste l'emplacement de la carte que tu
+ * viens de créer". Chantier 3 a ajouté un few-shot dispatcher pour router
+ * vers product_help dans ce cas, mais ce DB lookup est la garantie dure de
+ * fallback côté handler.
+ *
+ * TRANSITIONNEL. Critère de suppression: un run QA confirme que le
+ * dispatcher route systématiquement vers product_help dans ces cas.
+ */
+export type RecentActiveAttackCard = {
+  id: string;
+  title: string;
+  technique: string | null;
+  ageSeconds: number;
+};
+
+export async function loadRecentActiveAttackCardForUser(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  maxAgeSeconds?: number;
+}): Promise<RecentActiveAttackCard | null> {
+  const maxAge = Number.isFinite(args.maxAgeSeconds)
+    ? Number(args.maxAgeSeconds)
+    : 300;
+  if (typeof (args.supabase as any)?.from !== "function") return null;
+  try {
+    const { data, error } = await args.supabase
+      .from("user_attack_cards")
+      .select("id,content,generated_at")
+      .eq("user_id", args.userId)
+      .eq("status", "active")
+      .order("generated_at", { ascending: false })
+      .limit(1);
+    if (error || !data || (data as any[]).length === 0) return null;
+    const row = (data as any[])[0];
+    const generatedAt = Date.parse(String(row?.generated_at ?? ""));
+    if (!Number.isFinite(generatedAt)) return null;
+    const ageSeconds = Math.max(0, Math.round((Date.now() - generatedAt) / 1000));
+    if (ageSeconds > maxAge) return null;
+    const content = row?.content ?? null;
+    const title = String(
+      content?.operation_draft?.title ??
+        content?.techniques?.[0]?.generated_result?.output_title ??
+        content?.title ??
+        "carte d'attaque",
+    ).trim();
+    const technique = content?.operation_draft?.technique ??
+      content?.techniques?.[0]?.technique_key ??
+      content?.technique ??
+      null;
+    return {
+      id: String(row.id),
+      title,
+      technique: technique ? String(technique) : null,
+      ageSeconds,
+    };
+  } catch (err) {
+    console.warn(
+      "[Router] loadRecentActiveAttackCardForUser failed (non-blocking):",
+      err,
+    );
+    return null;
+  }
+}
+
+/**
+ * Chantier 4 (2026-05-28): détecte si le user demande EXPLICITEMENT une
+ * nouvelle/autre carte d'attaque alors qu'une carte récente existe déjà.
+ * Garde anti-faux-positif pour ne pas bloquer une création légitime
+ * (ex: deux cartes consécutives pour deux cibles différentes).
+ *
+ * Regex narrow par construction: doit matcher seulement quand le user
+ * exprime explicitement la volonté d'en faire une nouvelle, pas quand
+ * il référence l'existante.
+ */
+export function userExplicitlyAsksForNewAttackCardForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(nouvelle carte|autre carte|une autre|deuxieme carte|2eme carte|second(e)? carte|encore une carte|une carte de plus|une carte supplementaire)\b/
+    .test(text);
+}
+
+export async function loadActiveAttackKeywordOptions(args: {
   supabase: SupabaseClient;
   userId: string;
 }): Promise<
@@ -3085,7 +3176,7 @@ const DEFAULT_DISPATCHER_MEMORY_PLAN: DispatcherMemoryPlan = {
   plan_confidence: 0.7,
 };
 
-function attackCardCreatedLocation(
+export function attackCardCreatedLocation(
   target: unknown,
   technique?: unknown,
 ): string {
@@ -3611,6 +3702,30 @@ export function applyShortRepairNoProductOfferGuardForTest(args: {
   );
   return [first, second && second !== first ? second : null].filter(Boolean)
     .join("\n\n");
+}
+
+export function applyCompactStartGuardForTest(args: {
+  userMessage: string;
+  responseContent: string;
+}): string {
+  const user = normalizeRouteText(args.userMessage);
+  const asksCompactStart =
+    /\b(petit point d appui|demarrage compact|d[eé]marrage compact|juste demarrer|juste d[eé]marrer|juste debloquer|premier geste|premier pas|quoi faire maintenant)\b/
+      .test(user);
+  if (!asksCompactStart) return args.responseContent;
+  const response = String(args.responseContent ?? "").trim();
+  const looksTooWide = /(^|\n)\s*(?:a[.)]|b[.)]|\d+[.)]|-|•)\s+/i.test(
+    response,
+  ) ||
+    /\b(option|choix|a\/b|a ou b|trois etapes|3 etapes|carte d attaque|potion)\b/i
+      .test(response);
+  const lineCount =
+    response.split(/\n+/).filter((line) => line.trim().length > 0).length;
+  if (!looksTooWide && lineCount <= 3) return response;
+  return [
+    "On fait compact : choisis une seule zone visible et ouvre-la.",
+    "Premier geste : écris juste le titre du mini-pas suivant.",
+  ].join("\n");
 }
 
 export function statePotionDeclineReplyForTest(message: string): string {
@@ -5023,7 +5138,22 @@ export function isExplicitOneShotReminderModificationRequestForTest(
   const timeHint =
     /\b(demain|apres demain|aujourd hui|ce soir|matin|midi|soir|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|\d{1,2}\s*h(?:\s*\d{2})?|\d{1,2}:\d{2})\b/
       .test(text);
-  return existingReminder && modification && timeHint;
+  if (!(existingReminder && modification && timeHint)) return false;
+
+  // Chantier 14 (2026-05-28) — Anti-faux-positif. "ne change rien" / "sans
+  // modifier" est l'opposé d'une demande de modification. Et une question
+  // "où dans l'app je retrouve/verifie/annule ce rappel" est du product
+  // help, pas une modification. Voir A2-r6 T4/T8, A3-r7 T3.
+  const negatedModification =
+    /\b(ne change rien|ne touche (?:rien|pas)|sans (?:rien )?(?:modifier|changer|toucher)|sans parler (?:de|d) (?:le |la )?(?:modifier|changer)|pas (?:de )?(?:modification|changement))\b/
+      .test(text);
+  if (negatedModification) return false;
+  const productLocationQuestion =
+    /\b(ou (?:est ce que je|je vais|je peux|le|la|les)|je vais ou|(?:juste |seulement )?l emplacement|dans l app|dans l application|dans l interface|retrouver|verifier|consulter|voir|gerer)\b/
+      .test(text);
+  if (productLocationQuestion) return false;
+
+  return true;
 }
 
 export function isMicroActionOnlyNotAttackCardForTest(
@@ -5245,10 +5375,29 @@ function isRecapOnlyRequestForTest(message: string): boolean {
       .test(text);
 }
 
+export function localTextAddonForOneShotReminderForTest(
+  message: string,
+): string | null {
+  const text = normalizeRouteText(message);
+  if (!/\b(rappel|rappelle|rappeler|programme|programmer)\b/.test(text)) {
+    return null;
+  }
+  if (!/\b(phrase|message|texte|formule)\b/.test(text)) return null;
+  const asksShortPhrase =
+    /\b(phrase courte|message court|texte court|formule le|formule-moi)\b/
+      .test(text);
+  if (!asksShortPhrase) return null;
+  const name = String(message ?? "").match(
+    /\bpour\s+([A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ' -]{0,40})/i,
+  )?.[1]?.trim().replace(/[,.!?;:]+$/g, "") ?? "";
+  const target = name ? ` pour ${name}` : "";
+  return `Phrase courte${target} : "Je te confirme que je m'en occupe aujourd'hui, et je reviens vers toi dès que c'est fait."`;
+}
+
 export function isStatusOnlyNoMutationRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
   const explicitNoMutation =
-    /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place|en place)\b/
+    /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place|en place|verifie bien|verifie que|check final)\b/
       .test(text);
   const naturalDurableRecap =
     /\b(ce qui a (vraiment )?(ete )?(cree|creer|garde|gardee|gardes)|ce qui est (vraiment )?(cree|garde)|cree ou garde|crees ou gardes|vraiment ete cree|vraiment ete garde|juste pour la conversation|pour la conversation)\b/
@@ -5257,6 +5406,68 @@ export function isStatusOnlyNoMutationRequestForTest(message: string): boolean {
     /\b(carte|carte d attaque|carte de defense|rappel|preference|preferences|cree|creer|garde|gardee|gardes|conversation)\b/
       .test(text);
   return (explicitNoMutation || naturalDurableRecap) && durableSurface;
+}
+
+/**
+ * Garantie dure: le user impose un format conversationnel explicite et
+ * incompatible avec le panneau status canonique à 4 lignes.
+ *
+ * Quand vrai, le composer `buildStatusOnlyNoMutationRuntime` NE DOIT PAS
+ * être déclenché — la réponse doit passer par le composer `normal_reply`
+ * qui peut respecter la contrainte de format.
+ *
+ * Cette détection vit ici (pas dans `turn_intent_arbitrator.ts`) parce
+ * qu'elle agit sur l'éligibilité d'un runtime spécifique, pas sur le
+ * routing global. Elle reste une garantie dure: si le user dit
+ * explicitement "fait, prévu, fragile" ou "une ligne", on n'utilise pas
+ * un template à 5 lignes. Ce n'est pas de la détection sémantique
+ * d'intention, c'est de la validation de contrat de format.
+ *
+ * Patterns observés dans les runs A2-r4 T13/T14, A4-r4 T14, A6-r2 T15.
+ */
+export function isExplicitConversationalFormatRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  // "fait, prévu, fragile" séquence: spécifique, jamais faux positif.
+  if (
+    /\bfait\s*,?\s*prevu\s*,?\s*fragile\b/.test(text) ||
+    /\bfait\s*\/\s*prevu\s*\/\s*fragile\b/.test(text)
+  ) return true;
+  // Contraintes de longueur en lignes. On exige un contexte sans ambiguïté
+  // pour éviter de matcher des titres ou des objets ("carte Samir 3 lignes",
+  // "envoyer trois lignes à X"). Patterns acceptés:
+  //   - "en X lignes" (préposition obligatoire)
+  //   - "X lignes max/maximum/seulement"
+  //   - "X lignes," suivi de "sans" (ex: "Trois lignes, sans emoji")
+  //   - début de message: "X lignes [reste de phrase]"
+  if (
+    /\ben\s+(une|deux|trois|quatre|cinq|1|2|3|4|5)\s+ligne(s)?\b/.test(text) ||
+    /\b(une|deux|trois|quatre|cinq|1|2|3|4|5)\s+ligne(s)?\s+(max|maximum|seulement)\b/
+      .test(text) ||
+    /\b(une|deux|trois|quatre|cinq|1|2|3|4|5)\s+ligne(s)?\s*,\s*sans\b/
+      .test(text) ||
+    /^(une|deux|trois|quatre|cinq|1|2|3|4|5)\s+ligne(s)?\b/.test(text)
+  ) return true;
+  // Contrainte "phrase" — exige un contexte qui désambiguïse ("en une
+  // phrase", "une seule phrase"). "une phrase" tout seul peut être un
+  // objet ("écris une phrase pour Samir") et n'est PAS une contrainte.
+  if (
+    /\ben\s+(une|1)\s+(seule\s+)?phrase\b/.test(text) ||
+    /\b(une|1)\s+seule\s+phrase\b/.test(text)
+  ) return true;
+  if (
+    /\bpas (le|de) (panneau|gabarit|format standard)\b|\bsans (le )?panneau\b/
+      .test(text)
+  ) return true;
+  if (
+    /\bpas de statut systeme\b|\bsans statut systeme\b|\bpas le statut systeme\b/
+      .test(text)
+  ) return true;
+  if (
+    /\b(recap|recapitule|resume) conversationnel\b|\brecap humain\b/.test(text)
+  ) return true;
+  return false;
 }
 
 export function isCoachPreferenceVerificationRequestForTest(
@@ -5711,7 +5922,7 @@ function writeLastResolvedPlanItem(
   };
 }
 
-function operationInputFromLastPlanItem(
+export function operationInputFromLastPlanItem(
   tempMemory: any,
 ): Record<string, unknown> | null {
   const item = readLastResolvedPlanItem(tempMemory);
@@ -7036,7 +7247,7 @@ function isPendingRecurringReminderRecommendationOperation(
   );
 }
 
-function isPendingAttackCardRecommendationOperation(value: unknown): value is {
+export function isPendingAttackCardRecommendationOperation(value: unknown): value is {
   operation_type: "prepare_attack_card";
   surface_id?: string | null;
   surface_label?: string | null;
@@ -7055,7 +7266,7 @@ function isPendingAttackCardRecommendationOperation(value: unknown): value is {
   );
 }
 
-function isPendingDefenseCardRecommendationOperation(value: unknown): value is {
+export function isPendingDefenseCardRecommendationOperation(value: unknown): value is {
   operation_type: "prepare_defense_card";
   surface_id?: string | null;
   surface_label?: string | null;
@@ -7139,7 +7350,7 @@ export function attachPendingRecommendationOperation(args: {
   };
 }
 
-function isOperationEscapeMessage(message: string): boolean {
+export function isOperationEscapeMessage(message: string): boolean {
   const text = normalizePlanTargetText(message);
   if (!text) return false;
   return (
@@ -8043,7 +8254,7 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
   }
 }
 
-type OperationRuntimeResult = {
+export type OperationRuntimeResult = {
   content: string;
   additionalContents?: string[];
   nextTempMemory: any;
@@ -8224,7 +8435,7 @@ function isPendingStatePotionOperation(value: unknown): value is {
   );
 }
 
-async function detectConfirmationKind(args: {
+export async function detectConfirmationKind(args: {
   userMessage: string;
   operationType?: string;
   pendingContext?: unknown;
@@ -9056,7 +9267,7 @@ export function effectiveResponseOwnerForOperationRuntime(args: {
   return args.routeDecision?.response_owner ?? "normal_reply";
 }
 
-function isActiveAttackCardKeywordIntake(value: unknown): boolean {
+export function isActiveAttackCardKeywordIntake(value: unknown): boolean {
   const record = value as any;
   if (!record || typeof record !== "object") return false;
   if (record.operation_type !== "prepare_attack_card") return false;
@@ -9102,7 +9313,7 @@ function pendingAdjustPlanDraftReviewOperationType(
   return isPendingAdjustPlanDraftReview(raw) ? "adjust_plan_item" : null;
 }
 
-function operationRouteIsSelected(args: {
+export function operationRouteIsSelected(args: {
   operationType: string;
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
@@ -9205,7 +9416,7 @@ function isAmbivalentAdjustPlanReflectionRequest(text: string): boolean {
     !directAdjustmentCommand;
 }
 
-function isPendingAttackCardOperation(value: unknown): value is {
+export function isPendingAttackCardOperation(value: unknown): value is {
   operation_id?: string;
   operation_type: "prepare_attack_card";
   draft: AttackCardDraftV1;
@@ -9228,7 +9439,7 @@ function isPendingAttackCardOperation(value: unknown): value is {
   );
 }
 
-function attackCardTargetFromPendingConfirmation(
+export function attackCardTargetFromPendingConfirmation(
   pendingConfirmation: Record<string, unknown> | undefined,
   fallbackOperationInput?: Record<string, unknown> | null,
 ): {
@@ -9274,7 +9485,7 @@ function attackCardQuestionCandidate(value: unknown): {
   };
 }
 
-function attackCardTargetFromQuestionCandidate(
+export function attackCardTargetFromQuestionCandidate(
   value: unknown,
 ): Record<string, unknown> | null {
   const candidate = attackCardQuestionCandidate(value);
@@ -9344,7 +9555,7 @@ export function applyAttackCardSingleTechniquePreferenceForTest(
   };
 }
 
-function attackCardOperationInputWithSingleTechniqueApproval(
+export function attackCardOperationInputWithSingleTechniqueApproval(
   operationInput: Record<string, unknown> | null | undefined,
   userMessage: string,
 ): Record<string, unknown> | null | undefined {
@@ -9366,7 +9577,7 @@ function attackCardOperationInputWithSingleTechniqueApproval(
   };
 }
 
-function mergeAttackCardQuestionKnownSlots(
+export function mergeAttackCardQuestionKnownSlots(
   operationInput: Record<string, unknown> | null | undefined,
   nextQuestion: unknown,
 ): Record<string, unknown> | null | undefined {
@@ -9377,7 +9588,7 @@ function mergeAttackCardQuestionKnownSlots(
   return { ...(operationInput ?? {}), ...(known as Record<string, unknown>) };
 }
 
-function renderAttackCardSlotQuestion(
+export function renderAttackCardSlotQuestion(
   nextQuestion: unknown,
   fallback =
     "Il me manque l'action à viser. Donne-moi l'action ou décris-la en une phrase.",
@@ -9458,7 +9669,7 @@ function renderAttackCardSlotQuestion(
   return fallback;
 }
 
-function isAttackCardLocationOrManagementQuestion(message: string): boolean {
+export function isAttackCardLocationOrManagementQuestion(message: string): boolean {
   const text = normalizeOperationText(message);
   return /\b(retrouve|retrouver|trouve|trouver|chercher|cherche|ou exactement|ou est|ou sont|ressources|modifier|modifie|imprimer|imprime)\b/
     .test(text) &&
@@ -9552,7 +9763,7 @@ function renderAttackCardPostCreationVerificationReply(args: {
   return "Oui, je vérifie seulement. Je ne crée rien et je ne modifie rien.";
 }
 
-function isPendingDefenseCardOperation(value: unknown): value is {
+export function isPendingDefenseCardOperation(value: unknown): value is {
   operation_id?: string;
   operation_type: "prepare_defense_card";
   draft: DefenseCardDraftV1;
@@ -10133,7 +10344,7 @@ function getOperationServiceClient(): SupabaseClient | null {
   return operationServiceClient;
 }
 
-async function insertAttackCardFromDraft(args: {
+export async function insertAttackCardFromDraft(args: {
   supabase: SupabaseClient;
   userId: string;
   draft: AttackCardDraftV1;
@@ -11493,7 +11704,7 @@ function coachPreferenceStatusLabel(pref: any): string {
   );
 }
 
-async function upsertCoachPreferencesFromDraft(args: {
+export async function upsertCoachPreferencesFromDraftForTest(args: {
   supabase: SupabaseClient;
   userId: string;
   draft: CoachPreferencesPatchDraftV1;
@@ -11520,15 +11731,27 @@ async function upsertCoachPreferencesFromDraft(args: {
       last_confirmed_at: now,
     };
   });
-  return await args.supabase
+  if (rows.length === 0) {
+    return {
+      data: null,
+      error: { message: "empty_coach_preference_patch" },
+    };
+  }
+  const { data, error } = await args.supabase
     .from("user_profile_facts")
     .upsert(rows as any, { onConflict: "user_id,scope,key" })
-    .select("key")
-    .limit(1)
-    .single();
+    .select("key");
+  if (error) return { data: null, error };
+  const keys = (data ?? []).map((row: any) => String(row?.key ?? "")).filter(
+    Boolean,
+  );
+  return {
+    data: keys.length > 0 ? { key: keys[0], keys } : null,
+    error: keys.length > 0 ? null : { message: "missing_upserted_key" },
+  };
 }
 
-async function loadCoachQuestionTendencyLow(
+export async function loadCoachQuestionTendencyLow(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
@@ -11663,6 +11886,15 @@ async function buildStatusOnlyNoMutationRuntime(args: {
   const preferenceLine = prefLabels.length === 0
     ? "je n'en vois pas encore en place."
     : `oui, ${prefLabels.join(", ")}.`;
+  const userText = normalizeRouteText(args.userMessage ?? "");
+  const conversationLines = [
+    /\bpiege|pi[eè]ge|risque|fragile\b/.test(userText)
+      ? "- Piège / fragile : je le traite comme repère de conversation, pas comme écriture durable."
+      : null,
+    /\bhonte|culpabilite|culpabilit[eé]\b/.test(userText)
+      ? "- Honte / émotion : c'est dans le récap humain, sans outil lancé."
+      : null,
+  ].filter(Boolean) as string[];
   const lines = [
     "Sans rien modifier :",
     `- Carte d'attaque : ${
@@ -11677,6 +11909,7 @@ async function buildStatusOnlyNoMutationRuntime(args: {
     }`,
     `- Rappels ponctuels : ${reminderLine}`,
     `- Préférences coach : ${preferenceLine}`,
+    ...conversationLines,
   ];
   return {
     content: lines.join("\n"),
@@ -13170,796 +13403,14 @@ export async function maybeRunAdjustPlanItemOperation(args: {
   };
 }
 
-export async function maybeRunPrepareAttackCardOperation(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  userMessage: string;
-  channel: "web" | "whatsapp";
-  userTimezone: string;
-  tempMemory: any;
-  turnFrame: TurnFrame | null;
-  routeDecision: RouteDecision | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
-  sourceMessageId: string | null;
-  requestId?: string | null;
-  planSnapshot?: unknown;
-}): Promise<OperationRuntimeResult | null> {
-  const routeSelected = operationRouteIsSelected({
-    operationType: "prepare_attack_card",
-    routeDecision: args.routeDecision,
-    turnFrame: args.turnFrame,
-    tempMemory: args.tempMemory,
-  });
-  if (!routeSelected) return null;
-  if (isExplicitDefenseCardIntentForTest(args.userMessage)) return null;
-  if (
-    isAttackCardCancellationRequestForTest(args.userMessage) ||
-    isMicroActionOnlyNotAttackCardForTest(args.userMessage)
-  ) return null;
+// Chantier 5 (2026-05-28) — La fonction `maybeRunPrepareAttackCardOperation`
+// (969 lignes) a été déplacée dans son propre module
+// `tools/operations/prepare_attack_card/router.ts` pour amaigrir run.ts et
+// rapatrier la glue layer dans le module du skill. Aucune logique modifiée.
+// Voir docs/agent-playbook/13-architecture-skills, chantier 5.
+import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
+export { maybeRunPrepareAttackCardOperation };
 
-  const nextTempMemory = { ...(args.tempMemory ?? {}) };
-  const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
-    nextTempMemory.pending_tool_skill_confirmation ??
-    null;
-  const pendingRecommendation =
-    nextTempMemory.__pending_recommendation_operation;
-  if (
-    isPendingDefenseCardOperation(pendingRaw) ||
-    isPendingDefenseCardRecommendationOperation(pendingRecommendation) ||
-    String(
-        (nextTempMemory.__active_tool_skill_intake ??
-          nextTempMemory.active_tool_skill_intake ?? {})?.operation_type ?? "",
-      ) === "prepare_defense_card"
-  ) {
-    return null;
-  }
-  const activeAttackCardIntakeRaw = nextTempMemory.__active_tool_skill_intake ??
-    nextTempMemory.active_tool_skill_intake ??
-    null;
-  const explicitAttackCardRoute =
-    args.routeDecision?.response_owner === "tool_skill" &&
-    args.routeDecision?.selected_handler === "prepare_attack_card";
-  const hasAttackCardFlow = isPendingAttackCardOperation(pendingRaw) ||
-    isPendingAttackCardRecommendationOperation(pendingRecommendation) ||
-    String((activeAttackCardIntakeRaw as any)?.operation_type ?? "") ===
-      "prepare_attack_card";
-  if (
-    !explicitAttackCardRoute &&
-    !isPendingAttackCardOperation(pendingRaw) &&
-    String((activeAttackCardIntakeRaw as any)?.operation_type ?? "") !==
-      "prepare_attack_card" &&
-    args.routeDecision?.response_owner !== "tool_skill"
-  ) {
-    return null;
-  }
-  if (
-    isPendingAttackCardRecommendationOperation(pendingRecommendation) &&
-    !explicitAttackCardRoute &&
-    args.routeDecision?.response_owner !== "tool_skill"
-  ) {
-    return null;
-  }
-  if (!explicitAttackCardRoute && !hasAttackCardFlow) return null;
-  if (
-    !isPendingAttackCardOperation(pendingRaw) &&
-    !isPendingAttackCardRecommendationOperation(pendingRecommendation) &&
-    !activeAttackCardIntakeRaw &&
-    isAttackCardLocationOrManagementQuestion(args.userMessage)
-  ) {
-    return null;
-  }
-  if (
-    isOperationEscapeMessage(args.userMessage) &&
-    !isPendingAttackCardOperation(pendingRaw) &&
-    !isActiveAttackCardKeywordIntake(activeAttackCardIntakeRaw)
-  ) {
-    return null;
-  }
-  const occupiedAttackKeywords = await loadActiveAttackKeywordOptions({
-    supabase: args.supabase,
-    userId: args.userId,
-  });
-  const preferSingleTechniqueQuestion = await loadCoachQuestionTendencyLow(
-    args.supabase,
-    args.userId,
-  );
-  const withOccupiedAttackKeywords = (
-    input: Record<string, unknown> | null | undefined,
-  ) => ({
-    ...(input ?? {}),
-    occupied_activation_keywords: occupiedAttackKeywords,
-  });
-  const detectAttackCardConfirmation = () =>
-    detectConfirmationKind({
-      userMessage: args.userMessage,
-      operationType: "prepare_attack_card",
-      pendingContext: pendingRecommendation,
-      requestId: args.requestId ?? null,
-      structuredOnly: true,
-    });
-  const runAttackCardIntake = (
-    input: Parameters<typeof runPrepareAttackCardAiIntake>[0],
-  ) =>
-    runPrepareAttackCardAiIntake({
-      ...input,
-      request_id: args.requestId ?? null,
-    });
-  let fallbackOperationInput = operationInputFromLastPlanItem(nextTempMemory);
-  if (isPendingAttackCardOperation(pendingRaw)) {
-    if (isAttackCardExplicitApprovalForTest(args.userMessage)) {
-      const { data, error } = await insertAttackCardFromDraft({
-        supabase: args.supabase,
-        userId: args.userId,
-        draft: pendingRaw.draft,
-        operationId: pendingRaw.operation_id ?? null,
-        sourceMessageId: args.sourceMessageId,
-        requestId: args.requestId ?? null,
-        target: pendingRaw.target ?? null,
-      });
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-      delete nextTempMemory.__pending_recommendation_operation;
-      if (error || !data?.id) {
-        return {
-          content:
-            "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
-          nextTempMemory,
-          toolExecution: "failed",
-          executedTools: ["prepare_attack_card"],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: "failed",
-            operation_id: pendingRaw.operation_id ?? null,
-            error: error?.message ?? "missing_inserted_id",
-            draft_review_decision: {
-              decision: "approve",
-              confidence: "high",
-              evidence: ["deterministic_explicit_attack_card_approval"],
-            },
-          },
-        };
-      }
-      return {
-        content:
-          `C'est fait. J'ai créé cette carte d'attaque :\n\n${pendingRaw.draft.draft.title}\nTechnique : ${pendingRaw.draft.draft.technique_title}\n${pendingRaw.draft.draft.generated_asset}\n\nMode d'emploi : ${pendingRaw.draft.draft.mode_emploi}\n\n${
-            attackCardCreatedLocation(
-              pendingRaw.target,
-              pendingRaw.draft.draft.technique,
-            )
-          }`,
-        nextTempMemory,
-        toolExecution: "success",
-        executedTools: ["prepare_attack_card"],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "executed",
-          operation_id: pendingRaw.operation_id ?? null,
-          attack_card_id: data.id,
-          draft_review_decision: {
-            decision: "approve",
-            confidence: "high",
-            evidence: ["deterministic_explicit_attack_card_approval"],
-          },
-        },
-      };
-    }
-    const pendingReviewOutput = await runAttackCardIntake({
-      user_id: args.userId,
-      channel: args.channel,
-      timezone: args.userTimezone,
-      message: args.userMessage,
-      source: "direct_user_request",
-      trigger_message_id: args.sourceMessageId ?? args.requestId ??
-        crypto.randomUUID(),
-      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-      turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-      plan_snapshot: args.planSnapshot ?? {},
-      operation_input: withOccupiedAttackKeywords({
-        previous_draft: pendingRaw.draft,
-        target: attackCardTargetFromPendingConfirmation(
-          pendingRaw as unknown as Record<string, unknown>,
-          null,
-        ),
-        technique: pendingRaw.draft?.draft?.technique ?? undefined,
-        activation_keyword: pendingRaw.draft?.draft?.activation_keyword ??
-          undefined,
-        intake_state: (pendingRaw as any).intake_state ?? undefined,
-      }),
-    });
-    const draftReviewDecision =
-      pendingReviewOutput.state_patch.draft_review_decision;
-    if (!draftReviewDecision) {
-      if (
-        pendingReviewOutput.status === "pending_confirmation" &&
-        pendingReviewOutput.pending_confirmation &&
-        pendingReviewOutput.draft
-      ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
-          target: attackCardTargetFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            {
-              target: pendingRaw.target ?? null,
-              intake_state: (pendingRaw as any).intake_state ?? undefined,
-            },
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: pendingReviewOutput.confirmation?.message ??
-            pendingReviewOutput.draft.confirmation_message,
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: "pending_confirmation_updated",
-            operation_id: String(
-              pendingReviewOutput.pending_confirmation.operation_id ??
-                pendingRaw.operation_id ??
-                "",
-            ),
-            previous_operation_id: pendingRaw.operation_id ?? null,
-            draft: pendingReviewOutput.draft,
-            draft_review_decision: null,
-          },
-        };
-      }
-      if (pendingReviewOutput.status === "ask_question") {
-        const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
-          pendingReviewOutput.next_question,
-          { preferSingleTechnique: preferSingleTechniqueQuestion },
-        );
-        nextTempMemory.__active_tool_skill_intake = {
-          operation_type: "prepare_attack_card",
-          phase: pendingReviewOutput.phase,
-          missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          slot_state: nextQuestion ?? null,
-          operation_input: mergeAttackCardQuestionKnownSlots(
-            pendingReviewOutput.state_patch.operation_input ??
-              pendingReviewOutput.next_question?.known_slots ?? null,
-            nextQuestion,
-          ),
-          tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
-            null,
-          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-          updated_at: new Date().toISOString(),
-        };
-        return {
-          content: renderAttackCardSlotQuestion(nextQuestion),
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: pendingReviewOutput.status,
-            operation_id: pendingRaw.operation_id ?? null,
-            missing_slots: pendingReviewOutput.state_patch.missing_slots,
-            slot_state: nextQuestion ?? null,
-            draft_review_decision: null,
-          },
-        };
-      }
-      return {
-        content: pendingReviewOutput.ack ??
-          "Je n'ai pas réussi à relire cette validation techniquement. Je préfère ne rien créer sans confirmation claire.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: pendingReviewOutput.status,
-          operation_id: pendingRaw.operation_id ?? null,
-          missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          draft_review_decision: null,
-        },
-      };
-    }
-    if (draftReviewDecision.decision === "reject") {
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      return {
-        content: "Ok, je ne crée pas cette carte d'attaque.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "cancelled",
-          operation_id: pendingRaw.operation_id ?? null,
-          draft_review_decision: draftReviewDecision,
-        },
-      };
-    }
-    if (draftReviewDecision.decision === "explain") {
-      return {
-        content: pendingRaw.draft?.confirmation_message ??
-          pendingRaw.draft?.draft?.mode_emploi ??
-          "",
-        nextTempMemory,
-        toolExecution: "none",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "draft_review_details",
-          operation_id: pendingRaw.operation_id ?? null,
-          draft_review_decision: draftReviewDecision,
-        },
-      };
-    }
-    if (draftReviewDecision.decision === "revise") {
-      if (
-        pendingReviewOutput.status === "pending_confirmation" &&
-        pendingReviewOutput.pending_confirmation &&
-        pendingReviewOutput.draft
-      ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
-          target: attackCardTargetFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            null,
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: pendingReviewOutput.confirmation?.message ??
-            pendingReviewOutput.draft.confirmation_message,
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: "pending_confirmation_updated",
-            operation_id: String(
-              pendingReviewOutput.pending_confirmation.operation_id ??
-                pendingRaw.operation_id ??
-                "",
-            ),
-            previous_operation_id: pendingRaw.operation_id ?? null,
-            draft: pendingReviewOutput.draft,
-            draft_review_decision: draftReviewDecision,
-          },
-        };
-      }
-
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
-        pendingReviewOutput.next_question,
-        { preferSingleTechnique: preferSingleTechniqueQuestion },
-      );
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_attack_card",
-        phase: pendingReviewOutput.phase,
-        missing_slots: pendingReviewOutput.state_patch.missing_slots,
-        slot_state: nextQuestion ?? null,
-        operation_input: mergeAttackCardQuestionKnownSlots(
-          pendingReviewOutput.state_patch.operation_input ?? {
-            ...(pendingReviewOutput.next_question?.known_slots ?? {}),
-          },
-          nextQuestion,
-        ),
-        tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
-          null,
-        turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-      };
-      return {
-        content: renderAttackCardSlotQuestion(nextQuestion),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: pendingReviewOutput.status,
-          operation_id: pendingRaw.operation_id ?? null,
-          missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          slot_state: nextQuestion ?? null,
-          draft_review_decision: draftReviewDecision,
-        },
-      };
-    }
-    if (draftReviewDecision.decision !== "approve") return null;
-
-    const { data, error } = await insertAttackCardFromDraft({
-      supabase: args.supabase,
-      userId: args.userId,
-      draft: pendingRaw.draft,
-      operationId: pendingRaw.operation_id ?? null,
-      sourceMessageId: args.sourceMessageId,
-      requestId: args.requestId ?? null,
-      target: pendingRaw.target ?? null,
-    });
-    delete nextTempMemory.__pending_tool_skill_confirmation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    if (error || !data?.id) {
-      return {
-        content:
-          "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
-        nextTempMemory,
-        toolExecution: "failed",
-        executedTools: ["prepare_attack_card"],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "failed",
-          operation_id: pendingRaw.operation_id ?? null,
-          error: error?.message ?? "missing_inserted_id",
-        },
-      };
-    }
-    return {
-      content:
-        `C'est fait. J'ai créé cette carte d'attaque :\n\n${pendingRaw.draft.draft.title}\nTechnique : ${pendingRaw.draft.draft.technique_title}\n${pendingRaw.draft.draft.generated_asset}\n\nMode d'emploi : ${pendingRaw.draft.draft.mode_emploi}\n\n${
-          attackCardCreatedLocation(
-            pendingRaw.target,
-            pendingRaw.draft.draft.technique,
-          )
-        }`,
-      nextTempMemory,
-      toolExecution: "success",
-      executedTools: ["prepare_attack_card"],
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: "executed",
-        operation_id: pendingRaw.operation_id ?? null,
-        attack_card_id: data.id,
-      },
-    };
-  }
-
-  const activeAttackCardIntake = activeAttackCardIntakeRaw as any;
-  const activeTargetQuestion = activeAttackCardIntake?.operation_type ===
-      "prepare_attack_card"
-    ? activeAttackCardIntake.slot_state ?? activeAttackCardIntake.next_question
-    : null;
-  const activeTargetCandidate = attackCardTargetFromQuestionCandidate(
-    activeTargetQuestion?.candidate,
-  );
-  const activeKnownSlots = attackCardOperationInputWithSingleTechniqueApproval(
-    activeAttackCardIntake?.operation_input ??
-      activeTargetQuestion?.known_slots ??
-      {},
-    args.userMessage,
-  ) ?? {};
-  if (activeTargetCandidate) {
-    const candidateOutput = await runAttackCardIntake({
-      user_id: args.userId,
-      channel: args.channel,
-      timezone: args.userTimezone,
-      message: args.userMessage,
-      source: "direct_user_request",
-      trigger_message_id: args.sourceMessageId ?? args.requestId ??
-        crypto.randomUUID(),
-      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-      turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
-      plan_snapshot: args.planSnapshot ?? {},
-      operation_input: withOccupiedAttackKeywords({
-        ...activeKnownSlots,
-        target_candidate: activeTargetCandidate,
-      }),
-    });
-    if (
-      candidateOutput.status === "pending_confirmation" &&
-      candidateOutput.pending_confirmation
-    ) {
-      nextTempMemory.__pending_tool_skill_confirmation = {
-        ...candidateOutput.pending_confirmation,
-        target: attackCardTargetFromPendingConfirmation(
-          candidateOutput.pending_confirmation,
-          { target: activeTargetCandidate },
-        ),
-        created_at: new Date().toISOString(),
-        turn_count: 0,
-      };
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-      return {
-        content: candidateOutput.confirmation?.message ??
-          candidateOutput.draft?.confirmation_message ?? "",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "pending_confirmation",
-          operation_id:
-            (candidateOutput.pending_confirmation as any)?.operation_id ??
-              null,
-          draft: candidateOutput.draft ?? null,
-          target_slot_resolution: {
-            status: "resolved_by_skill_intake",
-            target: activeTargetCandidate,
-          },
-        },
-      };
-    }
-    const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
-      candidateOutput.next_question,
-      { preferSingleTechnique: preferSingleTechniqueQuestion },
-    );
-    nextTempMemory.__active_tool_skill_intake = {
-      operation_type: "prepare_attack_card",
-      phase: candidateOutput.phase,
-      missing_slots: candidateOutput.state_patch.missing_slots,
-      slot_state: nextQuestion ?? null,
-      operation_input: mergeAttackCardQuestionKnownSlots(
-        candidateOutput.state_patch.operation_input ?? {
-          ...activeKnownSlots,
-          target_candidate: activeTargetCandidate,
-          ...(candidateOutput.next_question?.known_slots ?? {}),
-        },
-        nextQuestion,
-      ),
-      tool_skill_state: candidateOutput.state_patch.tool_skill_state ?? null,
-      turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
-      updated_at: new Date().toISOString(),
-    };
-    return {
-      content: renderAttackCardSlotQuestion(nextQuestion),
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: candidateOutput.status,
-        missing_slots: candidateOutput.state_patch.missing_slots,
-        slot_state: nextQuestion ?? null,
-        target_slot_resolution: {
-          status: "handled_by_skill_intake",
-          target: activeTargetCandidate,
-        },
-      },
-    };
-  }
-
-  if (
-    activeAttackCardIntake?.operation_type === "prepare_attack_card" &&
-    activeAttackCardIntake?.operation_input
-  ) {
-    fallbackOperationInput =
-      attackCardOperationInputWithSingleTechniqueApproval(
-        activeAttackCardIntake.operation_input,
-        args.userMessage,
-      ) ?? activeAttackCardIntake.operation_input;
-  }
-
-  if (isPendingAttackCardRecommendationOperation(pendingRecommendation)) {
-    const confirmation = await detectAttackCardConfirmation();
-    if (confirmation === "no") {
-      delete nextTempMemory.__pending_recommendation_operation;
-      return {
-        content: "Ok, je ne crée pas cette carte d'attaque.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: "recommendation_cancelled",
-          recommendation_id: pendingRecommendation.recommendation_id ?? null,
-        },
-      };
-    }
-    if (confirmation !== "yes" && !explicitAttackCardRoute) return null;
-
-    const recommendationOutput = await runAttackCardIntake({
-      user_id: args.userId,
-      channel: args.channel,
-      timezone: args.userTimezone,
-      message: args.userMessage,
-      source: "recommendation_tool",
-      trigger_message_id: args.sourceMessageId ?? args.requestId ??
-        crypto.randomUUID(),
-      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-      plan_snapshot: args.planSnapshot ?? {},
-      operation_input: withOccupiedAttackKeywords(
-        pendingRecommendation.operation_input ?? null,
-      ),
-    });
-
-    if (
-      recommendationOutput.status !== "pending_confirmation" ||
-      !recommendationOutput.draft ||
-      !recommendationOutput.pending_confirmation
-    ) {
-      delete nextTempMemory.__pending_recommendation_operation;
-      if (recommendationOutput.status === "ask_question") {
-        const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
-          recommendationOutput.next_question,
-          { preferSingleTechnique: preferSingleTechniqueQuestion },
-        );
-        nextTempMemory.__active_tool_skill_intake = {
-          operation_type: "prepare_attack_card",
-          phase: recommendationOutput.phase,
-          missing_slots: recommendationOutput.state_patch.missing_slots,
-          slot_state: nextQuestion ?? null,
-          operation_input: mergeAttackCardQuestionKnownSlots(
-            recommendationOutput.state_patch.operation_input ?? {
-              ...(pendingRecommendation.operation_input ?? {}),
-              ...(recommendationOutput.next_question?.known_slots ?? {}),
-            },
-            nextQuestion,
-          ),
-          tool_skill_state: recommendationOutput.state_patch.tool_skill_state ??
-            null,
-          turn_count: 1,
-          updated_at: new Date().toISOString(),
-        };
-        return {
-          content: renderAttackCardSlotQuestion(
-            nextQuestion,
-            recommendationOutput.state_patch.missing_slots.includes("target")
-              ? "Il manque la cible à rattacher à cette carte."
-              : "Il me manque encore un choix pour préparer cette carte.",
-          ),
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_attack_card",
-            status: recommendationOutput.status,
-            source: "recommendation_tool",
-            missing_slots: recommendationOutput.state_patch.missing_slots,
-            slot_state: nextQuestion ?? null,
-          },
-        };
-      }
-      return {
-        content: renderAttackCardSlotQuestion(
-          recommendationOutput.next_question,
-          recommendationOutput.state_patch.missing_slots.includes("target")
-            ? "Il manque la cible à rattacher à cette carte."
-            : "Il me manque encore un choix pour préparer cette carte.",
-        ),
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_attack_card",
-          status: recommendationOutput.status,
-          source: "recommendation_tool",
-          missing_slots: recommendationOutput.state_patch.missing_slots,
-          slot_state: recommendationOutput.next_question ?? null,
-        },
-      };
-    }
-
-    nextTempMemory.__pending_tool_skill_confirmation = {
-      ...recommendationOutput.pending_confirmation,
-      target: attackCardTargetFromPendingConfirmation(
-        recommendationOutput.pending_confirmation,
-        pendingRecommendation.operation_input ?? null,
-      ),
-      created_at: new Date().toISOString(),
-      turn_count: 0,
-    };
-    delete nextTempMemory.__pending_recommendation_operation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content: recommendationOutput.confirmation?.message ??
-        recommendationOutput.draft.confirmation_message,
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: "pending_confirmation",
-        source: "recommendation_tool",
-        recommendation_id: pendingRecommendation.recommendation_id ?? null,
-        operation_id: String(
-          recommendationOutput.pending_confirmation.operation_id ??
-            "",
-        ),
-        draft: recommendationOutput.draft,
-      },
-    };
-  }
-
-  const output = await runAttackCardIntake({
-    user_id: args.userId,
-    channel: args.channel,
-    timezone: args.userTimezone,
-    message: args.userMessage,
-    source: "direct_user_request",
-    trigger_message_id: args.sourceMessageId ?? args.requestId ??
-      crypto.randomUUID(),
-    safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-    turn_count: Number(activeAttackCardIntake?.turn_count ?? 0),
-    plan_snapshot: args.planSnapshot ?? {},
-    operation_input: {
-      ...(fallbackOperationInput ?? {}),
-      occupied_activation_keywords: occupiedAttackKeywords,
-    },
-  });
-
-  if (output.status === "pending_confirmation" && output.pending_confirmation) {
-    nextTempMemory.__pending_tool_skill_confirmation = {
-      ...output.pending_confirmation,
-      target: attackCardTargetFromPendingConfirmation(
-        output.pending_confirmation,
-        fallbackOperationInput,
-      ),
-      created_at: new Date().toISOString(),
-      turn_count: 0,
-    };
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content: output.confirmation?.message ??
-        "Tu veux que je crée cette carte d'attaque ?",
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: "pending_confirmation",
-        operation_id: (output.pending_confirmation as any)?.operation_id ??
-          null,
-        draft: output.draft ?? null,
-      },
-    };
-  }
-
-  if (output.status === "ask_question") {
-    const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
-      output.next_question,
-      { preferSingleTechnique: preferSingleTechniqueQuestion },
-    );
-    nextTempMemory.__active_tool_skill_intake = {
-      operation_type: "prepare_attack_card",
-      phase: output.phase,
-      missing_slots: output.state_patch.missing_slots,
-      slot_state: nextQuestion ?? null,
-      operation_input: mergeAttackCardQuestionKnownSlots(
-        output.state_patch.operation_input ??
-          output.next_question?.known_slots ?? null,
-        nextQuestion,
-      ),
-      tool_skill_state: output.state_patch.tool_skill_state ?? null,
-      turn_count: 1,
-      updated_at: new Date().toISOString(),
-    };
-    return {
-      content: renderAttackCardSlotQuestion(nextQuestion),
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_attack_card",
-        status: "ask_question",
-        missing_slots: output.state_patch.missing_slots,
-        slot_state: nextQuestion ?? null,
-      },
-    };
-  }
-
-  return {
-    content: output.ack ??
-      "Je n'ai pas pu préparer cette carte depuis le chat pour l'instant.",
-    nextTempMemory,
-    toolExecution: output.status === "blocked_by_safety" ? "blocked" : "failed",
-    executedTools: output.status === "blocked_by_safety"
-      ? []
-      : ["prepare_attack_card"],
-    toolSkillRun: {
-      selected_handler: "prepare_attack_card",
-      status: output.status,
-      missing_slots: output.state_patch.missing_slots,
-    },
-  };
-}
 
 async function maybeRunPrepareDefenseCardOperation(args: {
   supabase: SupabaseClient;
@@ -15163,7 +14614,7 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
   if (isRecapOnlyRequestForTest(args.userMessage)) return null;
   if (isPendingCoachPreferencesOperation(pendingRaw)) {
     if (isCoachPreferenceExplicitApprovalForTest(args.userMessage)) {
-      const { data, error } = await upsertCoachPreferencesFromDraft({
+      const { data, error } = await upsertCoachPreferencesFromDraftForTest({
         supabase: args.supabase,
         userId: args.userId,
         draft: pendingRaw.draft,
@@ -15367,7 +14818,7 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
       };
     }
 
-    const { data, error } = await upsertCoachPreferencesFromDraft({
+    const { data, error } = await upsertCoachPreferencesFromDraftForTest({
       supabase: args.supabase,
       userId: args.userId,
       draft: pendingRaw.draft,
@@ -15439,7 +14890,7 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     if (
       isCoachPreferenceExplicitApprovalForTest(args.userMessage) && output.draft
     ) {
-      const { data, error } = await upsertCoachPreferencesFromDraft({
+      const { data, error } = await upsertCoachPreferencesFromDraftForTest({
         supabase: args.supabase,
         userId: args.userId,
         draft: output.draft,
@@ -16165,6 +15616,33 @@ export async function processMessage(
         pendingOperationConfirmationForGlobalRouting,
       safety_pregate_risk_band: safetyPregateOutput.risk_band,
     });
+    const centralArbitration = arbitrateTurnIntent({
+      userMessage,
+      routeDecision,
+      turnFrame,
+      tempMemory,
+      activeOperationIntake,
+      pendingOperationConfirmation:
+        pendingOperationConfirmationForGlobalRouting,
+      safetyBlocksTools: blocksToolSkills(safetyPregateOutput.risk_band),
+    });
+    if (centralArbitration.changed) {
+      routeDecision = centralArbitration.routeDecision;
+      turnFrame = centralArbitration.turnFrame;
+      tempMemory = centralArbitration.tempMemory;
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      if (centralArbitration.clearTargets.includes("active_tool")) {
+        activeOperationIntake = null;
+      }
+      if (centralArbitration.clearTargets.includes("pending_tool")) {
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+      }
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
     if (
       !blocksToolSkills(safetyPregateOutput.risk_band) &&
       routeDecision.response_owner !== "safety" &&
@@ -18068,8 +17546,10 @@ export async function processMessage(
     directOneShotReminderRuntime?.detected &&
       directOneShotReminderRuntime.status === "success"
       ? {
-        content:
+        content: [
           `C'est programmé pour ${directOneShotReminderRuntime.scheduled_for_local_label} : ${directOneShotReminderRuntime.reminder_instruction}.`,
+          localTextAddonForOneShotReminderForTest(userMessage),
+        ].filter(Boolean).join("\n\n"),
         nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
         toolExecution: "success",
         executedTools: ["create_one_shot_reminder"],
@@ -18115,7 +17595,14 @@ export async function processMessage(
         },
       }
       : null;
+  // Garde de format conversationnel: si le user impose explicitement un
+  // format incompatible avec le panneau status canonique (ex: "fait,
+  // prévu, fragile", "une ligne", "trois lignes", "pas de statut
+  // système"), on laisse normal_reply prendre la main au lieu du composer
+  // status_only fixe. Voir docs/agent-playbook/13-architecture-skills,
+  // décision 2026-05-28 chantier 1.
   const statusOnlyNoMutationRuntime = !routeSafetyActive &&
+      !isExplicitConversationalFormatRequestForTest(userMessage) &&
       (isStatusOnlyNoMutationRequestForTest(userMessage) ||
         isOneShotReminderExactStatusRequestForTest(userMessage) ||
         isRecapOnlyRequestForTest(userMessage))
@@ -19161,6 +18648,10 @@ export async function processMessage(
     tempMemory,
   });
   responseContent = applyShortRepairNoProductOfferGuardForTest({
+    userMessage,
+    responseContent,
+  });
+  responseContent = applyCompactStartGuardForTest({
     userMessage,
     responseContent,
   });

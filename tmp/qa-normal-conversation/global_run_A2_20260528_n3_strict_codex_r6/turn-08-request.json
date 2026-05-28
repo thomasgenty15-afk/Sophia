@@ -1,0 +1,10 @@
+{
+  "user_id": "39cc9078-4386-4dd3-be10-66dfeb9d6a00",
+  "content": "Et pour le rappel ponctuel de 11h50, juste l'emplacement où je peux le vérifier dans l'app, sans parler de le modifier.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

@@ -1,0 +1,23 @@
+{
+  "n": 14,
+  "user": "Oui, le récap maintenant. Trois lignes: fait, prévu, fragile. Pas de question, pas d'outil.",
+  "assistant": "Fait : carte d’attaque “Stationnement : Payé = Fermé” en place.\nPrévu : rappel ponctuel “Payer le stationnement” à 09:45.\nFragile : tu te fais facilement embarquer par l’appli/rappels (honte = normal, mais on resserre).",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r5-t14",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "active_skill_exit_requested",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

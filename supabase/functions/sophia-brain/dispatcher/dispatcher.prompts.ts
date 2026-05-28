@@ -1,7 +1,7 @@
 import { DOMAIN_KEYS_V1_DEFINITIONS } from "../../_shared/memory/domain_keys.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 
-export const DISPATCHER_V2_PROMPT_VERSION = "dispatcher_v2_prompt_2026_05_s16";
+export const DISPATCHER_V2_PROMPT_VERSION = "dispatcher_v2_prompt_2026_05_s17_l3_migration";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -381,6 +381,145 @@ export function buildDispatcherPrompt(input: {
           skill_signals_entry: {},
           note:
             "La technique manquante sera collectée par le Tool Skill; ne réponds pas en conseil conversationnel.",
+        },
+      },
+      {
+        // L3 migration: detectsExplicitOneShotReminderCreate.
+        // Bug historique A4-r4 T8/T9: payload_hint vide → aucun rappel créé.
+        user_message:
+          "Programme-moi un rappel ponctuel demain à 11h35 pour payer la facture.",
+        expected: {
+          direct_effects: [{
+            effect_type: "create_one_shot_reminder",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              raw_text:
+                "Programme-moi un rappel ponctuel demain à 11h35 pour payer la facture.",
+              when_hint: "demain 11h35",
+              instruction_hint: "payer la facture",
+            },
+          }],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Demande de rappel ponctuel avec moment identifiable: direct_effect create_one_shot_reminder. payload_hint DOIT contenir raw_text complet pour que le runtime aval puisse extraire scheduled_for et instruction. Ne mets PAS tool_skill_intents prepare_attack_card même si le message mentionne une action concrète.",
+        },
+      },
+      {
+        // L3 migration: detectsActiveToolCancellation.
+        // Bug historique: prepare_attack_card actif continuait à demander
+        // des slots alors que le user disait "pas de carte".
+        user_message:
+          "Non, pas de carte. Annule ce flow et donne-moi seulement l'action: ouvrir les deux PDF.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_exit: {
+            prepare_attack_card: {
+              detected: true,
+              reason: "user_explicit_no_card_cancels_active_flow",
+            },
+          },
+          note:
+            "Si un tool_skill_intake actif (prepare_attack_card/prepare_defense_card) attend des slots et le user dit 'pas de carte' / 'annule ce flow' / 'sans carte': c'est un exit explicite du tool skill. Ne mets PAS tool_skill_intents (même prepare_attack_card) et ne reprends pas la collecte de slots. La conversation continue en normal_reply.",
+        },
+      },
+      {
+        // L3 migration: detectsDurableCoachPreference.
+        // Différencier "garde comme préférence" (intent explicite) vs
+        // "tu poses trop de questions" (opportunité, pas intent).
+        user_message:
+          "Pour la suite, enregistre une préférence durable: quand je dis 'court', zéro emoji, trois lignes max, et pas de question finale si elle n'est pas nécessaire.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [{
+            operation_type: "update_coach_preferences",
+            explicitness: "explicit",
+            target_hint:
+              "quand je dis 'court', zéro emoji, trois lignes max, pas de question finale",
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "update",
+          }],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Marqueurs combinés ('pour la suite' / 'enregistre' / 'garde comme préférence' / 'préférence durable') + contenu de préférence concret = update_coach_preferences explicite. C'est un tool_skill_intent, PAS une opportunité coach_preferences. Différent du cas 'tu poses trop de questions' qui reste une opportunité sans intent.",
+        },
+      },
+      {
+        // L3 migration: detectsExplicitProductHelp.
+        // Question sur l'emplacement/modification d'une surface dans l'app.
+        // Bug historique A2-r4 T8: route vers prepare_attack_card au lieu
+        // de product_help quand le user demande "où je retrouve cette carte".
+        user_message:
+          "Où est-ce que je retrouve cette carte d'attaque dans l'app ? Juste l'emplacement, pas d'action.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {
+            product_help: {
+              detected: true,
+              confidence_band: "high",
+              reason: "user_asks_app_location_for_durable_surface",
+            },
+          },
+          note:
+            "Question sur l'emplacement / modification / annulation d'une surface durable dans l'interface (carte d'attaque, carte de défense, rappel, préférence) = product_help. Ne mets PAS tool_skill_intents prepare_attack_card juste parce que le mot 'carte' apparaît. Marqueurs: 'où', 'dans l'app', 'dans l'application', 'retrouver', 'modifier', 'annuler', 'supprimer' + nom de surface.",
+        },
+      },
+      {
+        // L3 migration: detectsExactDurableStatus.
+        // Demande de vérification d'état durable sans modification.
+        user_message:
+          "Sans rien modifier, vérifie ce qui est vraiment en place côté carte, rappel et préférence coach.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Demande de vérification d'état durable sans modification ('sans rien modifier', 'vraiment enregistré', 'ce qui est vraiment cree', 'confirme/non confirmé', 'statut fiable'): aucun tool_skill_intent, aucun direct_effect, aucune opportunité. La réponse passe par normal_reply qui lira la DB en aval (runtime status_only_no_mutation). Le user veut lire, pas écrire.",
         },
       },
     ],

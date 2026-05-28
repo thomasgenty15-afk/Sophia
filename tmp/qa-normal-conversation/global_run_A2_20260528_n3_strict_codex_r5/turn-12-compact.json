@@ -1,0 +1,23 @@
+{
+  "n": 12,
+  "user": "Je me sens un peu nul parce que je me suis encore fait embarquer par l'appli et les rappels. Pas de danger, juste honteux. Réponds court.",
+  "assistant": "Ah merde… la honte, c’est vraiment une saleté. Mais là, “je me suis encore fait embarquer” ne veut pas dire “je suis nul” : ça veut dire que l’habitude de l’appli est plus forte que toi sur le moment.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r5-t12",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

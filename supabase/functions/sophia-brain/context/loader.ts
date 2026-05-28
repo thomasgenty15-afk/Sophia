@@ -523,6 +523,21 @@ export async function loadContextForMode(
     );
   }
 
+  // Durable effects summary (chantier 2 phase B): injecté uniquement en mode
+  // companion (où vit normal_reply). Empêche le LLM d'halluciner l'absence
+  // d'effets durables qui existent vraiment côté DB (cartes, rappels,
+  // préférences coach). Voir A2-r4 Tour 9.
+  if (opts.mode === "companion") {
+    promises.push(
+      loadDurableEffectsSummary(opts.supabase, opts.userId).then((block) => {
+        if (block) {
+          context.durableEffectsSummary = block;
+          elementsLoaded.push("durable_effects_summary");
+        }
+      }),
+    );
+  }
+
   // 2. Temporal context
   if (profile.temporal && opts.userTime?.prompt_block) {
     context.temporal =
@@ -975,6 +990,10 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.rendezVousSummary) ctx += loaded.rendezVousSummary + "\n\n";
   if (loaded.temporal) ctx += loaded.temporal;
   if (loaded.facts) ctx += loaded.facts;
+  // Source de vérité DB des effets durables en cours: placée tôt et avant
+  // memoryV2Payload pour que le LLM la voie quand il s'apprête à parler
+  // d'une carte/rappel/préférence. Voir chantier 2 phase B.
+  if (loaded.durableEffectsSummary) ctx += loaded.durableEffectsSummary;
   if (loaded.whatsappFilRouge) ctx += loaded.whatsappFilRouge;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
@@ -2082,6 +2101,240 @@ function formatBilanJustStoppedAddon(addon: any): string {
     `- 1 phrase max, bienveillante.\n` +
     `- Ne relance pas le bilan maintenant.\n`
   );
+}
+
+// ===========================================================================
+// Durable effects summary (chantier 2 phase B, 2026-05-28)
+//
+// Injecte dans le prompt companion un mini résumé de l'état durable côté DB:
+// dernière carte d'attaque/défense active, rappels ponctuels en attente,
+// préférences coach actives. Sert de "source de vérité" pour empêcher le
+// LLM d'halluciner "on n'a pas validé/créé X" alors que la DB confirme X.
+//
+// Voir docs/agent-playbook/13-architecture-skills, chantier 2 phase B.
+// ===========================================================================
+
+function ageLabelFromIso(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const t = Date.parse(String(iso));
+  if (!Number.isFinite(t)) return "";
+  const diffMs = Date.now() - t;
+  if (diffMs < 0) return "";
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 1) return "il y a moins d'1 min";
+  if (minutes < 60) return `il y a ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `il y a ${hours} h`;
+  const days = Math.round(hours / 24);
+  if (days < 14) return `il y a ${days} j`;
+  return `il y a ${Math.round(days / 7)} sem`;
+}
+
+function extractCardTitleFromContent(content: any): string {
+  return String(
+    content?.operation_draft?.title ??
+      content?.techniques?.[0]?.generated_result?.output_title ??
+      content?.title ??
+      content?.card_title ??
+      "",
+  ).trim();
+}
+
+function extractTechniqueLabelFromContent(content: any): string {
+  const technique = content?.operation_draft?.technique ??
+    content?.techniques?.[0]?.technique_key ??
+    content?.technique ??
+    "";
+  return String(technique ?? "").trim();
+}
+
+// Chantier 12 (2026-05-28) — Affichage des heures de rappel dans la
+// timezone utilisateur. Sans ça, le summary affiche le ISO UTC brut
+// (ex: "2026-05-28T09:21:00+00:00") et le LLM le reproduit tel quel
+// dans les récaps/status, alors que l'utilisateur attend "11:21 (heure
+// France)". Voir A4-r6 T15.
+function formatScheduledForUserTimezone(
+  iso: string,
+  timezone: string,
+): string {
+  if (!iso) return "";
+  const ts = Date.parse(iso);
+  if (!Number.isFinite(ts)) return iso;
+  try {
+    const fmt = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: timezone,
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    return `${fmt.format(new Date(ts))} (${timezone})`;
+  } catch {
+    return iso;
+  }
+}
+
+function extractReminderInstruction(payload: any): string {
+  return String(
+    payload?.reminder_instruction ??
+      payload?.instruction ??
+      payload?.text ??
+      "rappel ponctuel",
+  )
+    .replace(
+      /^Rappel ponctuel demandé explicitement par l'utilisateur\. Rappelle-lui de\s*/i,
+      "",
+    )
+    .trim();
+}
+
+/**
+ * Charge un résumé compact des effets durables en cours pour ce user.
+ * Retourne null si rien à dire (aucun durable, pas de risque d'hallucination).
+ */
+export async function loadDurableEffectsSummary(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  try {
+    // Chantier 12 (2026-05-28): on fetch la timezone user en même temps
+    // que les effets durables pour formater les heures de rappel en local.
+    const profileTzPromise = (async () => {
+      try {
+        const { data } = await supabase
+          .from("profiles")
+          .select("timezone")
+          .eq("id", userId)
+          .maybeSingle();
+        const tz = String((data as any)?.timezone ?? "").trim();
+        return tz || "Europe/Paris";
+      } catch {
+        return "Europe/Paris";
+      }
+    })();
+    const [attackRes, defenseRes, checkinsRes, prefsRes, userTimezone] =
+      await Promise.all([
+      supabase
+        .from("user_attack_cards")
+        .select("id,content,generated_at")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("generated_at", { ascending: false })
+        .limit(1),
+      supabase
+        .from("user_defense_cards")
+        .select("id,content,generated_at")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("generated_at", { ascending: false })
+        .limit(1),
+      supabase
+        .from("scheduled_checkins")
+        .select("id,scheduled_for,status,message_payload")
+        .eq("user_id", userId)
+        .eq("status", "pending")
+        .order("scheduled_for", { ascending: true })
+        .limit(5),
+      supabase
+        .from("user_profile_facts")
+        .select("key,value,status,updated_at")
+        .eq("user_id", userId)
+        .eq("scope", "global")
+        .eq("status", "active")
+        .like("key", "coach.%")
+        .order("updated_at", { ascending: false })
+        .limit(5),
+      profileTzPromise,
+    ]);
+
+    const attack = (attackRes.data ?? [])[0] as any;
+    const defense = (defenseRes.data ?? [])[0] as any;
+    const checkins = (checkinsRes.data ?? []) as any[];
+    const prefs = (prefsRes.data ?? []) as any[];
+
+    const hasAnything = Boolean(attack) || Boolean(defense) ||
+      checkins.length > 0 || prefs.length > 0;
+    if (!hasAnything) return null;
+
+    const lines: string[] = [];
+    lines.push("=== ÉTAT DURABLE ACTUEL (DB, source de vérité) ===");
+
+    if (attack) {
+      const title = extractCardTitleFromContent(attack?.content) ||
+        "carte d'attaque";
+      const technique = extractTechniqueLabelFromContent(attack?.content);
+      const age = ageLabelFromIso(attack?.generated_at) || "récente";
+      const techniqueText = technique ? ` (technique: ${technique})` : "";
+      lines.push(
+        `- Carte d'attaque active (${age}): "${title}"${techniqueText}.`,
+      );
+    } else {
+      lines.push("- Carte d'attaque active: aucune.");
+    }
+
+    if (defense) {
+      const title = extractCardTitleFromContent(defense?.content) ||
+        "carte de défense";
+      const age = ageLabelFromIso(defense?.generated_at) || "récente";
+      lines.push(`- Carte de défense active (${age}): "${title}".`);
+    } else {
+      lines.push("- Carte de défense active: aucune.");
+    }
+
+    if (checkins.length === 0) {
+      lines.push("- Rappels ponctuels en attente: aucun.");
+    } else {
+      // Chantier 6 (2026-05-28) — Détailler TOUS les rappels en attente,
+      // pas seulement le premier. Sinon, sur une question multi-rappels
+      // ("11h18 confirmé ? 11h32 confirmé ?"), le LLM ne voit qu'un seul
+      // rappel détaillé et répond à tort "non confirmé" pour les autres.
+      // Voir A4-r5 T11.
+      lines.push(`- Rappels ponctuels en attente (${checkins.length}):`);
+      for (const checkin of checkins) {
+        const instruction = extractReminderInstruction(checkin?.message_payload);
+        const scheduledRaw = String(checkin?.scheduled_for ?? "").trim();
+        // Chantier 12: afficher l'heure locale utilisateur, garder l'ISO
+        // entre parenthèses pour traçabilité.
+        const scheduledLocal = scheduledRaw
+          ? formatScheduledForUserTimezone(scheduledRaw, userTimezone)
+          : "";
+        const scheduledLabel = scheduledLocal
+          ? `${scheduledLocal} [iso: ${scheduledRaw}]`
+          : "";
+        lines.push(
+          `  • ${scheduledLabel ? `${scheduledLabel} — ` : ""}${instruction}.`,
+        );
+      }
+    }
+
+    const prefLines = prefs
+      .filter((row) => typeof row?.key === "string" && row?.value !== undefined)
+      .map((row) => `${row.key}=${String(row.value).slice(0, 60)}`);
+    if (prefLines.length === 0) {
+      lines.push("- Préférences coach actives: aucune.");
+    } else {
+      const head = prefLines.slice(0, 4).join("; ");
+      const rest = prefLines.length > 4 ? `; (+${prefLines.length - 4})` : "";
+      lines.push(`- Préférences coach actives (${prefLines.length}): ${head}${rest}.`);
+    }
+
+    lines.push(
+      "Consigne: ces lignes décrivent ce qui existe vraiment côté DB. " +
+        "Ne dis JAMAIS \"on n'a pas validé/créé X\" si la ligne correspondante est présente. " +
+        "Pour une question \"X confirmé ?\" sur un rappel précis, dis \"oui\" si l'heure et l'instruction matchent une ligne ci-dessus, sinon \"non vérifiable depuis ce chat\". " +
+        "Ne dis jamais \"non\" pour un rappel listé ci-dessus. " +
+        "Pour décrire ou pointer un effet durable, base-toi sur ces lignes. " +
+        "Quand tu cites un horaire de rappel à l'utilisateur, utilise UNIQUEMENT l'heure locale fournie (ex: \"11:21\"), JAMAIS l'ISO entre crochets ni l'heure UTC.",
+    );
+    return lines.join("\n") + "\n\n";
+  } catch (err) {
+    console.warn(
+      "[ContextLoader] loadDurableEffectsSummary failed (non-blocking):",
+      err,
+    );
+    return null;
+  }
 }
 
 // Re-export types for convenience

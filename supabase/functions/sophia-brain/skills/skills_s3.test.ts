@@ -814,6 +814,92 @@ Deno.test("product_help explanation then ok fais-le routes through dispatcher to
   assertEquals(route.selected_handler, "prepare_attack_card");
 });
 
+// ---------------------------------------------------------------------------
+// Régression chantier 2 phase A (2026-05-28): product_help direct replies
+// disambiguation entre carte et rappel quand les deux topics sont dans le
+// contexte récent. Voir A2-r4 Tour 7.
+// ---------------------------------------------------------------------------
+
+Deno.test("product_help: user asks about the card when context has a recent reminder → card reply (A2-r4 T7)", async () => {
+  const context = await loadProductHelpContext(contextInput());
+  const output = runProductHelpSkill({
+    user_message:
+      "Où est-ce que je retrouve cette carte d'attaque dans l'app ? Juste l'emplacement, pas d'action.",
+    context: {
+      ...context,
+      recent_messages: [
+        {
+          role: "assistant",
+          content:
+            "C'est programmé pour 11:35 : payer la facture.",
+        },
+        {
+          role: "assistant",
+          content:
+            "C'est fait. J'ai cree cette carte d'attaque Payer la facture une fois pour toutes.",
+        },
+      ],
+    },
+  });
+  assertEquals(output.diagnosis?.feature_id, "resources.attack_card");
+  assertStringIncludes(
+    output.reply ?? "",
+    "Dashboard > Ressources > Cartes d'attaque du plan",
+  );
+  // Régression: avant le fix, le contexte contenant "programmé" + "rappel" en
+  // implicite faisait basculer vers le directOneShotReminderReply.
+  assertEquals(
+    (output.reply ?? "").includes("côté Initiatives"),
+    false,
+  );
+});
+
+Deno.test("product_help: user asks about the reminder only → reminder reply (negative control)", async () => {
+  const context = await loadProductHelpContext(contextInput());
+  const output = runProductHelpSkill({
+    user_message:
+      "Ce rappel que tu viens de programmer, je le retrouve où ?",
+    context: {
+      ...context,
+      recent_messages: [
+        {
+          role: "assistant",
+          content:
+            "C'est programmé pour 11:35 : payer la facture.",
+        },
+        {
+          role: "assistant",
+          content:
+            "C'est fait. J'ai cree cette carte d'attaque Payer la facture une fois pour toutes.",
+        },
+      ],
+    },
+  });
+  assertEquals(output.diagnosis?.feature_id, "one_shot_reminder.chat");
+  assertStringIncludes(output.reply ?? "", "côté Initiatives");
+});
+
+Deno.test("product_help: user pronoun 'la' for the recently created card still resolves to card", async () => {
+  // Régression de l'ancien comportement: la garde de disambiguation ne doit
+  // PAS casser le cas pronominal où le user ne nomme pas explicitement le
+  // sujet et le contexte tranche.
+  const context = await loadProductHelpContext(contextInput());
+  const output = runProductHelpSkill({
+    user_message: "je la retrouve ou pour la modifier ou l'imprimer ?",
+    context: {
+      ...context,
+      recent_messages: [
+        {
+          role: "assistant",
+          content:
+            "C'est fait. J'ai cree cette carte d'attaque pour Faire le sas de dechargement.",
+        },
+      ],
+    },
+  });
+  assertEquals(output.diagnosis?.feature_id, "resources.attack_card");
+});
+
 Deno.test("context loaders enforce profile exclusions", async () => {
   const safety = await loadSafetyCrisisContext(contextInput());
   assertEquals(safety.plan_items.length, 0);

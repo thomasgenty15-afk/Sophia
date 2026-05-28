@@ -260,6 +260,14 @@ function hasRecurringCadenceHint(message: string): boolean {
 
 function hasResolvableOneShotTimeHint(message: string): boolean {
   const text = String(message ?? "");
+  const normalized = text.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  if (
+    /\b(nouveau rappel|rappel ponctuel|cree un nouveau rappel|creer un nouveau rappel|programme un rappel|programme moi|rappelle moi|mets moi un rappel)\b/
+      .test(normalized) &&
+    (/\b\d{1,2}\s*h\s*\d{2}\b/.test(normalized) ||
+      /\b\d{1,2}:\d{2}\b/.test(normalized))
+  ) return true;
   return /\bdans\s+un\s+quart\s+d['’]heure\b/i.test(text) ||
     /\bdans\s+une\s+demi(?:-|\s)heure\b/i.test(text) ||
     /\bdans\s+(?:une?|1)\s+(?:minutes?|min|heures?|h|jours?)\b/i.test(text) ||
@@ -554,7 +562,39 @@ function parseScheduledForFromAbsoluteHint(args: {
   nowIso: string;
 }): string | null {
   const parts = extractStrictAbsoluteParts(args.message);
-  if (!parts) return null;
+  if (!parts) {
+    const normalized = compactText(args.message, 500)
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
+    const explicitOneShot =
+      /\b(nouveau rappel|rappel ponctuel|cree un nouveau rappel|creer un nouveau rappel|programme un rappel|programme moi|rappelle moi|mets moi un rappel)\b/
+        .test(normalized);
+    const timeMatch = normalized.match(
+      /\b(?:a|vers|pour)?\s*(\d{1,2})\s*h\s*(\d{2})\b|\b(?:a|vers|pour)?\s*(\d{1,2}):(\d{2})\b/,
+    );
+    if (!explicitOneShot || !timeMatch) return null;
+    const localTimeHHMM = parseHHMM(
+      timeMatch[1] ?? timeMatch[3],
+      timeMatch[2] ?? timeMatch[4],
+    );
+    const today = computeScheduledForFromLocal({
+      timezone: args.timezone,
+      dayOffset: 0,
+      localTimeHHMM,
+      now: new Date(args.nowIso),
+    });
+    const todayMs = new Date(today).getTime();
+    const nowMs = new Date(args.nowIso).getTime();
+    return Number.isFinite(todayMs) && todayMs > nowMs + 30_000
+      ? today
+      : computeScheduledForFromLocal({
+        timezone: args.timezone,
+        dayOffset: 1,
+        localTimeHHMM,
+        now: new Date(args.nowIso),
+      });
+  }
 
   const scheduledFor = computeScheduledForFromLocal({
     timezone: args.timezone,
@@ -606,8 +646,102 @@ function parseScheduledForFromRelativeHint(args: {
   return null;
 }
 
+// Chantier 13 (2026-05-28) — Extraction prioritaire du contenu entre quotes
+// quand l'utilisateur balise explicitement le texte du rappel.
+// Patterns supportés (insensibles à la casse) :
+//   - texte exact 'X' / "X" / « X »
+//   - texte: 'X' / "X"
+//   - instruction: 'X'
+//   - message: 'X'
+//   - contenu: 'X'
+//   - exactement 'X' / exact 'X'
+const QUOTED_REMINDER_PATTERNS: RegExp[] = [
+  /(?:texte\s+exact|texte|instruction|message|contenu|exactement|exact)\s*[:=]?\s*['"’«]\s*([^'"’»]{2,200})\s*['"’»]/iu,
+];
+
+export function extractQuotedReminderInstruction(message: string): string {
+  const text = compactText(message, 500);
+  if (!text) return "";
+  for (const pattern of QUOTED_REMINDER_PATTERNS) {
+    const match = text.match(pattern);
+    if (match && match[1]) {
+      const cleaned = cleanReminderInstructionTarget(match[1]);
+      if (cleaned) return cleaned;
+    }
+  }
+  return "";
+}
+
+// Chantier 7 (2026-05-28) — Anaphore "même texte / même rappel / ce rappel /
+// comme avant" : sans résolution, extractReminderInstruction() retombe sur
+// "ce que tu as prévu" et on crée un rappel vide de sens. Voir A4-r5 T7.
+//
+// Architectural note: c'est PAS une détection sémantique (L3 anti-pattern).
+// C'est un "anaphora resolver" — résolution lexicale d'un pronom/déictique
+// vers son antécédent (le dernier rappel pending en DB). Comparable à
+// résoudre "lui" en "Mina" en linguistique : pure mécanique, pas d'intent.
+const ANAPHORA_REMINDER_PATTERN =
+  /\b(le\s+m[êe]me(?:\s+rappel)?|la\s+m[êe]me(?:\s+chose)?|m[êe]me\s+(?:rappel|texte|note|instruction|message|contenu)|ce\s+rappel|comme\s+(?:tout\s+[àa]\s+l['’]\s*heure|avant|tu\s+as\s+fait|pr[ée]c[ée]demment)|pareil(?:\s+que\s+(?:tout\s+[àa]\s+l['’]\s*heure|avant))?)/iu;
+
+export function detectsReminderAnaphora(message: string): boolean {
+  if (!message) return false;
+  return ANAPHORA_REMINDER_PATTERN.test(message);
+}
+
+function isGenericOrAnaphoricInstruction(instruction: string): boolean {
+  const v = String(instruction ?? "").trim();
+  if (!v) return true;
+  if (v === "ce que tu as prévu") return true;
+  if (ANAPHORA_REMINDER_PATTERN.test(v)) return true;
+  return false;
+}
+
+export async function loadLastReminderInstructionForUser(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("scheduled_checkins")
+      .select("message_payload,created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    if (error) return null;
+    const rows = (data ?? []) as any[];
+    for (const row of rows) {
+      const inst = String(
+        row?.message_payload?.reminder_instruction ??
+          row?.message_payload?.instruction ??
+          row?.message_payload?.text ??
+          "",
+      )
+        .replace(
+          /^Rappel ponctuel demandé explicitement par l['’]utilisateur\. Rappelle-lui de\s*/i,
+          "",
+        )
+        .replace(/\.$/, "")
+        .trim();
+      if (inst && !isGenericOrAnaphoricInstruction(inst)) return inst;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 function extractReminderInstruction(message: string): string {
   const full = compactText(message, 500);
+
+  // Chantier 13 (2026-05-28) — Priorité absolue : si l'utilisateur dit
+  // "texte exact 'X'" / "texte: 'X'" / "instruction: 'X'", on utilise
+  // UNIQUEMENT le contenu entre quotes, pas la phrase complète. Sinon le
+  // résultat durable est pollué par la méta-instruction
+  // ("rappel ponctuel aujourd'hui à 11h37, texte exact '...'"). Voir
+  // A4-r6 T7.
+  const quotedInstruction = extractQuotedReminderInstruction(full);
+  if (quotedInstruction) return quotedInstruction;
+
   const clause = extractReminderClause(full) || full;
   const afterColon = clause.match(/:\s*(.+)$/)?.[1] ?? "";
   if (/[\p{L}\p{N}]/u.test(afterColon)) {
@@ -632,8 +766,12 @@ function extractReminderInstruction(message: string): string {
     clause.match(/\bqu\s+il\s+faut\s+que\s+je\s+(.+)$/i)?.[1] ??
     clause.match(/\bil\s+faut\s+que\s+je\s+(.+)$/i)?.[1] ??
     clause.match(/\bd['’]\s*(.+)$/i)?.[1] ??
-    clause.match(/\bde\s+(.+)$/i)?.[1] ??
+    // Chantier 18 (2026-05-28) — "pour X" doit primer sur "de X". Sinon
+    // "rappel pour relire ce mail avant de l'envoyer" capture seulement
+    // "l'envoyer" (le trailing "de") au lieu de "relire ce mail avant de
+    // l'envoyer". Voir A3-r7 T2.
     clause.match(/\bpour\s+(.+)$/i)?.[1] ??
+    clause.match(/\bde\s+(.+)$/i)?.[1] ??
     "";
 
   const cleaned = cleanReminderInstructionTarget(explicitTarget);
@@ -943,20 +1081,52 @@ export async function maybeCreateOneShotReminder(params: {
     timezone: tctx.user_timezone,
     nowIso: tctx.now_utc,
   });
-  const parsed = localParsed ??
+  const initialParsed = localParsed ??
     (strictParts ? null : await inferOneShotReminderRequestWithAi({
       message: params.message,
       timezone: tctx.user_timezone,
       nowIso: tctx.now_utc,
       requestId: params.requestId,
     }));
-  if (!parsed) {
+  if (!initialParsed) {
     return {
       detected: true,
       status: "needs_clarify",
       reason: "missing_time",
       user_message: compactText(params.message, 500),
     };
+  }
+  let parsed: ParsedReminderRequest = initialParsed;
+
+  // Chantier 7 (2026-05-28) — Résolution d'anaphore. Si l'utilisateur écrit
+  // "tu mets le même rappel à 10h22" et qu'on n'extrait pas d'instruction
+  // utile (fallback "ce que tu as prévu" ou bout d'anaphore), on remplace
+  // par l'instruction du dernier rappel pending en DB pour cet utilisateur.
+  // Voir A4-r5 T7 et docs/agent-playbook/13-architecture-skills (chantier 7).
+  if (
+    detectsReminderAnaphora(params.message) &&
+    isGenericOrAnaphoricInstruction(parsed.reminderInstruction)
+  ) {
+    const resolved = await loadLastReminderInstructionForUser(
+      params.supabase,
+      params.userId,
+    );
+    if (resolved) {
+      const newSlug = slugify(resolved) || "generic";
+      const previousDetails = parsed.parseDetails;
+      parsed = {
+        ...parsed,
+        reminderInstruction: resolved,
+        eventContext: `one_shot_reminder:${newSlug}`,
+        parseDetails: previousDetails
+          ? ({
+            ...previousDetails,
+            anaphora_resolved: true,
+            anaphora_source: "last_pending_reminder",
+          } as any)
+          : previousDetails,
+      };
+    }
   }
 
   const scheduledMs = new Date(parsed.scheduledFor).getTime();

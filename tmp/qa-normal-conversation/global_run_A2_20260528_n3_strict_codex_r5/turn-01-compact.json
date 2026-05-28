@@ -1,0 +1,23 @@
+{
+  "n": 1,
+  "user": "Matin brouillé: envoyer le devis à Nora, payer le stationnement, et remettre deux tasses en cuisine. Pas de carte, pas d'outil: choisis seulement le premier geste maintenant.",
+  "assistant": "Ok. Premier geste maintenant: prends le devis et écris/renvoie-le à Nora. 1 minute, sans te poser de questions 😄\n\nTu le trouves où, le devis (mail / fichier / papier) ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r5-t01",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "none",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

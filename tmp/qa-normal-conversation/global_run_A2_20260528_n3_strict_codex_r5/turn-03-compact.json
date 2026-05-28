@@ -1,0 +1,25 @@
+{
+  "n": 3,
+  "user": "Je l'ai envoyé à Nora, fait. Donne-moi une phrase courte de suivi pour elle, et rappelle-moi à 11h45 de payer seulement le stationnement.",
+  "assistant": "C'est programmé pour jeudi 28 mai à 11:45 : Payer le stationnement.\n\nPhrase courte pour elle : \"Je te confirme que je m'en occupe aujourd'hui, et je reviens vers toi dès que c'est fait.\" 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r5-t03",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety": "none",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "tool_status": "executed",
+    "skill_id": null
+  }
+}

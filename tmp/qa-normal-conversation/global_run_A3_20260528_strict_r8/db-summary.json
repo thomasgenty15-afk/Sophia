@@ -1,0 +1,490 @@
+{
+  "run_id": "global_run_A3_20260528_strict_r8",
+  "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+  "chat_messages": {
+    "status": 200,
+    "count": 30,
+    "rows": [
+      {
+        "id": "25f4c0a5-5565-47cf-9116-b0a340192512",
+        "role": "user",
+        "created_at": "2026-05-28T18:54:24.724838+00:00"
+      },
+      {
+        "id": "ffb67e98-e73a-4149-8eeb-42fb4d76e1ea",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:54:29.87216+00:00"
+      },
+      {
+        "id": "c9b11376-4e14-4e65-82aa-69ba7c5f1c88",
+        "role": "user",
+        "created_at": "2026-05-28T18:54:40.246186+00:00"
+      },
+      {
+        "id": "3dbbe71e-a3e7-49d8-87a5-aa82b5d7cdcc",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:54:44.2054+00:00"
+      },
+      {
+        "id": "0fc0d100-60bc-4e90-adf3-ee5d4694ca95",
+        "role": "user",
+        "created_at": "2026-05-28T18:54:56.527665+00:00"
+      },
+      {
+        "id": "bde8f057-6a97-428a-8409-712b02922756",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:54:59.670116+00:00"
+      },
+      {
+        "id": "481ff82a-0074-43ff-9d54-56a44c3218a1",
+        "role": "user",
+        "created_at": "2026-05-28T18:55:10.234989+00:00"
+      },
+      {
+        "id": "b5f0e2ab-f0ef-4a3a-849f-f5ecc640e776",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:55:16.451458+00:00"
+      },
+      {
+        "id": "1a915596-0ef3-4ba8-96fc-e9062d697609",
+        "role": "user",
+        "created_at": "2026-05-28T18:55:23.866574+00:00"
+      },
+      {
+        "id": "25debd87-33da-4b9a-81e4-2695a24c6326",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:55:36.610291+00:00"
+      },
+      {
+        "id": "d7883450-9433-4ef3-91c5-3f971c87f9ab",
+        "role": "user",
+        "created_at": "2026-05-28T18:55:45.16832+00:00"
+      },
+      {
+        "id": "d2877089-9671-4f1d-b16a-57439db170b3",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:55:51.434465+00:00"
+      },
+      {
+        "id": "5a022621-b462-4540-8f41-f50b73fba80e",
+        "role": "user",
+        "created_at": "2026-05-28T18:56:02.806082+00:00"
+      },
+      {
+        "id": "e9f16ffa-1ecd-4021-9572-d2c1a051133e",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:56:27.627518+00:00"
+      },
+      {
+        "id": "7da5d60a-1fc7-4c08-ae7f-2cdb4b510a82",
+        "role": "user",
+        "created_at": "2026-05-28T18:56:39.687674+00:00"
+      },
+      {
+        "id": "0fda076d-929c-491e-aa24-a22615cfcad0",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:56:49.694008+00:00"
+      },
+      {
+        "id": "91207370-3754-481c-a443-fa49fd6c1907",
+        "role": "user",
+        "created_at": "2026-05-28T18:57:09.407815+00:00"
+      },
+      {
+        "id": "7a390eb1-23fd-42f7-bda7-7f3c1218f286",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:57:21.051571+00:00"
+      },
+      {
+        "id": "481969c9-d5c7-4033-802c-db3dbae393ca",
+        "role": "user",
+        "created_at": "2026-05-28T18:57:29.214579+00:00"
+      },
+      {
+        "id": "23944eb3-c79f-44ae-8d38-46849f2eac67",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:57:39.430417+00:00"
+      },
+      {
+        "id": "7f39cca0-f84e-4236-ab51-5accff7fffb9",
+        "role": "user",
+        "created_at": "2026-05-28T18:57:52.558347+00:00"
+      },
+      {
+        "id": "ce69841c-97cc-451f-a8b4-f553c320206e",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:58:14.607169+00:00"
+      },
+      {
+        "id": "de4e3c44-e7e2-4f63-bcdf-328bcfe76e7a",
+        "role": "user",
+        "created_at": "2026-05-28T18:58:35.732984+00:00"
+      },
+      {
+        "id": "4149e2fd-eb69-44e4-b4e1-33f722ec7d0d",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:58:56.306183+00:00"
+      },
+      {
+        "id": "1bfa1f32-1360-42ab-a0e3-9e9c98ad5adc",
+        "role": "user",
+        "created_at": "2026-05-28T18:59:08.490158+00:00"
+      },
+      {
+        "id": "85706b97-632a-4b02-9d87-1b1398bc3339",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:59:19.953507+00:00"
+      },
+      {
+        "id": "06b95293-c714-4950-9b3e-edf25946bcac",
+        "role": "user",
+        "created_at": "2026-05-28T18:59:30.146185+00:00"
+      },
+      {
+        "id": "2d85e828-3b97-46f5-81ed-2496e53934b0",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:59:36.525854+00:00"
+      },
+      {
+        "id": "697fc015-90dd-4b1e-b74f-abd261d6afd6",
+        "role": "user",
+        "created_at": "2026-05-28T18:59:46.562842+00:00"
+      },
+      {
+        "id": "6cb20a88-232a-410c-a828-9ec99ab7483a",
+        "role": "assistant",
+        "created_at": "2026-05-28T18:59:50.18443+00:00"
+      }
+    ]
+  },
+  "attack_cards": {
+    "status": 200,
+    "count": 1,
+    "rows": [
+      {
+        "id": "d25162d6-33e6-4a74-92cc-50b55e7a4163",
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "cycle_id": "7b034d02-6434-4869-987a-1c1468890313",
+        "transformation_id": null,
+        "phase_id": null,
+        "source": "system",
+        "status": "active",
+        "content": {
+          "summary": "Carte d'attaque pour Boucler la note de frais.",
+          "techniques": [
+            {
+              "title": "Ancre visuelle",
+              "pour_quoi": "L'ancre visuelle transforme un objet passif en signal d'action immédiat pour briser l'inertie.",
+              "questions": [],
+              "mode_emploi": "Pose ton reçu sur ton clavier, et dès que tu le touches, fais l'action sans réfléchir.",
+              "objet_genere": "Un repere visuel simple, avec une phrase associee.",
+              "technique_key": "ancre_visuelle",
+              "generated_result": {
+                "mode_emploi": "Pose ton reçu sur ton clavier, et dès que tu le touches, fais l'action sans réfléchir.",
+                "generated_at": "2026-05-28T18:59:19.937Z",
+                "output_title": "Note de frais : Le premier reçu",
+                "generated_asset": "Un reçu posé = Un reçu traité. J'ouvre, je poste, je ferme.",
+                "keyword_trigger": null,
+                "supporting_points": [
+                  "Cible un seul geste concret",
+                  "Évite la procrastination par surcharge",
+                  "Crée un signal visuel immédiat"
+                ]
+              }
+            }
+          ],
+          "operation_draft": {
+            "title": "Note de frais : Le premier reçu",
+            "technique": "ancre_visuelle",
+            "instruction": "Place un reçu physique bien en vue sur ton espace de travail.",
+            "mode_emploi": "Pose ton reçu sur ton clavier, et dès que tu le touches, fais l'action sans réfléchir.",
+            "target_label": "Boucler la note de frais",
+            "why_it_helps": "L'ancre visuelle transforme un objet passif en signal d'action immédiat pour briser l'inertie.",
+            "generated_asset": "Un reçu posé = Un reçu traité. J'ouvre, je poste, je ferme.",
+            "technique_title": "Ancre visuelle",
+            "supporting_points": [
+              "Cible un seul geste concret",
+              "Évite la procrastination par surcharge",
+              "Crée un signal visuel immédiat"
+            ],
+            "activation_keyword": null
+          }
+        },
+        "metadata": {
+          "draft": {
+            "draft": {
+              "title": "Note de frais : Le premier reçu",
+              "technique": "ancre_visuelle",
+              "instruction": "Place un reçu physique bien en vue sur ton espace de travail.",
+              "mode_emploi": "Pose ton reçu sur ton clavier, et dès que tu le touches, fais l'action sans réfléchir.",
+              "target_label": "Boucler la note de frais",
+              "why_it_helps": "L'ancre visuelle transforme un objet passif en signal d'action immédiat pour briser l'inertie.",
+              "generated_asset": "Un reçu posé = Un reçu traité. J'ouvre, je poste, je ferme.",
+              "technique_title": "Ancre visuelle",
+              "supporting_points": [
+                "Cible un seul geste concret",
+                "Évite la procrastination par surcharge",
+                "Crée un signal visuel immédiat"
+              ],
+              "activation_keyword": null
+            },
+            "output_schema": "attack_card_draft_v1",
+            "operation_type": "prepare_attack_card",
+            "confirmation_actions": [
+              "yes",
+              "no"
+            ],
+            "confirmation_message": "Titre : Note de frais : Le premier reçu\nTechnique : Ancre visuelle\n\"Un reçu posé = Un reçu traité. J'ouvre, je poste, je ferme.\"\nPose ton reçu sur ton clavier, et dès que tu le touches, fais l'action sans réfléchir.\nJe t'ai préparé ce brouillon, ça te convient ?"
+          },
+          "source": "sophia_brain_tool_skill",
+          "target": {
+            "kind": "personal_action",
+            "title": "Boucler la note de frais",
+            "plan_item_id": null
+          },
+          "request_id": "global_run_A3_20260528_strict_r8-t13",
+          "operation_id": "316c43a3-8a7a-4fc2-a293-1f9e939f8b93",
+          "operation_type": "prepare_attack_card",
+          "source_message_id": "1bfa1f32-1360-42ab-a0e3-9e9c98ad5adc"
+        },
+        "generated_at": "2026-05-28T18:59:19.937+00:00",
+        "last_updated_at": "2026-05-28T18:59:19.937+00:00",
+        "scope_kind": "out_of_plan",
+        "plan_item_id": null
+      }
+    ]
+  },
+  "defense_cards": {
+    "status": 200,
+    "count": 0,
+    "rows": []
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "count": 1,
+    "rows": [
+      {
+        "id": "2dccf408-9cbc-4086-afb1-a47af30b5a47",
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "event_context": "one_shot_reminder:relire_le_devis_client_et_verifier_les_trois_points_qui_saut",
+        "draft_message": null,
+        "scheduled_for": "2026-05-29T06:20:00+00:00",
+        "status": "pending",
+        "created_at": "2026-05-28T18:54:44.196191+00:00",
+        "processed_at": null,
+        "message_mode": "dynamic",
+        "message_payload": {
+          "source": "companion_one_shot_reminder_tool",
+          "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de relire le devis client et vérifier les trois points qui sautent, avant de l'envoyer.",
+          "parse_source": "strict_absolute",
+          "request_text": "Ok, timer lancé. Mets-moi un rappel demain à 8h20 pour relire le devis client et vérifier les trois points qui sautent, avant de l'envoyer.",
+          "parse_details": {
+            "now_utc": "2026-05-28T18:56:00.000Z",
+            "timezone": "Europe/Paris",
+            "algorithm": "strict_absolute_hard_path_pure_calendar_v2",
+            "day_offset": 1,
+            "local_time_hhmm": "08:20",
+            "scheduled_for_utc": "2026-05-29T06:20:00.000Z"
+          },
+          "reminder_kind": "one_shot",
+          "user_timezone": "Europe/Paris",
+          "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: relire le devis client et vérifier les trois points qui sautent, avant de l'envoyer.",
+          "reminder_instruction": "relire le devis client et vérifier les trois points qui sautent, avant de l'envoyer"
+        },
+        "origin": "rendez_vous",
+        "delivery_attempt_count": 0,
+        "delivery_last_error": null,
+        "delivery_last_error_at": null,
+        "delivery_last_request_id": null,
+        "recurring_reminder_id": null
+      }
+    ]
+  },
+  "profile_facts": {
+    "status": 200,
+    "count": 9,
+    "rows": [
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.tone",
+        "value": {
+          "label": "Bienveillant ferme",
+          "value": "warm_direct"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.challenge_level",
+        "value": {
+          "label": "Équilibré",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.feedback_style",
+        "value": {
+          "label": "Positif puis amélioration",
+          "value": "positive_then_fix"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.talk_propensity",
+        "value": {
+          "label": "Équilibrée",
+          "value": "balanced"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.message_length",
+        "value": {
+          "label": "Courte",
+          "value": "short"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.message_format",
+        "value": {
+          "label": "Mix adaptatif",
+          "value": "adaptive"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.primary_focus",
+        "value": {
+          "label": "Discipline / action",
+          "value": "discipline"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.emotional_personalization",
+        "value": {
+          "label": "Chaleureux",
+          "value": "warm"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "system_default",
+        "last_source_message_id": null,
+        "reason": "Default coach preferences (v4 canonical)",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:54:12.277638+00:00",
+        "last_confirmed_at": null,
+        "version": 1,
+        "previous_values": []
+      },
+      {
+        "user_id": "46b68a2d-fbcd-4d67-b05a-26a110551d86",
+        "scope": "global",
+        "key": "coach.question_tendency",
+        "value": {
+          "label": "Peu de questions",
+          "value": "low"
+        },
+        "status": "active",
+        "confidence": 1,
+        "source_type": "explicit_user",
+        "last_source_message_id": "481969c9-d5c7-4033-802c-db3dbae393ca",
+        "reason": "Pour la suite, retiens une préférence : quand je dis une seule proposition, tu choisis toi-même et tu ne me donnes pas plusieurs options.",
+        "created_at": "2026-05-28T18:54:12.277638+00:00",
+        "updated_at": "2026-05-28T18:57:39.417+00:00",
+        "last_confirmed_at": "2026-05-28T18:57:39.417+00:00",
+        "version": 1,
+        "previous_values": []
+      }
+    ]
+  },
+  "memory_items": {
+    "status": 200,
+    "count": 0,
+    "rows": []
+  },
+  "topic_memories": {
+    "status": 200,
+    "count": 0,
+    "rows": []
+  }
+}

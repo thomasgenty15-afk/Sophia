@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   applyAttackCardSingleTechniquePreferenceForTest,
   applyCoachResponseStylePreferencesForTest,
+  applyCompactStartGuardForTest,
   applyIncompleteRecapGuardForTest,
   applyNonDurableMemoryPromiseGuardForTest,
   applyShortRepairNoProductOfferGuardForTest,
@@ -25,10 +26,15 @@ import {
   isMicroActionOnlyNotAttackCardForTest,
   isOneShotReminderExactStatusRequestForTest,
   isRuntimeCoachPreferenceRequestForTest,
+  isExplicitConversationalFormatRequestForTest,
   isStatusOnlyNoMutationRequestForTest,
+  loadRecentActiveAttackCardForUser,
+  localTextAddonForOneShotReminderForTest,
+  userExplicitlyAsksForNewAttackCardForTest,
   oneShotReminderManagementReplyForTest,
   shouldRuntimeCoachPreferenceOverrideRouteForTest,
   statePotionDeclineReplyForTest,
+  upsertCoachPreferencesFromDraftForTest,
 } from "./run.ts";
 
 Deno.test("product_help one-shot reminder reply override keeps the factual skill answer", () => {
@@ -471,6 +477,18 @@ Deno.test("state potion opportunity does not append mechanical product copy", ()
   assertEquals(response.includes("Potion"), false);
 });
 
+Deno.test("compact start guard collapses A/B plans into one gesture", () => {
+  const guarded = applyCompactStartGuardForTest({
+    userMessage: "Je veux juste un petit point d'appui, démarrage compact.",
+    responseContent:
+      "A) Ouvre le dossier.\nB) Fais un brouillon.\nOption bonus : je peux aussi te faire une carte d'attaque.",
+  });
+  assertEquals(guarded.includes("A)"), false);
+  assertEquals(guarded.includes("Option"), false);
+  assertEquals(guarded.split("\n").length, 2);
+  assertEquals(guarded.includes("Premier geste"), true);
+});
+
 Deno.test("natural durable recap is treated as status only", () => {
   assertEquals(
     isStatusOnlyNoMutationRequestForTest(
@@ -518,6 +536,58 @@ Deno.test("existing one-shot reminder modification is not a plan adjustment", ()
   );
 });
 
+// ============================================================================
+// Chantier 14 (2026-05-28) — Anti-faux-positif sur la détection de
+// modification de rappel. Voir A2-r6 T4/T8, A3-r7 T3.
+// ============================================================================
+
+Deno.test("'ne change rien' n'est PAS une demande de modification de rappel (A2-r6 T4)", () => {
+  // "Pour le rappel de 11h50, si je veux le vérifier ou l'annuler dans
+  // l'app, je vais où ? Juste l'emplacement, ne change rien."
+  // Avant chantier 14, "change" + "le rappel" + "11h50" déclenchait à
+  // tort la détection de modification.
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Pour le rappel de 11h50, si je veux le vérifier ou l'annuler dans l'app, je vais où ? Juste l'emplacement, ne change rien.",
+    ),
+    false,
+  );
+});
+
+Deno.test("'sans parler de le modifier' n'est PAS une demande de modification (A2-r6 T8)", () => {
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Et pour le rappel ponctuel de 11h50, juste l'emplacement où je peux le vérifier dans l'app, sans parler de le modifier.",
+    ),
+    false,
+  );
+});
+
+Deno.test("'où je vais modifier/supprimer dans l'app' est du product_help, pas une modification (A3-r7 T3)", () => {
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Si je veux modifier ou supprimer ce rappel dans l'app, je vais où ? Ne change rien, je veux juste l'emplacement.",
+    ),
+    false,
+  );
+});
+
+Deno.test("une vraie demande de modification reste détectée (régression chantier 14)", () => {
+  // On vérifie qu'on ne casse pas le cas positif.
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Décale ce rappel à 14h, même texte.",
+    ),
+    true,
+  );
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Reprogramme le rappel ponctuel à 18h30, garde le même message.",
+    ),
+    true,
+  );
+});
+
 Deno.test("one-shot reminder exact status request is detected", () => {
   assertEquals(
     isOneShotReminderExactStatusRequestForTest(
@@ -550,6 +620,67 @@ Deno.test("coach response style preferences remove emoji and final question", ()
   assertEquals(styled.includes("🙂"), false);
   assertEquals(styled.includes("?"), false);
   assertEquals(styled.split("\n").length, 3);
+});
+
+Deno.test("one-shot reminder reply keeps a local phrase side request", () => {
+  const addon = localTextAddonForOneShotReminderForTest(
+    "Donne-moi une phrase courte pour Samir + rappelle-moi à 11h40 de l'envoyer.",
+  );
+  assertEquals(addon?.includes("Phrase courte pour Samir"), true);
+  assertEquals(addon?.includes("rappelle"), false);
+});
+
+Deno.test("coach preference DB upsert accepts multi-key patches", async () => {
+  const rowsSeen: any[] = [];
+  const fakeSupabase = {
+    from(table: string) {
+      assertEquals(table, "user_profile_facts");
+      return {
+        upsert(rows: any[], options: any) {
+          rowsSeen.push(...rows);
+          assertEquals(options.onConflict, "user_id,scope,key");
+          return {
+            select(columns: string) {
+              assertEquals(columns, "key");
+              return Promise.resolve({
+                data: rows.map((row) => ({ key: row.key })),
+                error: null,
+              });
+            },
+          };
+        },
+      };
+    },
+  };
+  const result = await upsertCoachPreferencesFromDraftForTest({
+    supabase: fakeSupabase as any,
+    userId: "u1",
+    sourceMessageId: "m1",
+    draft: {
+      operation_type: "update_coach_preferences",
+      output_schema: "coach_preferences_patch_draft_v1",
+      draft: {
+        patch: {
+          "coach.emoji_policy": "none",
+          "coach.response_max_lines": "three",
+          "coach.final_question_policy": "avoid_unnecessary",
+        },
+        summary: "zéro emoji, trois lignes max, pas de question finale.",
+      },
+      confirmation_message: "Confirmer ?",
+      confirmation_actions: ["yes", "no"],
+    },
+  });
+  assertEquals(result.error, null);
+  assertEquals(result.data?.keys, [
+    "coach.emoji_policy",
+    "coach.response_max_lines",
+    "coach.final_question_policy",
+  ]);
+  assertEquals(
+    rowsSeen.map((row) => row.value.value),
+    ["none", "three", "avoid_unnecessary"],
+  );
 });
 
 Deno.test("state potion decline keeps concrete continuation context", () => {
@@ -609,4 +740,315 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
   );
   assertEquals(guardedConversationRepere.includes("je retiens que"), false);
   assertEquals(guardedConversationRepere.includes("pour la suite"), false);
+});
+
+// ---------------------------------------------------------------------------
+// Régression chantier 1 (2026-05-28): le composer status_only ne doit pas
+// déclencher quand le user impose un format conversationnel explicite.
+// Voir docs/agent-playbook/13-architecture-skills, section Couche L3.
+// ---------------------------------------------------------------------------
+
+Deno.test("explicit conversational format request: 'fait, prévu, fragile' is detected (A2-r4 T13)", () => {
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Ne lance rien maintenant, pas de potion, pas de nouveau rappel. Fais seulement le récap: fait, prévu, fragile, en trois lignes.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit conversational format request: 'pas de statut système' + 'trois lignes' (A2-r4 T14)", () => {
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Ce n'est pas le récap demandé. Pas de statut système: seulement fait, prévu, fragile. Trois lignes, sans emoji.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit conversational format request: 'réponds en une ligne' is detected (A4-r4 T14)", () => {
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Donc pour le rappel à 11h12 : confirmé ou non confirmé ? Réponds en une ligne.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit conversational format request: 'récap conversationnel' is detected (A6-r2 T15)", () => {
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "On s'arrête là. Fais seulement un récap conversationnel final.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit conversational format request: 'une seule phrase' is detected", () => {
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Donne-moi une seule phrase qui me remet au calme, pas plus.",
+    ),
+    true,
+  );
+});
+
+Deno.test("explicit conversational format request stays false on a normal status request", () => {
+  // Garde-fou: une demande status sans contrainte de format ne doit PAS
+  // matcher. Sinon le composer status_only ne se déclenchera plus du tout.
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Sans rien modifier, vérifie ce qui est en place: carte, rappel, préférence coach.",
+    ),
+    false,
+  );
+});
+
+Deno.test("explicit conversational format request stays false on a generic 'short' request", () => {
+  // "Court" tout seul n'est pas une contrainte explicite de format
+  // conversationnel: le composer status_only à 4 lignes reste légitime.
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest("Réponds court."),
+    false,
+  );
+});
+
+Deno.test("explicit conversational format request stays false on a card title containing 'X lignes'", () => {
+  // Anti-faux-positif: "carte Samir 3 lignes" est le titre d'une carte
+  // d'attaque (A6-r2). On NE DOIT PAS matcher "3 lignes" comme contrainte
+  // de format. Le contexte demande "ce qui est en place" → status panel
+  // canonique légitime.
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Avant de cloturer, sans rien modifier, verifie ce qui est en place: carte Samir 3 lignes, rappel a 17h05, preference coach, et repere stylo bleu.",
+    ),
+    false,
+  );
+});
+
+Deno.test("explicit conversational format request stays false when 'trois lignes' is an action object", () => {
+  // Anti-faux-positif (A6-r2 T2): "envoyer trois lignes à Samir" est
+  // l'action décrite dans une carte d'attaque, pas une contrainte de
+  // format. Ne doit pas matcher.
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Oui, prepare une carte d'attaque. Action: envoyer trois lignes a Samir avant d'aligner le bureau.",
+    ),
+    false,
+  );
+});
+
+Deno.test("explicit conversational format request stays false when 'une phrase' is an object to write", () => {
+  // Anti-faux-positif: "écris une phrase pour Samir" — "une phrase" est
+  // l'objet de l'action, pas une contrainte sur la réponse de Sophia.
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(
+      "Donne-moi une phrase courte pour Lina, et rappelle-moi à 11h35.",
+    ),
+    false,
+  );
+});
+
+Deno.test("status_only and explicit-format detectors can overlap (the format guard wins)", () => {
+  // Sur les tours A2-r4 T13/T14, isStatusOnlyNoMutationRequestForTest
+  // retournait true (à cause de "en place" / "ce qu'on a fait"), ce qui
+  // déclenchait le panneau. La garde de format ferme la porte avant.
+  const userMessage =
+    "Ne lance rien maintenant, pas de potion. Fais seulement le récap: fait, prévu, fragile, en trois lignes.";
+  assertEquals(isStatusOnlyNoMutationRequestForTest(userMessage), false);
+  assertEquals(
+    isExplicitConversationalFormatRequestForTest(userMessage),
+    true,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// Régression chantier 4 (2026-05-28): garde anti-doublon prepare_attack_card.
+// Voir A2-r4 Tour 8 et docs/agent-playbook/13-architecture-skills.
+// ---------------------------------------------------------------------------
+
+function makeFakeSupabaseAttackCardsTable(rows: unknown[]) {
+  return {
+    from(table: string) {
+      // Le helper interroge uniquement user_attack_cards.
+      assertEquals(table, "user_attack_cards");
+      const builder: any = {
+        select(_cols: string) {
+          return this;
+        },
+        eq(_col: string, _val: unknown) {
+          return this;
+        },
+        order(_col: string, _opts?: any) {
+          return this;
+        },
+        limit(_n: number) {
+          return Promise.resolve({ data: rows, error: null });
+        },
+      };
+      return builder;
+    },
+  } as any;
+}
+
+Deno.test("userExplicitlyAsksForNewAttackCardForTest detects 'nouvelle carte'", () => {
+  assertEquals(
+    userExplicitlyAsksForNewAttackCardForTest(
+      "Cree-moi une nouvelle carte pour la session de travail du soir.",
+    ),
+    true,
+  );
+});
+
+Deno.test("userExplicitlyAsksForNewAttackCardForTest detects 'une autre carte'", () => {
+  assertEquals(
+    userExplicitlyAsksForNewAttackCardForTest(
+      "Fais-moi une autre carte pour le rangement du sas.",
+    ),
+    true,
+  );
+});
+
+Deno.test("userExplicitlyAsksForNewAttackCardForTest detects 'encore une carte'", () => {
+  assertEquals(
+    userExplicitlyAsksForNewAttackCardForTest(
+      "Encore une carte stp, pour la facture cette fois.",
+    ),
+    true,
+  );
+});
+
+Deno.test("userExplicitlyAsksForNewAttackCardForTest stays false when user references existing card (A2-r4 T8)", () => {
+  // Régression: le bug consistait justement à recréer une carte quand le
+  // user en référençait une existante. La garde NE DOIT PAS matcher ici.
+  assertEquals(
+    userExplicitlyAsksForNewAttackCardForTest(
+      "Je ne parle pas du rappel, je parle de la carte d'attaque que tu viens de créer. Donne juste l'emplacement.",
+    ),
+    false,
+  );
+});
+
+Deno.test("userExplicitlyAsksForNewAttackCardForTest stays false on a fresh card request without 'nouvelle'", () => {
+  // "Crée une carte d'attaque" sans qualificateur n'est pas une demande
+  // explicite de NOUVELLE carte. Si une carte existe déjà, on doit
+  // déclencher la clarification (la garde retourne false ici, et le
+  // garde-fou de run.ts demandera au user).
+  assertEquals(
+    userExplicitlyAsksForNewAttackCardForTest(
+      "Crée-moi une carte d'attaque pour le mail à Lina.",
+    ),
+    false,
+  );
+});
+
+Deno.test("loadRecentActiveAttackCardForUser returns null when no active card exists", async () => {
+  const supabase = makeFakeSupabaseAttackCardsTable([]);
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase,
+    userId: "u1",
+  });
+  assertEquals(result, null);
+});
+
+Deno.test("loadRecentActiveAttackCardForUser returns the card when created recently", async () => {
+  const recentIso = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const supabase = makeFakeSupabaseAttackCardsTable([{
+    id: "card-1",
+    generated_at: recentIso,
+    content: {
+      operation_draft: {
+        title: "Payer la facture une fois pour toutes",
+        technique: "ancre_visuelle",
+      },
+    },
+  }]);
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase,
+    userId: "u1",
+  });
+  if (!result) throw new Error("expected a card");
+  assertEquals(result.id, "card-1");
+  assertEquals(result.title, "Payer la facture une fois pour toutes");
+  assertEquals(result.technique, "ancre_visuelle");
+  // Age dans la fenêtre <5 min: passe.
+  assertEquals(result.ageSeconds >= 100 && result.ageSeconds <= 200, true);
+});
+
+Deno.test("loadRecentActiveAttackCardForUser returns null when card is too old (>5 min)", async () => {
+  const oldIso = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const supabase = makeFakeSupabaseAttackCardsTable([{
+    id: "card-old",
+    generated_at: oldIso,
+    content: {
+      operation_draft: { title: "Carte ancienne" },
+    },
+  }]);
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase,
+    userId: "u1",
+  });
+  assertEquals(result, null);
+});
+
+Deno.test("loadRecentActiveAttackCardForUser respects custom maxAgeSeconds", async () => {
+  const iso = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const supabase = makeFakeSupabaseAttackCardsTable([{
+    id: "card-mid",
+    generated_at: iso,
+    content: { operation_draft: { title: "Carte" } },
+  }]);
+  // Avec maxAgeSeconds = 1200 (20 min), la carte de 10 min passe.
+  const inWindow = await loadRecentActiveAttackCardForUser({
+    supabase: makeFakeSupabaseAttackCardsTable([{
+      id: "card-mid",
+      generated_at: iso,
+      content: { operation_draft: { title: "Carte" } },
+    }]),
+    userId: "u1",
+    maxAgeSeconds: 1200,
+  });
+  if (!inWindow) throw new Error("expected card in 20-min window");
+  assertEquals(inWindow.id, "card-mid");
+  // Avec maxAgeSeconds = 60 (1 min), la carte de 10 min est éjectée.
+  const outOfWindow = await loadRecentActiveAttackCardForUser({
+    supabase,
+    userId: "u1",
+    maxAgeSeconds: 60,
+  });
+  assertEquals(outOfWindow, null);
+});
+
+Deno.test("loadRecentActiveAttackCardForUser swallows DB errors and returns null", async () => {
+  const supabase = {
+    from(_table: string) {
+      return {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        order() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve({ data: null, error: { message: "DB down" } });
+        },
+      };
+    },
+  } as any;
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase,
+    userId: "u1",
+  });
+  assertEquals(result, null);
+});
+
+Deno.test("loadRecentActiveAttackCardForUser returns null when supabase has no .from method", async () => {
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase: {} as any,
+    userId: "u1",
+  });
+  assertEquals(result, null);
 });

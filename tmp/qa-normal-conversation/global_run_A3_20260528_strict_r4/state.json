@@ -1,0 +1,65 @@
+{
+  "run_id": "global_run_A3_20260528_strict_r4",
+  "scope": "qa-normal-conversation-global_run_A3_20260528_strict_r4",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global_run_A3_20260528_strict_r4-1779981532920@example.com",
+  "user_id": "13fba09c-6e9a-4ace-83ef-f540e60f13e1",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiIxM2ZiYTA5Yy02ZTlhLTRhY2UtODNlZi1mNTQwZTYwZjEzZTEiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5OTg1MTMzLCJpYXQiOjE3Nzk5ODE1MzMsImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbF9ydW5fYTNfMjAyNjA1Mjhfc3RyaWN0X3I0LTE3Nzk5ODE1MzI5MjBAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbF9ydW5fYTNfMjAyNjA1Mjhfc3RyaWN0X3I0LTE3Nzk5ODE1MzI5MjBAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6Imdsb2JhbF9ydW5fQTNfMjAyNjA1Mjhfc3RyaWN0X3I0Iiwic3ViIjoiMTNmYmEwOWMtNmU5YS00YWNlLTgzZWYtZjU0MGU2MGYxM2UxIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Nzk5ODE1MzN9XSwic2Vzc2lvbl9pZCI6IjI2NmUxNGUwLWFiYTUtNDk0ZC04ZjUxLTc4OGQzODgzMTgyYyIsImlzX2Fub255bW91cyI6ZmFsc2V9.Fl7n_P35zlt1T6tbgKTVCtV7LAQ11MFFxseD2U0HShc",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-28T15:18:53.208Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-28T15:19:07.162Z",
+      "user": "Ce matin je suis un peu éparpillé. J'ai des mails à finir, un message Slack qui me met la pression, et je ne veux pas partir dans un grand plan. J'ai juste besoin d'un petit point d'appui.",
+      "http_status": 502,
+      "ok": false,
+      "empty_response": true,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "",
+      "trace_short": {
+        "response_owner": null,
+        "selected_handler": null,
+        "route_reason": null,
+        "safety": null,
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": null,
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": null
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": []
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "message": "An invalid response was received from the upstream server"
+      }
+    }
+  ],
+  "updated_at": "2026-05-28T15:19:07.162Z"
+}

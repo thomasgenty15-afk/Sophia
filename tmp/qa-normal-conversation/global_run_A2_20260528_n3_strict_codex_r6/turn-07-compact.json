@@ -1,0 +1,23 @@
+{
+  "n": 7,
+  "user": "Où est-ce que je retrouve cette carte d'attaque dans l'app ? Juste l'emplacement.",
+  "assistant": "Je te la situe exactement : Dashboard > Ressources. 📍\n\nDans “Ressources”, tu vas vers la section Cartes d’attaque (celle liée à ton action “Parcmètre”). 🚗",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r6-t07",
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason": "central_arbitrator_product_help_priority",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

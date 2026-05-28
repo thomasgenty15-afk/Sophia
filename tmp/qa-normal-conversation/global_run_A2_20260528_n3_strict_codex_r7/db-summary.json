@@ -1,0 +1,341 @@
+{
+  "scheduled_count": 1,
+  "scheduled": [
+    {
+      "id": "f3349bcd-10bf-47f1-9257-9e6a5035cc0d",
+      "event_context": "one_shot_reminder:payer_seulement_le_parking",
+      "scheduled_for": "2026-05-28T09:55:00+00:00",
+      "status": "pending",
+      "reminder_instruction": "Payer seulement le parking"
+    }
+  ],
+  "attack_cards_count": 1,
+  "attack_cards": [
+    {
+      "id": "5b6ea229-25bf-47b0-9e8d-be038b85efe7",
+      "status": "active",
+      "scope_kind": "out_of_plan",
+      "content": {
+        "summary": "Carte d'attaque pour payer le parking une fois puis fermer l'appli.",
+        "techniques": [
+          {
+            "title": "Mot de bascule",
+            "pour_quoi": "Cela crée un engagement ferme qui t'empêche de dériver après avoir payé.",
+            "questions": [],
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; je reprendrai le contexte.",
+            "objet_genere": "Un mot-cle memorisable et un mini protocole de bascule.",
+            "technique_key": "pre_engagement",
+            "generated_result": {
+              "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; je reprendrai le contexte.",
+              "generated_at": "2026-05-28T18:59:30.647Z",
+              "output_title": "Parking & Focus",
+              "generated_asset": "payé et fermé",
+              "keyword_trigger": {
+                "risk_situation": "payer le parking une fois puis fermer l'appli",
+                "strength_anchor": "Cela crée un engagement ferme qui t'empêche de dériver après avoir payé.",
+                "assistant_prompt": "L'utilisateur a envoye le mot de bascule pour payer le parking une fois puis fermer l'appli. Aide-le a revenir au premier geste.",
+                "activation_keyword": "payé et fermé",
+                "first_response_intent": "Envoie le mot-clé dès que tu as payé pour sceller l'action.",
+                "activation_keyword_normalized": "paye et ferme"
+              },
+              "supporting_points": [
+                "Évite de traîner sur l'appli",
+                "Marque la fin de l'action",
+                "Protège ton attention"
+              ]
+            }
+          }
+        ],
+        "operation_draft": {
+          "title": "Parking & Focus",
+          "technique": "pre_engagement",
+          "instruction": "Envoie le mot-clé dès que tu as payé pour sceller l'action.",
+          "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; je reprendrai le contexte.",
+          "target_label": "payer le parking une fois puis fermer l'appli",
+          "why_it_helps": "Cela crée un engagement ferme qui t'empêche de dériver après avoir payé.",
+          "generated_asset": "payé et fermé",
+          "technique_title": "Mot de bascule",
+          "supporting_points": [
+            "Évite de traîner sur l'appli",
+            "Marque la fin de l'action",
+            "Protège ton attention"
+          ],
+          "activation_keyword": "payé et fermé"
+        }
+      },
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Parking & Focus",
+            "technique": "pre_engagement",
+            "instruction": "Envoie le mot-clé dès que tu as payé pour sceller l'action.",
+            "mode_emploi": "Envoie seulement ce mot quand tu sens que tu peux craquer; je reprendrai le contexte.",
+            "target_label": "payer le parking une fois puis fermer l'appli",
+            "why_it_helps": "Cela crée un engagement ferme qui t'empêche de dériver après avoir payé.",
+            "generated_asset": "payé et fermé",
+            "technique_title": "Mot de bascule",
+            "supporting_points": [
+              "Évite de traîner sur l'appli",
+              "Marque la fin de l'action",
+              "Protège ton attention"
+            ],
+            "activation_keyword": "payé et fermé"
+          },
+          "output_schema": "attack_card_draft_v1",
+          "operation_type": "prepare_attack_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ta carte 'Parking & Focus' (Mot de bascule).\nTon mot-clé : payé et fermé\nEnvoie-le moi dès que tu as payé pour sceller l'action et fermer l'appli.\nEst-ce que je crée cette carte pour toi ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "target": {
+          "kind": "personal_action",
+          "title": "payer le parking une fois puis fermer l'appli",
+          "plan_item_id": null
+        },
+        "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t07",
+        "operation_id": "5f439c22-983c-49df-958f-4301f2549991",
+        "operation_type": "prepare_attack_card",
+        "source_message_id": "f90e6651-936e-44cd-af51-0c6d10774087"
+      }
+    }
+  ],
+  "facts_count": 12,
+  "facts": [
+    {
+      "key": "coach.emoji_policy",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Zéro emoji",
+        "value": "none"
+      },
+      "reason": "Pour la suite, enregistre une préférence durable: quand je dis 'court', zéro emoji, trois lignes max, et pas de question finale inutile."
+    },
+    {
+      "key": "coach.response_max_lines",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Trois lignes max",
+        "value": "three"
+      },
+      "reason": "Pour la suite, enregistre une préférence durable: quand je dis 'court', zéro emoji, trois lignes max, et pas de question finale inutile."
+    },
+    {
+      "key": "coach.final_question_policy",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Pas de question finale inutile",
+        "value": "avoid_unnecessary"
+      },
+      "reason": "Pour la suite, enregistre une préférence durable: quand je dis 'court', zéro emoji, trois lignes max, et pas de question finale inutile."
+    },
+    {
+      "key": "coach.question_tendency",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Peu de questions",
+        "value": "low"
+      },
+      "reason": "Pour la suite, enregistre une préférence durable: quand je dis 'court', zéro emoji, trois lignes max, et pas de question finale inutile."
+    },
+    {
+      "key": "coach.challenge_level",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.feedback_style",
+      "source_type": "system_default",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.message_length",
+      "source_type": "system_default",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.message_format",
+      "source_type": "system_default",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.primary_focus",
+      "source_type": "system_default",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "source_type": "system_default",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    },
+    {
+      "key": "coach.tone",
+      "source_type": "system_default",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "reason": "Default coach preferences (v4 canonical)"
+    }
+  ],
+  "chat_states_count": 1,
+  "traces_count": 15,
+  "messages_count": 30,
+  "traceSummary": [
+    {
+      "n": 1,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t01",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "attack_card_cancelled_to_conversation",
+      "tool_status": null
+    },
+    {
+      "n": 2,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t02",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "attack_card_cancelled_to_conversation",
+      "tool_status": null
+    },
+    {
+      "n": 3,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t03",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "central_arbitrator_one_shot_reminder_priority",
+      "tool_status": "executed"
+    },
+    {
+      "n": 4,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t04",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "status_only_request_blocks_tool_start",
+      "tool_status": "answered"
+    },
+    {
+      "n": 5,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t05",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "tool_skill_intent_start",
+      "tool_status": "fallback_dashboard"
+    },
+    {
+      "n": 6,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t06",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "tool_skill_intent_start",
+      "tool_status": "pending_confirmation"
+    },
+    {
+      "n": 7,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t07",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_attack_card",
+      "route_reason": "tool_skill_intent_start",
+      "tool_status": "executed"
+    },
+    {
+      "n": 8,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t08",
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_reason": "central_arbitrator_product_help_priority",
+      "tool_status": null
+    },
+    {
+      "n": 9,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t09",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "central_arbitrator_explicit_no_status_request",
+      "tool_status": "answered"
+    },
+    {
+      "n": 10,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t10",
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "central_arbitrator_coach_preference_priority",
+      "tool_status": "pending_confirmation"
+    },
+    {
+      "n": 11,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t11",
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "central_arbitrator_coach_preference_priority",
+      "tool_status": "executed"
+    },
+    {
+      "n": 12,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t12",
+      "response_owner": "conversation_handler",
+      "selected_handler": "emotional_repair",
+      "route_reason": "skill_entry_signal",
+      "tool_status": null
+    },
+    {
+      "n": 13,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t13",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "explicit_no_tool_request_blocks_tool_start",
+      "tool_status": "ask_question"
+    },
+    {
+      "n": 14,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t14",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "immediate_mode_request_not_state_potion",
+      "tool_status": "ask_question"
+    },
+    {
+      "n": 15,
+      "turn_id": "global_run_A2_20260528_n3_strict_codex_r7-t15",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "explicit_no_tool_request_blocks_tool_start",
+      "tool_status": null
+    }
+  ]
+}

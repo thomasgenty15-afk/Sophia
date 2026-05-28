@@ -1,0 +1,22 @@
+{
+  "n": 4,
+  "user": "Pour ce rappel ponctuel de 11h55, où est-ce que je peux le vérifier ou l'annuler dans l'app ? Juste l'emplacement, sans modifier.",
+  "assistant": "Sans rien modifier :\n- Carte d'attaque : je n'en vois pas en place.\n- Carte de défense : je n'en vois pas en place.\n- Rappels ponctuels : oui, il est programmé à 11:55 (Payer seulement le parking).\n- Préférences coach : oui, challenge équilibré, ton bienveillant ferme. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t04",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "status_only_request_blocks_tool_start",
+    "safety": "none",
+    "operation": null,
+    "memory_plan": "none",
+    "executed_tools": [],
+    "tool_status": "answered",
+    "skill_id": null
+  }
+}

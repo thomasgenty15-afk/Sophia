@@ -1,0 +1,10 @@
+{
+  "user_id": "39cc9078-4386-4dd3-be10-66dfeb9d6a00",
+  "content": "J'ai trouvé le reçu mais je reviens au parcmètre dans ma tête. Toujours pas de carte: donne-moi seulement le geste suivant.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

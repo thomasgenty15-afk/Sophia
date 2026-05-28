@@ -1,0 +1,25 @@
+{
+  "n": 6,
+  "user": "Oui, enregistre-la exactement comme ça.",
+  "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nStationnement : Payé = Fermé\nTechnique : Ancre visuelle\nPost-it : 'Payé = Fermé'\n\nMode d'emploi : Place l'ancre dans ton environnement et utilise-la comme signal de depart.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r5-t06",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety": "low",
+    "operation": "fa6c110e-f6df-4723-aa54-82dab467c6fc",
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [
+      "prepare_attack_card"
+    ],
+    "tool_status": "executed",
+    "skill_id": null
+  }
+}

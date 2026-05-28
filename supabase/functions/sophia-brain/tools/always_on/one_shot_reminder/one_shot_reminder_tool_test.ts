@@ -4,8 +4,12 @@ import {
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   buildOneShotReminderAddon,
+  detectsReminderAnaphora,
+  extractQuotedReminderInstruction,
   isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
+  loadLastReminderInstructionForUser,
+  maybeCreateOneShotReminder,
   parseOneShotReminderRequest,
   runCreateOneShotReminderV2,
   summarizeOneShotReminderOutcome,
@@ -74,6 +78,24 @@ Deno.test("parseOneShotReminderRequest parses quarter-hour reminder", () => {
   assertEquals(parsed.reminderInstruction, "faire mes pompes");
   assertEquals(parsed.eventContext, "one_shot_reminder:faire_mes_pompes");
   assertEquals(parsed.scheduledFor, "2026-03-18T14:15:00.000Z");
+});
+
+Deno.test("parseOneShotReminderRequest parses explicit new reminder with bare local time", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Oui, crée un nouveau rappel à 11h25 avec le même texte, et garde l'ancien actif.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(parsed.scheduledFor, "2026-05-28T09:25:00.000Z");
+  assertEquals(
+    isLikelyOneShotReminderRequest(
+      "Oui, crée un nouveau rappel à 11h25 avec le même texte.",
+    ),
+    true,
+  );
 });
 
 Deno.test("one-shot detection ignores references to an existing reminder", () => {
@@ -524,4 +546,205 @@ Deno.test("one_shot reminder summary does not mark clarify as executed", () => {
     } as any),
     { executedTools: [], toolExecution: "blocked" },
   );
+});
+
+// ===========================================================================
+// Chantier 7 (2026-05-28) — Résolution d'anaphore. Voir A4-r5 T7.
+// ===========================================================================
+
+Deno.test("detectsReminderAnaphora matches typical anaphoric expressions", () => {
+  const positives = [
+    "tu mets le même rappel à 10h22 ?",
+    "remets le meme rappel demain",
+    "même texte mais à 11h",
+    "même note pour 14h",
+    "tu programmes ce rappel à 9h",
+    "comme tout à l'heure mais à 18h",
+    "comme avant à 8h",
+    "pareil que tout à l'heure à 12h",
+    "fais-moi le même à 15h",
+  ];
+  for (const msg of positives) {
+    assertEquals(detectsReminderAnaphora(msg), true, msg);
+  }
+});
+
+Deno.test("detectsReminderAnaphora does NOT trigger on explicit instructions", () => {
+  const negatives = [
+    "rappelle-moi de payer la facture demain à 9h",
+    "programme un rappel pour envoyer le PDF à Mina à 11h",
+    "tu m'envoies une note à 14h pour appeler le dentiste",
+    "rappelle-moi à 10h22",
+  ];
+  for (const msg of negatives) {
+    assertEquals(detectsReminderAnaphora(msg), false, msg);
+  }
+});
+
+function makeFakeSupabaseForReminders(rows: any[]) {
+  return {
+    from(_table: string) {
+      const builder: any = {
+        select(_cols: string) {
+          return this;
+        },
+        eq(_col: string, _val: unknown) {
+          return this;
+        },
+        order(_col: string, _opts?: any) {
+          return this;
+        },
+        limit(_n: number) {
+          return this;
+        },
+        then(onFulfilled: (v: { data: unknown[]; error: null }) => unknown) {
+          return Promise.resolve({ data: rows, error: null }).then(onFulfilled);
+        },
+      };
+      return builder;
+    },
+  } as any;
+}
+
+Deno.test("loadLastReminderInstructionForUser returns last non-generic instruction", async () => {
+  const supabase = makeFakeSupabaseForReminders([
+    {
+      created_at: "2026-05-28T10:00:00Z",
+      message_payload: {
+        reminder_instruction: "envoyer à Mina la note finie avec le PDF rangé",
+      },
+    },
+    {
+      created_at: "2026-05-27T10:00:00Z",
+      message_payload: { reminder_instruction: "ce que tu as prévu" },
+    },
+  ]);
+  const out = await loadLastReminderInstructionForUser(supabase, "u1");
+  assertEquals(out, "envoyer à Mina la note finie avec le PDF rangé");
+});
+
+Deno.test("loadLastReminderInstructionForUser skips generic 'ce que tu as prévu' to find a real one", async () => {
+  const supabase = makeFakeSupabaseForReminders([
+    {
+      created_at: "2026-05-28T10:00:00Z",
+      message_payload: { reminder_instruction: "ce que tu as prévu" },
+    },
+    {
+      created_at: "2026-05-27T10:00:00Z",
+      message_payload: { reminder_instruction: "appeler le dentiste" },
+    },
+  ]);
+  const out = await loadLastReminderInstructionForUser(supabase, "u1");
+  assertEquals(out, "appeler le dentiste");
+});
+
+Deno.test("loadLastReminderInstructionForUser returns null on empty result", async () => {
+  const supabase = makeFakeSupabaseForReminders([]);
+  const out = await loadLastReminderInstructionForUser(supabase, "u1");
+  assertEquals(out, null);
+});
+
+// ===========================================================================
+// Chantier 13 (2026-05-28) — extractQuotedReminderInstruction. Voir A4-r6 T7.
+// ===========================================================================
+
+Deno.test("extractQuotedReminderInstruction prefers content quoted after 'texte exact' (A4-r6 T7)", () => {
+  const msg =
+    "rappel ponctuel aujourd'hui à 11h37, texte exact 'envoyer à Noa la page corrigée avec les trois fichiers classés'";
+  assertEquals(
+    extractQuotedReminderInstruction(msg),
+    "envoyer à Noa la page corrigée avec les trois fichiers classés",
+  );
+});
+
+Deno.test("extractQuotedReminderInstruction handles double quotes", () => {
+  const msg =
+    'programme un rappel à 14h, texte exact "appeler le dentiste demain"';
+  assertEquals(
+    extractQuotedReminderInstruction(msg),
+    "appeler le dentiste demain",
+  );
+});
+
+Deno.test("extractQuotedReminderInstruction handles 'instruction:' framing", () => {
+  const msg = "rappel à 9h, instruction: 'arroser les plantes'";
+  assertEquals(
+    extractQuotedReminderInstruction(msg),
+    "arroser les plantes",
+  );
+});
+
+Deno.test("extractQuotedReminderInstruction returns empty when no quotes present", () => {
+  const msg = "rappelle-moi de payer la facture demain à 9h";
+  assertEquals(extractQuotedReminderInstruction(msg), "");
+});
+
+// ===========================================================================
+// Chantier 18 (2026-05-28) — extractReminderInstruction priorise "pour X"
+// sur "de X". Voir A3-r7 T2.
+// ===========================================================================
+
+Deno.test("parseOneShotReminderRequest captures full 'pour relire X avant de Y' (A3-r7 T2)", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Mets-moi un rappel demain à 9h05 pour relire ce mail client avant de l'envoyer",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-27T15:00:00.000Z",
+  });
+  if (!parsed) throw new Error("expected parsed");
+  // Avant chantier 18, l'extracteur retournait "l envoyer" (le trailing
+  // "de" gagnait sur "pour"). Maintenant on capture la phrase complète.
+  assertEquals(
+    parsed.reminderInstruction.includes("relire"),
+    true,
+    `got: ${parsed.reminderInstruction}`,
+  );
+  assertEquals(
+    parsed.reminderInstruction.includes("envoyer"),
+    true,
+    `got: ${parsed.reminderInstruction}`,
+  );
+});
+
+Deno.test("parseOneShotReminderRequest still parses simple 'de X' phrasing", () => {
+  // Anti-régression: si pas de "pour", on doit toujours capturer "de X".
+  const parsed = parseOneShotReminderRequest({
+    message: "rappelle-moi de payer la facture demain à 9h",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-27T15:00:00.000Z",
+  });
+  if (!parsed) throw new Error("expected parsed");
+  assertEquals(
+    parsed.reminderInstruction.includes("payer la facture"),
+    true,
+    `got: ${parsed.reminderInstruction}`,
+  );
+});
+
+Deno.test("parseOneShotReminderRequest uses quoted content over greedy parse (A4-r6 T7)", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "rappel ponctuel aujourd'hui à 11h37, texte exact 'envoyer à Noa la page corrigée avec les trois fichiers classés'",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  if (!parsed) throw new Error("expected parsed");
+  assertEquals(
+    parsed.reminderInstruction,
+    "envoyer à Noa la page corrigée avec les trois fichiers classés",
+  );
+});
+
+Deno.test("loadLastReminderInstructionForUser strips Rappel-ponctuel-prefix from instruction column", async () => {
+  const supabase = makeFakeSupabaseForReminders([
+    {
+      created_at: "2026-05-28T10:00:00Z",
+      message_payload: {
+        instruction:
+          "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de envoyer le PDF à Mina.",
+      },
+    },
+  ]);
+  const out = await loadLastReminderInstructionForUser(supabase, "u1");
+  assertEquals(out, "envoyer le PDF à Mina");
 });

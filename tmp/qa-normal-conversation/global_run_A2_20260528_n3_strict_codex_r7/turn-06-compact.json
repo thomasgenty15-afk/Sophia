@@ -1,0 +1,22 @@
+{
+  "n": 6,
+  "user": "Cible claire: payer le parking une fois puis fermer l'appli. Garde 'payé et fermé'. Réessaie de préparer la carte, puis demande-moi confirmation si besoin.",
+  "assistant": "Voici ta carte 'Parking & Focus' (Mot de bascule).\nTon mot-clé : payé et fermé\nEnvoie-le moi dès que tu as payé pour sceller l'action et fermer l'appli.\nEst-ce que je crée cette carte pour toi ? 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t06",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": "low",
+    "operation": "5f439c22-983c-49df-958f-4301f2549991",
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "pending_confirmation",
+    "skill_id": null
+  }
+}

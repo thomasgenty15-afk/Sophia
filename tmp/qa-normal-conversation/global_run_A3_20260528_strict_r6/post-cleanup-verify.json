@@ -1,0 +1,46 @@
+{
+  "run_id": "global_run_A3_20260528_strict_r6",
+  "user_id": "b9730473-9256-492a-8239-5730d16e16f0",
+  "remaining": {
+    "chat_messages": {
+      "status": 200,
+      "count": 0
+    },
+    "scheduled_checkins": {
+      "status": 200,
+      "count": 0
+    },
+    "user_chat_states": {
+      "status": 200,
+      "count": 0
+    },
+    "user_topic_memories": {
+      "status": 200,
+      "count": 0
+    },
+    "memory_items": {
+      "status": 200,
+      "count": 0
+    },
+    "user_attack_cards": {
+      "status": 200,
+      "count": 0
+    },
+    "user_defense_cards": {
+      "status": 200,
+      "count": 0
+    },
+    "user_profile_facts": {
+      "status": 200,
+      "count": 0
+    },
+    "user_potion_sessions": {
+      "status": 200,
+      "count": 0
+    },
+    "user_cycles": {
+      "status": 200,
+      "count": 0
+    }
+  }
+}

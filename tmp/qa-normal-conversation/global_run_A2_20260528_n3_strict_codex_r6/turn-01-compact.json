@@ -1,0 +1,23 @@
+{
+  "n": 1,
+  "user": "Matin flou: envoyer le reçu à Malo, payer le parcmètre, et vider deux assiettes. Pas de carte ni d'outil: donne-moi juste le premier geste maintenant.",
+  "assistant": "Ok. Ton premier geste maintenant: prends ton téléphone, ouvre tes messages/app reçus, et écris juste “Je te l’envoie” à Malo. 📩\n\nEnsuite, tu fais quoi: tu trouves le reçu tout de suite ou tu dois d’abord le chercher ? 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r6-t01",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

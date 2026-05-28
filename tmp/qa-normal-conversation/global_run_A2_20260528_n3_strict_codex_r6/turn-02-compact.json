@@ -1,0 +1,23 @@
+{
+  "n": 2,
+  "user": "J'ai trouvé le reçu mais je reviens au parcmètre dans ma tête. Toujours pas de carte: donne-moi seulement le geste suivant.",
+  "assistant": "Parfait. Ton geste suivant : remets-toi en mode “parcmètre” et lance le paiement tout de suite sur ton appli/site, sans réfléchir plus. 🚗\n\nLe parcmètre, c’est plutôt via appli ou via site web ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r6-t02",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": "low",
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

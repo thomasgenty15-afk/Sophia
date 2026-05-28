@@ -1,0 +1,10 @@
+{
+  "user_id": "82f7ae6c-3f60-49d8-b2f2-2333d9376650",
+  "content": "Ce n'est pas le récap demandé. Pas de statut système: seulement fait, prévu, fragile. Trois lignes, sans emoji.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

@@ -1,0 +1,22 @@
+{
+  "n": 12,
+  "user": "Je me sens nul parce que même la carte a changé de technique et le rappel est flou. Pas de danger, juste honteux. Réponds court.",
+  "assistant": "Ah merde… la honte te fait croire que “si ça change, c’est toi le problème”. Mais non : une carte qui évolue et un rappel pas clair, c’est juste de l’imperfection, pas de ta valeur.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t12",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety": "low",
+    "operation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

@@ -151,6 +151,40 @@ function cardImmutabilityNote(feature: ProductHelpFeature): string {
   return "\n\nImportant: les cartes se modifient depuis la plateforme quand l'interface le permet. Depuis le chat, si une carte ne convient plus, on peut preparer une nouvelle version apres confirmation.";
 }
 
+/**
+ * Quand le message courant cible explicitement la carte d'attaque.
+ * Sert à arbitrer entre les direct replies de product_help (carte vs rappel),
+ * pour éviter de répondre à côté du sujet quand les deux topics sont présents
+ * dans le contexte récent. Voir régression A2-r4 Tour 7.
+ */
+function currentMessageTargetsAttackCard(text: string): boolean {
+  return includesAny(text, [
+    "carte d'attaque",
+    "cartes d'attaque",
+    "carte d attaque",
+    "cette carte",
+    "la carte",
+    "ma carte",
+    "ma carte d'attaque",
+  ]);
+}
+
+/**
+ * Quand le message courant cible explicitement le rappel ponctuel.
+ * Symétrique de currentMessageTargetsAttackCard.
+ */
+function currentMessageTargetsOneShotReminder(text: string): boolean {
+  return includesAny(text, [
+    "rappel",
+    "rappels",
+    "rappelle",
+    "ce rappel",
+    "ce rappel ponctuel",
+    "le rappel",
+    "mon rappel",
+  ]);
+}
+
 function directAttackCardLocationReply(
   text: string,
   contextText = "",
@@ -175,6 +209,15 @@ function directAttackCardLocationReply(
     "sas de déchargement",
   ]);
   if (!asksLocation || !asksAttackCard) return null;
+  // Si le user message courant cible explicitement le rappel (pas la carte),
+  // on laisse le direct reply rappel répondre. Évite de répondre carte alors
+  // que le contexte récent mentionne carte mais le user parle du rappel.
+  if (
+    currentMessageTargetsOneShotReminder(text) &&
+    !currentMessageTargetsAttackCard(text)
+  ) {
+    return null;
+  }
   return [
     "Tu la retrouves dans Dashboard > Ressources > Cartes d'attaque du plan.",
     "",
@@ -187,6 +230,15 @@ function directOneShotReminderReply(
   contextText = "",
 ): string | null {
   const lookupText = `${text}\n${contextText}`.trim();
+  // Disambiguation A2-r4 Tour 7: le user message courant doit mentionner
+  // EXPLICITEMENT le rappel (pas juste un mot de localisation générique
+  // comme "où"). Sinon le contexte récent (qui contient le rappel récemment
+  // programmé) suffisait à matcher toute question de localisation, même
+  // quand le user parle clairement de la carte d'attaque.
+  const currentTargetsReminder = currentMessageTargetsOneShotReminder(text);
+  const currentTargetsCard = currentMessageTargetsAttackCard(text);
+  if (currentTargetsCard && !currentTargetsReminder) return null;
+  if (!currentTargetsReminder) return null;
   const asksReminderPlace = includesAny(text, [
     "rappel",
     "rappels",
@@ -257,6 +309,40 @@ export function runProductHelpSkill(input: RunSkillInput) {
     .map((turn) => normalizeText(turn.content))
     .join("\n")
     .slice(-1600);
+  // Ordre d'évaluation: carte d'attaque AVANT rappel. Si le user message cible
+  // explicitement la carte, c'est la réponse carte qui doit gagner. La fonction
+  // directOneShotReminderReply skip déjà quand le user cible explicitement la
+  // carte, donc l'ordre est principalement défensif. Voir A2-r4 Tour 7.
+  const directAttackLocation = directAttackCardLocationReply(text, contextText);
+  if (directAttackLocation) {
+    const feature = PRODUCT_HELP_FEATURES.find((item) =>
+      item.id === "resources.attack_card"
+    )!;
+    return baseOutput("product_help", {
+      status: "complete",
+      response_intent: "how_to",
+      reply: directAttackLocation,
+      diagnosis: {
+        feature_id: feature.id,
+        feature_label: feature.label,
+        operation_bridge: feature.operation_bridge ?? null,
+        locations: ["Dashboard > Ressources"],
+      },
+      recommendation_need: {
+        needed: false,
+        type: "none",
+        urgency: "none",
+        constraints: [
+          "product_help_does_not_execute_operations",
+          "operation_bridge_requires_confirmation_when_present",
+        ],
+      },
+      operation_suggestions: [],
+      state_patch: {
+        summary: "Product help answered for attack card location.",
+      },
+    });
+  }
   const directOneShotReminder = directOneShotReminderReply(text, contextText);
   if (directOneShotReminder) {
     const feature = PRODUCT_HELP_FEATURES.find((item) =>
@@ -286,36 +372,6 @@ export function runProductHelpSkill(input: RunSkillInput) {
       state_patch: {
         summary:
           "Product help answered for already programmed one-shot reminder.",
-      },
-    });
-  }
-  const directAttackLocation = directAttackCardLocationReply(text, contextText);
-  if (directAttackLocation) {
-    const feature = PRODUCT_HELP_FEATURES.find((item) =>
-      item.id === "resources.attack_card"
-    )!;
-    return baseOutput("product_help", {
-      status: "complete",
-      response_intent: "how_to",
-      reply: directAttackLocation,
-      diagnosis: {
-        feature_id: feature.id,
-        feature_label: feature.label,
-        operation_bridge: feature.operation_bridge ?? null,
-        locations: ["Dashboard > Ressources"],
-      },
-      recommendation_need: {
-        needed: false,
-        type: "none",
-        urgency: "none",
-        constraints: [
-          "product_help_does_not_execute_operations",
-          "operation_bridge_requires_confirmation_when_present",
-        ],
-      },
-      operation_suggestions: [],
-      state_patch: {
-        summary: "Product help answered for attack card location.",
       },
     });
   }

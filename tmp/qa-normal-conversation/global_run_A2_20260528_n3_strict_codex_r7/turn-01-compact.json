@@ -1,0 +1,22 @@
+{
+  "n": 1,
+  "user": "Matin mélangé: envoyer la photo à Inès, payer le parking, et ranger deux verres. Pas de carte ni d'outil: donne-moi juste le premier geste maintenant.",
+  "assistant": "Ok. Premier geste maintenant : prends 10 secondes et envoie la photo à Inès. 📸\n\nTu veux le faire via WhatsApp ou par SMS ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r7-t01",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": "low",
+    "operation": null,
+    "memory_plan": "none",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

@@ -1,10 +1,16 @@
-import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { runSafetyPregate } from "../safety/safety_pregate.ts";
 import {
   loadReplayFixtures,
   runReplayFixtures,
 } from "../test_harness/conversation_route_replay/runner.ts";
-import { DISPATCHER_V2_PROMPT_VERSION } from "./dispatcher.prompts.ts";
+import {
+  buildDispatcherPrompt,
+  DISPATCHER_V2_PROMPT_VERSION,
+} from "./dispatcher.prompts.ts";
 import { type DispatcherRunStats, runDispatcher } from "./dispatcher.v2.ts";
 
 async function dispatch(message: string, extra: Record<string, unknown> = {}) {
@@ -412,6 +418,143 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
   const results = await runReplayFixtures(fixtures, { mode: "s2" });
   assertEquals(results.length, 25);
   assertEquals(results.every((result) => result.passed), true);
+});
+
+// ---------------------------------------------------------------------------
+// Chantier 3 (2026-05-28): few-shots de migration L3 → L1.
+// Vérifie que les 5 cas couverts par les détecteurs transitionnels du fichier
+// router/turn_intent_arbitrator.ts sont bien embarqués dans le prompt généré
+// par buildDispatcherPrompt, sous la forme attendue.
+// ---------------------------------------------------------------------------
+
+Deno.test("dispatcher prompt version reflects L3-migration s17", () => {
+  assertEquals(
+    DISPATCHER_V2_PROMPT_VERSION,
+    "dispatcher_v2_prompt_2026_05_s17_l3_migration",
+  );
+});
+
+Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_routing_examples", () => {
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message: string;
+      expected: {
+        note?: string;
+      };
+    }>;
+  };
+  const messages = parsed.critical_routing_examples.map((ex) => ex.user_message);
+  // Few-shot 1: detectsExplicitOneShotReminderCreate
+  assertEquals(
+    messages.some((m) =>
+      m.includes("rappel ponctuel") && m.includes("11h35")
+    ),
+    true,
+    "few-shot create_one_shot_reminder manquant",
+  );
+  // Few-shot 2: detectsActiveToolCancellation
+  assertEquals(
+    messages.some((m) =>
+      m.includes("pas de carte") && m.includes("Annule ce flow")
+    ),
+    true,
+    "few-shot active_tool_cancellation manquant",
+  );
+  // Few-shot 3: detectsDurableCoachPreference
+  assertEquals(
+    messages.some((m) =>
+      m.includes("préférence durable") && m.includes("trois lignes")
+    ),
+    true,
+    "few-shot update_coach_preferences manquant",
+  );
+  // Few-shot 4: detectsExplicitProductHelp
+  assertEquals(
+    messages.some((m) =>
+      m.includes("retrouve cette carte d'attaque dans l'app")
+    ),
+    true,
+    "few-shot product_help app_location manquant",
+  );
+  // Few-shot 5: detectsExactDurableStatus
+  assertEquals(
+    messages.some((m) =>
+      m.includes("Sans rien modifier") &&
+      m.includes("vraiment en place")
+    ),
+    true,
+    "few-shot exact_durable_status manquant",
+  );
+});
+
+Deno.test("dispatcher prompt one_shot_reminder few-shot includes raw_text in payload_hint", () => {
+  // Régression A4-r4 T8/T9: sans raw_text, le runtime aval ne créait
+  // jamais le rappel. Le few-shot doit montrer payload_hint correctement
+  // rempli.
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<{
+          effect_type: string;
+          payload_hint?: { raw_text?: string };
+        }>;
+      };
+    }>;
+  };
+  const reminderExample = parsed.critical_routing_examples.find((ex) =>
+    ex.user_message.includes("rappel ponctuel")
+  );
+  if (!reminderExample) throw new Error("few-shot manquant");
+  const directEffect = reminderExample.expected.direct_effects?.[0];
+  assertEquals(directEffect?.effect_type, "create_one_shot_reminder");
+  assertEquals(
+    typeof directEffect?.payload_hint?.raw_text,
+    "string",
+  );
+  assertStringIncludes(
+    String(directEffect?.payload_hint?.raw_text ?? ""),
+    "rappel ponctuel",
+  );
+});
+
+Deno.test("dispatcher prompt cancellation few-shot uses skill_signals_exit, not tool_skill_intents", () => {
+  // Garde anti-régression: le user qui dit "pas de carte" ne doit pas
+  // produire de tool_skill_intent (ni prepare_attack_card ni autre). Le
+  // signal doit être skill_signals_exit pour le tool actif.
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message: string;
+      expected: {
+        tool_skill_intents?: unknown[];
+        skill_signals_exit?: Record<string, unknown>;
+      };
+    }>;
+  };
+  const cancelExample = parsed.critical_routing_examples.find((ex) =>
+    ex.user_message.includes("Annule ce flow")
+  );
+  if (!cancelExample) throw new Error("few-shot cancellation manquant");
+  assertEquals((cancelExample.expected.tool_skill_intents ?? []).length, 0);
+  assertEquals(
+    Boolean(cancelExample.expected.skill_signals_exit?.prepare_attack_card),
+    true,
+  );
 });
 
 Deno.test("route replay passes 10 S8 WhatsApp realism fixtures with S2 runtime", async () => {
