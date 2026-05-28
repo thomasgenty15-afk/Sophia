@@ -87,21 +87,55 @@ function deterministicPatchFromMessage(
   message: string,
 ): Partial<Record<CoachPreferenceKey, string>> | null {
   const text = normalizeReviewText(message);
+  const patch: Partial<Record<CoachPreferenceKey, string>> = {};
   if (
     (
       /\bune action\b/.test(text) ||
       /\baction concrete\b/.test(text) ||
-      /\bmode tres concret\b/.test(text)
+      /\bmode tres concret\b/.test(text) ||
+      /\bune seule question\b/.test(text) ||
+      /\bquestion de tri\b/.test(text)
     ) &&
     (
       /\bpas trois options\b/.test(text) ||
       /\bpas 3 options\b/.test(text) ||
-      /\bune action\b/.test(text)
+      /\bune action\b/.test(text) ||
+      /\bune seule question\b/.test(text)
     )
   ) {
-    return { "coach.question_tendency": "low" };
+    patch["coach.question_tendency"] = "low";
   }
-  return null;
+  if (
+    /\b(moins de questions|evite les questions|evite les relances|pas de questions systematiques|pas de relance systematique|reduis les questions|reduit les questions|une seule question|pas de question finale|sans question finale|question de tri|3 lignes max|trois lignes max)\b/
+      .test(text)
+  ) {
+    patch["coach.question_tendency"] = "low";
+  }
+  if (/\b(3 lignes max|trois lignes max|maximum trois lignes)\b/.test(text)) {
+    patch["coach.response_max_lines"] = "three";
+  }
+  if (
+    /\b(zero emoji|0 emoji|sans emoji|pas d emoji|pas d emojis)\b/.test(text)
+  ) {
+    patch["coach.emoji_policy"] = "none";
+  }
+  if (
+    /\b(pas de question finale|sans question finale|pas de question finale inutile|ne finis pas par une question|ne termine pas par une question)\b/
+      .test(text)
+  ) {
+    patch["coach.final_question_policy"] = "avoid_unnecessary";
+  }
+  if (
+    /\b(ferme et doux|doux et ferme|bienveillant et ferme|ferme et bienveillant|ton ferme|phrases courtes et fermes|style ferme)\b/
+      .test(text)
+  ) {
+    patch["coach.tone"] = "warm_direct";
+  } else if (/\b(plus direct|tres direct|plus directement)\b/.test(text)) {
+    patch["coach.tone"] = "direct";
+  } else if (/\b(plus doux|ton doux|doucement)\b/.test(text)) {
+    patch["coach.tone"] = "soft";
+  }
+  return Object.keys(patch).length > 0 ? patch : null;
 }
 
 function deterministicCoachPreferencesDraftReview(input: {
@@ -179,7 +213,10 @@ function stringArray(value: unknown): string[] {
 function normalizeKey(value: unknown): CoachPreferenceKey | null {
   const raw = String(value ?? "").trim();
   return raw === "coach.tone" || raw === "coach.challenge_level" ||
-      raw === "coach.question_tendency"
+      raw === "coach.question_tendency" ||
+      raw === "coach.response_max_lines" ||
+      raw === "coach.emoji_policy" ||
+      raw === "coach.final_question_policy"
     ? raw
     : null;
 }
@@ -449,6 +486,86 @@ export async function runUpdateCoachPreferencesIntake(input: {
   }
 
   const deterministicPatch = deterministicPatchFromMessage(input.message);
+  if (deterministicPatch && Object.keys(deterministicPatch).length > 1) {
+    const request = buildOperationDraftRequest({
+      operation_type: "update_coach_preferences",
+      user_id: input.user_id,
+      timezone: input.timezone,
+      channel: input.channel,
+      trigger_message_id: input.trigger_message_id,
+      current_user_message: input.message,
+      operation_source: source,
+    }) as ReturnType<typeof buildOperationDraftRequest> & {
+      current_preferences: Partial<Record<CoachPreferenceKey, string>>;
+      requested_patch: Partial<Record<CoachPreferenceKey, string>>;
+    };
+    request.current_preferences = input.current_preferences ?? {};
+    request.requested_patch = deterministicPatch;
+    let draft: CoachPreferencesPatchDraftV1;
+    try {
+      draft = runCoachPreferencesPatchBuilder(
+        buildCoachPreferencesPayload({
+          ...request,
+          reason: {
+            evidence: [input.message],
+            confidence: "high",
+          },
+        } as any),
+      );
+    } catch {
+      return technicalFailure(
+        "coach_preferences_multi_draft_builder_error",
+        source,
+      );
+    }
+    const state = mergeState(defaultState(), {
+      current_step: "draft_generation",
+      missing_slots: [],
+      confidence: "high",
+      reason: { evidence: [input.message], confidence: "high" },
+      constraints: ["multi_key_deterministic_patch"],
+    });
+    return {
+      operation_type: "update_coach_preferences",
+      status: "pending_confirmation",
+      source,
+      phase: "confirmation",
+      draft,
+      confirmation: {
+        required: true,
+        message: draft.confirmation_message,
+        actions: ["yes", "no"],
+      },
+      pending_confirmation: {
+        operation_id: request.operation_id,
+        operation_type: "update_coach_preferences",
+        source,
+        summary: draft.draft.summary,
+        draft,
+        intake_state: state,
+        expires_after_turns: 2,
+      },
+      state_patch: {
+        summary: "Coach preferences multi-key deterministic draft generated.",
+        phase: "confirmation",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: {
+          ...(input.operation_input ?? {}),
+          requested_patch: deterministicPatch,
+          intake_state: state,
+        },
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "awaiting_user_confirmation",
+          state,
+          missing: [],
+          summary:
+            "Structured deterministic draft is awaiting user confirmation.",
+        }),
+      },
+    };
+  }
   const initialOperationInput = deterministicPatch
     ? {
       ...(input.operation_input ?? {}),

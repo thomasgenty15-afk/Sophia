@@ -1,0 +1,30 @@
+{
+  "user": "Si je veux vérifier ce rappel plus tard, je le vois où dans l'app ? Ne le modifie pas.",
+  "assistant": "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.\n\nPour le modifier ou l'annuler, le plus fiable est de me le redire ici clairement, par exemple: \"change le rappel de demain à 9h\" ou \"annule le rappel de demain\". 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r2-t05",
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

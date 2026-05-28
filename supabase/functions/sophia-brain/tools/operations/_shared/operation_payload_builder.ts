@@ -351,7 +351,10 @@ export type PlanAdjustmentGeneratorInput = {
 export type CoachPreferenceKey =
   | "coach.tone"
   | "coach.challenge_level"
-  | "coach.question_tendency";
+  | "coach.question_tendency"
+  | "coach.response_max_lines"
+  | "coach.emoji_policy"
+  | "coach.final_question_policy";
 
 export type CoachPreferencesPatchBuilderInput = {
   operation_type: "update_coach_preferences";
@@ -669,6 +672,9 @@ export function buildCoachPreferencesPayload(
     "coach.tone",
     "coach.challenge_level",
     "coach.question_tendency",
+    "coach.response_max_lines",
+    "coach.emoji_policy",
+    "coach.final_question_policy",
   ];
   const keys = Object.keys(patch);
   ensure(keys.length, "coach_preferences_patch_missing");

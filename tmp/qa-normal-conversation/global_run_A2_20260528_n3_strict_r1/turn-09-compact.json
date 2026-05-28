@@ -1,0 +1,30 @@
+{
+  "user": "Non, je ne parle plus du rappel. Je demande une carte d'attaque pour le message administratif. Cible: envoyer une version courte sans relire dix fois. Technique: ancre visuelle.",
+  "assistant": "Voici ton brouillon :\n*Message Administratif Express* (Ancre visuelle)\nAsset : Un post-it avec écrit 'V1 = Validé' collé sur ton écran.\nPose l'ancre devant toi, rédige d'un trait et clique sur envoyer dès que tu vois le message.\nJe crée cette carte ? 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t09",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": "pending_confirmation",
+    "skill_id": null
+  }
+}

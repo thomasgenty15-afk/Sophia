@@ -963,6 +963,7 @@ export async function runCompanion(
     channel?: "web" | "whatsapp";
     model?: string;
     blockSideEffects?: boolean;
+    clientNowIso?: string | null;
   },
 ): Promise<CompanionRunResult> {
   const lastAssistantMessage =
@@ -980,11 +981,15 @@ export async function runCompanion(
       temp_memory: userState?.temp_memory ?? {},
     };
   }
+  const clientNow = meta?.clientNowIso ? new Date(meta.clientNowIso) : null;
   const oneShotReminderOutcome = await maybeCreateOneShotReminder({
     supabase,
     userId,
     message,
     requestId: meta?.requestId,
+    now: clientNow && Number.isFinite(clientNow.getTime())
+      ? clientNow
+      : undefined,
   });
   const oneShotReminderAddon = buildOneShotReminderAddon(
     oneShotReminderOutcome,

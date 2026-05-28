@@ -1,0 +1,30 @@
+{
+  "user": "Dernier tour: réponds à mon émotion, pas au système. Une phrase de clôture courte, sans emoji, pour que je reparte sans honte.",
+  "assistant": "Je te crois : c’est humiliant quand ça ne sort pas comme prévu, et ça ne dit rien de ta valeur; respire, et on repart propre.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r3-t15",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "active_conversation_skill_continue",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

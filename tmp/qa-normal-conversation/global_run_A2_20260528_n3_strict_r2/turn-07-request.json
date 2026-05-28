@@ -1,0 +1,10 @@
+{
+  "user_id": "2dde2955-c38d-4ec2-a299-9eb66b3f2be5",
+  "content": "Oui, prépare-la comme ça.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

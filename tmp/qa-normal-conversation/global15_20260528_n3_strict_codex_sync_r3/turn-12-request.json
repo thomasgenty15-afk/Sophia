@@ -1,0 +1,10 @@
+{
+  "user_id": "dfa44579-317a-4325-8837-0be1adba0fa6",
+  "content": "Le ton d'abord. Ferme et doux quand je suis confus, avec une seule consigne courte. Pour les questions, réduis-les aussi si tu peux.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

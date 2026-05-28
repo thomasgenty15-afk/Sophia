@@ -1,0 +1,32 @@
+{
+  "user": "Oui, crée-la.",
+  "assistant": "C'est fait. J'ai créé cette carte d'attaque :\n\nMessage Administratif Express\nTechnique : Ancre visuelle\nUn post-it avec écrit 'V1 = Validé' collé sur ton écran.\n\nMode d'emploi : Pose l'ancre devant toi, rédige d'un trait et clique sur envoyer dès que tu vois le message.\n\nTu peux la retrouver dans Ressources > Cartes d'attaque pour la relire et l'utiliser. Pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t10",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [
+      "prepare_attack_card"
+    ],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": "executed",
+    "skill_id": null
+  }
+}

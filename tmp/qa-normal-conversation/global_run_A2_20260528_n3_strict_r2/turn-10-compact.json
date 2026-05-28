@@ -1,0 +1,30 @@
+{
+  "user": "Je suis frustré d'avoir eu besoin de tout ce cadrage. Pas en danger, juste honteux. Réponds court.",
+  "assistant": "Pfff… ouais, c’est frustrant, et la honte c’est un vrai poison. 😕  \nMais le fait d’avoir eu besoin de cadrage ne dit pas “t’es nul” : ça dit “tu avais besoin d’un rail pour agir sans te perdre”.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r2-t10",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

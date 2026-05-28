@@ -1,0 +1,29 @@
+{
+  "user": "Merci. Ne lance rien d'autre maintenant, même pas une potion. Fais-moi juste le récap de ce qu'on a fixé pour aujourd'hui, en 5 lignes max.",
+  "assistant": "C'est entendu, on ne lance pas de potion. Voici le récap de ce qu'on a fixé pour aujourd'hui : 🙂",
+  "compact": {
+    "http_status": null,
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global15_20260528_n3_strict_codex_sync_r3-t15",
+    "logged_message_id": null,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "immediate_mode_request_not_state_potion",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ]
+  }
+}

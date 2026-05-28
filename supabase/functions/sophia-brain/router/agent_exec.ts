@@ -22,6 +22,7 @@ type ExecMeta = {
   evalRunId?: string | null;
   forceBrainTrace?: boolean;
   blockSideEffects?: boolean;
+  clientNowIso?: string | null;
 };
 
 function normalizeAgentText(text: unknown): string {

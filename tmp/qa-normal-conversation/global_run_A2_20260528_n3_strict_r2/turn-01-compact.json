@@ -1,0 +1,30 @@
+{
+  "user": "Ce matin j'ai trois trucs qui tirent dans tous les sens: payer une cotisation, répondre à Camille, et dégager mon bureau. Je veux juste le premier geste, pas une méthode complète.",
+  "assistant": "Je vois que tu as trois priorités ce matin. Sur laquelle de ces trois tâches veux-tu qu'on se concentre pour déclencher ce premier geste : la cotisation, Camille ou ton bureau ? 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r2-t01",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": "ask_question",
+    "skill_id": null
+  }
+}

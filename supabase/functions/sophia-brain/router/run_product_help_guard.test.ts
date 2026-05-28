@@ -1,19 +1,34 @@
 import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
+  applyAttackCardSingleTechniquePreferenceForTest,
+  applyCoachResponseStylePreferencesForTest,
+  applyIncompleteRecapGuardForTest,
+  applyNonDurableMemoryPromiseGuardForTest,
+  applyShortRepairNoProductOfferGuardForTest,
   directProductHelpReplyOverrideForTest,
   directSafetyCrisisReplyOverrideForTest,
+  enforceRecommendationToolVisibleReplyForTest,
+  isApplyExistingCoachPreferenceRequestForTest,
+  isAttackCardCancellationRequestForTest,
   isAttackCardExplicitApprovalForTest,
   isBroadRescueRequestNotDefenseCardForTest,
   isCoachPreferenceExplicitApprovalForTest,
   isCoachPreferenceVerificationRequestForTest,
   isDefenseCardExplicitApprovalForTest,
+  isDefenseCardRevisionForPendingDraftForTest,
+  isExplicitDefenseCardIntentForTest,
+  isExplicitNoToolRequestForTest,
+  isExplicitOneShotReminderModificationRequestForTest,
   isImmediateModeRequestNotCoachPreferenceForTest,
   isLocalMemoryReformulationRequestForTest,
   isLocalTextRevisionRequestForTest,
+  isMicroActionOnlyNotAttackCardForTest,
+  isOneShotReminderExactStatusRequestForTest,
   isRuntimeCoachPreferenceRequestForTest,
+  isStatusOnlyNoMutationRequestForTest,
   oneShotReminderManagementReplyForTest,
-  applyNonDurableMemoryPromiseGuardForTest,
   shouldRuntimeCoachPreferenceOverrideRouteForTest,
+  statePotionDeclineReplyForTest,
 } from "./run.ts";
 
 Deno.test("product_help one-shot reminder reply override keeps the factual skill answer", () => {
@@ -142,6 +157,21 @@ Deno.test("defense card explicit approval wins over generic card wording", () =>
   );
 });
 
+Deno.test("defense card pending revision is not routed as adjust_plan_item", () => {
+  assertEquals(
+    isDefenseCardRevisionForPendingDraftForTest(
+      "Change le geste: taper Nora dans la recherche, envoyer le message, puis quitter Slack.",
+    ),
+    true,
+  );
+  assertEquals(
+    isDefenseCardRevisionForPendingDraftForTest(
+      "Oui, valide cette version.",
+    ),
+    false,
+  );
+});
+
 Deno.test("local memory reformulation is not a recurring reminder", () => {
   assertEquals(
     isLocalMemoryReformulationRequestForTest(
@@ -185,6 +215,69 @@ Deno.test("concrete future style request is a coach preference", () => {
   assertEquals(
     isRuntimeCoachPreferenceRequestForTest(
       "Pour la suite, enregistre une préférence de coaching: quand je dis que je suis vidé ou vraiment crevé, je veux une seule action concrète à la fois, pas trois options.",
+    ),
+    true,
+  );
+  assertEquals(
+    isRuntimeCoachPreferenceRequestForTest(
+      "Garde comme repère dans cette conversation que journée brouillée = choisir une seule zone.",
+    ),
+    false,
+  );
+  assertEquals(
+    isApplyExistingCoachPreferenceRequestForTest(
+      "Pas de potion maintenant. Applique plutôt ma préférence: une seule question ou une seule action courte.",
+    ),
+    true,
+  );
+  assertEquals(
+    isApplyExistingCoachPreferenceRequestForTest(
+      "Non, ne lance rien. Donne-moi juste la prochaine mini-action en respectant ma préférence: une seule action.",
+    ),
+    true,
+  );
+  assertEquals(
+    isRuntimeCoachPreferenceRequestForTest(
+      "Pas de potion maintenant. Applique plutôt ma préférence: une seule question ou une seule action courte.",
+    ),
+    false,
+  );
+});
+
+Deno.test("explicit no-tool requests block operation starts", () => {
+  assertEquals(
+    isExplicitNoToolRequestForTest(
+      "Merci. Ne lance rien d'autre maintenant, même pas une potion. Fais-moi juste le récap.",
+    ),
+    true,
+  );
+  assertEquals(
+    isExplicitNoToolRequestForTest(
+      "Non, ne lance rien. Donne-moi juste la prochaine mini-action pour ne pas tout refaire.",
+    ),
+    true,
+  );
+});
+
+Deno.test("micro-action only requests do not start attack cards", () => {
+  assertEquals(
+    isMicroActionOnlyNotAttackCardForTest(
+      "Je veux juste le premier geste, pas une méthode complète.",
+    ),
+    true,
+  );
+  assertEquals(
+    isMicroActionOnlyNotAttackCardForTest(
+      "Fais-moi une carte d'attaque pour la cotisation.",
+    ),
+    false,
+  );
+});
+
+Deno.test("attack card cancellation exits active card flow", () => {
+  assertEquals(
+    isAttackCardCancellationRequestForTest(
+      "Stop carte. Donne-moi juste une phrase de début.",
     ),
     true,
   );
@@ -307,6 +400,167 @@ Deno.test("one-shot reminder management handles pronominal follow-up", () => {
   assertEquals(reply?.includes("Cartes"), false);
 });
 
+Deno.test("short emotional repair guard removes product offers", () => {
+  const guarded = applyShortRepairNoProductOfferGuardForTest({
+    userMessage:
+      "Je culpabilise un peu. Réponds court, aide-moi à redescendre.",
+    responseContent:
+      "Tu as déjà avancé. Ce n'est pas rien.\n\nRespire une fois et laisse la session se terminer là.\n\nTu veux qu'on choisisse une Potion d'état apaisement avant de continuer ? 🙂",
+  });
+  assertEquals(guarded.includes("Potion"), false);
+  assertEquals(guarded.includes("Tu veux"), false);
+  assertEquals(guarded.includes("Respire"), true);
+});
+
+Deno.test("attack card low-question preference collapses technique choices", () => {
+  const guarded = applyAttackCardSingleTechniquePreferenceForTest({
+    needed: true,
+    slot: "technique",
+    status: "missing",
+    reason: "structured_ai_missing_technique",
+    technique_options: [
+      {
+        technique_key: "preparer_terrain",
+        title: "Preparer le terrain",
+        description: "micro-setup",
+        reason: "réduit la friction",
+        example: "ouvrir le dossier",
+      },
+      {
+        technique_key: "texte_recadrage",
+        title: "Le texte magique",
+        description: "phrase courte",
+        reason: "coupe la négociation interne",
+        example: "je commence par une facture",
+        recommended: true,
+      },
+      {
+        technique_key: "ancre_visuelle",
+        title: "Ancre visuelle",
+        description: "signal physique",
+        reason: "déclenche le départ",
+        example: "post-it",
+      },
+    ],
+    known_slots: { target: { kind: "personal_action", title: "admin" } },
+  }, { preferSingleTechnique: true }) as any;
+  assertEquals(guarded.technique_options.length, 1);
+  assertEquals(guarded.technique_options[0].technique_key, "texte_recadrage");
+  assertEquals(guarded.question.includes("On part là-dessus"), true);
+  assertEquals(
+    guarded.known_slots.suggested_attack_technique,
+    "texte_recadrage",
+  );
+});
+
+Deno.test("state potion opportunity does not append mechanical product copy", () => {
+  const response = enforceRecommendationToolVisibleReplyForTest({
+    responseContent:
+      "On fait simple: une pile temporaire, puis un seul message.",
+    userMessage:
+      "Je suis éparpillé ce matin, je veux juste retrouver un point d'appui.",
+    surfaceLabel: "Potion d'etat",
+    recommendation: {
+      decision: "recommend_operation",
+      recommendation_id: "dispatcher_opportunity:state_potion",
+      operation_type: "select_state_potion",
+      user_facing_offer: "se poser avant de continuer",
+    } as any,
+  });
+  assertEquals(response.includes("Concrètement, je parle"), false);
+  assertEquals(response.includes("Potion"), false);
+});
+
+Deno.test("natural durable recap is treated as status only", () => {
+  assertEquals(
+    isStatusOnlyNoMutationRequestForTest(
+      "Avant que je coupe, fais-moi le récap: qu'est-ce qui a vraiment été créé ou gardé, et qu'est-ce qui était juste pour la conversation ?",
+    ),
+    true,
+  );
+});
+
+Deno.test("incomplete recap intro gets a minimal fallback body", () => {
+  const guarded = applyIncompleteRecapGuardForTest({
+    userMessage: "Fais-moi juste le récap de ce qu'on a fixé.",
+    responseContent:
+      "C'est entendu. Voici le récap de ce qu'on a fixé pour aujourd'hui : 🙂",
+  });
+  assertEquals(guarded.includes("- "), true);
+  assertEquals(guarded.endsWith(": 🙂"), false);
+});
+
+Deno.test("short no-tool repair removes state-potion choice offers", () => {
+  const guarded = applyShortRepairNoProductOfferGuardForTest({
+    userMessage: "Réponds court, pas de potion et ne lance rien.",
+    responseContent:
+      "Ok. Pose le téléphone et écris juste la première phrase.\n\nTu veux que je choisisse entre Guérison et Amour ?",
+  });
+  assertEquals(guarded.includes("Guérison"), false);
+  assertEquals(guarded.includes("Amour"), false);
+});
+
+Deno.test("explicit defense card intent is separate from attack card wording", () => {
+  assertEquals(
+    isExplicitDefenseCardIntentForTest(
+      "Prépare-moi une carte de défense pour répondre calmement quand Nora m'accuse sur Slack.",
+    ),
+    true,
+  );
+});
+
+Deno.test("existing one-shot reminder modification is not a plan adjustment", () => {
+  assertEquals(
+    isExplicitOneShotReminderModificationRequestForTest(
+      "Décale ce rappel ponctuel à demain 9h10, même texte.",
+    ),
+    true,
+  );
+});
+
+Deno.test("one-shot reminder exact status request is detected", () => {
+  assertEquals(
+    isOneShotReminderExactStatusRequestForTest(
+      "L'heure vraiment enregistrée du rappel, c'est 11h05 ou 11h20 ?",
+    ),
+    true,
+  );
+});
+
+Deno.test("concise durable coach preference is detected", () => {
+  assertEquals(
+    isRuntimeCoachPreferenceRequestForTest(
+      "Préférence durable: réponds en 3 lignes max, sans question finale.",
+    ),
+    true,
+  );
+});
+
+Deno.test("coach response style preferences remove emoji and final question", () => {
+  const styled = applyCoachResponseStylePreferencesForTest({
+    userMessage: "Court: bilan en trois lignes, sans emoji, sans question.",
+    responseContent:
+      "Fait : carte créée et rappel programmé.\nPrévu : payer sans revérifier.\nFragile : honte du cadrage.\nTu veux continuer ? 🙂",
+    preferences: {
+      noEmoji: true,
+      maxLines: 3,
+      avoidFinalQuestion: true,
+    },
+  });
+  assertEquals(styled.includes("🙂"), false);
+  assertEquals(styled.includes("?"), false);
+  assertEquals(styled.split("\n").length, 3);
+});
+
+Deno.test("state potion decline keeps concrete continuation context", () => {
+  const reply = statePotionDeclineReplyForTest(
+    "Pas de potion pour le moment. Je vais faire la pile temporaire. Ensuite le piège c'est que j'ouvre Slack pour envoyer un message et je pars lire dix conversations.",
+  );
+  assertEquals(reply.includes("je ne lance pas de potion"), true);
+  assertEquals(reply.includes("recherche"), true);
+  assertEquals(reply.includes("quitte l'app"), true);
+});
+
 Deno.test("explicit memory retention wording does not overpromise durable memory", () => {
   const guarded = applyNonDurableMemoryPromiseGuardForTest({
     userMessage:
@@ -325,8 +579,7 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
   const guardedBienNote = applyNonDurableMemoryPromiseGuardForTest({
     userMessage:
       "Retiens pour les prochaines fois: mon garde-fou du soir, c'est la commode.",
-    responseContent:
-      "Bien noté ✅ Ton garde-fou du soir, c'est la commode.",
+    responseContent: "Bien noté ✅ Ton garde-fou du soir, c'est la commode.",
     routeDecision: {
       response_owner: "normal_reply",
       direct_effects_to_run: [],
@@ -338,4 +591,22 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
     ),
     true,
   );
+  const guardedConversationRepere = applyNonDurableMemoryPromiseGuardForTest({
+    userMessage:
+      "Garde comme repère dans cette conversation que quand je dis éparpillé, ça veut dire choisir une seule zone.",
+    responseContent:
+      "Ok, noté ✅ Quand tu dis “éparpillé”, je retiens que tu veux choisir une seule zone. Je le garde comme repère pour la suite.",
+    routeDecision: {
+      response_owner: "normal_reply",
+      direct_effects_to_run: [],
+    } as any,
+  });
+  assertEquals(
+    guardedConversationRepere.startsWith(
+      "Je le garde comme repère dans cette conversation.",
+    ),
+    true,
+  );
+  assertEquals(guardedConversationRepere.includes("je retiens que"), false);
+  assertEquals(guardedConversationRepere.includes("pour la suite"), false);
 });

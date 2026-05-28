@@ -1,0 +1,30 @@
+{
+  "user": "Je me sens un peu ridicule d'avoir bataillé autant pour deux messages. Pas de danger, juste une honte qui monte. Réponds court comme demandé.",
+  "assistant": "Ah mince… c’est lourd la honte, même quand “y a aucun danger”. 😕  \nRien que le fait que tu t’en rends compte, ça veut dire que tu sors du brouillard et que tu apprends pour la prochaine fois.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t14",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

@@ -12,6 +12,9 @@ export const COACH_PREFERENCE_VALUES: Record<CoachPreferenceKey, string[]> = {
   "coach.tone": ["soft", "warm_direct", "direct"],
   "coach.challenge_level": ["low", "balanced", "high"],
   "coach.question_tendency": ["low", "normal", "high"],
+  "coach.response_max_lines": ["three", "normal"],
+  "coach.emoji_policy": ["none", "normal"],
+  "coach.final_question_policy": ["avoid_unnecessary", "normal"],
 };
 
 export type CoachPreferenceSlot = {

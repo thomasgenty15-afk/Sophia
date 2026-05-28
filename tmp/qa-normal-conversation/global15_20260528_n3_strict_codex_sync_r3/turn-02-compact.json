@@ -1,0 +1,29 @@
+{
+  "user": "On part sur les mails. J'ai ouvert les non lus, mais rien que voir la liste me donne envie de refermer. Là tout de suite, je fais quoi exactement pendant les 8 minutes ?",
+  "assistant": "Ok, pendant tes 8 minutes, tu ne “décides” de rien, tu exécutes juste. 😮‍💨\n\n1) Tu lis le premier mail “non lu”.\n2) Tu te poses une seule question: est-ce que je peux répondre en moins de 2 minutes ?\n- Si oui: tu réponds tout de suite (et tu passes au suivant).\n- Si non: tu notes une mini-action (1 mot) et tu l’abandonnes pour l’instant, puis suivant.\n\nObjectif: avancer un seul pas à la fois, sans te juger, sans fermer. ✅\n\nTu commences par le tout premier mail de la liste, ou tu as déjà “un mail prioritaire” en tête (A/B) ?",
+  "compact": {
+    "http_status": null,
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global15_20260528_n3_strict_codex_sync_r3-t02",
+    "logged_message_id": null,
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason": "active_flow_defers_tool_skill_opportunity",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ]
+  }
+}

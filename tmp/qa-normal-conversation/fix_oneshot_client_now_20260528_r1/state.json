@@ -1,0 +1,399 @@
+{
+  "run_id": "fix_oneshot_client_now_20260528_r1",
+  "scope": "qa-normal-conversation-fix_oneshot_client_now_20260528_r1",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-fix_oneshot_client_now_20260528_r1-1779973109676@example.com",
+  "user_id": "c668652f-44d4-4a41-bc57-c61185bf29e0",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJjNjY4NjUyZi00NGQ0LTRhNDEtYmM1Ny1jNjExODViZjI5ZTAiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5OTc2NzA5LCJpYXQiOjE3Nzk5NzMxMDksImVtYWlsIjoicWEtbm9ybWFsLWZpeF9vbmVzaG90X2NsaWVudF9ub3dfMjAyNjA1MjhfcjEtMTc3OTk3MzEwOTY3NkBleGFtcGxlLmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7InByb3ZpZGVyIjoiZW1haWwiLCJwcm92aWRlcnMiOlsiZW1haWwiXX0sInVzZXJfbWV0YWRhdGEiOnsiZW1haWwiOiJxYS1ub3JtYWwtZml4X29uZXNob3RfY2xpZW50X25vd18yMDI2MDUyOF9yMS0xNzc5OTczMTA5Njc2QGV4YW1wbGUuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImlzX3Rlc3RfcGVyc29uYSI6dHJ1ZSwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJxYV9ydW5faWQiOiJmaXhfb25lc2hvdF9jbGllbnRfbm93XzIwMjYwNTI4X3IxIiwic3ViIjoiYzY2ODY1MmYtNDRkNC00YTQxLWJjNTctYzYxMTg1YmYyOWUwIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Nzk5NzMxMDl9XSwic2Vzc2lvbl9pZCI6ImM1ZTI4MjA2LTljZGEtNDAxMy1iMjkxLTk3YjJmOTczMWJkYyIsImlzX2Fub255bW91cyI6ZmFsc2V9.R84vimchgiPL4xgfupJjwuXm9_Xqc2mu_K-XfmbTg7s",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-28T12:58:29.978Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-28T12:58:52.138Z",
+      "user": "Programme-moi un rappel aujourd'hui a 14h20: verifier si Lea a repondu, sans rouvrir tout le dossier.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour jeudi 28 mai à 14:20 : verifier si Lea a repondu, sans rouvrir tout le dossier. 🙂",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:58:52.065Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__conversation_risk_history": [
+                  0
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:58:52.103114+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "ee38a3d1-c2c2-4f1f-a5d6-a8d8fd7cdca7",
+              "status": "pending",
+              "event_context": "one_shot_reminder:verifier_si_lea_a_repondu_sans_rouvrir_tout_le_dossier",
+              "draft_message": null,
+              "scheduled_for": "2026-05-28T12:20:00+00:00",
+              "created_at": "2026-05-28T12:58:52.098116+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "fix_oneshot_client_now_20260528_r1-t01",
+        "user_id": "c668652f-44d4-4a41-bc57-c61185bf29e0",
+        "channel": "web",
+        "scope": "qa-normal-conversation-fix_oneshot_client_now_20260528_r1",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour jeudi 28 mai à 14:20 : verifier si Lea a repondu, sans rouvrir tout le dossier. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "fix_oneshot_client_now_20260528_r1-t01",
+          "user_id": "c668652f-44d4-4a41-bc57-c61185bf29e0",
+          "source_message_id": "b5d5ff9f-1f06-4fe5-a295-71e803a2db9f",
+          "ts": "2026-05-28T12:58:52.108+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [
+              "bounded_context_lowers_risk"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8539,
+            "latency_ms": 4910,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 640,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "Lea",
+                  "type": "entity",
+                  "priority": "medium",
+                  "query_hint": "Qui est Lea ?",
+                  "entity_type": "person",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "fix_oneshot_client_now_20260528_r1-t01",
+            "user_id": "c668652f-44d4-4a41-bc57-c61185bf29e0",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "Lea",
+                  "type": "entity",
+                  "priority": "medium",
+                  "query_hint": "Qui est Lea ?",
+                  "entity_type": "person",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "standard",
+              "plan_confidence": 0.7,
+              "response_intent": "inventory",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "medium"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "execution_blocked",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "payload_hint": {
+                  "raw_text": "verifier si Lea a repondu, sans rouvrir tout le dossier",
+                  "date_hint": "2026-05-28",
+                  "time_hint": "14:20"
+                },
+                "target_status": "identified",
+                "confidence_band": "high"
+              }
+            ],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "b5d5ff9f-1f06-4fe5-a295-71e803a2db9f",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_entry_signal",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "execution_breakdown",
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "create_one_shot_reminder"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "skill_entry_signal",
+            "scheduled_for": "2026-05-28T12:20:00+00:00",
+            "selected_handler": "create_one_shot_reminder",
+            "inserted_checkin_id": "ee38a3d1-c2c2-4f1f-a5d6-a8d8fd7cdca7"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4989,
+          "created_at": "2026-05-28T12:58:52.110342+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-28T12:58:52.170Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-05-28T12:59:10.953Z"
+}

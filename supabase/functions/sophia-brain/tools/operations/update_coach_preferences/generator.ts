@@ -32,6 +32,18 @@ const VALUE_ALIASES: Record<CoachPreferenceKey, Record<string, string>> = {
     equilibre: "normal",
     tres_questionnant: "high",
   },
+  "coach.response_max_lines": {
+    trois_lignes: "three",
+    three_lines: "three",
+  },
+  "coach.emoji_policy": {
+    zero_emoji: "none",
+    sans_emoji: "none",
+  },
+  "coach.final_question_policy": {
+    eviter_question_finale: "avoid_unnecessary",
+    pas_question_finale: "avoid_unnecessary",
+  },
 };
 
 export function normalizeCoachPreferenceValue(
@@ -59,6 +71,17 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
       ? "un niveau de challenge plus élevé"
       : "un niveau de challenge équilibré";
   }
+  if (key === "coach.response_max_lines") {
+    return value === "three" ? "trois lignes maximum" : "un format normal";
+  }
+  if (key === "coach.emoji_policy") {
+    return value === "none" ? "zéro emoji" : "les emojis autorisés";
+  }
+  if (key === "coach.final_question_policy") {
+    return value === "avoid_unnecessary"
+      ? "pas de question finale inutile"
+      : "les questions finales autorisées";
+  }
   return value === "low"
     ? "moins de questions"
     : value === "high"
@@ -80,6 +103,18 @@ function summaryForPatch(
 ): string {
   const evidence = normalizePreferenceEvidenceText(evidenceText);
   if (key === "coach.question_tendency" && value === "low") {
+    if (
+      /\b(eparpille|eparpillee|disperse|dispersee|brouille|brouillee|confus|confuse)\b/
+        .test(evidence) &&
+      (
+        /\bune seule question\b/.test(evidence) ||
+        /\bquestion de tri\b/.test(evidence) ||
+        /\bpas trois options\b/.test(evidence) ||
+        /\bpas 3 options\b/.test(evidence)
+      )
+    ) {
+      return "je te poserai une seule question de tri à la fois, et je te proposerai une seule action concrète à la fois, quand tu es éparpillé ou brouillé.";
+    }
     if (
       /\bune action\b/.test(evidence) ||
       /\baction concrete\b/.test(evidence) ||
@@ -108,6 +143,18 @@ function summaryForPatch(
   if (key === "coach.challenge_level" && value === "low") {
     return "je garderai le challenge plus léger et moins frontal.";
   }
+  if (key === "coach.response_max_lines" && value === "three") {
+    return "quand tu demandes court, je répondrai en trois lignes maximum.";
+  }
+  if (key === "coach.emoji_policy" && value === "none") {
+    return "quand tu demandes court, je n'utiliserai pas d'emoji.";
+  }
+  if (
+    key === "coach.final_question_policy" &&
+    value === "avoid_unnecessary"
+  ) {
+    return "quand tu demandes court, je ne finirai pas par une question inutile.";
+  }
   return `j'utiliserai ${labelForPatch(key, value)}.`;
 }
 
@@ -134,16 +181,17 @@ export function runCoachPreferencesPatchBuilder(
   input: CoachPreferencesPatchBuilderInput,
 ): CoachPreferencesPatchDraftV1 {
   validateCoachPreferencePatch(input.requested_patch);
-  if (Object.keys(input.requested_patch).length > 1) {
-    throw new Error("coach_preferences_too_many_inferred_keys");
-  }
-  const [rawKey, rawValue] = Object.entries(input.requested_patch)[0];
-  const key = rawKey as CoachPreferenceKey;
-  const value = normalizeCoachPreferenceValue(key, rawValue);
-  if (!value) throw new Error("coach_preferences_unsupported_value");
-  const patch = { [key]: value } as Partial<Record<CoachPreferenceKey, string>>;
   const reason = input.reason?.evidence?.[0] ?? null;
-  const summary = summaryForPatch(key, value, reason ?? "");
+  const patch: Partial<Record<CoachPreferenceKey, string>> = {};
+  const summaries: string[] = [];
+  for (const [rawKey, rawValue] of Object.entries(input.requested_patch)) {
+    const key = rawKey as CoachPreferenceKey;
+    const value = normalizeCoachPreferenceValue(key, rawValue);
+    if (!value) throw new Error("coach_preferences_unsupported_value");
+    patch[key] = value;
+    summaries.push(summaryForPatch(key, value, reason ?? ""));
+  }
+  const summary = summaries.join(" ");
   return {
     operation_type: "update_coach_preferences",
     output_schema: "coach_preferences_patch_draft_v1",

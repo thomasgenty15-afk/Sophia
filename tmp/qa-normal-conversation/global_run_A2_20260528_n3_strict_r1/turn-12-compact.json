@@ -1,0 +1,30 @@
+{
+  "user": "Oui, et garde aussi une préférence pour la suite: quand je demande 'court', réponds vraiment en 3 lignes max, sans emoji, et ne termine pas par une question sauf si tu as besoin d'un choix.",
+  "assistant": "Ok ✅ je prends la préférence : quand tu dis “court”, je te réponds en 3 lignes max, sans emoji, et je finis sans question (sauf si un choix est nécessaire).  \n\nPour ton message administratif, tu veux que la version courte fasse plutôt 1) “tout ce qui est essentiel” ou 2) “ultra minimal” (genre 2 phrases) ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t12",
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

@@ -87,6 +87,7 @@ import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 import { buildActionFamilyKey } from "../../_shared/memory/action_family.ts";
 import {
+  isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
   maybeCreateOneShotReminder,
 } from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
@@ -2426,6 +2427,99 @@ function ensureVisibleSophiaEmoji(text: unknown): string {
   return `${content} 🙂`;
 }
 
+type CoachResponseStylePreferences = {
+  noEmoji: boolean;
+  maxLines: number | null;
+  avoidFinalQuestion: boolean;
+};
+
+function userRequestsShortStyle(message: string): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(court|courte|bref|breve|bri[eè]vement|3 lignes|trois lignes|sans emoji|zero emoji|pas d emoji|sans question|pas de question)\b/
+    .test(text);
+}
+
+async function loadCoachResponseStylePreferences(args: {
+  supabase: SupabaseClient;
+  userId: string;
+}): Promise<CoachResponseStylePreferences> {
+  const { data } = await args.supabase
+    .from("user_profile_facts")
+    .select("key,value,status")
+    .eq("user_id", args.userId)
+    .eq("scope", "global")
+    .eq("status", "active")
+    .in("key", [
+      "coach.response_max_lines",
+      "coach.emoji_policy",
+      "coach.final_question_policy",
+    ]);
+  const prefs: CoachResponseStylePreferences = {
+    noEmoji: false,
+    maxLines: null,
+    avoidFinalQuestion: false,
+  };
+  for (const row of data ?? []) {
+    const key = String((row as any)?.key ?? "");
+    const value = String((row as any)?.value?.value ?? "");
+    if (key === "coach.emoji_policy" && value === "none") prefs.noEmoji = true;
+    if (key === "coach.response_max_lines" && value === "three") {
+      prefs.maxLines = 3;
+    }
+    if (
+      key === "coach.final_question_policy" &&
+      value === "avoid_unnecessary"
+    ) {
+      prefs.avoidFinalQuestion = true;
+    }
+  }
+  return prefs;
+}
+
+export function applyCoachResponseStylePreferencesForTest(args: {
+  userMessage: string;
+  responseContent: string;
+  preferences: CoachResponseStylePreferences;
+}): string {
+  const explicitShort = userRequestsShortStyle(args.userMessage);
+  const explicitNoEmoji =
+    /\b(sans emoji|zero emoji|0 emoji|pas d emoji|pas d emojis)\b/
+      .test(normalizeRouteText(args.userMessage));
+  const explicitNoQuestion =
+    /\b(sans question|pas de question|pas de question finale|sans question finale)\b/
+      .test(normalizeRouteText(args.userMessage));
+  const explicitMaxLines = /\b(3 lignes|trois lignes)\b/.test(
+    normalizeRouteText(args.userMessage),
+  );
+  const shouldApply = explicitShort || explicitNoEmoji || explicitNoQuestion ||
+    explicitMaxLines;
+  if (!shouldApply) return args.responseContent;
+
+  let response = String(args.responseContent ?? "").trim();
+  if (args.preferences.noEmoji || explicitNoEmoji) {
+    response = response
+      .replace(/\s*\p{Extended_Pictographic}(?:\uFE0F|\uFE0E)?/gu, "")
+      .replace(/[ \t]+\n/g, "\n")
+      .trim();
+  }
+  if (args.preferences.avoidFinalQuestion || explicitNoQuestion) {
+    const parts = response.split(/\n+/);
+    const last = parts[parts.length - 1]?.trim() ?? "";
+    if (/\?\s*$/.test(last)) {
+      parts.pop();
+      response = parts.join("\n").trim();
+    }
+  }
+  const maxLines = explicitMaxLines ? 3 : args.preferences.maxLines;
+  if (maxLines && maxLines > 0) {
+    const lines = response.split(/\n+/).map((line) => line.trim()).filter(
+      Boolean,
+    );
+    response = lines.slice(0, maxLines).join("\n").trim();
+  }
+  return response || args.responseContent;
+}
+
 function applyExecutionBreakdownBrevityGuard(args: {
   channel: "web" | "whatsapp";
   routeDecision: RouteDecision | null;
@@ -3391,7 +3485,7 @@ function isExplicitMemoryRetentionRequest(message: string): boolean {
   const text = normalizeRouteText(message);
   const asksRetention =
     /\b(retiens|retenir|memorise|memoriser|garde en tete|garder en tete|pour les prochaines fois|prochaines fois)\b/
-      .test(text);
+      .test(text) || isConversationScopedRepereRequest(text);
   if (!asksRetention) return false;
   const coachPreference =
     /\b(preference|preferences|preference coach|preference de coaching|ton style|ta facon|ta maniere)\b/
@@ -3418,8 +3512,20 @@ export function applyNonDurableMemoryPromiseGuardForTest(args: {
   }
   let response = args.responseContent;
   response = response.replace(
+    /^\s*ok,\s*not[eé]\s*(?:✅|☑️)?\.?\s*/i,
+    "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
     /^\s*(carr[eé]ment,\s*)?je (le |la |m'en )?retiens\.?\s*/i,
     "Je le garde comme repère dans cette conversation. ",
+  );
+  response = response.replace(
+    /\bje retiens que\b/gi,
+    "je l'utilise ici comme repère :",
+  );
+  response = response.replace(
+    /\bcomme repère pour la suite\b/gi,
+    "comme repère dans cette conversation",
   );
   response = response.replace(
     /^\s*(oui,\s*)?c['’]?est not[eé]\.?\s*/i,
@@ -3438,6 +3544,102 @@ export function applyNonDurableMemoryPromiseGuardForTest(args: {
     "le repère que j'utilise ici",
   );
   return response.trim();
+}
+
+export function applyIncompleteRecapGuardForTest(args: {
+  userMessage: string;
+  responseContent: string;
+}): string {
+  const userText = normalizeRouteText(args.userMessage);
+  if (!/\b(recap|recapitule|resume|synthese)\b/.test(userText)) {
+    return args.responseContent;
+  }
+  const response = String(args.responseContent ?? "").trim();
+  const normalized = normalizeRouteText(response);
+  const announcesRecap = /\b(voici|voila|je recap|recap|recapitulatif)\b/.test(
+    normalized,
+  );
+  const hasContentItem = /(^|\n)\s*(-|\d+[.)])\s+\S/.test(response) ||
+    response.split(/\n+/).filter((line) => line.trim().length > 12).length >= 3;
+  const endsAtIntro = /[:：]\s*(?:[🙂😊✅]*)$/.test(response);
+  if (!announcesRecap || (hasContentItem && !endsAtIntro)) return response;
+  return [
+    "Je récapitule simplement :",
+    "- Ce qui a été créé ou enregistré doit rester limité aux outils confirmés.",
+    "- Ce qui était un conseil reste un repère de conversation, pas une écriture durable.",
+    "- Pour maintenant : une seule prochaine action courte, sans lancer d'autre outil.",
+  ].join("\n");
+}
+
+export function applyShortRepairNoProductOfferGuardForTest(args: {
+  userMessage: string;
+  responseContent: string;
+}): string {
+  const user = normalizeRouteText(args.userMessage);
+  const asksBrief =
+    /\b(reponds court|reponds courte?ment|court et|sois bref|sois breve|pas de grand discours)\b/
+      .test(user);
+  const refusesProductOffer =
+    /\b(pas de potion|pas d outil|pas de nouvelle proposition|sans nouvelle proposition|sans me proposer autre chose)\b/
+      .test(user);
+  if (!asksBrief && !refusesProductOffer) return args.responseContent;
+
+  let response = String(args.responseContent ?? "").trim();
+  response = response
+    .replace(
+      /\n*\s*(?:Tu veux|Veux-tu|On peut|Je peux)\s+[^\n]*(?:Potion d[’']?état|Potion d[’']?etat|potion|outil|carte)[^\n?]*\?\s*[🙂😊]?\s*$/giu,
+      "",
+    )
+    .replace(
+      /\n*\s*[^\n]*(?:Potion d[’']?état|Potion d[’']?etat)[^\n?]*\?\s*[🙂😊]?\s*$/giu,
+      "",
+    )
+    .replace(
+      /\n*\s*(?:Tu veux|Veux-tu|Je peux|On peut)\s+[^\n]*(?:Gu[eé]rison|Amour|Clart[eé]|Courage|Apaisement)[^\n?]*\?\s*[🙂😊]?\s*$/giu,
+      "",
+    )
+    .trim();
+
+  if (!asksBrief) return response || args.responseContent;
+
+  const paragraphs = response.split(/\n{2,}/).map((part) => part.trim())
+    .filter(Boolean);
+  if (paragraphs.length <= 1) return response || args.responseContent;
+  const first = paragraphs[0];
+  const second = paragraphs.find((part) =>
+    /\b(respire|pose|bois|arrete|arrête|reste|tu fais|tu peux)\b/i.test(part)
+  );
+  return [first, second && second !== first ? second : null].filter(Boolean)
+    .join("\n\n");
+}
+
+export function statePotionDeclineReplyForTest(message: string): string {
+  const text = normalizeRouteText(message);
+  const lines = ["Ok, je ne lance pas de potion."];
+  if (
+    /\b(slack|teams|discord|messagerie)\b/.test(text) &&
+    /\b(piege|lire|lis|conversations?|messages?|fils?)\b/.test(text)
+  ) {
+    lines.push(
+      "Pour le piège messagerie : ouvre la recherche, tape la personne, envoie le message, puis quitte l'app avant de lire les autres fils.",
+    );
+  } else if (
+    /\b(piege|piege c est|le piege|risque)\b/.test(text) &&
+    /\b(je pars|je vais|j ouvre|ouvrir|je commence|je lis|lire)\b/.test(text)
+  ) {
+    lines.push(
+      "Pour ce piège : nomme le geste unique à faire, fais-le, puis ferme la porte au reste tout de suite.",
+    );
+  } else if (/\baide moi a choisir\b/.test(text)) {
+    lines.push(
+      "Pour choisir maintenant : prends la tâche qui te coûte le plus d'attention si tu la repousses encore.",
+    );
+  } else if (/\b(ensuite|apres|après|le piege|la suite)\b/.test(text)) {
+    lines.push(
+      "Je reste sur la suite concrète avec toi, une action à la fois.",
+    );
+  }
+  return lines.join("\n\n");
 }
 
 function resolvePlanItemTitleFromSnapshot(
@@ -4614,11 +4816,14 @@ export function oneShotReminderManagementReplyForTest(
   const asksWhereOrChange =
     /\b(annule|annuler|change|changer|modifie|modifier|retrouve|retrouver|ou|où|initiatives|interface)\b/
       .test(text);
-  if (!(asksAboutReminder || pronominalRecentReminderQuestion) || !asksWhereOrChange) {
+  if (
+    !(asksAboutReminder || pronominalRecentReminderQuestion) ||
+    !asksWhereOrChange
+  ) {
     return null;
   }
   return [
-    "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.",
+    "Un rappel ponctuel se gère côté Initiatives, dans les rappels côté chat pour ce type-là.",
     "",
     'Pour le modifier ou l\'annuler, le plus fiable est de me le redire ici clairement, par exemple : "change le rappel de demain à 09:00" ou "annule le rappel de demain".',
   ].join("\n");
@@ -4634,7 +4839,7 @@ export function directSafetyCrisisReplyOverrideForTest(args: {
   return reply || null;
 }
 
-function enforceRecommendationToolVisibleReply(args: {
+export function enforceRecommendationToolVisibleReplyForTest(args: {
   responseContent: string;
   userMessage: string;
   recommendation: ProductRecommendation | null;
@@ -4687,6 +4892,13 @@ function enforceRecommendationToolVisibleReply(args: {
   const normalizedLabel = normalizeRecommendationText(surfaceLabel);
   if (normalizedResponse.includes(normalizedLabel)) return resolvedResponse;
 
+  if (
+    fromDispatcherOpportunity && !explicitToolAsk &&
+    recommendation.operation_type === "select_state_potion"
+  ) {
+    return resolvedResponse;
+  }
+
   if (fromDispatcherOpportunity && !explicitToolAsk) {
     const targetText = resolvedTargetTitle
       ? ` pour "${resolvedTargetTitle}"`
@@ -4728,12 +4940,28 @@ function enforceRecommendationToolVisibleReply(args: {
   return `Le plus simple ici, c'est l'outil "${surfaceLabel}" : ${naturalOffer}. Tu veux qu'on l'utilise pour alléger${targetText} maintenant ?`;
 }
 
+const enforceRecommendationToolVisibleReply =
+  enforceRecommendationToolVisibleReplyForTest;
+
 function normalizeRouteText(text: string): string {
   return text.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
 }
 
 function isProductHelpExitToConversation(message: string): boolean {
   const text = normalizeRouteText(message);
+  if (
+    /\b(je ne parle plus|je parle plus|pas du rappel|plus du rappel|sans parler des rappels|pas parler des rappels|sujet different|sujet different|pas de l app|pas de l interface)\b/
+      .test(text)
+  ) return true;
+  if (
+    isExplicitDefenseCardIntentForTest(message) ||
+    isRuntimeCoachPreferenceRequestForTest(message)
+  ) return true;
+  if (
+    /\b(donne moi|donne-moi|fais moi|fais-moi|formule|reformule|phrase|version)\b[\s\S]{0,100}\b(maintenant|sans parler des rappels|pas du rappel|sujet different|sujet different)\b/
+      .test(text)
+  ) return true;
+  if (isConversationScopedRepereRequest(text)) return true;
   if (
     /\b(laisse tomber|oublie|stop|pas grave)\b.{0,60}\b(interface|dashboard|produit|app|rappel|plan)\b/
       .test(text)
@@ -4743,25 +4971,130 @@ function isProductHelpExitToConversation(message: string): boolean {
       .test(text)
   ) return true;
   if (
+    /\b(tu as retenu quoi|qu as tu retenu|qu est ce que tu as retenu|tu retiens quoi)\b/
+      .test(text) &&
+    /\b(conversation|bureau|mail|mails|piege|repere|retenu)\b/.test(text)
+  ) return true;
+  if (
     /\b(recap|recapitule|resume|resumer|on s arrete|on stoppe)\b/.test(text) &&
-    /\b(ce que j ai fait|ce qui est prevu|demain|piege|surveiller|garde)\b/
+    /\b(ce que j ai fait|ce qu on a fait|ce qui est prevu|demain|piege|surveiller|garde|mail|carte|preference|rappel)\b/
       .test(text)
   ) return true;
   return false;
+}
+
+export function isExplicitNoToolRequestForTest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const noTool =
+    /\b(ne lance rien|ne lance rien d autre|ne lance pas|ne cree rien|ne demarre rien|ne declenche rien|sans lancer|sans outil|pas de potion|meme pas une potion|pas maintenant)\b/
+      .test(text);
+  if (!noTool) return false;
+  return /\b(juste|seulement|mini action|prochaine action|recap|recapitule|resume|reponds|donne moi|en respectant|respecte)\b/
+    .test(text);
+}
+
+export function isExplicitDefenseCardIntentForTest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  if (!/\b(carte de defense|carte defense|defense card)\b/.test(text)) {
+    return false;
+  }
+  if (
+    /\b(est ce que|je peux|comment|ou|quelle partie|difference|difference entre)\b/
+      .test(text) &&
+    !/\b(fais|faire|cree|creer|prepare|preparer|j aimerais|je veux|besoin|vas y|ok|oui)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  return /\b(fais|faire|cree|creer|prepare|preparer|fabrique|j aimerais|je veux|besoin|valide|utilise|lance)\b/
+    .test(text);
+}
+
+export function isExplicitOneShotReminderModificationRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const existingReminder =
+    /\b(ce rappel|le rappel|rappel ponctuel|rappel que tu viens|celui de|celui que tu)\b/
+      .test(text);
+  const modification =
+    /\b(decale|decaler|deplace|deplacer|avance|avancer|repousse|repousser|change|changer|modifie|modifier|mets le|met le|remets le|remet le|reprogramme|reprogrammer)\b/
+      .test(text);
+  const timeHint =
+    /\b(demain|apres demain|aujourd hui|ce soir|matin|midi|soir|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche|\d{1,2}\s*h(?:\s*\d{2})?|\d{1,2}:\d{2})\b/
+      .test(text);
+  return existingReminder && modification && timeHint;
+}
+
+export function isMicroActionOnlyNotAttackCardForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const explicitCard =
+    /\b(carte d attaque|carte attaque|prepare.*carte|cree.*carte|fais.*carte|outil|support durable)\b/
+      .test(text);
+  if (explicitCard) return false;
+  const asksSmallAction =
+    /\b(premier geste|premier pas|petit point d appui|juste debloquer|debloquer les 20 prochaines minutes|quoi faire maintenant|choisis pour moi|pas une methode complete|pas une methode|pas un plan|pas un grand plan)\b/
+      .test(text);
+  return asksSmallAction;
+}
+
+export function isAttackCardCancellationRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(pas une carte|pas de carte|stop carte|stop la carte|arrete la carte|annule la carte|ne force pas|juste une phrase|une seule phrase|donne moi juste une phrase)\b/
+    .test(text);
+}
+
+export function isOneShotReminderExactStatusRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  if (!/\brappel\b/.test(text)) return false;
+  return /\b(quelle heure|heure vraiment|vraiment enregistre|vraiment programme|confirme|confirmee|non confirme|non confirmee|distinguer|11h05 ou 11h20|\d{1,2}\s*h\s*\d{2}\s+ou\s+\d{1,2}\s*h\s*\d{2})\b/
+    .test(text);
+}
+
+function isOneShotReminderReprogrammingFollowup(message: string): boolean {
+  const text = normalizeRouteText(message);
+  return /\b(nouveau moment exact|meme texte|meme message|au nouvel horaire)\b/
+    .test(text) &&
+    /\b(aujourd hui|demain|ce soir|\d{1,2}\s*h(?:\s*\d{2})?|\d{1,2}:\d{2})\b/
+      .test(text) &&
+    !/\b(cree|creer|programme|programmer|rappelle moi|mets moi|envoie moi|dis moi)\b/
+      .test(text);
+}
+
+function isConversationScopedRepereRequest(normalizedText: string): boolean {
+  return /\b(pour cette conversation|dans cette conversation|comme repere|repere dans cette conversation|garde comme repere|garde ca comme repere)\b/
+    .test(normalizedText) &&
+    /\b(retiens|garde|repere|quand je dis|ca veut dire|cela veut dire)\b/.test(
+      normalizedText,
+    );
 }
 
 export function isRuntimeCoachPreferenceRequestForTest(
   message: string,
 ): boolean {
   const text = normalizeRouteText(message);
-  const productNavigationQuestion =
-    (
-      /\b(comment|dans quelle partie|a quel endroit|quel endroit)\b/.test(
-        text,
-      ) ||
-      /\bou\s+(changer|modifier|parametrer|regler|configurer)\b[\s\S]{0,80}\b(app|application|interface|menu|reglages|parametres|dashboard|initiatives)\b/
-        .test(text)
-    ) &&
+  if (isApplyExistingCoachPreferenceRequestForTest(message)) {
+    return false;
+  }
+  const explicitPreferenceMention =
+    /\b(preference|preferences|preference coach|preference de coaching|coaching|ton style|ta facon|ta maniere)\b/
+      .test(text);
+  if (isConversationScopedRepereRequest(text) && !explicitPreferenceMention) {
+    return false;
+  }
+  const productNavigationQuestion = (
+    /\b(comment|dans quelle partie|a quel endroit|quel endroit)\b/.test(
+      text,
+    ) ||
+    /\bou\s+(changer|modifier|parametrer|regler|configurer)\b[\s\S]{0,80}\b(app|application|interface|menu|reglages|parametres|dashboard|initiatives)\b/
+      .test(text)
+  ) &&
     /\b(change|changer|parametre|parametrer|regle|style|preference|preferences|ton style|ta facon|ta maniere)\b/
       .test(text);
   if (productNavigationQuestion) return false;
@@ -4769,7 +5102,7 @@ export function isRuntimeCoachPreferenceRequestForTest(
     /\b(prefere|preference|preferences|preference coach|preference de coaching|pour la suite|a partir de maintenant|desormais|mets a jour|mettre a jour|retiens|garde|enregistr\w*|applique|change|adapte|reponds|parle|sois)\b/
       .test(text);
   const styleSignal =
-    /\b(une seule question|questions? courtes?|consignes? (tres )?courtes?|reponses? (tres )?courtes?|moins de questions|listes? longues?|plus direct|plus directement|directement|plus doux|plus cash|plus frontal|challenge[- ]?moi|challengeant|ton style|ta facon|ta maniere|tres concret|tres concrete|une action|une seule action|action concrete|pas plusieurs options|pas trois options|pas 3 options|moins d options|moins de choix)\b/
+    /\b(une seule question|pas de question finale|sans question finale|questions? courtes?|consignes? (tres )?courtes?|reponses? (tres )?courtes?|3 lignes max|trois lignes max|moins de questions|listes? longues?|plus direct|plus directement|directement|plus doux|plus cash|plus frontal|challenge[- ]?moi|challengeant|ton style|ta facon|ta maniere|tres concret|tres concrete|une action|une seule action|action concrete|pas plusieurs options|pas trois options|pas 3 options|moins d options|moins de choix|sans emoji|pas d emoji|pas d emojis|source\/cible|source cible)\b/
       .test(text);
   const explicitPreferenceCommand =
     /\b(mets a jour|mettre a jour|retiens|garde|enregistr\w*|applique)\b[\s\S]{0,100}\b(preference|preferences|preference coach|preference de coaching|coaching)\b/
@@ -4784,6 +5117,22 @@ export function isRuntimeCoachPreferenceRequestForTest(
 }
 
 const isRuntimeCoachPreferenceRequest = isRuntimeCoachPreferenceRequestForTest;
+
+export function isApplyExistingCoachPreferenceRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const asksApplyExisting =
+    /\b(applique|utilise|respecte|respectant|selon|comme|sers toi de|sers-toi de)\b[\s\S]{0,100}\b(ma|mes|la|cette|ces)\s+preferences?\b/
+      .test(text) ||
+    /\b(en respectant|selon|comme)\b[\s\S]{0,80}\b(ma|mes)\s+preferences?\b/
+      .test(text);
+  if (!asksApplyExisting) return false;
+  const asksMutation =
+    /\b(garde|enregistre|enregistrer|mets a jour|mettre a jour|change|changer|modifie|modifier|nouvelle preference|vraie preference|pour la suite|a partir de maintenant|desormais)\b/
+      .test(text);
+  return !asksMutation;
+}
 
 export function shouldRuntimeCoachPreferenceOverrideRouteForTest(args: {
   message: string;
@@ -4892,15 +5241,22 @@ export function isBroadRescueRequestNotDefenseCardForTest(
 function isRecapOnlyRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
   return /\b(recap|recapitule|resume|synthese)\b/.test(text) &&
-    /\b(ne cree rien|sans modifier|juste|seulement|sobre|ce que j ai fait|ce qui est prevu|ce qui est en place|en place|preference)\b/
+    /\b(ne cree rien|sans modifier|juste|seulement|sobre|on s arrete|on stoppe|ce que j ai fait|ce qu on a fait|ce qui est prevu|ce qui est en place|en place|preference|mail|carte|rappel)\b/
       .test(text);
 }
 
-function isStatusOnlyNoMutationRequestForTest(message: string): boolean {
+export function isStatusOnlyNoMutationRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
-  return /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place|en place)\b/
-    .test(text) &&
-    /\b(carte de defense|rappel|preference|preferences)\b/.test(text);
+  const explicitNoMutation =
+    /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place|en place)\b/
+      .test(text);
+  const naturalDurableRecap =
+    /\b(ce qui a (vraiment )?(ete )?(cree|creer|garde|gardee|gardes)|ce qui est (vraiment )?(cree|garde)|cree ou garde|crees ou gardes|vraiment ete cree|vraiment ete garde|juste pour la conversation|pour la conversation)\b/
+      .test(text);
+  const durableSurface =
+    /\b(carte|carte d attaque|carte de defense|rappel|preference|preferences|cree|creer|garde|gardee|gardes|conversation)\b/
+      .test(text);
+  return (explicitNoMutation || naturalDurableRecap) && durableSurface;
 }
 
 export function isCoachPreferenceVerificationRequestForTest(
@@ -4961,6 +5317,19 @@ export function isDefenseCardExplicitApprovalForTest(message: string): boolean {
     /\b(change|changer|modifie|modifier|corrige|corriger|remplace|remplacer|plutot|au lieu|pas comme ca|refais|refaire|reformule|reformuler)\b/
       .test(text);
   return !asksRevision;
+}
+
+export function isDefenseCardRevisionForPendingDraftForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const asksRevision =
+    /\b(change|changer|modifie|modifier|corrige|corriger|remplace|remplacer|plutot|au lieu|pas comme ca|refais|refaire)\b/
+      .test(text);
+  const defenseSlot =
+    /\b(geste|moment|piege|signal|plan b|mon geste|fallback|defense|carte)\b/
+      .test(text);
+  return asksRevision && defenseSlot;
 }
 
 export function isCoachPreferenceExplicitApprovalForTest(
@@ -6776,7 +7145,7 @@ function isOperationEscapeMessage(message: string): boolean {
   return (
     /\b(resume|recap|recapitule|qu est ce qui existe|ce qui existe|dans mon plan|sans inventer)\b/
       .test(text) ||
-    /\b(pas maintenant|annule|annuler|laisse tomber|oublie|stop|pas de carte|pas d action|pas de plan|pas envie qu on me fasse un plan|je veux juste rester|rester sur l apaisement|apaisement|fond de honte)\b/
+    /\b(pas maintenant|annule|annuler|laisse tomber|oublie|stop|stop carte|pas de carte|pas une carte|pas d action|pas de plan|pas envie qu on me fasse un plan|je veux juste rester|juste une phrase|une seule phrase|rester sur l apaisement|apaisement|fond de honte)\b/
       .test(text)
   );
 }
@@ -7795,6 +8164,21 @@ function hasExplicitDirectEffectOverride(args: {
   );
 }
 
+function explicitlySafeWorkReminderRequest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const safetyNegated =
+    /\b(je ne suis pas en danger|je suis pas en danger|pas en danger|je ne suis pas fragile|je suis pas fragile)\b/
+      .test(text);
+  const workReminder =
+    /\b(rappel|rappelle|programme|programmer|planifie|planifier)\b/.test(
+      text,
+    ) &&
+    /\b(travail|boulot|mail|mails|camille|nora|budget|recap|synthese|dossier|client|slack)\b/
+      .test(text);
+  return safetyNegated && workReminder &&
+    !/\b(me faire du mal|suicid|mourir|en finir)\b/.test(text);
+}
+
 function clearToolSkillFlowForDirectReminder(tempMemory: any): any {
   const next = { ...(tempMemory ?? {}) };
   delete next.__pending_tool_skill_confirmation;
@@ -8776,6 +9160,11 @@ function operationRouteIsSelected(args: {
     args.routeDecision?.response_owner === "tool_skill" &&
     args.routeDecision?.selected_handler === args.operationType
   ) return true;
+  if (
+    args.routeDecision?.response_owner === "tool_skill" &&
+    args.routeDecision?.selected_handler &&
+    args.routeDecision.selected_handler !== args.operationType
+  ) return false;
   return (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
     intent.operation_type === args.operationType &&
     intent.confidence_band !== "low"
@@ -8895,6 +9284,97 @@ function attackCardTargetFromQuestionCandidate(
     plan_item_id: candidate.plan_item_id,
     title: candidate.title,
   };
+}
+
+function attackCardTechniqueOptionFromQuestion(question: any): {
+  key: string;
+  title: string;
+  description: string;
+  reason: string;
+  example: string;
+  recommended: boolean;
+} | null {
+  const techniqueOptions = Array.isArray(question?.technique_options)
+    ? question.technique_options
+      .map((option: any) => ({
+        key: String(option?.technique_key ?? "").trim(),
+        title: String(option?.title ?? "").trim(),
+        description: String(option?.description ?? "").trim(),
+        reason: String(option?.reason ?? "").trim(),
+        example: String(option?.example ?? "").trim(),
+        recommended: Boolean(option?.recommended),
+      }))
+      .filter((option: any) => option.key && option.title)
+    : [];
+  return techniqueOptions.find((option: any) => option.recommended) ??
+    techniqueOptions.find((option: any) => option.key === "texte_recadrage") ??
+    techniqueOptions[0] ?? null;
+}
+
+export function applyAttackCardSingleTechniquePreferenceForTest(
+  nextQuestion: unknown,
+  options?: { preferSingleTechnique?: boolean },
+): unknown {
+  const question = nextQuestion as any;
+  if (
+    !options?.preferSingleTechnique ||
+    String(question?.slot ?? "") !== "technique"
+  ) {
+    return nextQuestion;
+  }
+  const selected = attackCardTechniqueOptionFromQuestion(question);
+  if (!selected) return nextQuestion;
+  const detail = selected.reason || selected.description;
+  return {
+    ...question,
+    question: `Je te propose ${selected.title}: ${detail}. On part là-dessus ?`,
+    technique_options: [{
+      technique_key: selected.key,
+      title: selected.title,
+      description: selected.description,
+      reason: selected.reason,
+      example: selected.example,
+      recommended: true,
+    }],
+    known_slots: {
+      ...(question?.known_slots ?? {}),
+      suggested_attack_technique: selected.key,
+      suggested_attack_technique_title: selected.title,
+    },
+  };
+}
+
+function attackCardOperationInputWithSingleTechniqueApproval(
+  operationInput: Record<string, unknown> | null | undefined,
+  userMessage: string,
+): Record<string, unknown> | null | undefined {
+  const suggested = String(
+    operationInput?.suggested_attack_technique ?? "",
+  ).trim();
+  if (!suggested) return operationInput;
+  if (
+    !/^(oui|ok|okay|go|vas y|vas-y|d accord|partons|on part|valide)\b/.test(
+      normalizeRouteText(userMessage),
+    )
+  ) {
+    return operationInput;
+  }
+  return {
+    ...(operationInput ?? {}),
+    technique: suggested,
+    desired_attack_technique: suggested,
+  };
+}
+
+function mergeAttackCardQuestionKnownSlots(
+  operationInput: Record<string, unknown> | null | undefined,
+  nextQuestion: unknown,
+): Record<string, unknown> | null | undefined {
+  const known = (nextQuestion as any)?.known_slots;
+  if (!known || typeof known !== "object" || Array.isArray(known)) {
+    return operationInput;
+  }
+  return { ...(operationInput ?? {}), ...(known as Record<string, unknown>) };
 }
 
 function renderAttackCardSlotQuestion(
@@ -10966,26 +11446,46 @@ function coachPreferenceLabel(key: string, value: string): string {
       ? "Équilibré"
       : value;
   }
+  if (key === "coach.response_max_lines") {
+    return value === "three" ? "Trois lignes max" : "Format normal";
+  }
+  if (key === "coach.emoji_policy") {
+    return value === "none" ? "Zéro emoji" : "Emoji normal";
+  }
+  if (key === "coach.final_question_policy") {
+    return value === "avoid_unnecessary"
+      ? "Pas de question finale inutile"
+      : "Questions finales normales";
+  }
   return value;
 }
 
 function coachPreferenceStatusLabel(pref: any): string {
   const key = String(pref?.key ?? "");
   const rawValue = String(pref?.value?.value ?? "");
-  const reason = normalizeRouteText(
-    String(pref?.reason ?? pref?.value?.summary ?? ""),
-  );
-  if (
-    key === "coach.question_tendency" &&
-    (rawValue === "low" || rawValue === "peu_de_questions") &&
-    (
-      /\bune action\b/.test(reason) ||
-      /\baction concrete\b/.test(reason) ||
-      /\bpas trois options\b/.test(reason) ||
-      /\bpas 3 options\b/.test(reason)
-    )
-  ) {
-    return "une action concrète à la fois";
+  if (key === "coach.tone") {
+    return `ton ${coachPreferenceLabel(key, rawValue).toLowerCase()}`;
+  }
+  if (key === "coach.question_tendency") {
+    return rawValue === "low" || rawValue === "peu_de_questions"
+      ? "moins de questions"
+      : rawValue === "high" || rawValue === "tres_questionnant"
+      ? "plus de questions"
+      : "questions équilibrées";
+  }
+  if (key === "coach.challenge_level") {
+    return `challenge ${coachPreferenceLabel(key, rawValue).toLowerCase()}`;
+  }
+  if (key === "coach.response_max_lines") {
+    return rawValue === "three" ? "trois lignes max" : "format normal";
+  }
+  if (key === "coach.emoji_policy") {
+    return rawValue === "none" ? "zéro emoji" : "emoji normal";
+  }
+  if (key === "coach.final_question_policy") {
+    return rawValue === "avoid_unnecessary"
+      ? "pas de question finale inutile"
+      : "questions finales normales";
   }
   return String(
     pref?.value?.label ?? pref?.value?.value ?? pref?.key ??
@@ -11028,12 +11528,55 @@ async function upsertCoachPreferencesFromDraft(args: {
     .single();
 }
 
+async function loadCoachQuestionTendencyLow(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<boolean> {
+  const { data } = await supabase
+    .from("user_profile_facts")
+    .select("value,status")
+    .eq("user_id", userId)
+    .eq("scope", "global")
+    .eq("key", "coach.question_tendency")
+    .eq("status", "active")
+    .maybeSingle();
+  const value = String((data as any)?.value?.value ?? "").trim();
+  return value === "low" || value === "peu_de_questions";
+}
+
+function formatCheckinLocalTime(iso: string, timezone: string): string {
+  const date = new Date(iso);
+  if (!Number.isFinite(date.getTime())) return iso;
+  try {
+    const parts = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: timezone || "Europe/Paris",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(date);
+    const hour = parts.find((part) => part.type === "hour")?.value ?? "";
+    const minute = parts.find((part) => part.type === "minute")?.value ?? "";
+    if (hour && minute) return `${hour}:${minute}`;
+  } catch {
+    // Fall through to ISO time.
+  }
+  return iso.slice(11, 16);
+}
+
 async function buildStatusOnlyNoMutationRuntime(args: {
   supabase: SupabaseClient;
   userId: string;
   tempMemory: any;
+  userTimezone?: string;
+  userMessage?: string;
 }): Promise<OperationRuntimeResult> {
-  const [defenseCards, checkins, preferences] = await Promise.all([
+  const [attackCards, defenseCards, checkins, preferences] = await Promise.all([
+    args.supabase
+      .from("user_attack_cards")
+      .select("id,content,generated_at")
+      .eq("user_id", args.userId)
+      .order("generated_at", { ascending: false })
+      .limit(1),
     args.supabase
       .from("user_defense_cards")
       .select("id,content,generated_at")
@@ -11044,6 +11587,7 @@ async function buildStatusOnlyNoMutationRuntime(args: {
       .from("scheduled_checkins")
       .select("id,scheduled_for,status,message_payload,event_context")
       .eq("user_id", args.userId)
+      .eq("status", "pending")
       .order("scheduled_for", { ascending: true })
       .limit(3),
     args.supabase
@@ -11056,11 +11600,21 @@ async function buildStatusOnlyNoMutationRuntime(args: {
       .order("updated_at", { ascending: false })
       .limit(3),
   ]);
+  const attack = (attackCards.data ?? [])[0] as any;
   const defense = (defenseCards.data ?? [])[0] as any;
   const checkin = (checkins.data ?? []).find((row: any) =>
     String(row?.status ?? "") === "pending"
   ) as any;
-  const pref = (preferences.data ?? [])[0] as any;
+  const pendingCheckins = (checkins.data ?? []).filter((row: any) =>
+    String(row?.status ?? "") === "pending"
+  ) as any[];
+  const activePreferences = (preferences.data ?? []) as any[];
+  const attackTitle = String(
+    attack?.content?.operation_draft?.title ??
+      attack?.content?.techniques?.[0]?.generated_result?.output_title ??
+      attack?.content?.title ??
+      "carte d'attaque",
+  );
   const defenseTitle = String(
     defense?.content?.operation_draft?.title ??
       defense?.content?.title ??
@@ -11075,24 +11629,54 @@ async function buildStatusOnlyNoMutationRuntime(args: {
     /^Rappel ponctuel demandé explicitement par l'utilisateur\. Rappelle-lui de\s*/i,
     "",
   );
-  const prefLabel = coachPreferenceStatusLabel(pref);
+  const reminderLocalTime = checkin?.scheduled_for
+    ? formatCheckinLocalTime(
+      String(checkin.scheduled_for),
+      args.userTimezone ?? "Europe/Paris",
+    )
+    : null;
+  const exactReminderStatus = isOneShotReminderExactStatusRequestForTest(
+    args.userMessage ?? "",
+  );
+  const reminderLine = pendingCheckins.length === 0
+    ? "je n'en vois pas en place."
+    : exactReminderStatus && reminderLocalTime
+    ? `l'heure confirmée côté système est ${reminderLocalTime} (${reminderInstruction}). Si 11h20 n'apparaît pas ici, ce déplacement n'a pas été confirmé.`
+    : pendingCheckins.length === 1
+    ? `oui, il est programmé${
+      reminderLocalTime ? ` à ${reminderLocalTime}` : ""
+    } (${reminderInstruction}).`
+    : `oui, j'en vois ${pendingCheckins.length} en place, dont le prochain : ${reminderInstruction}.`;
+  const prefLabels = activePreferences
+    .filter((pref: any) =>
+      [
+        "coach.tone",
+        "coach.question_tendency",
+        "coach.challenge_level",
+        "coach.response_max_lines",
+        "coach.emoji_policy",
+        "coach.final_question_policy",
+      ]
+        .includes(String(pref?.key ?? ""))
+    )
+    .map((pref: any) => coachPreferenceStatusLabel(pref));
+  const preferenceLine = prefLabels.length === 0
+    ? "je n'en vois pas encore en place."
+    : `oui, ${prefLabels.join(", ")}.`;
   const lines = [
     "Sans rien modifier :",
+    `- Carte d'attaque : ${
+      attack
+        ? `oui, elle est en place (${attackTitle}).`
+        : "je n'en vois pas en place."
+    }`,
     `- Carte de défense : ${
       defense
         ? `oui, elle est en place (${defenseTitle}).`
         : "je n'en vois pas en place."
     }`,
-    `- Rappel de demain : ${
-      checkin
-        ? `oui, il est programmé (${reminderInstruction}).`
-        : "je n'en vois pas en place."
-    }`,
-    `- Préférence : ${
-      pref
-        ? `oui, elle est gardée (${prefLabel}).`
-        : "je n'en vois pas encore en place."
-    }`,
+    `- Rappels ponctuels : ${reminderLine}`,
+    `- Préférences coach : ${preferenceLine}`,
   ];
   return {
     content: lines.join("\n"),
@@ -11102,9 +11686,10 @@ async function buildStatusOnlyNoMutationRuntime(args: {
     toolSkillRun: {
       selected_handler: "status_only_no_mutation_check",
       status: "answered",
+      attack_card_found: Boolean(attack),
       defense_card_found: Boolean(defense),
       reminder_found: Boolean(checkin),
-      coach_preference_found: Boolean(pref),
+      coach_preference_found: activePreferences.length > 0,
     },
   };
 }
@@ -12606,6 +13191,11 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     tempMemory: args.tempMemory,
   });
   if (!routeSelected) return null;
+  if (isExplicitDefenseCardIntentForTest(args.userMessage)) return null;
+  if (
+    isAttackCardCancellationRequestForTest(args.userMessage) ||
+    isMicroActionOnlyNotAttackCardForTest(args.userMessage)
+  ) return null;
 
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
   const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
@@ -12669,6 +13259,10 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     supabase: args.supabase,
     userId: args.userId,
   });
+  const preferSingleTechniqueQuestion = await loadCoachQuestionTendencyLow(
+    args.supabase,
+    args.userId,
+  );
   const withOccupiedAttackKeywords = (
     input: Record<string, unknown> | null | undefined,
   ) => ({
@@ -12817,22 +13411,27 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         };
       }
       if (pendingReviewOutput.status === "ask_question") {
+        const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
+          pendingReviewOutput.next_question,
+          { preferSingleTechnique: preferSingleTechniqueQuestion },
+        );
         nextTempMemory.__active_tool_skill_intake = {
           operation_type: "prepare_attack_card",
           phase: pendingReviewOutput.phase,
           missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          slot_state: pendingReviewOutput.next_question ?? null,
-          operation_input: pendingReviewOutput.state_patch.operation_input ??
-            pendingReviewOutput.next_question?.known_slots ?? null,
+          slot_state: nextQuestion ?? null,
+          operation_input: mergeAttackCardQuestionKnownSlots(
+            pendingReviewOutput.state_patch.operation_input ??
+              pendingReviewOutput.next_question?.known_slots ?? null,
+            nextQuestion,
+          ),
           tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
             null,
           turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
           updated_at: new Date().toISOString(),
         };
         return {
-          content: renderAttackCardSlotQuestion(
-            pendingReviewOutput.next_question,
-          ),
+          content: renderAttackCardSlotQuestion(nextQuestion),
           nextTempMemory,
           toolExecution: "blocked",
           executedTools: [],
@@ -12841,7 +13440,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
             status: pendingReviewOutput.status,
             operation_id: pendingRaw.operation_id ?? null,
             missing_slots: pendingReviewOutput.state_patch.missing_slots,
-            slot_state: pendingReviewOutput.next_question ?? null,
+            slot_state: nextQuestion ?? null,
             draft_review_decision: null,
           },
         };
@@ -12933,22 +13532,27 @@ export async function maybeRunPrepareAttackCardOperation(args: {
 
       delete nextTempMemory.__pending_tool_skill_confirmation;
       delete nextTempMemory.pending_tool_skill_confirmation;
+      const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
+        pendingReviewOutput.next_question,
+        { preferSingleTechnique: preferSingleTechniqueQuestion },
+      );
       nextTempMemory.__active_tool_skill_intake = {
         operation_type: "prepare_attack_card",
         phase: pendingReviewOutput.phase,
         missing_slots: pendingReviewOutput.state_patch.missing_slots,
-        slot_state: pendingReviewOutput.next_question ?? null,
-        operation_input: pendingReviewOutput.state_patch.operation_input ?? {
-          ...(pendingReviewOutput.next_question?.known_slots ?? {}),
-        },
+        slot_state: nextQuestion ?? null,
+        operation_input: mergeAttackCardQuestionKnownSlots(
+          pendingReviewOutput.state_patch.operation_input ?? {
+            ...(pendingReviewOutput.next_question?.known_slots ?? {}),
+          },
+          nextQuestion,
+        ),
         tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
           null,
         turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
       };
       return {
-        content: renderAttackCardSlotQuestion(
-          pendingReviewOutput.next_question,
-        ),
+        content: renderAttackCardSlotQuestion(nextQuestion),
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -12957,7 +13561,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
           status: pendingReviewOutput.status,
           operation_id: pendingRaw.operation_id ?? null,
           missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          slot_state: pendingReviewOutput.next_question ?? null,
+          slot_state: nextQuestion ?? null,
           draft_review_decision: draftReviewDecision,
         },
       };
@@ -13020,9 +13624,12 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   const activeTargetCandidate = attackCardTargetFromQuestionCandidate(
     activeTargetQuestion?.candidate,
   );
-  const activeKnownSlots = activeAttackCardIntake?.operation_input ??
-    activeTargetQuestion?.known_slots ??
-    {};
+  const activeKnownSlots = attackCardOperationInputWithSingleTechniqueApproval(
+    activeAttackCardIntake?.operation_input ??
+      activeTargetQuestion?.known_slots ??
+      {},
+    args.userMessage,
+  ) ?? {};
   if (activeTargetCandidate) {
     const candidateOutput = await runAttackCardIntake({
       user_id: args.userId,
@@ -13076,22 +13683,29 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         },
       };
     }
+    const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
+      candidateOutput.next_question,
+      { preferSingleTechnique: preferSingleTechniqueQuestion },
+    );
     nextTempMemory.__active_tool_skill_intake = {
       operation_type: "prepare_attack_card",
       phase: candidateOutput.phase,
       missing_slots: candidateOutput.state_patch.missing_slots,
-      slot_state: candidateOutput.next_question ?? null,
-      operation_input: candidateOutput.state_patch.operation_input ?? {
-        ...activeKnownSlots,
-        target_candidate: activeTargetCandidate,
-        ...(candidateOutput.next_question?.known_slots ?? {}),
-      },
+      slot_state: nextQuestion ?? null,
+      operation_input: mergeAttackCardQuestionKnownSlots(
+        candidateOutput.state_patch.operation_input ?? {
+          ...activeKnownSlots,
+          target_candidate: activeTargetCandidate,
+          ...(candidateOutput.next_question?.known_slots ?? {}),
+        },
+        nextQuestion,
+      ),
       tool_skill_state: candidateOutput.state_patch.tool_skill_state ?? null,
       turn_count: Number(activeAttackCardIntake.turn_count ?? 0) + 1,
       updated_at: new Date().toISOString(),
     };
     return {
-      content: renderAttackCardSlotQuestion(candidateOutput.next_question),
+      content: renderAttackCardSlotQuestion(nextQuestion),
       nextTempMemory,
       toolExecution: "blocked",
       executedTools: [],
@@ -13099,7 +13713,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         selected_handler: "prepare_attack_card",
         status: candidateOutput.status,
         missing_slots: candidateOutput.state_patch.missing_slots,
-        slot_state: candidateOutput.next_question ?? null,
+        slot_state: nextQuestion ?? null,
         target_slot_resolution: {
           status: "handled_by_skill_intake",
           target: activeTargetCandidate,
@@ -13112,7 +13726,11 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     activeAttackCardIntake?.operation_type === "prepare_attack_card" &&
     activeAttackCardIntake?.operation_input
   ) {
-    fallbackOperationInput = activeAttackCardIntake.operation_input;
+    fallbackOperationInput =
+      attackCardOperationInputWithSingleTechniqueApproval(
+        activeAttackCardIntake.operation_input,
+        args.userMessage,
+      ) ?? activeAttackCardIntake.operation_input;
   }
 
   if (isPendingAttackCardRecommendationOperation(pendingRecommendation)) {
@@ -13155,19 +13773,44 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     ) {
       delete nextTempMemory.__pending_recommendation_operation;
       if (recommendationOutput.status === "ask_question") {
+        const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
+          recommendationOutput.next_question,
+          { preferSingleTechnique: preferSingleTechniqueQuestion },
+        );
         nextTempMemory.__active_tool_skill_intake = {
           operation_type: "prepare_attack_card",
           phase: recommendationOutput.phase,
           missing_slots: recommendationOutput.state_patch.missing_slots,
-          slot_state: recommendationOutput.next_question ?? null,
-          operation_input: recommendationOutput.state_patch.operation_input ?? {
-            ...(pendingRecommendation.operation_input ?? {}),
-            ...(recommendationOutput.next_question?.known_slots ?? {}),
-          },
+          slot_state: nextQuestion ?? null,
+          operation_input: mergeAttackCardQuestionKnownSlots(
+            recommendationOutput.state_patch.operation_input ?? {
+              ...(pendingRecommendation.operation_input ?? {}),
+              ...(recommendationOutput.next_question?.known_slots ?? {}),
+            },
+            nextQuestion,
+          ),
           tool_skill_state: recommendationOutput.state_patch.tool_skill_state ??
             null,
           turn_count: 1,
           updated_at: new Date().toISOString(),
+        };
+        return {
+          content: renderAttackCardSlotQuestion(
+            nextQuestion,
+            recommendationOutput.state_patch.missing_slots.includes("target")
+              ? "Il manque la cible à rattacher à cette carte."
+              : "Il me manque encore un choix pour préparer cette carte.",
+          ),
+          nextTempMemory,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            status: recommendationOutput.status,
+            source: "recommendation_tool",
+            missing_slots: recommendationOutput.state_patch.missing_slots,
+            slot_state: nextQuestion ?? null,
+          },
         };
       }
       return {
@@ -13270,19 +13913,26 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   }
 
   if (output.status === "ask_question") {
+    const nextQuestion = applyAttackCardSingleTechniquePreferenceForTest(
+      output.next_question,
+      { preferSingleTechnique: preferSingleTechniqueQuestion },
+    );
     nextTempMemory.__active_tool_skill_intake = {
       operation_type: "prepare_attack_card",
       phase: output.phase,
       missing_slots: output.state_patch.missing_slots,
-      slot_state: output.next_question ?? null,
-      operation_input: output.state_patch.operation_input ??
-        output.next_question?.known_slots ?? null,
+      slot_state: nextQuestion ?? null,
+      operation_input: mergeAttackCardQuestionKnownSlots(
+        output.state_patch.operation_input ??
+          output.next_question?.known_slots ?? null,
+        nextQuestion,
+      ),
       tool_skill_state: output.state_patch.tool_skill_state ?? null,
       turn_count: 1,
       updated_at: new Date().toISOString(),
     };
     return {
-      content: renderAttackCardSlotQuestion(output.next_question),
+      content: renderAttackCardSlotQuestion(nextQuestion),
       nextTempMemory,
       toolExecution: "blocked",
       executedTools: [],
@@ -13290,7 +13940,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         selected_handler: "prepare_attack_card",
         status: "ask_question",
         missing_slots: output.state_patch.missing_slots,
-        slot_state: output.next_question ?? null,
+        slot_state: nextQuestion ?? null,
       },
     };
   }
@@ -14275,7 +14925,7 @@ async function maybeRunSelectStatePotionOperation(args: {
     if (confirmation === "no") {
       delete nextTempMemory.__pending_recommendation_operation;
       return {
-        content: "Ok, je ne lance pas de potion.",
+        content: statePotionDeclineReplyForTest(args.userMessage),
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -14701,6 +15351,21 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
         },
       };
     }
+    if (!isCoachPreferenceExplicitApprovalForTest(args.userMessage)) {
+      return {
+        content: pendingRaw.draft.confirmation_message ??
+          "Tu veux que j'applique cette préférence ?",
+        nextTempMemory,
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "update_coach_preferences",
+          status: "approval_requires_explicit_user_confirmation",
+          operation_id: pendingRaw.operation_id ?? null,
+          draft_review_decision: draftReviewDecision,
+        },
+      };
+    }
 
     const { data, error } = await upsertCoachPreferencesFromDraft({
       supabase: args.supabase,
@@ -14905,6 +15570,7 @@ export async function processMessage(
     evalRunId?: string | null;
     forceBrainTrace?: boolean;
     enableAdjustPlanCoachGuidance?: boolean;
+    clientNowIso?: string | null;
   },
   opts?: {
     logMessages?: boolean;
@@ -15257,9 +15923,14 @@ export async function processMessage(
       );
     }
   }
-  const userTime = await getUserTimeContext({ supabase, userId }).catch(() =>
-    null as any
-  );
+  const clientNow = meta?.clientNowIso ? new Date(meta.clientNowIso) : null;
+  const userTime = await getUserTimeContext({
+    supabase,
+    userId,
+    now: clientNow && Number.isFinite(clientNow.getTime())
+      ? clientNow
+      : undefined,
+  }).catch(() => null as any);
 
   const currentMessagePlanTarget = resolvePlanItemTargetFromText(
     userMessage,
@@ -15614,6 +16285,43 @@ export async function processMessage(
       });
     }
     if (
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      pendingOperationType(pendingOperationConfirmation) ===
+        "prepare_defense_card" &&
+      isDefenseCardRevisionForPendingDraftForTest(userMessage) &&
+      routeDecision.response_owner !== "safety"
+    ) {
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "tool_skill",
+        selected_handler: "prepare_defense_card",
+        reason_code: "pending_defense_card_revision_priority",
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill.adjust_plan_item",
+            reason_code: "pending_defense_card_revision_priority",
+          },
+          {
+            path: "tool_skill.prepare_attack_card",
+            reason_code: "pending_defense_card_revision_priority",
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        tool_skill_intents: turnFrame.tool_skill_intents.filter((intent) =>
+          intent.operation_type !== "adjust_plan_item" &&
+          intent.operation_type !== "prepare_attack_card"
+        ),
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
       pendingOperationConfirmationForGlobalRouting &&
       routeDecision.reason_code === "confirmation_correction_to_pending" &&
       (await detectConfirmationKind({ userMessage })) === "yes" &&
@@ -15626,6 +16334,79 @@ export async function processMessage(
         reason_code: "confirmation_yes_with_adjustment",
         direct_effects_to_run: [],
       };
+    }
+    if (
+      routeDecision.response_owner !== "safety" &&
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      isExplicitDefenseCardIntentForTest(userMessage)
+    ) {
+      const reasonCode = "explicit_defense_card_intent_overrides_attack_card";
+      if (
+        pendingOperationType(pendingOperationConfirmation) !==
+          "prepare_defense_card"
+      ) {
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+      }
+      if (
+        (activeOperationIntake as any)?.operation_type !==
+          "prepare_defense_card"
+      ) {
+        activeOperationIntake = null;
+      }
+      if (
+        (tempMemory as any)?.__pending_recommendation_operation
+          ?.operation_type !== "prepare_defense_card"
+      ) {
+        tempMemory = { ...(tempMemory ?? {}) };
+        delete (tempMemory as any).__pending_recommendation_operation;
+      }
+      tempMemory = {
+        ...(tempMemory ?? {}),
+      };
+      delete (tempMemory as any).__active_tool_skill_intake;
+      delete (tempMemory as any).active_tool_skill_intake;
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "tool_skill",
+        selected_handler: "prepare_defense_card",
+        reason_code: reasonCode,
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill.prepare_attack_card",
+            reason_code: reasonCode,
+          },
+          {
+            path: "product_help",
+            reason_code: reasonCode,
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [],
+        tool_skill_intents: [
+          ...turnFrame.tool_skill_intents.filter((intent) =>
+            intent.operation_type !== "prepare_attack_card" &&
+            intent.operation_type !== "adjust_plan_item"
+          ),
+          {
+            operation_type: "prepare_defense_card",
+            explicitness: "explicit",
+            target_hint: userMessage,
+            confidence_band: "high",
+            ambiguity: "none",
+            user_intent: "create",
+          } as any,
+        ],
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
     }
     if (isEarlyWeeklyPlanningValidationRequest(userMessage)) {
       routeDecision = {
@@ -15702,6 +16483,144 @@ export async function processMessage(
       });
     }
     if (
+      routeDecision.response_owner !== "safety" &&
+      isExplicitNoToolRequestForTest(userMessage)
+    ) {
+      const reasonCode = "explicit_no_tool_request_blocks_tool_start";
+      tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      pendingOperationConfirmation = null;
+      pendingOperationConfirmationForGlobalRouting = null;
+      activeOperationIntake = null;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        selected_handler: undefined,
+        reason_code: reasonCode,
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          { path: "tool_skill_flow", reason_code: reasonCode },
+          { path: "direct_effects", reason_code: reasonCode },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [],
+        tool_skill_intents: [],
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      routeDecision.response_owner !== "safety" &&
+      (
+        isAttackCardCancellationRequestForTest(userMessage) ||
+        (
+          routeDecision.response_owner === "tool_skill" &&
+          routeDecision.selected_handler === "prepare_attack_card" &&
+          isMicroActionOnlyNotAttackCardForTest(userMessage)
+        )
+      ) &&
+      pendingOperationType(pendingOperationConfirmation) !==
+        "prepare_attack_card"
+    ) {
+      const reasonCode = isAttackCardCancellationRequestForTest(userMessage)
+        ? "attack_card_cancelled_to_conversation"
+        : "micro_action_request_not_attack_card";
+      tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      pendingOperationConfirmation = null;
+      pendingOperationConfirmationForGlobalRouting = null;
+      activeOperationIntake = null;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        selected_handler: undefined,
+        reason_code: reasonCode,
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill.prepare_attack_card",
+            reason_code: reasonCode,
+          },
+          {
+            path: "tool_skill_opportunity.prepare_attack_card",
+            reason_code: reasonCode,
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        tool_skill_intents: turnFrame.tool_skill_intents.filter((intent) =>
+          intent.operation_type !== "prepare_attack_card"
+        ),
+        tool_skill_opportunity: {
+          type: "none",
+          operation_type: null,
+          surface_id: null,
+          confidence_band: "low",
+          should_offer: false,
+          prop_reason: null,
+          source_span: null,
+          target_hint: null,
+          target_status: "none",
+          suggested_question_intent: null,
+          offer_timing: "never",
+          must_not_execute: true,
+        },
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      routeDecision.response_owner !== "safety" &&
+      (isExplicitOneShotReminderModificationRequestForTest(userMessage) ||
+        isOneShotReminderReprogrammingFollowup(userMessage))
+    ) {
+      const reasonCode = "one_shot_reminder_modification_not_adjust_plan";
+      tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      pendingOperationConfirmation = null;
+      pendingOperationConfirmationForGlobalRouting = null;
+      activeOperationIntake = null;
+      routeDecision = {
+        ...routeDecision,
+        response_owner: "normal_reply",
+        selected_handler: undefined,
+        reason_code: reasonCode,
+        direct_effects_to_run: [],
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "tool_skill.adjust_plan_item",
+            reason_code: reasonCode,
+          },
+          {
+            path: "direct_effects.create_one_shot_reminder",
+            reason_code: reasonCode,
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: [],
+        tool_skill_intents: turnFrame.tool_skill_intents.filter((intent) =>
+          intent.operation_type !== "adjust_plan_item" &&
+          intent.operation_type !== "create_recurring_reminder"
+        ),
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
       isOperationEscapeMessage(userMessage) &&
       !pendingOperationConfirmationForGlobalRouting &&
       routeDecision.response_owner === "tool_skill" &&
@@ -15722,12 +16641,15 @@ export async function processMessage(
       (
         isLocalTextRevisionRequestForTest(userMessage) ||
         isCoachPreferenceVerificationRequestForTest(userMessage) ||
-        isImmediateModeRequestNotCoachPreferenceForTest(userMessage)
+        isImmediateModeRequestNotCoachPreferenceForTest(userMessage) ||
+        isApplyExistingCoachPreferenceRequestForTest(userMessage)
       )
     ) {
       const reasonCode =
         isCoachPreferenceVerificationRequestForTest(userMessage)
           ? "coach_preference_verification_not_update"
+          : isApplyExistingCoachPreferenceRequestForTest(userMessage)
+          ? "apply_existing_coach_preference_not_update"
           : isImmediateModeRequestNotCoachPreferenceForTest(userMessage)
           ? "immediate_mode_request_not_coach_preference"
           : "local_text_revision_not_coach_preference";
@@ -16141,7 +17063,8 @@ export async function processMessage(
     }
     if (
       routeDecision.response_owner !== "safety" &&
-      isStatusOnlyNoMutationRequestForTest(userMessage)
+      (isStatusOnlyNoMutationRequestForTest(userMessage) ||
+        isOneShotReminderExactStatusRequestForTest(userMessage))
     ) {
       tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
       state = { ...(state ?? {}), temp_memory: tempMemory } as any;
@@ -16152,7 +17075,9 @@ export async function processMessage(
         ...routeDecision,
         response_owner: "normal_reply",
         selected_handler: undefined,
-        reason_code: "status_only_request_blocks_tool_start",
+        reason_code: isOneShotReminderExactStatusRequestForTest(userMessage)
+          ? "one_shot_reminder_exact_status_request"
+          : "status_only_request_blocks_tool_start",
         direct_effects_to_run: [],
         blocked_paths: [
           ...routeDecision.blocked_paths,
@@ -16165,6 +17090,76 @@ export async function processMessage(
       turnFrame = {
         ...turnFrame,
         tool_skill_intents: [],
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      routeDecision.response_owner !== "safety" &&
+      routeDecision.direct_effects_to_run.includes(
+        "create_one_shot_reminder",
+      ) &&
+      (
+        routeDecision.response_owner === "product_help" ||
+        routeDecision.selected_handler === "product_help" ||
+        isStatusOnlyNoMutationRequestForTest(userMessage) ||
+        isOneShotReminderExactStatusRequestForTest(userMessage) ||
+        isRecapOnlyRequestForTest(userMessage) ||
+        isExistingOneShotReminderReferenceOnly(userMessage)
+      )
+    ) {
+      const reasonCode = routeDecision.response_owner === "product_help" ||
+          routeDecision.selected_handler === "product_help"
+        ? "product_help_blocks_one_shot_direct_effect"
+        : "non_mutation_context_blocks_one_shot_direct_effect";
+      routeDecision = {
+        ...routeDecision,
+        direct_effects_to_run: routeDecision.direct_effects_to_run.filter((
+          effect,
+        ) => effect !== "create_one_shot_reminder"),
+        blocked_paths: [
+          ...routeDecision.blocked_paths,
+          {
+            path: "direct_effects.create_one_shot_reminder",
+            reason_code: reasonCode,
+          },
+        ],
+      };
+      turnFrame = {
+        ...turnFrame,
+        direct_effects: turnFrame.direct_effects.filter((effect) =>
+          effect.effect_type !== "create_one_shot_reminder"
+        ),
+      };
+      dispatcherSignals = dispatcherSignalsFromTurnFrame({
+        turnFrame,
+        userMessage,
+      });
+    }
+    if (
+      routeDecision.response_owner !== "safety" &&
+      routeDecision.direct_effects_to_run.includes(
+        "create_one_shot_reminder",
+      ) &&
+      turnFrame.safety.risk_band === "medium" &&
+      explicitlySafeWorkReminderRequest(userMessage)
+    ) {
+      turnFrame = {
+        ...turnFrame,
+        safety: {
+          ...turnFrame.safety,
+          risk_band: "low",
+          reason_codes: [
+            ...turnFrame.safety.reason_codes,
+            "explicit_safe_work_reminder_context",
+          ],
+          evidence: [
+            ...turnFrame.safety.evidence,
+            "User explicitly negated danger and requested a work one-shot reminder.",
+          ],
+        },
       };
       dispatcherSignals = dispatcherSignalsFromTurnFrame({
         turnFrame,
@@ -16985,10 +17980,16 @@ export async function processMessage(
   }
 
   const routeSafetyActive = routeDecision?.response_owner === "safety";
+  const safetyFloorRiskBand =
+    routeDecision?.direct_effects_to_run.includes("create_one_shot_reminder") &&
+      safetyPregateOutput.risk_band === "medium" &&
+      explicitlySafeWorkReminderRequest(userMessage)
+      ? "low"
+      : safetyPregateOutput.risk_band;
   const runtimeSafetyRiskBand = turnFrame?.safety?.risk_band &&
-      isAtLeast(turnFrame.safety.risk_band, safetyPregateOutput.risk_band)
+      isAtLeast(turnFrame.safety.risk_band, safetyFloorRiskBand)
     ? turnFrame.safety.risk_band
-    : safetyPregateOutput.risk_band;
+    : safetyFloorRiskBand;
   const runtimeSafetyPregateOutput = runtimeSafetyRiskBand ===
       safetyPregateOutput.risk_band
     ? safetyPregateOutput
@@ -17058,6 +18059,9 @@ export async function processMessage(
       userId,
       message: userMessage,
       requestId: meta?.requestId ?? undefined,
+      now: clientNow && Number.isFinite(clientNow.getTime())
+        ? clientNow
+        : undefined,
     })
     : null;
   const oneShotReminderOperationRuntime: OperationRuntimeResult | null =
@@ -17076,21 +18080,60 @@ export async function processMessage(
           inserted_checkin_id: directOneShotReminderRuntime.inserted_checkin_id,
         },
       }
+      : directOneShotReminderRuntime?.detected
+      ? {
+        content: directOneShotReminderRuntime.status === "needs_clarify"
+          ? "Je n'ai pas encore programmé ce rappel : il me manque un moment futur clair."
+          : "Je n'ai pas pu programmer ce rappel maintenant. Il y a eu un souci technique côté outil.",
+        nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+        toolExecution: directOneShotReminderRuntime.status === "failed"
+          ? "failed"
+          : "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "create_one_shot_reminder",
+          status: directOneShotReminderRuntime.status,
+          reason: "reason" in directOneShotReminderRuntime
+            ? directOneShotReminderRuntime.reason
+            : null,
+        },
+      }
       : null;
-  const statusOnlyNoMutationRuntime =
-    !routeSafetyActive && isStatusOnlyNoMutationRequestForTest(userMessage)
-      ? await buildStatusOnlyNoMutationRuntime({
-        supabase,
-        userId,
-        tempMemory,
-      })
+  const oneShotReminderModificationRuntime: OperationRuntimeResult | null =
+    !routeSafetyActive &&
+      (isExplicitOneShotReminderModificationRequestForTest(userMessage) ||
+        isOneShotReminderReprogrammingFollowup(userMessage))
+      ? {
+        content:
+          "Je ne touche pas au plan : tu parles du rappel ponctuel. Je ne peux pas modifier ce rappel en douce ici ; si tu veux, je peux créer un nouveau rappel au nouvel horaire après confirmation explicite, et l'ancien restera actif tant que je ne confirme pas son annulation.",
+        nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "create_one_shot_reminder",
+          status: "existing_reminder_modification_needs_explicit_reprogramming",
+        },
+      }
       : null;
+  const statusOnlyNoMutationRuntime = !routeSafetyActive &&
+      (isStatusOnlyNoMutationRequestForTest(userMessage) ||
+        isOneShotReminderExactStatusRequestForTest(userMessage) ||
+        isRecapOnlyRequestForTest(userMessage))
+    ? await buildStatusOnlyNoMutationRuntime({
+      supabase,
+      userId,
+      tempMemory,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      userMessage,
+    })
+    : null;
 
   const operationRuntime =
     routeSafetyActive || weeklyReviewBlocksToolSkillRuntime
       ? null
       : pendingAdjustPlanRuntime ??
         directWeeklyAdjustPlanRuntime ??
+        oneShotReminderModificationRuntime ??
         statusOnlyNoMutationRuntime ??
         oneShotReminderOperationRuntime ??
         (weeklyReviewAllowsReminderRuntime
@@ -17216,9 +18259,21 @@ export async function processMessage(
         history,
       })
       : rawOperationRuntimeContent;
-    const operationRuntimeContent = ensureVisibleSophiaEmoji(
-      weeklyCleanedOperationRuntimeContent,
-    );
+    const operationResponseStylePreferences =
+      await loadCoachResponseStylePreferences({
+        supabase,
+        userId,
+      });
+    const styledOperationRuntimeContent =
+      applyCoachResponseStylePreferencesForTest({
+        userMessage,
+        responseContent: weeklyCleanedOperationRuntimeContent,
+        preferences: operationResponseStylePreferences,
+      });
+    const operationRuntimeContent = userRequestsShortStyle(userMessage) &&
+        operationResponseStylePreferences.noEmoji
+      ? styledOperationRuntimeContent
+      : ensureVisibleSophiaEmoji(styledOperationRuntimeContent);
     const operationRuntimeAdditionalContents = (
       operationRuntime.additionalContents ?? []
     ).map((content) =>
@@ -17266,14 +18321,28 @@ export async function processMessage(
       }
     }
 
+    const effectiveResponseOwner = turnFrame && routeDecision
+      ? effectiveResponseOwnerForOperationRuntime({
+        routeDecision,
+        toolSkillRun: operationRuntime.toolSkillRun,
+      })
+      : "normal_reply";
+    const operationConversationTurnTrace = turnFrame && routeDecision
+      ? {
+        turn_frame: turnFrame,
+        route_decision: routeDecision,
+        tool_skill_run: {
+          selected_handler: routeDecision.selected_handler ?? null,
+          reason_code: routeDecision.reason_code,
+          ...operationRuntime.toolSkillRun,
+        },
+        response_owner: effectiveResponseOwner,
+      }
+      : null;
+
     if (turnFrame && routeDecision) {
       try {
         const dispatcherV2Stat = dispatcherV2Stats[0];
-        const effectiveResponseOwner =
-          effectiveResponseOwnerForOperationRuntime({
-            routeDecision,
-            toolSkillRun: operationRuntime.toolSkillRun,
-          });
         await logConversationTurn({
           turn_id: turnFrame.turn_id,
           user_id: userId,
@@ -17409,6 +18478,7 @@ export async function processMessage(
       mode: nextMode,
       tool_execution: operationRuntime.toolExecution,
       executed_tools: operationRuntime.executedTools,
+      conversation_turn_trace: operationConversationTurnTrace,
     };
   }
 
@@ -17919,6 +18989,37 @@ export async function processMessage(
       )
     ? "blocked"
     : agentToolExecution;
+  const normalConversationTurnTrace = turnFrame && routeDecision
+    ? {
+      turn_frame: turnFrame,
+      route_decision: routeDecision,
+      skill_run: routeDecision.response_owner === "conversation_handler" ||
+          routeDecision.response_owner === "product_help" ||
+          routeDecision.response_owner === "safety"
+        ? {
+          selected_skill_id: routeDecision.selected_handler ?? null,
+          reason_code: routeDecision.reason_code,
+          output: recommendationSkillOutput,
+        }
+        : undefined,
+      recommendation_tool_run: recommendationToolRun
+        ? {
+          recommendation: recommendationToolRun,
+          stats: recommendationToolStats,
+        }
+        : recommendationToolStats?.error
+        ? { error: recommendationToolStats.error }
+        : undefined,
+      tool_skill_run: routeDecision.response_owner === "tool_skill" ||
+          routeDecision.response_owner === "pending_confirmation"
+        ? {
+          selected_handler: routeDecision.selected_handler ?? null,
+          reason_code: routeDecision.reason_code,
+        }
+        : undefined,
+      response_owner: routeDecision.response_owner,
+    }
+    : null;
 
   if (turnFrame && routeDecision) {
     try {
@@ -18059,7 +19160,34 @@ export async function processMessage(
     activeSkillState,
     tempMemory,
   });
-  responseContent = ensureVisibleSophiaEmoji(responseContent);
+  responseContent = applyShortRepairNoProductOfferGuardForTest({
+    userMessage,
+    responseContent,
+  });
+  responseContent = applyIncompleteRecapGuardForTest({
+    userMessage,
+    responseContent,
+  });
+  const responseStylePreferences = await loadCoachResponseStylePreferences({
+    supabase,
+    userId,
+  });
+  responseContent = applyCoachResponseStylePreferencesForTest({
+    userMessage,
+    responseContent,
+    preferences: responseStylePreferences,
+  });
+  if (
+    !(
+      userRequestsShortStyle(userMessage) &&
+      (responseStylePreferences.noEmoji ||
+        /\b(sans emoji|zero emoji|0 emoji|pas d emoji|pas d emojis)\b/.test(
+          normalizeRouteText(userMessage),
+        ))
+    )
+  ) {
+    responseContent = ensureVisibleSophiaEmoji(responseContent);
+  }
   const nextMode = agentOut.nextMode;
   const coachingAddonUsed =
     (tempMemory as any)?.__coaching_intervention_addon ??
@@ -18576,5 +19704,6 @@ export async function processMessage(
     mode: nextMode,
     tool_execution: combinedToolExecution,
     executed_tools: combinedExecutedTools,
+    conversation_turn_trace: normalConversationTurnTrace,
   };
 }

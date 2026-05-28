@@ -1,0 +1,4451 @@
+{
+  "run_id": "global15_20260528_n3_strict_r4",
+  "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-global15_20260528_n3_strict_r4-1779971120463@example.com",
+  "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJiZTFiOTdiMS04MDAxLTQ5NTQtYTY3MC05MmEwZDIwZjc0N2QiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzc5OTc0NzIwLCJpYXQiOjE3Nzk5NzExMjAsImVtYWlsIjoicWEtbm9ybWFsLWdsb2JhbDE1XzIwMjYwNTI4X24zX3N0cmljdF9yNC0xNzc5OTcxMTIwNDYzQGV4YW1wbGUuY29tIiwicGhvbmUiOiIiLCJhcHBfbWV0YWRhdGEiOnsicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6InFhLW5vcm1hbC1nbG9iYWwxNV8yMDI2MDUyOF9uM19zdHJpY3RfcjQtMTc3OTk3MTEyMDQ2M0BleGFtcGxlLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc190ZXN0X3BlcnNvbmEiOnRydWUsInBob25lX3ZlcmlmaWVkIjpmYWxzZSwicWFfcnVuX2lkIjoiZ2xvYmFsMTVfMjAyNjA1MjhfbjNfc3RyaWN0X3I0Iiwic3ViIjoiYmUxYjk3YjEtODAwMS00OTU0LWE2NzAtOTJhMGQyMGY3NDdkIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3Nzk5NzExMjB9XSwic2Vzc2lvbl9pZCI6IjU2Y2JkMjc5LWRiYzYtNDg3Ny04YTM0LTQ4MDY5YWFhYmQxYiIsImlzX2Fub255bW91cyI6ZmFsc2V9.YVYp0dUiWpjgAzOMCYg5Y6E8nCJCCFPpzCNsZflgSXA",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-28T12:25:20.841Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-28T12:25:40.731Z",
+      "user": "Salut Sophia, je suis un peu éparpillé ce matin. J'ai de l'admin, deux messages à envoyer, et mon bureau est en vrac. Je veux juste retrouver un point d'appui sans transformer ça en grand plan.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ah je vois le genre… quand tout est “à faire”, le cerveau part en mode guirlande 😅\n\nOn fait simple, là, maintenant :\n1) Admin : une seule action tout de suite (ouvrir le dossier/faire 1 envoi/composer 1 réponse). Stop après.\n2) Deux messages : tu les écris en brouillon rapides (3 lignes chacun), sans viser parfait.\n3) Bureau : 5 minutes chrono, juste “vider vers 1 zone” (pas trier).\n\nTu veux commencer par quoi : l’admin, ou les 2 messages ? 📌",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "execution_breakdown"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "attack_card",
+        "opportunity_operation": "prepare_attack_card",
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "execution_breakdown",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:40.681Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:40.681Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:40.681Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-05-28T12:25:40.681Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:25:40.681Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "4651805f-b2c5-41b6-a148-695b036de3a1",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:40.673Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0
+                ]
+              },
+              "updated_at": "2026-05-28T12:25:40.683534+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t01",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah je vois le genre… quand tout est “à faire”, le cerveau part en mode guirlande 😅\n\nOn fait simple, là, maintenant :\n1) Admin : une seule action tout de suite (ouvrir le dossier/faire 1 envoi/composer 1 réponse). Stop après.\n2) Deux messages : tu les écris en brouillon rapides (3 lignes chacun), sans viser parfait.\n3) Bureau : 5 minutes chrono, juste “vider vers 1 zone” (pas trier).\n\nTu veux commencer par quoi : l’admin, ou les 2 messages ? 📌",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t01",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "4651805f-b2c5-41b6-a148-695b036de3a1",
+          "ts": "2026-05-28T12:25:40.673+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8561,
+            "latency_ms": 4154,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 709,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillement et mise en route",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "psychologie.motivation",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "retrouver un point d'appui",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t01",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillement et mise en route",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                },
+                {
+                  "key": "psychologie.motivation",
+                  "type": "domain_key",
+                  "priority": "low",
+                  "query_hint": "retrouver un point d'appui",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "execution_breakdown": {
+                  "reason": "user_feels_scattered_needs_immediate_focus",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [],
+              "context_summary": null,
+              "previous_scores": [],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "4651805f-b2c5-41b6-a148-695b036de3a1",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_feels_scattered_needs_anchor_point",
+              "source_span": "je suis un peu éparpillé ce matin. J'ai de l'admin, deux messages à envoyer, et mon bureau est en vrac. Je veux juste retrouver un point d'appui",
+              "target_hint": "Retrouver un point d'appui / Clarifier les micro-tâches",
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "missing",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "medium",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            }
+          },
+          "route_decision": {
+            "reason_code": "skill_entry_signal",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "execution_breakdown",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+              "status": "continue",
+              "skill_id": "execution_breakdown",
+              "diagnosis": {
+                "stage": "target_resolution",
+                "blocker_candidates": [
+                  "flou",
+                  "energie",
+                  "friction_demarrage"
+                ]
+              },
+              "state_patch": {
+                "summary": "Need concrete target."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "target_resolution",
+              "recommendation_need": {
+                "type": "execution_repair",
+                "needed": false,
+                "urgency": "medium",
+                "constraints": [
+                  "understand_before_solution"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [
+                {
+                  "kind": "statement",
+                  "scope_hint": "session",
+                  "content_text": "Salut Sophia, je suis un peu éparpillé ce matin. J'ai de l'admin, deux messages à envoyer, et mon bureau est en vrac. Je veux juste retrouver un point d'appui sans transformer ça en grand plan.",
+                  "confidence_band": "medium",
+                  "sensitivity_level": 1,
+                  "evidence_source_ids": [
+                    "4651805f-b2c5-41b6-a148-695b036de3a1"
+                  ],
+                  "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true
+                }
+              ]
+            },
+            "reason_code": "skill_entry_signal",
+            "selected_skill_id": "execution_breakdown"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 6128,
+          "created_at": "2026-05-28T12:25:40.674969+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 2,
+      "sent_at": "2026-05-28T12:25:59.439Z",
+      "user": "Les 2 messages. Je vais envoyer celui à Nora d'abord, mais le piège c'est que j'ouvre Slack pour elle et je pars lire dix conversations.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ah oui, le piège Slack classique 😅 On va te couper l’élan de “lecture” :\n\n1) Tu ouvres Slack juste avec intention: “je réponds à Nora”. Pas plus.\n2) Méthode anti-dérapage: recherche Nora → ouvre la bonne discussion → tu fais ton envoi, et tu closes Slack.\n3) Pendant que tu écris, tu laisses Slack “en arrière-plan” (pas de scrolling), le cerveau n’a pas le droit de se promener.\n\nPour ton premier message à Nora, tu veux plutôt un ton: A direct court ou B un peu plus chaleureux ? 😊",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "execution_breakdown",
+        "route_reason": "active_flow_defers_tool_skill_opportunity",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "attack_card",
+        "opportunity_operation": "prepare_attack_card",
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "execution_breakdown",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:59.383Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:59.383Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:25:59.383Z",
+                  "score": 1,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:59.374Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  1
+                ]
+              },
+              "updated_at": "2026-05-28T12:25:59.385803+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t02",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ah oui, le piège Slack classique 😅 On va te couper l’élan de “lecture” :\n\n1) Tu ouvres Slack juste avec intention: “je réponds à Nora”. Pas plus.\n2) Méthode anti-dérapage: recherche Nora → ouvre la bonne discussion → tu fais ton envoi, et tu closes Slack.\n3) Pendant que tu écris, tu laisses Slack “en arrière-plan” (pas de scrolling), le cerveau n’a pas le droit de se promener.\n\nPour ton premier message à Nora, tu veux plutôt un ton: A direct court ou B un peu plus chaleureux ? 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t02",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+          "ts": "2026-05-28T12:25:59.374+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8782,
+            "latency_ms": 3886,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 676,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "distraction slack conversations",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t02",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "distraction slack conversations",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "user_is_specifying_the_target_and_the_friction_within_the_active_breakdown_flow",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "0;decay=0.55;recovery=0",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "attack_card",
+              "surface_id": "attack_card",
+              "prop_reason": "user_identifies_specific_friction_point_for_starting_action",
+              "source_span": "le piège c'est que j'ouvre Slack pour elle et je pars lire dix conversations",
+              "target_hint": "Envoyer le message à Nora sur Slack",
+              "offer_timing": "after_current_pending",
+              "should_offer": false,
+              "target_status": "identified",
+              "operation_type": "prepare_attack_card",
+              "confidence_band": "high",
+              "must_not_execute": true,
+              "suggested_question_intent": "offer_attack_card"
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_flow_defers_tool_skill_opportunity",
+            "blocked_paths": [
+              {
+                "path": "tool_skill_opportunity",
+                "reason_code": "active_flow_blocks_tool_opportunity"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "memory_use_kind": "none",
+            "selected_handler": "execution_breakdown",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "defer_incoming",
+              "reason_code": "active_flow_defers_tool_skill_opportunity",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": {
+            "output": {
+              "reply": "Avant de reparer, il me faut la cible: quelle action precise bloque la maintenant ?",
+              "status": "continue",
+              "skill_id": "execution_breakdown",
+              "diagnosis": {
+                "stage": "target_resolution",
+                "blocker_candidates": [
+                  "flou",
+                  "energie",
+                  "friction_demarrage"
+                ]
+              },
+              "state_patch": {
+                "summary": "Need concrete target."
+              },
+              "memory_trace": {
+                "correction_detected": false,
+                "memory_item_ids_used": [],
+                "memory_used_for_response": false,
+                "correction_target_item_ids": []
+              },
+              "response_intent": "target_resolution",
+              "recommendation_need": {
+                "type": "execution_repair",
+                "needed": false,
+                "urgency": "medium",
+                "constraints": [
+                  "understand_before_solution"
+                ]
+              },
+              "operation_suggestions": [],
+              "memory_write_candidates": [
+                {
+                  "kind": "statement",
+                  "scope_hint": "session",
+                  "content_text": "Les 2 messages. Je vais envoyer celui à Nora d'abord, mais le piège c'est que j'ouvre Slack pour elle et je pars lire dix conversations.",
+                  "confidence_band": "medium",
+                  "sensitivity_level": 1,
+                  "evidence_source_ids": [
+                    "d382c25e-5409-4033-b9df-fccc122f3f6b"
+                  ],
+                  "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true
+                }
+              ]
+            },
+            "reason_code": "active_flow_defers_tool_skill_opportunity",
+            "selected_skill_id": "execution_breakdown"
+          },
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "conversation_handler",
+          "total_latency_ms": 6201,
+          "created_at": "2026-05-28T12:25:59.376019+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 3,
+      "sent_at": "2026-05-28T12:26:31.724Z",
+      "user": "Avant le texte du message, prépare-moi une carte de défense pour ce moment Slack: j'ouvre pour envoyer un message à Nora, et le piège c'est que je lis les autres conversations.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Voici ta carte de défense :\nLe moment : J'ouvre Slack pour Nora\nLe piège : Je commence à lire les autres conversations\nMon geste : Je tape Nora dans la barre de recherche sans regarder le reste\nPlan B : Je ferme l'appli et je recommence en me concentrant\nOn valide ? 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_defense_card",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "prepare_defense_card"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:59.383Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:59.383Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:26:15.998Z",
+                  "score": 1.6,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure",
+                    "previous_risk"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:59.374Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  1,
+                  1.6
+                ],
+                "__coaching_intervention_history": [],
+                "__pending_tool_skill_confirmation": {
+                  "draft": {
+                    "draft": {
+                      "title": "Slack Nora",
+                      "plan_b": "Je ferme l'appli et je recommence en me concentrant",
+                      "signal": "Je commence à lire les autres conversations",
+                      "trigger": "Ouverture de l'application",
+                      "situation": "J'ouvre Slack pour Nora",
+                      "target_label": "Contacter Nora",
+                      "why_it_helps": "Évite la distraction visuelle des notifications.",
+                      "fallback_plan": "Fermer l'application",
+                      "impulse_label": "Lire les autres messages",
+                      "risk_situation": "J'ouvre Slack pour Nora",
+                      "generic_defense": "Utiliser la recherche directe",
+                      "defense_response": "Je tape Nora dans la barre de recherche sans regarder le reste"
+                    },
+                    "output_schema": "defense_card_draft_v1",
+                    "operation_type": "prepare_defense_card",
+                    "confirmation_actions": [
+                      "yes",
+                      "no"
+                    ],
+                    "confirmation_message": "Voici ta carte de défense :\nLe moment : J'ouvre Slack pour Nora\nLe piège : Je commence à lire les autres conversations\nMon geste : Je tape Nora dans la barre de recherche sans regarder le reste\nPlan B : Je ferme l'appli et je recommence en me concentrant\nOn valide ?"
+                  },
+                  "source": "direct_user_request",
+                  "summary": "Slack Nora",
+                  "attachment": {
+                    "kind": "personal_action",
+                    "title": "Envoyer un message à Nora sur Slack",
+                    "plan_item_id": null
+                  },
+                  "created_at": "2026-05-28T12:26:31.691Z",
+                  "turn_count": 0,
+                  "intake_state": {
+                    "trigger": {
+                      "type": "habit_loop",
+                      "status": "identified",
+                      "evidence": [
+                        "le piège c'est que je lis les autres conversations"
+                      ],
+                      "confidence": 0.9
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "L'utilisateur demande explicitement une carte de défense pour un moment de distraction/habitude sur Slack.",
+                      "status": "defense",
+                      "evidence": [
+                        "prépare-moi une carte de défense",
+                        "le piège c'est que je lis les autres conversations"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "personal_action",
+                      "title": "Envoyer un message à Nora sur Slack",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "confidence": "high",
+                    "constraints": [],
+                    "current_step": "draft_generation",
+                    "defense_goal": {
+                      "value": "protect_action",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora"
+                      ],
+                      "confidence": "high"
+                    },
+                    "missing_slots": [],
+                    "risk_situation": {
+                      "label": "Ouverture de Slack pour Nora",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora",
+                        "le piège c'est que je lis les autres conversations"
+                      ],
+                      "confidence": "high",
+                      "description": "Se laisser distraire par les autres conversations au lieu d'envoyer le message prévu.",
+                      "timing_hint": "Au moment d'ouvrir l'application Slack",
+                      "context_hint": "Slack"
+                    },
+                    "defense_response_hint": {
+                      "value": null,
+                      "status": "missing",
+                      "evidence": [],
+                      "confidence": "low",
+                      "strategy_hint": "unknown"
+                    },
+                    "generated_user_message": "C'est noté, on va protéger ce moment pour que tu puisses contacter Nora sans te laisser distraire. Qu'est-ce que tu pourrais faire concrètement pour ne pas lire les autres messages dès que tu ouvres Slack ?"
+                  },
+                  "operation_id": "d471fa91-a1bd-48a3-bf5c-64042f5e7313",
+                  "operation_type": "prepare_defense_card",
+                  "risk_situation": {
+                    "label": "Ouverture de Slack pour Nora",
+                    "description": "Se laisser distraire par les autres conversations au lieu d'envoyer le message prévu.",
+                    "timing_hint": "Au moment d'ouvrir l'application Slack",
+                    "context_hint": "Slack"
+                  },
+                  "expires_after_turns": 2
+                }
+              },
+              "updated_at": "2026-05-28T12:26:31.693615+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t03",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici ta carte de défense :\nLe moment : J'ouvre Slack pour Nora\nLe piège : Je commence à lire les autres conversations\nMon geste : Je tape Nora dans la barre de recherche sans regarder le reste\nPlan B : Je ferme l'appli et je recommence en me concentrant\nOn valide ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t03",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "a62fab16-aa63-48bc-ac98-d796d5f42afb",
+          "ts": "2026-05-28T12:26:31.699+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8965,
+            "latency_ms": 5369,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 802,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "message_nora",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "message Nora Slack",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "distraction Slack conversations",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t03",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "message_nora",
+                  "type": "action",
+                  "priority": "high",
+                  "query_hint": "message Nora Slack",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                },
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "distraction Slack conversations",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "user_requests_tool_skill_during_breakdown",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "0,1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0,
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "a62fab16-aa63-48bc-ac98-d796d5f42afb",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "moment Slack: j'ouvre pour envoyer un message à Nora, et le piège c'est que je lis les autres conversations",
+                "user_intent": "create",
+                "explicitness": "explicit",
+                "operation_type": "prepare_defense_card",
+                "confidence_band": "high",
+                "operation_input": {
+                  "risk_context": {
+                    "value": "distraction par les autres conversations Slack",
+                    "status": "identified",
+                    "evidence": [
+                      "le piège c'est que je lis les autres conversations"
+                    ]
+                  },
+                  "target_action": {
+                    "value": "Envoyer un message à Nora sur Slack",
+                    "status": "identified",
+                    "evidence": [
+                      "envoyer un message à Nora",
+                      "moment Slack"
+                    ]
+                  }
+                }
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "prepare_defense_card",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "title": "Slack Nora",
+                "plan_b": "Je ferme l'appli et je recommence en me concentrant",
+                "signal": "Je commence à lire les autres conversations",
+                "trigger": "Ouverture de l'application",
+                "situation": "J'ouvre Slack pour Nora",
+                "target_label": "Contacter Nora",
+                "why_it_helps": "Évite la distraction visuelle des notifications.",
+                "fallback_plan": "Fermer l'application",
+                "impulse_label": "Lire les autres messages",
+                "risk_situation": "J'ouvre Slack pour Nora",
+                "generic_defense": "Utiliser la recherche directe",
+                "defense_response": "Je tape Nora dans la barre de recherche sans regarder le reste"
+              },
+              "output_schema": "defense_card_draft_v1",
+              "operation_type": "prepare_defense_card",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici ta carte de défense :\nLe moment : J'ouvre Slack pour Nora\nLe piège : Je commence à lire les autres conversations\nMon geste : Je tape Nora dans la barre de recherche sans regarder le reste\nPlan B : Je ferme l'appli et je recommence en me concentrant\nOn valide ?"
+            },
+            "status": "pending_confirmation",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "d471fa91-a1bd-48a3-bf5c-64042f5e7313",
+            "selected_handler": "prepare_defense_card"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 21081,
+          "created_at": "2026-05-28T12:26:31.701158+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 4,
+      "sent_at": "2026-05-28T12:27:03.132Z",
+      "user": "Change le geste: taper Nora dans la recherche, envoyer le message, puis quitter Slack. Plan B: si je vois un autre fil, je ferme l'app immédiatement.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Voici ta carte de défense :\nLe moment : Ouverture de Slack pour Nora\nLe piège : Je vois les autres conversations\nMon geste : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\nPlan B : Si je vois un autre fil, je ferme l'app immédiatement\nOn valide ? 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "adjust_plan_item",
+        "route_reason": "explicit_tool_intent_supersedes_active_conversation_skill",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [
+          "adjust_plan_item"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:59.383Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:59.383Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:26:44.913Z",
+                  "score": 1.9,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure",
+                    "previous_risk"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:59.374Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  1,
+                  1.6,
+                  1.9
+                ],
+                "__coaching_intervention_history": [],
+                "__pending_tool_skill_confirmation": {
+                  "draft": {
+                    "draft": {
+                      "title": "Envoyer un message à Nora sur Slack",
+                      "plan_b": "Si je vois un autre fil, je ferme l'app immédiatement",
+                      "signal": "Je vois les autres conversations",
+                      "trigger": "Je vois les autres conversations",
+                      "situation": "Ouverture de Slack pour Nora",
+                      "target_label": "Nora",
+                      "why_it_helps": "Permet de rester focalisé sur l'objectif initial sans se laisser distraire.",
+                      "fallback_plan": "Si je vois un autre fil, je ferme l'app immédiatement",
+                      "impulse_label": "Lire les autres conversations",
+                      "risk_situation": "Ouverture de Slack pour Nora",
+                      "generic_defense": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack",
+                      "defense_response": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack"
+                    },
+                    "output_schema": "defense_card_draft_v1",
+                    "operation_type": "prepare_defense_card",
+                    "confirmation_actions": [
+                      "yes",
+                      "no"
+                    ],
+                    "confirmation_message": "Voici ta carte de défense :\nLe moment : Ouverture de Slack pour Nora\nLe piège : Je vois les autres conversations\nMon geste : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\nPlan B : Si je vois un autre fil, je ferme l'app immédiatement\nOn valide ?"
+                  },
+                  "source": "direct_user_request",
+                  "summary": "Envoyer un message à Nora sur Slack",
+                  "attachment": {
+                    "kind": "personal_action",
+                    "title": "Envoyer un message à Nora sur Slack",
+                    "plan_item_id": null
+                  },
+                  "created_at": "2026-05-28T12:27:03.100Z",
+                  "turn_count": 0,
+                  "intake_state": {
+                    "trigger": {
+                      "type": "habit_loop",
+                      "status": "identified",
+                      "evidence": [
+                        "le piège c'est que je lis les autres conversations"
+                      ],
+                      "confidence": null
+                    },
+                    "skill_id": "prepare_defense_card",
+                    "tool_fit": {
+                      "reason": "L'utilisateur affine sa stratégie de défense pour Slack.",
+                      "status": "defense",
+                      "evidence": [
+                        "Change le geste: taper Nora dans la recherche, envoyer le message, puis quitter Slack"
+                      ],
+                      "confidence": "high"
+                    },
+                    "attachment": {
+                      "kind": "personal_action",
+                      "title": "Envoyer un message à Nora sur Slack",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora"
+                      ],
+                      "confidence": "high",
+                      "plan_item_id": null
+                    },
+                    "confidence": "high",
+                    "constraints": [
+                      "Plan B: si je vois un autre fil, je ferme l'app immédiatement"
+                    ],
+                    "current_step": "draft_generation",
+                    "defense_goal": {
+                      "value": "protect_action",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora"
+                      ],
+                      "confidence": "high"
+                    },
+                    "missing_slots": [],
+                    "risk_situation": {
+                      "label": "Ouverture de Slack pour Nora",
+                      "status": "identified",
+                      "evidence": [
+                        "j'ouvre pour envoyer un message à Nora",
+                        "le piège c'est que je lis les autres conversations"
+                      ],
+                      "confidence": "high",
+                      "description": "Se laisser distraire par les autres conversations au lieu d'envoyer le message prévu.",
+                      "timing_hint": "Au moment d'ouvrir l'application Slack",
+                      "context_hint": "Slack"
+                    },
+                    "defense_response_hint": {
+                      "value": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack",
+                      "status": "identified",
+                      "evidence": [
+                        "taper Nora dans la recherche, envoyer le message, puis quitter Slack"
+                      ],
+                      "confidence": "high",
+                      "strategy_hint": "replace_action"
+                    },
+                    "generated_user_message": "C'est noté, j'ai mis à jour ton geste et ton plan B. Est-ce que cette version te convient ?"
+                  },
+                  "operation_id": "587321be-a87e-42f3-9dc3-42ce6afe19fc",
+                  "operation_type": "prepare_defense_card",
+                  "risk_situation": {
+                    "label": "Ouverture de Slack pour Nora",
+                    "description": "Se laisser distraire par les autres conversations au lieu d'envoyer le message prévu.",
+                    "timing_hint": "Au moment d'ouvrir l'application Slack",
+                    "context_hint": "Slack"
+                  },
+                  "expires_after_turns": 2,
+                  "defense_response_hint": {
+                    "value": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack",
+                    "strategy_hint": "replace_action"
+                  },
+                  "supersedes_operation_id": "d471fa91-a1bd-48a3-bf5c-64042f5e7313"
+                }
+              },
+              "updated_at": "2026-05-28T12:27:03.102371+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t04",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Voici ta carte de défense :\nLe moment : Ouverture de Slack pour Nora\nLe piège : Je vois les autres conversations\nMon geste : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\nPlan B : Si je vois un autre fil, je ferme l'app immédiatement\nOn valide ? 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t04",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "bd8d0c08-79f0-42b2-8fad-abdb802042c0",
+          "ts": "2026-05-28T12:27:03.106+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9176,
+            "latency_ms": 4217,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 685,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "slack_distraction",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "difficulté avec Slack et distractions",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t04",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "slack_distraction",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "difficulté avec Slack et distractions",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "user_refining_defense_strategy",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.9,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "0,1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0,
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "bd8d0c08-79f0-42b2-8fad-abdb802042c0",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Change le geste: taper Nora dans la recherche, envoyer le message, puis quitter Slack. Plan B: si je vois un autre fil, je ferme l'app immédiatement.",
+                "user_intent": "adjust",
+                "explicitness": "explicit",
+                "operation_type": "adjust_plan_item",
+                "confidence_band": "high"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "adjust_plan_item",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "supersede_active",
+              "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+              "active_owner": "conversation_skill",
+              "resume_policy": "user_reopens",
+              "selected_owner": "tool_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": {
+            "draft": {
+              "draft": {
+                "title": "Envoyer un message à Nora sur Slack",
+                "plan_b": "Si je vois un autre fil, je ferme l'app immédiatement",
+                "signal": "Je vois les autres conversations",
+                "trigger": "Je vois les autres conversations",
+                "situation": "Ouverture de Slack pour Nora",
+                "target_label": "Nora",
+                "why_it_helps": "Permet de rester focalisé sur l'objectif initial sans se laisser distraire.",
+                "fallback_plan": "Si je vois un autre fil, je ferme l'app immédiatement",
+                "impulse_label": "Lire les autres conversations",
+                "risk_situation": "Ouverture de Slack pour Nora",
+                "generic_defense": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack",
+                "defense_response": "Taper Nora dans la recherche, envoyer le message, puis quitter Slack"
+              },
+              "output_schema": "defense_card_draft_v1",
+              "operation_type": "prepare_defense_card",
+              "confirmation_actions": [
+                "yes",
+                "no"
+              ],
+              "confirmation_message": "Voici ta carte de défense :\nLe moment : Ouverture de Slack pour Nora\nLe piège : Je vois les autres conversations\nMon geste : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\nPlan B : Si je vois un autre fil, je ferme l'app immédiatement\nOn valide ?"
+            },
+            "status": "pending_confirmation_updated",
+            "reason_code": "explicit_tool_intent_supersedes_active_conversation_skill",
+            "operation_id": "587321be-a87e-42f3-9dc3-42ce6afe19fc",
+            "selected_handler": "prepare_defense_card",
+            "draft_review_decision": null,
+            "previous_operation_id": "d471fa91-a1bd-48a3-bf5c-64042f5e7313"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 22431,
+          "created_at": "2026-05-28T12:27:03.108036+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 5,
+      "sent_at": "2026-05-28T12:27:18.786Z",
+      "user": "Oui, valide cette version.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est fait. J'ai créé la carte de défense \"Envoyer un message à Nora sur Slack\" : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation. 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "prepare_defense_card",
+        "route_reason": "pending_defense_card_confirmation_priority",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "prepare_defense_card"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:59.383Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:59.383Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:27:18.719Z",
+                  "score": 1,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:59.374Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0,
+                  1,
+                  1.6,
+                  1.9,
+                  1
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:27:18.749171+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t05",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est fait. J'ai créé la carte de défense \"Envoyer un message à Nora sur Slack\" : Taper Nora dans la recherche, envoyer le message, puis quitter Slack\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "prepare_defense_card"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t05",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "86f1eead-8970-4e20-837c-5651e0b4dd2d",
+          "ts": "2026-05-28T12:27:18.753+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9267,
+            "latency_ms": 3992,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 606,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "slack_distraction",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "distraction slack nora",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t05",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "slack_distraction",
+                  "type": "topic",
+                  "priority": "medium",
+                  "query_hint": "distraction slack nora",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "user_continuing_execution_support",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "0,1,1.6,1.9;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0,
+                1,
+                1.6,
+                1.9
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "86f1eead-8970-4e20-837c-5651e0b4dd2d",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "pending_defense_card_confirmation_priority",
+            "blocked_paths": [
+              {
+                "path": "tool_skill.prepare_attack_card",
+                "reason_code": "pending_defense_card_confirmation_priority"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "prepare_defense_card",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "continue_active",
+              "reason_code": "active_conversation_skill_continue",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "conversation_skill"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "prepare_defense_card"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "pending_defense_card_confirmation_priority",
+            "operation_id": "587321be-a87e-42f3-9dc3-42ce6afe19fc",
+            "defense_card_id": "6cd2bd73-babe-4766-87f3-a1110a4181ae",
+            "selected_handler": "prepare_defense_card",
+            "draft_review_decision": {
+              "decision": "approve",
+              "evidence": [
+                "deterministic_explicit_defense_card_approval"
+              ],
+              "confidence": "high"
+            }
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 4040,
+          "created_at": "2026-05-28T12:27:18.754674+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 6,
+      "sent_at": "2026-05-28T12:27:36.216Z",
+      "user": "Ok, message Nora envoyé. Demain matin à 9h10, rappelle-moi de vérifier si elle a répondu avant ma réunion.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "C'est programmé pour vendredi 29 mai à 09:10 : vérifier si Nora a répondu avant ma réunion. 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "active_skill_exit_requested",
+        "safety": "low",
+        "skill_entry_ids": [],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [
+          "create_one_shot_reminder"
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "create_one_shot_reminder"
+        ],
+        "tool_execution": "success"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:25:59.383Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:25:59.383Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "execution_breakdown",
+                  "started_at": "2026-05-28T12:25:40.681Z",
+                  "turn_count": 2,
+                  "updated_at": "2026-05-28T12:25:59.383Z",
+                  "working_state": {
+                    "summary": "Need concrete target."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:27:33.004Z",
+                  "score": 1,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "d382c25e-5409-4033-b9df-fccc122f3f6b",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:25:59.374Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  1,
+                  1.6,
+                  1.9,
+                  1,
+                  1
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:27:36.184401+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "c89a3a92-23d9-42d9-8701-81efa01ec691",
+              "status": "pending",
+              "event_context": "one_shot_reminder:verifier_si_nora_a_repondu_avant_ma_reunion",
+              "draft_message": null,
+              "scheduled_for": "2026-05-29T07:10:00+00:00",
+              "created_at": "2026-05-28T12:27:36.180325+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t06",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "C'est programmé pour vendredi 29 mai à 09:10 : vérifier si Nora a répondu avant ma réunion. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "success",
+          "executed_tools": [
+            "create_one_shot_reminder"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t06",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "f03f1826-6b08-4d05-9791-e0b6b2cb5dc3",
+          "ts": "2026-05-28T12:27:36.188+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "Demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9156,
+            "latency_ms": 4596,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 692,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "Nora",
+                  "type": "entity",
+                  "priority": "medium",
+                  "query_hint": "qui est Nora et contexte Slack",
+                  "entity_type": "person",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t06",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "Nora",
+                  "type": "entity",
+                  "priority": "medium",
+                  "query_hint": "qui est Nora et contexte Slack",
+                  "entity_type": "person",
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {
+                "execution_breakdown": {
+                  "reason": "user_completed_action_and_switched_to_reminder",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "entry": {},
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [
+              {
+                "effect_type": "create_one_shot_reminder",
+                "explicitness": "explicit",
+                "payload_hint": {
+                  "raw_text": "vérifier si Nora a répondu avant ma réunion",
+                  "time_hint": "demain matin à 9h10"
+                },
+                "target_status": "identified",
+                "confidence_band": "high"
+              }
+            ],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": false,
+                  "evidence": "0,1,1.6,1.9,1;decay=0.55;recovery=1.5",
+                  "contribution": 0
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                0,
+                1,
+                1.6,
+                1.9,
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "f03f1826-6b08-4d05-9791-e0b6b2cb5dc3",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_skill_exit_requested",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "memory_use_kind": "none",
+            "direct_effects_to_run": [
+              "create_one_shot_reminder"
+            ],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "abandon_active",
+              "reason_code": "active_skill_exit_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "normal_reply"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "success",
+              "tool_id": "create_one_shot_reminder"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "executed",
+            "reason_code": "active_skill_exit_requested",
+            "scheduled_for": "2026-05-29T07:10:00+00:00",
+            "selected_handler": "create_one_shot_reminder",
+            "inserted_checkin_id": "c89a3a92-23d9-42d9-8701-81efa01ec691"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 7794,
+          "created_at": "2026-05-28T12:27:36.189431+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 7,
+      "sent_at": "2026-05-28T12:27:58.043Z",
+      "user": "Et si je veux modifier ce rappel demain matin, je peux te le demander ici ou je dois aller dans l'app ?",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.\n\nPour le modifier ou l'annuler, le plus fiable est de me le redire ici clairement, par exemple : \"change le rappel de demain à 09:00\" ou \"annule le rappel de demain\". 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "active_skill_exit_requested",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "blocked"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:27:57.998Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:27:57.998Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:27:57.998Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:27:57.998Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:27:57.998Z",
+                  "score": 1.6,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "active_flow_pressure",
+                    "previous_risk"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "b0feed65-8825-4615-91f0-5f572509b4a3",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1,
+                    1
+                  ],
+                  "last_updated_at": "2026-05-28T12:27:57.989Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  1.6,
+                  1.9,
+                  1,
+                  1,
+                  1.6
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:27:58.000706+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "c89a3a92-23d9-42d9-8701-81efa01ec691",
+              "status": "pending",
+              "event_context": "one_shot_reminder:verifier_si_nora_a_repondu_avant_ma_reunion",
+              "draft_message": null,
+              "scheduled_for": "2026-05-29T07:10:00+00:00",
+              "created_at": "2026-05-28T12:27:36.180325+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t07",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.\n\nPour le modifier ou l'annuler, le plus fiable est de me le redire ici clairement, par exemple : \"change le rappel de demain à 09:00\" ou \"annule le rappel de demain\". 🙂",
+          "mode": "companion",
+          "tool_execution": "blocked",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t07",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "b0feed65-8825-4615-91f0-5f572509b4a3",
+          "ts": "2026-05-28T12:27:57.989+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [
+              "demain"
+            ],
+            "risk_band": "none",
+            "reason_codes": [
+              "immediacy_tomorrow"
+            ],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": true,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 9048,
+            "latency_ms": 3595,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 668,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "rappel_nora",
+                  "type": "event",
+                  "priority": "high",
+                  "query_hint": "rappel programmé pour demain matin 9h10",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t07",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "rappel_nora",
+                  "type": "event",
+                  "priority": "high",
+                  "query_hint": "rappel programmé pour demain matin 9h10",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "semantic_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {
+                "execution_breakdown": {
+                  "reason": "user_switched_to_product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "entry": {
+                "product_help": {
+                  "reason": "user_asks_about_modifying_reminders_in_chat_vs_app",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {
+                "execution_breakdown": {
+                  "reason": "active_skill_continue",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              }
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 1.6,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": true,
+                  "evidence": "active_skill_or_operation_state",
+                  "contribution": 1
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1,1.6,1.9,1,1;decay=0.55;recovery=0",
+                  "contribution": 0.6
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "active_flow_pressure",
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1,
+                1.6,
+                1.9,
+                1,
+                1
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "b0feed65-8825-4615-91f0-5f572509b4a3",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "active_skill_exit_requested",
+            "blocked_paths": [],
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "memory_use_kind": "none",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "abandon_active",
+              "reason_code": "active_skill_exit_requested",
+              "active_owner": "conversation_skill",
+              "resume_policy": "none",
+              "selected_owner": "normal_reply"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": null,
+          "recommendation_tool_run": {
+            "stats": null,
+            "recommendation": {
+              "reason": "cooldown_or_contraindications_exhausted_surfaces",
+              "timing": "later",
+              "decision": "defer",
+              "cta_style": "none",
+              "confidence": 0.7,
+              "alternatives": [],
+              "do_not_recommend": [],
+              "requires_consent": false,
+              "recommendation_id": "rec_global15_20260528_n3_strict_r4-t07_1779971270016",
+              "presentation_level": 0
+            }
+          },
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "normal_reply",
+          "total_latency_ms": 11590,
+          "created_at": "2026-05-28T12:27:57.991383+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 8,
+      "sent_at": "2026-05-28T12:28:14.844Z",
+      "user": "Je ne parle plus du rappel: garde juste comme repère dans cette conversation que quand je dis éparpillé, ça veut dire choisir une seule zone, pas tout refaire.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ok, noté ✅ Quand tu dis “éparpillé”, je retiens que tu veux choisir une seule zone et pas tout refaire. (mode repère, pas mode refonte) 🙂",
+      "trace_short": {
+        "response_owner": "normal_reply",
+        "selected_handler": null,
+        "route_reason": "product_help_exit_to_conversation",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:28:14.813Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:27:57.998Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:28:14.813Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:28:14.813Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:28:14.813Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:28:14.813Z",
+                  "score": 0.9,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "previous_risk"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "ac2efef5-9ba1-4cf4-af9b-a916aa574eb5",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1,
+                    1,
+                    0
+                  ],
+                  "last_updated_at": "2026-05-28T12:28:14.807Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__conversation_risk_history": [
+                  1.9,
+                  1,
+                  1,
+                  1.6,
+                  0.9
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:28:14.814978+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "c89a3a92-23d9-42d9-8701-81efa01ec691",
+              "status": "pending",
+              "event_context": "one_shot_reminder:verifier_si_nora_a_repondu_avant_ma_reunion",
+              "draft_message": null,
+              "scheduled_for": "2026-05-29T07:10:00+00:00",
+              "created_at": "2026-05-28T12:27:36.180325+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t08",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ok, noté ✅ Quand tu dis “éparpillé”, je retiens que tu veux choisir une seule zone et pas tout refaire. (mode repère, pas mode refonte) 🙂",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": []
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t08",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "ac2efef5-9ba1-4cf4-af9b-a916aa574eb5",
+          "ts": "2026-05-28T12:28:14.807+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8989,
+            "latency_ms": 5459,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 596,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.planification",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillé définition",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t08",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.planification",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillé définition",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0.9,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1.6,1.9,1,1,1.6;decay=0.55;recovery=0",
+                  "contribution": 0.9
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1.6,
+                1.9,
+                1,
+                1,
+                1.6
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "ac2efef5-9ba1-4cf4-af9b-a916aa574eb5",
+            "tool_skill_intents": [],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "product_help_exit_to_conversation",
+            "blocked_paths": [
+              {
+                "path": "product_help",
+                "reason_code": "user_exited_product_help_or_requested_recap"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "normal_reply",
+            "memory_use_kind": "none",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [],
+          "skill_run": null,
+          "tool_skill_run": null,
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "normal_reply",
+          "total_latency_ms": 7958,
+          "created_at": "2026-05-28T12:28:14.809088+00:00"
+        },
+        "trace_error": null
+      }
+    },
+    {
+      "turn": 9,
+      "sent_at": "2026-05-28T12:28:40.718Z",
+      "user": "Pour une vraie préférence de coaching: quand je suis éparpillé, pose-moi une seule question de tri à la fois, pas trois options.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Je n'ai pas réussi à modifier cette préférence techniquement. Je préfère m'arrêter plutôt que deviner à ta place. 🙂",
+      "trace_short": {
+        "response_owner": "tool_skill",
+        "selected_handler": "update_coach_preferences",
+        "route_reason": "coach_preference_request_overrides_active_flow",
+        "safety": "low",
+        "skill_entry_ids": [
+          "product_help"
+        ],
+        "tool_skill_intents": [
+          "update_coach_preferences"
+        ],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": null,
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [
+          "update_coach_preferences"
+        ],
+        "tool_execution": "failed"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-28T12:28:14.813Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-28T12:25:40.681Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-28T12:25:40.681Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:25:59.383Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:27:57.998Z",
+                          "quality": "substantive"
+                        },
+                        {
+                          "at": "2026-05-28T12:28:14.813Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-28T12:28:14.813Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "low",
+                      "reason": "no_emotional_marker"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-28T12:28:14.813Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-28T12:28:32.742Z",
+                  "score": 0.5,
+                  "threshold": 8,
+                  "reason_codes": [
+                    "previous_risk"
+                  ],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "ac2efef5-9ba1-4cf4-af9b-a916aa574eb5",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1,
+                    1,
+                    1,
+                    0
+                  ],
+                  "last_updated_at": "2026-05-28T12:28:14.807Z",
+                  "last_turn_had_question": false,
+                  "turns_since_last_question": 1
+                },
+                "__conversation_risk_history": [
+                  1,
+                  1,
+                  1.6,
+                  0.9,
+                  0.5
+                ],
+                "__coaching_intervention_history": []
+              },
+              "updated_at": "2026-05-28T12:28:40.687229+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "id": "c89a3a92-23d9-42d9-8701-81efa01ec691",
+              "status": "pending",
+              "event_context": "one_shot_reminder:verifier_si_nora_a_repondu_avant_ma_reunion",
+              "draft_message": null,
+              "scheduled_for": "2026-05-29T07:10:00+00:00",
+              "created_at": "2026-05-28T12:27:36.180325+00:00"
+            }
+          ]
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "global15_20260528_n3_strict_r4-t09",
+        "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+        "channel": "web",
+        "scope": "qa-normal-conversation-global15_20260528_n3_strict_r4",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Je n'ai pas réussi à modifier cette préférence techniquement. Je préfère m'arrêter plutôt que deviner à ta place. 🙂",
+          "additional_contents": [],
+          "mode": "companion",
+          "tool_execution": "failed",
+          "executed_tools": [
+            "update_coach_preferences"
+          ]
+        },
+        "conversation_turn_trace": {
+          "turn_id": "global15_20260528_n3_strict_r4-t09",
+          "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+          "source_message_id": "4fa7a48c-feb4-4d2b-bad3-35b08e97e70b",
+          "ts": "2026-05-28T12:28:40.691+00:00",
+          "safety_pregate": {
+            "detected": false,
+            "evidence": [],
+            "risk_band": "none",
+            "reason_codes": [],
+            "allow_side_effects": true,
+            "layer_contributions": {
+              "lexical": false,
+              "heuristic": false,
+              "dispatcher_llm": false
+            }
+          },
+          "dispatcher_run": {
+            "tokens_in": 8949,
+            "latency_ms": 4218,
+            "model_used": "gemini-3-flash-preview",
+            "tokens_out": 596,
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillement et tri",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "prompt_version": "dispatcher_v2_prompt_2026_05_s16"
+          },
+          "turn_frame": {
+            "safety": {
+              "evidence": [],
+              "risk_band": "low",
+              "reason_codes": []
+            },
+            "channel": "web",
+            "turn_id": "global15_20260528_n3_strict_r4-t09",
+            "user_id": "be1b97b1-8001-4954-a670-92a0d20f747d",
+            "memory_plan": {
+              "targets": [
+                {
+                  "key": "habitudes.procrastination",
+                  "type": "domain_key",
+                  "priority": "medium",
+                  "query_hint": "éparpillement et tri",
+                  "entity_type": null,
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first"
+                }
+              ],
+              "memory_mode": "light",
+              "context_need": "targeted",
+              "model_tier_hint": "lite",
+              "plan_confidence": 0.7,
+              "response_intent": "reflection",
+              "retrieval_policy": "semantic_first",
+              "context_budget_tier": "small",
+              "reasoning_complexity": "low"
+            },
+            "skill_signals": {
+              "exit": {},
+              "entry": {
+                "product_help": {
+                  "reason": "product_question",
+                  "detected": true,
+                  "confidence_band": "high"
+                }
+              },
+              "lifecycle": {}
+            },
+            "direct_effects": [],
+            "needs_research": {
+              "query": null,
+              "value": false,
+              "reason": null,
+              "detected": false,
+              "confidence": 0,
+              "domain_hint": null
+            },
+            "level_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "action_reference": {
+              "reason": null,
+              "status": "none",
+              "detected": false,
+              "expansion_policy": "none"
+            },
+            "conversation_risk": {
+              "score": 0.5,
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "weight": 3.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "weight": 2.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "weight": 2,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "weight": 1.5,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "weight": 0.7,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "weight": 1,
+                  "detected": false,
+                  "evidence": null,
+                  "contribution": 0
+                },
+                {
+                  "signal": "previous_risk",
+                  "weight": 10,
+                  "detected": true,
+                  "evidence": "1.9,1,1,1.6,0.9;decay=0.55;recovery=0",
+                  "contribution": 0.5
+                }
+              ],
+              "threshold": 8,
+              "reason_codes": [
+                "previous_risk"
+              ],
+              "context_summary": null,
+              "previous_scores": [
+                1.9,
+                1,
+                1,
+                1.6,
+                0.9
+              ],
+              "flow_exit_context": null,
+              "should_exit_flows": false
+            },
+            "source_message_id": "4fa7a48c-feb4-4d2b-bad3-35b08e97e70b",
+            "tool_skill_intents": [
+              {
+                "ambiguity": "none",
+                "target_hint": "Pour une vraie préférence de coaching: quand je suis éparpillé, pose-moi une seule question de tri à la fois, pas trois options.",
+                "user_intent": "update",
+                "explicitness": "explicit",
+                "operation_type": "update_coach_preferences",
+                "confidence_band": "high"
+              }
+            ],
+            "confirmation_response": null,
+            "tool_skill_opportunity": {
+              "type": "none",
+              "surface_id": null,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "offer_timing": "never",
+              "should_offer": false,
+              "target_status": "none",
+              "operation_type": null,
+              "confidence_band": "low",
+              "must_not_execute": true,
+              "suggested_question_intent": null
+            }
+          },
+          "route_decision": {
+            "reason_code": "coach_preference_request_overrides_active_flow",
+            "blocked_paths": [
+              {
+                "path": "conversation_flow",
+                "reason_code": "coach_preference_request_overrides_active_flow"
+              },
+              {
+                "path": "product_help",
+                "reason_code": "coach_preference_is_tool_skill"
+              }
+            ],
+            "route_version": "v1",
+            "response_owner": "tool_skill",
+            "memory_use_kind": "none",
+            "selected_handler": "update_coach_preferences",
+            "direct_effects_to_run": [],
+            "memory_used_for_route": false,
+            "active_flow_arbitration": {
+              "decision": "none",
+              "reason_code": "no_active_flow",
+              "active_owner": "none",
+              "resume_policy": "none",
+              "selected_owner": "none"
+            },
+            "memory_item_ids_used_for_route": []
+          },
+          "direct_effects": [
+            {
+              "outcome": "failed",
+              "tool_id": "update_coach_preferences"
+            }
+          ],
+          "skill_run": null,
+          "tool_skill_run": {
+            "status": "fallback_dashboard",
+            "reason_code": "coach_preference_request_overrides_active_flow",
+            "missing_slots": [],
+            "selected_handler": "update_coach_preferences"
+          },
+          "recommendation_tool_run": null,
+          "confirmation_token_outcomes": [],
+          "memory_write_candidates_emitted": 0,
+          "response_owner": "tool_skill",
+          "total_latency_ms": 12178,
+          "created_at": "2026-05-28T12:28:40.692405+00:00"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-28T12:28:40.718Z"
+}

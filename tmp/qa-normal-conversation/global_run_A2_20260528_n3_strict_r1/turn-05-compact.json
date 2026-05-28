@@ -1,0 +1,32 @@
+{
+  "user": "Je vais écrire à Léa, mais j'ai peur de trop expliquer. Donne-moi une phrase d'ouverture simple, puis rappelle-moi à 11h20 de revenir au message administratif.",
+  "assistant": "C'est programmé pour jeudi 28 mai à 11:20 : Revenir au message administratif. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t05",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "explicit_one_shot_reminder_supersedes_tool_flow",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": "executed",
+    "skill_id": null
+  }
+}

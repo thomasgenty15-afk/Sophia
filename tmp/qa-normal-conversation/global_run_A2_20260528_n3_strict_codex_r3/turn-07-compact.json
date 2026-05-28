@@ -1,0 +1,30 @@
+{
+  "user": "Pile de papiers à trier. Et oui, crée-la ensuite si le brouillon garde bien '3 et stop'.",
+  "assistant": "Parfait, on y va. 🧾\n\nTon “3 et stop” doit être affiché pile en face de la pile :\n1) Fais un post-it “3 et stop”\n2) Colle-le sur le bord de la zone où les papiers sont\n3) Règle mentale : tu ne continues pas après le 3e papier\n\nMaintenant, action directe (30 secondes) : tu prends le 1er papier, tu le ranges. Puis le 2e. Puis le 3e. Stop net.\n\nQuand tu me dis “c’est bon”, je te fais la version carte propre à partir de ce brouillon. ✅ Est-ce que le post-it “3 et stop” est déjà collé ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r3-t07",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

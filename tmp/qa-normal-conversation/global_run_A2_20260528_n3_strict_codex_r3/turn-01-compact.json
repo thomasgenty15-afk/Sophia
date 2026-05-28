@@ -1,0 +1,29 @@
+{
+  "user": "J'ai une matinée brouillée: appeler le cabinet, répondre à Samir, et vider les papiers sur la table. Je ne veux pas de carte ni d'outil, juste le premier geste à faire maintenant.",
+  "assistant": "Ok, on fait simple et rapide. 😄\n\nPremier geste maintenant: tu prends ton téléphone et tu appelles le cabinet tout de suite. (Même si tu n’as pas “tout” prêt.)\n\nTu as le numéro sous la main, oui ou non ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r3-t01",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

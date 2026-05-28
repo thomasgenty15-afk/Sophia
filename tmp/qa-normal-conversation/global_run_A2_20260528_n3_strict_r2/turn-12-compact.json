@@ -1,0 +1,30 @@
+{
+  "user": "Où est-ce que je retrouve la carte d'attaque que tu viens de créer ? Juste l'emplacement, pas d'action.",
+  "assistant": "Tu la retrouves dans Ressources > Cartes d’attaque. 📌",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r2-t12",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "active_skill_exit_requested",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "recommendation_tool_run",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

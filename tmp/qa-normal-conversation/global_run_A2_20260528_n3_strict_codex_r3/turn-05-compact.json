@@ -1,0 +1,30 @@
+{
+  "user": "Si je veux vérifier ou annuler ce rappel dans l'app, je vais où ? Ne change rien.",
+  "assistant": "Sans rien modifier :\n- Carte d'attaque : je n'en vois pas en place.\n- Carte de défense : je n'en vois pas en place.\n- Rappels ponctuels : oui, il est programmé à 11:40 (Ranger trois papiers).\n- Préférences coach : oui, challenge équilibré, ton bienveillant ferme. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r3-t05",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "status_only_request_blocks_tool_start",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ],
+    "tool_status": "answered",
+    "skill_id": null
+  }
+}

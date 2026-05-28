@@ -1,0 +1,10 @@
+{
+  "user_id": "dfa44579-317a-4325-8837-0be1adba0fa6",
+  "content": "Merci. Ne lance rien d'autre maintenant, même pas une potion. Fais-moi juste le récap de ce qu'on a fixé pour aujourd'hui, en 5 lignes max.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

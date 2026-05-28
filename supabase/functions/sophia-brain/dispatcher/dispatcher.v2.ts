@@ -73,6 +73,7 @@ function riskMax(a: RiskBand, b: RiskBand): RiskBand {
 }
 
 function looksLikeOneShotReminderRequest(text: string): boolean {
+  if (looksLikeExistingOneShotReminderReferenceOnly(text)) return false;
   const hasReminderVerb =
     /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’]envoyer un rappel\b|\bdis[- ]?moi\b|\bpréviens[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
       .test(text);
@@ -87,6 +88,20 @@ function looksLikeOneShotReminderRequest(text: string): boolean {
   ) return false;
   return /\b\d{1,2}h(?:\d{2})?\b|\bdemain\b|\baujourd['’]hui\b|\bce soir\b|\bapr[eè]s-demain\b|\bdans\s+(?:une?|un|1|\d{1,3})\s*(?:minutes?|min|heures?|h|jours?)\b|\bdans\s+un\s+quart\s+d['’]heure\b|\bdans\s+une\s+demi[- ]?heure\b/
     .test(text);
+}
+
+function looksLikeExistingOneShotReminderReferenceOnly(text: string): boolean {
+  if (!/\brappel\b/.test(text)) return false;
+  const referencesExisting =
+    /\b(je parle|il s agit|c est|celui|celle|ce rappel|le rappel)\b[\s\S]{0,120}\b(viens de|deja|déjà|programme|programmé|programmee|programmer|cree|créé|crée)\b/
+      .test(text) ||
+    /\b(rappel ponctuel|ce rappel|le rappel)\b[\s\S]{0,120}\b(que tu viens|que tu as|deja|déjà)\b/
+      .test(text);
+  const managementQuestion =
+    /\b(si|comment|ou|où|retrouve|retrouver|verifie|vérifie|verifier|vérifier|deplace|déplace|deplacer|déplacer|supprime|supprimer|annule|annuler|change|changer|modifie|modifier)\b/
+      .test(text) &&
+    /\b(rappel ponctuel|ce rappel|le rappel|rappel de demain)\b/.test(text);
+  return referencesExisting || managementQuestion;
 }
 
 function estimateTokens(text: string): number {
@@ -527,6 +542,10 @@ function detectsProductHelpQuestion(text: string, recentText = ""): boolean {
   if (
     isExplicitAttackCardOperationRequest(text, recentText) ||
     isExplicitDefenseCardCreationRequest(text)
+  ) return false;
+  if (
+    /\b(sans parler des rappels|pas parler des rappels|sujet different|sujet différent|pas du rappel|plus du rappel)\b/
+      .test(text)
   ) return false;
   if (
     /\b(laisse tomber|oublie|stop|pas grave)\b.{0,50}\b(interface|dashboard|produit|app|rappel|plan)\b/
@@ -1961,7 +1980,7 @@ function detectsStabilizedConcreteRequest(text: string): boolean {
 
 function detectsCoachPreferenceUpdate(text: string): boolean {
   const toneRequest =
-    /\bplus direct\b|\bplus doux\b|\bplus cash\b|\bplus frontal\b|\bmoins de questions\b|\bune seule question\b|\bquestions? courtes?\b|\blistes? longues?\b|\bchallenge[- ]?moi\b|\bchallenger\b|\bplus challengeant\b|\bplus exigeant\b/
+    /\bplus direct\b|\bplus doux\b|\bplus cash\b|\bplus frontal\b|\bmoins de questions\b|\bune seule question\b|\bpas de question finale\b|\bsans question finale\b|\bquestions? courtes?\b|\blistes? longues?\b|\b3 lignes max\b|\btrois lignes max\b|\bsans emoji\b|\bpas d emoji\b|\bpas d emojis\b|\bsource\/cible\b|\bsource cible\b|\bchallenge[- ]?moi\b|\bchallenger\b|\bplus challengeant\b|\bplus exigeant\b/
       .test(
         text,
       );

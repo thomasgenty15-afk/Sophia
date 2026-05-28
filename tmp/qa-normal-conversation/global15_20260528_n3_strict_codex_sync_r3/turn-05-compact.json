@@ -1,0 +1,29 @@
+{
+  "user": "Le texte magique. Il doit me couper la négociation du style 'je le ferai plus tard'. Garde la cible sur la pile de papiers, pas tout le bureau.",
+  "assistant": "J'ai préparé ton brouillon pour la pile de papiers.\n*Le texte magique*\nJe ne négocie pas avec cette pile. Je traite un seul papier maintenant, sans réfléchir à la suite.\nLis ce texte dès que la résistance monte, puis traite immédiatement le premier papier.\nOn valide ? 🙂",
+  "compact": {
+    "http_status": null,
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global15_20260528_n3_strict_codex_sync_r3-t05",
+    "logged_message_id": null,
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "active_tool_skill_continue",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ]
+  }
+}

@@ -59,6 +59,30 @@ Deno.test("update_coach_preferences preserves one concrete action preference wor
   );
 });
 
+Deno.test("update_coach_preferences accepts compatible multi-key style patch", () => {
+  const draft = runCoachPreferencesPatchBuilder({
+    operation_type: "update_coach_preferences",
+    output_schema: "coach_preferences_patch_draft_v1",
+    current_preferences: {},
+    requested_patch: {
+      "coach.tone": "warm_direct",
+      "coach.question_tendency": "low",
+    },
+    reason: {
+      evidence: [
+        "Quand je suis confus: phrases courtes, ton ferme et doux, une seule consigne, et évite les questions de relance systématiques.",
+      ],
+    },
+    constraints: [],
+    forbidden: [],
+  });
+
+  assertEquals(draft.draft.patch["coach.tone"], "warm_direct");
+  assertEquals(draft.draft.patch["coach.question_tendency"], "low");
+  assertEquals(draft.draft.summary.includes("bienveillant et ferme"), true);
+  assertEquals(draft.draft.summary.includes("moins de questions"), true);
+});
+
 Deno.test("update_coach_preferences resolves one action not three options deterministically", async () => {
   const output = await runUpdateCoachPreferencesIntake({
     user_id: "u1",
@@ -78,6 +102,112 @@ Deno.test("update_coach_preferences resolves one action not three options determ
     output.confirmation?.message.includes("une seule action concrète"),
     true,
   );
+});
+
+Deno.test("update_coach_preferences resolves tone plus fewer questions deterministically", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Commence par enregistrer cette préférence pour quand je dis que je suis confus: phrases courtes, ton ferme et doux, une seule consigne, et évite les questions de relance systématiques.",
+    trigger_message_id: "m-tone-and-question-preference",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.tone"], "warm_direct");
+  assertEquals(output.draft?.draft.patch["coach.question_tendency"], "low");
+});
+
+Deno.test("update_coach_preferences resolves one triage question preference deterministically", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Pour une vraie préférence de coaching: quand je suis éparpillé, pose-moi une seule question de tri à la fois, pas trois options.",
+    trigger_message_id: "m-one-triage-question-preference",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    output.confirmation?.message.includes("une seule question de tri"),
+    true,
+  );
+  assertEquals(output.confirmation?.message.includes("éparpillé"), true);
+});
+
+Deno.test("update_coach_preferences maps concise no-final-question preference", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Préférence durable: réponds en 3 lignes max, sans question finale.",
+    trigger_message_id: "m-concise-preference",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.question_tendency"], "low");
+  assertEquals(output.draft?.draft.patch["coach.response_max_lines"], "three");
+  assertEquals(
+    output.draft?.draft.patch["coach.final_question_policy"],
+    "avoid_unnecessary",
+  );
+});
+
+Deno.test("update_coach_preferences maps zero emoji preference durably", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Si je dis court, zéro emoji, trois lignes max, pas de question finale inutile.",
+    trigger_message_id: "m-zero-emoji-preference",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.emoji_policy"], "none");
+  assertEquals(output.draft?.draft.patch["coach.response_max_lines"], "three");
+  assertEquals(
+    output.draft?.draft.patch["coach.final_question_policy"],
+    "avoid_unnecessary",
+  );
+});
+
+Deno.test("update_coach_preferences preserves eparpille scope in summary", () => {
+  const draft = runCoachPreferencesPatchBuilder({
+    operation_type: "update_coach_preferences",
+    output_schema: "coach_preferences_patch_draft_v1",
+    current_preferences: {},
+    requested_patch: { "coach.question_tendency": "low" },
+    reason: {
+      evidence: [
+        "Quand je suis éparpillé, pose-moi une seule question de tri à la fois, pas trois options.",
+      ],
+    },
+    constraints: [],
+    forbidden: [],
+  });
+
+  assertEquals(draft.draft.summary.includes("une seule question de tri"), true);
+  assertEquals(draft.draft.summary.includes("éparpillé"), true);
 });
 
 Deno.test("update_coach_preferences pipeline covers 5 scenarios and strict allowed keys", async () => {

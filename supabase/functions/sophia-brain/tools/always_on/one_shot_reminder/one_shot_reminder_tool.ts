@@ -221,6 +221,28 @@ function isMemoryRecallReminderPhrase(message: string): boolean {
     .test(clause);
 }
 
+export function isExistingOneShotReminderReferenceOnly(
+  message: string,
+): boolean {
+  const text = compactText(message, 500)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ")
+    .toLowerCase();
+  if (!/\brappel\b/.test(text)) return false;
+  const referencesExisting =
+    /\b(je parle|il s agit|c est|celui|celle|ce rappel|le rappel)\b[\s\S]{0,120}\b(viens de|deja|déjà|programme|programmé|programmee|programmer|cree|créé|crée)\b/
+      .test(text) ||
+    /\b(rappel ponctuel|ce rappel|le rappel)\b[\s\S]{0,120}\b(que tu viens|que tu as|deja|déjà)\b/
+      .test(text);
+  const managementQuestion =
+    /\b(si|comment|ou|où|retrouve|retrouver|verifie|vérifie|verifier|vérifier|deplace|déplace|deplacer|déplacer|supprime|supprimer|annule|annuler|change|changer|modifie|modifier)\b/
+      .test(text) &&
+    /\b(rappel ponctuel|ce rappel|le rappel|rappel de demain)\b/.test(text);
+  if (referencesExisting || managementQuestion) return true;
+  return false;
+}
+
 function isRecurringReminderRequest(message: string): boolean {
   const text = String(message ?? "").toLowerCase();
   if (!/\brappel|rappelle|remind\b/.test(text)) return false;
@@ -249,6 +271,7 @@ function hasResolvableOneShotTimeHint(message: string): boolean {
 export function isLikelyOneShotReminderRequest(message: string): boolean {
   const text = compactText(message, 500);
   if (!text) return false;
+  if (isExistingOneShotReminderReferenceOnly(text)) return false;
   if (isMemoryRecallReminderPhrase(text)) return false;
   if (
     /\b(sans modifier|ne modifie rien|ne change rien|dernier check|bien en place)\b/i
@@ -631,7 +654,10 @@ function cleanReminderInstructionTarget(value: string): string {
       .replace(/^me\s+bouge\b/i, "me bouger")
       .replace(/\s*,?\s+mais\s+si\b[\s\S]*$/i, "")
       .replace(/\s*,?\s+mais\b[\s\S]*$/i, "")
-      .replace(/\s*,?\s+et\s+(?:retiens|garde|enregistre)\s+(?:aussi\s+)?(?:en\s+t[eê]te\s+)?que\b[\s\S]*$/i, "")
+      .replace(
+        /\s*,?\s+et\s+(?:retiens|garde|enregistre)\s+(?:aussi\s+)?(?:en\s+t[eê]te\s+)?que\b[\s\S]*$/i,
+        "",
+      )
       .replace(/\b(?:stp|s['’]il te plaît|s'il te plait|please)\b/gi, " ")
       .replace(/\s*(?:[?!.]+|[:;]-?[)(DPp/]+)+\s*$/g, "")
       .replace(/\s*(?:<3|xd|xD|XD)+\s*$/g, "")
@@ -870,6 +896,7 @@ export async function maybeCreateOneShotReminder(params: {
   userId: string;
   message: string;
   requestId?: string;
+  now?: Date;
 }): Promise<OneShotReminderToolOutcome> {
   if (!isLikelyOneShotReminderRequest(params.message)) {
     return { detected: false };
@@ -878,6 +905,7 @@ export async function maybeCreateOneShotReminder(params: {
   const tctx = await getUserTimeContext({
     supabase: params.supabase,
     userId: params.userId,
+    now: params.now,
   });
   const strictParts = extractStrictAbsoluteParts(params.message);
   const strictScheduledFor = strictParts

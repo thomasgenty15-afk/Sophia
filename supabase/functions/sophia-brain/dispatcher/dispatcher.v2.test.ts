@@ -732,7 +732,9 @@ Deno.test("dispatcher suppresses tool skill intents when acute emotional repair 
 
 Deno.test("dispatcher removes execution overlap when acute emotional repair dominates", async () => {
   const frame = await runDispatcher({
-    ...baseInput("Je me déteste quand je craque, prépare une carte pour ne pas replonger ce soir."),
+    ...baseInput(
+      "Je me déteste quand je craque, prépare une carte pour ne pas replonger ce soir.",
+    ),
     llm_runner: async () => ({
       skill_signals: {
         entry: {
@@ -777,7 +779,9 @@ Deno.test("dispatcher removes execution overlap when acute emotional repair domi
 
 Deno.test("dispatcher respects explicit negation of state potion", async () => {
   const frame = await runDispatcher({
-    ...baseInput("Ne lance pas de potion, aide-moi juste à comprendre par où commencer."),
+    ...baseInput(
+      "Ne lance pas de potion, aide-moi juste à comprendre par où commencer.",
+    ),
     llm_runner: async () => ({
       skill_signals: {
         entry: {
@@ -1213,6 +1217,53 @@ Deno.test("dispatcher emits one-shot direct effect for dis-moi tomorrow reminder
     "create_one_shot_reminder",
   );
   assertEquals(frame.direct_effects[0]?.target_status, "identified");
+});
+
+Deno.test("dispatcher does not emit one-shot direct effect for existing reminder clarification", async () => {
+  const frame = await runDispatcher(
+    baseInput(
+      "Je parle du rappel ponctuel que tu viens de programmer pour demain à 9h10.",
+    ),
+  );
+
+  assertEquals(frame.direct_effects.length, 0);
+});
+
+Deno.test("dispatcher exits stale product_help when user changes reminder topic", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Sujet différent: donne-moi une phrase maintenant, sans parler des rappels.",
+    ),
+    recent_messages: [
+      {
+        role: "assistant" as const,
+        content:
+          "Le rappel ponctuel se gère côté Initiatives. Tu peux aussi me le redire ici clairement.",
+      },
+    ],
+  });
+
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
+});
+
+Deno.test("dispatcher treats concise durable style request as coach preference", async () => {
+  const frame = await runDispatcher(
+    baseInput(
+      "Préférence durable: réponds en 3 lignes max, sans question finale.",
+    ),
+  );
+
+  assertEquals(
+    frame.tool_skill_intents[0]?.operation_type,
+    "update_coach_preferences",
+  );
+  assertEquals(
+    frame.skill_signals.entry?.product_help?.detected ?? false,
+    false,
+  );
 });
 
 Deno.test("dispatcher keeps recurring reminder out of one-shot direct effects", async () => {

@@ -1088,13 +1088,12 @@ Si une classification de type de plan est fournie :
 ## Durée
 
 L'IA décide la durée du plan basée sur les 4 champs de calibrage + le gap implicite dans le free text :
-- \`duration_months\` est un **output** (1 à 12), PAS un input utilisateur
-- Durée max par plan : **12 mois**
+- \`duration_months\` est un **output** (1 à 4), PAS un input utilisateur
+- Durée max par transformation demandée : **4 mois**
 - Vise la durée la plus courte crédible. Pour un sujet ciblé et actionnable, 1 à 2 mois est la norme.
 - 3 à 4 mois correspondent déjà à un travail conséquent.
-- 5 à 8 mois correspondent à des transformations lourdes ou de réentrainement profond.
-- 9 à 12 mois sont réservés aux cas les plus exigeants, sans dépasser un an.
-- Ne découpe jamais une transformation en plusieurs parties.
+- Si la transformation semble demander plus de 4 mois, concentre ce plan sur la transformation courante et laisse la logique de parcours multi-transformations gérer la suite.
+- Ne transforme pas une seule génération en plan fleuve: la scission éventuelle en plusieurs transformations est gérée hors du JSON du plan courant.
 - \`journey_context\` doit toujours être \`null\`
 
 ## Qualité du premier niveau de plan généré
@@ -1255,7 +1254,7 @@ Le bloc strategy doit contenir :
 - Les clarifications sont optionnelles et doivent rester parcimonieuses
 - Au moins **1 item actif** dès le début de chaque phase
 - Chaque phase a exactement **1 Heartbeat** avec title, unit, target, tracking_mode
-- \`duration_months\` est un output IA (1 à 12)
+- \`duration_months\` est un output IA (1 à 4)
 
 ## Progression hebdomadaire du niveau courant
 

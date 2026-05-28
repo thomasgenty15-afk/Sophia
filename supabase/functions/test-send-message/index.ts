@@ -18,6 +18,8 @@ type TestSendMessageBody = {
   disable_debounce?: boolean;
   debounce_wait_ms?: number;
   force_full_ai?: boolean;
+  client_now_iso?: string;
+  clientNowIso?: string;
   enable_adjust_plan_coach_guidance?: boolean;
 };
 
@@ -308,6 +310,11 @@ Deno.serve({ port: Number(Deno.env.get("PORT") ?? "8000") }, async (req) => {
         scope,
         forceBrainTrace: true,
         forceRealAi: forceFullAi,
+        clientNowIso: typeof body.client_now_iso === "string"
+          ? body.client_now_iso
+          : typeof body.clientNowIso === "string"
+          ? body.clientNowIso
+          : null,
         enableAdjustPlanCoachGuidance:
           body.enable_adjust_plan_coach_guidance === true,
       },
@@ -337,6 +344,7 @@ Deno.serve({ port: Number(Deno.env.get("PORT") ?? "8000") }, async (req) => {
     const responseRecord = response as Record<string, unknown>;
     const aborted = Boolean(responseRecord.aborted);
     const contentText = String(responseRecord.content ?? "").trim();
+    const inlineTrace = responseRecord.conversation_turn_trace ?? null;
     return jsonResponse(req, {
       ok: !aborted && contentText.length > 0,
       request_id: requestId,
@@ -349,8 +357,8 @@ Deno.serve({ port: Number(Deno.env.get("PORT") ?? "8000") }, async (req) => {
       logged_message_id: responseRecord.logged_message_id ?? null,
       latest_message_id: responseRecord.latest_message_id ?? null,
       response,
-      conversation_turn_trace: traceResult.trace,
-      trace_error: traceResult.error,
+      conversation_turn_trace: inlineTrace ?? traceResult.trace,
+      trace_error: inlineTrace ? null : traceResult.error,
     }, {
       status: aborted || contentText.length === 0 ? 409 : 200,
     });

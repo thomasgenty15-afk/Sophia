@@ -1,0 +1,10 @@
+{
+  "user_id": "dfa44579-317a-4325-8837-0be1adba0fa6",
+  "content": "Les papiers, clairement. Et je sais que vers 15h je vais esquiver. Tu peux me préparer une carte d'attaque pour le moment où je bloque devant la pile de papiers ? Je veux un truc court, presque un mode d'emploi.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

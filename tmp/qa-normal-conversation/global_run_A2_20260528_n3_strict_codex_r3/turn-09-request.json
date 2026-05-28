@@ -1,0 +1,10 @@
+{
+  "user_id": "0923cf65-6b71-44e2-8d2f-7d3d85a8668e",
+  "content": "Ok, laisse tomber la carte. Résume ce que tu dois retenir de mon piège de ce matin, sans inventer plus large.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

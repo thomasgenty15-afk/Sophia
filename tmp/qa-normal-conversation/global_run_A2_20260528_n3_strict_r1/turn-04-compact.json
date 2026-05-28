@@ -1,0 +1,29 @@
+{
+  "user": "Ok, oublie la carte. J'ai finalement vérifié le montant et payé la facture. Maintenant j'ai deux messages à traiter: un urgent à Léa et un administratif. Aide-moi à choisir l'ordre.",
+  "assistant": "Bravo pour la facture, c'est une grosse épine en moins. 👏\n\nPour la suite, fais l'urgent pour Léa tout de suite. Ça va te libérer l'esprit de la pression sociale, et l'administratif sera beaucoup plus facile à gérer une fois que tu n'auras plus ce \"poids\" qui traîne.\n\nLéa d'abord, on liquide l'urgence. 🚀",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_r1-t04",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "immediate_mode_request_not_execution_breakdown",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}

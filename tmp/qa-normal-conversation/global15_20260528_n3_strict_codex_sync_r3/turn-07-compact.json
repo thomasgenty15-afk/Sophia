@@ -1,0 +1,31 @@
+{
+  "user": "Parfait. Mets-moi aussi un rappel ponctuel à 14h55 aujourd'hui: 'relire la carte pile de papiers puis traiter un seul papier'.",
+  "assistant": "C'est programmé pour jeudi 28 mai à 14:55 : Relire la carte pile de papiers puis traiter un seul papier. 🙂",
+  "compact": {
+    "http_status": null,
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global15_20260528_n3_strict_codex_sync_r3-t07",
+    "logged_message_id": null,
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "normal_reply_default",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "tool_skill_run",
+      "response_owner"
+    ]
+  }
+}

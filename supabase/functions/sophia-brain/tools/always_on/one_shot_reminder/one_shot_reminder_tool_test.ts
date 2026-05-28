@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   buildOneShotReminderAddon,
+  isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
   parseOneShotReminderRequest,
   runCreateOneShotReminderV2,
@@ -73,6 +74,19 @@ Deno.test("parseOneShotReminderRequest parses quarter-hour reminder", () => {
   assertEquals(parsed.reminderInstruction, "faire mes pompes");
   assertEquals(parsed.eventContext, "one_shot_reminder:faire_mes_pompes");
   assertEquals(parsed.scheduledFor, "2026-03-18T14:15:00.000Z");
+});
+
+Deno.test("one-shot detection ignores references to an existing reminder", () => {
+  const message =
+    "Je parle du rappel ponctuel que tu viens de programmer pour demain à 9h10.";
+  assertEquals(isExistingOneShotReminderReferenceOnly(message), true);
+  assertEquals(isLikelyOneShotReminderRequest(message), false);
+  assertEquals(
+    isLikelyOneShotReminderRequest(
+      "Programme-moi clairement ce rappel aujourd'hui à 11h20 : envoyer le mini récap.",
+    ),
+    true,
+  );
 });
 
 Deno.test("parseOneShotReminderRequest parses tomorrow local hour", () => {
@@ -180,12 +194,35 @@ Deno.test("parseOneShotReminderRequest strips side coach preference from reminde
   });
 
   assertExists(parsed);
-  assertEquals(parsed.reminderInstruction, "envoyer les trois premieres lignes");
+  assertEquals(
+    parsed.reminderInstruction,
+    "envoyer les trois premieres lignes",
+  );
   assertEquals(
     parsed.eventContext,
     "one_shot_reminder:envoyer_les_trois_premieres_lignes",
   );
   assertEquals(parsed.scheduledFor, "2026-05-07T07:00:00.000Z");
+});
+
+Deno.test("parseOneShotReminderRequest parses today HHhMM with client now", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme-moi un rappel aujourd'hui a 14h20: verifier si Lea a repondu, sans rouvrir tout le dossier.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "verifier si Lea a repondu, sans rouvrir tout le dossier",
+  );
+  assertEquals(
+    parsed.eventContext,
+    "one_shot_reminder:verifier_si_lea_a_repondu_sans_rouvrir_tout_le_dossier",
+  );
+  assertEquals(parsed.scheduledFor, "2026-05-28T12:20:00.000Z");
 });
 
 Deno.test("parseOneShotReminderRequest ignores recurring reminder requests", () => {
@@ -262,7 +299,10 @@ Deno.test("one-shot reminder addon forbids timezone confirmation after success",
     reminder_instruction: "relire le brouillon",
     parse_source: "strict_absolute",
   } as any);
-  assertEquals(addon.includes("Ne demande pas au user de confirmer le fuseau"), true);
+  assertEquals(
+    addon.includes("Ne demande pas au user de confirmer le fuseau"),
+    true,
+  );
 });
 
 Deno.test("isLikelyOneShotReminderRequest ignores memory recall phrasing", () => {

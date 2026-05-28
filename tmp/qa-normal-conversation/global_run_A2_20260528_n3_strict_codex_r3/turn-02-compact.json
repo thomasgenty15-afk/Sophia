@@ -1,0 +1,29 @@
+{
+  "user": "Oui j'ai le numéro, mais je relis la page du cabinet au lieu d'appeler. Pas de carte: donne-moi juste le geste suivant.",
+  "assistant": "Ok. Le geste suivant: tu ouvres le téléphone et tu lances l’appel au cabinet maintenant, même si tu n’as pas tout sous les yeux. 📞\n\nTu veux appeler tout de suite, ou tu as 1 seul truc à finir avant ?",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r3-t02",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "attack_card_cancelled_to_conversation",
+    "safety": null,
+    "direct_effects": null,
+    "operation": null,
+    "pending_confirmation": null,
+    "memory_plan": null,
+    "executed_tools": [],
+    "durable_effect": null,
+    "raw_trace_keys": [
+      "turn_frame",
+      "route_decision",
+      "response_owner"
+    ],
+    "tool_status": null,
+    "skill_id": null
+  }
+}
