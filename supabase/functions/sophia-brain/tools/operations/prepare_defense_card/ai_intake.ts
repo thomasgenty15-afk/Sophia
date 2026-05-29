@@ -7,6 +7,13 @@ import {
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
 import type { DefenseCardGeneratorInput } from "../_shared/operation_payload_builder.ts";
+import {
+  type CardTechnicalBlockReason,
+  normalizePrepareDefenseCardConstraints,
+  normalizePrepareDefenseCardUserIntent,
+  type PrepareDefenseCardConstraint,
+  type PrepareDefenseCardUserIntent,
+} from "./contract.ts";
 import { type DefenseCardDraftV1 } from "./generator.ts";
 import {
   type DefenseCardSlotFiller,
@@ -25,7 +32,7 @@ export type PrepareDefenseCardOperationOutput = {
     | "pending_confirmation"
     | "draft_review_decision"
     | "cancelled"
-    | "fallback_dashboard"
+    | "technical_blocked"
     | "invalid_recommendation_payload"
     | "blocked_by_safety";
   source: "direct_user_request" | "recommendation_tool";
@@ -59,6 +66,16 @@ export type PrepareDefenseCardOperationOutput = {
     known_slots?: Record<string, unknown>;
   };
   pending_confirmation?: Record<string, unknown>;
+  reason_code?: CardTechnicalBlockReason;
+  technical_source?: "ai_unavailable" | "technical_fallback";
+  requested_effects?: [];
+  allowed_effects?: [];
+  committed_effects?: [];
+  blocked_effects?: Array<
+    { type: "prepare_defense_card"; reason_code: string }
+  >;
+  should_preserve_pending?: boolean;
+  retryable?: boolean;
   ack?: string;
   readiness: {
     ready_to_generate: boolean;
@@ -70,6 +87,8 @@ export type PrepareDefenseCardOperationOutput = {
   state_patch: {
     summary: string;
     phase: string;
+    user_intent: PrepareDefenseCardUserIntent;
+    constraints: PrepareDefenseCardConstraint[];
     missing_slots: string[];
     turn_count_increment: 1;
     operation_input?: Record<string, unknown> | null;
@@ -146,6 +165,7 @@ function defaultState(): DefenseCardIntakeState {
   return {
     skill_id: "prepare_defense_card",
     current_step: "attachment_intake",
+    user_intent: "unknown",
     tool_fit: {
       status: "defense",
       reason: null,
@@ -250,6 +270,7 @@ function mergeState(
   if (!root) return base;
   const next: DefenseCardIntakeState = {
     ...base,
+    user_intent: base.user_intent,
     tool_fit: { ...base.tool_fit },
     attachment: { ...base.attachment } as any,
     risk_situation: { ...base.risk_situation },
@@ -311,8 +332,11 @@ function mergeState(
   if (objectValue(root.defense_response_hint)) {
     next.defense_response_hint = root.defense_response_hint as any;
   }
+  if (root.user_intent !== undefined) {
+    next.user_intent = normalizePrepareDefenseCardUserIntent(root.user_intent);
+  }
   if (Array.isArray(root.constraints)) {
-    next.constraints = stringArray(root.constraints);
+    next.constraints = normalizePrepareDefenseCardConstraints(root.constraints);
   }
   if (Array.isArray(root.missing_slots)) {
     next.missing_slots = stringArray(root.missing_slots);
@@ -397,6 +421,8 @@ function operationInputFromState(
   return {
     ...(operationInput ?? {}),
     intake_state: state,
+    user_intent: state.user_intent,
+    constraints: state.constraints,
     ...(state.attachment.status === "identified"
       ? {
         attachment: {
@@ -447,17 +473,45 @@ function toolSkillState(args: {
 function technicalFailure(
   reason: string,
   source: "direct_user_request" | "recommendation_tool",
+  context?: {
+    state?: DefenseCardIntakeState;
+    operation_input?: Record<string, unknown> | null;
+  },
 ): PrepareDefenseCardOperationOutput {
+  const reasonCode: CardTechnicalBlockReason =
+    reason === "ai_slot_filler_unavailable"
+      ? "ai_unavailable"
+      : reason === "ai_slot_filler_error"
+      ? "structured_intake_failed"
+      : reason === "ai_draft_generator_error"
+      ? "draft_generation_failed"
+      : reason === "missing_structured_intake_runner"
+      ? "missing_structured_intake_runner"
+      : "invalid_ai_output";
   return {
     operation_type: "prepare_defense_card",
-    status: "fallback_dashboard",
+    status: "technical_blocked",
     source,
     phase: "exit",
     ack:
-      "Je n'ai pas réussi à préparer cette carte techniquement. Je préfère m'arrêter plutôt que deviner à ta place.",
+      "Je n'arrive pas à préparer cette carte proprement là. On peut reprendre dans un instant.",
+    reason_code: reasonCode,
+    technical_source: reasonCode === "ai_unavailable"
+      ? "ai_unavailable"
+      : "technical_fallback",
+    requested_effects: [],
+    allowed_effects: [],
+    committed_effects: [],
+    blocked_effects: [{
+      type: "prepare_defense_card",
+      reason_code: reasonCode,
+    }],
+    pending_confirmation: undefined,
+    should_preserve_pending: true,
+    retryable: true,
     readiness: {
       ready_to_generate: false,
-      fallback_to_dashboard: true,
+      fallback_to_dashboard: false,
       invalid_recommendation_payload: false,
       missing_required_slots: [],
       reason,
@@ -465,8 +519,18 @@ function technicalFailure(
     state_patch: {
       summary: `Defense card AI flow stopped: ${reason}.`,
       phase: "exit",
+      user_intent: "unknown",
+      constraints: [],
       missing_slots: [],
       turn_count_increment: 1,
+      operation_input: context?.operation_input ?? undefined,
+      intake_state: context?.state ?? undefined,
+      tool_skill_state: toolSkillState({
+        status: "technical_blocked",
+        state: context?.state ?? defaultState(),
+        missing: [],
+        summary: `Defense card AI flow stopped: ${reason}.`,
+      }),
     },
   };
 }
@@ -736,6 +800,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
       state_patch: {
         summary: "Safety blocks defense card operation.",
         phase: "exit",
+        user_intent: "unknown",
+        constraints: [],
         missing_slots: [],
         turn_count_increment: 1,
       },
@@ -768,6 +834,10 @@ export async function runPrepareDefenseCardAiIntake(input: {
     : undefined;
   let state = mergeState(initialState, {
     ...filled.state_patch,
+    user_intent: filled.user_intent,
+    constraints: filled.constraints.length > 0
+      ? filled.constraints
+      : filled.state_patch.constraints,
     current_step: filled.current_step,
     missing_slots: filled.missing_slots,
     confidence: filled.confidence,
@@ -802,6 +872,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
         summary:
           "Defense card draft validation sub-skill classified the user response.",
         phase: "confirmation",
+        user_intent: state.user_intent,
+        constraints: state.constraints,
         missing_slots: [],
         turn_count_increment: 1,
         operation_input: operationInput,
@@ -819,7 +891,10 @@ export async function runPrepareDefenseCardAiIntake(input: {
   }
   if (missing.length > 0) {
     if (!state.generated_user_message) {
-      return technicalFailure("ai_slot_question_missing", source);
+      return technicalFailure("ai_slot_question_missing", source, {
+        state,
+        operation_input: operationInput,
+      });
     }
     if (source === "recommendation_tool" && missing.includes("attachment")) {
       return {
@@ -838,6 +913,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
           summary:
             "Recommendation payload missing structured defense card slots.",
           phase: "exit",
+          user_intent: state.user_intent,
+          constraints: state.constraints,
           missing_slots: missing,
           turn_count_increment: 1,
           operation_input: operationInput,
@@ -898,6 +975,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
       state_patch: {
         summary: "Defense card structured AI intake needs user clarification.",
         phase: state.current_step,
+        user_intent: state.user_intent,
+        constraints: state.constraints,
         missing_slots: missing,
         turn_count_increment: 1,
         operation_input: operationInput,
@@ -921,6 +1000,7 @@ export async function runPrepareDefenseCardAiIntake(input: {
     return technicalFailure(
       "structured_ai_contract_incomplete_after_gate",
       source,
+      { state, operation_input: operationInput },
     );
   }
   let draft: DefenseCardDraftV1;
@@ -937,7 +1017,10 @@ export async function runPrepareDefenseCardAiIntake(input: {
     });
     draft = withPlatformDefenseCardConfirmation(draft);
   } catch {
-    return technicalFailure("ai_draft_generator_error", source);
+    return technicalFailure("ai_draft_generator_error", source, {
+      state,
+      operation_input: operationInput,
+    });
   }
   const operationId = crypto.randomUUID();
   return {
@@ -988,6 +1071,8 @@ export async function runPrepareDefenseCardAiIntake(input: {
     state_patch: {
       summary: "Defense card draft generated by structured AI flow.",
       phase: "confirmation",
+      user_intent: state.user_intent,
+      constraints: state.constraints,
       missing_slots: [],
       turn_count_increment: 1,
       operation_input: operationInput,

@@ -32,22 +32,6 @@ const VALUE_ALIASES: Record<CoachPreferenceKey, Record<string, string>> = {
     equilibre: "normal",
     tres_questionnant: "high",
   },
-  "coach.response_max_lines": {
-    trois_lignes: "three",
-    three_lines: "three",
-  },
-  "coach.emoji_policy": {
-    zero_emoji: "none",
-    sans_emoji: "none",
-  },
-  "coach.final_question_policy": {
-    eviter_question_finale: "avoid_unnecessary",
-    pas_question_finale: "avoid_unnecessary",
-  },
-  "coach.action_first_policy": {
-    action_d_abord: "concrete_before_questions",
-    geste_concret_avant_questions: "concrete_before_questions",
-  },
 };
 
 export function normalizeCoachPreferenceValue(
@@ -75,22 +59,6 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
       ? "un niveau de challenge plus élevé"
       : "un niveau de challenge équilibré";
   }
-  if (key === "coach.response_max_lines") {
-    return value === "three" ? "trois lignes maximum" : "un format normal";
-  }
-  if (key === "coach.emoji_policy") {
-    return value === "none" ? "zéro emoji" : "les emojis autorisés";
-  }
-  if (key === "coach.final_question_policy") {
-    return value === "avoid_unnecessary"
-      ? "pas de question finale inutile"
-      : "les questions finales autorisées";
-  }
-  if (key === "coach.action_first_policy") {
-    return value === "concrete_before_questions"
-      ? "action concrète avant questions"
-      : "ordre normal";
-  }
   return value === "low"
     ? "moins de questions"
     : value === "high"
@@ -98,84 +66,11 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
     : "un niveau de questions équilibré";
 }
 
-function normalizePreferenceEvidenceText(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-}
-
-function isModeTunnelEvidence(evidenceText: string): boolean {
-  return /\bmode tunnel\b/.test(normalizePreferenceEvidenceText(evidenceText));
-}
-
-function isChallengeTechniqueEvidence(evidenceText: string): boolean {
-  const evidence = normalizePreferenceEvidenceText(evidenceText);
-  return (
-    /\b(challenger doucement|challenge doucement)\b/.test(evidence) &&
-    /\b(technique|colle|adapte|inadapte)\b/.test(evidence)
-  );
-}
-
 function summaryForPatch(
   key: CoachPreferenceKey,
   value: string,
-  evidenceText = "",
 ): string {
-  const evidence = normalizePreferenceEvidenceText(evidenceText);
-  if (isModeTunnelEvidence(evidenceText)) {
-    if (key === "coach.tone" && value === "direct") {
-      return "quand tu dis « mode tunnel », je te donnerai une seule action impérative, sur un ton direct sans sympathie.";
-    }
-    if (key === "coach.emoji_policy" && value === "none") {
-      return "quand tu dis « mode tunnel », je n'utiliserai pas d'emoji.";
-    }
-    if (
-      key === "coach.final_question_policy" &&
-      value === "avoid_unnecessary"
-    ) {
-      return "quand tu dis « mode tunnel », je ne finirai pas par une question.";
-    }
-    if (key === "coach.question_tendency" && value === "low") {
-      return "quand tu dis « mode tunnel », je resterai sur une seule action à la fois.";
-    }
-  }
-  if (
-    key === "coach.action_first_policy" &&
-    value === "concrete_before_questions"
-  ) {
-    if (/\b(moins de 10 minutes|10 minutes|moins de dix minutes)\b/.test(evidence)) {
-      return "je commencerai par un geste concret de moins de 10 minutes avant de poser plusieurs questions.";
-    }
-    return "je commencerai par une action concrète avant les questions, sauf si une clarification est vraiment nécessaire.";
-  }
   if (key === "coach.question_tendency" && value === "low") {
-    if (
-      /\b(eparpille|eparpillee|disperse|dispersee|brouille|brouillee|confus|confuse)\b/
-        .test(evidence) &&
-      (
-        /\bune seule question\b/.test(evidence) ||
-        /\bquestion de tri\b/.test(evidence) ||
-        /\bpas trois options\b/.test(evidence) ||
-        /\bpas 3 options\b/.test(evidence)
-      )
-    ) {
-      return "je te poserai une seule question de tri à la fois, et je te proposerai une seule action concrète à la fois, quand tu es éparpillé ou brouillé.";
-    }
-    if (
-      /\bune action\b/.test(evidence) ||
-      /\baction concrete\b/.test(evidence) ||
-      /\bpas trois options\b/.test(evidence) ||
-      /\bpas 3 options\b/.test(evidence)
-    ) {
-      return "je te proposerai une seule action concrète à la fois, avec moins de questions/options quand tu es vidé ou bloqué.";
-    }
-    if (
-      /\b(geste concret|10 minutes|question maximum)\b/.test(evidence) &&
-      /\b(plus direct|privilegiant les actions)\b/.test(evidence)
-    ) {
-      return "je commencerai par un geste concret de moins de 10 minutes, puis une question maximum si elle aide vraiment.";
-    }
     return "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.";
   }
   if (key === "coach.question_tendency" && value === "high") {
@@ -191,9 +86,6 @@ function summaryForPatch(
     return "je prendrai un ton plus doux quand je te réponds.";
   }
   if (key === "coach.challenge_level" && value === "balanced") {
-    if (isChallengeTechniqueEvidence(evidenceText)) {
-      return "quand une technique ne colle pas, je te challengerai doucement au lieu d'obéir directement.";
-    }
     return "je garderai un niveau de challenge équilibré.";
   }
   if (key === "coach.challenge_level" && value === "high") {
@@ -201,18 +93,6 @@ function summaryForPatch(
   }
   if (key === "coach.challenge_level" && value === "low") {
     return "je garderai le challenge plus léger et moins frontal.";
-  }
-  if (key === "coach.response_max_lines" && value === "three") {
-    return "quand tu demandes court, je répondrai en trois lignes maximum.";
-  }
-  if (key === "coach.emoji_policy" && value === "none") {
-    return "quand tu demandes court, je n'utiliserai pas d'emoji.";
-  }
-  if (
-    key === "coach.final_question_policy" &&
-    value === "avoid_unnecessary"
-  ) {
-    return "quand tu demandes court, je ne finirai pas par une question inutile.";
   }
   return `j'utiliserai ${labelForPatch(key, value)}.`;
 }
@@ -248,7 +128,7 @@ export function runCoachPreferencesPatchBuilder(
     const value = normalizeCoachPreferenceValue(key, rawValue);
     if (!value) throw new Error("coach_preferences_unsupported_value");
     patch[key] = value;
-    summaries.push(summaryForPatch(key, value, reason ?? ""));
+    summaries.push(summaryForPatch(key, value));
   }
   const summary = summaries.join(" ");
   return {

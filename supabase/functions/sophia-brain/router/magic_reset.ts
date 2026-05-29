@@ -26,13 +26,12 @@ export function clearMachineStateTempMemory(opts: {
     // One-off routing markers
     "__dual_tool_addon",
     "__resume_message_prefix",
-    "__resume_safety_addon",
     "__router_resume_prompt_v1",
     "__router_safety_preempted_v1",
     "__flow_just_closed_normally",
     "__flow_just_closed_aborted",
     "__abandon_message",
-    "__track_progress_parallel",
+    "__track_progress_plan_item_runtime",
     // Conversation skill / operation runtime
     "__active_skill_state",
     "active_skill_state",

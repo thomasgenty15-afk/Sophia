@@ -10,6 +10,8 @@ import {
   type CreateRecurringReminderSlotFiller,
   runCreateRecurringReminderIntake,
 } from "./intake.ts";
+import { maybeRunCreateRecurringReminderOperation } from "./router.ts";
+import { renderRecurringReminderExecuted } from "./renderer.ts";
 import { structuredRecurringReminderSlotFiller } from "./test_helpers.ts";
 
 const SECRET = "s5-test-secret";
@@ -208,7 +210,19 @@ Deno.test("create_recurring_reminder normalizes non-habit action_family draft to
     },
     slot_filler: async () => ({
       current_sub_skill: "draft_generation",
+      user_intent: "start",
+      constraints: [{
+        kind: "recurring_only",
+        evidence: ["test"],
+      }],
+      handoff_target: null,
       state_patch: {
+        user_intent: "start",
+        constraints: [{
+          kind: "recurring_only",
+          evidence: ["test"],
+        }],
+        handoff_target: null,
         recurrence: {
           status: "identified",
           frequency: "weekly",
@@ -415,4 +429,522 @@ Deno.test("create_recurring_reminder executor blocks missing, expired, mismatch 
     "blocked",
   );
   assertEquals(writes, 1);
+});
+
+Deno.test("create_recurring_reminder hands one-shot wording off without draft", async () => {
+  const output = await runCreateRecurringReminderIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "rappelle-moi demain à 9h",
+    trigger_message_id: "m-one-shot",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredRecurringReminderSlotFiller({
+      frequency: null,
+      time: "09:00",
+      message: "rappel ponctuel",
+      user_intent: "one_shot_handoff",
+      handoff_target: "create_one_shot_reminder",
+      generated_user_message:
+        "Ce rappel est ponctuel, je laisse le rappel ponctuel s'en charger.",
+    }),
+  });
+  assertEquals(output.status, "handoff_to_one_shot");
+  assertEquals(output.draft, undefined);
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(
+    output.state_patch.intake_state?.handoff_target,
+    "create_one_shot_reminder",
+  );
+});
+
+Deno.test("create_recurring_reminder recurring wording continues to pending confirmation", async () => {
+  const output = await runCreateRecurringReminderIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "rappelle-moi tous les jours à 18h de respirer",
+    trigger_message_id: "m-recurring",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredRecurringReminderSlotFiller({
+      frequency: "daily",
+      time: "18:00",
+      message: "respirer",
+    }),
+  });
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.frequency, "daily");
+  assertEquals(output.draft?.draft.message, "respirer");
+});
+
+Deno.test("create_recurring_reminder asks for missing time or content", async () => {
+  const missingTime = await runCreateRecurringReminderIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "chaque mardi",
+    trigger_message_id: "m-missing-time",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredRecurringReminderSlotFiller({
+      frequency: "weekly",
+      days: ["mardi"],
+      time: null,
+      message: "faire le point",
+      generated_user_message: "À quelle heure ?",
+    }),
+  });
+  assertEquals(missingTime.status, "ask_question");
+  assertEquals(missingTime.state_patch.missing_slots, ["time"]);
+
+  const missingContent = await runCreateRecurringReminderIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "tous les jours à 18h",
+    trigger_message_id: "m-missing-content",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredRecurringReminderSlotFiller({
+      frequency: "daily",
+      time: "18:00",
+      message: null,
+      generated_user_message: "Tu veux que je te rappelle quoi ?",
+    }),
+  });
+  assertEquals(missingContent.status, "ask_question");
+  assertEquals(missingContent.state_patch.missing_slots, ["message"]);
+});
+
+function pendingRecurringFixture(
+  operationId = `op-recurring-test-${crypto.randomUUID()}`,
+) {
+  return {
+    operation_id: operationId,
+    operation_type: "create_recurring_reminder" as const,
+    draft: {
+      operation_type: "create_recurring_reminder" as const,
+      output_schema: "recurring_reminder_draft_v1" as const,
+      draft: {
+        title: "Rappel récurrent : respirer",
+        message: "respirer",
+        frequency: "daily" as const,
+        days: [],
+        time: "18:00",
+        timezone: "Europe/Paris",
+        destination: "base_de_vie" as const,
+        related_plan_item_id: null,
+        target_binding: null,
+      },
+      confirmation_message:
+        "Je te propose de créer ce rappel récurrent. Tu veux que je le crée ?",
+      confirmation_actions: ["yes", "no"] as ["yes", "no"],
+    },
+  };
+}
+
+Deno.test("create_recurring_reminder router approve executes only through executor writer", async () => {
+  resetConsumedConfirmationTokensForTest();
+  let writes = 0;
+  const pending = pendingRecurringFixture("op-recurring-approve");
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "ok crée-le",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: { __pending_tool_skill_confirmation: pending },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-approve",
+    requestId: "r-approve",
+    buildPlatformContext: () => ({}),
+    reviewDraft: async () => ({
+      decision: "approve",
+      confidence: "high",
+      evidence: ["test"],
+    }),
+    writeRecurringReminder: async () => {
+      writes++;
+      return { recurring_reminder_id: "rr-1" };
+    },
+  });
+  assertEquals(runtime?.toolExecution, "success");
+  assertEquals(runtime?.toolSkillRun.status, "executed");
+  assertEquals(runtime?.executedTools, ["create_recurring_reminder"]);
+  assertEquals(runtime?.committedEffects.length, 1);
+  assertEquals(runtime?.committedEffects[0].recurring_reminder_id, "rr-1");
+  assertEquals(
+    (runtime?.toolSkillRun.committed_effects as any[])?.[0]
+      ?.recurring_reminder_id,
+    "rr-1",
+  );
+  assertEquals(writes, 1);
+  resetConsumedConfirmationTokensForTest();
+});
+
+Deno.test("create_recurring_reminder router revise explain and reject do not execute", async () => {
+  for (
+    const decision of [
+      ["revise", "draft_review_updated"],
+      ["explain", "draft_review_details"],
+      ["reject", "cancelled"],
+    ] as const
+  ) {
+    resetConsumedConfirmationTokensForTest();
+    let writes = 0;
+    const pending = pendingRecurringFixture(`op-recurring-${decision[0]}`);
+    const runtime = await maybeRunCreateRecurringReminderOperation({
+      supabase: {} as any,
+      userId: "u1",
+      userMessage: decision[0] === "revise"
+        ? "change l'heure à 19h"
+        : decision[0] === "reject"
+        ? "non finalement"
+        : "explique",
+      channel: "web",
+      userTimezone: "Europe/Paris",
+      tempMemory: {
+        __pending_tool_skill_confirmation: pending,
+      },
+      turnFrame: null,
+      routeDecision: null,
+      safetyPregateOutput: { risk_band: "none" },
+      sourceMessageId: `m-${decision[0]}`,
+      requestId: `r-${decision[0]}`,
+      buildPlatformContext: () => ({}),
+      reviewDraft: async () => ({
+        decision: decision[0],
+        confidence: "high",
+        evidence: ["test"],
+        generated_user_message: decision[0] === "reject"
+          ? "Ok, je ne crée pas ce rappel."
+          : "D'accord.",
+      }),
+      runIntake: async () => ({
+        operation_type: "create_recurring_reminder",
+        status: "pending_confirmation",
+        source: "direct_user_request",
+        phase: "confirmation",
+        draft: {
+          ...pending.draft,
+          draft: {
+            ...pending.draft.draft,
+            time: "19:00",
+          },
+        },
+        confirmation: {
+          required: true,
+          message: "J'ai mis à jour l'heure à 19:00. Tu valides ?",
+          actions: ["yes", "no"],
+        },
+        pending_confirmation: {
+          operation_id: "op-revised",
+          operation_type: "create_recurring_reminder",
+          source: "direct_user_request",
+          summary: "Rappel récurrent : respirer",
+          draft: pending.draft,
+          expires_after_turns: 2,
+        },
+        state_patch: {
+          summary: "revised",
+          phase: "confirmation",
+          missing_slots: [],
+          turn_count_increment: 1,
+        },
+      }),
+      writeRecurringReminder: async () => {
+        writes++;
+        return { recurring_reminder_id: "rr-never" };
+      },
+    });
+    assertEquals(runtime?.toolSkillRun.status, decision[1]);
+    assertEquals(runtime?.toolExecution === "success", false);
+    assertEquals(runtime?.committedEffects, []);
+    assertEquals(writes, 0);
+  }
+});
+
+Deno.test("create_recurring_reminder write failure is not marked executed", async () => {
+  resetConsumedConfirmationTokensForTest();
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "ok crée-le",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __pending_tool_skill_confirmation: pendingRecurringFixture(
+        "op-recurring-write-failure",
+      ),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-write-failure",
+    requestId: "r-write-failure",
+    buildPlatformContext: () => ({}),
+    reviewDraft: async () => ({
+      decision: "approve",
+      confidence: "high",
+      evidence: ["test"],
+    }),
+    writeRecurringReminder: async () => {
+      throw new Error("db_write_failed_for_test");
+    },
+  });
+  assertEquals(runtime?.toolExecution, "failed");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.committedEffects, []);
+  assertEquals(
+    (runtime?.toolSkillRun.committed_effects as any[])?.length ?? 0,
+    0,
+  );
+  assertEquals(runtime?.content.includes("C'est fait"), false);
+  resetConsumedConfirmationTokensForTest();
+});
+
+Deno.test("create_recurring_reminder executor blocked invalid draft is not marked executed", async () => {
+  resetConsumedConfirmationTokensForTest();
+  let writes = 0;
+  const pending = pendingRecurringFixture("op-recurring-invalid-draft") as any;
+  pending.draft = {
+    ...pending.draft,
+    draft: {
+      ...pending.draft.draft,
+      message: "",
+    },
+  };
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "ok crée-le",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: { __pending_tool_skill_confirmation: pending },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-invalid-draft",
+    requestId: "r-invalid-draft",
+    buildPlatformContext: () => ({}),
+    reviewDraft: async () => ({
+      decision: "approve",
+      confidence: "high",
+      evidence: ["test"],
+    }),
+    writeRecurringReminder: async () => {
+      writes++;
+      return { recurring_reminder_id: "rr-never" };
+    },
+  });
+  assertEquals(runtime?.toolExecution, "blocked");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.committedEffects, []);
+  assertEquals(writes, 0);
+  resetConsumedConfirmationTokensForTest();
+});
+
+Deno.test("create_recurring_reminder draft_only and no_create do not create executable pending confirmation", async () => {
+  const output = await runCreateRecurringReminderIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message: "fais juste un brouillon tous les jours à 18h de respirer",
+    trigger_message_id: "m-draft-only",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredRecurringReminderSlotFiller({
+      frequency: "daily",
+      time: "18:00",
+      message: "respirer",
+      user_intent: "draft_only",
+      constraints: [{
+        kind: "draft_only",
+        evidence: ["test"],
+      }, {
+        kind: "no_create",
+        evidence: ["test"],
+      }],
+    }),
+  });
+  assertEquals(output.status, "draft_ready");
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.confirmation, undefined);
+
+  let writes = 0;
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "fais juste un brouillon tous les jours à 18h de respirer",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: {
+      response_owner: "tool_skill",
+      selected_handler: "create_recurring_reminder",
+      reason_code: "test",
+      direct_effects_to_run: [],
+      blocked_paths: [],
+    } as any,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-draft-only-router",
+    requestId: "r-draft-only-router",
+    buildPlatformContext: () => ({}),
+    runIntake: async () => output,
+    writeRecurringReminder: async () => {
+      writes++;
+      return { recurring_reminder_id: "rr-never" };
+    },
+  });
+  assertEquals(runtime?.toolSkillRun.status, "draft_ready");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.committedEffects, []);
+  assertEquals(
+    Boolean(runtime?.nextTempMemory.__pending_tool_skill_confirmation),
+    false,
+  );
+  assertEquals(writes, 0);
+});
+
+Deno.test("create_recurring_reminder active intake cancel clears frame without write", async () => {
+  let writes = 0;
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "annule finalement",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "create_recurring_reminder",
+        operation_input: { frequency: "daily" },
+        turn_count: 1,
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-active-cancel",
+    requestId: "r-active-cancel",
+    buildPlatformContext: () => ({}),
+    runIntake: async () => ({
+      operation_type: "create_recurring_reminder",
+      status: "cancelled",
+      source: "direct_user_request",
+      phase: "exit",
+      ack: "Ok, je ne crée pas ce rappel.",
+      state_patch: {
+        summary: "cancelled",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+      },
+    }),
+    writeRecurringReminder: async () => {
+      writes++;
+      return { recurring_reminder_id: "rr-never" };
+    },
+  });
+  assertEquals(runtime?.toolSkillRun.status, "cancelled");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.committedEffects, []);
+  assertEquals(
+    Boolean(runtime?.nextTempMemory.__active_tool_skill_intake),
+    false,
+  );
+  assertEquals(writes, 0);
+});
+
+Deno.test("create_recurring_reminder active one-shot wording hands off and clears frame", async () => {
+  const runtime = await maybeRunCreateRecurringReminderOperation({
+    supabase: {} as any,
+    userId: "u1",
+    userMessage: "rappelle-moi demain à 9h de payer",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "create_recurring_reminder",
+        operation_input: { frequency: "daily" },
+        turn_count: 1,
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" },
+    sourceMessageId: "m-active-one-shot",
+    requestId: "r-active-one-shot",
+    buildPlatformContext: () => ({}),
+    slotFiller: undefined as never,
+    runIntake: async () => ({
+      operation_type: "create_recurring_reminder",
+      status: "handoff_to_one_shot",
+      source: "direct_user_request",
+      phase: "exit",
+      ack: "Ce rappel est ponctuel.",
+      state_patch: {
+        summary: "handoff",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        intake_state: {
+          skill_id: "create_recurring_reminder",
+          current_sub_skill: "recurrence_resolution",
+          user_intent: "one_shot_handoff",
+          constraints: [],
+          handoff_target: "create_one_shot_reminder",
+          recurrence: {
+            status: "missing",
+            frequency: null,
+            days: [],
+            time: null,
+            timezone: "Europe/Paris",
+            confidence: "low",
+            evidence: [],
+          },
+          reminder_content: {
+            status: "missing",
+            message: null,
+            subject_hint: null,
+            confidence: "low",
+            evidence: [],
+          },
+          destination: {
+            status: "missing",
+            value: "base_de_vie",
+            related_plan_item_id: null,
+            target_kind: "none",
+            target_plan_item_id: null,
+            target_action_family_key: null,
+            target_generated_temp_id: null,
+            target_binding_policy: "none",
+            target_lifecycle_policy: "independent",
+            target_label: null,
+            confidence: "low",
+            evidence: [],
+          },
+          draft_messages: {},
+          missing_slots: [],
+          generated_user_message: null,
+          confidence: "low",
+        },
+      },
+    }),
+  } as any);
+  assertEquals(runtime?.toolSkillRun.status, "handoff_to_one_shot");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.committedEffects, []);
+  assertEquals(
+    Boolean(runtime?.nextTempMemory.__active_tool_skill_intake),
+    false,
+  );
+});
+
+Deno.test("create_recurring_reminder renderer cannot say created without committed effects", () => {
+  const message = renderRecurringReminderExecuted({
+    draft: pendingRecurringFixture("op-renderer").draft,
+    committedEffects: [],
+  });
+  assertEquals(message.includes("C'est fait"), false);
+  assertEquals(message.includes("J'ai créé"), false);
 });

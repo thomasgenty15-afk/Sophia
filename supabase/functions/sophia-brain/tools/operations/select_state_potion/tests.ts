@@ -31,12 +31,40 @@ import {
 } from "./subskills/potion_detail_intake.ts";
 import { buildPotionFollowUpSchedulePlannerPrompt } from "./subskills/follow_up_schedule_planner.ts";
 import { normalizePotionSessionDraft } from "./generator.ts";
+import { maybeRunSelectStatePotionOperation } from "./router.ts";
+import { loadSelectStatePotionFrameFromTempMemory } from "./state.ts";
+import {
+  buildExplicitNoPotionConcreteReply,
+  detectsExplicitConcreteDeliverableRequest,
+  detectsExplicitNoPotionRequest,
+  detectsExplicitStatePotionExit,
+  detectsPotionFollowUpRefusal,
+  hardConsentGuards,
+  legacySemanticDetectors,
+  statePotionDeclineReply,
+} from "./policy.ts";
 import {
   structuredStatePotionDraftGenerator,
   structuredStatePotionSlotFiller,
 } from "./test_helpers.ts";
 
 const SECRET = "s5-test-secret";
+
+const fakeSafetyPregate = {
+  risk_band: "none",
+  reason_codes: [],
+  evidence: [],
+} as any;
+
+const fakeSupabase = {} as any;
+
+const selectPotionRouteDecision = {
+  response_owner: "tool_skill",
+  selected_handler: "select_state_potion",
+  reason_code: "test",
+  direct_effects_to_run: [],
+  blocked_paths: [],
+} as any;
 
 Deno.test("select_state_potion catalog gives AI rich potion context and question examples", () => {
   const catalog = buildStatePotionCatalogPrompt();
@@ -151,7 +179,10 @@ Deno.test("select_state_potion rejects robotic confirmation voice", () => {
   for (const confirmation_message of badMessages) {
     let failed = false;
     try {
-      normalizePotionSessionDraft({ ...baseDraft, confirmation_message }, input);
+      normalizePotionSessionDraft(
+        { ...baseDraft, confirmation_message },
+        input,
+      );
     } catch (error) {
       failed = error instanceof Error &&
         error.message === "potion_confirmation_template_voice";
@@ -179,6 +210,121 @@ Deno.test("select_state_potion draft approval requires explicit activation", () 
     ),
     true,
   );
+});
+
+Deno.test("select_state_potion policy owns no_potion, exit, and concrete reply wording", () => {
+  assertEquals(
+    hardConsentGuards.detectsExplicitNoPotionRequest("sans potion"),
+    true,
+  );
+  assertEquals(
+    legacySemanticDetectors.isExplicitSelectStatePotionRequest(
+      "lance une potion de courage",
+    ),
+    true,
+  );
+  assertEquals(
+    detectsExplicitNoPotionRequest(
+      "Ça tourne en boucle. Ne me propose pas de potion et donne-moi juste une phrase de réparation.",
+    ),
+    true,
+  );
+  assertEquals(
+    detectsExplicitNoPotionRequest(
+      "Ne lance pas de potion: propose seulement un reset de 2 minutes pour revenir à la facture.",
+    ),
+    true,
+  );
+  assertEquals(
+    detectsExplicitNoPotionRequest("Aide-moi mais sans potion stp."),
+    true,
+  );
+  assertEquals(
+    detectsExplicitNoPotionRequest("Oui, lance la potion d'apaisement."),
+    false,
+  );
+  assertEquals(
+    detectsExplicitNoPotionRequest("Pas de rappel, juste une phrase."),
+    false,
+  );
+
+  assertEquals(
+    detectsExplicitStatePotionExit(
+      "Stop potion. Où je vois dans l'app qu'une potion ou un mode comme ça est actif ?",
+    ),
+    true,
+  );
+  assertEquals(detectsExplicitStatePotionExit("arrête la potion"), true);
+  assertEquals(
+    detectsExplicitStatePotionExit("Lance la potion d'apaisement"),
+    false,
+  );
+  assertEquals(
+    detectsExplicitStatePotionExit("stop, j'ai compris merci"),
+    false,
+  );
+
+  const concrete =
+    "Non, pas de potion. Donne-moi une phrase de réparation et une micro-action, sans question.";
+  assertEquals(
+    detectsExplicitConcreteDeliverableRequest(concrete),
+    true,
+  );
+  const concreteReply = buildExplicitNoPotionConcreteReply(concrete);
+  assertEquals(concreteReply.includes("Phrase de réparation"), true);
+  assertEquals(concreteReply.includes("Micro-action"), true);
+  assertEquals(concreteReply.includes("?"), false);
+
+  const resetReply = buildExplicitNoPotionConcreteReply(
+    "Pas de potion. Reset de 2 minutes pour revenir à la facture, sans question.",
+  );
+  assertEquals(resetReply.includes("Reset 2 minutes"), true);
+  assertEquals(resetReply.includes("Minute 1"), true);
+  assertEquals(resetReply.includes("?"), false);
+
+  const declineReply = statePotionDeclineReply(
+    "Pas de potion pour le moment. Je vais faire la pile temporaire. Ensuite j'ouvre Slack et je pars lire dix conversations.",
+  );
+  assertEquals(declineReply.includes("je ne lance pas de potion"), true);
+  assertEquals(declineReply.includes("recherche"), true);
+  assertEquals(declineReply.includes("quitte l'app"), true);
+});
+
+Deno.test("select_state_potion policy owns follow-up refusal detection", () => {
+  for (
+    const message of [
+      "Non, ne programme rien. Je veux la phrase maintenant.",
+      "surtout pas de rappel",
+      "je ne veux aucun suivi",
+      "sans relance stp",
+      "ne me programme aucun rappel",
+      "lance une potion d'apaisement courte pour maintenant seulement, pas de rituel récurrent",
+      "Je confirme seulement une potion maintenant, sans rappel, sans demain, sans semaine.",
+      "Oui, je suis d'accord : programme ce rappel ponctuel à 14h35, rien d'autre.",
+      "pas de routine",
+      "non récurrent",
+      "une seule fois",
+      "juste pour maintenant",
+      "non pour le suivi du matin",
+      "rien d'autre",
+      "rien d’autre",
+    ]
+  ) {
+    assertEquals(detectsPotionFollowUpRefusal(message), true, message);
+  }
+
+  for (
+    const message of [
+      "Oui. Écris la phrase maintenant.",
+      "Lance vraiment l'apaisement maintenant, pas une analyse.",
+      "programme-moi un rappel tous les matins",
+      "Oui, programme un rappel récurrent chaque matin à 8h.",
+      "Active le rituel du soir stp",
+      "Je veux un suivi quotidien",
+    ]
+  ) {
+    assertEquals(detectsPotionFollowUpRefusal(message), false, message);
+  }
 });
 
 Deno.test("state potion DB base context exposes shared front and chat material", () => {
@@ -822,7 +968,8 @@ Deno.test("select_state_potion action-aware potion asks timing before draft when
           ],
           answers: [{
             question_id: SUPPORT_TIMING_QUESTION_ID,
-            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            label:
+              "Quand est-ce que Sophia doit etre la autour de cette action ?",
             answer: "Demain matin a 08h15, juste avant de l'envoyer.",
             evidence: ["demain 08h15"],
           }],
@@ -862,8 +1009,7 @@ Deno.test("select_state_potion does not confirm action-aware draft when timing w
     user_id: "u1",
     channel: "whatsapp",
     timezone: "Europe/Paris",
-    message:
-      "Surtout savoir par ou commencer pour la reunion demain matin.",
+    message: "Surtout savoir par ou commencer pour la reunion demain matin.",
     trigger_message_id: "m-vague-timing",
     safety_pregate_risk_band: "none",
     operation_input: {
@@ -909,7 +1055,8 @@ Deno.test("select_state_potion does not confirm action-aware draft when timing w
             evidence: ["par ou commencer"],
           }, {
             question_id: SUPPORT_TIMING_QUESTION_ID,
-            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            label:
+              "Quand est-ce que Sophia doit etre la autour de cette action ?",
             answer: "demain matin",
             evidence: ["demain matin"],
           }],
@@ -968,7 +1115,10 @@ Deno.test("F4: le router potion reçoit l'historique récent pour ne pas redeman
     | Array<{ role: "user" | "assistant"; content: string }>
     | undefined;
   const recent: Array<{ role: "user" | "assistant"; content: string }> = [
-    { role: "user", content: "Apaisement. Oui, lance-la maintenant, version courte." },
+    {
+      role: "user",
+      content: "Apaisement. Oui, lance-la maintenant, version courte.",
+    },
     { role: "assistant", content: "Ok, apaisement en version courte." },
     { role: "user", content: "Objectif + première étape. Avant 18h." },
   ];
@@ -1084,7 +1234,8 @@ Deno.test("select_state_potion preserves selected potion when reminder wording a
             evidence: ["conflit"],
           }, {
             question_id: SUPPORT_TIMING_QUESTION_ID,
-            label: "Quand est-ce que Sophia doit etre la autour de cette action ?",
+            label:
+              "Quand est-ce que Sophia doit etre la autour de cette action ?",
             answer: "Demain a 08h15, une seule fois.",
             evidence: ["rappel-la demain 08h15"],
           }],
@@ -1669,4 +1820,269 @@ Deno.test("select_state_potion blocks missing state, safety and writes without O
   });
   assertEquals(noToken.status, "blocked");
   assertEquals(writes, 0);
+});
+
+Deno.test("select_state_potion router: no_potion constraint cancels active intake", async () => {
+  const result = await maybeRunSelectStatePotionOperation({
+    supabase: fakeSupabase,
+    userId: "u1",
+    userMessage: "stop, pas de potion",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "select_state_potion",
+        phase: "detail_intake",
+        operation_input: { potion_type: "rappel" },
+        turn_count: 1,
+      },
+      __potion_followup_consent: "refused",
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-no-potion-active",
+    requestId: "r-no-potion-active",
+  });
+
+  assert(result);
+  assertEquals(result.toolSkillRun.status, "cancelled");
+  assertEquals(result.toolSkillRun.user_intent, "forbid_potion");
+  assertEquals((result.toolSkillRun as any).constraints, [{
+    kind: "no_potion",
+    evidence: ["stop, pas de potion"],
+  }]);
+  assertEquals((result.toolSkillRun as any).allowed_effects, []);
+  assertEquals((result.toolSkillRun as any).blocked_effects, [{
+    type: "activate_state_potion",
+    reason_code: "no_potion",
+  }]);
+  assertEquals(
+    (result.toolSkillRun as any).effect_ledger.blocked_effects,
+    [{
+      type: "activate_state_potion",
+      reason_code: "no_potion",
+    }],
+  );
+  const frame = loadSelectStatePotionFrameFromTempMemory(
+    result.nextTempMemory,
+  );
+  assertEquals(frame.active, null);
+  assertEquals(frame.pending, null);
+  assertEquals(frame.recommendation, null);
+  assertEquals(frame.followup_consent, null);
+});
+
+Deno.test("select_state_potion router: no_potion constraint blocks new start", async () => {
+  const result = await maybeRunSelectStatePotionOperation({
+    supabase: fakeSupabase,
+    userId: "u1",
+    userMessage: "donne-moi juste une phrase, sans potion",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-no-potion-start",
+    requestId: "r-no-potion-start",
+  });
+
+  assert(result);
+  assertEquals(result.toolSkillRun.status, "cancelled");
+  assertEquals(result.toolSkillRun.user_intent, "forbid_potion");
+  assertEquals(String(result.content).includes("Phrase de réparation"), true);
+  assertEquals(
+    (result.toolSkillRun as any).debug.reason_code,
+    "select_state_potion_no_potion_constraint",
+  );
+  assertEquals(result.executedTools, []);
+  assertEquals(
+    loadSelectStatePotionFrameFromTempMemory(result.nextTempMemory)
+      .followup_consent,
+    null,
+  );
+});
+
+Deno.test("select_state_potion router: explicit one-shot reminder hands off active potion", async () => {
+  const result = await maybeRunSelectStatePotionOperation({
+    supabase: fakeSupabase,
+    userId: "u1",
+    userMessage: "programme ce rappel ponctuel à 14h35, rien de récurrent",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "select_state_potion",
+        phase: "detail_intake",
+        operation_input: { potion_type: "apaisement" },
+        turn_count: 2,
+      },
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-one-shot-handoff",
+    requestId: "r-one-shot-handoff",
+  });
+
+  assert(result);
+  assertEquals(result.toolSkillRun.status, "handoff");
+  assertEquals(result.toolSkillRun.user_intent, "one_shot_reminder_handoff");
+  assertEquals((result.toolSkillRun as any).handoff, {
+    target: "create_one_shot_reminder",
+  });
+  assertEquals((result.toolSkillRun as any).constraints, [{
+    kind: "no_followup",
+    evidence: ["programme ce rappel ponctuel à 14h35, rien de récurrent"],
+  }]);
+  assertEquals(result.executedTools, []);
+  assertEquals(
+    loadSelectStatePotionFrameFromTempMemory(result.nextTempMemory).active,
+    null,
+  );
+});
+
+Deno.test("select_state_potion router: followup refusal is carried into allowed activation effect", async () => {
+  resetConsumedConfirmationTokensForTest();
+  const draft = await structuredStatePotionDraftGenerator()({
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    state: {
+      kind: "stress_pressure",
+      intensity: "medium",
+      evidence: ["pression"],
+    },
+    potion_type: "apaisement",
+    context: {},
+    constraints: [],
+    forbidden: [],
+  });
+  if (!draft) throw new Error("missing_draft");
+
+  let writerScheduledCount = -1;
+  const result = await maybeRunSelectStatePotionOperation({
+    supabase: fakeSupabase,
+    userId: "u1",
+    userMessage: "oui active cette potion, juste maintenant sans suivi",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __pending_tool_skill_confirmation: {
+        operation_id: "op-contract-followup",
+        operation_type: "select_state_potion",
+        draft,
+        turn_count: 1,
+      },
+      __potion_followup_consent: "refused",
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-activate-no-followup",
+    requestId: "r-activate-no-followup",
+    draftReviewOverride: async () => ({
+      decision: "approve",
+      confidence: "high",
+      evidence: ["oui active cette potion"],
+      generated_user_message: null,
+    }),
+    writeStatePotionActivationOverride: async ({ scheduledFollowups }) => {
+      writerScheduledCount = scheduledFollowups.length;
+      return {
+        potion_session_id: "potion-contract",
+        recurring_reminder_id: "",
+        scheduled_checkin_ids: [],
+      };
+    },
+  });
+
+  assert(result);
+  assertEquals(result.toolExecution, "success");
+  assertEquals(result.executedTools, ["select_state_potion"]);
+  assertEquals(writerScheduledCount, 0);
+  assertEquals((result.toolSkillRun as any).user_intent, "activate");
+  assertEquals((result.toolSkillRun as any).constraints, [{
+    kind: "no_followup",
+    evidence: ["oui active cette potion, juste maintenant sans suivi"],
+  }]);
+  const allowedEffect = (result.toolSkillRun as any).allowed_effects[0];
+  assertEquals(allowedEffect.type, "activate_state_potion");
+  assertEquals(allowedEffect.suppress_follow_up_scheduling, true);
+  assertEquals(
+    (result.toolSkillRun as any).effect_ledger.committed_effects,
+    [{
+      type: "activate_state_potion",
+      operation_id: "op-contract-followup",
+      potion_session_id: "potion-contract",
+      recurring_reminder_id: "",
+      scheduled_checkin_ids: [],
+    }],
+  );
+});
+
+Deno.test("select_state_potion router: blocked executor has no committed activation", async () => {
+  resetConsumedConfirmationTokensForTest();
+  const draft = await structuredStatePotionDraftGenerator()({
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    state: {
+      kind: "stress_pressure",
+      intensity: "medium",
+      evidence: ["pression"],
+    },
+    potion_type: "apaisement",
+    context: {},
+    constraints: [],
+    forbidden: [],
+  });
+  if (!draft) throw new Error("missing_draft");
+
+  const result = await maybeRunSelectStatePotionOperation({
+    supabase: fakeSupabase,
+    userId: "u1",
+    userMessage: "oui active cette potion",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __pending_tool_skill_confirmation: {
+        operation_id: "op-contract-blocked",
+        operation_type: "select_state_potion",
+        draft,
+        turn_count: 1,
+      },
+    },
+    turnFrame: null,
+    routeDecision: selectPotionRouteDecision,
+    safetyPregateOutput: fakeSafetyPregate,
+    sourceMessageId: "m-activate-blocked",
+    requestId: "r-activate-blocked",
+    draftReviewOverride: async () => ({
+      decision: "approve",
+      confidence: "high",
+      evidence: ["oui active cette potion"],
+      generated_user_message: null,
+    }),
+    writeStatePotionActivationOverride: async () => ({
+      potion_session_id: "potion-contract",
+      recurring_reminder_id: "reminder-contract",
+      scheduled_checkin_ids: [],
+    }),
+  });
+
+  assert(result);
+  assertEquals(result.toolExecution, "blocked");
+  assertEquals(result.executedTools, []);
+  assertEquals(
+    String(result.content).includes(draft.draft.instant_support_message),
+    false,
+  );
+  assertEquals(
+    (result.toolSkillRun as any).effect_ledger.committed_effects,
+    [],
+  );
+  assertEquals(
+    (result.toolSkillRun as any).effect_ledger.requested_effects[0].type,
+    "activate_state_potion",
+  );
 });

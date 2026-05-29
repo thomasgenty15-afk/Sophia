@@ -4095,7 +4095,7 @@ function deterministicWholePlanDirectionalDraft(
   const changeLine = family === "value_preference_conflict"
     ? `Je garderais les actions, mais je demanderais au plan régénéré de les relire autrement: ${insertedInline}`
     : family === "success_criteria_change"
-    ? `Je demanderais au plan régénéré de changer la façon de reconnaître le progrès: ${insertedInline}`
+    ? `Je demanderais au plan régénéré de changer les critères de réussite du plan: ${insertedInline}`
     : family === "style_or_method_mismatch"
     ? `Je demanderais au plan régénéré de changer sa méthode d'entrée: ${insertedInline}`
     : family === "missing_bridge_or_level" && insertsRepairReconnectionStep
@@ -4104,7 +4104,7 @@ function deterministicWholePlanDirectionalDraft(
     ? `${familyCopy.changeVerb}: ${familyCopy.inserted}`
     : `${familyCopy.changeVerb}: ${familyCopy.inserted}`;
   const stableLine = family === "success_criteria_change"
-    ? "L'objectif global, les actions actuelles et le signal de pause restent les appuis; on change surtout le critère qui dit si ça progresse."
+    ? "L'objectif global, les actions actuelles et le signal de pause restent les appuis; on change surtout les critères de réussite qui disent si ça progresse."
     : family === "style_or_method_mismatch"
     ? "L'objectif global, l'ambition et la charge restent stables; c'est la manière d'entrer dans chaque étape qui change."
     : family === "split_merge_restructure"

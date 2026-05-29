@@ -304,53 +304,6 @@ function heuristicRecommendation(
       do_not_recommend: [],
     };
   }
-  if (need?.type === "motivation_repair") {
-    const target = resolveRecommendationPlanTarget(input);
-    if (!target) {
-      return {
-        recommendation_id: recommendationId(input),
-        decision: "ask_clarification",
-        confidence: 0.7,
-        timing: "now",
-        presentation_level: 1,
-        cta_style: "soft",
-        requires_consent: false,
-        reason: "motivation_repair_target_missing",
-        user_facing_offer:
-          "Je peux t'aider avec une carte d'attaque, mais je veux la rattacher a la bonne action.",
-        alternatives: [],
-        do_not_recommend: [],
-      };
-    }
-    const attack = surfaceById(surfaces, "attack_card");
-    if (!attack) return defer(input, "attack_card_unavailable");
-    return {
-      recommendation_id: recommendationId(input),
-      decision: "recommend_operation",
-      surface_id: attack.id,
-      executor_tool_id: attack.executor_tool_id,
-      operation_type: "prepare_attack_card",
-      operation_input: {
-        target,
-        blocker: { type: "low_energy" },
-        desired_attack_angle: "preparer_terrain",
-        constraints: [...need.constraints, "do_not_modify_plan"],
-      },
-      confidence: 0.76,
-      timing: "now",
-      presentation_level: 2,
-      cta_style: "soft",
-      requires_consent: true,
-      reason: "motivation_repair_needs_attack_card_not_plan_edit",
-      user_facing_offer:
-        `On peut creer une carte d'attaque courte pour faire une version minimale de "${target.title}", sans changer ton plan.`,
-      alternatives: [],
-      do_not_recommend: [{
-        surface_id: "plan_item.reduce",
-        reason: "plan_edit_requires_explicit_structural_change",
-      }],
-    };
-  }
   if (hasProductHelpSignal(input)) {
     return {
       recommendation_id: recommendationId(input),

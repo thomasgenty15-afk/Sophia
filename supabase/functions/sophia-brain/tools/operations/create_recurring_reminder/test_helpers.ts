@@ -2,6 +2,10 @@ import type {
   CreateRecurringReminderSlotFiller,
   RecurringReminderFrequency,
 } from "./intake.ts";
+import type {
+  CreateRecurringReminderConstraint,
+  CreateRecurringReminderUserIntent,
+} from "./contract.ts";
 
 export function structuredRecurringReminderSlotFiller(input: {
   frequency?: RecurringReminderFrequency | null;
@@ -12,6 +16,9 @@ export function structuredRecurringReminderSlotFiller(input: {
   generated_user_message?: string | null;
   confirmation_message?: string;
   execution_message?: string;
+  user_intent?: CreateRecurringReminderUserIntent;
+  handoff_target?: "create_one_shot_reminder" | null;
+  constraints?: CreateRecurringReminderConstraint[];
 }): CreateRecurringReminderSlotFiller {
   return async () => {
     const missing = input.missing_slots ??
@@ -20,13 +27,32 @@ export function structuredRecurringReminderSlotFiller(input: {
         !input.time ? "time" : "",
         !input.message ? "message" : "",
       ].filter(Boolean);
+    const constraints = input.constraints ??
+      (input.handoff_target === "create_one_shot_reminder"
+        ? [{
+          kind: "recurring_only",
+          evidence: ["structured_test_fixture"],
+        }, {
+          kind: "no_one_shot",
+          evidence: ["structured_test_fixture"],
+        }]
+        : [{
+          kind: "recurring_only",
+          evidence: ["structured_test_fixture"],
+        }]);
     return {
       current_sub_skill: missing.length === 0
         ? "draft_generation"
         : missing.includes("message")
         ? "content_intake"
         : "recurrence_resolution",
+      user_intent: input.user_intent ?? "start",
+      constraints,
+      handoff_target: input.handoff_target ?? null,
       state_patch: {
+        user_intent: input.user_intent ?? "start",
+        constraints,
+        handoff_target: input.handoff_target ?? null,
         recurrence: {
           status: input.frequency && input.time ? "identified" : "missing",
           frequency: input.frequency ?? null,

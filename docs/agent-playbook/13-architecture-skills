@@ -83,6 +83,91 @@ dispatcher -> skill -> classifier global de confirmation -> routeur global
 Ce mauvais modèle recrée exactement le problème : le dispatcher ou le routeur
 global participe au job du sous-skill.
 
+### Essence de l'architecture cible
+
+Sophia Brain ne doit pas être un gros routeur qui contient des exceptions pour
+chaque outil. L'architecture cible est un système de **skills propriétaires de
+leur workflow**, orchestrés par un noyau global fin.
+
+Le noyau global répond à trois questions seulement :
+
+1. quel skill doit recevoir le tour ;
+2. quels effets concurrents doivent être bloqués par sécurité, consentement ou
+   interruption explicite ;
+3. quels effets ont réellement été commités pour autoriser la réponse finale.
+
+Tout le reste appartient au skill concerné.
+
+Pour chaque skill, le contrat canonique est :
+
+```
+contract -> structured intake -> reducer -> effects -> executor -> renderer
+```
+
+Définition des étapes :
+
+- `contract` : types stables du skill, états, slots, contraintes, effets,
+  statuts et invariants.
+- `structured intake` : appel IA du skill qui lit le message user dans le
+  contexte du skill et retourne uniquement un JSON structuré.
+- `reducer` : code déterministe du skill qui merge l'ancien état + le JSON
+  d'intake, puis produit le nouvel état et la prochaine étape.
+- `effects` : liste explicite des effets `requested`, `allowed`, `blocked` et,
+  après exécution, `committed`.
+- `executor` : seule couche qui écrit en DB ou appelle un système externe,
+  uniquement à partir d'effets `allowed`.
+- `renderer` : seule couche qui produit le message final à partir de l'état du
+  skill et des effets commités.
+
+Le principe clé est : **une action durable n'existe pas parce que le modèle l'a
+comprise ou parce que le router l'a choisie ; elle existe seulement si un
+`committed_effect` prouve l'écriture réelle.**
+
+Donc :
+
+- pas de « c'est fait » sans `committed_effect` ;
+- pas de `executedTools` sans effet commité correspondant ;
+- pas de création DB depuis un brouillon `draft_only` ou une contrainte
+  `no_create` ;
+- pas de reprise d'un vieux flow si un nouveau skill explicite a interrompu ce
+  flow ;
+- pas de confirmation globale : la confirmation d'un brouillon appartient au
+  skill qui possède ce brouillon ;
+- pas de réponse finale qui contredit l'état DB ou les effets commités.
+
+Cette architecture garde la souplesse du slot filling : le user peut donner une
+info, toutes les infos, corriger un brouillon, sauter une étape, annuler ou
+changer de sujet. Le reducer n'impose pas un tunnel rigide ; il transforme
+simplement chaque sortie structurée du skill en état vérifiable.
+
+### Pourquoi cette architecture
+
+Les runs QA montrent que les bugs rouges ne viennent pas seulement d'une
+mauvaise phrase dans un prompt. Ils viennent surtout de responsabilités
+mélangées :
+
+- `run.ts` connaît trop de détails métier des skills ;
+- un vieux pending peut capturer une nouvelle intention explicite ;
+- un tool peut être marqué exécuté sans preuve d'écriture ;
+- un status peut nier un objet qui existe en DB ;
+- un brouillon peut être validé, modifié ou annulé par une couche qui ne le
+  possède pas ;
+- des regex L3/L4 passent les tests exacts mais ratent les paraphrases QA.
+
+Le but n'est donc pas de déplacer du code hors de `run.ts`. Le vrai changement
+est de rendre chaque skill **observable, testable et propriétaire** :
+
+- observable : le skill expose son état, ses décisions et ses effets ;
+- testable : les invariants se testent sans rejouer tout le chat ;
+- propriétaire : les règles métier du skill vivent dans son module, pas dans
+  le dispatcher, l'arbitre ou `run.ts`.
+
+`run.ts` doit devenir un orchestrateur mince : il charge le contexte, appelle
+le bon skill, applique les effets commités, journalise le résultat, puis donne
+au renderer/composer le contexte final. S'il doit connaître `draft_only`,
+`target_binding`, `mode tunnel`, `select_state_potion`, `prepare_attack_card`
+ou les slots internes d'un outil, c'est un signe que la frontière est cassée.
+
 ---
 
 ## 2. Pipeline de Routage — 6 couches
@@ -348,22 +433,39 @@ modification réelle. Exemple : `adjust_plan`, `prepare_attack_card`,
 
 ### Flow idéal
 
-1. Le router détecte qu'un Tool Skill doit prendre la main via une sortie
-   structurée.
-2. Le Tool Skill reçoit le message, l'historique, le plan, la mémoire utile,
-   et l'état courant.
-3. Un appel IA de slot filling remplit ou met à jour le JSON du skill.
-4. Le code merge uniquement cette sortie structurée dans `tool_skill_state`.
-5. Le code regarde les slots manquants.
-6. Si des slots manquent, un message user est généré par IA à partir de l'état.
-7. Si les slots minimaux sont prêts, le tool/generator prépare un brouillon.
-8. Le brouillon contient une explication user-ready générée par IA : ce qui
-   change, pourquoi, ce qui ne change pas, limites, confiance, exemples.
-9. Sophia présente ce brouillon et attend confirmation.
-10. Si le user demande des détails ou une modification du brouillon, cette
-    intention est détectée par sortie structurée, pas par regex.
-11. Le brouillon reste pending jusqu'à validation.
-12. Après validation structurée, l'executor applique.
+1. Le router global détecte qu'un Tool Skill doit prendre la main via une
+   sortie structurée.
+2. Le Tool Skill reçoit le message, l'historique utile, la DB utile, les
+   pending du skill et son état courant.
+3. L'intake IA du skill remplit ou met à jour un JSON structuré : intent,
+   slots, contraintes, corrections, annulation, handoff, status, brouillon,
+   niveau de confiance.
+4. Le reducer du skill merge l'ancien état + l'intake, choisit le sous-skill
+   suivant, et produit un résultat canonique.
+5. Le reducer produit les effets :
+   - `requested_effects` : ce que le user ou le skill demande ;
+   - `allowed_effects` : ce qui peut être exécuté maintenant ;
+   - `blocked_effects` : ce qui est interdit ou incomplet, avec reason_code ;
+   - `committed_effects` : ce que l'executor a réellement écrit.
+6. Si des slots manquent, le renderer produit une question à partir de l'état.
+7. Si le user demande seulement un brouillon, le skill produit un draft non
+   exécutable (`draft_only`, `allowed_effects=[]`).
+8. Si les slots minimaux sont prêts et qu'un effet durable est envisagé, le
+   generator produit un brouillon user-ready et le skill crée un pending de
+   confirmation appartenant au skill.
+9. Si le user modifie, explique, refuse ou annule le brouillon, le skill actif
+   le classe par intake structuré et fait avancer son propre état.
+10. Si le user confirme explicitement, le reducer autorise l'effet, l'executor
+    applique, puis retourne un `committed_effect`.
+11. Le renderer peut dire « c'est fait » seulement si le résultat contient un
+    `committed_effect` correspondant.
+12. Le router global ne mappe `executedTools` que depuis les effets commités.
+
+Un Tool Skill est donc un workflow souple, pas une machine à étapes rigide. Le
+user peut donner toutes les infos d'un coup, corriger après coup, demander un
+brouillon sans création, confirmer directement, changer de sujet ou annuler.
+La rigidité n'est pas dans l'ordre des étapes ; elle est dans le contrat des
+effets et du consentement.
 
 ### Schéma d'état
 
@@ -426,6 +528,12 @@ Le code peut faire :
   `current_level` ;
 - lookup DB anti-doublon (ex : refuser de créer une seconde carte d'attaque
   active < 5 min sans demande explicite « nouvelle carte »).
+- calculer les transitions déterministes depuis l'état structuré ;
+- produire `requested_effects`, `allowed_effects`, `blocked_effects` et
+  `committed_effects` ;
+- refuser de renderer une réussite si `committed_effects` est vide ;
+- clear son propre pending quand il reçoit `cancel`, `reject`,
+  `topic_change` ou `handoff`.
 
 Le code ne doit pas faire :
 
@@ -438,6 +546,63 @@ Le code ne doit pas faire :
 - fallback de reason ;
 - fallback de payload ;
 - fallback « probable action » depuis le titre dans le texte.
+- marquer un tool comme exécuté sans effet commité ;
+- créer un effet durable depuis un état `draft_only` ou `no_create` ;
+- laisser `run.ts` décider si un brouillon du skill est approuvé, révisé,
+  expliqué ou annulé.
+
+### Contrat d'effets
+
+Tout Tool Skill doit exposer un résultat canonique proche de :
+
+```ts
+type ToolSkillResult = {
+  handled: boolean;
+  status:
+    | "ask_question"
+    | "draft_ready"
+    | "pending_confirmation"
+    | "cancelled"
+    | "revised"
+    | "explained"
+    | "handoff"
+    | "blocked"
+    | "executed"
+    | "failed";
+  updated_state: unknown | null;
+  requested_effects: ToolEffect[];
+  allowed_effects: ToolEffect[];
+  blocked_effects: Array<{
+    type: string;
+    reason_code: string;
+    evidence?: string[];
+  }>;
+  committed_effects: CommittedToolEffect[];
+  pending_confirmation?: Record<string, unknown> | null;
+  reply: string | null;
+  debug: {
+    reason_code: string;
+    evidence: string[];
+  };
+};
+```
+
+Règles non négociables :
+
+- `requested_effects` peut être non vide sans consentement ; ça signifie
+  seulement qu'une action est envisagée.
+- `allowed_effects` ne peut contenir un effet durable que si les slots sont
+  complets et le consentement requis est satisfait.
+- `committed_effects` est rempli uniquement par l'executor après écriture DB
+  confirmée.
+- `executedTools` est dérivé de `committed_effects`, jamais du simple
+  `status`.
+- `reply` ne doit jamais annoncer une exécution absente de
+  `committed_effects`.
+- un échec technique après confirmation doit produire `status="failed"`,
+  `executedTools=[]`, `committed_effects=[]`, et un message honnête.
+- un blocage safety ou contrat doit produire `blocked_effects`, pas un
+  brouillon exécutable.
 
 ### Glue layer dans le module du skill
 
@@ -446,12 +611,13 @@ est :
 
 ```
 tools/operations/<skill_name>/
-  ai_intake.ts        appels LLM slot filling
-  slot_filler.ts      lecture du JSON, merge dans intake_state
+  contract.ts         types publics, états, effets, invariants
+  intake.ts           appel LLM du skill + normalisation JSON
+  reducer.ts          transitions d'état + requested/allowed/blocked effects
   generator.ts        production du brouillon user-ready
-  executor.ts         application en DB
-  workflow.ts         transitions sous-skills
-  router.ts           glue layer (orchestration des branches du tour)
+  executor.ts         application en DB + committed_effects
+  renderer.ts         réponses visibles depuis state + effects
+  router.ts           adaptateur global mince autour du workflow
 ```
 
 `router/run.ts` ne doit contenir qu'un thin re-export et le câblage global.
@@ -467,7 +633,19 @@ quand même une logique d'état. Exemples : réparation émotionnelle,
 clarification, coaching, exploration d'un blocage, aide à décider.
 
 Même principe : l'IA remplit un état structuré, le code ne comprend pas à sa
-place.
+place. La différence avec un Tool Skill est que l'effet principal est souvent
+conversationnel : stabiliser, clarifier, aider à choisir, proposer un prochain
+pas. Mais la discipline reste la même :
+
+```
+contract -> structured intake -> reducer -> response/effects -> renderer
+```
+
+Un Conversation Skill peut aussi produire des effets durables, par exemple une
+mémoire à enregistrer, une préférence explicite, une interruption de flow, ou
+un signal de handoff vers un Tool Skill. Ces effets doivent suivre le même
+contrat `requested/allowed/blocked/committed` dès qu'ils touchent la DB ou un
+état durable.
 
 ### Schéma d'état
 
@@ -514,13 +692,17 @@ type ConversationSkillState = {
 
 1. Le router choisit le skill via sortie structurée.
 2. Le skill reçoit le message + contexte + état existant.
-3. Un appel IA met à jour les slots.
-4. Le skill choisit la phase suivante depuis le JSON.
-5. Un appel IA rédige la réponse user à partir de l'état.
-6. Le code sauvegarde l'état et renvoie le message généré.
-7. Si le user corrige Sophia, la correction est intégrée dans le prochain
+3. Un intake IA met à jour les slots, la phase, les contraintes de ton, les
+   besoins de réparation, les limites safety et les handoffs éventuels.
+4. Le reducer merge l'état et choisit la phase suivante depuis le JSON.
+5. Si un effet durable est demandé, le reducer l'exprime comme effet
+   `requested/allowed/blocked`; l'executor seul peut le commiter.
+6. Le renderer rédige la réponse user à partir de l'état structuré, des
+   préférences runtime, des contraintes du tour et des effets commités.
+7. Le code sauvegarde l'état et renvoie le message généré.
+8. Si le user corrige Sophia, la correction est intégrée dans le prochain
    JSON, pas traitée par regex.
-8. Si l'appel IA échoue, le tour ne doit pas inventer une compréhension.
+9. Si l'appel IA échoue, le tour ne doit pas inventer une compréhension.
 
 ### Contrat Conversation Skill
 
@@ -532,6 +714,10 @@ Le code peut faire :
 - empêcher une réponse si safety critique ;
 - sauvegarder l'état ;
 - router vers un autre skill si la sortie structurée le demande.
+- enregistrer un effet durable seulement s'il est explicitement autorisé et
+  commité par un executor dédié ;
+- empêcher le renderer d'affirmer une mémoire, une préférence ou une action
+  qui n'a pas été commitée.
 
 Le code ne doit pas faire :
 
@@ -541,6 +727,26 @@ Le code ne doit pas faire :
 - réponse hardcodée ;
 - fallback conversationnel écrit dans le code ;
 - classification parallèle du message.
+- promettre « je garde ça en mémoire » sans `committed_effect` mémoire ;
+- appliquer une préférence runtime en DB alors que le skill a seulement
+  compris une préférence vague ou non confirmée.
+
+### Familles conversationnelles attendues
+
+Chaque Conversation Skill doit définir son contrat propre. Par exemple :
+
+- `emotional_repair` : problème ressenti, émotion, intensité, besoin de
+  réponse, limite safety, micro-pas éventuel.
+- `daily` : état du jour, énergie, friction principale, priorité du jour,
+  action immédiate, mémoire ou suivi éventuel.
+- `weekly` : bilan, patterns, progression, obstacle récurrent, décision de la
+  semaine, ajustements éventuels.
+- `clarification` : question à clarifier, hypothèses, ambiguïtés restantes,
+  réponse attendue.
+
+Ces contrats ne doivent pas être fusionnés dans un super-skill générique. La
+polyvalence vient de skills spécialisés avec un format commun, pas d'un prompt
+unique qui essaie de tout faire.
 
 ---
 
@@ -810,13 +1016,17 @@ User message
   -> Router IA produit une sortie structurée (TurnFrame)
   -> Skill sélectionné
   -> Slot filler IA met à jour le JSON du skill
-  -> Code valide le JSON, sans interpréter le texte
-  -> Sous-skill choisi depuis le JSON
-  -> Si incomplet : IA génère la question
-  -> Si complet  : generator/tool produit brouillon + message user-ready
+  -> Reducer valide/merge le JSON, sans interpréter le texte brut
+  -> Sous-skill choisi depuis l'état structuré
+  -> Effets requested/allowed/blocked calculés par le skill
+  -> Si incomplet : renderer génère la question depuis l'état
+  -> Si draft_only : renderer montre un brouillon non exécutable
+  -> Si complet + effet durable : generator produit brouillon + confirmation
   -> Sous-skill de validation classe la réponse user depuis une sortie IA
      structurée
-  -> Executor applique uniquement après validation
+  -> Executor applique uniquement après validation et effet allowed
+  -> Executor retourne committed_effects
+  -> Renderer final répond uniquement depuis state + committed_effects
 ```
 
 Et surtout :
@@ -824,6 +1034,8 @@ Et surtout :
 - pas d'appel IA = pas de compréhension fiable ;
 - pas de compréhension fiable = pas d'avancement métier ;
 - pas d'avancement métier = pas de fallback regex.
+- pas de `committed_effect` = pas de « c'est fait » ;
+- pas de `committed_effect` = pas de `executedTools`.
 
 Cette règle est commune aux Conversation Skills et aux Tool Skills.
 

@@ -1,6 +1,6 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
-import { looksLikeReminderExecutionConfirmationForTest } from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
+import { looksLikeReminderExecutionConfirmation } from "../tools/always_on/one_shot_reminder/route_guards.ts";
 
 // =============================================================================
 // COUCHE L3 — Arbitre de routage
@@ -68,6 +68,17 @@ function activeOperationType(input: TurnIntentArbitrationInput): string {
 
 function pendingOperationType(value: unknown): string {
   return String((value as any)?.operation_type ?? "").trim();
+}
+
+function routeAlreadyOwnsProductHelp(routeDecision: RouteDecision): boolean {
+  return routeDecision.response_owner === "product_help" ||
+    routeDecision.selected_handler === "product_help";
+}
+
+function routeAlreadyOwnsStatusRead(routeDecision: RouteDecision): boolean {
+  return routeDecision.selected_handler === "status_only_no_mutation_check" ||
+    routeDecision.reason_code.includes("status_only") ||
+    routeDecision.reason_code.includes("status_recap");
 }
 
 function blockedPath(path: string, reasonCode: string) {
@@ -230,7 +241,11 @@ export function detectsRecapRequest(message: string): boolean {
   if (/\brecap\s+(?:final|de\s+session|de\s+la\s+session)\b/.test(text)) {
     return true;
   }
-  if (/\b(resume|resume moi)\b.*\b(session|conversation|tour|ce qu on a)\b/.test(text)) {
+  if (
+    /\b(resume|resume moi)\b.*\b(session|conversation|tour|ce qu on a)\b/.test(
+      text,
+    )
+  ) {
     return true;
   }
   // Chantier 16 (2026-05-28) — Mémoire conversationnelle humaine. Voir
@@ -241,7 +256,9 @@ export function detectsRecapRequest(message: string): boolean {
     /\b(resume|raconte|donne moi|dis moi|rappelle moi)\b.*\b(ce que tu (?:dois|as)? ?(?:retenir|retiens|retenu)|ce que tu retiens|ce qu il faut retenir)\b/
       .test(text)
   ) return true;
-  if (/\b(qu est ce que tu as retenu|qu as tu retenu|que retiens tu)\b/.test(text)) {
+  if (
+    /\b(qu est ce que tu as retenu|qu as tu retenu|que retiens tu)\b/.test(text)
+  ) {
     return true;
   }
   return false;
@@ -348,7 +365,9 @@ export function looksLikeAttackCardSlotCorrection(message: string): boolean {
  */
 export function detectsMultiEntityDurableStatus(message: string): boolean {
   const text = normalizeText(message);
-  if (/\b(point|etat|recap|resume)\s+(?:de\s+l\s*)?etat\s+durable\b/.test(text)) {
+  if (
+    /\b(point|etat|recap|resume)\s+(?:de\s+l\s*)?etat\s+durable\b/.test(text)
+  ) {
     return true;
   }
   if (/\b(point\s+durable|etat\s+durable|recap\s+durable)\b/.test(text)) {
@@ -437,7 +456,7 @@ export function detectsExplicitAttackCardCreationRequest(
 function isExplicitOperationCommand(message: string): boolean {
   return (
     detectsExplicitOneShotReminderCreate(message) ||
-    looksLikeReminderExecutionConfirmationForTest(message) ||
+    looksLikeReminderExecutionConfirmation(message) ||
     detectsExplicitAttackCardCreationRequest(message)
   );
 }
@@ -655,7 +674,9 @@ function rewriteForProductHelp(
  * Utilisé quand on bascule sur un chemin non-tool (product_help, recap)
  * pour éviter que les couches en aval relisent un brouillon obsolète.
  */
-function clearToolSkillFlowEntries(tempMemory: unknown): Record<string, unknown> {
+function clearToolSkillFlowEntries(
+  tempMemory: unknown,
+): Record<string, unknown> {
   const next: Record<string, unknown> = { ...(tempMemory as any ?? {}) };
   delete next.__pending_tool_skill_confirmation;
   delete next.pending_tool_skill_confirmation;
@@ -675,19 +696,17 @@ function rewriteForPendingAttackCardContinuation(
   const nextTurnFrame: TurnFrame = {
     ...input.turnFrame,
     direct_effects: [],
-    tool_skill_intents: hasIntent
-      ? input.turnFrame.tool_skill_intents
-      : [
-        ...input.turnFrame.tool_skill_intents,
-        {
-          operation_type: "prepare_attack_card",
-          explicitness: "explicit",
-          target_hint: input.userMessage,
-          confidence_band: "high",
-          ambiguity: "none",
-          user_intent: "update",
-        },
-      ],
+    tool_skill_intents: hasIntent ? input.turnFrame.tool_skill_intents : [
+      ...input.turnFrame.tool_skill_intents,
+      {
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: input.userMessage,
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "update",
+      },
+    ],
     tool_skill_opportunity: noneOpportunity(),
   };
   return {
@@ -724,19 +743,21 @@ function rewriteForExplicitAttackCardCreation(
   const nextTurnFrame: TurnFrame = {
     ...input.turnFrame,
     direct_effects: [],
-    tool_skill_intents: hasIntent
-      ? input.turnFrame.tool_skill_intents
-      : [
-        ...input.turnFrame.tool_skill_intents,
-        {
-          operation_type: "prepare_attack_card",
-          explicitness: "explicit",
+    tool_skill_intents: hasIntent ? input.turnFrame.tool_skill_intents : [
+      ...input.turnFrame.tool_skill_intents,
+      {
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: input.userMessage,
+        payload_hint: {
+          route_hint: "explicit_attack_card_candidate",
           target_hint: input.userMessage,
-          confidence_band: "high",
-          ambiguity: "none",
-          user_intent: "create",
         },
-      ],
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "none",
+      },
+    ],
     tool_skill_opportunity: noneOpportunity(),
   };
   return {
@@ -888,7 +909,7 @@ export function arbitrateTurnIntent(
     !input.routeDecision.direct_effects_to_run.includes(
       "create_one_shot_reminder",
     ) &&
-    looksLikeReminderExecutionConfirmationForTest(input.userMessage) &&
+    looksLikeReminderExecutionConfirmation(input.userMessage) &&
     !input.safetyBlocksTools
   ) {
     return rewriteForOneShotReminder(
@@ -956,7 +977,8 @@ export function arbitrateTurnIntent(
   // tombait à tort sur update_coach_preferences.
   if (
     detectsMultiEntityDurableStatus(input.userMessage) && !cardDraftingActive &&
-    !isExplicitOperationCommand(input.userMessage)
+    !isExplicitOperationCommand(input.userMessage) &&
+    !routeAlreadyOwnsStatusRead(input.routeDecision)
   ) {
     return rewriteForStatusOnly(input);
   }
@@ -981,7 +1003,9 @@ export function arbitrateTurnIntent(
   }
 
   if (
-    detectsDurableCoachPreference(input.userMessage) && !input.safetyBlocksTools
+    detectsDurableCoachPreference(input.userMessage) &&
+    !input.safetyBlocksTools &&
+    !routeAlreadyOwnsStatusRead(input.routeDecision)
   ) {
     return rewriteForCoachPreference(input);
   }
@@ -1004,7 +1028,10 @@ export function arbitrateTurnIntent(
     return rewriteForPendingAttackCardContinuation(input);
   }
 
-  if (detectsExplicitProductHelp(input.userMessage)) {
+  if (
+    detectsExplicitProductHelp(input.userMessage) &&
+    !routeAlreadyOwnsProductHelp(input.routeDecision)
+  ) {
     return rewriteForProductHelp(input);
   }
 
@@ -1012,7 +1039,8 @@ export function arbitrateTurnIntent(
   // à un flow de carte actif (A3-r8 T6/T8).
   if (
     detectsExactDurableStatus(input.userMessage) && !cardDraftingActive &&
-    !isExplicitOperationCommand(input.userMessage)
+    !isExplicitOperationCommand(input.userMessage) &&
+    !routeAlreadyOwnsStatusRead(input.routeDecision)
   ) {
     return rewriteForStatusOnly(input);
   }

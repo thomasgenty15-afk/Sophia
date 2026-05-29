@@ -3,6 +3,12 @@ import {
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
 import { ATTACK_TECHNIQUES, type AttackTechniqueKey } from "./generator.ts";
+import {
+  normalizePrepareAttackCardConstraints,
+  normalizePrepareAttackCardUserIntent,
+  type PrepareAttackCardConstraint,
+  type PrepareAttackCardUserIntent,
+} from "./contract.ts";
 import type {
   AttackCardConfidence,
   AttackCardIntakeState,
@@ -21,6 +27,8 @@ export type AttackCardSlotFillerInput = {
 
 export type AttackCardSlotFillerOutput = {
   current_step: AttackCardStep;
+  user_intent?: PrepareAttackCardUserIntent;
+  constraints?: PrepareAttackCardConstraint[];
   state_patch: Partial<AttackCardIntakeState>;
   draft_review_decision?: {
     decision:
@@ -161,7 +169,7 @@ function techniqueOption(
   };
 }
 
-export function refineAttackCardTechniqueFitForTest(
+export function refineAttackCardTechniqueFit(
   output: AttackCardSlotFillerOutput,
   input: Pick<AttackCardSlotFillerInput, "message" | "recent_messages">,
 ): AttackCardSlotFillerOutput {
@@ -177,9 +185,14 @@ export function refineAttackCardTechniqueFitForTest(
   ].join("\n");
   const normalized = normalizeFitText(evidenceText);
   const isPreEngagementFit = isPreEngagementFitText(normalized);
-  const isExecutionStartBlocker =
-    isExecutionStartBlockerText(normalized) ||
-    ["avoidance", "procrastination", "action_too_heavy", "unclear_first_step", "friction"]
+  const isExecutionStartBlocker = isExecutionStartBlockerText(normalized) ||
+    [
+      "avoidance",
+      "procrastination",
+      "action_too_heavy",
+      "unclear_first_step",
+      "friction",
+    ]
       .includes(String((patch.blocker as any)?.type ?? ""));
   if (!isExecutionStartBlocker || isPreEngagementFit) return output;
 
@@ -253,7 +266,7 @@ const EXPLICIT_TECHNIQUE_TITLE_PATTERNS: Array<
   },
 ];
 
-export function detectExplicitlyNamedTechniqueForTest(
+export function detectExplicitlyNamedTechnique(
   message: string,
 ): AttackTechniqueKey | null {
   const text = normalizeFitText(message ?? "");
@@ -263,11 +276,11 @@ export function detectExplicitlyNamedTechniqueForTest(
   return null;
 }
 
-export function enforceExplicitTechniqueRequestForTest(
+export function enforceExplicitTechniqueRequest(
   output: AttackCardSlotFillerOutput,
   input: Pick<AttackCardSlotFillerInput, "message">,
 ): AttackCardSlotFillerOutput {
-  const requested = detectExplicitlyNamedTechniqueForTest(input.message ?? "");
+  const requested = detectExplicitlyNamedTechnique(input.message ?? "");
   if (!requested) return output;
   const patch = output.state_patch;
   const current = patch.technique;
@@ -408,8 +421,11 @@ function normalizeStatePatch(value: unknown): Partial<AttackCardIntakeState> {
     };
   }
   if (Array.isArray(root.constraints)) {
-    patch.constraints = stringArray(root.constraints);
+    patch.constraints = normalizePrepareAttackCardConstraints(
+      root.constraints,
+    );
   }
+  patch.user_intent = normalizePrepareAttackCardUserIntent(root.user_intent);
   if (Array.isArray(root.missing_slots)) {
     patch.missing_slots = stringArray(root.missing_slots);
   }
@@ -454,6 +470,10 @@ export function normalizeAttackCardSlotFillerOutput(
   const root = parseJsonObject(raw);
   return {
     current_step: step(root.current_step),
+    user_intent: normalizePrepareAttackCardUserIntent(root.user_intent),
+    constraints: normalizePrepareAttackCardConstraints(
+      root.constraints ?? objectValue(root.state_patch)?.constraints,
+    ),
     state_patch: normalizeStatePatch(root.state_patch),
     draft_review_decision: normalizeDraftReviewDecision(
       objectValue(root.state_patch)?.draft_validation,
@@ -474,7 +494,9 @@ export async function fillAttackCardSlotsWithAi(
     "Tu es le slot filler interne du Tool Skill prepare_attack_card de Sophia.",
     "Tu ne réponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
-    "Tu dois identifier ou mettre a jour: cible, technique, mot de bascule si applicable, blocker, contraintes, slots manquants, message court a envoyer au user.",
+    "Tu dois identifier ou mettre a jour: user_intent global, contraintes, cible, technique, mot de bascule si applicable, blocker, slots manquants, message court a envoyer au user.",
+    "user_intent vaut draft_only si le user demande un brouillon, une proposition ou un affichage sans création; create seulement s'il demande clairement la création maintenant; cancel/reject s'il refuse; revise s'il corrige; explain s'il demande pourquoi/comment; status_question pour une question produit/statut; topic_change pour une sortie vers un autre sujet; clarify si une précision est demandée; unknown sinon.",
+    "Les contraintes no_create/draft_only doivent être explicites dès que le user dit sans créer, pas encore, montre/affiche le brouillon, draft only, ou demande seulement une proposition.",
     "Si operation_input.previous_draft existe, tu es dans le sous-skill draft_validation: dans le meme JSON, remplis state_patch.draft_validation.decision avec approve|reject|revise|explain|topic_change|unclear.",
     "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details; topic_change sort du brouillon; unclear ne suffit pas.",
     "Dans draft_validation, si le user dit oui a une demande de preparer/montrer/reformuler le brouillon, ce n'est pas approve: c'est revise tant qu'il ne demande pas explicitement la creation.",
@@ -498,7 +520,17 @@ export async function fillAttackCardSlotsWithAi(
     required_json_shape: {
       current_step:
         "target_intake|technique_selection|keyword_intake|draft_generation|draft_validation|confirmation",
+      user_intent:
+        "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+      constraints: [{
+        kind:
+          "draft_only|no_create|max_proposals|single_proposal|no_extra_options|style",
+        value: "unknown optional",
+        evidence: ["string"],
+      }],
       state_patch: {
+        user_intent:
+          "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
         target: {
           status: "missing|ambiguous|identified",
           kind: "plan_item|personal_action|unknown",
@@ -543,7 +575,12 @@ export async function fillAttackCardSlotsWithAi(
           confidence: 0.7,
           evidence: ["string"],
         },
-        constraints: ["string"],
+        constraints: [{
+          kind:
+            "draft_only|no_create|max_proposals|single_proposal|no_extra_options|style",
+          value: "unknown optional",
+          evidence: ["string"],
+        }],
         draft_validation: {
           decision: "approve|reject|revise|explain|topic_change|unclear",
           confidence: "low|medium|high",
@@ -585,8 +622,8 @@ export async function fillAttackCardSlotsWithAi(
   );
   // CHANTIER C8 — l'enforce passe APRÈS le refine: une technique nommée
   // explicitement par l'utilisateur prime toujours sur le steering de fit.
-  return enforceExplicitTechniqueRequestForTest(
-    refineAttackCardTechniqueFitForTest(
+  return enforceExplicitTechniqueRequest(
+    refineAttackCardTechniqueFit(
       normalizeAttackCardSlotFillerOutput(raw),
       input,
     ),

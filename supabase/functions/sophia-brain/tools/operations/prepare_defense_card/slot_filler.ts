@@ -3,6 +3,12 @@ import {
   getGlobalAiModel,
 } from "../../../../_shared/gemini.ts";
 import type { DefenseCardGeneratorInput } from "../_shared/operation_payload_builder.ts";
+import {
+  normalizePrepareDefenseCardConstraints,
+  normalizePrepareDefenseCardUserIntent,
+  type PrepareDefenseCardConstraint,
+  type PrepareDefenseCardUserIntent,
+} from "./contract.ts";
 import type {
   DefenseCardConfidence,
   DefenseCardIntakeState,
@@ -25,6 +31,8 @@ export type DefenseCardSlotFillerInput = {
 
 export type DefenseCardSlotFillerOutput = {
   current_step: DefenseCardStep;
+  user_intent: PrepareDefenseCardUserIntent;
+  constraints: PrepareDefenseCardConstraint[];
   state_patch: Partial<DefenseCardIntakeState>;
   draft_review_decision?: {
     decision:
@@ -276,8 +284,11 @@ function normalizeStatePatch(value: unknown): Partial<DefenseCardIntakeState> {
     };
   }
   if (Array.isArray(root.constraints)) {
-    patch.constraints = stringArray(root.constraints);
+    patch.constraints = normalizePrepareDefenseCardConstraints(
+      root.constraints,
+    );
   }
+  patch.user_intent = normalizePrepareDefenseCardUserIntent(root.user_intent);
   if (Array.isArray(root.missing_slots)) {
     patch.missing_slots = stringArray(root.missing_slots);
   }
@@ -322,6 +333,8 @@ export function normalizeDefenseCardSlotFillerOutput(
   const root = parseJsonObject(raw);
   return {
     current_step: step(root.current_step),
+    user_intent: normalizePrepareDefenseCardUserIntent(root.user_intent),
+    constraints: normalizePrepareDefenseCardConstraints(root.constraints),
     state_patch: normalizeStatePatch(root.state_patch),
     draft_review_decision: normalizeDraftReviewDecision(
       objectValue(root.state_patch)?.draft_validation,
@@ -344,7 +357,10 @@ export async function fillDefenseCardSlotsWithAi(
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
     "Une carte de defense sert aux moments de risque: impulsion, rechute, tentation, fatigue, stress, habitude qui embarque, moment ou la personne peut deraper.",
     "Si le user demande explicitement une carte de defense mais décrit un problème de demarrage, ne bascule pas automatiquement vers attaque: mets tool_fit.status='unclear' et demande s'il veut couvrir un moment de craquage avec une defense ou plutot demarrer avec une attaque.",
-    "Tu dois identifier ou mettre à jour: tool_fit, attachment, risk_situation, trigger, defense_goal, defense_response_hint, contraintes, slots manquants, message court a envoyer au user.",
+    "Tu dois identifier ou mettre à jour: user_intent, constraints, tool_fit, attachment, risk_situation, trigger, defense_goal, defense_response_hint, slots manquants, message court a envoyer au user.",
+    "user_intent classe l'intention globale du tour: draft_only, create, update, cancel, reject, revise, explain, topic_change, status_question, clarify ou unknown.",
+    "constraints liste les contraintes explicites sous forme d'objets {kind,value,evidence}: draft_only, no_create, keep_short, single_card, protect_current_action, no_attack_card.",
+    "Si le user demande juste un brouillon sans creer, user_intent=draft_only et constraints contient draft_only et no_create.",
     "Si operation_input.previous_draft existe, tu es dans le sous-skill draft_validation: dans le meme JSON, remplis state_patch.draft_validation.decision avec approve|reject|revise|explain|topic_change|unclear.",
     "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details; topic_change sort du brouillon; unclear ne suffit pas.",
     "Dans draft_validation, si le user dit oui a une demande de preparer/montrer/reformuler le brouillon, ce n'est pas approve: c'est revise tant qu'il ne demande pas explicitement la creation.",
@@ -362,7 +378,17 @@ export async function fillDefenseCardSlotsWithAi(
     required_json_shape: {
       current_step:
         "attachment_intake|risk_intake|response_design|draft_generation|draft_validation|confirmation",
+      user_intent:
+        "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+      constraints: [{
+        kind:
+          "draft_only|no_create|keep_short|single_card|protect_current_action|no_attack_card",
+        value: "unknown|null",
+        evidence: ["string"],
+      }],
       state_patch: {
+        user_intent:
+          "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
         tool_fit: {
           status: "defense|attack_better|unclear",
           reason: "string|null",
@@ -415,7 +441,12 @@ export async function fillDefenseCardSlotsWithAi(
           confidence: "low|medium|high",
           evidence: ["string"],
         },
-        constraints: ["string"],
+        constraints: [{
+          kind:
+            "draft_only|no_create|keep_short|single_card|protect_current_action|no_attack_card",
+          value: "unknown|null",
+          evidence: ["string"],
+        }],
         draft_validation: {
           decision: "approve|reject|revise|explain|topic_change|unclear",
           confidence: "low|medium|high",

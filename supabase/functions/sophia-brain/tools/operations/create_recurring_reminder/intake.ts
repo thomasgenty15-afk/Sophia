@@ -19,6 +19,11 @@ import {
   type RecurringReminderDraftV1,
   runRecurringReminderBuilder,
 } from "./generator.ts";
+import type {
+  CreateRecurringReminderConstraint,
+  CreateRecurringReminderHandoffTarget,
+  CreateRecurringReminderUserIntent,
+} from "./contract.ts";
 
 export type RecurringReminderConfidence = "low" | "medium" | "high";
 export type RecurringReminderFrequency =
@@ -39,6 +44,9 @@ type SlotStatus = "missing" | "ambiguous" | "identified";
 export type RecurringReminderIntakeState = {
   skill_id: "create_recurring_reminder";
   current_sub_skill: RecurringReminderSubSkill;
+  user_intent: CreateRecurringReminderUserIntent;
+  constraints: CreateRecurringReminderConstraint[];
+  handoff_target: CreateRecurringReminderHandoffTarget;
   recurrence: {
     status: SlotStatus;
     frequency: RecurringReminderFrequency | null;
@@ -96,6 +104,9 @@ export type CreateRecurringReminderSlotFillerInput = {
 
 export type CreateRecurringReminderSlotFillerOutput = {
   current_sub_skill: RecurringReminderSubSkill;
+  user_intent: CreateRecurringReminderUserIntent;
+  constraints: CreateRecurringReminderConstraint[];
+  handoff_target: CreateRecurringReminderHandoffTarget;
   state_patch: Partial<RecurringReminderIntakeState>;
   missing_slots: string[];
   confidence: RecurringReminderConfidence;
@@ -111,7 +122,9 @@ export type CreateRecurringReminderOperationOutput = {
   operation_type: "create_recurring_reminder";
   status:
     | "ask_question"
+    | "draft_ready"
     | "pending_confirmation"
+    | "handoff_to_one_shot"
     | "cancelled"
     | "fallback_dashboard"
     | "invalid_recommendation_payload"
@@ -199,6 +212,57 @@ function subSkill(value: unknown): RecurringReminderSubSkill {
     : "recurrence_resolution";
 }
 
+function userIntent(value: unknown): CreateRecurringReminderUserIntent {
+  const raw = String(value ?? "").trim();
+  return [
+      "start",
+      "provide_slot",
+      "draft_only",
+      "create",
+      "cancel",
+      "reject",
+      "revise",
+      "explain",
+      "topic_change",
+      "status_question",
+      "one_shot_handoff",
+      "clarify",
+      "unknown",
+    ].includes(raw)
+    ? raw as CreateRecurringReminderUserIntent
+    : "unknown";
+}
+
+function handoffTarget(value: unknown): CreateRecurringReminderHandoffTarget {
+  return String(value ?? "").trim() === "create_one_shot_reminder"
+    ? "create_one_shot_reminder"
+    : null;
+}
+
+function constraints(value: unknown): CreateRecurringReminderConstraint[] {
+  if (!Array.isArray(value)) return [];
+  const allowedKinds = new Set([
+    "recurring_only",
+    "no_one_shot",
+    "no_create",
+    "draft_only",
+    "base_de_vie",
+    "current_plan",
+    "exact_text",
+    "no_plan_binding",
+  ]);
+  return value.flatMap((item) => {
+    const root = objectValue(item);
+    const kind = String(root?.kind ?? "").trim();
+    if (!allowedKinds.has(kind)) return [];
+    return [{
+      kind: kind as CreateRecurringReminderConstraint["kind"],
+      value: root && "value" in root ? root.value : undefined,
+      evidence: stringArray(root?.evidence),
+    }];
+  });
+}
+
 function destinationValue(value: unknown): "current_plan" | "base_de_vie" {
   return String(value ?? "").trim() === "current_plan"
     ? "current_plan"
@@ -257,6 +321,12 @@ function defaultState(timezone: string): RecurringReminderIntakeState {
   return {
     skill_id: "create_recurring_reminder",
     current_sub_skill: "recurrence_resolution",
+    user_intent: "unknown",
+    constraints: [{
+      kind: "recurring_only",
+      evidence: ["create_recurring_reminder_domain"],
+    }],
+    handoff_target: null,
     recurrence: {
       status: "missing",
       frequency: null,
@@ -386,6 +456,15 @@ function normalizeStatePatch(
   if (root.current_sub_skill) {
     patch.current_sub_skill = subSkill(root.current_sub_skill);
   }
+  if (root.user_intent !== undefined) {
+    patch.user_intent = userIntent(root.user_intent);
+  }
+  if (root.handoff_target !== undefined) {
+    patch.handoff_target = handoffTarget(root.handoff_target);
+  }
+  if (root.constraints !== undefined) {
+    patch.constraints = constraints(root.constraints);
+  }
   if (root.generated_user_message !== undefined) {
     patch.generated_user_message = root.generated_user_message == null
       ? null
@@ -407,10 +486,20 @@ function mergeState(
     reminder_content: { ...base.reminder_content },
     destination: { ...base.destination },
     draft_messages: { ...base.draft_messages },
+    constraints: [...base.constraints],
     missing_slots: [...base.missing_slots],
   };
   if (normalized.current_sub_skill) {
     next.current_sub_skill = normalized.current_sub_skill;
+  }
+  if (normalized.user_intent) {
+    next.user_intent = normalized.user_intent;
+  }
+  if (normalized.handoff_target !== undefined) {
+    next.handoff_target = normalized.handoff_target;
+  }
+  if (normalized.constraints) {
+    next.constraints = normalized.constraints;
   }
   if (normalized.recurrence) {
     next.recurrence = { ...next.recurrence, ...normalized.recurrence };
@@ -478,6 +567,9 @@ function stateFromOperationInput(
       ...(objectValue(existing?.draft_messages) ?? {}),
       ...(objectValue(input.draft_messages) ?? {}),
     },
+    user_intent: existing?.user_intent ?? input.user_intent,
+    constraints: existing?.constraints ?? input.constraints,
+    handoff_target: existing?.handoff_target ?? input.handoff_target,
     generated_user_message: existing?.generated_user_message,
   }, timezone);
 }
@@ -519,6 +611,9 @@ function operationInputFromState(
 ): Record<string, unknown> {
   return {
     intake_state: state,
+    user_intent: state.user_intent,
+    constraints: state.constraints,
+    handoff_target: state.handoff_target,
     ...(state.recurrence.frequency
       ? { frequency: state.recurrence.frequency }
       : {}),
@@ -564,6 +659,9 @@ export function normalizeCreateRecurringReminderSlotFillerOutput(
   const root = parseJsonObject(raw);
   return {
     current_sub_skill: subSkill(root.current_sub_skill),
+    user_intent: userIntent(root.user_intent),
+    constraints: constraints(root.constraints),
+    handoff_target: handoffTarget(root.handoff_target),
     state_patch: normalizeStatePatch(root.state_patch, timezone),
     missing_slots: stringArray(root.missing_slots),
     confidence: confidence(root.confidence),
@@ -608,7 +706,7 @@ export async function fillCreateRecurringReminderSlotsWithAi(
     "Tu es le slot filler interne du Tool Skill create_recurring_reminder de Sophia.",
     "Tu ne réponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
-    "Le tool crée seulement des rappels récurrents. Si la demande est ponctuelle, explique dans generated_user_message que ce flow n'est pas le bon et laisse les slots manquants.",
+    "Le tool crée seulement des rappels récurrents. Si la demande est ponctuelle, retourne user_intent='one_shot_handoff', handoff_target='create_one_shot_reminder', constraints avec recurring_only/no_one_shot, generated_user_message court, et ne génère jamais de draft récurrent.",
     "Tu dois identifier ou mettre à jour: recurrence, reminder_content, destination, draft_messages, slots manquants et message court à envoyer au user.",
     "Le minimum métier est: fréquence récurrente, heure locale HH:mm, et message exact/actionnable du rappel.",
     "Interprète 'jours de semaine' comme frequency='weekdays'. Interprète les heures françaises comme '12h30', '7h30', '18h' en HH:mm sans redemander l'heure quand elle est déjà présente.",
@@ -633,7 +731,25 @@ export async function fillCreateRecurringReminderSlotsWithAi(
     required_json_shape: {
       current_sub_skill:
         "recurrence_resolution|content_intake|draft_generation|draft_validation|confirmation",
+      user_intent:
+        "start|provide_slot|draft_only|create|cancel|reject|revise|explain|topic_change|status_question|one_shot_handoff|clarify|unknown",
+      constraints: [{
+        kind:
+          "recurring_only|no_one_shot|no_create|draft_only|base_de_vie|current_plan|exact_text|no_plan_binding",
+        value: "unknown",
+        evidence: ["string"],
+      }],
+      handoff_target: "create_one_shot_reminder|null",
       state_patch: {
+        user_intent:
+          "start|provide_slot|draft_only|create|cancel|reject|revise|explain|topic_change|status_question|one_shot_handoff|clarify|unknown",
+        constraints: [{
+          kind:
+            "recurring_only|no_one_shot|no_create|draft_only|base_de_vie|current_plan|exact_text|no_plan_binding",
+          value: "unknown",
+          evidence: ["string"],
+        }],
+        handoff_target: "create_one_shot_reminder|null",
         recurrence: {
           status: "missing|ambiguous|identified",
           frequency: "daily|weekly|specific_days|weekdays|custom|null",
@@ -918,6 +1034,9 @@ export async function runCreateRecurringReminderIntake(input: {
     nextState = mergeState(initialState, {
       ...filled.state_patch,
       current_sub_skill: filled.current_sub_skill,
+      user_intent: filled.user_intent,
+      constraints: filled.constraints,
+      handoff_target: filled.handoff_target,
       missing_slots: filled.missing_slots,
       generated_user_message: filled.generated_user_message,
       confidence: filled.confidence,
@@ -929,6 +1048,30 @@ export async function runCreateRecurringReminderIntake(input: {
   );
 
   const operationInput = operationInputFromState(nextState);
+  if (
+    nextState.user_intent === "one_shot_handoff" ||
+    nextState.handoff_target === "create_one_shot_reminder"
+  ) {
+    return {
+      operation_type: "create_recurring_reminder",
+      status: "handoff_to_one_shot",
+      source,
+      phase: "exit",
+      ack: nextState.generated_user_message ??
+        "Ce rappel a l'air ponctuel. Je laisse le rappel ponctuel le gérer.",
+      state_patch: {
+        summary: "Recurring reminder skill handed off one-shot reminder.",
+        phase: "exit",
+        missing_slots: nextState.missing_slots,
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: nextState,
+      },
+    };
+  }
+  if (nextState.user_intent === "cancel") {
+    return cancelCreateRecurringReminderOperation();
+  }
   if (nextState.missing_slots.length > 0) {
     if (source === "recommendation_tool") {
       return {
@@ -1022,6 +1165,31 @@ export async function runCreateRecurringReminderIntake(input: {
     buildRecurringReminderPayload(request),
     nextState.draft_messages,
   );
+  if (
+    nextState.user_intent === "draft_only" ||
+    nextState.constraints.some((constraint) =>
+      constraint.kind === "draft_only" || constraint.kind === "no_create"
+    )
+  ) {
+    return {
+      operation_type: "create_recurring_reminder",
+      status: "draft_ready",
+      source,
+      phase: "confirmation",
+      draft,
+      ack: nextState.generated_user_message ??
+        "J'ai préparé le brouillon du rappel récurrent, sans le créer.",
+      state_patch: {
+        summary:
+          "Recurring reminder draft generated without executable confirmation.",
+        phase: "confirmation",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: nextState,
+      },
+    };
+  }
   return {
     operation_type: "create_recurring_reminder",
     status: "pending_confirmation",

@@ -7,7 +7,13 @@ import {
 } from "./generator.ts";
 
 export type UpdateCoachPreferencesExecutorOutcome =
-  | { status: "executed"; preferences_update_id: string; ack: string }
+  | {
+    status: "executed";
+    preferences_update_id: string;
+    preferences_update_ids: string[];
+    preference_keys: string[];
+    ack: string;
+  }
   | { status: "blocked"; reason_code: string; ack: string };
 
 export async function executeUpdateCoachPreferences(input: {
@@ -22,7 +28,11 @@ export async function executeUpdateCoachPreferences(input: {
   token_consumption_check: (token_id: string) => Promise<boolean>;
   write_preferences_patch: (
     patch: CoachPreferencesPatchDraftV1["draft"]["patch"],
-  ) => Promise<{ preferences_update_id: string }>;
+  ) => Promise<{
+    preferences_update_id: string;
+    preferences_update_ids?: string[];
+    preference_keys?: string[];
+  }>;
   now_iso?: string;
   secret?: string;
 }): Promise<UpdateCoachPreferencesExecutorOutcome> {
@@ -51,6 +61,10 @@ export async function executeUpdateCoachPreferences(input: {
   return {
     status: "executed",
     preferences_update_id: written.preferences_update_id,
+    preferences_update_ids: written.preferences_update_ids ??
+      [written.preferences_update_id],
+    preference_keys: written.preference_keys ??
+      Object.keys(input.draft.draft.patch),
     ack:
       `C'est fait. J'ai mis a jour ta preference : ${input.draft.draft.summary} Tu peux modifier dans ton espace sur sophia-coach.ai.`,
   };

@@ -1,6 +1,12 @@
 export const WEEKLY_PLANNING_CONFIRMATION_EVENT_CONTEXT =
   "weekly_planning_confirmation_v2";
 
+export {
+  reviewWeeklyPatchConfirmation,
+  weeklyPatchConfirmationClearsPending,
+} from "./weekly_review/confirmation.ts";
+export type { WeeklyPatchConfirmationReview } from "./weekly_review/confirmation.ts";
+
 const DAY_CODES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 type DayCode = typeof DAY_CODES[number];
 

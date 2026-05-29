@@ -26,13 +26,22 @@ export type ConversationSkillStatus =
   | "handoff"
   | "recommendation_needed";
 
+export type ConversationSkillEffectLedger = {
+  requested: unknown[];
+  allowed: unknown[];
+  blocked: Array<{ type: string; reason_code: string }>;
+  committed: unknown[];
+};
+
 export type ConversationSkillOutput = {
   skill_id: string;
   status: ConversationSkillStatus;
   response_intent: string;
   reply?: string;
+  generated_user_message?: string;
   diagnosis?: Record<string, unknown>;
   state_patch?: Record<string, unknown>;
+  effects?: ConversationSkillEffectLedger;
   recommendation_need?: {
     needed: boolean;
     type:

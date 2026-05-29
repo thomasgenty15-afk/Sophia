@@ -6,11 +6,17 @@ import {
 } from "../../_shared/gemini.ts";
 import {
   buildOneShotReminderAddon,
-  isLikelyOneShotReminderRequest,
-  maybeCreateOneShotReminder,
-  type OneShotReminderToolOutcome,
   summarizeOneShotReminderOutcome,
-} from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
+} from "../tools/always_on/one_shot_reminder/renderer.ts";
+import {
+  isLikelyOneShotReminderRequest,
+} from "../tools/always_on/one_shot_reminder/route_guards.ts";
+import {
+  maybeCreateOneShotReminder,
+} from "../tools/always_on/one_shot_reminder/executor.ts";
+import type {
+  OneShotReminderToolOutcome,
+} from "../tools/always_on/one_shot_reminder/contract.ts";
 
 declare const Deno: any;
 

@@ -81,6 +81,35 @@ Deno.test("operation suggestion access allows execution_breakdown attack card", 
   }
 });
 
+Deno.test("operation suggestion access allows demotivation owned operations", () => {
+  for (
+    const operationType of [
+      "prepare_attack_card",
+      "adjust_plan_item",
+      "select_state_potion",
+      "create_recurring_reminder",
+    ] as const
+  ) {
+    const decision = evaluateOperationSuggestionAccess({
+      skill_id: "demotivation_repair",
+      safety_risk_band: "low",
+      suggestion: {
+        operation_type: operationType,
+        reason: "demotivation_repair_structured_decision",
+        confidence_band: "medium",
+        urgency: "medium",
+        source_skill_id: "demotivation_repair",
+        requires_user_consent: true,
+      },
+    });
+
+    assertEquals(decision.allowed, true);
+    if (decision.allowed) {
+      assertEquals(decision.chat_runtime_ready, true);
+    }
+  }
+});
+
 Deno.test("operation suggestion access blocks disallowed skill operation", () => {
   const decision = evaluateOperationSuggestionAccess({
     skill_id: "emotional_repair",
@@ -154,7 +183,7 @@ Deno.test("resolver converts supported skill suggestion to consented recommendat
   assertEquals(resolution.blocked_suggestions, []);
 });
 
-Deno.test("resolver does not expose unsupported chat runtime operation", () => {
+Deno.test("resolver exposes consented potion suggestion", () => {
   const resolution = resolveSkillOperationSuggestion({
     turn_frame: frame(),
     available_surfaces: surfaces,
@@ -173,9 +202,11 @@ Deno.test("resolver does not expose unsupported chat runtime operation", () => {
     }),
   });
 
-  assertEquals(resolution.recommendation, null);
-  assertEquals(resolution.blocked_suggestions, [{
-    operation_type: "select_state_potion",
-    reason_code: "tool_skill_chat_runtime_not_ready",
-  }]);
+  assertEquals(resolution.recommendation?.decision, "recommend_operation");
+  assertEquals(
+    resolution.recommendation?.operation_type,
+    "select_state_potion",
+  );
+  assertEquals(resolution.recommendation?.requires_consent, true);
+  assertEquals(resolution.blocked_suggestions, []);
 });

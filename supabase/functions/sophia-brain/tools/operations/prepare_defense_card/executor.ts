@@ -4,8 +4,8 @@ import { verifyExecutorConfirmation } from "../_shared/executor_guard.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
 
 export type PrepareDefenseCardExecutorOutcome =
-  | { status: "executed"; defense_card_id: string; ack: string }
-  | { status: "blocked"; reason_code: string; ack: string };
+  | { status: "executed"; defense_card_id: string }
+  | { status: "blocked"; reason_code: string };
 
 export async function executePrepareDefenseCard(input: {
   operation_id: string;
@@ -30,8 +30,6 @@ export async function executePrepareDefenseCard(input: {
     return {
       status: "blocked",
       reason_code: "draft_invalid",
-      ack:
-        "Je ne peux pas creer cette carte de defense: le draft est incomplet.",
     };
   }
   const guard = await verifyExecutorConfirmation({
@@ -50,7 +48,5 @@ export async function executePrepareDefenseCard(input: {
   return {
     status: "executed",
     defense_card_id: written.defense_card_id,
-    ack:
-      `C'est fait. J'ai cree une carte de defense pour ${input.draft.draft.risk_situation} : ${input.draft.draft.defense_response} Tu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation.`,
   };
 }

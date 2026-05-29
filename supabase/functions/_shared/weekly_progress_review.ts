@@ -90,6 +90,7 @@ export type WeeklyProgressDailyEvidence = {
   source: typeof DAILY_ACTION_REVIEW_SOURCE;
   reason_category: string | null;
   reason_text: string | null;
+  evidence_text: string | null;
   matched_user_text: string | null;
   still_relevant: boolean | null;
   occurrence_status: string | null;
@@ -340,6 +341,7 @@ function dailyEvidenceForOccurrence(
     source: DAILY_ACTION_REVIEW_SOURCE,
     reason_category: cleanText(metadata.reason_category) || null,
     reason_text: cleanText(metadata.reason_text ?? match.value_text) || null,
+    evidence_text: cleanText(metadata.evidence_text) || null,
     matched_user_text: cleanText(metadata.matched_user_text) || null,
     still_relevant: booleanOrNull(metadata.still_relevant),
     occurrence_status: cleanText(metadata.occurrence_status) || null,

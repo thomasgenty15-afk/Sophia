@@ -17,6 +17,8 @@ export function structuredDefenseCardSlotFiller(
       : missingSlots.includes("defense_goal")
       ? "response_design"
       : "draft_generation",
+    user_intent: "unknown",
+    constraints: [],
     state_patch: statePatch as any,
     missing_slots: missingSlots,
     confidence: "high",

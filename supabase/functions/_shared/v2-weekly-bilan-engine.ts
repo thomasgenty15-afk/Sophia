@@ -3,7 +3,9 @@
  *
  * - validateWeeklyBilanOutput: parses raw LLM JSON, enforces invariants,
  *   falls back to safe "hold" on any violation.
- * - materializeWeeklyAdjustments: applies load_adjustments to plan_items in DB.
+ * - materializeWeeklyAdjustments: legacy V2 materializer kept for historical
+ *   callers/tests. The proactive weekly_review_v1 workflow must apply weekly
+ *   changes through weekly_review/effects.ts after explicit confirmation.
  */
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
@@ -309,6 +311,10 @@ async function loadCurrentStatuses(
   );
 }
 
+/**
+ * @deprecated Legacy weekly bilan materializer. New weekly_review_v1 plan
+ * changes must go through applyWeeklyReviewEffects after confirmation.
+ */
 export async function materializeWeeklyAdjustments(
   supabase: SupabaseClient,
   planId: string,

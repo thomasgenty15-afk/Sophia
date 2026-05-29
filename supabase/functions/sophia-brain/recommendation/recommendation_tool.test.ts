@@ -15,6 +15,20 @@ function frame(patch: Partial<TurnFrame> = {}): TurnFrame {
     safety: { risk_band: "none", reason_codes: [], evidence: [] },
     direct_effects: [],
     tool_skill_intents: [],
+    tool_skill_opportunity: {
+      type: "none",
+      operation_type: null,
+      surface_id: null,
+      confidence_band: "low",
+      should_offer: false,
+      prop_reason: null,
+      source_span: null,
+      target_hint: null,
+      target_status: "none",
+      suggested_question_intent: null,
+      offer_timing: "never",
+      must_not_execute: true,
+    },
     skill_signals: {},
     memory_plan: {
       response_intent: "reflection",
@@ -134,7 +148,7 @@ Deno.test("recommendation_tool covers recommend, operations, clarification, defe
       operation: "prepare_attack_card",
     },
     {
-      name: "motivation-repair-attack-card",
+      name: "motivation-repair-owned-by-skill",
       patch: {
         skill_output: skillOutput({
           skill_id: "demotivation_repair",
@@ -147,8 +161,7 @@ Deno.test("recommendation_tool covers recommend, operations, clarification, defe
           },
         }),
       },
-      expected: "recommend_operation",
-      operation: "prepare_attack_card",
+      expected: "defer",
     },
     {
       name: "no-opportunity-defer",

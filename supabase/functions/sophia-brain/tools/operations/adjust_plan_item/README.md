@@ -49,3 +49,20 @@ Slot filling:
 Validation:
 
 - `draft_validation` blocks confirmation when materialized examples are missing, when a level draft touches the global plan, when the confirmation message claims execution before confirmation, or when user-facing messages contain technical JSON vocabulary.
+
+Legacy perimeter still in `legacy_intake.ts`:
+
+- semantic transition guards and non-AI fallbacks used only to keep existing QA flows stable;
+- scope-specific slot completion for `specific_plan_item`, `current_level`, and `whole_plan` while `structured_intake.ts` is expanded;
+- generator input mapping for action/level/whole-plan payloads;
+- deterministic draft fallbacks for current-level load and copy-forward cases;
+- draft materialization validation and weekly-review compatibility bridges;
+- safety behavior for missing slots and draft generation confirmation.
+
+Extraction target order:
+
+1. move scope completion to `scope_resolver.ts`;
+2. move generator input mapping and deterministic fallback selection to `draft_builder.ts`;
+3. move draft validation bridges to `confirmation.ts`;
+4. keep visible text in `renderer.ts`;
+5. keep DB effects in `effects.ts` / `materializer.ts`.

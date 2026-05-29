@@ -4,11 +4,14 @@ import { DAILY_ACTION_REVIEW_SOURCE } from "./daily_action_review.ts";
 import {
   buildWeeklyAdaptiveReview,
   buildWeeklyAdaptiveReviewInstruction,
+  buildWeeklyAdaptiveReviewMessage,
 } from "./weekly_adaptive_review.ts";
 import {
   weeklyAdaptiveReviewOpeningLooksValid,
 } from "./weekly_adaptive_review_opening.ts";
 import { buildWeeklyProgressReviewFromRows } from "./weekly_progress_review.ts";
+import { reduceWeeklyReview } from "./weekly_review/reducer.ts";
+import { renderWeeklyReviewDecision } from "./weekly_review/renderer.ts";
 
 function baseReview(overrides: {
   habitStatuses: Array<"done" | "partial" | "missed" | "planned">;
@@ -157,6 +160,34 @@ Deno.test("weekly adaptive review advances when habits are validated", () => {
     adaptive.item_decisions.find((item) => item.plan_item_id === "mission-1")
       ?.decision,
     "carry_over",
+  );
+});
+
+Deno.test("weekly_adaptive_review_delegates_to_weekly_review_reducer", () => {
+  const review = baseReview({
+    habitStatuses: ["done", "done", "done", "done"],
+    missionStatus: "missed",
+    missionStillRelevant: true,
+  });
+
+  const adaptive = buildWeeklyAdaptiveReview(review);
+  const decision = reduceWeeklyReview(review);
+
+  assertEquals(adaptive.skill_decision.week_strategy, decision.week_strategy);
+  assertEquals(adaptive.skill_decision.plan_patch, decision.plan_patch);
+  assertEquals(adaptive.week_strategy.decision, decision.week_strategy.decision);
+});
+
+Deno.test("weekly_adaptive_review_message_uses_weekly_review_renderer", () => {
+  const review = baseReview({
+    habitStatuses: ["missed", "missed", "planned"],
+    blocker: "fatigue",
+  });
+  const adaptive = buildWeeklyAdaptiveReview(review);
+
+  assertEquals(
+    buildWeeklyAdaptiveReviewMessage(adaptive),
+    renderWeeklyReviewDecision(adaptive.skill_decision),
   );
 });
 

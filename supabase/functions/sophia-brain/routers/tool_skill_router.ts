@@ -1,4 +1,10 @@
 import type { RiskBand, TurnFrame } from "../contracts/turn_frame.v1.ts";
+import {
+  assertConfirmationCanExecute,
+  buildConfirmationDecisionFromSkillReview,
+  type PendingConfirmationSnapshot,
+  type SkillConfirmationReview,
+} from "../router/confirmation_contract.ts";
 import { blocksToolSkills } from "../safety/safety_thresholds.ts";
 
 export type ToolSkillRouterStatus =
@@ -27,6 +33,45 @@ function activeOperationType(state: unknown): string | null {
     : null;
 }
 
+function pendingOperationId(state: unknown): string | null {
+  return typeof (state as any)?.operation_id === "string"
+    ? String((state as any).operation_id)
+    : null;
+}
+
+function confirmationReviewFromTurnFrameKind(
+  kind: unknown,
+): SkillConfirmationReview | null {
+  switch (kind) {
+    case "yes":
+      return {
+        decision: "approve",
+        confidence: "medium",
+        evidence: ["turn_frame.confirmation_response.yes"],
+      };
+    case "no":
+      return {
+        decision: "reject",
+        confidence: "medium",
+        evidence: ["turn_frame.confirmation_response.no"],
+      };
+    case "correction_to_pending":
+      return {
+        decision: "revise",
+        confidence: "medium",
+        evidence: ["turn_frame.confirmation_response.correction_to_pending"],
+      };
+    case "topic_change":
+      return {
+        decision: "topic_change",
+        confidence: "medium",
+        evidence: ["turn_frame.confirmation_response.topic_change"],
+      };
+    default:
+      return null;
+  }
+}
+
 export function runToolSkillRouter(input: {
   turn_frame: TurnFrame;
   active_tool_skill_intake?: unknown;
@@ -41,40 +86,61 @@ export function runToolSkillRouter(input: {
         blocked_paths: [{ path: "tool_skills", reason_code: "safety_high" }],
       };
     }
-    const response = input.turn_frame.confirmation_response?.kind ?? "unknown";
     const operationType =
       activeOperationType(input.pending_tool_skill_confirmation) ??
         activeOperationType(
           (input.pending_tool_skill_confirmation as any)?.draft,
         );
-    if (response === "yes") {
+    const pendingSnapshot: PendingConfirmationSnapshot = {
+      operation_id: pendingOperationId(input.pending_tool_skill_confirmation),
+      operation_type: operationType,
+      effect_type: operationType,
+      summary: typeof (input.pending_tool_skill_confirmation as any)?.summary ===
+          "string"
+        ? String((input.pending_tool_skill_confirmation as any).summary)
+        : null,
+      draft: (input.pending_tool_skill_confirmation as any)?.draft ?? null,
+    };
+    const confirmationDecision = buildConfirmationDecisionFromSkillReview({
+      review: confirmationReviewFromTurnFrameKind(
+        input.turn_frame.confirmation_response?.kind,
+      ),
+      pending: pendingSnapshot,
+      reason_code_prefix: "global_confirmation_contract",
+    });
+    const canExecute = assertConfirmationCanExecute(confirmationDecision);
+    if (canExecute.ok) {
       return {
         status: "execute_confirmed",
         operation_type: operationType ?? undefined,
-        reason_code: "confirmation_yes",
+        reason_code: confirmationDecision.reason_code,
         blocked_paths: [],
       };
     }
-    if (response === "correction_to_pending") {
+    if (confirmationDecision.decision === "revise") {
       return {
         status: "continue",
         operation_type: operationType ?? undefined,
-        reason_code: "confirmation_correction_to_pending",
+        reason_code: confirmationDecision.reason_code,
         blocked_paths: [],
       };
     }
-    if (response === "no" || response === "topic_change") {
+    if (
+      confirmationDecision.decision === "reject" ||
+      confirmationDecision.decision === "unrelated" ||
+      confirmationDecision.decision === "topic_change"
+    ) {
       return {
         status: "cancel",
         operation_type: operationType ?? undefined,
-        reason_code: `confirmation_${response}`,
+        reason_code: confirmationDecision.reason_code,
         blocked_paths: [],
       };
     }
     return {
       status: "wait_for_confirmation",
       operation_type: operationType ?? undefined,
-      reason_code: "confirmation_unknown",
+      reason_code: confirmationDecision.reason_code,
       blocked_paths: [],
     };
   }

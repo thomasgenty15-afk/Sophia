@@ -373,6 +373,8 @@ Deno.test("edge: no active items produces check_light with empty targets", () =>
 
   assertEquals(decision.output.mode, "check_light");
   assertEquals(decision.output.target_items.length, 0);
+  assertEquals(decision.policy.should_send, false);
+  assertEquals(decision.policy.suppress_reason, "no_active_items");
 });
 
 // ---------------------------------------------------------------------------
@@ -503,6 +505,33 @@ Deno.test("edge: stalled items block check_progress even with momentum", () => {
   assertEquals(decision.output.mode, "check_light");
   assert(decision.signals.has_stalled_items);
   assert(decision.signals.strong_progress);
+});
+
+Deno.test("edge: overloaded state blocks aggressive progress push", () => {
+  const goodItem = basePlanItem("item-good", {}, [
+    baseEntry("item-good", "progress", 0),
+    baseEntry("item-good", "checkin", 1),
+  ]);
+
+  const decision = decideDailyBilan(baseInput({
+    planItemsRuntime: [goodItem],
+    momentum: baseMomentum({
+      current_state: "momentum",
+      dimensions: {
+        ...baseMomentum().dimensions,
+        execution_traction: { level: "up", reason: "test" },
+      },
+      active_load: {
+        ...baseMomentum().active_load,
+        needs_reduce: true,
+      },
+    }),
+  }));
+
+  assertEquals(decision.signals.strong_progress, true);
+  assertEquals(decision.signals.overloaded, true);
+  assertEquals(decision.output.mode, "check_light");
+  assertEquals(decision.policy.should_send, true);
 });
 
 // ---------------------------------------------------------------------------

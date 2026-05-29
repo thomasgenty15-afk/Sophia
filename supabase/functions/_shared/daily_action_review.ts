@@ -12,6 +12,34 @@ export const DAY_CODES = [
 export type DayCode = typeof DAY_CODES[number];
 
 import { generateWithGemini } from "./gemini.ts";
+import {
+  DAILY_REVIEW_DEFAULT_CONSTRAINTS,
+  type DailyReviewConstraint,
+  type DailyReviewEffectPlan,
+  type DailyReviewIntent,
+} from "./daily_action_review/contract.ts";
+import {
+  dailyActionReviewFocusTargets as selectFocusTargetsFromSelector,
+  selectInitialDailyActionReviewFocus as selectInitialFocusFromSelector,
+} from "./daily_action_review/selector.ts";
+import { buildDailyReviewEffectPlan } from "./daily_action_review/effects.ts";
+import {
+  openingHasForbiddenDailyReviewCoaching,
+  renderDailyActionReviewOpeningInstruction,
+} from "./daily_action_review/opening.ts";
+
+export type {
+  DailyReviewCommittedEffect,
+  DailyReviewConstraint,
+  DailyReviewDecision,
+  DailyReviewEffect,
+  DailyReviewEffectPlan,
+  DailyReviewEffectsResult,
+  DailyReviewFailedEffect,
+  DailyReviewIntent,
+  DailyReviewItemUpdate,
+  DailyReviewStatus,
+} from "./daily_action_review/contract.ts";
 
 export type DailyActionAppliedOutcome = "completed" | "partial" | "missed";
 export type DailyActionOutcome = DailyActionAppliedOutcome | "unclear";
@@ -100,6 +128,7 @@ export type DailyActionReviewActionIntelligence = {
 export type DailyActionReviewState = {
   source: typeof DAILY_ACTION_REVIEW_SOURCE;
   skill_id: typeof DAILY_ACTION_REVIEW_SOURCE;
+  intent: DailyReviewIntent;
   status: DailyActionSkillStatus;
   current_focus_occurrence_ids: string[];
   remaining_occurrence_ids: string[];
@@ -109,6 +138,8 @@ export type DailyActionReviewState = {
   next_question_targets: string[];
   generated_user_message: string | null;
   should_apply_effects: boolean;
+  constraints: DailyReviewConstraint[];
+  effect_plan: DailyReviewEffectPlan;
   stop_reason: DailyActionStopReason;
   action_intelligence_by_occurrence_id: Record<
     string,
@@ -263,6 +294,18 @@ function asStopReason(value: unknown): DailyActionStopReason {
   return null;
 }
 
+function asReviewIntent(value: unknown): DailyReviewIntent {
+  const raw = cleanText(value);
+  if (
+    raw === "open_review" || raw === "answer_review" ||
+    raw === "clarify_outcome" || raw === "clarify_reason" ||
+    raw === "clarify_still_relevant" || raw === "recap" ||
+    raw === "correction" || raw === "user_stopped" || raw === "safety" ||
+    raw === "off_topic" || raw === "unclear"
+  ) return raw;
+  return "answer_review";
+}
+
 function asStateItem(
   target: DailyActionReviewTarget,
 ): DailyActionReviewItemState {
@@ -371,6 +414,7 @@ export function buildInitialDailyActionReviewState(
   return {
     source: DAILY_ACTION_REVIEW_SOURCE,
     skill_id: DAILY_ACTION_REVIEW_SOURCE,
+    intent: "open_review",
     status: "collecting",
     current_focus_occurrence_ids: focusIds,
     remaining_occurrence_ids: remainingIds,
@@ -380,6 +424,8 @@ export function buildInitialDailyActionReviewState(
     next_question_targets: focusIds,
     generated_user_message: null,
     should_apply_effects: false,
+    constraints: DAILY_REVIEW_DEFAULT_CONSTRAINTS,
+    effect_plan: { allowed: false, effects: [] },
     stop_reason: null,
     action_intelligence_by_occurrence_id:
       sanitizeActionIntelligenceByOccurrenceId(
@@ -395,59 +441,14 @@ function selectInitialDailyActionReviewFocus(
   targets: DailyActionReviewTarget[];
   groupingReason: DailyActionReviewOpeningPlan["grouping_reason"];
 } {
-  if (targets.length <= 1) {
-    return { targets: targets.slice(0, 1), groupingReason: "single_action" };
-  }
-  const sorted = [...targets].sort((a, b) =>
-    actionTypeRank(actionTypeForTarget(a)) -
-    actionTypeRank(actionTypeForTarget(b))
-  );
-  if (targets.length <= 2) {
-    return { targets: sorted.slice(0, 2), groupingReason: "priority" };
-  }
-
-  const byPlan = new Map<string, DailyActionReviewTarget[]>();
-  for (const target of sorted) {
-    const key = cleanText(target.plan_id) || "unknown";
-    byPlan.set(key, [...(byPlan.get(key) ?? []), target]);
-  }
-  const planGroup = [...byPlan.values()]
-    .filter((group) => group.length >= 2)
-    .sort((a, b) => b.length - a.length)[0];
-  if (planGroup) {
-    return {
-      targets: planGroup.slice(0, 2),
-      groupingReason: "same_plan",
-    };
-  }
-
-  const byType = new Map<DailyActionType, DailyActionReviewTarget[]>();
-  for (const target of sorted) {
-    const key = actionTypeForTarget(target);
-    byType.set(key, [...(byType.get(key) ?? []), target]);
-  }
-  const typeGroup = [...byType.values()]
-    .filter((group) => group.length >= 2)
-    .sort((a, b) => b.length - a.length)[0];
-  if (typeGroup) {
-    return {
-      targets: typeGroup.slice(0, 2),
-      groupingReason: "same_type",
-    };
-  }
-
-  return { targets: sorted.slice(0, 2), groupingReason: "priority" };
+  return selectInitialFocusFromSelector(targets);
 }
 
 export function dailyActionReviewFocusTargets(
   targets: DailyActionReviewTarget[],
   state: DailyActionReviewState,
 ): DailyActionReviewTarget[] {
-  const ids = new Set(state.current_focus_occurrence_ids);
-  const selected = targets.filter((target) => ids.has(target.occurrence_id));
-  return selected.length
-    ? selected
-    : targets.slice(0, Math.min(2, targets.length));
+  return selectFocusTargetsFromSelector(targets, state);
 }
 
 export function stateFromUnknown(
@@ -519,6 +520,7 @@ export function stateFromUnknown(
   return {
     source: DAILY_ACTION_REVIEW_SOURCE,
     skill_id: DAILY_ACTION_REVIEW_SOURCE,
+    intent: asReviewIntent(existing.intent),
     status: asSkillStatus(existing.status),
     current_focus_occurrence_ids: currentFocus.length
       ? currentFocus
@@ -538,6 +540,13 @@ export function stateFromUnknown(
     ).filter((id) => items[id]),
     generated_user_message: cleanText(existing.generated_user_message) || null,
     should_apply_effects: Boolean(existing.should_apply_effects),
+    constraints: DAILY_REVIEW_DEFAULT_CONSTRAINTS,
+    effect_plan: existing.effect_plan &&
+        typeof existing.effect_plan === "object" &&
+        (existing.effect_plan as any).allowed === true &&
+        Array.isArray((existing.effect_plan as any).effects)
+      ? existing.effect_plan as DailyReviewEffectPlan
+      : { allowed: false, effects: [] },
     stop_reason: existingStopReason === "all_required_slots_filled" &&
         (!allApplied || hasMissingSlots)
       ? null
@@ -576,52 +585,13 @@ export function buildDailyActionReviewInstruction(
   targets: DailyActionReviewTarget[],
   options: { allowGreeting?: boolean } = {},
 ): string {
-  const cleaned = targets
-    .map((target, index) => ({
-      index: index + 1,
-      title: cleanText(target.title) || "Action",
-      required_words: cleanText(target.title)
-        .normalize("NFD")
-        .replace(/\p{Diacritic}/gu, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, " ")
-        .trim()
-        .split(" ")
-        .filter((token) => token.length >= 4)
-        .slice(0, 4),
-    }))
-    .filter((target) => target.title);
-  return [
-    "Message WhatsApp de bilan daily action review.",
-    "Objectif: demander au user, naturellement, ce qui s'est passe pour les actions ciblees par current_focus_occurrence_ids.",
-    "Tu dois poser une seule question principale et laisser le user repondre librement.",
-    "Les actions ciblees sont des occurrences ouvertes a verifier maintenant: ne les presente jamais comme deja faites, deja notees, deja ratees ou deja reportees dans ce message d'ouverture.",
-    "Le contexte recent peut aider le ton, mais il ne doit pas remplacer le check des targets courantes.",
-    "Ne propose pas de solution, carte, potion, ajustement de plan ou coaching dans ce premier message.",
-    "Ne dis pas que tu vas automatiquement reporter; tu peux seulement ouvrir la porte a comprendre si une action non faite reste utile.",
-    'Ne force pas les mots "fait", "pas fait" ou "partiellement fait"; la reponse libre sera analysee ensuite.',
-    options.allowGreeting
-      ? "Comme aucune conversation recente n'a eu lieu, commence par une salutation courte et naturelle, variee, avant la question."
-      : "Comme une conversation recente existe deja, ne commence pas par une salutation.",
-    "Mentionne explicitement chaque action ciblee, mais sans format questionnaire lourd.",
-    "Si une seule action est ciblee, fais une phrase directe et humaine.",
-    "Si deux actions sont ciblees, reprends les deux titres exacts au moins une fois, puis formule la question naturellement.",
-    "Si plusieurs actions sont ciblees, regroupe proprement et invite a repondre en une seule phrase.",
-    cleaned.length > 1
-      ? `Mots distinctifs a faire apparaitre dans la question: ${
-        cleaned.map((target) =>
-          `"${target.title}" -> ${target.required_words.join(", ")}`
-        ).join(" ; ")
-      }.`
-      : "",
-    "Ne mentionne aucune action qui n'est pas dans current_focus_occurrence_ids.",
-    `Nombre d'actions ciblees: ${cleaned.length}.`,
-    cleaned.length > 1
-      ? `Actions a couvrir dans la question: ${
-        cleaned.map((target) => `"${target.title}"`).join(" ; ")
-      }.`
-      : "",
-  ].join("\n");
+  return renderDailyActionReviewOpeningInstruction(targets, options);
+}
+
+export function dailyActionReviewOpeningHasForbiddenCoaching(
+  message: string,
+): boolean {
+  return openingHasForbiddenDailyReviewCoaching(message);
 }
 
 export function buildDailyActionReviewGrounding(
@@ -827,6 +797,8 @@ function buildDailyActionReviewSkillSystemPrompt(): string {
     "- S'il y a encore des actions non demandees, choisis le prochain groupe coherent: meme plan d'abord, puis habitudes, missions, clarifications.",
     "- Si 4 actions viennent de 2 plans avec 2 actions par plan, traite les 2 actions du meme plan ensemble.",
     "- Si le user refuse ou dit qu'il ne veut pas en parler, status=stopped et stop_reason=user_stopped.",
+    "- Si le user part sur un autre sujet explicite, intent=off_topic, status=stopped, should_apply_effects=false.",
+    "- Si le user revele une crise, une auto-attaque forte ou un signal safety, intent=safety, status=stopped, stop_reason=safety, should_apply_effects=false.",
     '- Dans tous les messages visibles, quand tu parles de toi-même, utilise la première personne du singulier ("je", "me", "moi"), jamais "Sophia".',
     "- action_intelligence_by_occurrence_id est un contexte stable injecte par le systeme: utilise-le seulement pour ajuster le ton et eviter de surreagir, pas pour remplacer la collecte du statut du jour.",
     "- Ne recite pas brutalement une vieille raison sensible; si un blocage recent se repete, sois supportive et pose une question courte utile.",
@@ -837,6 +809,8 @@ function buildDailyActionReviewSkillSystemPrompt(): string {
     "Schema de sortie strict:",
     JSON.stringify({
       status: "collecting|needs_clarification|complete|stopped",
+      intent:
+        "answer_review|clarify_outcome|clarify_reason|clarify_still_relevant|correction|user_stopped|safety|off_topic|unclear",
       current_focus_occurrence_ids: ["occurrence_id"],
       remaining_occurrence_ids: ["occurrence_id"],
       asked_occurrence_ids_history: [["occurrence_id"]],
@@ -865,8 +839,25 @@ function buildDailyActionReviewSkillSystemPrompt(): string {
       next_question_targets: ["occurrence_id"],
       generated_user_message: "string|null",
       should_apply_effects: false,
+      constraints: [
+        "one_question_max|no_solution_first|no_tool_suggestion|no_plan_adjustment|no_potion|no_guilt|respect_user_stopped|do_not_mark_without_evidence|do_not_apply_without_complete_slots",
+      ],
       stop_reason:
         "all_required_slots_filled|user_stopped|safety|unclear_after_retries|null",
+      effect_plan: {
+        allowed: false,
+        effects: [{
+          type: "log_daily_action_review",
+          occurrence_id: "string",
+          plan_item_id: "string",
+          outcome: "completed|partial|missed",
+          reason_category:
+            "fatigue|forgot|external|too_hard|not_relevant|emotional|no_need|other|unclear|none",
+          reason_text: "string|null",
+          still_relevant: "boolean|null",
+          source: "daily_action_review_v1",
+        }],
+      },
       action_intelligence_by_occurrence_id: {
         occurrence_id: {
           source_memory_item_ids: ["memory_item_id"],
@@ -882,6 +873,7 @@ function buildDailyActionReviewSkillSystemPrompt(): string {
     "",
     "Regles de completion:",
     "- Une action completed est suffisante avec outcome et evidence_text.",
+    "- Aucun effet sans occurrence_id connu, evidence_text, confidence medium/high, et missing_slots vide.",
     "- Une action partial/missed est suffisante avec outcome + reason_text si le user l'a donne; si la raison manque, pose une question courte.",
     "- Pour missed, still_relevant=true/false/unknown. Ne force pas si le user ne le dit pas. Pour completed ou partial, laisse still_relevant=unknown.",
     "- Si outcome=missed et still_relevant=unknown, garde missing_slots avec still_relevant et genere une question courte de confirmation avant tout report.",
@@ -891,7 +883,8 @@ function buildDailyActionReviewSkillSystemPrompt(): string {
     "- next_question peut dupliquer generated_user_message quand il s'agit d'une clarification; le handler enverra generated_user_message.",
     "- Si des missing_slots restent, next_question et generated_user_message doivent poser la question manquante; ne dis jamais que quelque chose est note, reporte ou applique dans ce cas.",
     "- Si generated_user_message annonce un report ou une application finale, alors missing_slots doit etre vide et should_apply_effects=true.",
-    "- should_apply_effects=true seulement quand toutes les actions ont outcome completed/partial/missed, ou quand status=stopped.",
+    "- should_apply_effects=true seulement quand toutes les actions ont outcome completed/partial/missed, evidence_text, confidence medium/high et missing_slots vide.",
+    "- Si status=stopped ou stop_reason=safety/user_stopped, should_apply_effects=false.",
     "- Si une action reste outcome=null, should_apply_effects=false sauf status=stopped.",
     "Reponds uniquement en JSON valide.",
   ].join("\n");
@@ -988,6 +981,15 @@ function sanitizeDailyActionReviewStateFromAi(params: {
     const missingSlots = uniqueStrings([
       ...aiMissingSlots,
       ...derivedMissingSlots,
+      isAppliedDailyOutcome(outcome) && !cleanText(candidate.evidence_text) &&
+        !cleanText(previousItem.evidence_text)
+        ? "outcome"
+        : "",
+      isAppliedDailyOutcome(outcome) &&
+        asConfidence(candidate.confidence ?? previousItem.confidence) ===
+          "low"
+        ? "which_action"
+        : "",
     ]).flatMap((slot) => {
       const parsedSlot = asMissingSlot(slot);
       return parsedSlot ? [parsedSlot] : [];
@@ -1023,9 +1025,22 @@ function sanitizeDailyActionReviewStateFromAi(params: {
     item.missing_slots.length > 0
   );
   const stopped = status === "stopped";
-  const shouldApplyEffects = stopped
-    ? true
-    : Boolean(raw.should_apply_effects) && allApplied && !hasMissingSlots;
+  const provisionalState = {
+    status,
+    stop_reason: stopped
+      ? asStopReason(raw.stop_reason) ?? "user_stopped"
+      : null,
+    items,
+  };
+  const effectPlan = buildDailyReviewEffectPlan(
+    provisionalState,
+    params.targets,
+  );
+  const shouldApplyEffects = !stopped &&
+    Boolean(raw.should_apply_effects) &&
+    allApplied &&
+    !hasMissingSlots &&
+    effectPlan.allowed;
   if (allApplied && !hasMissingSlots && !nextQuestion) status = "complete";
   if (hasMissingSlots && status === "complete") status = "needs_clarification";
   if (!allApplied && status === "complete") status = "needs_clarification";
@@ -1033,6 +1048,9 @@ function sanitizeDailyActionReviewStateFromAi(params: {
   return {
     source: DAILY_ACTION_REVIEW_SOURCE,
     skill_id: DAILY_ACTION_REVIEW_SOURCE,
+    intent: stopped
+      ? rawStopReason === "safety" ? "safety" : asReviewIntent(raw.intent)
+      : asReviewIntent(raw.intent),
     status,
     current_focus_occurrence_ids: currentFocus,
     remaining_occurrence_ids: remaining.filter((id) =>
@@ -1044,6 +1062,10 @@ function sanitizeDailyActionReviewStateFromAi(params: {
     next_question_targets: nextQuestionTargets,
     generated_user_message: generatedUserMessage,
     should_apply_effects: shouldApplyEffects,
+    constraints: DAILY_REVIEW_DEFAULT_CONSTRAINTS,
+    effect_plan: shouldApplyEffects
+      ? effectPlan
+      : { allowed: false, effects: [] },
     stop_reason: stopped
       ? rawStopReason ?? "user_stopped"
       : allApplied && !hasMissingSlots
@@ -1104,6 +1126,17 @@ function dailyActionReviewStateValidationErrors(
   }
   if (missing.length > 0 && state.should_apply_effects) {
     errors.push("should_apply_effects_true_with_missing_slots");
+  }
+  if (state.should_apply_effects && !state.effect_plan.allowed) {
+    errors.push("should_apply_effects_true_without_allowed_effect_plan");
+  }
+  if (
+    !state.should_apply_effects &&
+    /\b(not[eé]|c['’]est not[eé]|j['’]ai not[eé])\b/i.test(
+      cleanText(state.generated_user_message),
+    )
+  ) {
+    errors.push("noted_language_without_committable_effect_plan");
   }
   if (!cleanText(state.generated_user_message)) {
     errors.push("generated_user_message_required");

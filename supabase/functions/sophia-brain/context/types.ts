@@ -51,6 +51,11 @@ export interface OnDemandTriggers {
 
 /**
  * Contexte chargé par le loader
+ *
+ * Frontiere memoire:
+ * - le dispatcher produit TurnFrame.memory_plan;
+ * - le loader transforme ce plan en blocs concrets;
+ * - les skills lisent ce LoadedContext sans charger/ecrire la memoire durable.
  */
 export interface LoadedContext {
   temporal?: string;
@@ -74,9 +79,7 @@ export interface LoadedContext {
   dashboardCapabilitiesLiteAddon?: string;
   dashboardCapabilitiesAddon?: string;
   dashboardPreferencesIntentAddon?: string;
-  dashboardRecurringReminderIntentAddon?: string;
   surfaceOpportunityAddon?: string;
-  safetyActiveAddon?: string;
   deferredUserPref?: string;
   injectedContext?: string;
   expiredBilanContext?: string;

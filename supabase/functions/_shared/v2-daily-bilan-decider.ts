@@ -37,6 +37,16 @@ export type DailyBilanDecision = {
   deterministic: boolean;
   reason: string;
   signals: DailyBilanDeciderSignals;
+  policy: DailyBilanPolicyDecision;
+};
+
+export type DailyBilanPolicyDecision = {
+  mode: DailyBilanMode;
+  reason: string;
+  signals: DailyBilanDeciderSignals;
+  target_item_ids: string[];
+  should_send: boolean;
+  suppress_reason?: "no_active_items" | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -422,11 +432,20 @@ export function decideDailyBilan(
       input.planItemsRuntime,
     ),
   };
+  const policy: DailyBilanPolicyDecision = {
+    mode,
+    reason,
+    signals,
+    target_item_ids: targetItems,
+    should_send: targetItems.length > 0,
+    suppress_reason: targetItems.length > 0 ? null : "no_active_items",
+  };
 
   return {
     output,
     deterministic: true,
     reason,
     signals,
+    policy,
   };
 }

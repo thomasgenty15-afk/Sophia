@@ -78,6 +78,8 @@ export type DispatcherMemoryRetrievalPolicy =
   | "semantic_only";
 
 export type DispatcherMemoryPlan = {
+  // Dispatcher output only. The dispatcher plans what memory/context is needed;
+  // context/loader.ts is responsible for materializing it.
   response_intent?: string;
   reasoning_complexity?: "low" | "medium" | "high";
   context_need: "minimal" | "targeted" | "broad" | "dossier";
@@ -237,5 +239,7 @@ export type TurnFrame = {
   action_reference?: DispatcherActionReference;
   level_reference?: DispatcherLevelReference;
 
+  // Memory boundary: dispatcher produces this plan, but never loads or writes
+  // durable memory. Skills consume the LoadedContext produced from this plan.
   memory_plan: DispatcherMemoryPlan;
 };

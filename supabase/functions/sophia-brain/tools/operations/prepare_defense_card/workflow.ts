@@ -1,4 +1,8 @@
 import type { DefenseCardGeneratorInput } from "../_shared/operation_payload_builder.ts";
+import type {
+  PrepareDefenseCardConstraint,
+  PrepareDefenseCardUserIntent,
+} from "./contract.ts";
 
 type DefenseResponseHint = NonNullable<
   DefenseCardGeneratorInput["defense_response_hint"]
@@ -78,13 +82,14 @@ export type DefenseCardToolFitSlot = {
 export type DefenseCardIntakeState = {
   skill_id: "prepare_defense_card";
   current_step: DefenseCardStep;
+  user_intent: PrepareDefenseCardUserIntent;
   tool_fit: DefenseCardToolFitSlot;
   attachment: DefenseCardAttachmentSlot;
   risk_situation: DefenseCardRiskSlot;
   trigger: DefenseCardTriggerSlot;
   defense_goal: DefenseCardGoalSlot;
   defense_response_hint: DefenseCardResponseSlot;
-  constraints: string[];
+  constraints: PrepareDefenseCardConstraint[];
   missing_slots: string[];
   confidence: DefenseCardConfidence;
   generated_user_message?: string | null;
@@ -99,6 +104,7 @@ export type DefenseCardToolSkillState = {
     | "executing"
     | "completed"
     | "cancelled"
+    | "technical_blocked"
     | "fallback";
   current_step: DefenseCardStep;
   intake_state: DefenseCardIntakeState;

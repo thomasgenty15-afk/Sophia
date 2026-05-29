@@ -17,6 +17,8 @@ export function structuredAttackCardSlotFiller(
       ? "keyword_intake"
       : "draft_generation",
     state_patch: statePatch as any,
+    user_intent: "unknown",
+    constraints: [],
     missing_slots: missingSlots,
     confidence: "high",
     generated_user_message: missingSlots.length

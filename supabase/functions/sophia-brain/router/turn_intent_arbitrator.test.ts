@@ -5,10 +5,10 @@ import {
   arbitrateTurnIntent,
   detectsDurableCoachPreference,
   detectsExactDurableStatus,
+  detectsExplicitAttackCardCreationRequest,
   detectsExplicitNoStatusRequest,
   detectsExplicitOneShotReminderCreate,
   detectsExplicitProductHelp,
-  detectsExplicitAttackCardCreationRequest,
   detectsMultiEntityDurableStatus,
   detectsPonctualResponseFormatConstraint,
   detectsRecapRequest,
@@ -242,6 +242,77 @@ Deno.test("central arbitrator routes explicit product help before status", () =>
   assertEquals(result.routeDecision.selected_handler, "product_help");
 });
 
+Deno.test("L3 cleanup: product_help detector does not override structured product_help route", () => {
+  const pendingAttackCard = { operation_type: "prepare_attack_card" };
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Où est-ce que je retrouve cette carte d'attaque dans l'app ? Juste l'emplacement, pas d'action.",
+    routeDecision: routeDecision({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [],
+      skill_signals: {
+        entry: {
+          product_help: {
+            detected: true,
+            confidence_band: "high",
+            reason: "user_asks_app_location_for_durable_surface",
+          },
+        },
+        lifecycle: {},
+        exit: {},
+      },
+    }),
+    tempMemory: {
+      __pending_tool_skill_confirmation: pendingAttackCard,
+    },
+    pendingOperationConfirmation: null,
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.response_owner, "product_help");
+  assertEquals(result.routeDecision.selected_handler, "product_help");
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+  assertEquals(
+    (result.tempMemory as any).__pending_tool_skill_confirmation,
+    pendingAttackCard,
+  );
+});
+
+Deno.test("L3 cleanup: product_help detector also yields to paraphrased structured product_help route", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Dans l'interface, je vais où pour retrouver ce rappel ponctuel ?",
+    routeDecision: routeDecision({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.response_owner, "product_help");
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+});
+
+Deno.test("L3 cleanup anti-FP: product_help detector does not catch attack/card homonyms", () => {
+  const negatives = [
+    "j'ai peur de passer à l'attaque",
+    "attaque le sujet autrement",
+    "j'ai reçu une carte postale",
+  ];
+  for (const msg of negatives) {
+    assertEquals(detectsExplicitProductHelp(msg), false, msg);
+  }
+});
+
 // CHANTIER E2 (2026-05-28) — symétrique de C1. La demande de navigation
 // produit "où corriger/annuler ce rappel dans l'app" doit battre le status,
 // même quand l'amont est arrivé en status_only. Voir A2-codex-r9 T4.
@@ -278,6 +349,64 @@ Deno.test("central arbitrator routes exact durable status before product help", 
     result.routeDecision.reason_code,
     "central_arbitrator_status_exact_priority",
   );
+});
+
+Deno.test("L3 cleanup: exact status detector does not override structured status route", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Sans rien modifier, vérifie ce qui est vraiment en place côté carte, rappel et préférence coach.",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      selected_handler: "status_only_no_mutation_check",
+      reason_code: "status_only_no_mutation_check",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.response_owner, "normal_reply");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "status_only_no_mutation_check",
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+});
+
+Deno.test("L3 cleanup: multi-entity status detector yields to structured status route", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Statut fiable sans rien modifier : quelle carte est active, quels rappels sont confirmés avec heure exacte, et quelle préférence coach est appliquée ?",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      selected_handler: "status_only_no_mutation_check",
+      reason_code: "status_recap_structured_route",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.response_owner, "normal_reply");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "status_only_no_mutation_check",
+  );
+  assertEquals(result.routeDecision.direct_effects_to_run, []);
+});
+
+Deno.test("L3 cleanup anti-FP: status detectors ignore non-status attack/card homonyms", () => {
+  const negatives = [
+    "j'ai peur de passer à l'attaque",
+    "attaque le sujet autrement",
+    "j'ai reçu une carte postale",
+  ];
+  for (const msg of negatives) {
+    assertEquals(detectsExactDurableStatus(msg), false, msg);
+    assertEquals(detectsMultiEntityDurableStatus(msg), false, msg);
+  }
 });
 
 // CHANTIER C1 (2026-05-28) — Subordonner le status à un flow de carte actif.
@@ -612,7 +741,7 @@ Deno.test("detectsMultiEntityDurableStatus does NOT trigger on 'quelle carte' al
 
 Deno.test("looksLikeAttackCardSlotCorrection matches typical slot corrections", () => {
   const positives = [
-    "non, change la phrase en \"je préfère envoyer maintenant\"",
+    'non, change la phrase en "je préfère envoyer maintenant"',
     "plutôt action : envoyer la note avant midi",
     "remplace le piège par l'envie de tout ranger d'abord",
     "modifie le signal visuel : c'est le stylo bleu",
@@ -932,7 +1061,10 @@ Deno.test("central arbitrator: une vraie préférence durable route TOUJOURS ver
     tempMemory: {},
   });
 
-  assertEquals(result.routeDecision.selected_handler, "update_coach_preferences");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "update_coach_preferences",
+  );
   assertEquals(
     result.routeDecision.reason_code,
     "central_arbitrator_coach_preference_priority",
@@ -1005,6 +1137,14 @@ Deno.test("central arbitrator: une création explicite de carte d'attaque force 
       intent.operation_type === "prepare_attack_card"
     ),
     true,
+  );
+  const attackIntent = result.turnFrame.tool_skill_intents.find((intent) =>
+    intent.operation_type === "prepare_attack_card"
+  );
+  assertEquals(attackIntent?.user_intent, "none");
+  assertEquals(
+    (attackIntent?.payload_hint as any)?.route_hint,
+    "explicit_attack_card_candidate",
   );
 });
 

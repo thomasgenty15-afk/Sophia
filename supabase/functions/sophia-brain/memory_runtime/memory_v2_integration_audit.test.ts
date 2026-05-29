@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import type { MemoryWriteCandidate } from "../contracts/memory_write_candidate.v1.ts";
+import type { EmotionalRepairSkillDecision } from "../skills/emotional_repair/contract.ts";
 import { runEmotionalRepairSkill } from "../skills/emotional_repair/skill.ts";
 import { loadExecutionBreakdownContext } from "../skills/execution_breakdown/context_loader.ts";
 import { loadBaseSkillContext } from "../skills/_shared/context.ts";
@@ -172,9 +173,38 @@ Deno.test("S7 audit 3: acute identity statements stay statements and fact candid
     allow_sensitive: true,
     allow_safety_memory: false,
   });
-  const output = runEmotionalRepairSkill({
+  const decision: EmotionalRepairSkillDecision = {
+    skill_id: "emotional_repair",
+    intent: "acute_self_attack",
+    phase: "separate_fact_from_identity",
+    emotional_dominance: "high",
+    context_domain: "unknown",
+    constraints: ["no_plan", "do_not_persist_identity_attack"],
+    response_contract: {
+      max_questions: 0,
+      allow_plan: false,
+      allow_tool_suggestion: false,
+      allow_potion_suggestion: false,
+      allow_concrete_action: false,
+      tone: "soft",
+    },
+    memory_write_candidates: [
+      {
+        source_text: "je suis nul je rate tout",
+        should_persist_default: false,
+        anti_identity_freeze_checked: true,
+        sensitivity_level: 3,
+        reason: "acute identity attack is not a durable fact",
+      },
+    ],
+    reply:
+      "Ce verdict sur toi n'est pas une information fiable; on garde le fait concret sans figer ton identité.",
+    state_patch: { summary: "Identity attack separated from facts." },
+  };
+  const output = await runEmotionalRepairSkill({
     user_message: "je suis nul je rate tout",
     context,
+    intake_model: () => decision,
   });
   const bridge = await dispatchMemoryCandidates({
     user_id: "user-1",

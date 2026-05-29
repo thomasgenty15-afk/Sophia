@@ -1,4 +1,6 @@
 export type MemoryWriteCandidate = {
+  // Skills may emit candidates, but only memory_runtime validates, rejects,
+  // queues or writes them. A candidate is not a durable memory proof.
   kind:
     | "statement"
     | "event"

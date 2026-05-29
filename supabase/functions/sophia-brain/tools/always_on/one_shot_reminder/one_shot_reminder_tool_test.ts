@@ -7,12 +7,12 @@ import {
   detectsReminderAnaphora,
   extractQuotedReminderInstruction,
   extractReminderInstruction,
-  isDegenerateReminderInstructionForTest,
+  isDegenerateReminderInstruction,
   isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
   loadLastReminderInstructionForUser,
-  looksLikeReminderExecutionConfirmationForTest,
-  looksLikeReminderSlotConfirmationForTest,
+  looksLikeReminderExecutionConfirmation,
+  looksLikeReminderSlotConfirmation,
   maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
   parseOneShotReminderRequest,
@@ -20,6 +20,19 @@ import {
   runCreateOneShotReminderV2,
   summarizeOneShotReminderOutcome,
 } from "./one_shot_reminder_tool.ts";
+import {
+  classifyOneShotReminderDirectIntent,
+  detectsExplicitOneShotReminderCancel,
+  isExplicitOneShotReminderModificationRequest,
+  isOneShotReminderExactStatusRequest,
+  isOneShotReminderOperationCommand,
+  localTextAddonForOneShotReminder,
+  maybeRunOneShotReminderDirectEffect,
+  oneShotReminderDirectEffectBlockForNonMutationContext,
+  oneShotReminderStatusBlocksToolFlow,
+  shouldPreferOneShotReminderOverRecurring,
+} from "./router.ts";
+import { buildOneShotReminderIntake } from "./intake.ts";
 import type {
   ToolSkillOpportunity,
   TurnFrame,
@@ -148,6 +161,27 @@ Deno.test("parseOneShotReminderRequest preserves colon instruction after program
     "one_shot_reminder:relire_une_fois_garder_le_brouillon_sortir_trois_puces_telle",
   );
   assertEquals(parsed.scheduledFor, "2026-05-21T06:30:00.000Z");
+});
+
+Deno.test("extractReminderInstruction strips unquoted exact-text meta command", () => {
+  assertEquals(
+    extractReminderInstruction(
+      "choisis 16h05. Texte exact : relis le brief avant l'appel",
+    ),
+    "relis le brief avant l'appel",
+  );
+  assertEquals(
+    extractReminderInstruction(
+      "rappelle-moi à 16h05 de relire X",
+    ),
+    "relire X",
+  );
+  assertEquals(
+    extractReminderInstruction(
+      "rappelle-moi demain à 9h : appeler Paul",
+    ),
+    "appeler Paul",
+  );
 });
 
 Deno.test("I2: parseOneShotReminderRequest strips unquoted Texte exact meta-command after earlier colon", () => {
@@ -821,17 +855,17 @@ Deno.test("loadLastReminderInstructionForUser strips Rappel-ponctuel-prefix from
 
 Deno.test("E5: 'Oui, rappel unique, une seule fois' est une confirmation de rappel", () => {
   assertEquals(
-    looksLikeReminderSlotConfirmationForTest(
+    looksLikeReminderSlotConfirmation(
       "Oui, rappel unique, une seule fois aujourd'hui.",
     ),
     true,
   );
-  assertEquals(looksLikeReminderSlotConfirmationForTest("récurrent stp"), true);
+  assertEquals(looksLikeReminderSlotConfirmation("récurrent stp"), true);
 });
 
 Deno.test("E5 anti-FP: une demande sans marqueur de confirmation n'en est pas une", () => {
   assertEquals(
-    looksLikeReminderSlotConfirmationForTest("change plutôt le texte"),
+    looksLikeReminderSlotConfirmation("change plutôt le texte"),
     false,
   );
 });
@@ -874,38 +908,38 @@ Deno.test("E5: la confirmation seule ('oui, unique') ne porte pas de créneau", 
 
 Deno.test("F3: 'programme-le maintenant' est un ordre d'exécution explicite (edgecases-r2 T9)", () => {
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest(
+    looksLikeReminderExecutionConfirmation(
       "B, le texte tel quel. Programme-le maintenant.",
     ),
     true,
   );
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest(
+    looksLikeReminderExecutionConfirmation(
       "vas-y, lance le rappel maintenant",
     ),
     true,
   );
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest("cale-le tout de suite"),
+    looksLikeReminderExecutionConfirmation("cale-le tout de suite"),
     true,
   );
 });
 
 Deno.test("F3 anti-FP: une question produit n'est pas un ordre d'exécution", () => {
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest(
+    looksLikeReminderExecutionConfirmation(
       "comment je programme un rappel dans l'app ?",
     ),
     false,
   );
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest(
+    looksLikeReminderExecutionConfirmation(
       "où je peux programmer un rappel ?",
     ),
     false,
   );
   assertEquals(
-    looksLikeReminderExecutionConfirmationForTest("je réfléchis encore"),
+    looksLikeReminderExecutionConfirmation("je réfléchis encore"),
     false,
   );
 });
@@ -934,26 +968,26 @@ Deno.test("F3: le créneau (15h30 + texte) donné au tour précédent reste réc
 
 Deno.test("G2: une instruction qui n'est que de l'horaire/du style est dégénérée", () => {
   assertEquals(
-    isDegenerateReminderInstructionForTest("aujourd'hui à 16h10"),
+    isDegenerateReminderInstruction("aujourd'hui à 16h10"),
     true,
   );
-  assertEquals(isDegenerateReminderInstructionForTest("14h20 ou 16h10"), true);
-  assertEquals(isDegenerateReminderInstructionForTest("rappel neutre"), true);
-  assertEquals(isDegenerateReminderInstructionForTest("à 16h10"), true);
-  assertEquals(isDegenerateReminderInstructionForTest(""), true);
+  assertEquals(isDegenerateReminderInstruction("14h20 ou 16h10"), true);
+  assertEquals(isDegenerateReminderInstruction("rappel neutre"), true);
+  assertEquals(isDegenerateReminderInstruction("à 16h10"), true);
+  assertEquals(isDegenerateReminderInstruction(""), true);
   assertEquals(
-    isDegenerateReminderInstructionForTest("ce que tu as prévu"),
+    isDegenerateReminderInstruction("ce que tu as prévu"),
     true,
   );
 });
 
 Deno.test("G2: une vraie instruction n'est PAS dégénérée", () => {
   assertEquals(
-    isDegenerateReminderInstructionForTest("vérifier les 5 lignes du devis"),
+    isDegenerateReminderInstruction("vérifier les 5 lignes du devis"),
     false,
   );
   assertEquals(
-    isDegenerateReminderInstructionForTest("appeler le dentiste"),
+    isDegenerateReminderInstruction("appeler le dentiste"),
     false,
   );
 });
@@ -963,7 +997,7 @@ Deno.test("G2: le message de confirmation T7 produit une instruction dégénér�
   const t7Instruction = extractReminderInstruction(
     "Rappel neutre. Programme-le maintenant pour aujourd'hui à 16h10.",
   );
-  assertEquals(isDegenerateReminderInstructionForTest(t7Instruction), true);
+  assertEquals(isDegenerateReminderInstruction(t7Instruction), true);
 });
 
 Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré", () => {
@@ -976,7 +1010,7 @@ Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré
     true,
     `got: ${t6Instruction}`,
   );
-  assertEquals(isDegenerateReminderInstructionForTest(t6Instruction), false);
+  assertEquals(isDegenerateReminderInstruction(t6Instruction), false);
 });
 
 // ===========================================================================
@@ -1118,4 +1152,361 @@ Deno.test("G3: une heure ciblée ne coupe que le rappel correspondant", async ()
   }
   assertEquals(updatedIds, ["checkin-a"]);
   assertEquals(outcome.cancelled_count, 1);
+});
+
+Deno.test("G3: une heure ciblée sans match n'annule aucun rappel", async () => {
+  let updatedIds: string[] = [];
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [
+      {
+        id: "checkin-10",
+        scheduled_for: "2026-05-29T08:00:00.000Z", // 10:00 local
+        status: "pending",
+        event_context: "one_shot_reminder:ten",
+        message_payload: { reminder_instruction: "tâche 10" },
+      },
+      {
+        id: "checkin-11",
+        scheduled_for: "2026-05-29T09:00:00.000Z", // 11:00 local
+        status: "pending",
+        event_context: "one_shot_reminder:eleven",
+        message_payload: { reminder_instruction: "tâche 11" },
+      },
+    ],
+    onUpdate: ({ ids }) => {
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "annule celui de 16h10",
+    now: new Date("2026-05-29T07:00:00.000Z"),
+  });
+  if (!outcome.detected) throw new Error("expected detected");
+  assertEquals(outcome.status, "no_reminder");
+  assertEquals(updatedIds, []);
+});
+
+Deno.test("router: product-help and status references do not mutate", async () => {
+  let createCalls = 0;
+  let cancelCalls = 0;
+  const common = {
+    supabase: {} as any,
+    userId: "u1",
+    createReminder: async () => {
+      createCalls++;
+      return { detected: false } as any;
+    },
+    cancelReminder: async () => {
+      cancelCalls++;
+      return { detected: false } as any;
+    },
+  };
+
+  const productHelp = await maybeRunOneShotReminderDirectEffect({
+    ...common,
+    message: "où est-ce que j'annule le rappel dans l'app ?",
+  });
+  assertEquals(productHelp.detected, true);
+  assertEquals(productHelp.intent, "product_help");
+  assertEquals(productHelp.reply, null);
+
+  const status = await maybeRunOneShotReminderDirectEffect({
+    ...common,
+    message: "récap : le rappel a été annulé ou pas ? sans modifier",
+  });
+  assertEquals(status.detected, true);
+  assertEquals(status.intent, "status_question");
+  assertEquals(status.reply, null);
+  assertEquals(createCalls, 0);
+  assertEquals(cancelCalls, 0);
+});
+
+Deno.test("router: recurring wording is a one-shot handoff, not a create", async () => {
+  let createCalls = 0;
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message: "rappelle-moi tous les jours à 9h de boire de l'eau",
+    createReminder: async () => {
+      createCalls++;
+      return { detected: false } as any;
+    },
+    cancelReminder: async () => ({ detected: false } as any),
+  });
+  assertEquals(outcome.detected, true);
+  assertEquals(outcome.intent, "ignore");
+  assertEquals(outcome.status, "ignored");
+  assertEquals(outcome.blocked_effects, [{
+    type: "create_one_shot_reminder",
+    reason_code: "one_shot_only",
+  }]);
+  assertEquals(createCalls, 0);
+});
+
+Deno.test("router: replace cancel+create returns both committed effects", async () => {
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message:
+      "annule le rappel de 16h10 et mets plutôt un rappel à 16h30. Texte exact : relire X",
+    cancelReminder: async () => ({
+      detected: true,
+      status: "cancelled",
+      cancelled_count: 1,
+      cancelled_local_labels: ["16:10"],
+      user_message: "",
+    }),
+    createReminder: async () => ({
+      detected: true,
+      status: "success",
+      user_message: "",
+      scheduled_for: "2026-05-29T14:30:00.000Z",
+      scheduled_for_local_label: "16:30",
+      reminder_instruction: "relire X",
+      event_context: "one_shot_reminder:relire_x",
+      inserted_checkin_id: "checkin-new",
+      parse_source: "local_parser",
+    }),
+  });
+  assertEquals(outcome.intent, "replace");
+  assertEquals(outcome.status, "replaced");
+  assertEquals(outcome.executed_tools, [
+    "cancel_one_shot_reminder",
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(outcome.committed_effects.length, 2);
+});
+
+Deno.test("router: replace partial failure reports the half-effect", async () => {
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message:
+      "annule le rappel de 16h10 et mets plutôt un rappel. Texte exact : relire X",
+    cancelReminder: async () => ({
+      detected: true,
+      status: "cancelled",
+      cancelled_count: 1,
+      cancelled_local_labels: ["16:10"],
+      user_message: "",
+    }),
+    createReminder: async () => ({
+      detected: true,
+      status: "needs_clarify",
+      reason: "missing_time",
+      user_message: "",
+    }),
+  });
+  assertEquals(outcome.intent, "replace");
+  assertEquals(outcome.status, "failed");
+  assertEquals(outcome.committed_effects, [{
+    type: "cancel_one_shot_reminder",
+    local_label: "16:10",
+  }]);
+  assertEquals(
+    outcome.reply?.includes("Je n'ai pas réussi à créer le nouveau rappel"),
+    true,
+  );
+});
+
+Deno.test("router: create success exposes requested allowed attempted and committed effects", async () => {
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h. Texte exact : relire X",
+    createReminder: async () => ({
+      detected: true,
+      status: "success",
+      user_message: "",
+      scheduled_for: "2026-05-30T07:00:00.000Z",
+      scheduled_for_local_label: "09:00",
+      reminder_instruction: "relire X",
+      event_context: "one_shot_reminder:relire_x",
+      inserted_checkin_id: "checkin-create",
+      parse_source: "local_parser",
+    }),
+  });
+  assertEquals(outcome.status, "success");
+  assertEquals(outcome.requested_effects.map((effect) => effect.type), [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(outcome.allowed_effects.map((effect) => effect.type), [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(outcome.attempted_effects, ["create_one_shot_reminder"]);
+  assertEquals(outcome.committed_effects, [{
+    type: "create_one_shot_reminder",
+    id: "checkin-create",
+    scheduled_for: "2026-05-30T07:00:00.000Z",
+    local_label: "09:00",
+    reminder_instruction: "relire X",
+  }]);
+});
+
+Deno.test("router: create technical failure has no committed/executed effect and no success wording", async () => {
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h de relire X",
+    createReminder: async () => ({
+      detected: true,
+      status: "failed",
+      reason: "insert_failed",
+      user_message: "",
+      error_message: "boom",
+    }),
+  });
+  assertEquals(outcome.status, "failed");
+  assertEquals(outcome.attempted_effects, ["create_one_shot_reminder"]);
+  assertEquals(outcome.executed_tools, []);
+  assertEquals(outcome.committed_effects, []);
+  assertEquals(outcome.reply?.includes("programmé pour"), false);
+});
+
+Deno.test("router: no_mutation blocks effects before executor", async () => {
+  let createCalls = 0;
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h de relire X",
+    noMutationRequested: true,
+    createReminder: async () => {
+      createCalls++;
+      return { detected: false } as any;
+    },
+  });
+  assertEquals(outcome.status, "blocked");
+  assertEquals(createCalls, 0);
+  assertEquals(outcome.allowed_effects, []);
+  assertEquals(outcome.blocked_effects, [{
+    type: "create_one_shot_reminder",
+    reason_code: "no_mutation_requested",
+  }]);
+});
+
+Deno.test("intake: exposes structured instruction and recurrence boundary", () => {
+  const oneShot = buildOneShotReminderIntake({
+    message: "choisis 16h05. Texte exact : relire X",
+  });
+  assertEquals(oneShot.intent, "create");
+  assertEquals(oneShot.recurrence_kind, "one_shot");
+  assertEquals(oneShot.time_expression, "16h05");
+  assertEquals(oneShot.instruction, "relire X");
+  assertEquals(oneShot.instruction_source, "exact_text");
+
+  const recurring = buildOneShotReminderIntake({
+    message: "rappelle-moi tous les mardis à 9h de relire X",
+  });
+  assertEquals(recurring.intent, "ignore");
+  assertEquals(recurring.recurrence_kind, "recurring");
+  assertEquals(recurring.constraints[0]?.kind, "one_shot_only");
+});
+
+Deno.test("router: pending confirmation blocks direct mutation", async () => {
+  const outcome = await maybeRunOneShotReminderDirectEffect({
+    supabase: {} as any,
+    userId: "u1",
+    message: "rappelle-moi demain à 9h de relire X",
+    pendingToolSkillConfirmation: { operation_type: "prepare_attack_card" },
+    createReminder: async () => {
+      throw new Error("should not create");
+    },
+  });
+  assertEquals(outcome.status, "blocked");
+  assertEquals(
+    outcome.blocked_effects[0]?.reason_code,
+    "pending_confirmation_active",
+  );
+});
+
+Deno.test("router: classify explicit one-shot supersedes stale active flow shape", () => {
+  const classified = classifyOneShotReminderDirectIntent(
+    "Ignore la carte. Je parle d'un rappel ponctuel : choisis 16h05. Texte exact : relire X",
+  );
+  assertEquals(classified.detected, true);
+  assertEquals(classified.intent, "create");
+});
+
+Deno.test("router helpers: moved one-shot detectors preserve boundaries", () => {
+  assertEquals(
+    isExplicitOneShotReminderModificationRequest(
+      "Décale ce rappel demain à 10h.",
+    ),
+    true,
+  );
+  assertEquals(
+    isExplicitOneShotReminderModificationRequest(
+      "Où est-ce que je modifie ce rappel dans l'app ?",
+    ),
+    false,
+  );
+  assertEquals(
+    detectsExplicitOneShotReminderCancel(
+      "récap : le rappel a été annulé ou pas ?",
+    ),
+    false,
+  );
+  assertEquals(
+    detectsExplicitOneShotReminderCancel(
+      "coupe le rappel de 16h10 maintenant",
+    ),
+    true,
+  );
+  assertEquals(
+    isOneShotReminderExactStatusRequest(
+      "confirme l'heure vraiment programmée du rappel",
+    ),
+    true,
+  );
+  assertEquals(
+    isOneShotReminderOperationCommand(
+      "Mets-moi plutôt un rappel à 14h20 ou 16h10",
+    ),
+    true,
+  );
+  assertEquals(
+    shouldPreferOneShotReminderOverRecurring(
+      "rappel ponctuel aujourd'hui à 14h20, texte exact : relire X",
+    ),
+    true,
+  );
+});
+
+Deno.test("router helpers: route guards centralize one-shot non-mutation decisions", () => {
+  const statusGuard = oneShotReminderStatusBlocksToolFlow({
+    message: "Sans modifier, confirme l'heure du rappel",
+    routeIsProductHelp: false,
+    explicitProductHelp: false,
+    activeCardDrafting: false,
+    explicitOperationCommand: false,
+    statusOnlyNoMutation: true,
+  });
+  assertEquals(statusGuard.blocked, true);
+  assertEquals(
+    statusGuard.reason_code,
+    "one_shot_reminder_exact_status_request",
+  );
+
+  const directBlock =
+    oneShotReminderDirectEffectBlockForNonMutationContext({
+      message: "où est-ce que j'annule ce rappel dans l'app ?",
+      routeIsProductHelp: true,
+      statusOnlyNoMutation: false,
+      recapOnly: false,
+    });
+  assertEquals(directBlock.blocked, true);
+  assertEquals(
+    directBlock.reason_code,
+    "product_help_blocks_one_shot_direct_effect",
+  );
+
+  assertEquals(
+    localTextAddonForOneShotReminder(
+      "Rappelle-moi à 16h05, formule une phrase courte pour Noa",
+    ),
+    "Phrase courte pour Noa : \"Je te confirme que je m'en occupe aujourd'hui, et je reviens vers toi dès que c'est fait.\"",
+  );
 });

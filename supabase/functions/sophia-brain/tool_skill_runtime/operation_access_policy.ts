@@ -30,6 +30,8 @@ const SKILL_OPERATION_ALLOWLIST: Record<string, OperationSuggestionType[]> = {
   ],
   demotivation_repair: [
     "select_state_potion",
+    "prepare_attack_card",
+    "adjust_plan_item",
     "create_recurring_reminder",
   ],
   product_help: [
@@ -47,6 +49,7 @@ const CHAT_READY_FROM_SUGGESTION = new Set<OperationSuggestionType>([
   "adjust_plan_item",
   "prepare_attack_card",
   "create_recurring_reminder",
+  "select_state_potion",
 ]);
 
 export function surfaceIdForOperationSuggestion(

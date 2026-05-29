@@ -6,6 +6,19 @@ export function structuredCoachPreferencesSlotFiller(
   missingSlots: string[] = [],
 ): CoachPreferencesSlotFiller {
   return async () => ({
+    user_intent: String(statePatch.user_intent ?? "") === "preview_only"
+      ? "preview_only"
+      : String(statePatch.user_intent ?? "") === "verify_preference"
+      ? "verify_preference"
+      : String(statePatch.user_intent ?? "") === "status_question"
+      ? "status_question"
+      : String(statePatch.user_intent ?? "") === "reject"
+      ? "reject"
+      : String(statePatch.user_intent ?? "") === "revise"
+      ? "revise"
+      : String(statePatch.user_intent ?? "") === "clarify"
+      ? "clarify"
+      : "set_preference",
     current_step: missingSlots.length
       ? "preference_resolution"
       : "draft_generation",
@@ -24,6 +37,7 @@ export function readyCoachPreferencesStatePatch(
   value = "direct",
 ) {
   return {
+    user_intent: "set_preference",
     preference: {
       status: "identified",
       key,

@@ -22,10 +22,12 @@ export type ConversationTurnTrace = {
     prompt_version: string;
     model_used?: string | null;
     memory_plan: DispatcherMemoryPlan | null;
+    turn_agenda_summary?: unknown;
   };
   turn_frame: TurnFrame;
   route_decision: RouteDecision;
   direct_effects: Array<{ tool_id: string; outcome: unknown }>;
+  effect_ledger?: Record<string, unknown> | null;
   skill_run?: unknown;
   tool_skill_run?: unknown;
   recommendation_tool_run?: unknown;
@@ -134,6 +136,7 @@ export async function logConversationTurn(
       turn_frame: trace.turn_frame,
       route_decision: trace.route_decision,
       direct_effects: trace.direct_effects,
+      effect_ledger: trace.effect_ledger ?? null,
       skill_run: trace.skill_run ?? null,
       recommendation_tool_run: trace.recommendation_tool_run ?? null,
       confirmation_token_outcomes: trace.confirmation_token_outcomes,
@@ -147,6 +150,33 @@ export async function logConversationTurn(
         ...basePayload,
         tool_skill_run: trace.tool_skill_run ?? null,
       });
+    if (
+      error?.code === "PGRST204" &&
+      String(error.message ?? "").includes("effect_ledger")
+    ) {
+      const { effect_ledger: _effectLedger, ...legacyPayload } = basePayload;
+      const { error: legacyError } = await (writeClient as any)
+        .from("conversation_turn_traces")
+        .insert({
+          ...legacyPayload,
+          tool_skill_run: trace.tool_skill_run ?? null,
+        });
+      if (
+        legacyError?.code === "PGRST204" &&
+        String(legacyError.message ?? "").includes("tool_skill_run")
+      ) {
+        const { error: oldestError } = await (writeClient as any)
+          .from("conversation_turn_traces")
+          .insert({
+            ...legacyPayload,
+            operation_flow_run: trace.tool_skill_run ?? null,
+          });
+        if (oldestError) throw oldestError;
+        return;
+      }
+      if (legacyError) throw legacyError;
+      return;
+    }
     if (
       error?.code === "PGRST204" &&
       String(error.message ?? "").includes("tool_skill_run")

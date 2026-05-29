@@ -8,6 +8,13 @@ import {
   type AttackTechniqueKey,
 } from "./generator.ts";
 import {
+  type CardTechnicalBlockReason,
+  normalizePrepareAttackCardConstraints,
+  normalizePrepareAttackCardUserIntent,
+  type PrepareAttackCardConstraint,
+  type PrepareAttackCardUserIntent,
+} from "./contract.ts";
+import {
   type AttackCardSlotFiller,
   fillAttackCardSlotsWithAi,
 } from "./slot_filler.ts";
@@ -23,12 +30,14 @@ import {
 
 export type PrepareAttackCardOperationOutput = {
   operation_type: "prepare_attack_card";
+  user_intent: PrepareAttackCardUserIntent;
+  constraints: PrepareAttackCardConstraint[];
   status:
     | "ask_question"
     | "pending_confirmation"
     | "draft_review_decision"
     | "cancelled"
-    | "fallback_dashboard"
+    | "technical_blocked"
     | "invalid_recommendation_payload"
     | "blocked_by_safety";
   source: "direct_user_request" | "recommendation_tool";
@@ -78,6 +87,14 @@ export type PrepareAttackCardOperationOutput = {
     known_slots?: Record<string, unknown>;
   };
   pending_confirmation?: Record<string, unknown>;
+  reason_code?: CardTechnicalBlockReason;
+  technical_source?: "ai_unavailable" | "technical_fallback";
+  requested_effects?: [];
+  allowed_effects?: [];
+  committed_effects?: [];
+  blocked_effects?: Array<{ type: "prepare_attack_card"; reason_code: string }>;
+  should_preserve_pending?: boolean;
+  retryable?: boolean;
   ack?: string;
   readiness: {
     ready_to_generate: boolean;
@@ -94,6 +111,8 @@ export type PrepareAttackCardOperationOutput = {
     operation_input?: Record<string, unknown> | null;
     intake_state?: unknown;
     tool_skill_state?: unknown;
+    user_intent?: PrepareAttackCardUserIntent;
+    constraints?: PrepareAttackCardConstraint[];
     draft_review_decision?: {
       decision:
         | "approve"
@@ -199,6 +218,7 @@ function defaultState(): AttackCardIntakeState {
       evidence: [],
     },
     constraints: [],
+    user_intent: "unknown",
     missing_slots: ["target"],
     confidence: "low",
     generated_user_message: null,
@@ -273,6 +293,7 @@ function mergeState(
     activation_keyword: { ...base.activation_keyword },
     blocker: { ...base.blocker },
     constraints: [...base.constraints],
+    user_intent: base.user_intent ?? "unknown",
     missing_slots: [...base.missing_slots],
   };
   const target = objectValue(root.target);
@@ -425,7 +446,10 @@ function mergeState(
     };
   }
   if (Array.isArray(root.constraints)) {
-    next.constraints = stringArray(root.constraints);
+    next.constraints = normalizePrepareAttackCardConstraints(root.constraints);
+  }
+  if (root.user_intent !== undefined) {
+    next.user_intent = normalizePrepareAttackCardUserIntent(root.user_intent);
   }
   if (Array.isArray(root.missing_slots)) {
     next.missing_slots = stringArray(root.missing_slots);
@@ -551,6 +575,8 @@ function operationInputFromState(
         state.activation_keyword.value
       ? { activation_keyword: state.activation_keyword.value }
       : {}),
+    user_intent: state.user_intent ?? "unknown",
+    constraints: state.constraints,
   };
 }
 
@@ -574,21 +600,44 @@ function toolSkillState(args: {
 function technicalFailure(
   reason: string,
   source: "direct_user_request" | "recommendation_tool",
+  context?: {
+    state?: AttackCardIntakeState;
+    operation_input?: Record<string, unknown> | null;
+  },
 ): PrepareAttackCardOperationOutput {
+  const reasonCode: CardTechnicalBlockReason =
+    reason === "ai_slot_filler_unavailable"
+      ? "ai_unavailable"
+      : reason === "ai_slot_filler_error"
+      ? "structured_intake_failed"
+      : reason === "ai_draft_generator_error"
+      ? "draft_generation_failed"
+      : reason === "missing_structured_intake_runner"
+      ? "missing_structured_intake_runner"
+      : "invalid_ai_output";
   return {
     operation_type: "prepare_attack_card",
-    status: "fallback_dashboard",
+    user_intent: "unknown",
+    constraints: [],
+    status: "technical_blocked",
     source,
     phase: "exit",
-    // CHANTIER C8 (2026-05-28) — Erreur TECHNIQUE propre + invitation à relancer,
-    // au lieu d'un refus vague ("je m'arrête plutôt que deviner à ta place")
-    // qui laissait l'utilisateur croire à un blocage de jugement. Voir A3-r8
-    // T11 (l'utilisateur avait pourtant dit "choisis la technique toi-même").
     ack:
-      "Petit raté technique de mon côté en préparant la carte — rien à voir avec ta demande. Redis-moi de la créer et je relance tout de suite.",
+      "Je n'arrive pas à préparer cette carte proprement là. On peut reprendre dans un instant.",
+    reason_code: reasonCode,
+    technical_source: reasonCode === "ai_unavailable"
+      ? "ai_unavailable"
+      : "technical_fallback",
+    requested_effects: [],
+    allowed_effects: [],
+    committed_effects: [],
+    blocked_effects: [{ type: "prepare_attack_card", reason_code: reasonCode }],
+    pending_confirmation: undefined,
+    should_preserve_pending: true,
+    retryable: true,
     readiness: {
       ready_to_generate: false,
-      fallback_to_dashboard: true,
+      fallback_to_dashboard: false,
       invalid_recommendation_payload: false,
       missing_required_slots: [],
       reason,
@@ -598,6 +647,14 @@ function technicalFailure(
       phase: "exit",
       missing_slots: [],
       turn_count_increment: 1,
+      operation_input: context?.operation_input ?? undefined,
+      intake_state: context?.state ?? undefined,
+      tool_skill_state: toolSkillState({
+        status: "technical_blocked",
+        state: context?.state ?? defaultState(),
+        missing: [],
+        summary: `Attack card AI flow stopped: ${reason}.`,
+      }),
     },
   };
 }
@@ -623,11 +680,13 @@ function normalizeDraft(
   const generatedAsset = String(draft.generated_asset ?? "").trim();
   // L'asset généré est le coeur de la carte: sans lui on ne peut pas rendre une
   // carte honnête → vraie erreur technique (retry puis message propre).
-  if (!generatedAsset) throw new Error("attack_card_draft_required_text_missing");
+  if (!generatedAsset) {
+    throw new Error("attack_card_draft_required_text_missing");
+  }
   // CHANTIER D0 (2026-05-28) — Résilience génération one-shot. Verrouiller la
   // technique demandée (C8) pouvait désynchroniser le draft LLM (title/
   // instruction/confirmation_message construits pour une autre technique) et
-  // faire échouer TOUTE la carte en fallback_dashboard. Désormais on répare
+  // faire échouer TOUTE la carte en technical_blocked. Désormais on répare
   // déterministe ces champs secondaires au lieu de jeter. Voir régression
   // A2-codex-r8 T5/T6, A3-r9 T13 (carte one-shot "ancre visuelle").
   const title = String(draft.title ?? "").trim() ||
@@ -670,8 +729,8 @@ function normalizeDraft(
 
 // CHANTIER D0 (2026-05-28) — Hook de test pour la résilience de normalizeDraft
 // (le point exact où la carte one-shot "ancre visuelle" tombait en
-// fallback_dashboard). Voir tests.ts.
-export function normalizeAttackCardDraftForTest(
+// technical_blocked). Voir tests.ts.
+export function normalizeAttackCardDraft(
   raw: unknown,
   state: AttackCardIntakeState,
 ): AttackCardDraftV1 {
@@ -770,6 +829,8 @@ export async function runPrepareAttackCardAiIntake(input: {
   ) {
     return {
       operation_type: "prepare_attack_card",
+      user_intent: "unknown",
+      constraints: [],
       status: "blocked_by_safety",
       source,
       phase: "exit",
@@ -804,6 +865,13 @@ export async function runPrepareAttackCardAiIntake(input: {
   const draftReviewDecision = filled.draft_review_decision;
   let state = mergeState(initialState, {
     ...filled.state_patch,
+    user_intent: filled.user_intent ??
+      (filled.state_patch as any)?.user_intent ??
+      initialState.user_intent ??
+      "unknown",
+    constraints: filled.constraints ??
+      (filled.state_patch as any)?.constraints ??
+      initialState.constraints,
     current_step: filled.current_step,
     missing_slots: filled.missing_slots,
     confidence: filled.confidence,
@@ -824,6 +892,8 @@ export async function runPrepareAttackCardAiIntake(input: {
   if (draftReviewDecision && draftReviewDecision.decision !== "revise") {
     return {
       operation_type: "prepare_attack_card",
+      user_intent: state.user_intent ?? "unknown",
+      constraints: state.constraints,
       status: "draft_review_decision",
       source,
       phase: "confirmation",
@@ -842,6 +912,8 @@ export async function runPrepareAttackCardAiIntake(input: {
         turn_count_increment: 1,
         operation_input: operationInput,
         intake_state: state,
+        user_intent: state.user_intent ?? "unknown",
+        constraints: state.constraints,
         draft_review_decision: draftReviewDecision,
         tool_skill_state: toolSkillState({
           status: "awaiting_user_confirmation",
@@ -854,11 +926,16 @@ export async function runPrepareAttackCardAiIntake(input: {
   }
   if (missing.length > 0) {
     if (!state.generated_user_message) {
-      return technicalFailure("ai_slot_question_missing", source);
+      return technicalFailure("ai_slot_question_missing", source, {
+        state,
+        operation_input: operationInput,
+      });
     }
     if (source === "recommendation_tool" && missing.includes("target")) {
       return {
         operation_type: "prepare_attack_card",
+        user_intent: state.user_intent ?? "unknown",
+        constraints: state.constraints,
         status: "invalid_recommendation_payload",
         source,
         phase: "exit",
@@ -877,6 +954,8 @@ export async function runPrepareAttackCardAiIntake(input: {
           turn_count_increment: 1,
           operation_input: operationInput,
           intake_state: state,
+          user_intent: state.user_intent ?? "unknown",
+          constraints: state.constraints,
           tool_skill_state: toolSkillState({
             status: "fallback",
             state,
@@ -888,6 +967,8 @@ export async function runPrepareAttackCardAiIntake(input: {
     }
     return {
       operation_type: "prepare_attack_card",
+      user_intent: state.user_intent ?? "unknown",
+      constraints: state.constraints,
       status: "ask_question",
       source,
       phase: state.current_step === "keyword_intake"
@@ -966,6 +1047,8 @@ export async function runPrepareAttackCardAiIntake(input: {
         turn_count_increment: 1,
         operation_input: operationInput,
         intake_state: state,
+        user_intent: state.user_intent ?? "unknown",
+        constraints: state.constraints,
         tool_skill_state: toolSkillState({
           status: "collecting",
           state,
@@ -980,6 +1063,7 @@ export async function runPrepareAttackCardAiIntake(input: {
     return technicalFailure(
       "structured_ai_contract_incomplete_after_gate",
       source,
+      { state, operation_input: operationInput },
     );
   }
   let draft: AttackCardDraftV1;
@@ -993,7 +1077,8 @@ export async function runPrepareAttackCardAiIntake(input: {
     trigger_message_id: input.trigger_message_id,
     state,
   };
-  const runDraftGenerator = input.draft_generator ?? generateAttackCardDraftWithAi;
+  const runDraftGenerator = input.draft_generator ??
+    generateAttackCardDraftWithAi;
   try {
     draft = await runDraftGenerator(generatorArgs);
   } catch {
@@ -1003,12 +1088,17 @@ export async function runPrepareAttackCardAiIntake(input: {
     try {
       draft = await runDraftGenerator(generatorArgs);
     } catch {
-      return technicalFailure("ai_draft_generator_error", source);
+      return technicalFailure("ai_draft_generator_error", source, {
+        state,
+        operation_input: operationInput,
+      });
     }
   }
   const operationId = crypto.randomUUID();
   return {
     operation_type: "prepare_attack_card",
+    user_intent: state.user_intent ?? "unknown",
+    constraints: state.constraints,
     status: "pending_confirmation",
     source,
     phase: "confirmation",
@@ -1046,6 +1136,8 @@ export async function runPrepareAttackCardAiIntake(input: {
       turn_count_increment: 1,
       operation_input: operationInput,
       intake_state: state,
+      user_intent: state.user_intent ?? "unknown",
+      constraints: state.constraints,
       tool_skill_state: toolSkillState({
         status: "awaiting_user_confirmation",
         state,

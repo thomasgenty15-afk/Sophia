@@ -399,6 +399,16 @@ export function resolveContextMemoryLoadStrategy(params: {
   };
 }
 
+export function describeContextLoaderMemoryBoundary(params: {
+  memoryPlan?: DispatcherMemoryPlan | null;
+}): Record<string, unknown> {
+  return {
+    consumes_memory_plan: Boolean(params.memoryPlan),
+    owns: ["LoadedContext", "materialized_memory"],
+    must_not: ["choose_route_owner", "write_memory"],
+  };
+}
+
 async function resolveV2RuntimeRefs(opts: ContextLoaderOptions): Promise<{
   cycleId: string | null;
   transformationId: string | null;
@@ -761,8 +771,6 @@ export async function loadContextForMode(
     ?.__dashboard_redirect_addon;
   const dashboardPreferencesIntentAddon = (opts.tempMemory as any)
     ?.__dashboard_preferences_intent_addon;
-  const dashboardRecurringReminderIntentAddon = (opts.tempMemory as any)
-    ?.__dashboard_recurring_reminder_intent_addon;
   const dashboardCapabilitiesAddon = (opts.tempMemory as any)
     ?.__dashboard_capabilities_addon;
   const hasSurfaceOpportunityAddon = Boolean(
@@ -783,7 +791,6 @@ export async function loadContextForMode(
   const hasSpecificDashboardAddon = Boolean(
     dashboardRedirectAddon ||
       dashboardPreferencesIntentAddon ||
-      dashboardRecurringReminderIntentAddon ||
       dashboardCapabilitiesAddon ||
       hasSurfaceOpportunityAddon,
   );
@@ -824,13 +831,6 @@ export async function loadContextForMode(
     }
   }
 
-  // 14. Safety active addon (dynamic tone/protocol guidance)
-  const safetyActiveAddon = (opts.tempMemory as any)?.__safety_active_addon;
-  if (safetyActiveAddon && opts.mode === "companion") {
-    context.safetyActiveAddon = formatSafetyActiveAddon(safetyActiveAddon);
-    if (context.safetyActiveAddon) elementsLoaded.push("safety_active_addon");
-  }
-
   // 14b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
   if (dashboardPreferencesIntentAddon && opts.mode === "companion") {
     context.dashboardPreferencesIntentAddon =
@@ -842,23 +842,11 @@ export async function loadContextForMode(
     }
   }
 
-  // 14c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
-  if (dashboardRecurringReminderIntentAddon && opts.mode === "companion") {
-    context.dashboardRecurringReminderIntentAddon =
-      formatDashboardRecurringReminderIntentAddon(
-        dashboardRecurringReminderIntentAddon,
-      );
-    if (context.dashboardRecurringReminderIntentAddon) {
-      elementsLoaded.push("dashboard_recurring_reminder_intent_addon");
-    }
-  }
-
   // 14d. Dashboard capabilities addon (umbrella "can be related to dashboard")
   const shouldIncludeDashboardCapabilitiesAddon = Boolean(
     dashboardCapabilitiesAddon &&
       !dashboardRedirectAddon &&
-      !dashboardPreferencesIntentAddon &&
-      !dashboardRecurringReminderIntentAddon,
+      !dashboardPreferencesIntentAddon,
   );
   if (shouldIncludeDashboardCapabilitiesAddon && opts.mode === "companion") {
     context.dashboardCapabilitiesAddon = formatDashboardCapabilitiesAddon(
@@ -1017,13 +1005,9 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.dashboardPreferencesIntentAddon) {
     ctx += loaded.dashboardPreferencesIntentAddon;
   }
-  if (loaded.dashboardRecurringReminderIntentAddon) {
-    ctx += loaded.dashboardRecurringReminderIntentAddon;
-  }
   if (loaded.dashboardCapabilitiesAddon) {
     ctx += loaded.dashboardCapabilitiesAddon;
   }
-  if (loaded.safetyActiveAddon) ctx += loaded.safetyActiveAddon;
   if (loaded.defenseCardWinAddon) ctx += loaded.defenseCardWinAddon;
   if (loaded.defenseCardPendingTriggersAddon) {
     ctx += loaded.defenseCardPendingTriggersAddon;
@@ -1843,38 +1827,6 @@ async function loadWeeklyRecapContext(
   }
 }
 
-function formatDashboardRecurringReminderIntentAddon(addon: any): string {
-  const confidence = Number(addon?.confidence ?? 0);
-  const confidenceText = Number.isFinite(confidence)
-    ? ` (confidence=${confidence.toFixed(2)})`
-    : "";
-  const fields = Array.isArray(addon?.fields)
-    ? addon.fields
-      .filter((v: unknown) => typeof v === "string")
-      .slice(0, 9)
-    : [];
-  const fieldsText = fields.length > 0 ? fields.join(", ") : "non précisé";
-  const fromBilan = Boolean(addon?.from_bilan);
-
-  return (
-    `\n\n=== ADDON DASHBOARD RENDEZ-VOUS INTENT ===\n` +
-    `- L'utilisateur veut configurer des rendez-vous WhatsApp planifiés${confidenceText}.\n` +
-    `- Paramètres détectés: ${fieldsText}.\n` +
-    `- Cet add-on sert de support de connaissance pour orienter la configuration correctement.\n` +
-    `- Réponds clairement puis redirige vers la section Rendez-vous du dashboard.\n` +
-    `- Anti-répétition: n'enchaîne pas la même redirection dashboard sur des messages consécutifs.\n` +
-    `- Si la redirection vient d'être faite, continue la discussion sur le rendez-vous (heure/jours/message) sans re-rediriger immédiatement.\n` +
-    `- Si besoin, précise les paramètres configurables: mode (daily/weekly/custom), days, time, timezone, channel (app/whatsapp), start_date, end_date, pause, message.\n` +
-    `- Règle de choix à formuler en première personne si nécessaire: si je dois venir vers le user à un moment précis, c'est un Rendez-vous, pas une Action Personnelle.\n` +
-    `- Demande seulement l'info manquante critique avant redirection si la demande est ambiguë.\n` +
-    `- Interdiction de programmer/éditer un rendez-vous depuis le chat: toute création/modification se fait dans le dashboard.\n` +
-    (fromBilan
-      ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
-      : "") +
-    `- N'annonce aucune programmation de rendez-vous comme déjà faite dans le chat.\n`
-  );
-}
-
 function shouldInjectRendezVousSummary(
   mode: AgentMode,
   message: string,
@@ -2028,19 +1980,6 @@ function formatDefenseCardWinAddon(addon: any): string {
   );
 
   return lines.join("\n");
-}
-
-function formatSafetyActiveAddon(addon: any): string {
-  const level = "sentry";
-  const phase = String(addon?.phase ?? "active").trim().slice(0, 40) ||
-    "active";
-
-  return (
-    `\n\n=== ADDON SAFETY ACTIVE ===\n` +
-    `- Niveau safety actif: ${level} (phase=${phase}).\n` +
-    `- Priorité: sécurité + apaisement, ton calme, validation émotionnelle, une seule micro-étape à la fois.\n` +
-    `- Tant que le niveau safety est actif, ne sors pas du protocole safety.\n`
-  );
 }
 
 /**
@@ -2329,7 +2268,9 @@ export async function loadDurableEffectsSummary(
       // Voir A4-r5 T11.
       lines.push(`- Rappels ponctuels en attente (${checkins.length}):`);
       for (const checkin of checkins) {
-        const instruction = extractReminderInstruction(checkin?.message_payload);
+        const instruction = extractReminderInstruction(
+          checkin?.message_payload,
+        );
         const scheduledRaw = String(checkin?.scheduled_for ?? "").trim();
         // CHANTIER C3 (2026-05-28) — On n'expose QUE l'heure locale au LLM.
         // L'ISO UTC est de la traçabilité, pas de l'affichage: chantier 12
@@ -2424,9 +2365,9 @@ export async function loadDurableEffectsSummary(
 
     lines.push(
       "Consigne: ces lignes décrivent ce qui existe vraiment côté DB. " +
-        "Ne dis JAMAIS \"on n'a pas validé/créé X\" si la ligne correspondante est présente. " +
-        "Pour une question \"X confirmé ?\" sur un rappel précis, dis \"oui\" si l'heure et l'instruction matchent une ligne ci-dessus, sinon \"non vérifiable depuis ce chat\". " +
-        "Ne dis jamais \"non\" pour un rappel listé ci-dessus. " +
+        'Ne dis JAMAIS "on n\'a pas validé/créé X" si la ligne correspondante est présente. ' +
+        'Pour une question "X confirmé ?" sur un rappel précis, dis "oui" si l\'heure et l\'instruction matchent une ligne ci-dessus, sinon "non vérifiable depuis ce chat". ' +
+        'Ne dis jamais "non" pour un rappel listé ci-dessus. ' +
         "Pour décrire ou pointer un effet durable, base-toi sur ces lignes. " +
         "Distingue toujours une préférence coach DÉFINIE PAR L'UTILISATEUR d'un réglage PAR DÉFAUT système: si aucune préférence explicite n'est enregistrée, réponds clairement \"aucune préférence coach enregistrée\" et ne présente jamais les valeurs par défaut comme des préférences choisies. " +
         "Quand tu cites un horaire de rappel à l'utilisateur, utilise UNIQUEMENT l'heure locale fournie ci-dessus (ex: \"11:21\"). Le \"[ref: ...]\" est un identifiant technique, jamais une heure: ne l'affiche pas et n'en déduis aucun horaire.",

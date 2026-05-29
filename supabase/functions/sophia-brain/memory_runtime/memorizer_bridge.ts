@@ -1,6 +1,9 @@
 import type { MemoryWriteCandidate } from "../contracts/memory_write_candidate.v1.ts";
 import type { RiskBand } from "../contracts/turn_frame.v1.ts";
 
+// Memory runtime boundary: skills provide MemoryWriteCandidate values; this
+// module validates, rejects, invalidates or queues them for the memorizer.
+// Current operation EffectLedger entries do not yet prove queued memory writes.
 export type MemoryCandidateRejectReason =
   | "invalid_schema"
   | "missing_evidence"

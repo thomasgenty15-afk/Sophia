@@ -27,17 +27,22 @@ import type {
   CoachPreferenceStep,
   CoachPreferenceToolSkillState,
 } from "./workflow.ts";
+import type { UpdateCoachPreferenceUserIntent } from "./contract.ts";
 
 export type UpdateCoachPreferencesOperationOutput = {
   operation_type: "update_coach_preferences";
   status:
     | "ask_question"
+    | "preview_only"
+    | "verified"
+    | "cancelled"
     | "pending_confirmation"
-    | "fallback_dashboard"
+    | "technical_blocked"
     | "invalid_recommendation_payload"
     | "blocked_by_safety";
   source: "direct_user_request" | "recommendation_tool";
   phase: "preference_resolution" | "generation" | "confirmation" | "exit";
+  user_intent?: UpdateCoachPreferenceUserIntent;
   draft?: CoachPreferencesPatchDraftV1;
   confirmation?: { required: boolean; message: string; actions: ["yes", "no"] };
   pending_confirmation?: Record<string, unknown>;
@@ -93,8 +98,6 @@ function deterministicPatchFromMessage(
   // PAS la règle générique « court » (A2-r9 T8-10).
   if (/\bmode tunnel\b/.test(text)) {
     patch["coach.tone"] = "direct";
-    patch["coach.emoji_policy"] = "none";
-    patch["coach.final_question_policy"] = "avoid_unnecessary";
     patch["coach.question_tendency"] = "low";
     return patch;
   }
@@ -122,7 +125,6 @@ function deterministicPatchFromMessage(
       /\bquestion maximum\b/.test(text)
     )
   ) {
-    patch["coach.action_first_policy"] = "concrete_before_questions";
     patch["coach.question_tendency"] = "low";
   }
   if (
@@ -151,32 +153,10 @@ function deterministicPatchFromMessage(
     patch["coach.question_tendency"] = "low";
   }
   if (
-    /\b(action d abord|geste concret d abord|action concrete d abord|commence par (?:un )?(?:geste|action)|geste concret avant|action concrete avant)\b/
-      .test(text) ||
-    /\b(geste concret|action concrete)\b[\s\S]{0,80}\bavant\b[\s\S]{0,50}\bquestions?\b/
-      .test(text)
-  ) {
-    patch["coach.action_first_policy"] = "concrete_before_questions";
-  }
-  if (
     /\b(moins de questions|evite les questions|evite les relances|pas de questions systematiques|pas de relance systematique|reduis les questions|reduit les questions|une seule question|pas de question finale|sans question finale|question de tri|3 lignes max|trois lignes max)\b/
       .test(text)
   ) {
     patch["coach.question_tendency"] = "low";
-  }
-  if (/\b(3 lignes max|trois lignes max|maximum trois lignes)\b/.test(text)) {
-    patch["coach.response_max_lines"] = "three";
-  }
-  if (
-    /\b(zero emoji|0 emoji|sans emoji|pas d emoji|pas d emojis)\b/.test(text)
-  ) {
-    patch["coach.emoji_policy"] = "none";
-  }
-  if (
-    /\b(pas de question finale|sans question finale|pas de question finale inutile|ne finis pas par une question|ne termine pas par une question)\b/
-      .test(text)
-  ) {
-    patch["coach.final_question_policy"] = "avoid_unnecessary";
   }
   if (
     /\b(ferme et doux|doux et ferme|bienveillant et ferme|ferme et bienveillant|ton ferme|phrases courtes et fermes|style ferme)\b/
@@ -269,11 +249,7 @@ function stringArray(value: unknown): string[] {
 function normalizeKey(value: unknown): CoachPreferenceKey | null {
   const raw = String(value ?? "").trim();
   return raw === "coach.tone" || raw === "coach.challenge_level" ||
-      raw === "coach.question_tendency" ||
-      raw === "coach.response_max_lines" ||
-      raw === "coach.emoji_policy" ||
-      raw === "coach.final_question_policy" ||
-      raw === "coach.action_first_policy"
+      raw === "coach.question_tendency"
     ? raw
     : null;
 }
@@ -290,10 +266,46 @@ function normalizeStep(value: unknown): CoachPreferenceStep {
     : "preference_resolution";
 }
 
+function normalizeUserIntent(value: unknown): UpdateCoachPreferenceUserIntent {
+  const raw = String(value ?? "").trim();
+  return [
+      "set_preference",
+      "preview_only",
+      "verify_preference",
+      "cancel",
+      "reject",
+      "revise",
+      "explain",
+      "topic_change",
+      "status_question",
+      "clarify",
+      "unknown",
+    ].includes(raw)
+    ? raw as UpdateCoachPreferenceUserIntent
+    : "unknown";
+}
+
+function normalizeRequestedPatch(
+  value: unknown,
+): Partial<Record<CoachPreferenceKey, string>> | null {
+  const root = objectValue(value);
+  if (!root) return null;
+  const patch: Partial<Record<CoachPreferenceKey, string>> = {};
+  for (const [rawKey, rawValue] of Object.entries(root)) {
+    const key = normalizeKey(rawKey);
+    if (!key) continue;
+    const value = normalizeCoachPreferenceValue(key, rawValue);
+    if (!value) continue;
+    patch[key] = value;
+  }
+  return Object.keys(patch).length ? patch : null;
+}
+
 function defaultState(): CoachPreferenceIntakeState {
   return {
     skill_id: "update_coach_preferences",
     current_step: "preference_resolution",
+    user_intent: "unknown",
     preference: {
       status: "missing",
       key: null,
@@ -311,6 +323,7 @@ function defaultState(): CoachPreferenceIntakeState {
       confidence: "low",
     },
     constraints: [],
+    structured_constraints: {},
     missing_slots: ["preference"],
     confidence: "low",
     generated_user_message: null,
@@ -330,6 +343,8 @@ function stateFromStructuredPatch(
   const value = normalizeCoachPreferenceValue(key, rawValue);
   if (!value) return {};
   return {
+    user_intent: "set_preference",
+    requested_patch: { [key]: value },
     preference: {
       status: "identified",
       key,
@@ -371,8 +386,15 @@ function mergeState(
     desired_value: { ...base.desired_value },
     reason: { ...base.reason },
     constraints: [...base.constraints],
+    structured_constraints: { ...(base.structured_constraints ?? {}) },
     missing_slots: [...base.missing_slots],
   };
+  if (root.user_intent) {
+    const intent = normalizeUserIntent(root.user_intent);
+    next.user_intent = intent;
+  }
+  const requestedPatch = normalizeRequestedPatch(root.requested_patch);
+  if (requestedPatch) next.requested_patch = requestedPatch;
   const preference = objectValue(root.preference);
   if (preference) {
     const status = preference.status === "identified" ||
@@ -415,6 +437,13 @@ function mergeState(
   if (Array.isArray(root.constraints)) {
     next.constraints = stringArray(root.constraints);
   }
+  const structuredConstraints = objectValue(root.structured_constraints);
+  if (structuredConstraints) {
+    next.structured_constraints = {
+      draft_only: structuredConstraints.draft_only === true,
+      do_not_store: structuredConstraints.do_not_store === true,
+    };
+  }
   if (Array.isArray(root.missing_slots)) {
     next.missing_slots = stringArray(root.missing_slots);
   }
@@ -429,6 +458,18 @@ function mergeState(
 }
 
 function requiredMissingSlots(state: CoachPreferenceIntakeState): string[] {
+  if (
+    state.user_intent === "preview_only" ||
+    state.user_intent === "verify_preference" ||
+    state.user_intent === "status_question" ||
+    state.user_intent === "cancel" ||
+    state.user_intent === "reject" ||
+    state.user_intent === "explain" ||
+    state.user_intent === "topic_change"
+  ) return [];
+  if (state.requested_patch && Object.keys(state.requested_patch).length > 0) {
+    return [];
+  }
   const missing = [];
   if (state.preference.status !== "identified" || !state.preference.key) {
     missing.push("preference");
@@ -449,6 +490,9 @@ function nextStepForMissing(missing: string[]): CoachPreferenceStep {
 function requestedPatchFromState(
   state: CoachPreferenceIntakeState,
 ): Partial<Record<CoachPreferenceKey, string>> | null {
+  if (state.requested_patch && Object.keys(state.requested_patch).length > 0) {
+    return state.requested_patch;
+  }
   if (
     state.preference.status !== "identified" || !state.preference.key ||
     state.desired_value.status !== "identified" || !state.desired_value.value
@@ -493,7 +537,7 @@ function technicalFailure(
     operation_type: "update_coach_preferences",
     status: source === "recommendation_tool"
       ? "invalid_recommendation_payload"
-      : "fallback_dashboard",
+      : "technical_blocked",
     source,
     phase: "exit",
     // CHANTIER D4 (2026-05-28) — Message d'échec TECHNIQUE propre + invitation à
@@ -545,7 +589,14 @@ export async function runUpdateCoachPreferencesIntake(input: {
     };
   }
 
-  const deterministicPatch = deterministicPatchFromMessage(input.message);
+  // TRANSITIONNEL (2026-05-29): deterministicPatchFromMessage reste dans le
+  // fichier pour compatibilité de tests/historique, mais il n'est plus le
+  // chemin principal. La compréhension preference/value/composite vient du JSON
+  // L5 produit par le slot filler.
+  const deterministicPatch =
+    (input.operation_input as any)?.__enable_transition_regex_fallback === true
+      ? deterministicPatchFromMessage(input.message)
+      : null;
   if (deterministicPatch && Object.keys(deterministicPatch).length > 1) {
     const request = buildOperationDraftRequest({
       operation_type: "update_coach_preferences",
@@ -588,6 +639,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
     return {
       operation_type: "update_coach_preferences",
       status: "pending_confirmation",
+      user_intent: state.user_intent,
       source,
       phase: "confirmation",
       draft,
@@ -647,6 +699,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
   const slotFiller = input.slot_filler ?? fillCoachPreferencesSlotsWithAi;
   let filled: CoachPreferencesSlotFillerOutput | null = hasStructuredPatchInput
     ? {
+      user_intent: "set_preference" as const,
       current_step: "draft_generation" as const,
       state_patch: {},
       missing_slots: [] as string[],
@@ -682,6 +735,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
 
   let state = mergeState(initialState, {
     ...filled.state_patch,
+    user_intent: filled.user_intent,
     current_step: filled.current_step,
     missing_slots: filled.missing_slots,
     confidence: filled.confidence,
@@ -698,6 +752,118 @@ export async function runUpdateCoachPreferencesIntake(input: {
     state,
     input.operation_input ?? null,
   );
+
+  if (state.user_intent === "preview_only") {
+    const requestedPatch = requestedPatchFromState(state);
+    let draft: CoachPreferencesPatchDraftV1 | undefined;
+    if (requestedPatch && Object.keys(requestedPatch).length > 0) {
+      const request = buildOperationDraftRequest({
+        operation_type: "update_coach_preferences",
+        user_id: input.user_id,
+        timezone: input.timezone,
+        channel: input.channel,
+        trigger_message_id: input.trigger_message_id,
+        current_user_message: input.message,
+        operation_source: source,
+      }) as ReturnType<typeof buildOperationDraftRequest> & {
+        current_preferences: Partial<Record<CoachPreferenceKey, string>>;
+        requested_patch: Partial<Record<CoachPreferenceKey, string>>;
+      };
+      request.current_preferences = input.current_preferences ?? {};
+      request.requested_patch = requestedPatch;
+      try {
+        draft = runCoachPreferencesPatchBuilder(
+          buildCoachPreferencesPayload(request),
+        );
+      } catch {
+        return technicalFailure(
+          "coach_preferences_preview_builder_error",
+          source,
+        );
+      }
+    }
+    return {
+      operation_type: "update_coach_preferences",
+      status: "preview_only",
+      user_intent: "preview_only",
+      source,
+      phase: "exit",
+      draft,
+      ack: draft
+        ? `Proposition (non enregistrée) : ${draft.draft.summary}`
+        : state.generated_user_message ??
+          "Je peux te proposer un réglage, sans l'enregistrer.",
+      state_patch: {
+        summary: "Coach preferences preview generated without persistence.",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "draft_ready",
+          state,
+          missing: [],
+          summary: "Preview only: no pending confirmation or DB write.",
+        }),
+      },
+    };
+  }
+
+  if (
+    state.user_intent === "verify_preference" ||
+    state.user_intent === "status_question"
+  ) {
+    return {
+      operation_type: "update_coach_preferences",
+      status: "verified",
+      user_intent: state.user_intent,
+      source,
+      phase: "exit",
+      ack: state.generated_user_message ??
+        "Je vérifie les préférences déjà enregistrées, sans rien modifier.",
+      state_patch: {
+        summary: "Coach preference verification/status question; no mutation.",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "completed",
+          state,
+          missing: [],
+          summary: "Verification/status question handled without mutation.",
+        }),
+      },
+    };
+  }
+
+  if (state.user_intent === "cancel" || state.user_intent === "reject") {
+    return {
+      operation_type: "update_coach_preferences",
+      status: "cancelled",
+      user_intent: state.user_intent,
+      source,
+      phase: "exit",
+      ack: state.generated_user_message ??
+        "Ok, je ne garde pas cette préférence.",
+      state_patch: {
+        summary: "Coach preference cancelled/rejected by user.",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "cancelled",
+          state,
+          missing: [],
+          summary: "Preference flow cancelled.",
+        }),
+      },
+    };
+  }
 
   if (missing.length > 0) {
     if (source === "recommendation_tool") {
@@ -787,6 +953,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
   return {
     operation_type: "update_coach_preferences",
     status: "pending_confirmation",
+    user_intent: state.user_intent,
     source,
     phase: "confirmation",
     draft,

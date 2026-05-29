@@ -13,25 +13,358 @@ import {
 } from "../../../test_harness/conversation_route_replay/runner.ts";
 import type { AttackCardDraftGenerator } from "./ai_intake.ts";
 import {
-  normalizeAttackCardDraftForTest,
+  normalizeAttackCardDraft,
   runPrepareAttackCardAiIntake,
 } from "./ai_intake.ts";
+import { decidePrepareAttackCardNextStep } from "./contract.ts";
 import { executePrepareAttackCard } from "./executor.ts";
 import {
-  detectExplicitlyNamedTechniqueForTest,
-  enforceExplicitTechniqueRequestForTest,
-  refineAttackCardTechniqueFitForTest,
+  detectExplicitlyNamedTechnique,
+  enforceExplicitTechniqueRequest,
+  normalizeAttackCardSlotFillerOutput,
+  refineAttackCardTechniqueFit,
 } from "./slot_filler.ts";
 import {
   readyAttackCardStatePatch,
   structuredAttackCardDraftGenerator,
   structuredAttackCardSlotFiller,
 } from "./test_helpers.ts";
+import {
+  applyAttackCardSingleTechniquePreference,
+  loadRecentActiveAttackCardForUser,
+  userExplicitlyAsksForNewAttackCard,
+} from "./run_support.ts";
+import {
+  renderAttackCardDraftOnlyReply,
+  renderAttackCardExecutedReply,
+  renderAttackCardFailedReply,
+  renderAttackCardPendingConfirmationReply,
+} from "./renderer.ts";
+import {
+  applyPrepareAttackCardInitialDraftDecision,
+  maybeRunPrepareAttackCardOperation,
+} from "./router.ts";
 
 const SECRET = "s5-test-secret";
 
+const sampleAttackCardDraft = () => ({
+  operation_type: "prepare_attack_card" as const,
+  output_schema: "attack_card_draft_v1" as const,
+  draft: {
+    title: "Carte d'attaque - marche",
+    target_label: "marche",
+    technique: "texte_recadrage" as const,
+    technique_title: "Le texte magique",
+    instruction: "Reviens au premier geste.",
+    generated_asset: "Quand je négocie, je reviens au premier geste minuscule.",
+    activation_keyword: null,
+    supporting_points: [],
+    mode_emploi: "Lis-la au moment où la résistance monte.",
+    why_it_helps: "Elle coupe le débat intérieur.",
+  },
+  confirmation_message: "Je crée cette carte ?",
+  confirmation_actions: ["yes", "no"] as ["yes", "no"],
+});
+
+function makeFakeSupabaseAttackCardsTable(rows: unknown[]) {
+  return {
+    from(table: string) {
+      assertEquals(table, "user_attack_cards");
+      const builder: any = {
+        select(_cols: string) {
+          return this;
+        },
+        eq(_col: string, _val: unknown) {
+          return this;
+        },
+        order(_col: string, _opts?: any) {
+          return this;
+        },
+        limit(_n: number) {
+          return Promise.resolve({ data: rows, error: null });
+        },
+      };
+      return builder;
+    },
+  } as any;
+}
+
+function makeFakeSupabaseForAttackRouter() {
+  return {
+    from() {
+      return {
+        select() {
+          return this;
+        },
+        eq() {
+          return this;
+        },
+        limit() {
+          return Promise.resolve({ data: [], error: null });
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: null, error: null });
+        },
+      };
+    },
+  } as any;
+}
+
+Deno.test("prepare_attack_card contract normalizes user_intent=draft_only + no_create", () => {
+  const output = normalizeAttackCardSlotFillerOutput({
+    current_step: "draft_generation",
+    user_intent: "draft_only",
+    constraints: [{
+      kind: "no_create",
+      evidence: ["sans le créer"],
+    }, {
+      kind: "draft_only",
+      evidence: ["brouillon complet"],
+    }],
+    state_patch: readyAttackCardStatePatch(),
+    missing_slots: [],
+    confidence: "high",
+    generated_user_message: null,
+    evidence: ["structured intent"],
+  });
+
+  assertEquals(output.user_intent, "draft_only");
+  assertEquals(
+    (output.constraints ?? []).map((constraint) => constraint.kind),
+    ["no_create", "draft_only"],
+  );
+});
+
+Deno.test("prepare_attack_card contract blocks draft-only create effects", () => {
+  const pendingRaw = {
+    operation_id: "op-draft-only",
+    operation_type: "prepare_attack_card",
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    draft: sampleAttackCardDraft(),
+  };
+  const decision = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "draft_only",
+    constraints: [{
+      kind: "no_create",
+      evidence: ["sans créer"],
+    }],
+    draft_review_decision: {
+      decision: "unclear",
+      evidence: ["montre le brouillon"],
+    },
+  });
+
+  assertEquals(decision.status, "draft_ready");
+  assertEquals(decision.allowed_effects.length, 0);
+  assertEquals(
+    decision.blocked_effects[0]?.reason_code,
+    "no_create_constraint",
+  );
+});
+
+Deno.test("prepare_attack_card initial draft-only stores review draft, not executable pending", () => {
+  const runtime = applyPrepareAttackCardInitialDraftDecision({
+    output: {
+      status: "pending_confirmation",
+      pending_confirmation: {
+        operation_id: "op-initial-draft-only",
+        operation_type: "prepare_attack_card",
+      },
+      draft: sampleAttackCardDraft(),
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["sans créer"] }],
+      state_patch: { draft_review_decision: null },
+    } as any,
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    tempMemory: {},
+  });
+
+  assertEquals(runtime?.executedTools, []);
+  assertEquals(runtime?.toolSkillRun.status, "draft_ready");
+  assertEquals(
+    runtime?.nextTempMemory.__pending_tool_skill_confirmation,
+    undefined,
+  );
+  assertEquals(
+    runtime?.nextTempMemory.__pending_attack_card_draft_review?.executable,
+    false,
+  );
+  assertStringIncludes(runtime?.content ?? "", "Je n'ai rien créé");
+  assertEquals(
+    (runtime?.content ?? "").includes("Confirme explicitement"),
+    false,
+  );
+});
+
+Deno.test("prepare_attack_card renderer separates draft, pending, executed and failed states", () => {
+  const draft = sampleAttackCardDraft();
+  const draftOnly = renderAttackCardDraftOnlyReply(draft);
+  assertStringIncludes(draftOnly, "Je n'ai rien créé");
+  assertEquals(draftOnly.includes("Confirme explicitement"), false);
+
+  const pending = renderAttackCardPendingConfirmationReply(draft);
+  assertStringIncludes(pending, "Confirme explicitement");
+
+  const executed = renderAttackCardExecutedReply({
+    type: "create_attack_card",
+    operation_id: "op-committed",
+    attack_card_id: "attack-1",
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    draft,
+  });
+  assertStringIncludes(executed, "attack-1");
+  assertStringIncludes(executed, "C'est fait");
+
+  const failed = renderAttackCardFailedReply();
+  assertEquals(failed.includes("C'est fait"), false);
+});
+
+Deno.test("prepare_attack_card contract allows approve only with compatible pending draft", () => {
+  const pendingRaw = {
+    operation_id: "op-approve",
+    operation_type: "prepare_attack_card",
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    draft: sampleAttackCardDraft(),
+  };
+  const allowed = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "create",
+    constraints: [],
+    draft_review_decision: {
+      decision: "approve",
+      evidence: ["ok crée-la"],
+    },
+  });
+  assertEquals(allowed.status, "pending_confirmation");
+  assertEquals(allowed.allowed_effects[0]?.type, "create_attack_card");
+
+  const incompatible = decidePrepareAttackCardNextStep({
+    pendingRaw: {
+      ...pendingRaw,
+      target: { kind: "plan_item", title: "marche" },
+    },
+    user_intent: "create",
+    constraints: [],
+    draft_review_decision: {
+      decision: "approve",
+      evidence: ["ok crée-la"],
+    },
+  });
+  assertEquals(incompatible.status, "blocked");
+  assertEquals(incompatible.allowed_effects.length, 0);
+});
+
+Deno.test("prepare_attack_card contract keeps show/reject/revise/topic_change away from DB effects", () => {
+  const pendingRaw = {
+    operation_id: "op-review",
+    operation_type: "prepare_attack_card",
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    draft: sampleAttackCardDraft(),
+  };
+
+  const show = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "draft_only",
+    constraints: [{ kind: "draft_only", evidence: ["montre-moi"] }],
+  });
+  assertEquals(show.allowed_effects.length, 0);
+
+  const reject = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "reject",
+    constraints: [],
+    draft_review_decision: { decision: "reject", evidence: ["finalement non"] },
+  });
+  assertEquals(reject.status, "cancelled");
+  assertEquals(reject.allowed_effects.length, 0);
+
+  const revise = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "revise",
+    constraints: [],
+    draft_review_decision: { decision: "revise", evidence: ["corrige"] },
+  });
+  assertEquals(revise.status, "revised");
+  assertEquals(revise.allowed_effects.length, 0);
+
+  const topicChange = decidePrepareAttackCardNextStep({
+    pendingRaw,
+    user_intent: "topic_change",
+    constraints: [],
+    draft_review_decision: {
+      decision: "topic_change",
+      evidence: ["parlons d'autre chose"],
+    },
+  });
+  assertEquals(topicChange.handled, false);
+  assertEquals(topicChange.allowed_effects.length, 0);
+});
+
+Deno.test("Confirmation contract: pending attack card preview does not create", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "montre-moi d'abord le brouillon",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __pending_tool_skill_confirmation: {
+        operation_id: "op-attack-preview",
+        operation_type: "prepare_attack_card",
+        target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+        draft: sampleAttackCardDraft(),
+        draft_review_decision: {
+          decision: "preview",
+          confidence: "high",
+          evidence: ["montre-moi d'abord le brouillon"],
+        },
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-attack-preview",
+  });
+  assertEquals(runtime?.toolExecution, "blocked");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals((runtime?.toolSkillRun as any)?.status, "draft_ready");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.confirmation_decision?.decision,
+    "explain",
+  );
+});
+
+Deno.test("Confirmation contract: pending attack card ignores reminder command", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "programme le rappel",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __pending_tool_skill_confirmation: {
+        operation_id: "op-attack-unrelated",
+        operation_type: "prepare_attack_card",
+        target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+        draft: sampleAttackCardDraft(),
+        draft_review_decision: {
+          decision: "topic_change",
+          confidence: "high",
+          evidence: ["programme le rappel"],
+        },
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-attack-unrelated",
+  });
+  assertEquals(runtime, null);
+});
+
 Deno.test("prepare_attack_card technique fit prefers ancre visuelle over mot de bascule for perfectionism start blocker", () => {
-  const refined = refineAttackCardTechniqueFitForTest({
+  const refined = refineAttackCardTechniqueFit({
     current_step: "technique_selection",
     missing_slots: ["technique"],
     confidence: "high",
@@ -88,7 +421,11 @@ Deno.test("prepare_attack_card technique fit prefers ancre visuelle over mot de 
         confidence: "low",
         evidence: [],
       },
-      constraints: ["version minimale"],
+      constraints: [{
+        kind: "style",
+        value: "version minimale",
+        evidence: ["version minimale"],
+      }],
       missing_slots: ["technique"],
       confidence: "high",
       generated_user_message:
@@ -116,7 +453,7 @@ Deno.test("prepare_attack_card technique fit prefers ancre visuelle over mot de 
 });
 
 Deno.test("prepare_attack_card technique fit keeps mot de bascule for impulse risk", () => {
-  const refined = refineAttackCardTechniqueFitForTest({
+  const refined = refineAttackCardTechniqueFit({
     current_step: "technique_selection",
     missing_slots: ["technique"],
     confidence: "high",
@@ -292,6 +629,188 @@ Deno.test("prepare_attack_card AI flow drafts from structured state and executor
   );
 });
 
+Deno.test("prepare_attack_card AI flow preserves single_proposal constraint into operation_input", async () => {
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "une seule proposition, pas trois options",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-single-proposal",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => ({
+      current_step: "draft_generation",
+      user_intent: "draft_only",
+      constraints: [{
+        kind: "single_proposal",
+        value: 1,
+        evidence: ["une seule proposition"],
+      }, {
+        kind: "no_extra_options",
+        evidence: ["pas trois options"],
+      }],
+      state_patch: readyAttackCardStatePatch() as any,
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["constraint test"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    (output.state_patch.operation_input as any)?.constraints?.map((
+      constraint: any,
+    ) => constraint.kind),
+    ["single_proposal", "no_extra_options"],
+  );
+});
+
+Deno.test("prepare_attack_card single-technique preference collapses technique choices", () => {
+  const guarded = applyAttackCardSingleTechniquePreference({
+    needed: true,
+    slot: "technique",
+    status: "missing",
+    reason: "structured_ai_missing_technique",
+    technique_options: [
+      {
+        technique_key: "preparer_terrain",
+        title: "Preparer le terrain",
+        description: "micro-setup",
+        reason: "réduit la friction",
+        example: "ouvrir le dossier",
+      },
+      {
+        technique_key: "texte_recadrage",
+        title: "Le texte magique",
+        description: "phrase courte",
+        reason: "coupe la négociation interne",
+        example: "je commence par une facture",
+        recommended: true,
+      },
+      {
+        technique_key: "ancre_visuelle",
+        title: "Ancre visuelle",
+        description: "signal physique",
+        reason: "déclenche le départ",
+        example: "post-it",
+      },
+    ],
+    known_slots: { target: { kind: "personal_action", title: "admin" } },
+  }, { preferSingleTechnique: true }) as any;
+  assertEquals(guarded.technique_options.length, 1);
+  assertEquals(guarded.technique_options[0].technique_key, "texte_recadrage");
+  assertEquals(guarded.question.includes("On part là-dessus"), true);
+  assertEquals(
+    guarded.known_slots.suggested_attack_technique,
+    "texte_recadrage",
+  );
+});
+
+Deno.test("prepare_attack_card detects explicit request for another/new card", () => {
+  assertEquals(
+    userExplicitlyAsksForNewAttackCard(
+      "Cree-moi une nouvelle carte pour la session de travail du soir.",
+    ),
+    true,
+  );
+  assertEquals(
+    userExplicitlyAsksForNewAttackCard(
+      "Fais-moi une autre carte pour le rangement du sas.",
+    ),
+    true,
+  );
+  assertEquals(
+    userExplicitlyAsksForNewAttackCard(
+      "Encore une carte stp, pour la facture cette fois.",
+    ),
+    true,
+  );
+});
+
+Deno.test("prepare_attack_card new-card detector stays false on existing-card references", () => {
+  assertEquals(
+    userExplicitlyAsksForNewAttackCard(
+      "Je ne parle pas du rappel, je parle de la carte d'attaque que tu viens de créer. Donne juste l'emplacement.",
+    ),
+    false,
+  );
+  assertEquals(
+    userExplicitlyAsksForNewAttackCard(
+      "Crée-moi une carte d'attaque pour le mail à Lina.",
+    ),
+    false,
+  );
+});
+
+Deno.test("prepare_attack_card loads recent active card within the configured window", async () => {
+  const recentIso = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+  const result = await loadRecentActiveAttackCardForUser({
+    supabase: makeFakeSupabaseAttackCardsTable([{
+      id: "card-1",
+      generated_at: recentIso,
+      content: {
+        operation_draft: {
+          title: "Payer la facture une fois pour toutes",
+          technique: "ancre_visuelle",
+        },
+      },
+    }]),
+    userId: "u1",
+  });
+  if (!result) throw new Error("expected a card");
+  assertEquals(result.id, "card-1");
+  assertEquals(result.title, "Payer la facture une fois pour toutes");
+  assertEquals(result.technique, "ancre_visuelle");
+  assertEquals(result.ageSeconds >= 100 && result.ageSeconds <= 200, true);
+});
+
+Deno.test("prepare_attack_card recent active card loader returns null outside window or on DB issues", async () => {
+  const oldIso = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const tooOld = await loadRecentActiveAttackCardForUser({
+    supabase: makeFakeSupabaseAttackCardsTable([{
+      id: "card-old",
+      generated_at: oldIso,
+      content: { operation_draft: { title: "Carte ancienne" } },
+    }]),
+    userId: "u1",
+  });
+  assertEquals(tooOld, null);
+
+  const noRows = await loadRecentActiveAttackCardForUser({
+    supabase: makeFakeSupabaseAttackCardsTable([]),
+    userId: "u1",
+  });
+  assertEquals(noRows, null);
+
+  const dbError = await loadRecentActiveAttackCardForUser({
+    supabase: {
+      from(_table: string) {
+        return {
+          select() {
+            return this;
+          },
+          eq() {
+            return this;
+          },
+          order() {
+            return this;
+          },
+          limit() {
+            return Promise.resolve({
+              data: null,
+              error: { message: "DB down" },
+            });
+          },
+        };
+      },
+    } as any,
+    userId: "u1",
+  });
+  assertEquals(dbError, null);
+});
+
 Deno.test("prepare_attack_card AI flow stops on slot filler failure without regex fallback", async () => {
   const output = await runPrepareAttackCardAiIntake({
     user_id: "u1",
@@ -305,7 +824,10 @@ Deno.test("prepare_attack_card AI flow stops on slot filler failure without rege
     draft_generator: structuredAttackCardDraftGenerator,
   });
 
-  assertEquals(output.status, "fallback_dashboard");
+  assertEquals(output.status, "technical_blocked");
+  assertEquals(output.reason_code, "ai_unavailable");
+  assertEquals(output.readiness.fallback_to_dashboard, false);
+  assertEquals(output.pending_confirmation, undefined);
   assertEquals(output.readiness.reason, "ai_slot_filler_unavailable");
   assertEquals(output.state_patch.missing_slots, []);
 });
@@ -336,7 +858,8 @@ Deno.test("prepare_attack_card AI flow keeps deterministic safety and DB guards"
     ),
     draft_generator: structuredAttackCardDraftGenerator,
   });
-  assertEquals(invalidTarget.status, "fallback_dashboard");
+  assertEquals(invalidTarget.status, "technical_blocked");
+  assertEquals(invalidTarget.reason_code, "invalid_ai_output");
   assertEquals(invalidTarget.readiness.reason, "ai_slot_question_missing");
 });
 
@@ -364,7 +887,8 @@ Deno.test("prepare_attack_card AI flow rejects occupied mot de bascule determini
     draft_generator: structuredAttackCardDraftGenerator,
   });
 
-  assertEquals(output.status, "fallback_dashboard");
+  assertEquals(output.status, "technical_blocked");
+  assertEquals(output.reason_code, "invalid_ai_output");
   assertEquals(output.readiness.reason, "ai_slot_question_missing");
 });
 
@@ -376,24 +900,24 @@ Deno.test("prepare_attack_card AI flow rejects occupied mot de bascule determini
 
 Deno.test("C8: detectExplicitlyNamedTechnique maps product titles to keys (A2-r7 T5)", () => {
   assertEquals(
-    detectExplicitlyNamedTechniqueForTest(
+    detectExplicitlyNamedTechnique(
       "Technique: ancre visuelle, avec le post-it 'payé fermé'",
     ),
     "ancre_visuelle",
   );
   assertEquals(
-    detectExplicitlyNamedTechniqueForTest("je veux un mot de bascule: PAUSE"),
+    detectExplicitlyNamedTechnique("je veux un mot de bascule: PAUSE"),
     "pre_engagement",
   );
   assertEquals(
-    detectExplicitlyNamedTechniqueForTest("utilise Le texte magique stp"),
+    detectExplicitlyNamedTechnique("utilise Le texte magique stp"),
     "texte_recadrage",
   );
 });
 
 Deno.test("C8 anti-FP: no explicitly named technique returns null", () => {
   assertEquals(
-    detectExplicitlyNamedTechniqueForTest(
+    detectExplicitlyNamedTechnique(
       "crée-moi une carte d'attaque pour boucler la note de frais sans me disperser. Choisis la technique toi-même.",
     ),
     null,
@@ -420,7 +944,7 @@ Deno.test("C8: enforceExplicitTechniqueRequest locks user-named 'ancre visuelle'
       missing_slots: [],
     },
   };
-  const enforced = enforceExplicitTechniqueRequestForTest(llmOutput as any, {
+  const enforced = enforceExplicitTechniqueRequest(llmOutput as any, {
     message:
       "crée-moi une carte d'attaque pour payer le parking. Technique: ancre visuelle, avec le post-it 'payé fermé'",
   });
@@ -465,10 +989,11 @@ Deno.test("C8: persistent failure yields a clean technical error + retry invitat
     slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
     draft_generator: alwaysFails,
   });
-  assertEquals(output.status, "fallback_dashboard");
+  assertEquals(output.status, "technical_blocked");
+  assertEquals(output.reason_code, "draft_generation_failed");
   assertEquals(output.readiness.reason, "ai_draft_generator_error");
   // Erreur technique propre + invitation à relancer.
-  assertStringIncludes(output.ack ?? "", "raté technique");
+  assertStringIncludes(output.ack ?? "", "reprendre dans un instant");
   // Plus de refus vague "deviner à ta place".
   assertEquals((output.ack ?? "").includes("deviner à ta place"), false);
 });
@@ -477,7 +1002,7 @@ Deno.test("C8: persistent failure yields a clean technical error + retry invitat
 // CHANTIER D0 (2026-05-28) — Régression carte one-shot "ancre visuelle".
 // Le verrou de technique C8 pouvait désynchroniser le draft LLM (confirmation
 // construite pour une autre technique, ou title absent) et faire échouer TOUTE
-// la carte en fallback_dashboard. normalizeDraft répare désormais ces champs
+// la carte en technical_blocked. normalizeDraft répare désormais ces champs
 // secondaires au lieu de jeter. Voir A2-codex-r8 T5/T6, A3-r9 T13.
 // ===========================================================================
 
@@ -536,7 +1061,7 @@ Deno.test("D0: a desynced LLM draft (confirmation ne cite pas l'asset, technique
     // Confirmation construite SANS citer generated_asset → cassait tout avant D0.
     confirmation_message: "Je crée cette carte ?",
   };
-  const normalized = normalizeAttackCardDraftForTest(
+  const normalized = normalizeAttackCardDraft(
     raw,
     ancreVisuelleLockedState(),
   );
@@ -562,7 +1087,7 @@ Deno.test("D0: un title manquant est défaillé déterministe au lieu de jeter",
     },
     confirmation_message: "",
   };
-  const normalized = normalizeAttackCardDraftForTest(
+  const normalized = normalizeAttackCardDraft(
     raw,
     ancreVisuelleLockedState(),
   );
@@ -584,7 +1109,7 @@ Deno.test("D0 anti-régression: un generated_asset manquant reste une vraie erre
   };
   let threw = false;
   try {
-    normalizeAttackCardDraftForTest(raw, ancreVisuelleLockedState());
+    normalizeAttackCardDraft(raw, ancreVisuelleLockedState());
   } catch {
     threw = true;
   }

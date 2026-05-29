@@ -159,9 +159,11 @@ export async function consumeConfirmationToken(
   consumedTokenIds.add(token_id);
 }
 
-export function hasConsumedConfirmationTokenForTest(tokenId: string): boolean {
+export function hasConsumedConfirmationToken(tokenId: string): boolean {
   return consumedTokenIds.has(tokenId);
 }
+
+export const hasConsumedConfirmationTokenForTest = hasConsumedConfirmationToken;
 
 export function resetConsumedConfirmationTokensForTest(): void {
   consumedTokenIds.clear();

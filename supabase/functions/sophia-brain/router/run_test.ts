@@ -5,17 +5,22 @@ import {
   deterministicStaleBilanDecision,
   effectiveResponseOwnerForOperationRuntime,
   isExplicitPendingApplyConfirmation,
-  isImplicitWholePlanRepairAdjustmentRequestForTest,
-  logPlanItemProgressV2,
+  isImplicitWholePlanRepairAdjustmentRequest,
   mapMomentumStateV2ToCoachingContext,
   maybeRunAdjustPlanItemOperation,
-  maybeRunPrepareAttackCardOperation,
   renderAdjustPlanDraftDetails,
   resolveAgentChatModel,
   resolveCoachingTargetPlanItem,
-  resolveWeeklyForgottenProgressCandidate,
   writePlanAdjustmentPatch,
 } from "./run.ts";
+import { resolveWeeklyForgottenProgressCandidate } from "../tools/operations/adjust_plan_item/weekly_bridge.ts";
+import { runPrepareAttackCardAiIntake } from "../tools/operations/prepare_attack_card/ai_intake.ts";
+import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
+import {
+  createAttackCardDraftStub,
+  createAttackCardIntakeStub,
+} from "../test_helpers/ai_stubs.ts";
+import { logPlanItemProgressV2 } from "../tools/always_on/track_progress_plan_item/db.ts";
 import { getGlobalAiModel } from "../../_shared/gemini.ts";
 import { writeMomentumStateV2 } from "../momentum_state.ts";
 import type {
@@ -43,6 +48,21 @@ function assertStringIncludes(actual: string, expected: string, msg?: string) {
       }`,
     );
   }
+}
+
+function maybeRunPrepareAttackCardOperationRunIntakeStub(args: {
+  input: Parameters<typeof runPrepareAttackCardAiIntake>[0];
+  planItemId: string;
+  title: string;
+}) {
+  return runPrepareAttackCardAiIntake({
+    ...args.input,
+    slot_filler: createAttackCardIntakeStub({
+      planItemId: args.planItemId,
+      title: args.title,
+    }),
+    draft_generator: createAttackCardDraftStub(),
+  });
 }
 
 Deno.test("deterministicStaleBilanDecision: resumes stale bilan on explicit resume", () => {
@@ -95,13 +115,13 @@ Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before vali
 
 Deno.test("implicit whole-plan repair bridge request is detected", () => {
   assertEquals(
-    isImplicitWholePlanRepairAdjustmentRequestForTest(
+    isImplicitWholePlanRepairAdjustmentRequest(
       "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
     ),
     true,
   );
   assertEquals(
-    isImplicitWholePlanRepairAdjustmentRequestForTest(
+    isImplicitWholePlanRepairAdjustmentRequest(
       "Apres un accrochage, tu me conseilles quoi pour revenir en lien ?",
     ),
     false,
@@ -411,10 +431,17 @@ Deno.test("attack card opportunity keeps identified target through recommendatio
     sourceMessageId: "msg-2",
     requestId: "req-2",
     planSnapshot: { items: planItemSnapshot },
+    runIntake: (input) =>
+      maybeRunPrepareAttackCardOperationRunIntakeStub({
+        input,
+        planItemId: "dossier",
+        title: "Envoyer le dossier",
+      }),
   });
 
   assertEquals(result?.toolSkillRun?.status, "pending_confirmation");
   assertEquals(result?.toolExecution, "blocked");
+  assertEquals((result?.toolSkillRun as any)?.committed_effects ?? [], []);
   assertEquals(
     (result?.nextTempMemory.__pending_tool_skill_confirmation as any)?.target
       ?.plan_item_id,
@@ -426,7 +453,7 @@ Deno.test("attack card opportunity keeps identified target through recommendatio
   );
   assertStringIncludes(
     result?.content ?? "",
-    "Je te propose cette carte d'attaque avant de la creer.",
+    "Confirme explicitement si tu veux que je crée cette carte d'attaque.",
   );
 });
 
@@ -650,7 +677,6 @@ Deno.test("adjust plan draft review answers pre-confirmation detail request with
       },
     },
     turnFrame: {
-      confirmation_response: { kind: "yes", confidence_band: "high" },
       tool_skill_intents: [{
         operation_type: "adjust_plan_item",
         user_intent: "explain_only",
@@ -667,7 +693,7 @@ Deno.test("adjust plan draft review answers pre-confirmation detail request with
   assertEquals(result?.toolExecution, "none");
   assertEquals(result?.executedTools, []);
   assertEquals(result?.toolSkillRun?.status, "draft_review_details");
-  assertStringIncludes(result?.content ?? "", "Brouillon");
+  assertStringIncludes(result?.content ?? "", "brouillon actuel");
   assertStringIncludes(
     result?.content ?? "",
     "Faire le point sur le signal de pause",
@@ -736,7 +762,6 @@ Deno.test("adjust plan whole-plan detail request answers directly without repeat
       },
     },
     turnFrame: {
-      confirmation_response: { kind: "yes", confidence_band: "high" },
       tool_skill_intents: [{
         operation_type: "adjust_plan_item",
         user_intent: "explain_only",
@@ -811,7 +836,6 @@ Deno.test("adjust plan whole-plan pre-validation progression concern gets coachi
       },
     },
     turnFrame: {
-      confirmation_response: { kind: "yes", confidence_band: "high" },
       tool_skill_intents: [{
         operation_type: "adjust_plan_item",
         user_intent: "explain_only",
@@ -889,7 +913,6 @@ Deno.test("adjust plan whole-plan no-extra-actions confirmation is concrete", as
       },
     },
     turnFrame: {
-      confirmation_response: { kind: "yes", confidence_band: "high" },
       tool_skill_intents: [{
         operation_type: "adjust_plan_item",
         user_intent: "explain_only",
@@ -967,7 +990,6 @@ Deno.test("adjust plan whole-plan repair progression concern stays specific", as
       },
     },
     turnFrame: {
-      confirmation_response: { kind: "yes", confidence_band: "high" },
       tool_skill_intents: [{
         operation_type: "adjust_plan_item",
         user_intent: "explain_only",

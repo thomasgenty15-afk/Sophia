@@ -1,4 +1,8 @@
 import type { AttackTechniqueKey } from "./generator.ts";
+import type {
+  PrepareAttackCardConstraint,
+  PrepareAttackCardUserIntent,
+} from "./contract.ts";
 
 export type AttackCardStep =
   | "target_intake"
@@ -79,7 +83,8 @@ export type AttackCardIntakeState = {
   technique: AttackCardTechniqueSlot;
   activation_keyword: AttackCardKeywordSlot;
   blocker: AttackCardBlockerSlot;
-  constraints: string[];
+  constraints: PrepareAttackCardConstraint[];
+  user_intent?: PrepareAttackCardUserIntent;
   missing_slots: string[];
   confidence: AttackCardConfidence;
   generated_user_message?: string | null;
@@ -94,6 +99,7 @@ export type AttackCardToolSkillState = {
     | "executing"
     | "completed"
     | "cancelled"
+    | "technical_blocked"
     | "fallback";
   current_step: AttackCardStep;
   intake_state: AttackCardIntakeState;
