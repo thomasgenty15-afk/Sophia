@@ -232,6 +232,73 @@ export function refineAttackCardTechniqueFitForTest(
   };
 }
 
+// CHANTIER C8 (2026-05-28) — Mapping lexical d'un titre de technique EXPLICITE
+// vers sa clé enum. Ce ne sont PAS des heuristiques d'intention (anti-pattern
+// L3) : ce sont les noms de produit exacts des techniques. Quand l'utilisateur
+// nomme lui-même la technique ("ancre visuelle", "mot de bascule", …), le code
+// doit la verrouiller, pas laisser le LLM en déduire une autre. Voir A2-codex-r7
+// T5/T7 où "Technique: ancre visuelle" finissait en "Mot de bascule" (le LLM
+// avait interprété le post-it 'payé fermé' comme un mot de bascule).
+const EXPLICIT_TECHNIQUE_TITLE_PATTERNS: Array<
+  { key: AttackTechniqueKey; pattern: RegExp }
+> = [
+  { key: "ancre_visuelle", pattern: /\bancre\s+visuelle\b/ },
+  { key: "pre_engagement", pattern: /\bmot\s+de\s+bascule\b/ },
+  { key: "texte_recadrage", pattern: /\b(le\s+)?texte\s+magique\b/ },
+  { key: "mantra_force", pattern: /\bmantra\s+de\s+force\b/ },
+  { key: "preparer_terrain", pattern: /\bpreparer\s+le\s+terrain\b/ },
+  {
+    key: "visualisation_matinale",
+    pattern: /\b(meditation\s+de\s+5\s+minutes|visualisation\s+matinale)\b/,
+  },
+];
+
+export function detectExplicitlyNamedTechniqueForTest(
+  message: string,
+): AttackTechniqueKey | null {
+  const text = normalizeFitText(message ?? "");
+  for (const { key, pattern } of EXPLICIT_TECHNIQUE_TITLE_PATTERNS) {
+    if (pattern.test(text)) return key;
+  }
+  return null;
+}
+
+export function enforceExplicitTechniqueRequestForTest(
+  output: AttackCardSlotFillerOutput,
+  input: Pick<AttackCardSlotFillerInput, "message">,
+): AttackCardSlotFillerOutput {
+  const requested = detectExplicitlyNamedTechniqueForTest(input.message ?? "");
+  if (!requested) return output;
+  const patch = output.state_patch;
+  const current = patch.technique;
+  if (current?.value === requested && current?.explicitly_requested === true) {
+    return output;
+  }
+  const nextTechnique = {
+    status: "identified" as const,
+    value: requested,
+    explicitly_requested: true,
+    fit_warning: null,
+    options: [],
+    confidence: "high" as const,
+    evidence: [
+      ...(current?.evidence ?? []),
+      `user_explicit_technique:${requested}`,
+    ],
+  };
+  const nextMissing = (patch.missing_slots ?? output.missing_slots ?? [])
+    .filter((slot) => slot !== "technique");
+  return {
+    ...output,
+    state_patch: {
+      ...patch,
+      technique: nextTechnique,
+      missing_slots: nextMissing,
+    },
+    missing_slots: nextMissing,
+  };
+}
+
 function normalizeStatePatch(value: unknown): Partial<AttackCardIntakeState> {
   const root = objectValue(value);
   if (!root) return {};
@@ -516,8 +583,13 @@ export async function fillAttackCardSlotsWithAi(
       maxRetries: 1,
     },
   );
-  return refineAttackCardTechniqueFitForTest(
-    normalizeAttackCardSlotFillerOutput(raw),
+  // CHANTIER C8 — l'enforce passe APRÈS le refine: une technique nommée
+  // explicitement par l'utilisateur prime toujours sur le steering de fit.
+  return enforceExplicitTechniqueRequestForTest(
+    refineAttackCardTechniqueFitForTest(
+      normalizeAttackCardSlotFillerOutput(raw),
+      input,
+    ),
     input,
   );
 }

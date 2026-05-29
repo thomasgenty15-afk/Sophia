@@ -427,10 +427,10 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 // par buildDispatcherPrompt, sous la forme attendue.
 // ---------------------------------------------------------------------------
 
-Deno.test("dispatcher prompt version reflects L3-migration s17", () => {
+Deno.test("dispatcher prompt version reflects C7 dispatcher precision s18", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_05_s17_l3_migration",
+    "dispatcher_v2_prompt_2026_05_s18_c7_dispatcher_precision",
   );
 });
 
@@ -489,6 +489,67 @@ Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_rou
     ),
     true,
     "few-shot exact_durable_status manquant",
+  );
+});
+
+Deno.test("C7: dispatcher embeds 3 precision few-shots with the right expected intents", () => {
+  const promptJson = buildDispatcherPrompt({
+    user_message: "test",
+    recent_messages: [],
+    safety_risk_band: "low",
+  });
+  const parsed = JSON.parse(promptJson) as {
+    critical_routing_examples: Array<{
+      user_message: string;
+      expected: {
+        direct_effects?: Array<{ effect_type: string }>;
+        tool_skill_intents?: Array<{ operation_type: string }>;
+      };
+    }>;
+  };
+  const examples = parsed.critical_routing_examples;
+
+  // A4-r6 T5 — "crée le 2e rappel ... même texte" => create_one_shot_reminder,
+  // surtout PAS prepare_attack_card.
+  const reminder2 = examples.find((ex) =>
+    ex.user_message.includes("crée le deuxième rappel") &&
+    ex.user_message.includes("11h37")
+  );
+  if (!reminder2) throw new Error("C7 few-shot 'deuxième rappel' manquant");
+  assertEquals(
+    reminder2.expected.direct_effects?.[0]?.effect_type,
+    "create_one_shot_reminder",
+  );
+  assertEquals(
+    (reminder2.expected.tool_skill_intents ?? []).some((i) =>
+      i.operation_type === "prepare_attack_card"
+    ),
+    false,
+    "le 2e rappel ne doit JAMAIS être prepare_attack_card",
+  );
+
+  // A4-r6 T10 — "quelle préférence coach est appliquée ?" => status (lecture),
+  // PAS update_coach_preferences.
+  const statusPref = examples.find((ex) =>
+    ex.user_message.includes("quelle préférence coach est appliquée")
+  );
+  if (!statusPref) throw new Error("C7 few-shot status 'préférence coach' manquant");
+  assertEquals((statusPref.expected.tool_skill_intents ?? []).length, 0);
+  assertEquals((statusPref.expected.direct_effects ?? []).length, 0);
+
+  // A9-r1 T12 — "ajoute le repère conversationnel" => mémoire personnelle,
+  // PAS update_coach_preferences.
+  const repere = examples.find((ex) =>
+    ex.user_message.includes("repère conversationnel") &&
+    ex.user_message.includes("carnet bleu")
+  );
+  if (!repere) throw new Error("C7 few-shot 'repère conversationnel' manquant");
+  assertEquals(
+    (repere.expected.tool_skill_intents ?? []).some((i) =>
+      i.operation_type === "update_coach_preferences"
+    ),
+    false,
+    "un repère personnel ne doit JAMAIS être update_coach_preferences",
   );
 });
 

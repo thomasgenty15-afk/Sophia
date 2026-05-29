@@ -105,6 +105,11 @@ export async function executeActivateStatePotion(input: {
     recurring_reminder_id: string;
     scheduled_checkin_ids: string[];
   }>;
+  // E0 (consentement, A3-r10 T6): quand le user refuse explicitement toute
+  // programmation ("ne programme rien"), on active le soutien instantane mais
+  // on n'ecrit AUCUN effet durable de planification (ni recurring_reminder ni
+  // scheduled_checkin). Le writer doit donc aussi sauter ces inserts.
+  suppress_follow_up_scheduling?: boolean;
   now_iso?: string;
   secret?: string;
 }): Promise<ActivateStatePotionExecutorOutcome> {
@@ -131,12 +136,25 @@ export async function executeActivateStatePotion(input: {
     secret: input.secret,
   });
   if (!guard.ok) return { status: "blocked", ...guard };
-  const schedulePlan = schedulePlanFromDraft(input.draft.draft);
-  const scheduledDates = scheduledDatesFromPlan(
-    schedulePlan,
-    input.now_iso ?? new Date().toISOString(),
-  );
-  if (scheduledDates.length < 1) {
+  // E0: refus explicite de programmation -> aucun suivi planifie. On n'exige
+  // pas de creneau et on transmet une liste vide au writer (qui sautera aussi
+  // l'insertion du recurring_reminder).
+  const scheduled = input.suppress_follow_up_scheduling
+    ? []
+    : (() => {
+      const schedulePlan = schedulePlanFromDraft(input.draft.draft);
+      const scheduledDates = scheduledDatesFromPlan(
+        schedulePlan,
+        input.now_iso ?? new Date().toISOString(),
+      );
+      return scheduledDates.map((localDate) => ({
+        local_date: localDate,
+        local_time_hhmm: schedulePlan.local_time_hhmm ??
+          input.draft.draft.follow_up.local_time_hhmm,
+        reminder_instruction: input.draft.draft.follow_up.reminder_instruction,
+      }));
+    })();
+  if (!input.suppress_follow_up_scheduling && scheduled.length < 1) {
     return {
       status: "blocked",
       reason_code: "potion_followup_schedule_empty",
@@ -144,13 +162,6 @@ export async function executeActivateStatePotion(input: {
         "Je ne peux pas lancer cette potion: le rythme de suivi est incomplet.",
     };
   }
-  const scheduled = scheduledDates
-    .map((localDate) => ({
-      local_date: localDate,
-      local_time_hhmm: schedulePlan.local_time_hhmm ??
-        input.draft.draft.follow_up.local_time_hhmm,
-      reminder_instruction: input.draft.draft.follow_up.reminder_instruction,
-    }));
   const written = await input.write_potion_activation({
     draft: input.draft.draft,
     scheduled_followups: scheduled,

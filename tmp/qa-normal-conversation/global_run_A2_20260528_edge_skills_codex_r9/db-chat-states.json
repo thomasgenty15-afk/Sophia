@@ -1,0 +1,10 @@
+{
+  "status": 400,
+  "ok": false,
+  "body": {
+    "code": "42703",
+    "details": null,
+    "hint": null,
+    "message": "column user_chat_states.id does not exist"
+  }
+}

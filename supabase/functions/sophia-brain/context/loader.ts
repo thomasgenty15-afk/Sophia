@@ -2213,8 +2213,15 @@ export async function loadDurableEffectsSummary(
         return "Europe/Paris";
       }
     })();
-    const [attackRes, defenseRes, checkinsRes, prefsRes, userTimezone] =
-      await Promise.all([
+    const [
+      attackRes,
+      defenseRes,
+      checkinsRes,
+      prefsRes,
+      recurringRes,
+      potionRes,
+      userTimezone,
+    ] = await Promise.all([
       supabase
         .from("user_attack_cards")
         .select("id,content,generated_at")
@@ -2236,15 +2243,35 @@ export async function loadDurableEffectsSummary(
         .eq("status", "pending")
         .order("scheduled_for", { ascending: true })
         .limit(5),
+      // CHANTIER E6 (2026-05-28) — On récupère source_type pour distinguer les
+      // préférences définies par l'utilisateur (explicit_user/ui/...) des
+      // réglages par défaut système (system_default). Voir A11 T13 où les 9
+      // defaults étaient annoncés comme "préférences coach : oui".
       supabase
         .from("user_profile_facts")
-        .select("key,value,status,updated_at")
+        .select("key,value,status,source_type,updated_at")
         .eq("user_id", userId)
         .eq("scope", "global")
         .eq("status", "active")
         .like("key", "coach.%")
         .order("updated_at", { ascending: false })
+        .limit(12),
+      // CHANTIER E6 — Rappels récurrents actifs (surface nommée dans les recaps).
+      supabase
+        .from("user_recurring_reminders")
+        .select("id,message_instruction,local_time_hhmm,scheduled_days,status")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .order("starts_at", { ascending: false })
         .limit(5),
+      // CHANTIER E6 — Sessions de potion / mode d'état (A3-r10 T15: le recap ne
+      // récupérait pas la session de potion).
+      supabase
+        .from("user_potion_sessions")
+        .select("id,potion_type,content,status,generated_at")
+        .eq("user_id", userId)
+        .order("generated_at", { ascending: false })
+        .limit(2),
       profileTzPromise,
     ]);
 
@@ -2252,9 +2279,19 @@ export async function loadDurableEffectsSummary(
     const defense = (defenseRes.data ?? [])[0] as any;
     const checkins = (checkinsRes.data ?? []) as any[];
     const prefs = (prefsRes.data ?? []) as any[];
+    const recurring = (recurringRes.data ?? []) as any[];
+    const potions = (potionRes.data ?? []) as any[];
+    // E6: une préférence est "explicite" si elle n'a pas été semée par défaut.
+    const explicitPrefs = prefs.filter((row) =>
+      String(row?.source_type ?? "") !== "system_default"
+    );
+    const defaultPrefs = prefs.filter((row) =>
+      String(row?.source_type ?? "") === "system_default"
+    );
 
     const hasAnything = Boolean(attack) || Boolean(defense) ||
-      checkins.length > 0 || prefs.length > 0;
+      checkins.length > 0 || prefs.length > 0 || recurring.length > 0 ||
+      potions.length > 0;
     if (!hasAnything) return null;
 
     const lines: string[] = [];
@@ -2294,13 +2331,19 @@ export async function loadDurableEffectsSummary(
       for (const checkin of checkins) {
         const instruction = extractReminderInstruction(checkin?.message_payload);
         const scheduledRaw = String(checkin?.scheduled_for ?? "").trim();
-        // Chantier 12: afficher l'heure locale utilisateur, garder l'ISO
-        // entre parenthèses pour traçabilité.
+        // CHANTIER C3 (2026-05-28) — On n'expose QUE l'heure locale au LLM.
+        // L'ISO UTC est de la traçabilité, pas de l'affichage: chantier 12
+        // le gardait entre crochets ("[iso: ...T09:21:00Z]") et le LLM
+        // recopiait le "09:21" UTC au lieu du "11:21" local (A4-r6 T15,
+        // toujours rouge malgré la consigne anti-UTC). On remplace l'ISO par
+        // une réf non-horaire (l'id du checkin) pour garder la traçabilité
+        // sans aucun chiffre d'horloge UTC dans le prompt.
         const scheduledLocal = scheduledRaw
           ? formatScheduledForUserTimezone(scheduledRaw, userTimezone)
           : "";
+        const traceRef = String(checkin?.id ?? "").trim();
         const scheduledLabel = scheduledLocal
-          ? `${scheduledLocal} [iso: ${scheduledRaw}]`
+          ? `${scheduledLocal}${traceRef ? ` [ref: ${traceRef}]` : ""}`
           : "";
         lines.push(
           `  • ${scheduledLabel ? `${scheduledLabel} — ` : ""}${instruction}.`,
@@ -2308,15 +2351,75 @@ export async function loadDurableEffectsSummary(
       }
     }
 
-    const prefLines = prefs
+    // CHANTIER E6 (2026-05-28) — On distingue explicitement les préférences
+    // DÉFINIES PAR L'UTILISATEUR des réglages PAR DÉFAUT système. Sinon le LLM
+    // annonce les 9 defaults comme une "préférence coach: oui" (A11 T13).
+    const prefValue = (row: any) => {
+      const raw = row?.value;
+      if (raw && typeof raw === "object") {
+        const v = (raw as any).value ?? (raw as any).label;
+        if (v !== undefined) return String(v).slice(0, 60);
+      }
+      return String(raw).slice(0, 60);
+    };
+    const explicitPrefLines = explicitPrefs
       .filter((row) => typeof row?.key === "string" && row?.value !== undefined)
-      .map((row) => `${row.key}=${String(row.value).slice(0, 60)}`);
-    if (prefLines.length === 0) {
-      lines.push("- Préférences coach actives: aucune.");
+      .map((row) => `${row.key}=${prefValue(row)}`);
+    if (explicitPrefLines.length === 0) {
+      lines.push(
+        "- Préférences coach définies par l'utilisateur: aucune (aucune préférence explicite enregistrée pendant ce parcours).",
+      );
+      if (defaultPrefs.length > 0) {
+        lines.push(
+          `  • Note: ${defaultPrefs.length} réglage(s) coach par défaut (système) sont actifs, mais ce ne sont PAS des préférences choisies par l'utilisateur.`,
+        );
+      }
     } else {
-      const head = prefLines.slice(0, 4).join("; ");
-      const rest = prefLines.length > 4 ? `; (+${prefLines.length - 4})` : "";
-      lines.push(`- Préférences coach actives (${prefLines.length}): ${head}${rest}.`);
+      const head = explicitPrefLines.slice(0, 4).join("; ");
+      const rest = explicitPrefLines.length > 4
+        ? `; (+${explicitPrefLines.length - 4})`
+        : "";
+      lines.push(
+        `- Préférences coach définies par l'utilisateur (${explicitPrefLines.length}): ${head}${rest}.`,
+      );
+      if (defaultPrefs.length > 0) {
+        lines.push(
+          `  • (${defaultPrefs.length} autre(s) réglage(s) restent sur la valeur par défaut système.)`,
+        );
+      }
+    }
+
+    // CHANTIER E6 — Rappels récurrents actifs.
+    if (recurring.length === 0) {
+      lines.push("- Rappels récurrents actifs: aucun.");
+    } else {
+      lines.push(`- Rappels récurrents actifs (${recurring.length}):`);
+      for (const rem of recurring) {
+        const hhmm = String(rem?.local_time_hhmm ?? "").trim();
+        const instruction = String(rem?.message_instruction ?? "").trim() ||
+          "(sans instruction)";
+        const days = Array.isArray(rem?.scheduled_days)
+          ? (rem.scheduled_days as unknown[]).join("/")
+          : "";
+        const when = [hhmm, days].filter(Boolean).join(" ");
+        lines.push(`  • ${when ? `${when} — ` : ""}${instruction}.`);
+      }
+    }
+
+    // CHANTIER E6 — Sessions de potion / mode d'état.
+    const lastPotion = potions[0];
+    if (!lastPotion) {
+      lines.push("- Potion / mode d'état: aucune session récente.");
+    } else {
+      const ptype = String(lastPotion?.potion_type ?? "").trim();
+      const ptitle = String((lastPotion?.content as any)?.title ?? "").trim();
+      const pstatus = String(lastPotion?.status ?? "").trim();
+      const detail = [ptype, ptitle].filter(Boolean).join(" — ");
+      lines.push(
+        `- Potion / mode d'état: une session existe${
+          detail ? ` (${detail})` : ""
+        }${pstatus ? ` [statut: ${pstatus}]` : ""}.`,
+      );
     }
 
     lines.push(
@@ -2325,7 +2428,8 @@ export async function loadDurableEffectsSummary(
         "Pour une question \"X confirmé ?\" sur un rappel précis, dis \"oui\" si l'heure et l'instruction matchent une ligne ci-dessus, sinon \"non vérifiable depuis ce chat\". " +
         "Ne dis jamais \"non\" pour un rappel listé ci-dessus. " +
         "Pour décrire ou pointer un effet durable, base-toi sur ces lignes. " +
-        "Quand tu cites un horaire de rappel à l'utilisateur, utilise UNIQUEMENT l'heure locale fournie (ex: \"11:21\"), JAMAIS l'ISO entre crochets ni l'heure UTC.",
+        "Distingue toujours une préférence coach DÉFINIE PAR L'UTILISATEUR d'un réglage PAR DÉFAUT système: si aucune préférence explicite n'est enregistrée, réponds clairement \"aucune préférence coach enregistrée\" et ne présente jamais les valeurs par défaut comme des préférences choisies. " +
+        "Quand tu cites un horaire de rappel à l'utilisateur, utilise UNIQUEMENT l'heure locale fournie ci-dessus (ex: \"11:21\"). Le \"[ref: ...]\" est un identifiant technique, jamais une heure: ne l'affiche pas et n'en déduis aucun horaire.",
     );
     return lines.join("\n") + "\n\n";
   } catch (err) {

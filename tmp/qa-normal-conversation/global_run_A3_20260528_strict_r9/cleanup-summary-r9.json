@@ -1,0 +1,147 @@
+{
+  "run_id": "global_run_A3_20260528_strict_r9",
+  "user_id": "e4ae6ffd-18d3-4b6c-87db-a39a1b0513db",
+  "cleaned_at": "2026-05-28T20:25:35.134Z",
+  "cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "text": "{\"code\":\"PGRST205\",\"details\":null,\"hint\":\"Perhaps you meant the table 'public.user_metrics'\",\"message\":\"Could not find the table 'public.user_memories' in the schema cache\"}"
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_attack_cards",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_defense_cards",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_potion_sessions",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "user_cycles",
+      "status": 204,
+      "ok": true,
+      "text": ""
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true,
+      "text": "{}"
+    }
+  ],
+  "verify": [
+    {
+      "table": "chat_messages",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_chat_states",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false,
+      "count": null
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "memory_items",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_attack_cards",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_defense_cards",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_potion_sessions",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    },
+    {
+      "table": "user_cycles",
+      "status": 200,
+      "ok": true,
+      "count": 0
+    }
+  ]
+}

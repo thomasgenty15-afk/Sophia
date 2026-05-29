@@ -1,0 +1,19 @@
+{
+  "http_status": "200",
+  "ok": true,
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r10-t06",
+  "response_owner": "tool_skill",
+  "selected_handler": "prepare_defense_card",
+  "route_reason": "explicit_defense_card_intent_overrides_attack_card",
+  "safety": null,
+  "operation": "3dfed963-739b-4737-8679-970c24b03efd",
+  "memory_plan": null,
+  "executed_tools": [
+    "prepare_defense_card"
+  ],
+  "tool_status": "executed",
+  "skill_id": null
+}

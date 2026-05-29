@@ -65,7 +65,14 @@ import {
   runEffectGateOrchestrator,
 } from "../routers/effect_gate_orchestrator.ts";
 import { runConversationRouters } from "../routers/routers.ts";
-import { arbitrateTurnIntent } from "./turn_intent_arbitrator.ts";
+import {
+  arbitrateTurnIntent,
+  detectsDurableCoachPreference,
+  detectsExplicitAttackCardCreationRequest,
+  detectsExplicitNoStatusRequest,
+  detectsExplicitOneShotReminderCreate,
+  detectsExplicitProductHelp,
+} from "./turn_intent_arbitrator.ts";
 import { runSafetyPregate } from "../safety/safety_pregate.ts";
 import {
   blocksDirectEffects,
@@ -90,6 +97,8 @@ import { buildActionFamilyKey } from "../../_shared/memory/action_family.ts";
 import {
   isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
+  looksLikeReminderExecutionConfirmationForTest,
+  maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
 } from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
 import {
@@ -2454,6 +2463,7 @@ async function loadCoachResponseStylePreferences(args: {
       "coach.response_max_lines",
       "coach.emoji_policy",
       "coach.final_question_policy",
+      "coach.action_first_policy",
     ]);
   const prefs: CoachResponseStylePreferences = {
     noEmoji: false,
@@ -3728,6 +3738,215 @@ export function applyCompactStartGuardForTest(args: {
   ].join("\n");
 }
 
+/**
+ * CHANTIER C2 (2026-05-28) — Garde anti-hallucination « c'est fait ».
+ *
+ * Garantie dure NON-SÉMANTIQUE: le composer ne peut pas affirmer qu'un effet
+ * durable a eu lieu si le tool correspondant n'est PAS dans executedTools.
+ * Le déclencheur est un fait binaire (le tool a-t-il tourné ce tour ?), pas
+ * une interprétation d'intention. La détection de la phrase d'affirmation
+ * est une validation de contrat (le message prétend une exécution).
+ *
+ * Précondition forte pour éviter les faux positifs: on ne déclenche que si
+ * le système AVAIT l'intention de lancer le tool (`intendedTools`) mais ne
+ * l'a PAS exécuté (`executedTools`). Une réponse déjà honnête ("je n'ai pas
+ * pu", "déjà actif", "je ne recrée pas") est laissée intacte.
+ *
+ * Voir A4-r6 T6: la réponse affirmait le rappel 11h37 ("correspond bien à ce
+ * que j'ai déjà indiqué" + ✅) alors que executed_tools=[] (aucune création).
+ *
+ * Critère de suppression: quand le routeur garantit que tout
+ * direct_effect/handler de mutation passe par un runtime honnête (jamais le
+ * normal_reply libre), ce garde devient redondant.
+ */
+export function applyUnexecutedEffectClaimGuardForTest(args: {
+  responseContent: string;
+  intendedTools: string[];
+  executedTools: string[];
+}): string {
+  const response = String(args.responseContent ?? "").trim();
+  if (!response) return args.responseContent;
+
+  const intended = new Set(
+    (args.intendedTools ?? []).map((tool) => String(tool ?? "").trim()).filter(
+      Boolean,
+    ),
+  );
+  const executed = new Set(
+    (args.executedTools ?? []).map((tool) => String(tool ?? "").trim()).filter(
+      Boolean,
+    ),
+  );
+
+  const reminderIntendedNotExecuted = intended.has("create_one_shot_reminder") &&
+    !executed.has("create_one_shot_reminder");
+  const cardIntendedNotExecuted =
+    (intended.has("prepare_attack_card") &&
+      !executed.has("prepare_attack_card")) ||
+    (intended.has("prepare_defense_card") &&
+      !executed.has("prepare_defense_card"));
+  const preferenceIntendedNotExecuted =
+    intended.has("update_coach_preferences") &&
+    !executed.has("update_coach_preferences");
+
+  if (
+    !reminderIntendedNotExecuted && !cardIntendedNotExecuted &&
+    !preferenceIntendedNotExecuted
+  ) {
+    return args.responseContent;
+  }
+
+  const normalized = normalizeRouteText(response);
+
+  // La réponse est-elle DÉJÀ honnête (pas de fausse affirmation) ? Si oui, on
+  // ne touche à rien.
+  const alreadyHonest =
+    /\b(je n ai (pas|rien)|je ne (peux|vais|pourrai) pas|je ne (re)?cree pas|je ne programme pas|pas encore (programme|cree|enregistre|en place)|n ai pas pu|souci technique|deja actif|deja programme|deja cree|existe deja|il me manque)\b/
+      .test(normalized);
+  if (alreadyHonest) return args.responseContent;
+
+  // Marqueurs d'AFFIRMATION d'un effet réalisé. Le ✅ est testé sur le texte
+  // brut (normalizeRouteText retire les emojis).
+  const hasCheckmark = /✅/.test(response);
+  const affirmsDone = hasCheckmark ||
+    /\b(c est (bien )?(programme|programmee|enregistre|enregistree|cree|creee|prevu|planifie|planifiee|en place|fait)|est (bien )?(programme|programmee|enregistre|enregistree|prevu|planifie|planifiee|en place)|j ai (bien )?(programme|enregistre|cree|planifie|mis en place|ajoute)|correspond bien a ce que j ai|reste actif|deja indique|ca y est|voila c est)\b/
+      .test(normalized);
+  if (!affirmsDone) return args.responseContent;
+
+  if (reminderIntendedNotExecuted) {
+    return [
+      "Je préfère être clair : je n'ai pas encore programmé ce rappel.",
+      "Dis-moi le moment exact (et le texte) et je le programme tout de suite.",
+    ].join(" ");
+  }
+  if (cardIntendedNotExecuted) {
+    return "Je préfère être clair : je n'ai pas encore créé cette carte. Confirme-moi le moment précis et le geste, et je la prépare.";
+  }
+  return "Je préfère être clair : je n'ai pas encore enregistré cette préférence. Redis-la-moi simplement et je la garde.";
+}
+
+// E0 (consentement, A3-r10 T6): detecte un refus explicite de toute
+// programmation/suivi pendant un flow potion. Garantie dure non-semantique:
+// si le user dit "ne programme rien", aucun effet durable de planification ne
+// doit etre cree. Anti-FP: on exige une negation explicite + un objet de
+// planification (programmer/planifier/rappel/suivi/relance...).
+export function detectsPotionFollowUpRefusalForTest(message: string): boolean {
+  // Normalise les apostrophes (droites/typographiques) en espace pour que les
+  // motifs ci-dessous matchent "rien d'autre", "aujourd'hui", etc.
+  const text = normalizeRouteText(message).replace(/['’`]/g, " ");
+  // "ne programme rien", "ne planifie rien", "ne cale aucun ...", "ne me programme rien"
+  if (
+    /\bne\s+(?:me\s+)?(?:programme|planifie|cale|prevois|prevoit|prepare)\s+(?:rien|aucun\w*)\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // "pas de rappel", "aucun suivi", "sans relance", "pas de programmation"
+  if (
+    /\b(?:pas\s+de|aucun\w*|sans)\s+(?:rappel|suivi|relance|programmation|notification|alerte)s?\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // "ne mets/cree/lance/ajoute/envoie/programme/planifie pas de rappel|suivi|relance"
+  if (
+    /\bne\s+(?:me\s+)?(?:mets?|met|cree|creer|lance|ajoute|envoie|programme|planifie|cale)\s+pas\s+de\s+(?:rappel|suivi|relance|programmation)s?\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // CHANTIER F0 (2026-05-29, operations-r2 T7/T10/T13) — refus de la RÉCURRENCE
+  // / du suivi durable d'une potion. Le user veut un effet "maintenant seulement"
+  // et pas de rituel répété. Suppression du follow-up (rappel récurrent + checkins).
+  // "pas de rituel", "pas de routine", "pas recurrent", "non recurrent",
+  // "sans rituel", "rien de recurrent"
+  if (
+    /\b(?:pas|non|sans|aucun\w*|rien)\s+(?:de\s+|d\s+|que\s+)?(?:rituel|routine|recurren\w*|repetition|repete\w*|habitude)\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // "sans demain", "sans semaine", "sans la semaine", "pas demain", "ni demain ni"
+  if (
+    /\b(?:sans|pas|ni)\s+(?:de\s+)?(?:demain|lendemain|semaine|chaque\s+(?:jour|matin|semaine))\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // "rien d'autre" (dans un flow potion = pas d'effet additionnel programmé)
+  if (/\brien\s+d\s*autre\b/.test(text)) {
+    return true;
+  }
+  // "pour maintenant seulement", "juste maintenant", "seulement maintenant",
+  // "uniquement maintenant", "que maintenant", "juste pour aujourd hui"
+  if (
+    /\b(?:juste|seulement|uniquement|que|simplement)\s+(?:pour\s+)?(?:maintenant|aujourd\s*hui|ce\s+(?:soir|matin|moment))\b/
+      .test(text) ||
+    /\b(?:pour\s+)?maintenant\s+seulement\b/.test(text) ||
+    /\bpour\s+(?:aujourd\s*hui|ce\s+moment)\s+seulement\b/.test(text)
+  ) {
+    return true;
+  }
+  // "une seule fois", "une fois seulement", "juste une fois", "rappel ponctuel"
+  // (intention one-shot explicite = pas de suivi récurrent côté potion)
+  if (
+    /\b(?:une\s+seule\s+fois|une\s+fois\s+seulement|juste\s+une\s+fois|ponctuel|ponctuelle)\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  // "non pour le suivi", "non au suivi", "pas le suivi"
+  if (/\b(?:non|pas)\s+(?:pour\s+|a\s+|au\s+)?(?:le\s+)?suivi\b/.test(text)) {
+    return true;
+  }
+  return false;
+}
+
+// E1 (sortie propre, A3-r10 T8): detecte une demande explicite de STOP/sortie
+// d'une potion ou d'un "mode" actif. Garde-fou deterministe legitime: on ne
+// piege pas l'utilisateur dans un flow qu'il demande explicitement d'arreter.
+// Anti-FP: il faut un marqueur d'arret ET une cible (potion/mode). "lance la
+// potion" ne matche pas (aucun marqueur d'arret).
+export function detectsExplicitStatePotionExitForTest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  const targetsPotionOrMode =
+    /\b(potion|mode|ce truc|ce machin|tout ca|tout ceci)\b/.test(text);
+  if (!targetsPotionOrMode) return false;
+  const stopMarker =
+    /\b(stop|arrete|arreter|arretons|annule|annuler|coupe|couper|quitte|quitter|sors|sortir|desactive|desactiver|termine|terminer|abandonne|abandonner|laisse tomber|on arrete|on stoppe|pas de)\b/
+      .test(text);
+  return stopMarker;
+}
+
+/**
+ * CHANTIER G1 (2026-05-29) — Hard-negative "pas de potion". Voir
+ * edgecases-r3 T12-14 et syncskills-r2 T13-14.
+ *
+ * Quand l'utilisateur refuse explicitement la potion ("ne me propose pas de
+ * potion", "ne lance pas de potion", "sans potion", "ne relance pas … potion"),
+ * c'est un refus dur : on ne doit ni démarrer `select_state_potion` ce tour-ci,
+ * ni laisser un intake potion actif ressusciter au tour suivant. Contrairement
+ * à `detectsExplicitStatePotionExitForTest`, ce garde s'applique AUSSI quand la
+ * potion n'est pas encore active (elle démarrerait ce tour).
+ *
+ * Anti-faux-positif: on exige le mot "potion" + un marqueur négatif clair.
+ * "lance la potion" / "oui pour la potion" ne matchent pas.
+ */
+export function detectsExplicitNoPotionRequestForTest(message: string): boolean {
+  const text = normalizeRouteText(message);
+  if (!/\bpotion\b/.test(text)) return false;
+  // Marqueur négatif explicitement lié à la potion.
+  const negatesPotion =
+    /\bpas de potion\b/.test(text) ||
+    /\bsans potion\b/.test(text) ||
+    /\baucune potion\b/.test(text) ||
+    /\bpas (?:besoin )?de potion\b/.test(text) ||
+    /\bne (?:me )?(?:propose|proposes|lance|lances|relance|relances|donne|donnes|fais|sors|ressors)\b[\s\S]{0,40}\bpotion\b/
+      .test(text) ||
+    /\b(?:stop|arrete|annule|coupe|oublie)\b[\s\S]{0,20}\bpotion\b/.test(text);
+  return negatesPotion;
+}
+
 export function statePotionDeclineReplyForTest(message: string): string {
   const text = normalizeRouteText(message);
   const lines = ["Ok, je ne lance pas de potion."];
@@ -3755,6 +3974,151 @@ export function statePotionDeclineReplyForTest(message: string): string {
     );
   }
   return lines.join("\n\n");
+}
+
+/**
+ * CHANTIER H1 (2026-05-29) — Livrable concret demandé sans potion/outil.
+ * Voir edgecases-r4 T12-14, syncskills-r3 T13-14. Quand l'utilisateur refuse
+ * la potion (ou un outil) ET demande une phrase/micro-action/reset, on doit
+ * livrer le contenu sans reposer de question.
+ */
+export function detectsExplicitConcreteDeliverableRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  return (
+    /\b(phrase de reparation|micro[- ]action|reset de \d|reset \d|\d+\s*minutes?|\d+\s*minute\b|minute 1|minute par minute|sans question|pas de question|ne me pose pas|donne moi|donne-moi|quoi faire exactement)\b/
+      .test(text)
+  );
+}
+
+export function buildExplicitNoPotionConcreteReplyForTest(
+  message: string,
+): string {
+  const text = normalizeRouteText(message);
+  if (
+    /\breset de 2\b/.test(text) ||
+    /\b2 minutes\b/.test(text) ||
+    /\bminute 1 et minute 2\b/.test(text) ||
+    (/\bfacture\b/.test(text) && /\breset\b/.test(text))
+  ) {
+    return [
+      "Reset 2 minutes — sans potion, sans question :",
+      "",
+      "Minute 1 : pose les mains sur le bureau, relève les yeux et nomme la tâche suivante en 5 mots maximum.",
+      "",
+      "Minute 2 : ouvre le fichier concerné et fais la première micro-étape sans perfectionnisme (juste faire bouger le point).",
+    ].join("\n");
+  }
+  if (
+    /\b(phrase de reparation|micro[- ]action|reparation)\b/.test(text) ||
+    (/\b(honte|tension|corriger)\b/.test(text) &&
+      /\b(phrase|action|reparation)\b/.test(text))
+  ) {
+    return [
+      "Phrase de réparation : « Je corrige, donc j'améliore — ce n'est pas un verdict sur moi. »",
+      "",
+      "Micro-action : relâche mâchoire + épaules 10 secondes, puis écris une seule ligne sur ce que tu veux retirer ce tour-ci.",
+    ].join("\n");
+  }
+  if (/\belan\b/.test(text) && /\b2 minutes\b/.test(text)) {
+    return buildExplicitNoPotionConcreteReplyForTest(
+      "reset de 2 minutes pour revenir à la facture",
+    );
+  }
+  return statePotionDeclineReplyForTest(message);
+}
+
+/** CHANTIER H5 — un message ponctuel ne doit pas basculer vers récurrent. */
+export function shouldPreferOneShotReminderOverRecurringForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  if (
+    /\b(pas recurrent|pas de recurrent|pas reccurent|un seul|unique|ponctuel|one shot|texte exact|aujourd hui|aujourdhui)\b/
+      .test(text)
+  ) {
+    return true;
+  }
+  if (
+    /\b\d{1,2}\s*h\s*\d{0,2}\b/.test(text) &&
+    /\b(rappel|texte exact|relire|reprendre)\b/.test(text)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** CHANTIER H6 — intention conversationnelle secondaire dans le même message. */
+export function detectsMinuteByMinuteSequenceRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  return (
+    /\b(sequence|minute par minute|\d+\s*minutes?)\b/.test(text) &&
+    /\b(mails?|facture|traiter|faire|etapes?)\b/.test(text)
+  );
+}
+
+export function buildMinuteByMinuteSequenceAddonForTest(
+  message: string,
+): string | null {
+  if (!detectsMinuteByMinuteSequenceRequestForTest(message)) return null;
+  return [
+    "Séquence 10 minutes pour traiter les deux mails :",
+    "1:00 — Ouvre les 2 mails (sans tout lire).",
+    "2:00 — 1er mail : objet + demande concrète.",
+    "3:00 — 1er mail : note l'action précise à faire.",
+    "4:00 — 1er mail : brouillon de réponse.",
+    "5:00 — 1er mail : relis 30 s et envoie.",
+    "6:00 — 2e mail : objet + demande concrète.",
+    "7:00 — 2e mail : note l'action et ce qu'il faut inclure.",
+    "8:00 — 2e mail : brouillon de réponse.",
+    "9:00 — 2e mail : relis et envoie.",
+    "10:00 — Check : facture débloquée ? Note la prochaine mini-étape.",
+  ].join("\n");
+}
+
+export function isCoachPreferencePreviewOnlyRequestForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  return (
+    /\b(ne l enregistre pas|ne l enregistrer pas|pas encore|ne l applique pas|sans l enregistrer|propose seulement|juste la proposition|juste une proposition|brouillon seulement)\b/
+      .test(text) &&
+    /\b(preference|mode tunnel|signal|regle)\b/.test(text)
+  );
+}
+
+/** CHANTIER H3 — preview sans écriture durable (A2-r12 T10). */
+export function buildCoachPreferencePreviewReplyForTest(
+  message: string,
+): string {
+  const text = normalizeRouteText(message);
+  if (/\bmode tunnel\b/.test(text)) {
+    return [
+      "Proposition (non enregistrée) — déclencheur « mode tunnel » :",
+      "- une seule action impérative,",
+      "- zéro sympathie, zéro emoji, zéro question finale.",
+      "",
+      "Si c'est bien ça, redis « enregistre-la » et je la garde.",
+    ].join("\n");
+  }
+  if (
+    /\b(challenger doucement|challenge doucement)\b/.test(text) &&
+    /\b(technique|colle|adapte|inadapte)\b/.test(text)
+  ) {
+    return [
+      "Proposition (non enregistrée) :",
+      "quand une technique ne colle pas, je te challengerai doucement au lieu d'obéir directement.",
+      "",
+      "Si c'est bien ça, redis « enregistre-la » et je la garde.",
+    ].join("\n");
+  }
+  return [
+    "Voici la proposition de préférence (non enregistrée).",
+    "Dis-moi si tu veux que je l'enregistre.",
+  ].join("\n");
 }
 
 function resolvePlanItemTitleFromSnapshot(
@@ -5156,6 +5520,79 @@ export function isExplicitOneShotReminderModificationRequestForTest(
   return true;
 }
 
+/**
+ * CHANTIER G3 (2026-05-29, edgecases-r3 T9/T10) — Détecte une demande
+ * EXPLICITE d'ANNULATION d'un rappel ponctuel ("annule le rappel de 16h10",
+ * "coupe ce ping", "annule-le vraiment"). Sert à déclencher l'exécuteur
+ * `maybeCancelOneShotReminder` au lieu de promettre une annulation jamais
+ * appliquée.
+ *
+ * Anti-faux-positif: (a) verbe d'annulation requis ; (b) référence à un
+ * rappel/ping ; (c) on EXCLUT les questions produit/navigation ("où annuler
+ * dans l'app") et les négations ("ne l'annule pas", "ne change rien").
+ */
+export function detectsExplicitOneShotReminderCancelForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  const referencesReminder = /\brappel\b/.test(text) || /\bping\b/.test(text);
+  if (!referencesReminder) return false;
+
+  // CHANTIER G3-fix (2026-05-29, A14-r1 T3/T13/T14, normal-conv-r4 T13,
+  // edgecases-r4 T15) — Une annulation EFFECTIVE n'est déclenchée que par une
+  // COMMANDE impérative immédiate. On exclut d'abord tous les cadres NON-
+  // impératifs où le mot "annule/annulé" apparaît sans être un ordre :
+  //
+  // (A) Vérification / status / récap ("vérifie sans modifier", "confirme-moi",
+  //     "récap : … rappel créé ou annulé"). C'est une lecture, jamais une mutation.
+  if (
+    /\b(verifie|verifier|verification|confirme moi|confirme-moi|est ce que|est-ce que|recap|recapitule|recapitulatif|recapitulons|bilan|resume|status|statut|fais le point|sans modifier|sans rien modifier|sans rien changer|ne modifie|ne touche)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  // (B) Question produit / navigation / futur conditionnel ("comment annuler",
+  //     "si je veux l'annuler plus tard", "je passe par où", "dans l'app").
+  if (
+    /\b(comment (?:je |on |faire|annuler|l annuler|le supprimer)|si je veux|si jamais|plus tard|par ou|ou est|ou je|ou puis|je passe par|dans l app|dans l application|dans l interface)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  // (C) Refus d'outil / "propose sans lancer" ("ne crée rien", "sans le lancer",
+  //     "propose-le seulement"). Le user veut explicitement aucune mutation.
+  if (
+    /\b(sans le lancer|sans lancer|ne lance|ne cree rien|ne programme rien|ne fais rien|propose (?:seulement|le seulement|-le seulement)|propose le seulement|ne modifie plus|ne touche plus|ne change plus)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  // (D) Description d'une annulation PASSÉE ("le rappel a été annulé puis recréé",
+  //     "tu viens d'annuler", "déjà annulé"). Ce n'est pas un ordre courant.
+  if (
+    /\b(a ete|as ete|avait ete|deja|viens d|vient d)\s+(annule|coupe|supprime|desactive|retire|enleve)\b/
+      .test(text) ||
+    /\b(annule|coupe|supprime|desactive|retire|enleve) (?:puis|et) (?:recree|reprogramme|remis|remise|refait)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+
+  const cancelCommand =
+    /\b(annule|annuler|supprime|supprimer|coupe|couper|desactive|desactiver|enleve|enlever|retire|retirer|stoppe|stopper)\b/
+      .test(text);
+  if (!cancelCommand) return false;
+  // Négation explicite ("ne l'annule pas", "ne change rien", "ne touche pas").
+  if (
+    /\bn[e']?\b[\s\S]{0,14}\b(?:annule|supprime|coupe|touche|change|desactive|enleve)\b[\s\S]{0,20}\bpas\b/
+      .test(text) ||
+    /\bne change rien\b/.test(text)
+  ) {
+    return false;
+  }
+  return true;
+}
+
 export function isMicroActionOnlyNotAttackCardForTest(
   message: string,
 ): boolean {
@@ -5370,9 +5807,21 @@ export function isBroadRescueRequestNotDefenseCardForTest(
 
 function isRecapOnlyRequestForTest(message: string): boolean {
   const text = normalizeRouteText(message);
-  return /\b(recap|recapitule|resume|synthese)\b/.test(text) &&
-    /\b(ne cree rien|sans modifier|juste|seulement|sobre|on s arrete|on stoppe|ce que j ai fait|ce qu on a fait|ce qui est prevu|ce qui est en place|en place|preference|mail|carte|rappel)\b/
-      .test(text);
+  // CHANTIER H4 (2026-05-29) — Anti-FP edgecases-r4 T1 : « note de synthèse » +
+  // « juste démarrer » n'est PAS un récap status.
+  if (
+    /\bnote de synthese\b/.test(text) &&
+    !/\b(recap|recapitule|recapitulatif|bilan)\b/.test(text)
+  ) {
+    return false;
+  }
+  const recapFraming =
+    /\b(fais le recap|fais moi le recap|recapitule|recapitulatif|bilan|recap exact|recap final|recap tres court|resume en|on s arrete la)\b/
+      .test(text) ||
+    (/\b(recap|resume)\b/.test(text) &&
+      /\b(sans modifier|carte|rappel|preference|en place|cree ou|creee ou)\b/
+        .test(text));
+  return recapFraming;
 }
 
 export function localTextAddonForOneShotReminderForTest(
@@ -5406,6 +5855,25 @@ export function isStatusOnlyNoMutationRequestForTest(message: string): boolean {
     /\b(carte|carte d attaque|carte de defense|rappel|preference|preferences|cree|creer|garde|gardee|gardes|conversation)\b/
       .test(text);
   return (explicitNoMutation || naturalDurableRecap) && durableSurface;
+}
+
+/**
+ * CHANTIER C1 (2026-05-28) — TRANSITIONNEL. Vrai quand un flow de carte
+ * (attack/defense) est en cours de collecte. Le bloc status L4
+ * (`status_only_request_blocks_tool_start`) ne doit pas écraser / tuer un tel
+ * flow: les slots de carte sont de la free-text qui déclenche des faux
+ * positifs status. Scope limité aux cartes (PAS update_coach_preferences)
+ * pour ne pas régresser A4-r6 T11. Voir A3-r8 T6/T8.
+ * Critère de suppression: quand les slot fillers attack/defense classent
+ * fiablement un topic_change (chantier C8), ce garde peut disparaître.
+ */
+export function isActiveCardDraftingOperationForTest(
+  activeIntake: unknown,
+): boolean {
+  const operationType = String((activeIntake as any)?.operation_type ?? "")
+    .trim();
+  return operationType === "prepare_attack_card" ||
+    operationType === "prepare_defense_card";
 }
 
 /**
@@ -5470,6 +5938,138 @@ export function isExplicitConversationalFormatRequestForTest(
   return false;
 }
 
+/**
+ * CHANTIER D2 (2026-05-28) — Décision (testable) du composer status_only.
+ * Le panneau statut ne prend la main QUE si le message demande un statut/recap
+ * ET que l'utilisateur n'a ni imposé un format conversationnel incompatible
+ * (fait/prévu/fragile, "en 3 lignes"…) ni opté explicitement HORS statut
+ * ("pas les statuts système"). Sans ce dernier garde, A2-codex-r8 T7 rendait
+ * un bloc "Sans rien modifier :" alors que la route était no_status.
+ */
+export function shouldRenderStatusOnlyNoMutationForTest(
+  message: string,
+): boolean {
+  if (isExplicitConversationalFormatRequestForTest(message)) return false;
+  if (detectsExplicitNoStatusRequest(message)) return false;
+  return (
+    isStatusOnlyNoMutationRequestForTest(message) ||
+    isOneShotReminderExactStatusRequestForTest(message) ||
+    isRecapOnlyRequestForTest(message)
+  );
+}
+
+/**
+ * CHANTIER G0 (2026-05-29) — Symétrique de F2, côté OPÉRATIONS.
+ *
+ * Vrai quand le message porte une COMMANDE d'opération explicite (création de
+ * carte d'attaque/défense, création/confirmation/exécution de rappel). Dans ce
+ * cas, les détecteurs status/recap ne doivent JAMAIS préempter l'opération :
+ * ni au routage (gardes L4 recap_only / status_only_request_blocks_tool_start),
+ * ni au rendu (composer status_only / fait-prévu-fragile rendu avant les
+ * runtimes d'opération dans la chaîne `??`).
+ *
+ * On ne fait que COMPOSER des détecteurs d'intention explicite déjà existants
+ * (un seul cerveau) — pas de nouvelle regex sémantique. Anti-faux-positif: un
+ * récap de lecture pure ("fais le recap exact : carte créée ou non, rappel créé
+ * ou annulé") ne matche aucun de ces détecteurs (pas de verbe de création ciblé,
+ * pas d'indice horaire de création), donc le status reste rendu. Voir
+ * edgecases-r3 T5 (rappel "14h20 ou 16h10" avalé par one_shot_reminder_exact_
+ * status_request) et syncskills-r2 T2 (carte d'attaque avalée par status).
+ *
+ * Critère de suppression: quand le dispatcher L1 distingue nativement une
+ * commande d'opération d'une question de statut, ce garde transitionnel peut
+ * disparaître.
+ */
+/**
+ * CHANTIER G0 (2026-05-29) — Détecteur tolérant de COMMANDE de création de
+ * rappel. `detectsExplicitOneShotReminderCreate` (L3) exige une phrase de
+ * création contiguë ("mets-moi un rappel") + un indice horaire résoluble, et
+ * rate les formes avec incise ("Mets-moi PLUTÔT un rappel … 14h20 ou 16h10",
+ * edgecases-r3 T5) ou les deux horaires candidats sans mot-jour. On capte ici
+ * la commande de création même ambiguë (l'aval demandera l'heure), pour qu'elle
+ * ne soit pas avalée par le détecteur status-exact rappel `\dh\d\d ou \dh\d\d`.
+ *
+ * Anti-faux-positif: on exige (a) le mot "rappel", (b) un verbe de création
+ * dirigé vers le rappel, et on EXCLUT le cadrage de vérification/status pur
+ * ("quelle heure", "tu as (vraiment) programmé", "c'est confirmé").
+ */
+export function looksLikeReminderCreationCommandForTest(
+  message: string,
+): boolean {
+  const text = normalizeRouteText(message);
+  if (!/\brappel\b/.test(text)) return false;
+  // Anti-FP: un récap de lecture ("fais le recap : … rappel créé ou annulé")
+  // contient le participe "créé" (-> "cree" après normalisation) ; ce n'est PAS
+  // une commande de création. On exclut tout cadrage recap/bilan.
+  if (isRecapOnlyRequestForTest(message)) return false;
+  if (/\b(recap|recapitule|recapitulatif|bilan|fais le point|resume)\b/.test(text)) {
+    return false;
+  }
+  const statusVerificationFraming =
+    /\b(quelle heure|tu as (?:bien |vraiment )?programme|tu as (?:bien |vraiment )?mis|c est (?:bien )?confirme|est ce (?:bien )?confirme|deja programme|heure vraiment|heure exacte)\b/
+      .test(text);
+  if (statusVerificationFraming) return false;
+  const creationVerb =
+    /\b(mets moi|mets|met moi|programme moi|programme|planifie moi|planifie|cree moi|cree|creer|ajoute moi|ajoute|rappelle moi|rappel moi|previens moi|envoie moi)\b/
+      .test(text);
+  if (!creationVerb) return false;
+  return true;
+}
+
+export function isExplicitOperationCommandForTest(message: string): boolean {
+  return (
+    detectsExplicitOneShotReminderCreate(message) ||
+    looksLikeReminderCreationCommandForTest(message) ||
+    looksLikeReminderExecutionConfirmationForTest(message) ||
+    detectsExplicitAttackCardCreationRequest(message) ||
+    isAttackCardExplicitApprovalForTest(message) ||
+    isDefenseCardExplicitApprovalForTest(message)
+  );
+}
+
+/**
+ * CHANTIER G4 (2026-05-29, syncskills-r2 T10) — Validation sémantique de la
+ * paraphrase coach. Le slot filler peut inverser le sens de la préférence de
+ * questionnement: à T10 « commence par un geste concret … AVANT de me poser
+ * plusieurs questions » (= MOINS de questions) était paraphrasé en « je
+ * prendrai PLUS souvent le temps de te questionner » (= coach.question_tendency
+ * "high"). On valide ici que la DIRECTION du patch ne contredit pas l'intention
+ * exprimée. Si contradiction, on demande une clarification au lieu de confirmer
+ * un sens inversé. Validation déterministe, scope = coach.question_tendency
+ * (le cas observé). "IA comprend, code valide".
+ */
+export function detectsCoachPreferenceDirectionContradictionForTest(
+  message: string,
+  patch: Record<string, unknown>,
+): boolean {
+  const text = normalizeRouteText(message);
+  const qtValue = String((patch ?? {})["coach.question_tendency"] ?? "").trim();
+  if (!qtValue) return false;
+  const wantsFewer = /\bmoins de questions?\b/.test(text) ||
+    /\bpas (?:trop|plusieurs|de|tant) (?:de )?questions?\b/.test(text) ||
+    /\bavant de (?:me )?(?:poser|demander)[\s\S]{0,24}questions?\b/.test(text) ||
+    /\b(?:d abord|dabord) (?:un |le )?(?:geste|petit pas|petit geste|action)\b/
+      .test(text) ||
+    /\bgeste concret\b[\s\S]{0,40}\b(avant|puis|ensuite|seulement)\b/.test(
+      text,
+    ) ||
+    /\bune seule question\b/.test(text) ||
+    /\bune question maximum\b/.test(text) ||
+    /\bquestion maximum\b/.test(text) ||
+    (
+      /\bgeste concret\b/.test(text) &&
+      /\b(10 minutes|moins de 10)\b/.test(text)
+    );
+  const wantsMore = /\bplus de questions?\b/.test(text) ||
+    /\b(questionne|questionner|interroge|interroger)[\s\S]{0,24}\b(plus|davantage)\b/
+      .test(text) ||
+    /\bprends?(?: plus)? le temps de (?:me )?questionner\b/.test(text) ||
+    /\bpose(?:-| )?moi plus de questions?\b/.test(text);
+  if (wantsFewer && !wantsMore && qtValue === "high") return true;
+  if (wantsMore && !wantsFewer && qtValue === "low") return true;
+  return false;
+}
+
 export function isCoachPreferenceVerificationRequestForTest(
   message: string,
 ): boolean {
@@ -5501,9 +6101,14 @@ export function isAttackCardExplicitApprovalForTest(message: string): boolean {
       .test(text);
   if (!confirmsAttackCard) return false;
   const rejects =
-    /\b(ne cree pas|ne valide pas|annule|stop|pas maintenant|finalement non)\b/
+    /\b(ne cree pas|ne valide pas|annule|stop|pas maintenant|finalement non|sans le creer|sans creer|ne cree rien)\b/
       .test(text);
   if (rejects) return false;
+  const draftOnly =
+    /\b(brouillon|affiche|montre|montre moi|montre-moi|propose)\b/.test(text) &&
+    /\b(sans le creer|sans creer|ne cree pas|ne cree rien|pas durable|pas encore)\b/
+      .test(text);
+  if (draftOnly) return false;
   const asksRevision =
     /\b(change|changer|modifie|modifier|corrige|corriger|remplace|remplacer|plutot|au lieu|pas comme ca|refais|refaire|reformule|reformuler)\b/
       .test(text);
@@ -8282,7 +8887,16 @@ function recurringReminderRouteIsSelected(args: {
   routeDecision: RouteDecision | null;
   turnFrame: TurnFrame | null;
   tempMemory: any;
+  userMessage?: string;
 }): boolean {
+  // CHANTIER H5 (2026-05-29) — edgecases-r4 T7 : un horaire + texte exact dans
+  // un flow ponctuel ne doit pas basculer vers create_recurring_reminder.
+  if (
+    args.userMessage &&
+    shouldPreferOneShotReminderOverRecurringForTest(args.userMessage)
+  ) {
+    return false;
+  }
   const pending = (args.tempMemory as any)?.pending_tool_skill_confirmation ??
     (args.tempMemory as any)?.__pending_tool_skill_confirmation ??
     null;
@@ -8397,6 +9011,9 @@ function clearToolSkillFlowForDirectReminder(tempMemory: any): any {
   delete next.__active_tool_skill_intake;
   delete next.active_tool_skill_intake;
   delete next.__pending_recommendation_operation;
+  // F0: en sortant d'un flow tool (potion incluse), le flag de consentement
+  // de suivi potion n'a plus d'objet.
+  delete next.__potion_followup_consent;
   return next;
 }
 
@@ -10556,6 +11173,10 @@ async function writeStatePotionActivation(args: {
     local_time_hhmm: string;
     reminder_instruction: string;
   }>;
+  // E0 (A3-r10 T6): le user a refuse toute programmation. On enregistre la
+  // session de potion (soutien instantane) mais aucun effet durable de
+  // planification: ni recurring_reminder, ni scheduled_checkins.
+  suppressFollowUp?: boolean;
   operationId?: string | null;
   requestId?: string | null;
   sourceMessageId?: string | null;
@@ -10653,6 +11274,17 @@ async function writeStatePotionActivation(args: {
     .single();
   if (potionError || !potion?.id) {
     throw potionError ?? new Error("potion_insert_failed");
+  }
+
+  // E0: consentement refuse -> aucune planification durable. La session de
+  // potion existe (le soutien a bien eu lieu), mais on ne cree ni rappel
+  // recurrent ni check-in programme.
+  if (args.suppressFollowUp) {
+    return {
+      potion_session_id: String(potion.id),
+      recurring_reminder_id: "",
+      scheduled_checkin_ids: [],
+    };
   }
 
   const followUp = args.draft.follow_up;
@@ -11668,6 +12300,11 @@ function coachPreferenceLabel(key: string, value: string): string {
       ? "Pas de question finale inutile"
       : "Questions finales normales";
   }
+  if (key === "coach.action_first_policy") {
+    return value === "concrete_before_questions"
+      ? "Action concrète avant questions"
+      : "Ordre normal";
+  }
   return value;
 }
 
@@ -11697,6 +12334,11 @@ function coachPreferenceStatusLabel(pref: any): string {
     return rawValue === "avoid_unnecessary"
       ? "pas de question finale inutile"
       : "questions finales normales";
+  }
+  if (key === "coach.action_first_policy") {
+    return rawValue === "concrete_before_questions"
+      ? "action concrète avant questions"
+      : "ordre normal";
   }
   return String(
     pref?.value?.label ?? pref?.value?.value ?? pref?.key ??
@@ -11786,14 +12428,15 @@ function formatCheckinLocalTime(iso: string, timezone: string): string {
   return iso.slice(11, 16);
 }
 
-async function buildStatusOnlyNoMutationRuntime(args: {
+export async function buildStatusOnlyNoMutationRuntime(args: {
   supabase: SupabaseClient;
   userId: string;
   tempMemory: any;
   userTimezone?: string;
   userMessage?: string;
 }): Promise<OperationRuntimeResult> {
-  const [attackCards, defenseCards, checkins, preferences] = await Promise.all([
+  const [attackCards, defenseCards, checkins, cancelledCheckins, potionSessions, preferences] =
+    await Promise.all([
     args.supabase
       .from("user_attack_cards")
       .select("id,content,generated_at")
@@ -11814,14 +12457,33 @@ async function buildStatusOnlyNoMutationRuntime(args: {
       .order("scheduled_for", { ascending: true })
       .limit(3),
     args.supabase
+      .from("scheduled_checkins")
+      .select("id,scheduled_for,status,message_payload,event_context,updated_at")
+      .eq("user_id", args.userId)
+      .eq("status", "cancelled")
+      .like("event_context", "one_shot_reminder:%")
+      .order("updated_at", { ascending: false })
+      .limit(3),
+    args.supabase
+      .from("user_potion_sessions")
+      .select("id,potion_type,status,created_at")
+      .eq("user_id", args.userId)
+      .order("created_at", { ascending: false })
+      .limit(2),
+    args.supabase
       .from("user_profile_facts")
-      .select("key,value,reason,status,updated_at")
+      // CHANTIER F1 (2026-05-29) — on récupère source_type pour distinguer les
+      // préférences réellement choisies par l'utilisateur (explicit_user) des
+      // réglages par défaut système (system_default). Sans ça, le récap listait
+      // les 9 defaults comme « préférences en place » (A11 T13, A3-r11 T15).
+      // On lève la limite à 12 pour couvrir tout coach.* et classifier ensuite.
+      .select("key,value,reason,status,source_type,updated_at")
       .eq("user_id", args.userId)
       .eq("scope", "global")
       .eq("status", "active")
       .like("key", "coach.%")
       .order("updated_at", { ascending: false })
-      .limit(3),
+      .limit(12),
   ]);
   const attack = (attackCards.data ?? [])[0] as any;
   const defense = (defenseCards.data ?? [])[0] as any;
@@ -11861,32 +12523,109 @@ async function buildStatusOnlyNoMutationRuntime(args: {
   const exactReminderStatus = isOneShotReminderExactStatusRequestForTest(
     args.userMessage ?? "",
   );
+  // CHANTIER C3 (2026-05-28) — Sur une question multi-rappels ("texte exact
+  // de 11h21 ET 11h37 ?"), on doit énumérer CHAQUE rappel en attente avec son
+  // heure locale + son instruction réelle (DB), pas seulement "le prochain".
+  // Source unique = scheduled_checkins.message_payload.reminder_instruction.
+  // Voir A4-r6 T12.
+  const reminderDetails = pendingCheckins.map((row: any) => {
+    const instruction = String(
+      row?.message_payload?.reminder_instruction ??
+        row?.message_payload?.instruction ??
+        "rappel ponctuel",
+    ).replace(
+      /^Rappel ponctuel demandé explicitement par l'utilisateur\. Rappelle-lui de\s*/i,
+      "",
+    );
+    const localTime = row?.scheduled_for
+      ? formatCheckinLocalTime(
+        String(row.scheduled_for),
+        args.userTimezone ?? "Europe/Paris",
+      )
+      : null;
+    return { instruction, localTime };
+  });
+  const cancelledRows = (cancelledCheckins.data ?? []) as any[];
+  const cancelledReminderDetails = cancelledRows.map((row: any) => {
+    const instruction = String(
+      row?.message_payload?.reminder_instruction ??
+        row?.message_payload?.instruction ??
+        "rappel ponctuel",
+    );
+    const localTime = row?.scheduled_for
+      ? formatCheckinLocalTime(
+        String(row.scheduled_for),
+        args.userTimezone ?? "Europe/Paris",
+      )
+      : null;
+    return { instruction, localTime };
+  });
+  const userText = normalizeRouteText(args.userMessage ?? "");
+  const recapRequest = isRecapOnlyRequestForTest(args.userMessage ?? "");
+  const mentionsCancelledReminder =
+    /\b(rappel|rappels)\b[\s\S]{0,80}\b(annule|annulee|annulé|annulée|cancelled)\b/
+      .test(userText) ||
+    /\b(annule|annulee|annulé|annulée|cancelled)\b[\s\S]{0,80}\b(rappel|rappels)\b/
+      .test(userText);
   const reminderLine = pendingCheckins.length === 0
-    ? "je n'en vois pas en place."
+    ? cancelledReminderDetails.length > 0 &&
+        (recapRequest || mentionsCancelledReminder)
+      ? `aucun actif ; dernier rappel ${
+        cancelledReminderDetails[0].localTime
+          ? `${cancelledReminderDetails[0].localTime} `
+          : ""
+      }${cancelledReminderDetails[0].instruction} créé puis annulé.`
+      : "je n'en vois pas en place."
     : exactReminderStatus && reminderLocalTime
     ? `l'heure confirmée côté système est ${reminderLocalTime} (${reminderInstruction}). Si 11h20 n'apparaît pas ici, ce déplacement n'a pas été confirmé.`
     : pendingCheckins.length === 1
     ? `oui, il est programmé${
       reminderLocalTime ? ` à ${reminderLocalTime}` : ""
     } (${reminderInstruction}).`
-    : `oui, j'en vois ${pendingCheckins.length} en place, dont le prochain : ${reminderInstruction}.`;
-  const prefLabels = activePreferences
-    .filter((pref: any) =>
-      [
-        "coach.tone",
-        "coach.question_tendency",
-        "coach.challenge_level",
-        "coach.response_max_lines",
-        "coach.emoji_policy",
-        "coach.final_question_policy",
-      ]
-        .includes(String(pref?.key ?? ""))
-    )
-    .map((pref: any) => coachPreferenceStatusLabel(pref));
+    : `oui, j'en vois ${pendingCheckins.length} en place : ${
+      reminderDetails
+        .map((detail) =>
+          `${detail.localTime ? `${detail.localTime} ` : ""}${detail.instruction}`
+        )
+        .join(" ; ")
+    }.`;
+  // CHANTIER F1 (2026-05-29, A11 T13 / A3-r11 T15) — Ne compter comme
+  // « préférences en place » QUE les préférences réellement choisies par
+  // l'utilisateur (source_type !== "system_default"). Les réglages par défaut
+  // système ne doivent pas être présentés comme des choix de l'utilisateur.
+  const COACH_PREF_KEYS = [
+    "coach.tone",
+    "coach.question_tendency",
+    "coach.challenge_level",
+    "coach.response_max_lines",
+    "coach.emoji_policy",
+    "coach.final_question_policy",
+    "coach.action_first_policy",
+  ];
+  const knownPreferences = activePreferences.filter((pref: any) =>
+    COACH_PREF_KEYS.includes(String(pref?.key ?? ""))
+  );
+  const explicitPreferences = knownPreferences.filter((pref: any) =>
+    String(pref?.source_type ?? "") !== "system_default"
+  );
+  const defaultPreferences = knownPreferences.filter((pref: any) =>
+    String(pref?.source_type ?? "") === "system_default"
+  );
+  const prefLabels = explicitPreferences.map((pref: any) =>
+    coachPreferenceStatusLabel(pref)
+  );
   const preferenceLine = prefLabels.length === 0
-    ? "je n'en vois pas encore en place."
-    : `oui, ${prefLabels.join(", ")}.`;
-  const userText = normalizeRouteText(args.userMessage ?? "");
+    ? defaultPreferences.length > 0
+      ? "tu n'en as pas encore défini ; seuls les réglages par défaut système sont actifs."
+      : "je n'en vois pas encore en place."
+    : `oui, ${prefLabels.join(", ")}${
+      defaultPreferences.length > 0
+        ? " (le reste est sur la valeur par défaut système)"
+        : ""
+    }.`;
+  const potionRows = (potionSessions.data ?? []).filter((row: any) =>
+    String(row?.status ?? "") === "completed"
+  ) as any[];
   const conversationLines = [
     /\bpiege|pi[eè]ge|risque|fragile\b/.test(userText)
       ? "- Piège / fragile : je le traite comme repère de conversation, pas comme écriture durable."
@@ -11895,6 +12634,27 @@ async function buildStatusOnlyNoMutationRuntime(args: {
       ? "- Honte / émotion : c'est dans le récap humain, sans outil lancé."
       : null,
   ].filter(Boolean) as string[];
+  const recapExtraLines = recapRequest
+    ? [
+      cancelledReminderDetails.length > 0
+        ? `- Rappels annulés récemment : ${
+          cancelledReminderDetails.map((detail) =>
+            `${detail.localTime ? `${detail.localTime} ` : ""}${detail.instruction} (annulé)`
+          ).join(" ; ")
+        }.`
+        : null,
+      potionRows.length > 0
+        ? `- Potion : ${
+          potionRows.map((row: any) =>
+            String(row?.potion_type ?? "session")
+          ).join(", ")
+        } exécutée(s) ce cycle, sans rappel récurrent créé.`
+        : null,
+      /\bpiege|notifications|doc\b/.test(userText)
+        ? "- Piège à retenir : quand la phrase devient floue, rester sur le doc ouvert — pas les notifications."
+        : null,
+    ].filter(Boolean) as string[]
+    : [];
   const lines = [
     "Sans rien modifier :",
     `- Carte d'attaque : ${
@@ -11910,6 +12670,7 @@ async function buildStatusOnlyNoMutationRuntime(args: {
     `- Rappels ponctuels : ${reminderLine}`,
     `- Préférences coach : ${preferenceLine}`,
     ...conversationLines,
+    ...recapExtraLines,
   ];
   return {
     content: lines.join("\n"),
@@ -11922,6 +12683,155 @@ async function buildStatusOnlyNoMutationRuntime(args: {
       attack_card_found: Boolean(attack),
       defense_card_found: Boolean(defense),
       reminder_found: Boolean(checkin),
+      coach_preference_found: explicitPreferences.length > 0,
+    },
+  };
+}
+
+/**
+ * CHANTIER C5 (2026-05-28) — Contrat de format « fait / prévu / fragile ».
+ *
+ * Détecte la demande de récap explicitement labellisée (les trois labels
+ * présents EN SÉQUENCE). Volontairement narrow : on exige
+ * `fait [,/] prevu [,/] fragile` → quasi zéro faux positif (un titre de
+ * carte ou une action ne contient pas cette séquence). Voir A2-codex-r7
+ * T13/T14 où le composer rendait un intro vide (T13) ou posait une question
+ * (T14) au lieu de livrer le récap.
+ */
+export function isFaitPrevuFragileRecapRequestForTest(message: string): boolean {
+  const text = normalizeRouteText(message ?? "");
+  return /\bfait\s*[,\/]?\s*prevu\s*[,\/]?\s*fragile\b/.test(text);
+}
+
+/**
+ * CHANTIER C5 (2026-05-28) — Composer DÉTERMINISTE pour le contrat
+ * « fait / prévu / fragile ». On ne passe pas par le LLM (qui posait une
+ * question ou ne livrait qu'une intro) : on rend exactement 3 lignes
+ * labellisées, sourcées DB, SANS question. Heures en `user_timezone`.
+ *
+ * Mapping :
+ *  - Fait    = écritures durables persistées (cartes actives + préférences
+ *              coach actives).
+ *  - Prévu   = rappels ponctuels en attente (scheduled, à venir) en heure
+ *              locale.
+ *  - Fragile = repère de conversation (pas une écriture durable) — ligne
+ *              honnête, non inventée.
+ */
+export async function buildFaitPrevuFragileRecapRuntime(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  userTimezone?: string;
+  tempMemory?: any;
+}): Promise<OperationRuntimeResult> {
+  const tz = args.userTimezone ?? "Europe/Paris";
+  const [attackCards, defenseCards, checkins, preferences] = await Promise.all([
+    args.supabase
+      .from("user_attack_cards")
+      .select("id,content,generated_at")
+      .eq("user_id", args.userId)
+      .eq("status", "active")
+      .order("generated_at", { ascending: false })
+      .limit(1),
+    args.supabase
+      .from("user_defense_cards")
+      .select("id,content,generated_at")
+      .eq("user_id", args.userId)
+      .eq("status", "active")
+      .order("generated_at", { ascending: false })
+      .limit(1),
+    args.supabase
+      .from("scheduled_checkins")
+      .select("id,scheduled_for,status,message_payload")
+      .eq("user_id", args.userId)
+      .eq("status", "pending")
+      .order("scheduled_for", { ascending: true })
+      .limit(5),
+    args.supabase
+      .from("user_profile_facts")
+      .select("key,value,status,updated_at")
+      .eq("user_id", args.userId)
+      .eq("scope", "global")
+      .eq("status", "active")
+      .like("key", "coach.%")
+      .order("updated_at", { ascending: false })
+      .limit(5),
+  ]);
+  const attack = (attackCards.data ?? [])[0] as any;
+  const defense = (defenseCards.data ?? [])[0] as any;
+  const pendingCheckins = ((checkins.data ?? []) as any[]).filter((row) =>
+    String(row?.status ?? "") === "pending"
+  );
+  const activePreferences = (preferences.data ?? []) as any[];
+
+  const faitParts: string[] = [];
+  if (attack) {
+    faitParts.push(
+      `carte d'attaque "${
+        String(
+          attack?.content?.operation_draft?.title ?? attack?.content?.title ??
+            "carte d'attaque",
+        )
+      }"`,
+    );
+  }
+  if (defense) {
+    faitParts.push(
+      `carte de défense "${
+        String(
+          defense?.content?.operation_draft?.title ?? defense?.content?.title ??
+            "carte de défense",
+        )
+      }"`,
+    );
+  }
+  if (activePreferences.length > 0) {
+    faitParts.push(
+      `${activePreferences.length} préférence(s) coach active(s)`,
+    );
+  }
+  const faitText = faitParts.length > 0
+    ? faitParts.join(", ") + "."
+    : "rien de durable créé de neuf.";
+
+  const prevuText = pendingCheckins.length === 0
+    ? "aucun rappel ponctuel en attente."
+    : pendingCheckins
+      .map((row) => {
+        const instruction = String(
+          row?.message_payload?.reminder_instruction ??
+            row?.message_payload?.instruction ??
+            "rappel ponctuel",
+        ).replace(
+          /^Rappel ponctuel demandé explicitement par l'utilisateur\. Rappelle-lui de\s*/i,
+          "",
+        );
+        const localTime = row?.scheduled_for
+          ? formatCheckinLocalTime(String(row.scheduled_for), tz)
+          : null;
+        return `${localTime ? `${localTime} ` : ""}${instruction}`;
+      })
+      .join(" ; ") + ".";
+
+  const fragileText =
+    "ce qu'on a nommé reste un repère de conversation, pas une écriture durable.";
+
+  const content = [
+    `Fait : ${faitText}`,
+    `Prévu : ${prevuText}`,
+    `Fragile : ${fragileText}`,
+  ].join("\n");
+
+  return {
+    content,
+    nextTempMemory: clearToolSkillFlowForDirectReminder(args.tempMemory ?? {}),
+    toolExecution: "none",
+    executedTools: [],
+    toolSkillRun: {
+      selected_handler: "fait_prevu_fragile_recap",
+      status: "answered",
+      attack_card_found: Boolean(attack),
+      defense_card_found: Boolean(defense),
+      pending_reminders: pendingCheckins.length,
       coach_preference_found: activePreferences.length > 0,
     },
   };
@@ -11947,6 +12857,7 @@ async function maybeRunCreateRecurringReminderOperation(args: {
       routeDecision: args.routeDecision,
       turnFrame: args.turnFrame,
       tempMemory: args.tempMemory,
+      userMessage: args.userMessage,
     })
   ) return null;
 
@@ -14087,6 +14998,8 @@ async function maybeRunSelectStatePotionOperation(args: {
   safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
   sourceMessageId: string | null;
   requestId?: string | null;
+  recentUserMessages?: string[];
+  recentMessages?: Array<{ role: "user" | "assistant"; content: string }>;
 }): Promise<OperationRuntimeResult | null> {
   const routeSelected = operationRouteIsSelected({
     operationType: "select_state_potion",
@@ -14113,6 +15026,26 @@ async function maybeRunSelectStatePotionOperation(args: {
   };
 
   const nextTempMemory = { ...(args.tempMemory ?? {}) };
+  // E0: un refus de programmation exprime a n'importe quel tour du flow potion
+  // doit persister jusqu'a l'activation (A3-r10: refus T6, activation T7).
+  if (detectsPotionFollowUpRefusalForTest(args.userMessage)) {
+    nextTempMemory.__potion_followup_consent = "refused";
+  }
+  // CHANTIER F0 (2026-05-29, operations-r2 T7/T10/T13): le refus peut avoir ete
+  // exprime a un tour anterieur (T7 "pas de rituel recurrent", T10 "sans
+  // semaine") sans que le handler potion n'ait tourne ce tour-la (donc sans
+  // persistance du flag). On re-evalue le refus sur la fenetre recente de
+  // messages user au moment de l'activation : garantie dure de consentement,
+  // un effet recurrent/durable ne doit JAMAIS etre cree sans accord explicite.
+  if (
+    (args.recentUserMessages ?? []).some((m) =>
+      detectsPotionFollowUpRefusalForTest(m)
+    )
+  ) {
+    nextTempMemory.__potion_followup_consent = "refused";
+  }
+  const followUpConsentRefused =
+    nextTempMemory.__potion_followup_consent === "refused";
   const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
     nextTempMemory.pending_tool_skill_confirmation ??
     null;
@@ -14177,6 +15110,7 @@ async function maybeRunSelectStatePotionOperation(args: {
         channel: args.channel,
         timezone: args.userTimezone,
         message: args.userMessage,
+        recent_messages: args.recentMessages,
         source: "direct_user_request",
         trigger_message_id: args.sourceMessageId ?? args.requestId ??
           crypto.randomUUID(),
@@ -14315,12 +15249,14 @@ async function maybeRunSelectStatePotionOperation(args: {
       pending_confirmation_lookup: async (id) =>
         id === operationId ? { consumed: false } : null,
       token_consumption_check: async () => false,
+      suppress_follow_up_scheduling: followUpConsentRefused,
       write_potion_activation: async ({ draft, scheduled_followups }) =>
         await writeStatePotionActivation({
           supabase: args.supabase,
           userId: args.userId,
           draft,
           scheduledFollowups: scheduled_followups,
+          suppressFollowUp: followUpConsentRefused,
           operationId,
           requestId: args.requestId ?? null,
           sourceMessageId: args.sourceMessageId,
@@ -14334,6 +15270,7 @@ async function maybeRunSelectStatePotionOperation(args: {
     delete nextTempMemory.pending_tool_skill_confirmation;
     delete nextTempMemory.__active_tool_skill_intake;
     delete nextTempMemory.active_tool_skill_intake;
+    delete nextTempMemory.__potion_followup_consent;
     if (executed.status !== "executed") {
       return {
         content: executed.ack,
@@ -14394,6 +15331,7 @@ async function maybeRunSelectStatePotionOperation(args: {
       channel: args.channel,
       timezone: args.userTimezone,
       message: args.userMessage,
+      recent_messages: args.recentMessages,
       source: "recommendation_tool",
       trigger_message_id: args.sourceMessageId ?? args.requestId ??
         crypto.randomUUID(),
@@ -14491,6 +15429,11 @@ async function maybeRunSelectStatePotionOperation(args: {
     channel: args.channel,
     timezone: args.userTimezone,
     message: args.userMessage,
+    // CHANTIER F4 (2026-05-29, A3-r11 T4) — On fournit l'historique récent au
+    // router potion pour qu'il ne RE-demande pas un slot déjà donné (ex: le
+    // type "Apaisement" choisi au tour précédent hors flow potion). L'IA
+    // comprend le contexte; pas de regex métier ici.
+    recent_messages: args.recentMessages,
     source: "direct_user_request",
     trigger_message_id: args.sourceMessageId ?? args.requestId ??
       crypto.randomUUID(),
@@ -14612,6 +15555,19 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     nextTempMemory.pending_tool_skill_confirmation ??
     null;
   if (isRecapOnlyRequestForTest(args.userMessage)) return null;
+  // CHANTIER H3 (2026-05-29) — Preview sans enregistrement (A2-r12 T10).
+  if (isCoachPreferencePreviewOnlyRequestForTest(args.userMessage)) {
+    return {
+      content: buildCoachPreferencePreviewReplyForTest(args.userMessage),
+      nextTempMemory,
+      toolExecution: "none",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "update_coach_preferences",
+        status: "preview_only_no_confirmation",
+      },
+    };
+  }
   if (isPendingCoachPreferencesOperation(pendingRaw)) {
     if (isCoachPreferenceExplicitApprovalForTest(args.userMessage)) {
       const { data, error } = await upsertCoachPreferencesFromDraftForTest({
@@ -14885,6 +15841,38 @@ async function maybeRunUpdateCoachPreferencesOperation(args: {
     operation_input: activeOperationInput,
     request_id: args.requestId ?? null,
   });
+
+  // CHANTIER G4 (2026-05-29, syncskills-r2 T10) — Avant de confirmer un draft,
+  // on vérifie que la direction de la préférence ne contredit pas l'intention
+  // exprimée (paraphrase inversée). Si contradiction, on ne confirme PAS le sens
+  // inversé : on demande une clarification de direction. On ne déclenche pas sur
+  // une confirmation explicite (le user valide alors un draft déjà cadré).
+  if (
+    output.status === "pending_confirmation" && output.draft &&
+    !isCoachPreferenceExplicitApprovalForTest(args.userMessage) &&
+    detectsCoachPreferenceDirectionContradictionForTest(
+      args.userMessage,
+      (output.draft as any)?.draft?.patch ?? {},
+    )
+  ) {
+    delete nextTempMemory.__pending_tool_skill_confirmation;
+    delete nextTempMemory.pending_tool_skill_confirmation;
+    delete nextTempMemory.__active_tool_skill_intake;
+    delete nextTempMemory.active_tool_skill_intake;
+    return {
+      content:
+        "Je veux être sûre de ne pas inverser ce que tu veux avant de le garder. Tu préfères que je te pose MOINS de questions (d'abord un geste concret, puis une question seulement si utile), ou PLUS de questions avant d'avancer ?",
+      nextTempMemory,
+      toolExecution: "blocked",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "update_coach_preferences",
+        status: "direction_needs_confirmation",
+        operation_id: (output.pending_confirmation as any)?.operation_id ?? null,
+        draft: output.draft ?? null,
+      },
+    };
+  }
 
   if (output.status === "pending_confirmation" && output.pending_confirmation) {
     if (
@@ -15705,14 +16693,148 @@ export async function processMessage(
         ],
       };
     }
+    // CHANTIER G1 (2026-05-29) — Hard-negative "pas de potion". Voir
+    // edgecases-r3 T12-14, syncskills-r2 T13-14. Un refus explicite de la potion
+    // doit (a) empêcher tout démarrage de select_state_potion ce tour-ci, même
+    // si la potion n'est pas encore active, et (b) purger un intake/pending
+    // potion existant pour qu'il ne ressuscite pas au tour suivant via
+    // `active_select_state_potion_kept_in_tool_skill`. Placé AVANT le bloc
+    // potionFlowActive (qui re-verrouille la potion).
     if (
       !blocksToolSkills(safetyPregateOutput.risk_band) &&
-      (
+      routeDecision.response_owner !== "safety" &&
+      detectsExplicitNoPotionRequestForTest(userMessage)
+    ) {
+      const potionWasActive =
         (activeOperationIntake as any)?.operation_type ===
           "select_state_potion" ||
         pendingOperationType(pendingOperationConfirmation) ===
-          "select_state_potion"
-      ) &&
+          "select_state_potion";
+      const potionWouldStart =
+        routeDecision.selected_handler === "select_state_potion" ||
+        (turnFrame?.tool_skill_intents ?? []).some((intent) =>
+          intent.operation_type === "select_state_potion"
+        ) ||
+        (turnFrame?.tool_skill_opportunity?.operation_type ===
+          "select_state_potion");
+      // Purge l'état potion (local + temp_memory) pour stopper la résurrection.
+      if (potionWasActive) {
+        activeOperationIntake = null;
+        pendingOperationConfirmation = null;
+        pendingOperationConfirmationForGlobalRouting = null;
+        delete (tempMemory as any).__pending_tool_skill_confirmation;
+        delete (tempMemory as any).pending_tool_skill_confirmation;
+        delete (tempMemory as any).__active_tool_skill_intake;
+        delete (tempMemory as any).active_tool_skill_intake;
+        delete (tempMemory as any).__potion_followup_consent;
+        state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      }
+      // Retire select_state_potion des intents/opportunity du tour courant.
+      if (turnFrame) {
+        turnFrame = {
+          ...turnFrame,
+          tool_skill_intents: turnFrame.tool_skill_intents.filter((intent) =>
+            intent.operation_type !== "select_state_potion"
+          ),
+          tool_skill_opportunity:
+            turnFrame.tool_skill_opportunity?.operation_type ===
+                "select_state_potion"
+              ? {
+                type: "none",
+                operation_type: null,
+                surface_id: null,
+                confidence_band: "low",
+                should_offer: false,
+                prop_reason: null,
+                source_span: null,
+                target_hint: null,
+                target_status: "none",
+                suggested_question_intent: null,
+                offer_timing: "never",
+                must_not_execute: true,
+              }
+              : turnFrame.tool_skill_opportunity,
+        } as TurnFrame;
+        dispatcherSignals = dispatcherSignalsFromTurnFrame({
+          turnFrame,
+          userMessage,
+        });
+      }
+      // Si la route allait vers la potion, ou si l'utilisateur demande un
+      // livrable concret (phrase/micro-action/reset) pendant emotional_repair,
+      // rends la main à la conversation pour livrer sans reposer de question.
+      // CHANTIER H1 (2026-05-29) — edgecases-r4 T12-14, syncskills-r3 T13-14.
+      const emotionalRepairActive =
+        routeDecision.selected_handler === "emotional_repair" ||
+        routeDecision.response_owner === "conversation_handler" &&
+          routeDecision.selected_handler === "emotional_repair";
+      const wantsConcreteDeliverable =
+        detectsExplicitConcreteDeliverableRequestForTest(userMessage);
+      if (
+        potionWasActive || potionWouldStart || emotionalRepairActive ||
+        wantsConcreteDeliverable
+      ) {
+        routeDecision = {
+          ...routeDecision,
+          response_owner: "normal_reply",
+          selected_handler: undefined,
+          reason_code: "explicit_no_potion_suspends_select_state_potion",
+          direct_effects_to_run: [],
+          blocked_paths: [
+            ...routeDecision.blocked_paths,
+            {
+              path: "tool_skill.select_state_potion",
+              reason_code: "explicit_no_potion_suspends_select_state_potion",
+            },
+          ],
+        };
+      }
+    }
+    const potionFlowActive =
+      (activeOperationIntake as any)?.operation_type === "select_state_potion" ||
+      pendingOperationType(pendingOperationConfirmation) ===
+        "select_state_potion";
+    // E1: avant de re-verrouiller la potion, on honore un STOP explicite. On
+    // libere l'etat (local + temp_memory) pour que le skill ne ressuscite pas
+    // depuis le pending, et on rend la main a la conversation (ou a product_help
+    // si le dispatcher l'avait deja choisi).
+    if (
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      potionFlowActive &&
+      routeDecision.response_owner !== "safety" &&
+      detectsExplicitStatePotionExitForTest(userMessage)
+    ) {
+      activeOperationIntake = null;
+      pendingOperationConfirmation = null;
+      pendingOperationConfirmationForGlobalRouting = null;
+      delete (tempMemory as any).__pending_tool_skill_confirmation;
+      delete (tempMemory as any).pending_tool_skill_confirmation;
+      delete (tempMemory as any).__active_tool_skill_intake;
+      delete (tempMemory as any).active_tool_skill_intake;
+      delete (tempMemory as any).__potion_followup_consent;
+      state = { ...(state ?? {}), temp_memory: tempMemory } as any;
+      if (
+        routeDecision.response_owner === "tool_skill" &&
+        routeDecision.selected_handler === "select_state_potion"
+      ) {
+        routeDecision = {
+          ...routeDecision,
+          response_owner: "normal_reply",
+          selected_handler: "state_potion_exit_to_conversation",
+          reason_code: "explicit_state_potion_exit",
+          direct_effects_to_run: [],
+        };
+        turnFrame = turnFrame
+          ? { ...turnFrame, tool_skill_intents: [] } as TurnFrame
+          : turnFrame;
+        dispatcherSignals = dispatcherSignalsFromTurnFrame({
+          turnFrame: turnFrame as TurnFrame,
+          userMessage,
+        });
+      }
+    } else if (
+      !blocksToolSkills(safetyPregateOutput.risk_band) &&
+      potionFlowActive &&
       routeDecision.response_owner !== "safety"
     ) {
       routeDecision = {
@@ -15816,7 +16938,16 @@ export async function processMessage(
     if (
       routeDecision.response_owner !== "safety" &&
       !blocksToolSkills(safetyPregateOutput.risk_band) &&
-      isExplicitDefenseCardIntentForTest(userMessage)
+      isExplicitDefenseCardIntentForTest(userMessage) &&
+      // CHANTIER E3 (2026-05-28) — Généralise D1/D5. Une préférence DURABLE de
+      // coaching qui *mentionne* les cartes de défense ("préférence durable :
+      // après une carte de défense, commence par une vérification…") n'est PAS
+      // une demande de créer une carte. isExplicitDefenseCardIntentForTest
+      // matche un verbe générique ("ce que je vais faire") et hijacke la
+      // préférence vers prepare_defense_card. On subordonne ce garde au même
+      // détecteur de préférence durable qu'en L3 (un seul cerveau). Voir
+      // A11 T9/T10 (prepare_defense_card gagnait contre update_coach_preferences).
+      !detectsDurableCoachPreference(userMessage)
     ) {
       const reasonCode = "explicit_defense_card_intent_overrides_attack_card";
       if (
@@ -16477,15 +17608,27 @@ export async function processMessage(
         ],
       };
     }
+    // CHANTIER F0 (2026-05-29, operations-r2 T13): un flow potion actif ne doit
+    // JAMAIS absorber une confirmation de rappel PONCTUEL. Normalement le flow
+    // tool actif a priorité (exclusion select_state_potion ci-dessous), mais
+    // quand le user demande explicitement un rappel ponctuel daté ET refuse tout
+    // récurrent (ex: « programme ce rappel ponctuel à 14h35, rien d'autre »),
+    // c'est une intention one-shot non ambiguë : on sort de la potion plutôt que
+    // de créer un effet récurrent non consenti. Signaux forts requis (create +
+    // heure + refus) pour ne pas casser une vraie étape de suivi de potion.
+    const f0PotionFlowActive =
+      (activeOperationIntake as any)?.operation_type === "select_state_potion" ||
+      pendingOperationType(pendingOperationConfirmation) ===
+        "select_state_potion";
+    const explicitOneShotSupersedesPotion = f0PotionFlowActive &&
+      detectsExplicitOneShotReminderCreate(userMessage) &&
+      detectsPotionFollowUpRefusalForTest(userMessage);
     if (
       routeDecision.response_owner !== "safety" &&
       !blocksToolSkills(safetyPregateOutput.risk_band) &&
       isLikelyOneShotReminderRequest(userMessage) &&
       (pendingOperationConfirmation || activeOperationIntake) &&
-      (activeOperationIntake as any)?.operation_type !==
-        "select_state_potion" &&
-      pendingOperationType(pendingOperationConfirmation) !==
-        "select_state_potion"
+      (!f0PotionFlowActive || explicitOneShotSupersedesPotion)
     ) {
       tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
       state = { ...(state ?? {}), temp_memory: tempMemory } as any;
@@ -16509,6 +17652,10 @@ export async function processMessage(
     if (
       routeDecision.response_owner !== "safety" &&
       isRecapOnlyRequestForTest(userMessage) &&
+      // CHANTIER G0 (2026-05-29) — un récap ne supersede JAMAIS une commande
+      // d'opération explicite (création carte/rappel, confirmation/exécution
+      // rappel). Voir edgecases-r3 T5, syncskills-r2 T2.
+      !isExplicitOperationCommandForTest(userMessage) &&
       (pendingOperationConfirmation || activeOperationIntake)
     ) {
       tempMemory = clearToolSkillFlowForDirectReminder(tempMemory);
@@ -16541,6 +17688,31 @@ export async function processMessage(
     }
     if (
       routeDecision.response_owner !== "safety" &&
+      // CHANTIER C1 (2026-05-28) — Subordination du status.
+      // Garde 1: une décision product_help correcte de l'amont (L1/L3) ne
+      // doit jamais être écrasée par le bloc status. Voir A2-r7 T4, A4-r6 T14,
+      // A3-r8 T3 où "où retrouver/annuler dans l'app" finissait en panneau
+      // status au lieu de l'aide produit.
+      routeDecision.response_owner !== "product_help" &&
+      // CHANTIER E2 (2026-05-28) — Subordination symétrique à C1. Une question
+      // de navigation produit explicite ("où corriger/annuler/voir ce rappel
+      // dans l'app") ne doit jamais être avalée par le panneau status, même si
+      // l'amont n'a pas (encore) posé response_owner=product_help. Voir
+      // A2-codex-r9 T4 où "où corriger ou annuler ce rappel dans l'app"
+      // finissait en status_only_request_blocks_tool_start au lieu de l'aide
+      // produit. Le détecteur est le même qu'en L3 (un seul cerveau).
+      !detectsExplicitProductHelp(userMessage) &&
+      // Garde 2: le status ne tue jamais un flow de carte (attack/defense) en
+      // cours de collecte (défense en profondeur du même fix qu'en L3). Voir
+      // A3-r8 T6/T8. Scope limité aux cartes pour ne pas régresser A4-r6 T11.
+      !isActiveCardDraftingOperationForTest(activeOperationIntake) &&
+      // CHANTIER G0 (2026-05-29) — Symétrique de F2 côté opérations. Une
+      // commande d'opération explicite (créer/confirmer une carte ou un rappel,
+      // ordre d'exécution "programme-le maintenant") ne doit jamais être avalée
+      // par le bloc status, même si la free-text contient un motif status (ex:
+      // "Mets-moi un rappel… 14h20 ou 16h10" matche le status-exact rappel).
+      // Voir edgecases-r3 T5, syncskills-r2 T2.
+      !isExplicitOperationCommandForTest(userMessage) &&
       (isStatusOnlyNoMutationRequestForTest(userMessage) ||
         isOneShotReminderExactStatusRequestForTest(userMessage))
     ) {
@@ -17526,12 +18698,15 @@ export async function processMessage(
     /\b(rappel|rappeler|rappelle|reminder|programme un rappel|programmer un rappel)\b/
       .test(normalizeRouteText(userMessage));
   const directOneShotReminderRuntime = !routeSafetyActive &&
-      routeDecision?.response_owner !== "tool_skill" &&
       !blocksDirectEffects(runtimeSafetyRiskBand) &&
       routeDecision?.direct_effects_to_run.includes(
         "create_one_shot_reminder",
       ) &&
-      isLikelyOneShotReminderRequest(userMessage)
+      // CHANTIER F3 (2026-05-29, edgecases-r2 T9) — on exécute aussi quand le
+      // message courant est un ORDRE d'exécution explicite ("programme-le
+      // maintenant") sans heure : l'heure est récupérée du contexte (E5).
+      (isLikelyOneShotReminderRequest(userMessage) ||
+        looksLikeReminderExecutionConfirmationForTest(userMessage))
     ? await maybeCreateOneShotReminder({
       supabase,
       userId,
@@ -17540,6 +18715,18 @@ export async function processMessage(
       now: clientNow && Number.isFinite(clientNow.getTime())
         ? clientNow
         : undefined,
+      // E5 (A11 T2/T3) + F3 (edgecases-r2 T9): le créneau a pu être donné à un
+      // tour précédent, avant la confirmation/l'ordre d'exécution. On fournit
+      // les derniers messages user (plus récent d'abord) pour le récupérer.
+      // F3 élargit la fenêtre à 6 (T9 doit retrouver T8/T7 plus loin).
+      contextMessages: (history ?? [])
+        .filter((m: any) =>
+          m?.role === "user" && typeof m?.content === "string"
+        )
+        .map((m: any) => String(m.content))
+        .filter((c: string) => c.trim() && c.trim() !== userMessage.trim())
+        .slice(-6)
+        .reverse(),
     })
     : null;
   const oneShotReminderOperationRuntime: OperationRuntimeResult | null =
@@ -17549,6 +18736,7 @@ export async function processMessage(
         content: [
           `C'est programmé pour ${directOneShotReminderRuntime.scheduled_for_local_label} : ${directOneShotReminderRuntime.reminder_instruction}.`,
           localTextAddonForOneShotReminderForTest(userMessage),
+          buildMinuteByMinuteSequenceAddonForTest(userMessage),
         ].filter(Boolean).join("\n\n"),
         nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
         toolExecution: "success",
@@ -17579,6 +18767,117 @@ export async function processMessage(
         },
       }
       : null;
+  // CHANTIER G3 (2026-05-29, edgecases-r3 T9/T10) — Annulation effective d'un
+  // rappel ponctuel. On exécute dès qu'une annulation explicite est détectée,
+  // et on dit clairement le résultat (annulé / aucun rappel trouvé / souci
+  // technique) au lieu de promettre une annulation jamais appliquée.
+  const oneShotReminderCancellationRuntime: OperationRuntimeResult | null =
+    !routeSafetyActive &&
+      !blocksDirectEffects(runtimeSafetyRiskBand) &&
+      // CHANTIER G3-fix (2026-05-29) — Défense en profondeur: un refus explicite
+      // d'outil ("ne lance rien", "sans outil", "propose sans lancer") interdit
+      // TOUTE mutation, y compris l'annulation. Voir A14-r1 T13.
+      !isExplicitNoToolRequestForTest(userMessage) &&
+      detectsExplicitOneShotReminderCancelForTest(userMessage)
+      ? await (async (): Promise<OperationRuntimeResult> => {
+        const outcome = await maybeCancelOneShotReminder({
+          supabase,
+          userId,
+          message: userMessage,
+          requestId: meta?.requestId ?? undefined,
+          now: clientNow && Number.isFinite(clientNow.getTime())
+            ? clientNow
+            : undefined,
+        });
+        if (outcome.detected && outcome.status === "cancelled") {
+          const label = outcome.cancelled_local_labels[0];
+          const cancelContent = outcome.cancelled_count === 1
+            ? `C'est annulé : je coupe le rappel${
+              label ? ` de ${label}` : ""
+            }, tu ne recevras pas ce ping.`
+            : `C'est annulé : j'ai coupé ${outcome.cancelled_count} rappels ponctuels, tu ne recevras plus ces pings.`;
+          const alsoCreate = looksLikeReminderCreationCommandForTest(
+              userMessage,
+            ) ||
+            detectsExplicitOneShotReminderCreate(userMessage);
+          if (alsoCreate) {
+            const createOutcome = await maybeCreateOneShotReminder({
+              supabase,
+              userId,
+              message: userMessage,
+              requestId: meta?.requestId ?? undefined,
+              now: clientNow && Number.isFinite(clientNow.getTime())
+                ? clientNow
+                : undefined,
+              contextMessages: (history ?? [])
+                .filter((m: any) =>
+                  m?.role === "user" && typeof m?.content === "string"
+                )
+                .map((m: any) => String(m.content))
+                .filter((c: string) => c.trim())
+                .slice(-6)
+                .reverse(),
+            });
+            if (
+              createOutcome.detected && createOutcome.status === "success"
+            ) {
+              return {
+                content:
+                  `${cancelContent}\n\nC'est programmé pour ${createOutcome.scheduled_for_local_label} : ${createOutcome.reminder_instruction}.`,
+                nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+                toolExecution: "success",
+                executedTools: [
+                  "cancel_one_shot_reminder",
+                  "create_one_shot_reminder",
+                ],
+                toolSkillRun: {
+                  selected_handler: "create_one_shot_reminder",
+                  status: "replaced_after_cancel",
+                  cancelled_count: outcome.cancelled_count,
+                  scheduled_for: createOutcome.scheduled_for,
+                  inserted_checkin_id: createOutcome.inserted_checkin_id,
+                },
+              };
+            }
+          }
+          return {
+            content: cancelContent,
+            nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+            toolExecution: "success",
+            executedTools: ["cancel_one_shot_reminder"],
+            toolSkillRun: {
+              selected_handler: "cancel_one_shot_reminder",
+              status: "executed",
+              cancelled_count: outcome.cancelled_count,
+            },
+          };
+        }
+        if (outcome.detected && outcome.status === "no_reminder") {
+          return {
+            content:
+              "Je ne vois aucun rappel ponctuel actif à annuler de mon côté. Si tu en attendais un, dis-moi l'heure exacte et je vérifie.",
+            nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+            toolExecution: "none",
+            executedTools: [],
+            toolSkillRun: {
+              selected_handler: "cancel_one_shot_reminder",
+              status: "no_reminder_found",
+            },
+          };
+        }
+        return {
+          content:
+            "Je n'ai pas pu annuler ce rappel à l'instant : il y a eu un souci technique côté outil. Je préfère te le dire clairement plutôt que de prétendre que c'est fait — réessaie dans un moment.",
+          nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+          toolExecution: "failed",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "cancel_one_shot_reminder",
+            status: outcome.detected ? outcome.status : "not_detected",
+          },
+        };
+      })()
+      : null;
   const oneShotReminderModificationRuntime: OperationRuntimeResult | null =
     !routeSafetyActive &&
       (isExplicitOneShotReminderModificationRequestForTest(userMessage) ||
@@ -17601,11 +18900,59 @@ export async function processMessage(
   // système"), on laisse normal_reply prendre la main au lieu du composer
   // status_only fixe. Voir docs/agent-playbook/13-architecture-skills,
   // décision 2026-05-28 chantier 1.
+  // CHANTIER D2 (2026-05-28) — Le renderer obéit à explicit_no_status. Quand
+  // l'utilisateur opte explicitement HORS du panneau statut ("pas les statuts
+  // système / sans les statuts"), l'arbitre force déjà normal_reply
+  // (central_arbitrator_explicit_no_status_request) ; le composer status_only
+  // ne doit donc JAMAIS prendre la main ici, même si la phrase matche un
+  // détecteur recap/status. Voir A2-codex-r8 T7 (trace no_status mais réponse
+  // = bloc "Sans rien modifier :").
+  // CHANTIER F2 (2026-05-29, A2-codex-r10 T4 / A3-r11 T14) — Symétrique de E2,
+  // côté RENDU. Quand la route finale est product_help (« où annuler/corriger
+  // dans l'app »), le composer status_only ne doit JAMAIS produire le bloc
+  // « Sans rien modifier : ... », même si la phrase matche le détecteur status.
+  // L'amont (E2) gagne déjà le routage ; ici on garantit que le rendu suit.
+  const routeIsProductHelp = routeDecision?.response_owner === "product_help" ||
+    routeDecision?.selected_handler === "product_help";
+  // CHANTIER G0 (2026-05-29) — Symétrique de F2 côté opérations, mais au RENDU:
+  // dans la chaîne `??`, le composer status_only / fait-prévu-fragile est rendu
+  // AVANT les runtimes d'opération. Si le message porte une commande d'opération
+  // explicite, on n'arme pas ces composers (sinon ils préemptent la création/
+  // confirmation de carte ou de rappel). Voir edgecases-r3 T5, syncskills-r2 T2.
+  const messageIsExplicitOperationCommand = isExplicitOperationCommandForTest(
+    userMessage,
+  );
+  // CHANTIER H2 (2026-05-29) — prepare_defense_card ne doit jamais être preempté
+  // par le composer status (A14-r1 T6-T8). Symétrique de G0 côté cartes.
+  const routeIsCardToolSkill =
+    routeDecision?.selected_handler === "prepare_defense_card" ||
+    routeDecision?.selected_handler === "prepare_attack_card";
+  const messageIsExplicitCardCommand =
+    isExplicitDefenseCardIntentForTest(userMessage) ||
+    detectsExplicitAttackCardCreationRequest(userMessage);
+  const explicitNoPotionConcreteReplyRuntime: OperationRuntimeResult | null =
+    !routeSafetyActive &&
+      (detectsExplicitNoPotionRequestForTest(userMessage) ||
+        isExplicitNoToolRequestForTest(userMessage)) &&
+      detectsExplicitConcreteDeliverableRequestForTest(userMessage)
+      ? {
+        content: buildExplicitNoPotionConcreteReplyForTest(userMessage),
+        nextTempMemory: clearToolSkillFlowForDirectReminder(tempMemory),
+        toolExecution: "none",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "emotional_repair",
+          status: "explicit_concrete_deliverable_no_potion",
+        },
+      }
+      : null;
   const statusOnlyNoMutationRuntime = !routeSafetyActive &&
-      !isExplicitConversationalFormatRequestForTest(userMessage) &&
-      (isStatusOnlyNoMutationRequestForTest(userMessage) ||
-        isOneShotReminderExactStatusRequestForTest(userMessage) ||
-        isRecapOnlyRequestForTest(userMessage))
+      !routeIsProductHelp &&
+      !messageIsExplicitOperationCommand &&
+      !routeIsCardToolSkill &&
+      !messageIsExplicitCardCommand &&
+      !isActiveCardDraftingOperationForTest(activeOperationIntake) &&
+      shouldRenderStatusOnlyNoMutationForTest(userMessage)
     ? await buildStatusOnlyNoMutationRuntime({
       supabase,
       userId,
@@ -17614,13 +18961,31 @@ export async function processMessage(
       userMessage,
     })
     : null;
+  // CHANTIER C5 (2026-05-28) — Contrat « fait / prévu / fragile ». Le LLM
+  // posait une question (A2-codex-r7 T14) ou ne livrait qu'une intro (T13).
+  // On rend ce récap de façon déterministe (3 lignes, labellisées, SANS
+  // question, heures locales, DB). Placé avant le composer status canonique.
+  const faitPrevuFragileRecapRuntime = !routeSafetyActive &&
+      !routeIsProductHelp &&
+      !messageIsExplicitOperationCommand &&
+      isFaitPrevuFragileRecapRequestForTest(userMessage)
+    ? await buildFaitPrevuFragileRecapRuntime({
+      supabase,
+      userId,
+      userTimezone: userTime?.user_timezone ?? "Europe/Paris",
+      tempMemory,
+    })
+    : null;
 
   const operationRuntime =
     routeSafetyActive || weeklyReviewBlocksToolSkillRuntime
       ? null
       : pendingAdjustPlanRuntime ??
         directWeeklyAdjustPlanRuntime ??
+        explicitNoPotionConcreteReplyRuntime ??
+        oneShotReminderCancellationRuntime ??
         oneShotReminderModificationRuntime ??
+        faitPrevuFragileRecapRuntime ??
         statusOnlyNoMutationRuntime ??
         oneShotReminderOperationRuntime ??
         (weeklyReviewAllowsReminderRuntime
@@ -17652,6 +19017,29 @@ export async function processMessage(
           safetyPregateOutput: runtimeSafetyPregateOutput,
           sourceMessageId: loggedMessageId,
           requestId: meta?.requestId ?? null,
+          // CHANTIER F0 (2026-05-29, operations-r2 T7/T10/T13): le refus de tout
+          // suivi récurrent peut avoir été exprimé à un tour précédent (T7/T10)
+          // avant l'activation (T13). On évalue le refus sur la fenêtre récente.
+          recentUserMessages: (history ?? [])
+            .filter((m: any) =>
+              m?.role === "user" && typeof m?.content === "string"
+            )
+            .map((m: any) => String(m.content))
+            .filter((c: string) => c.trim())
+            .slice(-8),
+          // CHANTIER F4 (2026-05-29, A3-r11 T4): historique récent (user +
+          // assistant) pour que le router potion ne redemande pas un slot déjà
+          // donné au tour précédent.
+          recentMessages: (history ?? [])
+            .filter((m: any) =>
+              (m?.role === "user" || m?.role === "assistant") &&
+              typeof m?.content === "string" && m.content.trim()
+            )
+            .map((m: any) => ({
+              role: m.role as "user" | "assistant",
+              content: String(m.content),
+            }))
+            .slice(-8),
         }) ??
         await maybeRunAdjustPlanItemOperation({
           supabase,
@@ -18658,6 +20046,19 @@ export async function processMessage(
   responseContent = applyIncompleteRecapGuardForTest({
     userMessage,
     responseContent,
+  });
+  // CHANTIER C2 (2026-05-28) — On est ici dans le chemin normal_reply libre
+  // (operationRuntime === null), donc AUCUN tool de mutation n'a tourné ce
+  // tour. Si le routeur avait pourtant l'intention d'en lancer un
+  // (direct_effects_to_run / selected_handler) et que la réponse affirme
+  // l'effet, on neutralise la fausse affirmation (A4-r6 T6).
+  responseContent = applyUnexecutedEffectClaimGuardForTest({
+    responseContent,
+    intendedTools: [
+      ...(routeDecision?.direct_effects_to_run ?? []),
+      ...(routeDecision?.selected_handler ? [routeDecision.selected_handler] : []),
+    ],
+    executedTools: [],
   });
   const responseStylePreferences = await loadCoachResponseStylePreferences({
     supabase,

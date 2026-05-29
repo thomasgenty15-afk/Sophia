@@ -11,9 +11,17 @@ import {
   loadReplayFixtures,
   runReplayFixtures,
 } from "../../../test_harness/conversation_route_replay/runner.ts";
-import { runPrepareAttackCardAiIntake } from "./ai_intake.ts";
+import type { AttackCardDraftGenerator } from "./ai_intake.ts";
+import {
+  normalizeAttackCardDraftForTest,
+  runPrepareAttackCardAiIntake,
+} from "./ai_intake.ts";
 import { executePrepareAttackCard } from "./executor.ts";
-import { refineAttackCardTechniqueFitForTest } from "./slot_filler.ts";
+import {
+  detectExplicitlyNamedTechniqueForTest,
+  enforceExplicitTechniqueRequestForTest,
+  refineAttackCardTechniqueFitForTest,
+} from "./slot_filler.ts";
 import {
   readyAttackCardStatePatch,
   structuredAttackCardDraftGenerator,
@@ -358,6 +366,229 @@ Deno.test("prepare_attack_card AI flow rejects occupied mot de bascule determini
 
   assertEquals(output.status, "fallback_dashboard");
   assertEquals(output.readiness.reason, "ai_slot_question_missing");
+});
+
+// ===========================================================================
+// CHANTIER C8 (2026-05-28) — Internals tool skill.
+// 1) Préserver une technique nommée explicitement (A2-codex-r7 T5/T7).
+// 2) Échec de génération = erreur technique propre + retry (A3-r8 T11).
+// ===========================================================================
+
+Deno.test("C8: detectExplicitlyNamedTechnique maps product titles to keys (A2-r7 T5)", () => {
+  assertEquals(
+    detectExplicitlyNamedTechniqueForTest(
+      "Technique: ancre visuelle, avec le post-it 'payé fermé'",
+    ),
+    "ancre_visuelle",
+  );
+  assertEquals(
+    detectExplicitlyNamedTechniqueForTest("je veux un mot de bascule: PAUSE"),
+    "pre_engagement",
+  );
+  assertEquals(
+    detectExplicitlyNamedTechniqueForTest("utilise Le texte magique stp"),
+    "texte_recadrage",
+  );
+});
+
+Deno.test("C8 anti-FP: no explicitly named technique returns null", () => {
+  assertEquals(
+    detectExplicitlyNamedTechniqueForTest(
+      "crée-moi une carte d'attaque pour boucler la note de frais sans me disperser. Choisis la technique toi-même.",
+    ),
+    null,
+  );
+});
+
+Deno.test("C8: enforceExplicitTechniqueRequest locks user-named 'ancre visuelle' over LLM pre_engagement (A2-r7 T5/T7)", () => {
+  // Le slot filler (LLM) avait choisi pre_engagement à cause du post-it.
+  const llmOutput = {
+    current_step: "draft_generation" as const,
+    missing_slots: [] as string[],
+    confidence: "high" as const,
+    generated_user_message: null,
+    state_patch: {
+      technique: {
+        status: "identified" as const,
+        value: "pre_engagement" as const,
+        explicitly_requested: false,
+        fit_warning: null,
+        options: [],
+        confidence: "high" as const,
+        evidence: ["post-it 'payé fermé' interprété comme mot de bascule"],
+      },
+      missing_slots: [],
+    },
+  };
+  const enforced = enforceExplicitTechniqueRequestForTest(llmOutput as any, {
+    message:
+      "crée-moi une carte d'attaque pour payer le parking. Technique: ancre visuelle, avec le post-it 'payé fermé'",
+  });
+  assertEquals(enforced.state_patch.technique?.value, "ancre_visuelle");
+  assertEquals(enforced.state_patch.technique?.explicitly_requested, true);
+});
+
+Deno.test("C8: a generation failure retries once before falling back (A3-r8 T11)", async () => {
+  let calls = 0;
+  const flaky: AttackCardDraftGenerator = async (inp) => {
+    calls += 1;
+    if (calls === 1) throw new Error("transient_generation_failure");
+    return structuredAttackCardDraftGenerator(inp);
+  };
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "crée une carte d'attaque, choisis la technique toi-même",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-c8-retry",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
+    draft_generator: flaky,
+  });
+  assertEquals(calls, 2, "le générateur doit être retenté une fois");
+  assertEquals(output.status, "pending_confirmation");
+});
+
+Deno.test("C8: persistent failure yields a clean technical error + retry invitation, not a vague refusal (A3-r8 T11)", async () => {
+  const alwaysFails: AttackCardDraftGenerator = async () => {
+    throw new Error("hard_generation_failure");
+  };
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "crée une carte d'attaque, choisis la technique toi-même",
+    plan_snapshot: { items: [{ id: "walk", title: "marche" }] },
+    trigger_message_id: "m-c8-fallback",
+    safety_pregate_risk_band: "none",
+    slot_filler: structuredAttackCardSlotFiller(readyAttackCardStatePatch()),
+    draft_generator: alwaysFails,
+  });
+  assertEquals(output.status, "fallback_dashboard");
+  assertEquals(output.readiness.reason, "ai_draft_generator_error");
+  // Erreur technique propre + invitation à relancer.
+  assertStringIncludes(output.ack ?? "", "raté technique");
+  // Plus de refus vague "deviner à ta place".
+  assertEquals((output.ack ?? "").includes("deviner à ta place"), false);
+});
+
+// ===========================================================================
+// CHANTIER D0 (2026-05-28) — Régression carte one-shot "ancre visuelle".
+// Le verrou de technique C8 pouvait désynchroniser le draft LLM (confirmation
+// construite pour une autre technique, ou title absent) et faire échouer TOUTE
+// la carte en fallback_dashboard. normalizeDraft répare désormais ces champs
+// secondaires au lieu de jeter. Voir A2-codex-r8 T5/T6, A3-r9 T13.
+// ===========================================================================
+
+const ancreVisuelleLockedState = () =>
+  ({
+    skill_id: "prepare_attack_card",
+    current_step: "draft_generation",
+    target: {
+      status: "identified",
+      kind: "personal_action",
+      plan_item_id: null,
+      title: "payer le parking",
+      confidence: "high",
+      evidence: ["payer le parking"],
+    },
+    technique: {
+      status: "identified",
+      value: "ancre_visuelle",
+      explicitly_requested: true,
+      fit_warning: null,
+      options: [],
+      confidence: "high",
+      evidence: ["technique nommée: ancre visuelle"],
+    },
+    activation_keyword: {
+      status: "not_applicable",
+      value: null,
+      options: [],
+      rejected_value: null,
+      confidence: "low",
+      evidence: [],
+    },
+    blocker: { type: "avoidance", confidence: 0.8, evidence: [] },
+    constraints: [],
+    missing_slots: [],
+    confidence: "high",
+    generated_user_message: null,
+  }) as any;
+
+Deno.test("D0: a desynced LLM draft (confirmation ne cite pas l'asset, technique dérivée) ne fait plus échouer la carte (A2-r8 T5)", () => {
+  const raw = {
+    operation_type: "prepare_attack_card",
+    output_schema: "attack_card_draft_v1",
+    draft: {
+      // Le LLM a dérivé vers pre_engagement malgré le verrou: on doit reprendre.
+      technique: "pre_engagement",
+      title: "Carte d'attaque - payer le parking",
+      target_label: "payer le parking",
+      instruction: "Regarde le post-it puis paie en une fois.",
+      generated_asset: "Post-it 'paye, je ferme' collé sur l'écran.",
+      activation_keyword: "FERME",
+      supporting_points: [],
+      mode_emploi: "",
+      why_it_helps: "",
+    },
+    // Confirmation construite SANS citer generated_asset → cassait tout avant D0.
+    confirmation_message: "Je crée cette carte ?",
+  };
+  const normalized = normalizeAttackCardDraftForTest(
+    raw,
+    ancreVisuelleLockedState(),
+  );
+  // Technique verrouillée préservée + activation_keyword neutralisé.
+  assertEquals(normalized.draft.technique, "ancre_visuelle");
+  assertEquals(normalized.draft.activation_keyword, null);
+  // Confirmation reconstruite déterministe et fidèle (cite l'asset réel).
+  assertStringIncludes(
+    normalized.confirmation_message,
+    "Post-it 'paye, je ferme'",
+  );
+});
+
+Deno.test("D0: un title manquant est défaillé déterministe au lieu de jeter", () => {
+  const raw = {
+    draft: {
+      technique: "ancre_visuelle",
+      title: "",
+      generated_asset: "Post-it visuel sur l'écran.",
+      instruction: "",
+      mode_emploi: "",
+      why_it_helps: "",
+    },
+    confirmation_message: "",
+  };
+  const normalized = normalizeAttackCardDraftForTest(
+    raw,
+    ancreVisuelleLockedState(),
+  );
+  assertStringIncludes(normalized.draft.title, "payer le parking");
+  // instruction défaillée sur le mode d'emploi de la technique (non vide).
+  assertEquals(normalized.draft.instruction.length > 0, true);
+  assertStringIncludes(normalized.confirmation_message, "Post-it visuel");
+});
+
+Deno.test("D0 anti-régression: un generated_asset manquant reste une vraie erreur technique", () => {
+  const raw = {
+    draft: {
+      technique: "ancre_visuelle",
+      title: "Carte d'attaque",
+      generated_asset: "",
+      instruction: "x",
+    },
+    confirmation_message: "Je crée cette carte ?",
+  };
+  let threw = false;
+  try {
+    normalizeAttackCardDraftForTest(raw, ancreVisuelleLockedState());
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
 });
 
 Deno.test("S5 route replay covers the three implemented tool skill starts", async () => {

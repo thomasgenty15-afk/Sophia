@@ -354,7 +354,8 @@ export type CoachPreferenceKey =
   | "coach.question_tendency"
   | "coach.response_max_lines"
   | "coach.emoji_policy"
-  | "coach.final_question_policy";
+  | "coach.final_question_policy"
+  | "coach.action_first_policy";
 
 export type CoachPreferencesPatchBuilderInput = {
   operation_type: "update_coach_preferences";
@@ -675,6 +676,7 @@ export function buildCoachPreferencesPayload(
     "coach.response_max_lines",
     "coach.emoji_policy",
     "coach.final_question_policy",
+    "coach.action_first_policy",
   ];
   const keys = Object.keys(patch);
   ensure(keys.length, "coach_preferences_patch_missing");

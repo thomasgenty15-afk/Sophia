@@ -1,0 +1,82 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": [
+    {
+      "id": "f63263cf-d620-4a45-bcf2-95a39ba5e609",
+      "user_id": "2332f01f-e21e-4c99-bd29-fb04da14e4d8",
+      "transformation_id": null,
+      "content": {
+        "impulses": [
+          {
+            "label": "Vérifier la crypto",
+            "triggers": [
+              {
+                "label": "Crypto vs Mail",
+                "plan_b": "M'éloigner de l'ordinateur 2 minutes",
+                "signal": "Vérifier encore une bougie",
+                "situation": "J'ouvre le graphique crypto au lieu d'envoyer le mail",
+                "trigger_id": "0d7d5873-d0db-436c-b48a-d72366277a6d",
+                "illustration": null,
+                "defense_response": "Fermer l'onglet, envoyer Nora, puis boire trois gorgées d'eau",
+                "difficulty_preview": "Casse la boucle d'addiction visuelle et réhydrate le cerveau."
+              }
+            ],
+            "impulse_id": "095b8896-fe32-413a-a6e6-5bd9a64f92a7",
+            "generic_defense": "Fermer l'onglet, envoyer Nora, puis boire trois gorgées d'eau"
+          }
+        ],
+        "difficulty_map_summary": null
+      },
+      "generated_at": "2026-05-28T22:20:20.574+00:00",
+      "last_updated_at": "2026-05-28T22:20:20.574+00:00",
+      "cycle_id": "000730a4-9cfe-4438-b2d6-8db1048c1254",
+      "scope_kind": "out_of_plan",
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Crypto vs Mail",
+            "plan_b": "M'éloigner de l'ordinateur 2 minutes",
+            "signal": "Vérifier encore une bougie",
+            "trigger": "Vérifier encore une bougie",
+            "situation": "J'ouvre le graphique crypto au lieu d'envoyer le mail",
+            "target_label": "Envoyer le mail",
+            "why_it_helps": "Casse la boucle d'addiction visuelle et réhydrate le cerveau.",
+            "fallback_plan": "M'éloigner de l'ordinateur 2 minutes",
+            "impulse_label": "Vérifier la crypto",
+            "risk_situation": "J'ouvre le graphique crypto au lieu d'envoyer le mail",
+            "generic_defense": "Fermer l'onglet, envoyer Nora, puis boire trois gorgées d'eau",
+            "defense_response": "Fermer l'onglet, envoyer Nora, puis boire trois gorgées d'eau"
+          },
+          "output_schema": "defense_card_draft_v1",
+          "operation_type": "prepare_defense_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ta carte de défense :\nLe moment : J'ouvre le graphique crypto au lieu d'envoyer le mail\nLe piège : Vérifier encore une bougie\nMon geste : Fermer l'onglet, envoyer Nora, puis boire trois gorgées d'eau\nPlan B : M'éloigner de l'ordinateur 2 minutes\nOn valide ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "attachment": {
+          "kind": "personal_action",
+          "title": "Envoyer le mail",
+          "plan_item_id": null
+        },
+        "request_id": "global_run_A2_20260529_edge_skills_codex_r10-t06",
+        "operation_id": "3dfed963-739b-4737-8679-970c24b03efd",
+        "operation_type": "prepare_defense_card",
+        "risk_situation": {
+          "label": "Crypto au lieu du mail",
+          "description": "Ouvrir le graphique crypto au lieu d'envoyer le mail",
+          "timing_hint": "Au moment de travailler sur ses mails",
+          "context_hint": "Sur l'ordinateur"
+        },
+        "source_message_id": "c49fbcae-a3b2-4b90-bcf3-3a62b4bea321"
+      },
+      "phase_id": null,
+      "plan_item_id": null,
+      "source": "system",
+      "status": "active"
+    }
+  ]
+}

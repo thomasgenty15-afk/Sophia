@@ -1,0 +1,12 @@
+{
+  "user_id": "8533c45b-3704-4b8d-ba2a-38f8cb43703d",
+  "channel": "web",
+  "scope": "global_run_A2_20260528_edge_skills_codex_r9",
+  "content": "Je pars dans quinze minutes: trousseau introuvable, message Slack de Lina à répondre, et envie de scroller. Pas d'outil, pas de carte: donne-moi juste les deux premiers gestes.",
+  "history": [],
+  "disable_debounce": true,
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "history_count": 0
+}

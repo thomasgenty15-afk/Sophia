@@ -1,7 +1,7 @@
 import { DOMAIN_KEYS_V1_DEFINITIONS } from "../../_shared/memory/domain_keys.ts";
 import { ENTITY_TYPES } from "../../_shared/memory/types.v1.ts";
 
-export const DISPATCHER_V2_PROMPT_VERSION = "dispatcher_v2_prompt_2026_05_s17_l3_migration";
+export const DISPATCHER_V2_PROMPT_VERSION = "dispatcher_v2_prompt_2026_05_s18_c7_dispatcher_precision";
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -520,6 +520,88 @@ export function buildDispatcherPrompt(input: {
           skill_signals_entry: {},
           note:
             "Demande de vérification d'état durable sans modification ('sans rien modifier', 'vraiment enregistré', 'ce qui est vraiment cree', 'confirme/non confirmé', 'statut fiable'): aucun tool_skill_intent, aucun direct_effect, aucune opportunité. La réponse passe par normal_reply qui lira la DB en aval (runtime status_only_no_mutation). Le user veut lire, pas écrire.",
+        },
+      },
+      {
+        // CHANTIER C7 (2026-05-28) — A4-r6 T5. "crée le 2e rappel ... même
+        // texte" était émis en prepare_attack_card. Un rappel ponctuel
+        // (ordinal + heure + texte) n'est JAMAIS une carte d'attaque, même
+        // quand l'instruction décrit une action concrète.
+        user_message:
+          "Oui, crée le deuxième rappel à 11h37 avec exactement le même texte : envoyer à Noa la page corrigée avec les trois fichiers classés. Garde celui de 11h21 actif.",
+        expected: {
+          direct_effects: [{
+            effect_type: "create_one_shot_reminder",
+            explicitness: "explicit",
+            target_status: "identified",
+            confidence_band: "high",
+            payload_hint: {
+              raw_text:
+                "Oui, crée le deuxième rappel à 11h37 avec exactement le même texte : envoyer à Noa la page corrigée avec les trois fichiers classés. Garde celui de 11h21 actif.",
+              when_hint: "aujourd'hui 11h37",
+              instruction_hint:
+                "envoyer à Noa la page corrigée avec les trois fichiers classés",
+            },
+          }],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Création d'un rappel ponctuel supplémentaire ('crée le deuxième/2e rappel à HH avec le même texte') = direct_effect create_one_shot_reminder. NE PAS émettre prepare_attack_card: un ordinal de rappel + une heure + un texte de message n'est pas une carte d'attaque, même si l'instruction décrit une action concrète.",
+        },
+      },
+      {
+        // CHANTIER C7 (2026-05-28) — A4-r6 T10. Question d'état multi-entités
+        // incluant "quelle préférence coach est appliquée" était émise en
+        // update_coach_preferences. Une QUESTION sur la préférence appliquée
+        // est une LECTURE (status), pas une demande de modification.
+        user_message:
+          "Statut fiable sans rien modifier : quelle carte est active, quels rappels sont confirmés avec heure exacte, et quelle préférence coach est appliquée ?",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "Question d'état durable, MÊME quand elle contient 'quelle préférence coach est appliquée'. Marqueurs de lecture: 'sans rien modifier' + interrogatifs 'quelle/quels'. NE PAS émettre update_coach_preferences: demander QUELLE préférence est active n'est pas demander de la CHANGER. Aucun intent ni effet; normal_reply lit la DB en aval (status_only_no_mutation).",
+        },
+      },
+      {
+        // CHANTIER C7 (2026-05-28) — A9-r1 T12. "ajoute le repère
+        // conversationnel: carnet bleu fermé = deux phrases à Léa" était émis
+        // en update_coach_preferences. Un repère est une note mémoire
+        // PERSONNELLE (comportement du user), pas une préférence sur le STYLE
+        // de Sophia.
+        user_message:
+          "Ajoute juste le repère conversationnel: carnet bleu fermé = deux phrases à Léa avant tout tri.",
+        expected: {
+          direct_effects: [],
+          tool_skill_intents: [],
+          tool_skill_opportunity: {
+            type: "none",
+            operation_type: null,
+            surface_id: null,
+            should_offer: false,
+            offer_timing: "never",
+            must_not_execute: true,
+          },
+          skill_signals_entry: {},
+          note:
+            "'Ajoute / note / retiens un repère conversationnel' (un aide-mémoire sur le comportement du USER, ex: 'carnet bleu fermé = deux phrases à Léa') = mémoire durable personnelle, captée par l'extraction durable en aval. NE PAS émettre update_coach_preferences: cet outil ne concerne QUE le style/ton/exigence de SOPHIA, pas les repères personnels du user. Route normal_reply.",
         },
       },
     ],

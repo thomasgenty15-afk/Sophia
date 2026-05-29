@@ -92,7 +92,8 @@ function key(value: unknown): CoachPreferenceKey | null {
       raw === "coach.question_tendency" ||
       raw === "coach.response_max_lines" ||
       raw === "coach.emoji_policy" ||
-      raw === "coach.final_question_policy"
+      raw === "coach.final_question_policy" ||
+      raw === "coach.action_first_policy"
     ? raw
     : null;
 }
@@ -182,8 +183,8 @@ export async function fillCoachPreferencesSlotsWithAi(
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
     "Tu identifies uniquement une préférence explicite sur la façon dont Sophia doit répondre.",
     "Ne déduis jamais une préférence durable depuis une émotion ponctuelle ou un simple contexte de crise.",
-    "Les clés autorisées sont strictement coach.tone, coach.challenge_level, coach.question_tendency, coach.response_max_lines, coach.emoji_policy, coach.final_question_policy.",
-    "Les valeurs doivent être canoniques: coach.tone=soft|warm_direct|direct; coach.challenge_level=low|balanced|high; coach.question_tendency=low|normal|high; coach.response_max_lines=three|normal; coach.emoji_policy=none|normal; coach.final_question_policy=avoid_unnecessary|normal.",
+    "Les clés autorisées sont strictement coach.tone, coach.challenge_level, coach.question_tendency, coach.response_max_lines, coach.emoji_policy, coach.final_question_policy, coach.action_first_policy.",
+    "Les valeurs doivent être canoniques: coach.tone=soft|warm_direct|direct; coach.challenge_level=low|balanced|high; coach.question_tendency=low|normal|high; coach.response_max_lines=three|normal; coach.emoji_policy=none|normal; coach.final_question_policy=avoid_unnecessary|normal; coach.action_first_policy=concrete_before_questions|normal.",
     "Distinction critique:",
     "- coach.question_tendency concerne le nombre de questions, de relances interrogatives, de demandes de précision, ou le fait d'aider le user à clarifier son raisonnement avant de conclure.",
     "- question_tendency=high si le user demande: plus de questions, fais-moi préciser, creuse avec moi, aide-moi à sortir le raisonnement, demande-moi deux/trois angles avant de répondre.",
@@ -195,6 +196,7 @@ export async function fillCoachPreferencesSlotsWithAi(
     "- coach.response_max_lines concerne les limites de longueur explicites comme trois lignes max.",
     "- coach.emoji_policy concerne les demandes explicites sans emoji / zéro emoji.",
     "- coach.final_question_policy concerne les demandes de ne pas finir par une question inutile.",
+    "- coach.action_first_policy concerne l'ordre de coaching: commencer par un geste/action concret avant de poser plusieurs questions.",
     "Si la demande est ambiguë entre ton et challenge, marque preference ou desired_value ambiguous et pose une question courte.",
     'Si le message contient plusieurs préférences distinctes (ex: ton plus direct ET moins de questions), ne choisis jamais une seule préférence silencieusement. Marque preference=ambiguous, missing_slots=["preference"], et demande laquelle appliquer en premier.',
     "Si current_state montre une preference ambiguous/missing apres une question de choix, et que le user repond en selectionnant une des options (ex: d'abord le ton plus direct, commence par moins de questions, traite le challenge plus doux), remplis directement preference et desired_value pour cette option. Ne repose pas la meme question.",
@@ -215,14 +217,14 @@ export async function fillCoachPreferencesSlotsWithAi(
         preference: {
           status: "missing|ambiguous|identified",
           key:
-            "coach.tone|coach.challenge_level|coach.question_tendency|coach.response_max_lines|coach.emoji_policy|coach.final_question_policy|null",
+            "coach.tone|coach.challenge_level|coach.question_tendency|coach.response_max_lines|coach.emoji_policy|coach.final_question_policy|coach.action_first_policy|null",
           confidence: "low|medium|high",
           evidence: ["string"],
         },
         desired_value: {
           status: "missing|ambiguous|identified",
           value:
-            "soft|warm_direct|direct|low|balanced|high|normal|three|none|avoid_unnecessary|null",
+            "soft|warm_direct|direct|low|balanced|high|normal|three|none|avoid_unnecessary|concrete_before_questions|null",
           confidence: "low|medium|high",
           evidence: ["string"],
         },

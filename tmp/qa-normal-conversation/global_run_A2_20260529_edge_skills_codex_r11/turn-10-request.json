@@ -1,0 +1,85 @@
+{
+  "user_id": "750321a6-83c7-43c0-964c-766527abd661",
+  "channel": "web",
+  "scope": "global_run_A2_20260529_edge_skills_codex_r11",
+  "content": "Nouvelle tentative: si je dis 'mode tunnel', tu dois donner un ordre unique. Pas 'court'. Propose-moi la préférence exacte avant de l'enregistrer.",
+  "history": [
+    {
+      "role": "user",
+      "content": "Je suis en retard: badge de parking absent, réponse à Omar à envoyer, et je sens que je vais ouvrir les charts crypto. Pas d'outil ni carte: deux gestes maintenant."
+    },
+    {
+      "role": "assistant",
+      "content": "C'est la tempête là, on pose tout une seconde. On va éviter que ça déraille complètement.\n\n1. Respire un grand coup et envoie un message de 10 mots max à Omar pour lui dire quand tu reviens vers lui, ça va t'enlever ce poids du cerveau.\n2. Pour les charts, tu poses ton téléphone physiquement dans une autre pièce ou tu fermes l'onglet immédiatement; ne laisse même pas la page charger.\n\nOn s'occupera du badge après ça. 🧘"
+    },
+    {
+      "role": "user",
+      "content": "Badge retrouvé. Pour Omar, donne juste une phrase ferme et neutre, sans rappel et sans carte."
+    },
+    {
+      "role": "assistant",
+      "content": "Nickel, badge réglé ✅\n\nEnvoie à Omar : « Je reviens vers toi dès que je suis sorti, merci de patienter. » 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Phrase prête. Rappelle-moi à 10h38 de relire Omar, et ne crée aucune carte même si j'ai parlé de crypto."
+    },
+    {
+      "role": "assistant",
+      "content": "C'est programmé pour vendredi 29 mai à 10:38 : Relire Omar. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Je voulais 10h47, pas 10h38. Ne modifie rien dans le chat. Donne seulement l'emplacement dans l'app pour modifier ou annuler ce rappel."
+    },
+    {
+      "role": "assistant",
+      "content": "Je ne touche pas au plan : tu parles du rappel ponctuel. Je ne peux pas modifier ce rappel en douce ici ; si tu veux, je peux créer un nouveau rappel au nouvel horaire après confirmation explicite, et l'ancien restera actif tant que je ne confirme pas son annulation. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Crée une carte de défense: moment = j'ouvre TradingView avant d'envoyer Omar; piège = zoomer sur une bougie; réponse = fermer TradingView, envoyer Omar, poser le téléphone face cachée. Demande confirmation."
+    },
+    {
+      "role": "assistant",
+      "content": "Voici ta carte de défense :\nLe moment : J'ouvre TradingView avant d'envoyer Omar\nLe piège : Je commence à zoomer sur une bougie\nMon geste : Fermer TradingView et envoyer Omar\nPlan B : Poser le téléphone face cachée\nOn valide ? 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Oui, crée-la."
+    },
+    {
+      "role": "assistant",
+      "content": "C'est fait. J'ai créé la carte de défense \"Focus Omar\" : Fermer TradingView et envoyer Omar\n\nTu peux la retrouver dans Ressources > Cartes de defense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en preparer une nouvelle version apres confirmation. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Chemin UI seulement: où est cette carte de défense ? Pas de question finale."
+    },
+    {
+      "role": "assistant",
+      "content": "Elle est dans Dashboard > Ressources. Si elle est liée à une mission/habitude, tu peux aussi la voir via Dashboard > Plan (aperçu), puis la retrouver dans Ressources. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Enregistre une préférence durable: déclencheur exact 'mode tunnel' veut dire répondre par une seule action impérative, sans chaleur, sans emoji, sans question finale."
+    },
+    {
+      "role": "assistant",
+      "content": "Bien reçu. Pour la suite, je te poserai moins de questions, plus courtes, surtout quand tu es bloqué. quand tu demandes court, je n'utiliserai pas d'emoji. quand tu demandes court, je ne finirai pas par une question inutile. Si c'est bien ça, je le garde comme préférence. 🙂"
+    },
+    {
+      "role": "user",
+      "content": "Non, annule: tu parles encore de 'court', pas de mon déclencheur 'mode tunnel'."
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, je ne garde pas cette préférence. 🙂"
+    }
+  ],
+  "disable_debounce": true,
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-29T10:00:00.000+02:00",
+  "history_count": 18
+}

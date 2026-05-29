@@ -1,0 +1,10 @@
+{
+  "user_id": "8eff1786-5195-4b9c-b09c-419c5d428dc9",
+  "content": "Ok, laisse tomber la carte. Résume ce que tu dois retenir de mon piège de ce matin, pas les statuts système: seulement le piège utile pour la suite.",
+  "channel": "web",
+  "scope": "web",
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-28T10:00:00.000+02:00",
+  "disable_debounce": true
+}

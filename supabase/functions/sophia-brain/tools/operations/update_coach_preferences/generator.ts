@@ -44,6 +44,10 @@ const VALUE_ALIASES: Record<CoachPreferenceKey, Record<string, string>> = {
     eviter_question_finale: "avoid_unnecessary",
     pas_question_finale: "avoid_unnecessary",
   },
+  "coach.action_first_policy": {
+    action_d_abord: "concrete_before_questions",
+    geste_concret_avant_questions: "concrete_before_questions",
+  },
 };
 
 export function normalizeCoachPreferenceValue(
@@ -82,6 +86,11 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
       ? "pas de question finale inutile"
       : "les questions finales autorisées";
   }
+  if (key === "coach.action_first_policy") {
+    return value === "concrete_before_questions"
+      ? "action concrète avant questions"
+      : "ordre normal";
+  }
   return value === "low"
     ? "moins de questions"
     : value === "high"
@@ -96,12 +105,50 @@ function normalizePreferenceEvidenceText(value: string): string {
     .toLowerCase();
 }
 
+function isModeTunnelEvidence(evidenceText: string): boolean {
+  return /\bmode tunnel\b/.test(normalizePreferenceEvidenceText(evidenceText));
+}
+
+function isChallengeTechniqueEvidence(evidenceText: string): boolean {
+  const evidence = normalizePreferenceEvidenceText(evidenceText);
+  return (
+    /\b(challenger doucement|challenge doucement)\b/.test(evidence) &&
+    /\b(technique|colle|adapte|inadapte)\b/.test(evidence)
+  );
+}
+
 function summaryForPatch(
   key: CoachPreferenceKey,
   value: string,
   evidenceText = "",
 ): string {
   const evidence = normalizePreferenceEvidenceText(evidenceText);
+  if (isModeTunnelEvidence(evidenceText)) {
+    if (key === "coach.tone" && value === "direct") {
+      return "quand tu dis « mode tunnel », je te donnerai une seule action impérative, sur un ton direct sans sympathie.";
+    }
+    if (key === "coach.emoji_policy" && value === "none") {
+      return "quand tu dis « mode tunnel », je n'utiliserai pas d'emoji.";
+    }
+    if (
+      key === "coach.final_question_policy" &&
+      value === "avoid_unnecessary"
+    ) {
+      return "quand tu dis « mode tunnel », je ne finirai pas par une question.";
+    }
+    if (key === "coach.question_tendency" && value === "low") {
+      return "quand tu dis « mode tunnel », je resterai sur une seule action à la fois.";
+    }
+  }
+  if (
+    key === "coach.action_first_policy" &&
+    value === "concrete_before_questions"
+  ) {
+    if (/\b(moins de 10 minutes|10 minutes|moins de dix minutes)\b/.test(evidence)) {
+      return "je commencerai par un geste concret de moins de 10 minutes avant de poser plusieurs questions.";
+    }
+    return "je commencerai par une action concrète avant les questions, sauf si une clarification est vraiment nécessaire.";
+  }
   if (key === "coach.question_tendency" && value === "low") {
     if (
       /\b(eparpille|eparpillee|disperse|dispersee|brouille|brouillee|confus|confuse)\b/
@@ -123,6 +170,12 @@ function summaryForPatch(
     ) {
       return "je te proposerai une seule action concrète à la fois, avec moins de questions/options quand tu es vidé ou bloqué.";
     }
+    if (
+      /\b(geste concret|10 minutes|question maximum)\b/.test(evidence) &&
+      /\b(plus direct|privilegiant les actions)\b/.test(evidence)
+    ) {
+      return "je commencerai par un geste concret de moins de 10 minutes, puis une question maximum si elle aide vraiment.";
+    }
     return "je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.";
   }
   if (key === "coach.question_tendency" && value === "high") {
@@ -136,6 +189,12 @@ function summaryForPatch(
   }
   if (key === "coach.tone" && value === "soft") {
     return "je prendrai un ton plus doux quand je te réponds.";
+  }
+  if (key === "coach.challenge_level" && value === "balanced") {
+    if (isChallengeTechniqueEvidence(evidenceText)) {
+      return "quand une technique ne colle pas, je te challengerai doucement au lieu d'obéir directement.";
+    }
+    return "je garderai un niveau de challenge équilibré.";
   }
   if (key === "coach.challenge_level" && value === "high") {
     return "je te challengerai davantage quand tu demandes un vrai coup de lucidité.";

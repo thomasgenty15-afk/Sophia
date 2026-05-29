@@ -1,0 +1,338 @@
+{
+  "scheduled_count": 1,
+  "scheduled": [
+    {
+      "id": "cb77267c-cda1-4460-8520-ebd99025354f",
+      "user_id": "9265aade-0496-412a-b0bc-4ab29a47d774",
+      "event_context": "one_shot_reminder:relire_salma_pas_de_carte_tradingview",
+      "draft_message": null,
+      "scheduled_for": "2026-05-29T08:39:00+00:00",
+      "status": "pending",
+      "created_at": "2026-05-29T11:57:27.43035+00:00",
+      "processed_at": null,
+      "message_mode": "dynamic",
+      "message_payload": {
+        "source": "companion_one_shot_reminder_tool",
+        "instruction": "Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de Relire Salma (pas de carte TradingView).",
+        "parse_source": "ai_fallback",
+        "request_text": "Phrase prête. Rappelle-moi à 10h39 de relire Salma, mais ne fais aucune carte liée à TradingView.",
+        "parse_details": null,
+        "reminder_kind": "one_shot",
+        "user_timezone": "Europe/Paris",
+        "event_grounding": "L'utilisateur a demandé explicitement un rappel ponctuel à propos de: Relire Salma (pas de carte TradingView).",
+        "reminder_instruction": "Relire Salma (pas de carte TradingView)"
+      },
+      "origin": "rendez_vous",
+      "delivery_attempt_count": 0,
+      "delivery_last_error": null,
+      "delivery_last_error_at": null,
+      "delivery_last_request_id": null,
+      "recurring_reminder_id": null
+    }
+  ],
+  "attack_cards_count": 0,
+  "attack_cards": [],
+  "defense_cards_count": 1,
+  "defense_cards": [
+    {
+      "id": "9d2be4ff-082e-4381-9bc1-a2d3bb4ce758",
+      "user_id": "9265aade-0496-412a-b0bc-4ab29a47d774",
+      "transformation_id": null,
+      "content": {
+        "impulses": [
+          {
+            "label": "Comparer les bougies",
+            "triggers": [
+              {
+                "label": "Envoyer Salma",
+                "plan_b": "Mettre le téléphone dans le sac",
+                "signal": "Comparer encore les bougies",
+                "situation": "J'ouvre TradingView avant d'envoyer Salma",
+                "trigger_id": "ac539dd3-d9ca-4bcc-b101-163cc9f58341",
+                "illustration": null,
+                "defense_response": "Fermer TradingView et envoyer Salma",
+                "difficulty_preview": "Cela permet de couper court à la distraction pour finaliser l'action prioritaire."
+              }
+            ],
+            "impulse_id": "f5b43008-8241-44ca-8d41-86c97f6d2df9",
+            "generic_defense": "Fermer TradingView"
+          }
+        ],
+        "difficulty_map_summary": null
+      },
+      "generated_at": "2026-05-29T11:58:37.045+00:00",
+      "last_updated_at": "2026-05-29T11:58:37.045+00:00",
+      "cycle_id": "a111427b-808f-4943-a2e5-a5e20eaddfc1",
+      "scope_kind": "out_of_plan",
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Envoyer Salma",
+            "plan_b": "Mettre le téléphone dans le sac",
+            "signal": "Comparer encore les bougies",
+            "trigger": "Comparer encore les bougies",
+            "situation": "J'ouvre TradingView avant d'envoyer Salma",
+            "target_label": "Envoyer Salma",
+            "why_it_helps": "Cela permet de couper court à la distraction pour finaliser l'action prioritaire.",
+            "fallback_plan": "Mettre le téléphone dans le sac",
+            "impulse_label": "Comparer les bougies",
+            "risk_situation": "J'ouvre TradingView avant d'envoyer Salma",
+            "generic_defense": "Fermer TradingView",
+            "defense_response": "Fermer TradingView et envoyer Salma"
+          },
+          "output_schema": "defense_card_draft_v1",
+          "operation_type": "prepare_defense_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ta carte de défense :\nLe moment : J'ouvre TradingView avant d'envoyer Salma\nLe piège : Comparer encore les bougies\nMon geste : Fermer TradingView et envoyer Salma\nPlan B : Mettre le téléphone dans le sac\nOn valide ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "attachment": {
+          "kind": "personal_action",
+          "title": "Envoyer Salma",
+          "plan_item_id": null
+        },
+        "request_id": "global_run_A2_20260529_edge_skills_codex_r12-t06",
+        "operation_id": "f2d521f7-174b-4781-8f9b-2680fadba950",
+        "operation_type": "prepare_defense_card",
+        "risk_situation": {
+          "label": "Ouverture TradingView avant Salma",
+          "description": "Ouvrir TradingView au lieu d'envoyer Salma",
+          "timing_hint": "Avant d'envoyer Salma",
+          "context_hint": "TradingView"
+        },
+        "source_message_id": "5eb33f39-d768-4528-91cd-766b66f08eae"
+      },
+      "phase_id": null,
+      "plan_item_id": null,
+      "source": "system",
+      "status": "active"
+    }
+  ],
+  "recurring_count": 0,
+  "recurring": [],
+  "facts_count": 9,
+  "facts": [
+    {
+      "key": "coach.primary_focus",
+      "source_type": "system_default",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "source_type": "system_default",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.question_tendency",
+      "source_type": "system_default",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.tone",
+      "source_type": "system_default",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.challenge_level",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.feedback_style",
+      "source_type": "system_default",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.message_length",
+      "source_type": "system_default",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    },
+    {
+      "key": "coach.message_format",
+      "source_type": "system_default",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T11:56:38.597991+00:00"
+    }
+  ],
+  "topic_memories_count": 0,
+  "topic_memories": [],
+  "memory_items_count": 0,
+  "memory_items": [],
+  "chat_states_count": 1,
+  "traces_count": 15,
+  "messages_count": 30,
+  "traceSummary": [
+    {
+      "n": 1,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t01",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "central_arbitrator_status_exact_priority",
+      "tool_status": "none"
+    },
+    {
+      "n": 2,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t02",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "central_arbitrator_status_exact_priority",
+      "tool_status": "none"
+    },
+    {
+      "n": 3,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t03",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "central_arbitrator_one_shot_reminder_priority",
+      "tool_status": "executed"
+    },
+    {
+      "n": 4,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t04",
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_reason": "central_arbitrator_product_help_priority",
+      "tool_status": "none"
+    },
+    {
+      "n": 5,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t05",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason": "explicit_defense_card_intent_overrides_attack_card",
+      "tool_status": "pending_confirmation"
+    },
+    {
+      "n": 6,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t06",
+      "response_owner": "tool_skill",
+      "selected_handler": "prepare_defense_card",
+      "route_reason": "pending_defense_card_confirmation_priority",
+      "tool_status": "executed"
+    },
+    {
+      "n": 7,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t07",
+      "response_owner": "product_help",
+      "selected_handler": "product_help",
+      "route_reason": "central_arbitrator_product_help_priority",
+      "tool_status": "none"
+    },
+    {
+      "n": 8,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t08",
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "central_arbitrator_coach_preference_priority",
+      "tool_status": "pending_confirmation"
+    },
+    {
+      "n": 9,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t09",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "tool_status": "cancelled"
+    },
+    {
+      "n": 10,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t10",
+      "response_owner": "tool_skill",
+      "selected_handler": "update_coach_preferences",
+      "route_reason": "tool_skill_intent_start",
+      "tool_status": "pending_confirmation"
+    },
+    {
+      "n": 11,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t11",
+      "response_owner": "tool_skill",
+      "selected_handler": null,
+      "route_reason": "normal_reply_default",
+      "tool_status": "cancelled"
+    },
+    {
+      "n": 12,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t12",
+      "response_owner": "normal_reply",
+      "selected_handler": null,
+      "route_reason": "explicit_no_tool_request_blocks_tool_start",
+      "tool_status": "none"
+    },
+    {
+      "n": 13,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t13",
+      "response_owner": "safety",
+      "selected_handler": "safety_crisis",
+      "route_reason": "safety_override",
+      "tool_status": "none"
+    },
+    {
+      "n": 14,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t14",
+      "response_owner": "safety",
+      "selected_handler": "safety_crisis",
+      "route_reason": "active_safety_crisis_continue",
+      "tool_status": "none"
+    },
+    {
+      "n": 15,
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r12-t15",
+      "response_owner": "safety",
+      "selected_handler": "safety_crisis",
+      "route_reason": "active_safety_crisis_continue",
+      "tool_status": "none"
+    }
+  ]
+}

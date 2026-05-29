@@ -1,0 +1,22 @@
+{
+  "n": 10,
+  "user": "Je me sens un peu nul parce que la carte a encore échoué. Pas de danger, juste honteux. Réponds court.",
+  "assistant": "Oh mince… ça fait honte, même si le risque est zéro.\nLà, la vérité c’est juste: la carte a bugé, pas toi.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r8-t10",
+    "response_owner": "conversation_handler",
+    "selected_handler": "emotional_repair",
+    "route_reason": "skill_entry_signal",
+    "safety": "low",
+    "operation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "none",
+    "skill_id": null
+  }
+}

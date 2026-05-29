@@ -91,3 +91,6 @@
 - 2026-05-07T11:32:33Z reset persona=qa-skill connection=product_help_dashboard_dashhelp5_c3_potions-initiatives user_id=4ccb3d75-dec0-46fe-bd3d-f2fc4f520673
 - 2026-05-07T11:34:30Z reset persona=qa-skill connection=product_help_dashboard_dashhelp5_c4_initiatives-preferences-base user_id=c65e30b9-534a-4549-bfbd-e6b13ee9e37a
 - 2026-05-07T11:35:33Z reset persona=qa-skill connection=product_help_dashboard_dashhelp5_c5_inspirations-completion-transition user_id=a9418316-63cd-48f5-a476-dd5f3e04c0a3
+- 2026-05-29T11:16:30Z reset persona=qa-skill connection=all_skills_global15_syncskills_20260529_n3_strict_r2 user_id=841169d1-2a65-49d6-a850-fcd200b749bf
+- 2026-05-29T12:08:13Z reset persona=qa-skill connection=all_skills_global15_syncskills_20260529_n3_strict_r3 user_id=2fcfb5fc-82d5-4954-8dfa-524e379c8d20
+- 2026-05-29T12:36:20Z reset persona=qa-skill connection=all_skills_global15_syncskills_20260529_n3_strict_r4 user_id=da979efb-0a5c-493c-be27-44bec9a0e03e

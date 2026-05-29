@@ -8,7 +8,9 @@ import {
   detectsExplicitNoStatusRequest,
   detectsExplicitOneShotReminderCreate,
   detectsExplicitProductHelp,
+  detectsExplicitAttackCardCreationRequest,
   detectsMultiEntityDurableStatus,
+  detectsPonctualResponseFormatConstraint,
   detectsRecapRequest,
   looksLikeAttackCardSlotCorrection,
 } from "./turn_intent_arbitrator.ts";
@@ -94,6 +96,63 @@ Deno.test("central arbitrator routes explicit new one-shot reminder before activ
   assertEquals(result.tempMemory.__active_tool_skill_intake, undefined);
 });
 
+Deno.test("F3: un ordre d'exécution ('programme-le maintenant') promeut l'effet rappel proposé par le dispatcher (edgecases-r2 T9)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage: "B, le texte tel quel. Programme-le maintenant.",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      selected_handler: undefined,
+      reason_code: "normal_reply_default",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({
+      // Le dispatcher a DÉJÀ compris le rappel au fil des tours (heure + texte
+      // donnés avant), et l'a proposé en effet direct, mais sans le promouvoir.
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "donné aux tours précédents" },
+      }],
+      tool_skill_intents: [],
+    }),
+    tempMemory: {},
+  });
+  assertEquals(result.routeDecision.response_owner, "normal_reply");
+  assertEquals(result.routeDecision.direct_effects_to_run, [
+    "create_one_shot_reminder",
+  ]);
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_one_shot_reminder_execution_confirmation",
+  );
+});
+
+Deno.test("F3 anti-FP: sans effet rappel proposé par le dispatcher, 'programme-le maintenant' ne promeut rien", () => {
+  const result = arbitrateTurnIntent({
+    userMessage: "Programme-le maintenant.",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      selected_handler: undefined,
+      reason_code: "normal_reply_default",
+      direct_effects_to_run: [],
+    }),
+    turnFrame: turnFrame({
+      direct_effects: [],
+      tool_skill_intents: [],
+    }),
+    tempMemory: {},
+  });
+  // Aucun effet proposé en amont → on ne fabrique pas une intention rappel.
+  assertEquals(
+    result.routeDecision.direct_effects_to_run.includes(
+      "create_one_shot_reminder",
+    ),
+    false,
+  );
+});
+
 Deno.test("central arbitrator propagates raw_text in one_shot_reminder payload_hint", () => {
   // Régression 2026-05-28: payload_hint était {} vide, donc le runtime aval
   // (maybeCreateOneShotReminder) recevait une intent sans texte source et
@@ -145,6 +204,27 @@ Deno.test("central arbitrator routes durable coach preference before product_hel
   );
 });
 
+// CHANTIER E3 (2026-05-28) — Une préférence durable qui MENTIONNE les cartes de
+// défense reste un update_coach_preferences, jamais une création de carte.
+// Voir A11 T9/T10.
+Deno.test("E3: préférence durable mentionnant les cartes de défense → update_coach_preferences (A11 T9)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Préférence durable de coaching: quand une carte de défense vient d'être créée, ne me propose pas tout de suite une autre carte; commence par une vérification simple de ce que je vais faire maintenant. Confirme avant d'enregistrer.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(
+    result.routeDecision.selected_handler,
+    "update_coach_preferences",
+  );
+});
+
 Deno.test("central arbitrator routes explicit product help before status", () => {
   const result = arbitrateTurnIntent({
     userMessage:
@@ -162,6 +242,25 @@ Deno.test("central arbitrator routes explicit product help before status", () =>
   assertEquals(result.routeDecision.selected_handler, "product_help");
 });
 
+// CHANTIER E2 (2026-05-28) — symétrique de C1. La demande de navigation
+// produit "où corriger/annuler ce rappel dans l'app" doit battre le status,
+// même quand l'amont est arrivé en status_only. Voir A2-codex-r9 T4.
+Deno.test("E2: 'où corriger ou annuler ce rappel dans l'app' route product_help, pas status (A2-codex-r9 T4)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Je me suis trompé: je voulais 10h42 au lieu de 10h37. Ne modifie rien depuis le chat: dis-moi seulement où corriger ou annuler ce rappel dans l'app.",
+    routeDecision: routeDecision({
+      response_owner: "normal_reply",
+      selected_handler: undefined,
+      reason_code: "status_only_request_blocks_tool_start",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+  assertEquals(result.routeDecision.response_owner, "product_help");
+  assertEquals(result.routeDecision.selected_handler, "product_help");
+});
+
 Deno.test("central arbitrator routes exact durable status before product help", () => {
   const result = arbitrateTurnIntent({
     userMessage:
@@ -174,6 +273,84 @@ Deno.test("central arbitrator routes exact durable status before product help", 
     tempMemory: {},
   });
 
+  assertEquals(result.routeDecision.response_owner, "normal_reply");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_status_exact_priority",
+  );
+});
+
+// CHANTIER C1 (2026-05-28) — Subordonner le status à un flow de carte actif.
+Deno.test("C1: status does NOT kill an active prepare_defense_card flow (A3-r8 T6)", () => {
+  // A3-r8 T6: pendant un flow prepare_defense_card actif, le user répond au
+  // slot ("Mon geste : écrire 'je te confirme ça demain matin'..."). Le mot
+  // "je te confirme" déclenchait detectsExactDurableStatus et tuait le flow
+  // (central_arbitrator_status_exact_priority -> normal_reply). Le flow de
+  // carte doit être préservé: l'arbitre ne réécrit pas.
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "C'est l'agacement : j'ai l'impression qu'il me surveille. Mon geste : écrire d'abord 'je te confirme ça demain matin' dans un brouillon, puis relire avant d'envoyer.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {
+      __active_tool_skill_intake: { operation_type: "prepare_defense_card" },
+    },
+    activeOperationIntake: { operation_type: "prepare_defense_card" },
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
+});
+
+Deno.test("C1: status does NOT kill an active prepare_defense_card flow on slot answer with 'confirme' (A3-r8 T8)", () => {
+  // A3-r8 T8: même flow, slot final ("...Geste : écrire 'je te confirme ça
+  // demain matin' en brouillon et relire avant d'envoyer."). Doit rester
+  // dans le flow de carte de défense.
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Moment précis : quand Karim écrit 'tu l'as enfin bouclée ?' sur la note de frais. Piège : je me sens surveillé. Geste : écrire 'je te confirme ça demain matin' en brouillon et relire avant d'envoyer.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {
+      __active_tool_skill_intake: { operation_type: "prepare_defense_card" },
+    },
+    activeOperationIntake: { operation_type: "prepare_defense_card" },
+  });
+
+  assertEquals(result.changed, false);
+  assertEquals(result.routeDecision.selected_handler, "prepare_defense_card");
+});
+
+Deno.test("C1 anti-régression: status STILL wins when active flow is coach_preferences, not a card (A4-r6 T11)", () => {
+  // A4-r6 T11: un intake update_coach_preferences est resté actif depuis T10
+  // (ask_question), mais le user pose une vraie question de statut
+  // ("Point rappels uniquement... 11h21 confirmé ? 11h37 confirmé ?"). Le
+  // garde C1 est limité aux flows de CARTE: ici le status doit toujours
+  // gagner et nettoyer l'intake coach obsolète.
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Point rappels uniquement, sans rien modifier : 11h21 confirmé ? 11h37 confirmé ? Réponds en deux lignes avec confirmé/non confirmé.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "update_coach_preferences",
+      },
+    },
+    activeOperationIntake: { operation_type: "update_coach_preferences" },
+  });
+
+  assertEquals(result.changed, true);
   assertEquals(result.routeDecision.response_owner, "normal_reply");
   assertEquals(
     result.routeDecision.reason_code,
@@ -621,6 +798,12 @@ Deno.test("rewriteForProductHelp clears pending coach_preference draft from temp
     (result.tempMemory as any)?.pending_tool_skill_confirmation,
     undefined,
   );
+  // CHANTIER C4 (2026-05-28) — En plus du nettoyage tempMemory (C19), les
+  // clearTargets DOIVENT annuler les variables run.ts (activeOperationIntake
+  // / pendingOperationConfirmation) lues avant l'arbitre, sinon le composer
+  // aval rend le draft coach malgré la route product_help (A4-r6 T13).
+  assertEquals(result.clearTargets.includes("active_tool"), true);
+  assertEquals(result.clearTargets.includes("pending_tool"), true);
 });
 
 Deno.test("central arbitrator routes multi-entity status BEFORE coach_preference (A4-r6 T10)", () => {
@@ -651,6 +834,177 @@ Deno.test("central arbitrator routes multi-entity status BEFORE coach_preference
   assertEquals(
     result.routeDecision.reason_code,
     "central_arbitrator_status_exact_priority",
+  );
+});
+
+// ===========================================================================
+// CHANTIER D1 (2026-05-28) — Format de réponse ponctuel ≠ préférence durable.
+// Voir A4-r7 T15 (faux positif update_coach_preferences) et l'anti-régression
+// A4-r7 T11 (vraie préférence durable). Anti-FP AVANT le test positif.
+// ===========================================================================
+
+Deno.test("D1 anti-FP: une vraie préférence durable n'est PAS une contrainte de format ponctuelle (A4-r7 T11)", () => {
+  assertEquals(
+    detectsPonctualResponseFormatConstraint(
+      "Garde comme préférence coach : quand j'écris 'matinée brouillée', propose une seule action visuelle avant de poser une question, mais seulement dans ce contexte-là.",
+    ),
+    false,
+  );
+});
+
+Deno.test("D1 anti-FP: une demande durable de format reste une préférence (marqueur 'toujours')", () => {
+  assertEquals(
+    detectsPonctualResponseFormatConstraint(
+      "Désormais réponds toujours en 3 lignes maximum, c'est ma préférence.",
+    ),
+    false,
+  );
+});
+
+Deno.test("D1 anti-FP: la simple mention 'préférence coach' sans format n'arme pas le garde", () => {
+  assertEquals(
+    detectsPonctualResponseFormatConstraint(
+      "Quelle préférence coach est appliquée en ce moment ?",
+    ),
+    false,
+  );
+});
+
+Deno.test("D1: une contrainte de format ponctuelle est détectée (A4-r7 T15)", () => {
+  assertEquals(
+    detectsPonctualResponseFormatConstraint(
+      "Dernier tour : en 4 lignes maximum, donne seulement les deux rappels avec heure locale et texte exact, puis dis s'il y a une préférence coach nouvelle appliquée. Pas d'explication.",
+    ),
+    true,
+  );
+});
+
+Deno.test("central arbitrator: une demande de format ponctuelle ne route PAS vers update_coach_preferences (A4-r7 T15)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Dernier tour : en 4 lignes maximum, donne seulement les deux rappels avec heure locale et texte exact, puis dis s'il y a une préférence coach nouvelle appliquée. Pas d'explication.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+    }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "update_coach_preferences",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "update",
+      }],
+    }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.routeDecision.response_owner, "normal_reply");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_ponctual_response_format",
+  );
+  assertEquals(
+    result.turnFrame.tool_skill_intents.some((intent) =>
+      intent.operation_type === "update_coach_preferences"
+    ),
+    false,
+  );
+});
+
+Deno.test("central arbitrator: une vraie préférence durable route TOUJOURS vers update_coach_preferences (A4-r7 T11)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Garde comme préférence coach : quand j'écris 'matinée brouillée', propose une seule action visuelle avant de poser une question, mais seulement dans ce contexte-là.",
+    routeDecision: routeDecision({
+      response_owner: "tool_skill",
+      selected_handler: "update_coach_preferences",
+    }),
+    turnFrame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "update_coach_preferences",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "update",
+      }],
+    }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.routeDecision.selected_handler, "update_coach_preferences");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_coach_preference_priority",
+  );
+});
+
+// ===========================================================================
+// CHANTIER D5 (2026-05-28) — product_help ne capture pas une intention tool
+// explicite (création de carte d'attaque). Anti-FP AVANT le test positif.
+// Voir A3-r9 T11/T12.
+// ===========================================================================
+
+Deno.test("D5 anti-FP: une question de navigation 'où je retrouve ma carte d'attaque' n'est PAS une création", () => {
+  assertEquals(
+    detectsExplicitAttackCardCreationRequest(
+      "Où est-ce que je retrouve ma carte d'attaque dans l'app ?",
+    ),
+    false,
+  );
+});
+
+Deno.test("D5 anti-FP: 'comment annuler une carte d'attaque dans l'app' n'est PAS une création", () => {
+  assertEquals(
+    detectsExplicitAttackCardCreationRequest(
+      "Comment je l'annule, ma carte d'attaque, dans l'app ?",
+    ),
+    false,
+  );
+});
+
+Deno.test("D5: une demande explicite de création de carte d'attaque est détectée (A3-r9 T11)", () => {
+  assertEquals(
+    detectsExplicitAttackCardCreationRequest(
+      "Crée-moi une carte d'attaque pour traiter les notes de frais sans repartir sur autre chose. Une seule proposition : choisis la technique et fais-moi le brouillon.",
+    ),
+    true,
+  );
+});
+
+Deno.test("D5: 'prépare la carte d'attaque maintenant, demande-moi de valider' est détectée (A3-r9 T12)", () => {
+  assertEquals(
+    detectsExplicitAttackCardCreationRequest(
+      "Je ne demandais pas l'emplacement dans l'app. Je veux vraiment que tu prépares la carte d'attaque maintenant. Version courte 10 minutes : titre, technique choisie, contenu, puis demande-moi seulement de valider.",
+    ),
+    true,
+  );
+});
+
+Deno.test("central arbitrator: une création explicite de carte d'attaque force prepare_attack_card même si la route était product_help (A3-r9 T11)", () => {
+  const result = arbitrateTurnIntent({
+    userMessage:
+      "Crée-moi une carte d'attaque pour traiter les notes de frais sans repartir sur autre chose. Une seule proposition : choisis la technique et fais-moi le brouillon.",
+    routeDecision: routeDecision({
+      response_owner: "product_help",
+      selected_handler: "product_help",
+      reason_code: "skill_entry_signal",
+    }),
+    turnFrame: turnFrame({ tool_skill_intents: [] }),
+    tempMemory: {},
+  });
+
+  assertEquals(result.routeDecision.response_owner, "tool_skill");
+  assertEquals(result.routeDecision.selected_handler, "prepare_attack_card");
+  assertEquals(
+    result.routeDecision.reason_code,
+    "central_arbitrator_explicit_attack_card_creation",
+  );
+  assertEquals(
+    result.turnFrame.tool_skill_intents.some((intent) =>
+      intent.operation_type === "prepare_attack_card"
+    ),
+    true,
   );
 });
 

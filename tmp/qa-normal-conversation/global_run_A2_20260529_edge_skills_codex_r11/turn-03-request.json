@@ -1,0 +1,29 @@
+{
+  "user_id": "750321a6-83c7-43c0-964c-766527abd661",
+  "channel": "web",
+  "scope": "global_run_A2_20260529_edge_skills_codex_r11",
+  "content": "Phrase prête. Rappelle-moi à 10h38 de relire Omar, et ne crée aucune carte même si j'ai parlé de crypto.",
+  "history": [
+    {
+      "role": "user",
+      "content": "Je suis en retard: badge de parking absent, réponse à Omar à envoyer, et je sens que je vais ouvrir les charts crypto. Pas d'outil ni carte: deux gestes maintenant."
+    },
+    {
+      "role": "assistant",
+      "content": "C'est la tempête là, on pose tout une seconde. On va éviter que ça déraille complètement.\n\n1. Respire un grand coup et envoie un message de 10 mots max à Omar pour lui dire quand tu reviens vers lui, ça va t'enlever ce poids du cerveau.\n2. Pour les charts, tu poses ton téléphone physiquement dans une autre pièce ou tu fermes l'onglet immédiatement; ne laisse même pas la page charger.\n\nOn s'occupera du badge après ça. 🧘"
+    },
+    {
+      "role": "user",
+      "content": "Badge retrouvé. Pour Omar, donne juste une phrase ferme et neutre, sans rappel et sans carte."
+    },
+    {
+      "role": "assistant",
+      "content": "Nickel, badge réglé ✅\n\nEnvoie à Omar : « Je reviens vers toi dès que je suis sorti, merci de patienter. » 🙂"
+    }
+  ],
+  "disable_debounce": true,
+  "force_full_ai": true,
+  "include_trace": true,
+  "client_now_iso": "2026-05-29T10:00:00.000+02:00",
+  "history_count": 4
+}

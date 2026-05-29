@@ -160,8 +160,11 @@ Deno.test("loadDurableEffectsSummary formats scheduled_for in user timezone (A4-
   // Heure locale présente.
   assertStringIncludes(summary, "11:21");
   assertStringIncludes(summary, "Europe/Paris");
-  // ISO conservé entre crochets pour traçabilité.
-  assertStringIncludes(summary, "[iso: 2026-05-28T09:21:00.000Z]");
+  // CHANTIER C3: l'heure UTC NE DOIT PLUS apparaître (c'était la source du
+  // "09:21" recopié par le LLM à A4-r6 T15). Traçabilité via [ref: id].
+  assertEquals(summary.includes("09:21"), false);
+  assertEquals(summary.includes("[iso:"), false);
+  assertStringIncludes(summary, "[ref: r-1]");
   // Consigne anti-UTC présente.
   assertStringIncludes(
     summary,
@@ -220,9 +223,12 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
   if (!summary) throw new Error("expected non-null summary");
   // Comptage explicite.
   assertStringIncludes(summary, "Rappels ponctuels en attente (2):");
-  // Les DEUX rappels doivent être listés avec leur scheduled_for.
-  assertStringIncludes(summary, inOneHour);
-  assertStringIncludes(summary, inTwoHours);
+  // CHANTIER C3: les DEUX rappels sont listés, tracés par leur id (plus par
+  // l'ISO UTC). On n'expose plus le scheduled_for brut au LLM.
+  assertStringIncludes(summary, "[ref: r-1]");
+  assertStringIncludes(summary, "[ref: r-2]");
+  assertEquals(summary.includes(inOneHour), false);
+  assertEquals(summary.includes(inTwoHours), false);
   // La nouvelle consigne anti-faux-négatif doit être présente.
   assertStringIncludes(
     summary,
@@ -230,21 +236,112 @@ Deno.test("loadDurableEffectsSummary details ALL pending reminders (A4-r5 T11)",
   );
 });
 
-Deno.test("loadDurableEffectsSummary lists coach preferences with key=value format", async () => {
+Deno.test("loadDurableEffectsSummary lists explicit coach preferences with key=value format", async () => {
   const supabase = makeFakeSupabase({
     user_attack_cards: [],
     user_defense_cards: [],
     scheduled_checkins: [],
     user_profile_facts: [
-      { key: "coach.tone", value: "bienveillant ferme", status: "active" },
-      { key: "coach.challenge_level", value: "équilibré", status: "active" },
+      {
+        key: "coach.tone",
+        value: "bienveillant ferme",
+        status: "active",
+        source_type: "explicit_user",
+      },
+      {
+        key: "coach.challenge_level",
+        value: "équilibré",
+        status: "active",
+        source_type: "explicit_user",
+      },
     ],
   });
   const summary = await loadDurableEffectsSummary(supabase, "u1");
   if (!summary) throw new Error("expected non-null summary");
-  assertStringIncludes(summary, "Préférences coach actives");
+  assertStringIncludes(summary, "Préférences coach définies par l'utilisateur");
   assertStringIncludes(summary, "coach.tone=bienveillant ferme");
   assertStringIncludes(summary, "coach.challenge_level=équilibré");
+});
+
+// CHANTIER E6 (2026-05-28) — Les 9 defaults ne doivent JAMAIS être présentés
+// comme des préférences choisies par l'utilisateur. Voir A11 T13.
+Deno.test("loadDurableEffectsSummary distingue les defaults système des préférences explicites (A11 T13)", async () => {
+  const recent = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+  const supabase = makeFakeSupabase({
+    user_attack_cards: [],
+    user_defense_cards: [{
+      id: "d-1",
+      generated_at: recent,
+      content: { operation_draft: { title: "Dossier captures vs Devis" } },
+    }],
+    scheduled_checkins: [],
+    user_profile_facts: [
+      {
+        key: "coach.tone",
+        value: { value: "warm_direct", label: "Bienveillant ferme" },
+        status: "active",
+        source_type: "system_default",
+      },
+      {
+        key: "coach.challenge_level",
+        value: { value: "balanced", label: "Équilibré" },
+        status: "active",
+        source_type: "system_default",
+      },
+    ],
+  });
+  const summary = await loadDurableEffectsSummary(supabase, "u1");
+  if (!summary) throw new Error("expected non-null summary");
+  // Pas de préférence explicite -> message clair.
+  assertStringIncludes(
+    summary,
+    "Préférences coach définies par l'utilisateur: aucune",
+  );
+  // Les defaults sont signalés comme NON choisis par l'utilisateur.
+  assertStringIncludes(summary, "par défaut (système)");
+  // Consigne anti-confusion présente.
+  assertStringIncludes(summary, "aucune préférence coach enregistrée");
+});
+
+Deno.test("loadDurableEffectsSummary liste les rappels récurrents actifs (E6)", async () => {
+  const supabase = makeFakeSupabase({
+    user_attack_cards: [],
+    user_defense_cards: [],
+    scheduled_checkins: [],
+    user_profile_facts: [],
+    user_recurring_reminders: [{
+      id: "rr-1",
+      message_instruction: "boire de l'eau",
+      local_time_hhmm: "09:00",
+      scheduled_days: ["mon", "tue"],
+      status: "active",
+    }],
+  });
+  const summary = await loadDurableEffectsSummary(supabase, "u1");
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "Rappels récurrents actifs (1)");
+  assertStringIncludes(summary, "boire de l'eau");
+  assertStringIncludes(summary, "09:00");
+});
+
+Deno.test("loadDurableEffectsSummary remonte une session de potion (A3-r10 T15)", async () => {
+  const supabase = makeFakeSupabase({
+    user_attack_cards: [],
+    user_defense_cards: [],
+    scheduled_checkins: [],
+    user_profile_facts: [],
+    user_potion_sessions: [{
+      id: "p-1",
+      potion_type: "apaisement",
+      content: { title: "Potion d'apaisement" },
+      status: "completed",
+      generated_at: new Date().toISOString(),
+    }],
+  });
+  const summary = await loadDurableEffectsSummary(supabase, "u1");
+  if (!summary) throw new Error("expected non-null summary");
+  assertStringIncludes(summary, "Potion / mode d'état: une session existe");
+  assertStringIncludes(summary, "apaisement");
 });
 
 Deno.test("loadDurableEffectsSummary swallows errors and returns null (non-blocking)", async () => {

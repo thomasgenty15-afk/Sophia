@@ -15,6 +15,7 @@ export const COACH_PREFERENCE_VALUES: Record<CoachPreferenceKey, string[]> = {
   "coach.response_max_lines": ["three", "normal"],
   "coach.emoji_policy": ["none", "normal"],
   "coach.final_question_policy": ["avoid_unnecessary", "normal"],
+  "coach.action_first_policy": ["concrete_before_questions", "normal"],
 };
 
 export type CoachPreferenceSlot = {

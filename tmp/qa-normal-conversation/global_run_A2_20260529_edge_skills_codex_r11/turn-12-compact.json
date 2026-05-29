@@ -1,0 +1,17 @@
+{
+  "http_status": "200",
+  "ok": true,
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r11-t12",
+  "response_owner": "tool_skill",
+  "selected_handler": null,
+  "route_reason": "normal_reply_default",
+  "safety": null,
+  "operation": "b551a121-bb99-4fe4-8d64-82018e379071",
+  "memory_plan": null,
+  "executed_tools": [],
+  "tool_status": "cancelled",
+  "skill_id": null
+}

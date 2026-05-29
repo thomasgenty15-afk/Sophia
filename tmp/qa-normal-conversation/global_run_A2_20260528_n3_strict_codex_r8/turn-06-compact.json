@@ -1,0 +1,24 @@
+{
+  "n": 6,
+  "user": "Crée-la maintenant: ancre visuelle, post-it 'payé, je ferme', cible payer une fois puis fermer l'appli. Demande confirmation si nécessaire.",
+  "assistant": "Je n'ai pas pu préparer cette carte depuis le chat pour l'instant. 🙂",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r8-t06",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": "none",
+    "operation": null,
+    "memory_plan": "light",
+    "executed_tools": [
+      "prepare_attack_card"
+    ],
+    "tool_status": "draft_review_decision",
+    "skill_id": null
+  }
+}

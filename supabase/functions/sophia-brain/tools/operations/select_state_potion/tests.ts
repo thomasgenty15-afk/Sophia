@@ -380,6 +380,69 @@ Deno.test("select_state_potion pipeline covers 6 potion types and default 7-day 
   }
 });
 
+// E0 (A3-r10 T6): refus explicite de programmation -> aucun effet durable.
+Deno.test("select_state_potion suppresses follow-up scheduling when consent is refused", async () => {
+  resetConsumedConfirmationTokensForTest();
+  const draft = await structuredStatePotionDraftGenerator()({
+    operation_type: "select_state_potion",
+    output_schema: "potion_session_draft_v1",
+    state: {
+      kind: "stress_pressure",
+      intensity: "medium",
+      evidence: ["test"],
+    },
+    potion_type: "apaisement",
+    context: {},
+    constraints: [],
+    forbidden: [],
+  });
+  if (!draft) throw new Error("missing_draft");
+  const token = await createConfirmationToken({
+    user_id: "u1",
+    operation_id: "op-no-followup",
+    operation_type: "select_state_potion",
+    draft,
+    source_message_id: "yes-no-followup",
+    pending_confirmation_id: "pending-no-followup",
+    secret: SECRET,
+  });
+  let writerScheduledFollowups:
+    | Array<{
+      local_date: string;
+      local_time_hhmm: string;
+      reminder_instruction: string;
+    }>
+    | null = null;
+  const executed = await executeActivateStatePotion({
+    operation_id: "op-no-followup",
+    user_id: "u1",
+    draft,
+    token,
+    safety_pregate_risk_band: "none",
+    pending_confirmation_lookup: async () => ({ consumed: false }),
+    token_consumption_check: async (tokenId) =>
+      hasConsumedConfirmationTokenForTest(tokenId),
+    suppress_follow_up_scheduling: true,
+    write_potion_activation: async ({ scheduled_followups }) => {
+      writerScheduledFollowups = scheduled_followups;
+      // Le writer reel saute le recurring_reminder + checkins en mode suppress.
+      return {
+        potion_session_id: "potion-x",
+        recurring_reminder_id: "",
+        scheduled_checkin_ids: [],
+      };
+    },
+    secret: SECRET,
+    now_iso: "2026-05-04T08:00:00.000Z",
+  });
+  assertEquals(executed.status, "executed");
+  assertEquals(writerScheduledFollowups, []);
+  if (executed.status === "executed") {
+    assertEquals(executed.scheduled_checkin_ids.length, 0);
+    assertEquals(executed.recurring_reminder_id, "");
+  }
+});
+
 Deno.test("select_state_potion supports one-off action follow-up schedules", async () => {
   resetConsumedConfirmationTokensForTest();
   const draft = await structuredStatePotionDraftGenerator()({
@@ -898,6 +961,39 @@ Deno.test("select_state_potion does not confirm action-aware draft when timing w
     ),
     true,
   );
+});
+
+Deno.test("F4: le router potion reçoit l'historique récent pour ne pas redemander un slot déjà donné (A3-r11 T4)", async () => {
+  let capturedRecent:
+    | Array<{ role: "user" | "assistant"; content: string }>
+    | undefined;
+  const recent: Array<{ role: "user" | "assistant"; content: string }> = [
+    { role: "user", content: "Apaisement. Oui, lance-la maintenant, version courte." },
+    { role: "assistant", content: "Ok, apaisement en version courte." },
+    { role: "user", content: "Objectif + première étape. Avant 18h." },
+  ];
+  await runSelectStatePotionIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "Objectif + première étape. Avant 18h.",
+    trigger_message_id: "m-f4",
+    safety_pregate_risk_band: "none",
+    recent_messages: recent,
+    slot_filler: async (input) => {
+      capturedRecent = input.recent_messages;
+      return {
+        current_sub_skill: "potion_choice",
+        state_patch: {},
+        missing_slots: ["potion_type"],
+        confidence: "low",
+        generated_user_message: "Quelle potion ?",
+      } as any;
+    },
+  });
+  // Le slot filler (router IA) DOIT recevoir l'historique récent contenant le
+  // choix "Apaisement", pour pouvoir éviter de re-poser la question du type.
+  assertEquals(capturedRecent, recent);
 });
 
 Deno.test("select_state_potion preserves selected potion when reminder wording appears during active flow", async () => {

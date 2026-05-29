@@ -1,0 +1,17 @@
+{
+  "http_status": "200",
+  "ok": true,
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r11-t13",
+  "response_owner": "conversation_handler",
+  "selected_handler": "emotional_repair",
+  "route_reason": "skill_entry_signal",
+  "safety": null,
+  "operation": null,
+  "memory_plan": null,
+  "executed_tools": [],
+  "tool_status": "none",
+  "skill_id": null
+}

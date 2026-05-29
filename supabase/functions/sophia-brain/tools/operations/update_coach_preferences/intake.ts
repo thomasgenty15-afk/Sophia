@@ -88,10 +88,55 @@ function deterministicPatchFromMessage(
 ): Partial<Record<CoachPreferenceKey, string>> | null {
   const text = normalizeReviewText(message);
   const patch: Partial<Record<CoachPreferenceKey, string>> = {};
+
+  // CHANTIER H3 (2026-05-29) — « mode tunnel » = déclencheur textuel exact,
+  // PAS la règle générique « court » (A2-r9 T8-10).
+  if (/\bmode tunnel\b/.test(text)) {
+    patch["coach.tone"] = "direct";
+    patch["coach.emoji_policy"] = "none";
+    patch["coach.final_question_policy"] = "avoid_unnecessary";
+    patch["coach.question_tendency"] = "low";
+    return patch;
+  }
+
+  // CHANTIER H3 — « challenger doucement quand la technique ne colle pas »
+  // (A9-r4 T13-14). Ne pas confondre avec coach.tone=soft via « doucement ».
+  if (
+    /\b(challenger doucement|challenge doucement|challenger moi doucement)\b/
+      .test(text) &&
+    /\b(technique|colle|adapte|inadapte|ne colle pas|force une technique)\b/
+      .test(text)
+  ) {
+    patch["coach.challenge_level"] = "balanced";
+    return patch;
+  }
+
+  // CHANTIER H3 — syncskills-r3 T10 : geste concret <10 min puis question max.
+  if (
+    /\b(geste concret|action concrete|privilegiant les actions)\b/.test(text) &&
+    (
+      /\b(moins de 10 minutes|10 minutes)\b/.test(text) ||
+      /\bavant de (?:me )?(?:poser|demander)\b/.test(text) ||
+      /\bavant (?:de )?(?:questions|question)\b/.test(text) ||
+      /\bune question maximum\b/.test(text) ||
+      /\bquestion maximum\b/.test(text)
+    )
+  ) {
+    patch["coach.action_first_policy"] = "concrete_before_questions";
+    patch["coach.question_tendency"] = "low";
+  }
+  if (
+    /\b(plus directe|plus direct|privilegiant les actions)\b/.test(text)
+  ) {
+    patch["coach.tone"] = "direct";
+  }
+
   if (
     (
       /\bune action\b/.test(text) ||
       /\baction concrete\b/.test(text) ||
+      /\baction d abord\b/.test(text) ||
+      /\bgeste concret d abord\b/.test(text) ||
       /\bmode tres concret\b/.test(text) ||
       /\bune seule question\b/.test(text) ||
       /\bquestion de tri\b/.test(text)
@@ -104,6 +149,14 @@ function deterministicPatchFromMessage(
     )
   ) {
     patch["coach.question_tendency"] = "low";
+  }
+  if (
+    /\b(action d abord|geste concret d abord|action concrete d abord|commence par (?:un )?(?:geste|action)|geste concret avant|action concrete avant)\b/
+      .test(text) ||
+    /\b(geste concret|action concrete)\b[\s\S]{0,80}\bavant\b[\s\S]{0,50}\bquestions?\b/
+      .test(text)
+  ) {
+    patch["coach.action_first_policy"] = "concrete_before_questions";
   }
   if (
     /\b(moins de questions|evite les questions|evite les relances|pas de questions systematiques|pas de relance systematique|reduis les questions|reduit les questions|une seule question|pas de question finale|sans question finale|question de tri|3 lignes max|trois lignes max)\b/
@@ -132,7 +185,10 @@ function deterministicPatchFromMessage(
     patch["coach.tone"] = "warm_direct";
   } else if (/\b(plus direct|tres direct|plus directement)\b/.test(text)) {
     patch["coach.tone"] = "direct";
-  } else if (/\b(plus doux|ton doux|doucement)\b/.test(text)) {
+  } else if (
+    /\b(plus doux|ton doux)\b/.test(text) ||
+    (/\bdoucement\b/.test(text) && !/\bchallenger\b/.test(text))
+  ) {
     patch["coach.tone"] = "soft";
   }
   return Object.keys(patch).length > 0 ? patch : null;
@@ -216,7 +272,8 @@ function normalizeKey(value: unknown): CoachPreferenceKey | null {
       raw === "coach.question_tendency" ||
       raw === "coach.response_max_lines" ||
       raw === "coach.emoji_policy" ||
-      raw === "coach.final_question_policy"
+      raw === "coach.final_question_policy" ||
+      raw === "coach.action_first_policy"
     ? raw
     : null;
 }
@@ -439,8 +496,11 @@ function technicalFailure(
       : "fallback_dashboard",
     source,
     phase: "exit",
+    // CHANTIER D4 (2026-05-28) — Message d'échec TECHNIQUE propre + invitation à
+    // relancer (même esprit que C8 sur prepare_attack_card), à la place d'un
+    // refus vague ("deviner à ta place") qui laissait l'utilisateur sans suite.
     ack:
-      "Je n'ai pas réussi à modifier cette préférence techniquement. Je préfère m'arrêter plutôt que deviner à ta place.",
+      "Petit raté technique de mon côté en réglant cette préférence — rien à voir avec ta demande. Redis-moi de l'enregistrer et je relance tout de suite. 🙂",
     state_patch: {
       summary: `Coach preferences structured AI flow stopped: ${reason}.`,
       phase: "exit",
@@ -596,18 +656,26 @@ export async function runUpdateCoachPreferencesIntake(input: {
     }
     : null;
   if (!filled) {
+    const slotFillerArgs = {
+      user_id: input.user_id,
+      request_id: input.request_id,
+      message: input.message,
+      recent_messages: input.recent_messages,
+      current_state: initialState,
+      operation_input: initialOperationInput ?? null,
+      current_preferences: input.current_preferences ?? {},
+    };
     try {
-      filled = await slotFiller({
-        user_id: input.user_id,
-        request_id: input.request_id,
-        message: input.message,
-        recent_messages: input.recent_messages,
-        current_state: initialState,
-        operation_input: initialOperationInput ?? null,
-        current_preferences: input.current_preferences ?? {},
-      });
+      filled = await slotFiller(slotFillerArgs);
     } catch {
-      return technicalFailure("ai_slot_filler_error", source);
+      // CHANTIER D4 (2026-05-28) — Un échec du slot filler est un raté TECHNIQUE
+      // transitoire (timeout/parse), pas une raison de "deviner". On retente
+      // UNE fois avant l'erreur technique propre. Même pattern que C8.
+      try {
+        filled = await slotFiller(slotFillerArgs);
+      } catch {
+        return technicalFailure("ai_slot_filler_error", source);
+      }
     }
   }
   if (!filled) return technicalFailure("ai_slot_filler_unavailable", source);

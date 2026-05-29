@@ -468,6 +468,1171 @@ plan, writePlanAdjustmentPatch) confirmés AVANT et APRÈS le chantier via
 
 ---
 
+## Groupe A — C1/C2/C3 « arrêter l'hémorragie » post runs r6-r8 (2026-05-28)
+
+Couche. L3 (arbitre) + L4 (run.ts overrides) + L5 (composer + loader).
+
+Contexte. Runs `A4-syncskills-r6`, `A2-codex-r7`, `A3-r8`, `A9-r1`. Analyse
+tour-par-tour des traces (dispatcher vs route finale). Bug racine n°1
+reproductible sur 3 runs/4 : `status_only`/`status_exact` gagne contre une
+décision correcte (`product_help`) ou contre un flow tool actif (meurtre de la
+carte de défense A3-r8 T6/T8). Plus deux familles L5 : succès annoncé sans
+exécution, et heures/texte de rappel non fiables.
+
+### C1 — Subordonner le status (L3 + L4)
+
+Deux gardes **non-sémantiques** (sur des faits structurels : `response_owner`
+et `operation_type` du flow actif), pas sur l'interprétation du message.
+
+1. **Garde produit (L4)**. Le bloc `status_only_request_blocks_tool_start` dans
+   `router/run.ts` ne fire plus si `routeDecision.response_owner ===
+   "product_help"`. Répare A2-r7 T4, A4-r6 T14, A3-r8 T3 (« où retrouver/annuler
+   dans l'app, sans modifier » finissait en panneau status au lieu de l'aide
+   produit). Le détecteur status (`isStatusOnlyNoMutationRequestForTest`) reste
+   vrai sur ces tours : c'est le garde qui porte la subordination, pas un
+   affaiblissement du détecteur (test dédié).
+
+2. **Garde flow de carte (L3 + L4)**. Les réécritures status de l'arbitre
+   (`detectsExactDurableStatus`, `detectsMultiEntityDurableStatus`) cèdent quand
+   un flow de **carte** (`prepare_attack_card`/`prepare_defense_card`) est en
+   cours de collecte. La free-text des slots (« Mon geste : écrire 'je te
+   confirme ça demain matin' ») faisait des faux positifs sur les détecteurs
+   status et tuait le flow (A3-r8 T6/T8). En L4, helper
+   `isActiveCardDraftingOperationForTest(activeOperationIntake)`. Scope
+   **volontairement limité aux cartes** (PAS `update_coach_preferences`) :
+   c'est ce qui évite de régresser A4-r6 T11 — où un intake coach obsolète
+   restait actif depuis T10 mais une vraie question de statut devait gagner
+   (vérifié sur les traces : T11 entre avec `__active_tool_skill_intake =
+   update_coach_preferences` et le status doit primer).
+
+Fichiers. `router/turn_intent_arbitrator.ts`, `router/run.ts`.
+
+Tests. `turn_intent_arbitrator.test.ts` (A3-r8 T6, A3-r8 T8, anti-régression
+A4-r6 T11) ; `run_product_help_guard.test.ts`
+(`isActiveCardDraftingOperationForTest` true/false, détecteur status toujours
+vrai sur A2-r7 T4).
+
+Critère de suppression. Quand les slot fillers attack/defense renvoient un
+signal `topic_change` fiable, le garde flow-de-carte peut disparaître (le slot
+filler libérera lui-même le tour vers le status).
+
+Limite. C1 corrige le **routage** (le flow de défense n'est plus tué). Le vert
+complet de la carte de défense dépend du slot filler interne (hors scope ici).
+
+### C2 — Garde anti-hallucination « c'est fait » (L5 composer) — clôt C17 (différé)
+
+Garantie dure non-sémantique : dans le chemin `normal_reply` libre
+(`operationRuntime === null`, donc AUCUN tool de mutation n'a tourné ce tour),
+le composer ne peut pas affirmer qu'un effet a eu lieu si le tool n'est pas
+dans `executedTools`.
+
+Mécanique. Nouveau `applyUnexecutedEffectClaimGuardForTest({ responseContent,
+intendedTools, executedTools })`. Précondition forte (anti-FP) : on ne
+déclenche que si un tool de mutation était **visé** (`direct_effects_to_run` /
+`selected_handler`) mais **non exécuté**, ET que la réponse contient un
+marqueur d'affirmation (✅, « c'est programmé/créé/enregistré », « correspond
+bien à ce que j'ai indiqué », « reste actif »…), ET qu'elle n'est pas déjà
+honnête (« je n'ai pas pu », « déjà actif »…). On remplace alors par un message
+honnête. Répare A4-r6 T6.
+
+Anti-FP structurel : une exécution réelle passe par `operationRuntime` (chemin
+distinct), jamais par ce garde — le « C'est programmé pour 11:21 » de A4-r6 T3
+est donc intact.
+
+Fichiers. `router/run.ts` (helper + branchement après les autres guards
+normal_reply).
+
+Tests. `run_product_help_guard.test.ts` : A4-r6 T6 (neutralisé) + 3 anti-FP
+(exécution réelle, réponse déjà honnête, aucune mutation visée).
+
+Critère de suppression. Quand tout `direct_effect`/handler de mutation passe
+garanti par un runtime honnête (jamais le normal_reply libre), ce garde devient
+redondant.
+
+### C3 — Source unique status/recap depuis la DB + tz locale (L5/loader) — corrige le résiduel de C12
+
+Problème. C12 affichait l'heure locale MAIS gardait l'ISO UTC entre crochets
+(`11:21 [iso: …T09:21:00Z]`) « pour traçabilité ». A4-r6 T15 restait rouge :
+le LLM recopiait le `09:21` UTC visible dans le prompt malgré la consigne.
+
+Fix loader. On n'expose plus aucun chiffre d'horloge UTC au LLM : l'ISO inline
+est remplacé par une réf non-horaire (`[ref: <checkin_id>]`). Traçabilité
+conservée, source du « 09:21 » supprimée. Consigne ajustée (le `[ref:]` est un
+id technique, jamais une heure).
+
+Fix composer status. `buildStatusOnlyNoMutationRuntime` énumère désormais
+CHAQUE rappel en attente avec son heure locale + son `reminder_instruction`
+réel (DB), au lieu de « le prochain » seulement. Répare A4-r6 T12 (texte exact
+des deux rappels) et fiabilise la lecture multi-rappels.
+
+Fichiers. `context/loader.ts`, `context/loader_durable_effects_test.ts`,
+`router/run.ts` (export de `buildStatusOnlyNoMutationRuntime` pour test).
+
+Tests. `loader_durable_effects_test.ts` : heure UTC absente + `[ref:]` présent
+(A4-r6 T15), idem multi-rappels (A4-r5 T11) ; `run_product_help_guard.test.ts` :
+status composer liste les deux instructions exactes + pas d'UTC (A4-r6 T12).
+
+### Bilan tests Groupe A
+
+- `turn_intent_arbitrator.test.ts` : 35 verts (+3).
+- `run_product_help_guard.test.ts` : 68 verts (+8).
+- `loader_durable_effects_test.ts` : 9 verts (assertions C12/C6 mises à jour).
+- `deno check` 0 erreur sur les fichiers touchés (loader.ts, run.ts,
+  turn_intent_arbitrator.ts).
+
+Hors scope / différé (groupes B+). La qualité de CONTENU `product_help` (A4-r6
+T14 route maintenant correctement vers product_help mais le « où retrouver »
+doit être étoffé par le handler), le slot filler défense (vert complet de la
+carte), et la migration finale L3→L1 restent ouverts. Six erreurs de
+type-check pré-existantes (WIP non lié : `memory_plan_loader_test.ts`,
+`types_action_details_test.ts`, `flow_context.ts`) confirmées hors scope.
+
+---
+
+## Groupe B — C4/C5/C6 « corriger le contenu » post runs r6-r7 (2026-05-28)
+
+Objectif. Les rouges restants sont des bugs de CONTENU (route correcte, sortie
+fausse), pas de routage. Trois chantiers, risque faible/moyen.
+
+### C4 — Isoler `product_help` des drafts tool (L5 tempMemory)
+
+Couche. L3 (`rewriteForProductHelp`) → propagation L4 (`run.ts`).
+
+Symptôme (A4-r6 T13). « Question produit… où retrouver une carte et un rappel
+dans l'app ? » route correctement vers `product_help`
+(`central_arbitrator_product_help_priority`), MAIS la réponse rendue était mot
+pour mot le `confirmation_message` du draft `update_coach_preferences` resté en
+mémoire (« je te proposerai une seule action… je le garde comme préférence »).
+
+Cause racine. Le chantier C19 nettoyait bien la `tempMemory`
+(`clearToolSkillFlowEntries`) MAIS renvoyait `clearTargets: []`. Les variables
+de `run.ts` (`activeOperationIntake` / `pendingOperationConfirmation` /
+`pendingOperationConfirmationForGlobalRouting`), lues AVANT l'arbitre, restaient
+peuplées → le composer aval rendait quand même le draft. Incohérence
+tempMemory-nettoyée / variables-peuplées.
+
+Décision. Aligner les deux : `rewriteForProductHelp` renvoie désormais
+`clearTargets: ["active_tool", "pending_tool"]`. `run.ts` (déjà câblé pour ces
+deux targets) annule les variables avant la composition `product_help`. Fix
+minimal, aucune nouvelle regex sémantique.
+
+Fichiers. `router/turn_intent_arbitrator.ts` (`rewriteForProductHelp`).
+
+Tests. `turn_intent_arbitrator.test.ts` : la régression A4-r6 T13 vérifie
+maintenant aussi `clearTargets.includes("active_tool"|"pending_tool")`.
+
+Risque. Faible.
+
+### C5 — Obéissance au contrat de format « fait / prévu / fragile » (L5 composer)
+
+Couche. L5 (nouveau composer déterministe). Remplace F9/F10 (partie composer).
+
+Symptôme. A2-codex-r7 T13 (« récap : fait, prévu, fragile, en trois lignes. Pas
+de question. ») → la réponse n'était qu'une intro-promesse (« je m'occupe de ton
+récap ») sans corps. A2-codex-r7 T14 (« trois lignes seulement, fait / prévu /
+fragile, heure France, pas de question. ») → routé en
+`immediate_mode_request_not_state_potion` et le LLM posait une QUESTION (« qu'est-ce
+qui te pèse ? »).
+
+Décision. Pour ce contrat très spécifique et borné, on bypasse le LLM : un
+composer DÉTERMINISTE `buildFaitPrevuFragileRecapRuntime` rend exactement 3
+lignes labellisées, SANS question, sourcées DB, heures en `user_timezone`.
+Détecteur `isFaitPrevuFragileRecapRequestForTest` volontairement narrow (exige
+la séquence `fait [,/] prevu [,/] fragile`) → quasi zéro faux positif. Placé
+dans la chaîne `operationRuntime` AVANT `statusOnlyNoMutationRuntime`, donc il
+prime même quand le routage amont était émotionnel (corrige T14 au niveau
+composer, pas au niveau route).
+
+Mapping des labels (honnête, pas d'invention) :
+- Fait = écritures durables persistées (cartes actives + préférences coach).
+- Prévu = rappels ponctuels en attente (scheduled, heure locale).
+- Fragile = repère de conversation, explicitement « pas une écriture durable ».
+
+Fichiers. `router/run.ts` (`isFaitPrevuFragileRecapRequestForTest`,
+`buildFaitPrevuFragileRecapRuntime`, insertion chaîne `operationRuntime`).
+
+Tests. `run_product_help_guard.test.ts` : détecteur positif (T13/T14), anti-FP
+(message normal contenant fait/fragile sans la séquence), composer = 3 lignes
+labellisées + 0 « ? » + heure locale (11:21 pas 09:21) + Fait reflète la DB.
+
+Risque. Faible/moyen (touche la chaîne runtime, mais en lecture seule et borné).
+
+Note d'évolution. Quand le dispatcher (L1) saura router nativement ce contrat
+et qu'un composer recap LLM fiable existera, ce runtime déterministe peut être
+retiré ; critère de suppression = T13/T14 verts sur 2 runs sans le runtime.
+
+### C6 — Extracteur de rappel : quotes prioritaires (L6) — DÉJÀ COUVERT par C13
+
+Couche. L6 (`extractReminderInstruction`).
+
+Constat. Le chantier C13 a déjà implémenté la priorité des quotes
+(`extractQuotedReminderInstruction` : « texte exact 'X' » → X seul) et
+`maybeCreateOneShotReminder` consomme bien cet extracteur. L'écho de la phrase
+complète vu en A4-r6 T7 datait d'AVANT C13. Aucun code à modifier.
+
+Action. Ajout d'un anti-FP explicite au libellé exact du chantier B pour
+traçabilité (« rappelle-moi de payer le parking » → pas de quote ; « texte exact
+'payer le parking' » → quote seule).
+
+Fichiers. `run_product_help_guard.test.ts` (test anti-FP C6).
+
+Risque. Nul (vérification + test).
+
+### Bilan tests Groupe B
+
+- `run_product_help_guard.test.ts` : 73 verts (+5 : C5 ×4, C6 ×1).
+- `turn_intent_arbitrator.test.ts` : 35 verts (assertion C4 ajoutée à la
+  régression A4-r6 T13 existante).
+- `one_shot_reminder_tool_test.ts` : verts (C6 déjà couvert par C13).
+- `deno check` 0 erreur sur `run.ts` + `turn_intent_arbitrator.ts`.
+
+Différé après Groupe B.
+- C5 ne couvre QUE le contrat `fait/prévu/fragile`. Les autres contrats de
+  format libres (« une ligne », « X lignes » sans labels) restent au LLM
+  normal_reply — F8 (slot filler attack ignore « une seule proposition »)
+  reste ouvert.
+- Préférences conditionnelles structurées en `user_profile_facts` (schema)
+  toujours requis pour que « court = zéro emoji, 3 lignes » s'applique partout.
+- Étoffement du CONTENU `product_help` (« où retrouver dans l'app ») : la route
+  est bonne (C1/C14), le handler doit produire une vraie réponse produit.
+
+---
+
+## Groupe C — C7/C8 « routage & fidélité skill » post runs r6-r8 (2026-05-28)
+
+Objectif. Réduire le sur-déclenchement L1 (C7) et fiabiliser les internals du
+Tool Skill (C8). Groupe plus risqué : C7 est un changement de prompt dont l'effet
+ne se valide qu'au prochain run QA ; C8 est le moins déterministe.
+
+### C7 — Dispatcher (L1) : réduire le sur-déclenchement coach_preference / prepare_attack_card
+
+Couche. L1 (`dispatcher.prompts.ts`, `critical_routing_examples`).
+
+Symptômes (dispatcher émet la mauvaise intention À LA SOURCE) :
+- A4-r6 T5. « crée le deuxième rappel à 11h37 avec le même texte » → émis en
+  `prepare_attack_card` au lieu de `create_one_shot_reminder`.
+- A4-r6 T10. « quelle carte / quels rappels / quelle préférence coach est
+  appliquée ? » (question d'état) → émis en `update_coach_preferences`.
+- A9-r1 T12. « ajoute le repère conversationnel: carnet bleu fermé = … » (note
+  mémoire personnelle) → émis en `update_coach_preferences`.
+
+Décision. 3 nouveaux few-shots L1 (avec `note` explicite) :
+1. Rappel ordinal + heure + texte = `create_one_shot_reminder`, JAMAIS
+   `prepare_attack_card` (même si l'instruction décrit une action).
+2. Question d'état contenant « quelle préférence coach est appliquée » = LECTURE
+   (aucun intent), PAS `update_coach_preferences` (demander ≠ changer).
+3. « ajoute/note/retiens un repère conversationnel » = mémoire durable
+   personnelle (extraction aval), PAS `update_coach_preferences` (qui ne
+   concerne QUE le style de Sophia).
+
+Version de prompt bumpée :
+`dispatcher_v2_prompt_2026_05_s18_c7_dispatcher_precision`.
+
+Fichiers. `dispatcher/dispatcher.prompts.ts`.
+
+Tests. `dispatcher.test.ts` : version s18 ; présence des 3 few-shots avec
+assertion sur l'intent attendu (rappel → create_one_shot_reminder & pas
+attack_card ; status pref → 0 intent / 0 effet ; repère → pas
+update_coach_preferences).
+
+Risque. Moyen (impact routage large). Effet réel À VALIDER au prochain run QA :
+un changement de prompt ne se prouve qu'en exécution.
+
+### C8 — Internals Tool Skill `prepare_attack_card` (le plus dur)
+
+Couche. L5 (slot_filler + ai_intake du skill).
+
+Symptôme 1 (A2-codex-r7 T5/T7). L'utilisateur demande « Technique: ancre
+visuelle » mais la carte générée affiche « Mot de bascule » : le LLM avait
+interprété le post-it 'payé fermé' comme un mot de bascule, écrasant le choix
+explicite.
+
+Décision 1. Deux gardes déterministes (mapping lexical d'un TITRE de technique
+exact → clé enum, pas une heuristique d'intention) :
+- `enforceExplicitTechniqueRequestForTest` (slot_filler) : quand l'utilisateur
+  nomme lui-même une technique, on verrouille `technique.value` +
+  `explicitly_requested=true`. Tourne APRÈS le refine de fit (le choix explicite
+  prime sur le steering).
+- `normalizeDraft` (ai_intake) : quand `explicitly_requested`, le générateur
+  (LLM séparé) ne peut plus remplacer la technique.
+
+Symptôme 2 (A3-r8 T11). « crée une carte, choisis la technique toi-même » →
+échec technique → message vague « Je n'ai pas réussi… je préfère m'arrêter
+plutôt que deviner à ta place » (laisse croire à un refus de jugement).
+
+Décision 2.
+- Retry : un échec de génération est retenté UNE fois avant de tomber en
+  fallback (raté transitoire ≠ raison de s'arrêter).
+- Message : erreur technique propre + invitation à relancer (« Petit raté
+  technique de mon côté… Redis-moi de la créer et je relance tout de suite »),
+  sans jamais affirmer un succès.
+
+Fichiers. `tools/operations/prepare_attack_card/slot_filler.ts`,
+`tools/operations/prepare_attack_card/ai_intake.ts`.
+
+Tests. `tools/operations/prepare_attack_card/tests.ts` (+5) : détecteur de
+technique nommée (+ anti-FP « choisis toi-même » → null) ; enforce verrouille
+ancre_visuelle sur un output LLM pre_engagement ; retry une fois → succès ;
+échec persistant → message « raté technique » sans « deviner à ta place ».
+
+Risque. Plus élevé, moins déterministe. C'est le groupe où l'itération QA est
+attendue (le steering de technique reste partiellement LLM).
+
+### Bilan tests Groupe C
+
+- `dispatcher.test.ts` : 26 verts (+1 test C7, version bumpée).
+- `tools/operations/prepare_attack_card/tests.ts` : 13 verts (+5 C8).
+- `deno check` 0 erreur sur les 4 fichiers touchés.
+
+Différé après Groupe C.
+- C7 : valider en run QA que le dispatcher émet bien les bons signaux ; sinon
+  itérer les few-shots. À terme, ces few-shots alimentent la migration L3→L1.
+- C8 : la sélection de technique quand l'utilisateur NE nomme PAS la technique
+  reste LLM (refine de fit) → peut encore se tromper ; F8 (« une seule
+  proposition ») reste ouvert. Le retry est un seul essai en intra-tour ; pas de
+  reprise inter-tour sur « réessaie » (flow exit après fallback).
+
+---
+
+## Groupe D — D0/D1/D3/D4/D2/D5 post runs r7-r9 (2026-05-28)
+
+Contexte. Après validation des runs r7/r8/r9 : la plupart des fixes C1-C8
+tiennent, mais (a) une régression introduite par C8 (carte one-shot « ancre
+visuelle » qui tombe en `fallback_dashboard`), (b) des faux positifs résiduels
+de routage/rendering. Ordre exécuté : D0 → D1 → D3 → D4 → D2 → D5.
+
+### D0 — Régression carte one-shot « ancre visuelle » (C8) — RÉSOLU
+
+Couche. L5 (`prepare_attack_card/ai_intake.ts`, `normalizeDraft`).
+
+Symptôme. A2-codex-r8 T5/T6, A3-r9 T13 : une carte one-shot entièrement
+spécifiée échouait en `fallback_dashboard`. Pré-C8 elle réussissait (avec la
+mauvaise technique). Cause : le verrou de technique C8 (forçage
+`explicitly_requested`) désynchronisait le draft LLM (title/instruction/
+confirmation construits pour une autre technique) et `normalizeDraft` jetait
+sur des incohérences mineures (`required_text_missing`,
+`confirmation_message_draft_mismatch`) → fallback.
+
+Décision. `normalizeDraft` devient RÉSILIENT : on garde le verrou de technique
+(comportement voulu) mais on RÉPARE déterministe les champs secondaires
+(title → `Carte d'attaque — {cible}`, instruction → `mode_emploi` de la
+technique, confirmation_message reconstruit pour citer `generated_asset`) au
+lieu de jeter. Seul un `generated_asset` réellement absent reste une vraie
+erreur technique (retry C8 puis message propre). Pas de fabrication
+d'intention/slot : tous les slots sont déjà présents, on ne fait que rendre la
+carte robuste (L5 content resilience).
+
+Fichiers. `ai_intake.ts` (`normalizeDraft` + export `normalizeAttackCardDraftForTest`).
+Tests. `prepare_attack_card/tests.ts` : 3 D0 (draft désynchronisé → carte
+rendue, title manquant défaillé, `generated_asset` manquant → vraie erreur).
+
+### D1 — Format de réponse ponctuel ≠ préférence durable (arbitre) — RÉSOLU
+
+Couche. L3 (`turn_intent_arbitrator.ts`). TRANSITIONNEL.
+
+Symptôme. A4-r7 T15 : « en 4 lignes maximum… dis s'il y a une préférence coach
+nouvelle appliquée. Pas d'explication. » → `update_coach_preferences` (faux
+positif `central_arbitrator_coach_preference_priority`). La mention « préférence
+coach » est une LECTURE ; le « 4 lignes / pas d'explication » est une contrainte
+de FORME ponctuelle.
+
+Décision. Nouveau détecteur `detectsPonctualResponseFormatConstraint` +
+garde AVANT `rewriteForCoachPreference` → `normal_reply`
+(`central_arbitrator_ponctual_response_format`). Anti-FP : désactivé si marqueur
+de durabilité explicite (toujours / désormais / « garde comme préférence »…),
+qui reste un vrai `update_coach_preferences` (A4-r7 T11). Généralise C5
+(récap déterministe) au niveau routage.
+Critère de suppression. Quand L1 distingue fiablement forme ponctuelle vs
+préférence durable (few-shots), retirer.
+Tests. `turn_intent_arbitrator.test.ts` : 3 anti-FP + 1 positif + 2 e2e
+(T15 → normal_reply, T11 → update_coach_preferences).
+
+### D3 — Exclure les clauses de gestion d'un autre rappel de l'extraction — RÉSOLU
+
+Couche. L6 (`one_shot_reminder_tool.ts`, `cleanReminderInstructionTarget`).
+
+Symptôme. A4-r7 T6 : le payload durable contenait « Celui de 11h24 doit rester
+actif » dans `reminder_instruction`. C'est une consigne de gestion d'un AUTRE
+rappel, pas le contenu du rappel courant.
+
+Décision. 3 strips narrow en fin d'instruction : « celui de X (doit) rester
+actif », « garde/laisse celui de X / l'autre actif », « ne touche/supprime pas
+l'autre / le premier / celui de X ». Anti-FP : exige un séparateur de fin de
+phrase `[.,;]` ET une RÉFÉRENCE à un autre rappel, pour ne pas amputer une
+instruction qui contient juste le mot « actif ».
+Tests. `one_shot_reminder_tool_test.ts` : 1 anti-FP (« rester actif sur le
+dossier Sam ») + 2 positifs (T6 + « garde celui de X actif »).
+
+### D4 — Pattern C8 (retry + message propre) sur `update_coach_preferences` — RÉSOLU
+
+Couche. L5 (`update_coach_preferences/intake.ts`).
+
+Décision. Retry unique en intra-tour du slot filler IA avant `fallback_dashboard`,
+et message d'échec TECHNIQUE propre + invitation à relancer (à la place du refus
+vague « deviner à ta place »). Symétrique de C8.
+Tests. `update_coach_preferences/tests.ts` : retry (échoue 1 fois → succès),
+échec persistant (message propre, plus « deviner à ta place »).
+
+### D2 — Le renderer obéit à `explicit_no_status` — RÉSOLU
+
+Couche. L5 (`run.ts`, gate du composer `statusOnlyNoMutationRuntime`).
+
+Symptôme. A2-codex-r8 T7 : l'arbitre route bien en
+`central_arbitrator_explicit_no_status_request` (normal_reply), mais le composer
+status_only prenait quand même la main → bloc « Sans rien modifier : ». Le
+détecteur de format existant ne couvrait que « pas DE statut » (singulier) ;
+T7 disait « pas LES statutS système » (pluriel).
+
+Décision. Gate extraite en helper testable
+`shouldRenderStatusOnlyNoMutationForTest` qui ajoute
+`!detectsExplicitNoStatusRequest(message)` (réutilise le détecteur de l'arbitre,
+pluriel inclus). Le composer status_only ne prend plus la main sur un opt-out
+no-status.
+Tests. `run_product_help_guard.test.ts` : T7 → false, anti-régression statut
+sans opt-out → true.
+
+### D5 — `product_help` ne capture pas une intention tool explicite — RÉSOLU
+
+Couche. L3 (`turn_intent_arbitrator.ts`). TRANSITIONNEL.
+
+Symptôme. A3-r9 T11/T12 : « Crée-moi une carte d'attaque… fais-moi le
+brouillon » / « prépare la carte d'attaque maintenant, demande-moi de valider »
+routés en `product_help` (`skill_entry_signal`) parce que le brouillon/réponse
+mentionne « Dashboard / Ressources / Carte d'attaque ».
+
+Décision. Détecteur `detectsExplicitAttackCardCreationRequest` (NOM + VERBE de
+création + INDICE de création, EXCLUT les questions de navigation
+« où je la retrouve / comment l'annuler dans l'app ») + garde tôt dans
+l'arbitre qui force `prepare_attack_card`
+(`central_arbitrator_explicit_attack_card_creation`). Ne s'active que si la
+route n'est PAS déjà `prepare_attack_card` (le garde structuré existant gère ce
+cas) et hors safety.
+Critère de suppression. Quand L1 route fiablement les créations de carte vers
+prepare_attack_card (few-shots), retirer.
+Tests. `turn_intent_arbitrator.test.ts` : 2 anti-FP navigation + 2 positifs
+(T11/T12) + 1 e2e (product_help → prepare_attack_card).
+
+### Bilan tests Groupe D
+
+- `turn_intent_arbitrator.test.ts` : 46 verts (+D1, +D5).
+- `run_product_help_guard.test.ts` : 74 verts (+D2).
+- `prepare_attack_card/tests.ts` : 16 verts (+D0).
+- `update_coach_preferences/tests.ts` : 12 verts (+D4).
+- `one_shot_reminder_tool_test.ts` : 37 verts (+D3).
+- `deno check` 0 erreur sur les 5 fichiers source touchés.
+
+Différé après Groupe D (à valider en run QA, effets de prompt/routage).
+- D0 : la résilience de `normalizeDraft` masque une dérive du générateur LLM
+  (technique forcée). À terme, fiabiliser le prompt générateur pour qu'il
+  respecte la technique verrouillée sans désync ; alors la réparation
+  déterministe deviendrait un simple filet.
+- D1/D5 : détecteurs L3 TRANSITIONNELS — cibles de la migration L3→L1.
+- F8 (« une seule proposition », A3-r9 T11) reste ouvert : c'est le contenu du
+  draft, pas le routage ; hors scope D.
+- A3-r9 T7/T8 (carte de défense `plan_b` → `adjust_plan_item` / annulation →
+  `update_coach_preferences`) non traités ce lot ; à ouvrir comme chantier
+  dédié défense-card.
+
+---
+
+## Groupe E — E0/E1/E2/E3/E5/E6 post runs edge-skills (2026-05-28)
+
+Runs sources : A3-r10 (n4-strict), A11 (edge-skills-n3-strict), A2-codex-r9
+(edge-skills). Tous les fixes respectent `14-qa-test-guidelines.md` (aucune
+opération engageante sans confirmation, un seul cerveau, garde déterministe
+uniquement sur des contrats/consentement).
+
+### E0 — Potion : bloquer tout follow-up quand le user refuse — RÉSOLU
+
+Couche. L5 (executor + writer). Gravité max (effet durable non consenti).
+
+A3-r10 T6/T7 : l'utilisateur dit « ne programme rien » (T6) puis lance la potion
+(T7) ; le système programmait quand même un rappel récurrent + des check-ins.
+Le refus devait persister entre les tours.
+
+Fix. Détecteur `detectsPotionFollowUpRefusalForTest` (refus explicite), refus
+persisté dans `tempMemory.__potion_followup_consent="refused"`, propagé en
+`suppress_follow_up_scheduling` jusqu'à `executeActivateStatePotion` et
+`writeStatePotionActivation` (qui saute alors `user_recurring_reminders` ET
+`scheduled_checkins`). La session de potion (le soutien) a bien lieu ; aucun
+effet durable n'est créé. Cleanup du flag après exécution/blocage.
+
+Tests. `select_state_potion/tests.ts` (suppression effective) + 3 tests détecteur
+dans `run_product_help_guard.test.ts` (positif A3-r10 T6, variantes, anti-FP).
+
+### E1 — Potion : sortie propre sur STOP explicite — RÉSOLU
+
+Couche. L4 (subordination du re-verrou) + L5 (clear d'état).
+
+A3-r10 T8 (« Stop potion. Où je vois dans l'app… »). Le re-verrou
+`active_select_state_potion_kept_in_tool_skill` pouvait piéger l'utilisateur
+dans le flow potion.
+
+Fix. `detectsExplicitStatePotionExitForTest` (marqueur d'arrêt + cible
+potion/mode, anti-FP : « lance la potion » ne matche pas). Quand vrai et flow
+potion actif/pending : on libère `activeOperationIntake` / pending / les clés
+`tempMemory` du flow, et on rend la main (`normal_reply` `explicit_state_potion_exit`,
+ou product_help si le dispatcher l'avait déjà choisi). Subordination du garde
+existant, pas un nouveau if-block sémantique.
+
+Tests. 3 tests détecteur (positif T8, variantes, anti-FP) dans
+`run_product_help_guard.test.ts`.
+
+### E2 — `product_help` « où corriger/annuler dans l'app » prime sur status — RÉSOLU
+
+Couche. L3 (arbitre, déjà couvert) + L4 (défense en profondeur, symétrique C1).
+
+A2-codex-r9 T4. Vérifié : sur le code actuel, `detectsExplicitProductHelp`
+matche déjà T4 et l'arbitre route vers `product_help` AVANT les détecteurs
+status (le run rouge était sur du code obsolète). Ajout d'une subordination
+symétrique à C1 dans le garde status L4 (`!detectsExplicitProductHelp`) pour
+que le panneau status n'avale jamais une question de navigation produit, même
+en ordre d'évaluation limite. Un seul cerveau (même détecteur qu'en L3).
+
+Tests. Régression arbitre pinnée sur la formulation exacte T4
+(`turn_intent_arbitrator.test.ts`).
+
+### E3 — Préférence durable explicite prime sur `prepare_defense_card` — RÉSOLU
+
+Couche. L4 (subordination du garde defense-card). Généralise D1/D5.
+
+A11 T9/T10. « Préférence durable de coaching : quand une carte de défense vient
+d'être créée, … » était hijackée vers `prepare_defense_card` parce que
+`isExplicitDefenseCardIntentForTest` matche un verbe générique (« ce que je vais
+faire »), écrasant la décision correcte `update_coach_preferences` de l'arbitre.
+
+Fix. Subordination du garde L4 au MÊME détecteur de préférence durable qu'en L3
+(`!detectsDurableCoachPreference(userMessage)`). Anti-FP vérifié : une vraie
+demande « Crée une carte de défense … » garde `defIntent=true` / `pref=false`,
+donc le garde tire toujours.
+
+Tests. Régression arbitre T9 → `update_coach_preferences`
+(`turn_intent_arbitrator.test.ts`) + anti-FP création de carte
+(`run_product_help_guard.test.ts`).
+
+### E5 — Rappel : persister le créneau avant la confirmation unique/récurrent — RÉSOLU
+
+Couche. L5/L6 (récupération de slot dans le tool reminder).
+
+A11 T2/T3. L'heure (16h40) donnée à T2 était perdue à T3 (« Oui, rappel unique »)
+car `create_one_shot_reminder` ne lit que le message courant → `missing_time`.
+
+Fix. `maybeCreateOneShotReminder` accepte `contextMessages` (messages user
+récents). Quand le message courant est une confirmation de rappel
+(`looksLikeReminderSlotConfirmationForTest`) SANS heure propre, on récupère
+heure + instruction depuis le dernier message pertinent via
+`parseReminderFromMessageDeterministic` (strict→local→one-shot, AUCUN appel IA).
+Analogue à la résolution d'anaphore du chantier 7.
+
+Tests. `one_shot_reminder_tool_test.ts` : détecteur confirmation (+anti-FP),
+récupération du 16h40 depuis T2, confirmation seule = pas de slot.
+
+### E6 — Récap status : surfaces complètes + defaults vs prefs explicites — RÉSOLU
+
+Couche. L5 (`loadDurableEffectsSummary`).
+
+A11 T13 / A3-r10 T15. Le récap listait les 9 defaults comme « préférences coach :
+oui » et ne couvrait ni les rappels récurrents ni la session de potion.
+
+Fix. Le summary récupère `source_type` et sépare préférences DÉFINIES PAR
+L'UTILISATEUR (`!= system_default`) des réglages PAR DÉFAUT système ; consigne
+explicite « si aucune préférence explicite, dis "aucune préférence enregistrée",
+ne présente jamais les defaults comme des choix ». Ajout des surfaces
+`user_recurring_reminders` (actifs) et `user_potion_sessions` (session récente).
+
+Tests. `loader_durable_effects_test.ts` : prefs explicites, defaults-only (A11
+T13), rappels récurrents, session de potion (A3-r10 T15).
+
+### Bilan tests Groupe E
+
+- `turn_intent_arbitrator.test.ts` : 47 verts (+E2, +E3).
+- `run_product_help_guard.test.ts` : 80 verts (+E1×3, +E3 anti-FP).
+- `one_shot_reminder_tool_test.ts` : 41 verts (+E5×4).
+- `loader_durable_effects_test.ts` : 12 verts (+E6×3).
+- `select_state_potion/tests.ts` : vert (+E0).
+- `deno check` 0 erreur sur les 3 fichiers source touchés (run.ts, loader.ts,
+  one_shot_reminder_tool.ts). 204 tests verts sur les 5 suites combinées.
+
+Différé / à valider en run QA.
+- E2/E3 reposent sur des détecteurs L3 TRANSITIONNELS (`detectsExplicitProductHelp`,
+  `detectsDurableCoachPreference`) — cibles de la migration L3→L1.
+- E1 : la sortie propre est déterministe (marqueur d'arrêt) ; le critère de
+  suppression est un signal `skill_signals.exit` fiable côté slot filler potion.
+- A11 T12 (faux intent `prepare_attack_card` sur demande no-tool/micro-action)
+  non traité ce lot ; à ouvrir comme chantier dédié.
+
+---
+
+## Groupe F — F0/F1/F2/F3/F4 post runs 2026-05-29 (edge + normal)
+
+Runs source : `operations-r2`, `qa-run-global15-edgecases-20260529-n4-strict-r2`,
+`global-run-A2 edge-skills codex-r10`, `global-run-A3 r11`. Le bilan post-E a
+montré que plusieurs correctifs E avaient le bon routage mais le mauvais RENDU,
+et qu'une violation de consentement durable subsistait (la plus grave).
+
+### F0 — Potion : hard-block durable + isolation rappel ponctuel (GRAVITÉ MAX)
+
+Couche. L5 (executor + writer) + L4 (garde supersede) + détecteur de contrat.
+Run. operations-r2 T7/T10/T13.
+
+Symptôme : malgré des refus répétés (« pas de rituel récurrent » T7, « sans
+rappel, sans demain, sans semaine » T10, « rien d'autre » T13), `select_state_potion`
+a créé une session + un `user_recurring_reminders` + un `scheduled_checkins`.
+E0 ne couvrait pas ces formulations et le flag de refus ne survivait pas entre
+tours quand le handler potion ne tournait pas au tour du refus.
+
+Fix (généralise E0) :
+- `detectsPotionFollowUpRefusalForTest` élargi : « pas de rituel/routine/récurrent »,
+  « sans demain/semaine », « rien d'autre », « juste/seulement maintenant »,
+  « une seule fois », « ponctuel », « non pour le suivi ». Normalisation des
+  apostrophes (droites + typographiques).
+- Le refus est ré-évalué sur la **fenêtre des 8 derniers messages user** à
+  l'activation (`recentUserMessages`), pas seulement sur le message courant :
+  un refus T7/T10 supprime donc le follow-up à l'activation T13. Garantie dure
+  de consentement (jamais d'effet récurrent/durable non consenti).
+- Isolation : la garde L4 `explicit_one_shot_reminder_supersedes_tool_flow`
+  excluait `select_state_potion`. Elle laisse maintenant un rappel PONCTUEL
+  explicite (signal fort : `detectsExplicitOneShotReminderCreate` + refus du
+  récurrent) sortir d'un flow potion actif — la confirmation d'un rappel
+  ponctuel n'est plus absorbée en effet récurrent.
+
+Tests. `run_product_help_guard.test.ts` : F0 ×3 (variantes operations-r2 +
+formulations + anti-FP « rituel/suivi/récurrent légitime »). L'exécuteur conserve
+le test E0 de suppression (aucun `user_recurring_reminders`/`scheduled_checkins`).
+
+### F1 — Récap status : defaults vs préférences explicites (composer réel)
+
+Couche. L5 (`buildStatusOnlyNoMutationRuntime`). Run. A11 T13 / A3-r11 T15.
+
+E6 avait corrigé `loadDurableEffectsSummary`, mais les récaps des runs sont
+rendus par `buildStatusOnlyNoMutationRuntime` (composer réellement branché),
+qui listait toujours les 9 réglages par défaut comme « préférences en place ».
+
+Fix : la requête `user_profile_facts` récupère `source_type` (limite portée à
+12) ; on ne compte comme « préférences » que `source_type !== system_default`.
+Les defaults sont mentionnés séparément (« seuls les réglages par défaut système
+sont actifs » / « le reste est sur la valeur par défaut système »).
+`coach_preference_found` dérive désormais des préférences explicites.
+
+Tests. `run_product_help_guard.test.ts` : F1 ×2 (defaults seuls → pas de pref ;
+explicite + defaults → pref listée + defaults notés).
+
+### F2 — Renderer product_help ne produit jamais le bloc status (symétrique E2)
+
+Couche. L4 (gate de rendu). Run. A2-codex T4 / A3-r11 T14.
+
+E2 gagnait le routage (`response_owner=product_help`) mais le composer
+`buildStatusOnlyNoMutationRuntime` (et `buildFaitPrevuFragileRecapRuntime`)
+rendait quand même le bloc « Sans rien modifier : … ».
+
+Fix : les deux composers de récap sont subordonnés à `routeIsProductHelp`
+(`response_owner`/`selected_handler === "product_help"`). Gate déterministe ;
+couvert côté routage par les tests E2 de l'arbitre.
+
+### F3 — Exécution rappel multi-tour sur ordre explicite (anti-boucle)
+
+Couche. L3 (arbitre, promotion) + L5 (runtime + tool). Run. edgecases-r2 T6-T10.
+
+Symptôme : heure + date + texte donnés sur plusieurs tours, puis « programme-le
+maintenant » (T9) ; le dispatcher proposait `create_one_shot_reminder` (high)
+mais l'effet n'était jamais promu en `direct_effects_to_run` → boucle de
+clarification. Trois gates bloquaient (arbitre, runtime, tool early-return).
+
+Fix :
+- `looksLikeReminderExecutionConfirmationForTest` (one_shot_reminder_tool) :
+  détecte un ORDRE d'exécution explicite (« programme-le maintenant », « vas-y
+  lance le rappel ») avec anti-FP question produit.
+- Arbitre (TRANSITIONNEL) : si le **dispatcher a déjà proposé** un
+  `create_one_shot_reminder` (explicit/high) ET que le message est un ordre
+  d'exécution → promotion en `direct_effects_to_run`
+  (`central_arbitrator_one_shot_reminder_execution_confirmation`). On ne re-dérive
+  PAS l'intention : on s'appuie sur la compréhension L1, le code valide sur un
+  contrat de confirmation.
+- Runtime (`run.ts`) : le gate exécute aussi sur ordre d'exécution (sans heure
+  dans le message), fenêtre contexte portée à 6.
+- Tool : l'early-return `!isLikelyOneShotReminderRequest` est relâché quand
+  c'est une confirmation/ordre avec `contextMessages` (récupération de créneau
+  E5/F3). Anti-boucle : si rien n'est récupérable → `needs_clarify`, pas un
+  silence.
+
+Tests. `one_shot_reminder_tool_test.ts` : F3 ×3 (détecteur + anti-FP +
+récupération T8). `turn_intent_arbitrator.test.ts` : F3 ×2 (promotion +
+anti-FP sans proposition dispatcher).
+
+Différé. La qualité du texte d'instruction récupéré peut inclure du préfixe
+(« Texte exact : … ») — polissage extracteur L6 à part. L'effet (heure +
+exécution) est correct.
+
+### F4 — `select_state_potion` ne redemande pas un slot déjà donné (jaune)
+
+Couche. L5 (intake → router IA). Run. A3-r11 T4.
+
+Symptôme : « Apaisement » choisi à T3 (routé normal_reply hors flow potion),
+puis à T4 le flow potion ré-actif redemande le type. Le router IA ne recevait
+pas l'historique.
+
+Fix : `maybeRunSelectStatePotionOperation` transmet `recentMessages`
+(user + assistant, 8 derniers) à `runSelectStatePotionIntake` → au router IA
+(`recent_messages`). L'IA voit le choix antérieur et ne re-pose pas la question.
+Doctrine : on enrichit le contexte de l'IA, pas de regex métier.
+
+Tests. `select_state_potion/tests.ts` : F4 ×1 (le slot filler reçoit bien
+`recent_messages`).
+
+### Bilan tests Groupe F
+
+- `run_product_help_guard.test.ts` : 86 verts (+F0×3, +F1×2).
+- `turn_intent_arbitrator.test.ts` : 50 verts (+F3×2).
+- `one_shot_reminder_tool_test.ts` : 44 verts (+F3×3).
+- `select_state_potion/tests.ts` : 23 verts (+F4×1).
+- `loader_durable_effects_test.ts` : inchangé, vert.
+- `deno check` 0 erreur (run.ts, turn_intent_arbitrator.ts, one_shot_reminder_tool.ts).
+  215 tests verts sur les 5 suites combinées.
+
+Différé / à valider en run QA.
+- F2 : gate de rendu déterministe, à confirmer côté run (rendu product_help réel).
+- F3 : promotion arbitre TRANSITIONNELLE (anchor sur proposition dispatcher) —
+  cible migration L3→L1 quand le dispatcher promeut nativement sur confirmation
+  d'exécution multi-tour. Polissage du texte d'instruction (extracteur L6) différé.
+- edgecases-r2 T14 (`select_state_potion` ignore « pas de potion ») : refus
+  d'entrée de flow potion non traité ce lot — chantier dédié (hard negative).
+
+---
+
+## Groupe G — G0/G1/G2/G3/G4 post runs 2026-05-29 (edgecases-r3 + syncskills-r2)
+
+Runs source : `qa-run-global15-edgecases-20260529-n4-strict-r3`,
+`qa-run-global15-syncskills-20260528/29-n3-strict-r2`, plus les A2/A3/A9
+edge-skills associés. Le bilan post-F a montré que le status/recap pouvait
+encore préempter une COMMANDE d'opération explicite (symétrique inverse de F2),
+qu'un refus dur de potion à l'entrée n'était pas honoré, et que `cancel`
+ponctuel n'avait pas d'exécuteur. Tous les fixes respectent
+`14-qa-test-guidelines.md` (aucune mutation sans confirmation, un seul cerveau,
+gardes déterministes sur des faits/contrats, pas de fabrication d'intention).
+
+### G0 — Status/recap ne préempte JAMAIS une commande d'opération explicite
+
+Couche. L3 (arbitre, défense en profondeur) + L4 (gardes routage) + L5 (ordre
+de rendu). Symétrique de F2, côté opérations. Run. edgecases-r3 T5 (rappel
+« 14h20 ou 16h10 »), syncskills-r2 T2 (carte d'attaque), ~7 tours rouges/4 runs.
+
+Symptôme : une commande d'opération explicite (créer une carte, créer/exécuter
+un rappel) contenant accessoirement un motif status/recap (« Mets-moi un
+rappel… 14h20 ou 16h10 » matche le status-exact rappel `\dh\d\d ou \dh\d\d`)
+était avalée par le bloc status/recap, soit au routage (L3/L4), soit au rendu
+(le composer status_only / fait-prévu-fragile passe AVANT les runtimes
+d'opération dans la chaîne `??`).
+
+Fix :
+- Helper unique `isExplicitOperationCommandForTest` (`run.ts`) qui compose les
+  détecteurs d'opération explicite déjà présents : `detectsExplicitOneShotReminderCreate`,
+  `looksLikeReminderCreationCommandForTest` (NOUVEAU, tolérant aux incises),
+  `looksLikeReminderExecutionConfirmationForTest`,
+  `detectsExplicitAttackCardCreationRequest`, approbations carte attack/defense.
+- `looksLikeReminderCreationCommandForTest` : capte une commande de création de
+  rappel même ambiguë (deux horaires candidats, incise « plutôt »). Anti-FP :
+  exige « rappel » + verbe de création, EXCLUT recap/bilan et le cadrage
+  vérification/status (« quelle heure », « tu as vraiment programmé »).
+- L4 : les gardes `recap_only_request_supersedes_tool_flow` et
+  `status_only_request_blocks_tool_start` ne tirent plus si
+  `isExplicitOperationCommandForTest(userMessage)`.
+- L5 (rendu) : `statusOnlyNoMutationRuntime` et `faitPrevuFragileRecapRuntime`
+  ne s'arment plus si `messageIsExplicitOperationCommand` (sinon ils préemptent
+  la création/confirmation dans la chaîne `??`).
+- L3 (défense en profondeur) : `isExplicitOperationCommand` (arbitre) subordonne
+  les branches `detectsRecapRequest`, `detectsMultiEntityDurableStatus`,
+  `detectsExactDurableStatus`.
+
+Tests. `run_product_help_guard.test.ts` : G0 ×6 (rappel 2-horaires, ordre
+d'exécution, carte d'attaque positifs ; anti-FP récap pur reste éligible au
+rendu status ; anti-FP vraie question d'heure exacte).
+
+Critère de suppression. Quand L1 distingue nativement commande d'opération vs
+lecture status/recap (few-shots), retirer les gardes L3/L4.
+
+### G1 — « pas de potion » = hard-negative qui annule/suspend select_state_potion
+
+Couche. L4 (garde tôt, avant le re-verrou potion). Run. edgecases-r3 T12-14,
+syncskills-r2 T13-14.
+
+Symptôme : un refus explicite de la potion (« ne me propose pas de potion »,
+« ne lance pas de potion », « sans potion ») était ignoré quand la potion
+n'était pas encore active (elle démarrait quand même ce tour) ou ressuscitait
+au tour suivant via `active_select_state_potion_kept_in_tool_skill`. E1
+(`detectsExplicitStatePotionExitForTest`) ne couvrait que le STOP d'un flow
+DÉJÀ actif.
+
+Fix : `detectsExplicitNoPotionRequestForTest` (exige « potion » + marqueur
+négatif clair ; « lance la potion »/« oui pour la potion » ne matchent pas).
+Nouvelle garde L4 placée AVANT le bloc `potionFlowActive` : si vrai, (a) purge
+l'état potion (local + `tempMemory`), (b) retire `select_state_potion` des
+intents/opportunity du tour, (c) si la route allait vers la potion, rend la main
+à la conversation (`normal_reply`, `explicit_no_potion_suspends_select_state_potion`)
+pour livrer la demande concrète (« juste une phrase de réparation »).
+
+Tests. `run_product_help_guard.test.ts` : G1 ×4 (T12, T13, variantes « sans
+potion »/« pas de potion » ; anti-FP accepter/demander une potion + « pas de
+rappel » sans mention potion).
+
+### G2 — Texte du rappel : préserver l'instruction quand la confirmation ne porte que l'heure/le style
+
+Couche. L6 (`one_shot_reminder_tool.ts`, `maybeCreateOneShotReminder`). Polish
+de F3. Run. edgecases-r3 T7.
+
+Symptôme : au tour de confirmation (« Rappel neutre. Programme-le maintenant
+pour aujourd'hui à 16h10. »), l'instruction extraite est DÉGÉNÉRÉE (juste
+l'horaire/le style) et écrasait l'instruction réelle (« vérifier les 5 lignes
+du devis ») donnée au tour précédent.
+
+Fix : `isDegenerateReminderInstructionForTest` détecte une instruction qui ne
+porte QUE de l'horaire/jour/style (après strip des marqueurs temporels +
+mots-clés de style → vide). Quand l'instruction est dégénérée ET que le message
+est une confirmation (`looksLikeReminderExecutionConfirmationForTest` /
+`looksLikeReminderSlotConfirmationForTest`), on RÉCUPÈRE l'instruction réelle
+depuis `contextMessages` (premier candidat non dégénéré via
+`extractReminderInstruction`, exporté), sinon depuis le dernier rappel pending
+en DB. On NE remplace JAMAIS une instruction réelle par l'heure.
+
+Tests. `one_shot_reminder_tool_test.ts` : G2 ×4 (instruction dégénérée
+horaire/style/vide/anaphore ; vraie instruction non dégénérée ; confirmation T7
+→ dégénérée à récupérer ; texte exact T6 récupérable et non dégénéré).
+
+### G3 — Executor `cancel_one_shot_reminder` (annuler réellement ou le dire)
+
+Couche. L5 (nouvel exécuteur) + L5 (chaîne runtime `run.ts`). Nouvelle feature.
+Run. edgecases-r3 T9/T10.
+
+Symptôme : `cancel_one_shot_reminder` était détecté par le dispatcher mais
+AUCUN exécuteur ne l'appliquait → Sophia promettait l'annulation alors que le
+rappel restait `pending` en DB.
+
+Fix :
+- `detectsExplicitOneShotReminderCancelForTest` (`run.ts`) : verbe d'annulation
+  + référence rappel/ping. Anti-FP : négation (« ne l'annule pas », tolérante
+  aux apostrophes non normalisées), question produit/navigation (« où annuler
+  dans l'app »).
+- `maybeCancelOneShotReminder` (`one_shot_reminder_tool.ts`) : lit les
+  `scheduled_checkins` pending `one_shot_reminder:%`, filtre par heure locale
+  ciblée si le message la précise (`extractTargetHHMMFromMessage` +
+  `localHHMMForScheduledFor`, tz-aware), passe les ciblés en `cancelled` via le
+  write client. Renvoie `cancelled` (avec labels locaux), `no_reminder`, ou
+  `failed` (souci technique dit honnêtement, jamais de faux succès).
+- Branché dans la chaîne `operationRuntime` AVANT
+  `oneShotReminderModificationRuntime`.
+
+Tests. `one_shot_reminder_tool_test.ts` : G3 ×3 (annulation réelle 16h10 →
+`status=cancelled`, aucun pending → `no_reminder`, heure ciblée ne coupe que le
+bon rappel). `run_product_help_guard.test.ts` : G3 ×3 (détecteur positif T9,
+« coupe ce ping »/« annule-le vraiment » ; anti-FP question produit + négation
++ remerciement).
+
+### G3-fix — Annulations non consenties (régression G3) — RÉSOLU
+
+Couche. L5 (détecteur `detectsExplicitOneShotReminderCancelForTest` + gate runtime).
+Runs. A14-r1 T3/T13/T14, normal-conversation-r4 T13, edgecases-r4 T15.
+
+Symptôme (CRITIQUE) : le détecteur G3 matchait « annule/annulé » + « rappel »
+sans distinguer une COMMANDE d'une question/vérification/description. Il a
+déclenché des annulations DB NON CONSENTIES sur :
+- « si je veux l'annuler plus tard, je passe par où ? » (question produit/futur) ;
+- « le rappel a été annulé puis recréé … sans le lancer » (description passée +
+  refus d'outil explicite — violation du garde no-tool) ;
+- « Vérifie sans modifier : … l'ancien annulé ? » (vérification status) ;
+- « récap : … rappel 15h50 créé ou annulé » (récap → réponse cancel parasite).
+
+Fix :
+- Le détecteur exige désormais une COMMANDE impérative immédiate et exclut en
+  amont quatre familles de cadres non-impératifs : (A) vérification/status/récap
+  (« vérifie », « confirme-moi », « sans modifier », « récap/bilan/résume »),
+  (B) question produit/navigation/futur conditionnel (« comment annuler », « si
+  je veux … plus tard », « je passe par où », « dans l'app »), (C) refus d'outil
+  (« ne crée rien », « sans le lancer », « propose-le seulement »), (D)
+  description d'une annulation PASSÉE (« a été annulé », « tu viens d'annuler »,
+  « annulé puis recréé »).
+- Défense en profondeur au runtime : le runtime de cancellation est subordonné à
+  `!isExplicitNoToolRequestForTest(userMessage)` (aucune mutation sous refus
+  d'outil explicite).
+
+Tests. `run_product_help_guard.test.ts` : 5 anti-FP (les 5 tours observés) + 1
+positif (commande combinée annuler+créer reste détectée).
+
+### G4 — `update_coach_preferences` : validation sémantique de la paraphrase (jaune)
+
+Couche. L5 (`maybeRunUpdateCoachPreferencesOperation`). Run. syncskills-r2 T10.
+
+Symptôme : le slot filler pouvait INVERSER le sens de la préférence de
+questionnement. À T10, « commence par un geste concret AVANT de me poser
+plusieurs questions » (= MOINS de questions) était paraphrasé en draft
+`coach.question_tendency = "high"` (= PLUS de questions), et Sophia s'apprêtait
+à confirmer ce sens inversé.
+
+Fix : `detectsCoachPreferenceDirectionContradictionForTest(message, patch)`
+valide que la DIRECTION du patch (`coach.question_tendency` low/high) ne
+contredit pas l'intention exprimée (marqueurs « moins de questions »/« geste
+concret avant … questions »/« une seule question » vs « plus de questions »/
+« questionne-moi davantage »). Si contradiction ET que ce n'est pas une
+confirmation explicite, on ne confirme PAS : on purge le pending/intake et on
+demande une clarification de direction (« MOINS ou PLUS de questions ? »),
+`status=direction_needs_confirmation`. Scope = `coach.question_tendency` (le cas
+observé). « IA comprend, code valide ».
+
+Tests. `run_product_help_guard.test.ts` : G4 ×4 (T10 geste-concret-avant vs
+patch high ; « moins de questions » vs high ; « plus de questions » vs low ;
+anti-FP directions cohérentes + patch sans `question_tendency`).
+
+### Bilan tests Groupe G
+
+- `run_product_help_guard.test.ts` : 102 verts (+G0×6, +G1×4, +G3×3, +G4×4).
+- `one_shot_reminder_tool_test.ts` : 51 verts (+G2×4, +G3×3).
+- `turn_intent_arbitrator.test.ts` : 50 verts (G0 défense en profondeur,
+  inchangé côté compteur).
+- `deno check` 0 erreur sur les fichiers touchés (run.ts,
+  turn_intent_arbitrator.ts, one_shot_reminder_tool.ts).
+
+Différé / à valider en run QA.
+- G0 : gardes L3/L4 TRANSITIONNELLES — cibles migration L3→L1.
+- G3 : pas de prise en charge de l'annulation par ID exact (seulement par heure
+  locale ou globale) ; suffisant pour les formulations observées.
+- G4 : scope limité à `coach.question_tendency`. D'autres dimensions
+  (ton, longueur) pourraient inverser ; à élargir si un run le montre. À terme,
+  la validation devrait être portée par le slot filler IA lui-même.
+
+---
+
+## Groupe H — Correctifs RED hors périmètre G (2026-05-29)
+
+Runs cibles : edgecases-r4, syncskills-r3, A14-r1, A2-r12, A9-r4.
+
+### H1 — « pas de potion » honoré dans `emotional_repair`
+
+Couche. L4 (`run.ts` route guard + `explicitNoPotionConcreteReplyRuntime`).
+
+Symptôme : tools bloqués mais la réponse posait encore des questions au lieu
+de livrer phrase/micro-action/reset (edgecases-r4 T12-14, syncskills-r3 T13-14).
+
+Fix :
+- Garde G1 étendue : si `emotional_repair` actif OU livrable concret demandé,
+  bascule vers `normal_reply` (pas seulement potion active/would-start).
+- Runtime `explicitNoPotionConcreteReplyRuntime` : livre reset 2 min, phrase de
+  réparation + micro-action, sans `?`.
+
+Tests. `run_product_help_guard.test.ts` : H1×2.
+
+### H2 — `prepare_defense_card` ne rend plus status-only au lieu du brouillon
+
+Couche. L4 (gate status composer).
+
+Symptôme : A14-r1 T6-T8 — status-only preempt le flow carte de défense.
+
+Fix : le composer `statusOnlyNoMutationRuntime` est désactivé quand
+`routeIsCardToolSkill`, `messageIsExplicitCardCommand`, ou
+`isActiveCardDraftingOperationForTest(activeOperationIntake)`.
+
+### H3 — `update_coach_preferences` mapping précis
+
+Couche. L5 (`intake.ts` + `generator.ts` + preview runtime).
+
+Symptômes :
+- `mode tunnel` mappé vers règle « court » (A2-r9 T8-10).
+- `challenger doucement` → `coach.tone=soft` (A9-r4 T13-14).
+- syncskills-r3 T10 : clarification inutile malgré geste concret + question max.
+
+Fix :
+- `mode tunnel` → patch multi-clés (`tone=direct`, `emoji=none`,
+  `final_question=avoid`, `question_tendency=low`) + summaries nommant le
+  déclencheur « mode tunnel » (jamais « court »).
+- `challenger doucement` + technique ne colle → `challenge_level=balanced`.
+- Geste concret <10 min + question max → patch direct sans slot filler.
+- Preview sans enregistrement : `buildCoachPreferencePreviewReplyForTest`.
+
+Tests. `update_coach_preferences/tests.ts` : H3×3 ;
+`run_product_help_guard.test.ts` : H3 preview×1.
+
+### H4 — Status-only au démarrage + récaps incomplets
+
+Couche. L4 (`isRecapOnlyRequestForTest` + `buildStatusOnlyNoMutationRuntime`).
+
+Symptômes : edgecases-r4 T1 (note de synthèse ≠ récap) ; récaps oubliant potion
+/ rappel annulé.
+
+Fix :
+- Anti-FP « note de synthèse » + « juste démarrer ».
+- Récap enrichi : rappels `cancelled`, sessions potion `completed`, piège
+  notifications/doc si mentionné.
+
+### H5 — Rappel ambigu ne bascule plus vers `create_recurring_reminder`
+
+Couche. L4 (`shouldPreferOneShotReminderOverRecurringForTest` +
+`recurringReminderRouteIsSelected`).
+
+Symptôme : edgecases-r4 T7 — rappel ponctuel ambigu → récurrent.
+
+Fix : heure + texte exact / « pas récurrent » / « aujourd'hui » → one-shot only.
+
+Tests. `run_product_help_guard.test.ts` : H5×1.
+
+### H6 — Multi-intention : 2e demande du même message après tool
+
+Couche. L4 (cancellation replace + reminder addon).
+
+Symptôme : syncskills-r3 T5/T12 — annuler+créer ou séquence minute/minute perdue.
+
+Fix :
+- Cancel runtime : si create intent aussi détecté → `maybeCreateOneShotReminder`
+  après cancel réussi (`replaced_after_cancel`).
+- Reminder runtime : append `buildMinuteByMinuteSequenceAddonForTest` sur succès.
+
+Tests. `run_product_help_guard.test.ts` : H6×1.
+
+### Bilan tests Groupe H
+
+- `run_product_help_guard.test.ts` : +H1×2, +H3×1, +H5×1, +H6×1 (113 total attendu).
+- `update_coach_preferences/tests.ts` : +H3×3.
+- `deno check` sur fichiers touchés.
+
+Différé / à valider en run QA all_skills.
+
+---
+
+## Groupe I — Correctifs architecture post runs 2026-05-29 (A15 / edgecases-r5 / A9-r5 / syncskills-r4)
+
+Runs cibles : `global-run-A15-r1`, `edgecases-r5`, `A9-r5`,
+`syncskills-r4`, `A2-r13`, `normal-conv-r5`.
+
+### I1 — `prepare_attack_card` : validation brouillon vs création
+
+Couche. L5 tool skill (`prepare_attack_card`) + validation contractuelle
+existante dans `run.ts`.
+
+Symptôme : A9-r5 T5 exécutait `prepare_attack_card` alors que le user disait
+« affiche le brouillon complet maintenant, sans le créer encore ».
+
+Décision : ne pas créer une carte sur une validation qui contient explicitement
+un contrat de brouillon/non-durabilité. Le correctif reste dans le contrat de
+validation du tool skill : une approbation déterministe n'est valide que si elle
+ne contredit pas l'exécution. Pas de nouveau détecteur L3/L4 de routing.
+
+Fichiers modifiés :
+- `router/run.ts`
+- `router/run_product_help_guard.test.ts`
+
+Tests :
+- `I1: attack card draft-only wording is not treated as creation approval`.
+
+Limite : ne corrige pas à lui seul les mauvais routages initiaux
+`normal_reply` vs `prepare_attack_card` de syncskills-r4 T2-T3 ; ces cas
+dépendent encore du dispatcher / router d'entrée.
+
+### I2 — L6 rappel ponctuel : extraction du texte utile après `Texte exact :`
+
+Couche. L6 (`tools/always_on/one_shot_reminder`).
+
+Symptôme : A15 T2 et edgecases-r5 T7 persistaient une instruction polluée par
+la méta-commande (« choisis 16h05. Texte exact : … ») au lieu du texte utile.
+
+Décision : dans l'extracteur de payload, prioriser les labels explicites
+`texte exact:`, `instruction:`, `message:` même quand le contenu n'est pas
+encadré par des guillemets et même si une autre phrase contient déjà un deux
+points. C'est du parsing de payload, autorisé en L6.
+
+Fichiers modifiés :
+- `tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts`
+- `tools/always_on/one_shot_reminder/one_shot_reminder_tool_test.ts`
+
+Tests :
+- `I2: parseOneShotReminderRequest strips unquoted Texte exact meta-command after earlier colon`.
+
+### I3 — Préférences composites : clé durable `coach.action_first_policy`
+
+Couche. L5 tool skill `update_coach_preferences` + schéma applicatif de
+préférence.
+
+Symptôme : syncskills-r4 T9-T14 et A15 T7-T12 réduisaient « geste concret /
+action d'abord avant questions » à `coach.question_tendency=low`, ce qui perd
+le cœur de la préférence et rend les récaps contradictoires.
+
+Décision : ajouter une clé durable dédiée
+`coach.action_first_policy=concrete_before_questions`. Les demandes composites
+peuvent maintenant écrire cette clé en plus de `question_tendency`, `tone`,
+etc. Le builder, le slot filler, la validation de payload, le label de statut
+et l'upsert DB acceptent cette clé. Ce n'est pas une regex de routing : c'est
+une extension de modèle pour représenter un concept qui n'avait pas de slot.
+
+Fichiers modifiés :
+- `tools/operations/_shared/operation_payload_builder.ts`
+- `tools/operations/update_coach_preferences/workflow.ts`
+- `tools/operations/update_coach_preferences/intake.ts`
+- `tools/operations/update_coach_preferences/generator.ts`
+- `tools/operations/update_coach_preferences/slot_filler.ts`
+- `router/run.ts`
+- `tools/operations/update_coach_preferences/tests.ts`
+- `router/run_product_help_guard.test.ts`
+
+Tests :
+- `I3: action-first preference gets its own durable key, not only question_tendency`.
+- H3 existant mis à jour : le cas « geste concret + question max » vérifie
+  maintenant aussi `coach.action_first_policy`.
+
+Limite : l'application runtime de cette préférence dans tous les composers
+n'est pas entièrement traitée ici. Le statut et la persistance sont corrigés ;
+le rendu conversationnel devra lire cette clé de façon systématique dans un
+chantier dédié si les prochains runs montrent encore des questions finales.
+
+### I4 — Status DB-grounded : rappel créé puis annulé
+
+Couche. L5 composer status (`buildStatusOnlyNoMutationRuntime`).
+
+Symptôme : edgecases-r5 T15 répondait « rappels ponctuels : je n'en vois pas
+en place » alors que le bon état était « créé puis annulé ». La ligne était
+techniquement vraie pour les rappels actifs, mais fausse pour le récap demandé.
+
+Décision : quand il n'y a aucun rappel actif mais qu'un rappel one-shot annulé
+récent existe et que le message demande un récap/statut d'annulation, la ligne
+principale dit explicitement `aucun actif ; ... créé puis annulé`. Les détails
+annulés restent aussi disponibles en lignes extra.
+
+Fichiers modifiés :
+- `router/run.ts`
+- `router/run_product_help_guard.test.ts`
+
+Tests :
+- `I4: status composer reports created-then-cancelled one-shot reminders`.
+
+### I5 — Priorité one-shot explicite sur ancien flow outil
+
+Couche. L5 orchestration runtime (`run.ts` direct effects).
+
+Symptôme : edgecases-r5 T6 ignorait une demande de rappel ponctuel parce qu'un
+ancien flow `prepare_attack_card` reprenait la main.
+
+Décision : si `direct_effects_to_run` contient `create_one_shot_reminder` et
+que le message courant porte un rappel one-shot exécutable, le runtime one-shot
+peut s'exécuter même si `routeDecision.response_owner` est encore `tool_skill`.
+Le succès nettoie déjà le flow technique via `clearToolSkillFlowForDirectReminder`.
+Cette décision privilégie l'effet structuré du dispatcher sur le propriétaire
+stale, sans ajouter de regex de sémantique carte.
+
+Fichiers modifiés :
+- `router/run.ts`
+
+Tests couverts indirectement :
+- suite `one_shot_reminder_tool_test.ts`
+- suite `run_product_help_guard.test.ts`
+
+### Bilan tests Groupe I
+
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/one_shot_reminder_tool_test.ts` : 52 verts.
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/update_coach_preferences/tests.ts` : 16 verts.
+- `deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_product_help_guard.test.ts` : 115 verts.
+- `deno check` sur les fichiers modifiés : vert.
+
+Différé / à valider en run QA all_skills : `prepare_attack_card` durable
+depuis `normal_reply` (syncskills T2-T4), mémoire conversationnelle
+`garde comme repère`, et application runtime exhaustive de
+`coach.action_first_policy`.
+
+---
+
 ## Familles de bugs identifiées mais hors scope
 
 Référence pour les prochaines sessions, classées par couche et par effort.
@@ -479,15 +1644,14 @@ Couche. L5 (generator du skill). Effort. ~2-3h.
 A3-r7 T11. User demande "une seule proposition, pas trois options", Sophia
 propose deux options. Le générateur ne lit pas la contrainte de forme.
 
-### F9/F10 — Composer recap "fait/prévu/fragile" et hallucination "c'est fait"
+### F9/F10 — Composer recap "fait/prévu/fragile" et hallucination "c'est fait" — RÉSOLU (C5 + C2)
 
-Couche. L5 (composer) + traçage runtime. Effort. ~2-3h.
+Couche. L5 (composer) + traçage runtime.
 
-A2-codex T13/T14. Le composer pose une question au lieu de rendre quand le
-user fournit les labels explicites + "pas de question".
+A2-codex T13/T14 → résolu par C5 (composer déterministe
+`buildFaitPrevuFragileRecapRuntime`, 3 lignes, 0 question, DB).
 
-A4-r6 T6 (C17 différé). Sophia annonce une exécution qui n'a pas eu lieu.
-Nécessite instrumentation entre L3 et L5.
+A4-r6 T6 (ex-C17) → résolu par C2 (`applyUnexecutedEffectClaimGuardForTest`).
 
 ### Préférences conditionnelles structurées en `user_profile_facts`
 
@@ -505,8 +1669,8 @@ Couche. Infra. Prérequis à toute validation QA fiable.
 
 Couche. L1 (dispatcher prompt). Effort. variable.
 
-Quand le dispatcher (avec les few-shots des chantiers 3, 8, 9, 10, 11, 15, 16)
-prouve sur 2 runs QA consécutifs qu'il produit nativement les bons signaux,
+Quand le dispatcher (avec les few-shots des chantiers 3, 8, 9, 10, 11, 15, 16,
+C7) prouve sur 2 runs QA consécutifs qu'il produit nativement les bons signaux,
 supprimer les détecteurs L3 correspondants un par un. Voir critère de
 suppression du chantier 3.
 

@@ -1,0 +1,96 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": [
+    {
+      "key": "coach.tone",
+      "source_type": "system_default",
+      "value": {
+        "label": "Bienveillant ferme",
+        "value": "warm_direct"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.challenge_level",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.feedback_style",
+      "source_type": "system_default",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.message_length",
+      "source_type": "system_default",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.message_format",
+      "source_type": "system_default",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.primary_focus",
+      "source_type": "system_default",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "source_type": "system_default",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    },
+    {
+      "key": "coach.question_tendency",
+      "source_type": "system_default",
+      "value": {
+        "label": "Normale",
+        "value": "normal"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-28T22:18:05.300605+00:00"
+    }
+  ]
+}

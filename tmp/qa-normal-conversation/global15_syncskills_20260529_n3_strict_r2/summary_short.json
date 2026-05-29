@@ -1,0 +1,356 @@
+[
+  {
+    "turn": 1,
+    "ok": true,
+    "assistant": "On fait compact : choisis une seule zone visible et ouvre-la.\nPremier geste : écris juste le titre du mini-pas suivant. 🙂",
+    "response_owner": "conversation_handler",
+    "selected_handler": "execution_breakdown",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 2,
+    "ok": true,
+    "assistant": "Ok, carte d’attaque, version “pas de bureau, pas de rangement” 👇🙂\n\n1) Stop (10 sec)\n- Tu te forces à rester assis. Rien à ranger. Juste les mails.\n\n2) Cible (5 sec)\n- Ouvre seulement la boîte mail “clients”.\n- Tu copies/notes : les 2 mails qui bloquent la facture (titres ou expéditeur).\n\n3) Action unique (2–4 min)\n- Pour chaque mail : écris une réponse ultra courte (1 phrase) ou fais l’action demandée.\n- Dès que c’est fait, tu les coches/tu les marqu es “traité”.\n\n4) Verrou anti-piège (30 sec)\n- Si ton cerveau te dit “ranger le bureau” : tu réponds mentalement “non, d’abord ces 2 mails”.\n- Tu reviens au même écran mail.\n\n5) Fin (10 sec)\n- Tu confirmes : “2 mails traités” puis tu passes à la facture.\n\nTu préfères ta carte d’attaque en mode “réponse aux mails” ou en mode “action demandée dans les mails” (A/B) ?",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "central_arbitrator_status_exact_priority",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 3,
+    "ok": true,
+    "assistant": "Il me manque encore un choix pour préparer cette carte. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "prepare_attack_card",
+        "explicitness": "explicit",
+        "target_hint": "action demandee dans les mails",
+        "operation_input": {
+          "target": {
+            "status": "identified",
+            "value": "action demandee dans les mails",
+            "evidence": [
+              "B, action demandee dans les mails"
+            ]
+          },
+          "trigger_phrase": {
+            "status": "identified",
+            "value": "deux mails puis facture",
+            "evidence": [
+              "phrase courte: deux mails puis facture"
+            ]
+          }
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "create"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 4,
+    "ok": true,
+    "assistant": "C'est entendu pour le Mot de bascule. Quel mot court (comme 'MAILS' ou 'FOCUS') veux-tu m'envoyer quand tu te surprendras à ranger ton bureau au lieu de traiter tes mails ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "prepare_attack_card",
+        "explicitness": "explicit",
+        "target_hint": "revenir aux deux mails clients puis a la facture",
+        "operation_input": {
+          "action_title": "revenir aux deux mails clients puis a la facture",
+          "trigger": "je commence a ranger le bureau",
+          "technique": "Mot de bascule",
+          "short_phrase": "deux mails puis facture"
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "create"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 5,
+    "ok": true,
+    "assistant": "Je n'ai pas pu préparer cette carte depuis le chat pour l'instant. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "product_help",
+    "route_reason": "product_help_inline_resume_active_tool_skill",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [
+      "prepare_attack_card"
+    ],
+    "tool_execution": "failed",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 6,
+    "ok": true,
+    "assistant": "C'est programmé pour vendredi 29 mai à 11:40 : reprendre la facture sans rouvrir tout le bureau. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "central_arbitrator_one_shot_reminder_priority",
+    "safety": null,
+    "direct_effects": [
+      {
+        "effect_type": "create_one_shot_reminder",
+        "explicitness": "explicit",
+        "target_status": "identified",
+        "confidence_band": "high",
+        "payload_hint": {
+          "raw_text": "Ok, laisse la carte de cote. Reviens au concret: donne-moi une sequence de 10 minutes pour traiter ces deux mails, puis rappelle-moi aujourd hui a 11h40 de reprendre la facture sans rouvrir tout le bureau."
+        }
+      }
+    ],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "tool_execution": "success",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 7,
+    "ok": true,
+    "assistant": "Ok. On y va minute par minute, sans nouveau rappel ni carte. 😄\n\n10:00-10:01 (1 min) : ouvre la boîte mail “clients” et mets un minuteur.  \n10:01-10:03 (2 min) : lis le 1er mail. Note juste: ce qui est attendu (1 ligne) + ta prochaine action (1 verbe).  \n10:03-10:05 (2 min) : écris/réponds au 1er mail en 2-3 lignes max. Clique “envoyer”.  \n10:05-10:06 (1 min) : reviens à la liste des mails, sur le 2e (sans ranger ton bureau).  \n10:06-10:08 (2 min) : lis le 2e mail. Note la demande + ta prochaine action.  \n10:08-10:10 (2 min) : écris/réponds au 2e mail en 2-3 lignes max. Clique “envoyer”.  \n10:10-10:11 (1 min) : check rapide: “les 2 réponses sont parties” (une seule phrase de confirmation dans ta tête).  \n10:11-10:12 (1 min) : ouvre la facture et reprends exactement le point que ces mails déverrouillent.\n\nTu commences par le 1er mail maintenant (A) ou tu me copies juste les 2 titres ici pour que je te dise quoi écrire pile-poil ?",
+    "response_owner": "normal_reply",
+    "selected_handler": null,
+    "route_reason": "immediate_mode_request_not_execution_breakdown",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 8,
+    "ok": true,
+    "assistant": "Le rappel ponctuel que je t'ai programmé se gère côté Initiatives, dans les rappels côté chat pour ce type-là.\n\nPour le modifier ou l'annuler, le plus fiable est de me le redire ici clairement, par exemple: \"change le rappel de demain à 9h\" ou \"annule le rappel de demain\". 🙂",
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 9,
+    "ok": true,
+    "assistant": "Yes, nickel. ✅🙂  \nPour “tri mail client”, tes critères par défaut pour la suite seront: 1) blocage de facture, puis 2) échéance (et pas l’ordre d’arrivée).\n\nTu veux que je l’applique aussi à l’étape “à traiter en priorité” (ex: comment tu ranges les mails urgents), ou juste au tri global ?",
+    "response_owner": "product_help",
+    "selected_handler": "product_help",
+    "route_reason": "skill_entry_signal",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 10,
+    "ok": true,
+    "assistant": "Bien reçu. Pour la suite, je prendrai plus souvent le temps de te questionner avant de trancher. Si c'est bien ça, je le garde comme préférence. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "central_arbitrator_coach_preference_priority",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "update_coach_preferences",
+        "explicitness": "explicit",
+        "target_hint": "Juste au tri global. Et cote coaching, garde cette preference durable: commence par un geste concret de moins de 10 minutes avant de me poser plusieurs questions.",
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "update"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 11,
+    "ok": true,
+    "assistant": "Ok, je ne garde pas cette préférence. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "update_coach_preferences",
+        "explicitness": "explicit",
+        "target_hint": "moins de questions au debut, geste concret < 10 min d'abord",
+        "operation_input": {
+          "preference_type": "interaction_style",
+          "value": "action_first_then_minimal_questions",
+          "evidence": [
+            "je veux moins de questions au debut",
+            "D abord un geste concret de moins de 10 minutes, ensuite seulement une ou deux questions si utile"
+          ]
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "update"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 12,
+    "ok": true,
+    "assistant": "Ah oui je vois ce que tu veux dire… et t’as raison: quand je m’accroche au “mode procédure”, ça peut te donner l’impression que tu dois cocher des cases, et toi t’as juste besoin d’avancer. 😊\n\nDu coup, pour être clair:\n1) On peut faire simple: tu me dis ce que tu veux ajuster, en langage normal, et je m’aligne.\n2) La “préférence” que tu corriges, c’est juste ton besoin de ton naturel, pas une formalité.\n\nPour que je retombe juste: tu veux que je parle plutôt “courte action + une phrase utile” ou “un peu plus guidé mais jamais en mode formulaire” ?",
+    "response_owner": "tool_skill",
+    "selected_handler": "update_coach_preferences",
+    "route_reason": "tool_skill_intent_start",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "update_coach_preferences",
+        "explicitness": "explicit",
+        "target_hint": "moins de questions au debut, d'abord un geste concret de moins de 10 minutes, ensuite seulement une ou deux questions si utile",
+        "operation_input": {
+          "preference_type": "interaction_style",
+          "value": "action_first_minimal_questions",
+          "evidence": [
+            "je corrigeais la preference",
+            "je veux moins de questions au debut",
+            "D abord un geste concret de moins de 10 minutes, ensuite seulement une ou deux questions si utile"
+          ]
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "update"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 13,
+    "ok": true,
+    "assistant": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "explicit_no_tool_request_blocks_tool_start",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 14,
+    "ok": true,
+    "assistant": "Je te suis. Qu'est-ce qui te pèse le plus là-dedans ? 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": "select_state_potion",
+    "route_reason": "active_select_state_potion_kept_in_tool_skill",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [
+      {
+        "operation_type": "update_coach_preferences",
+        "explicitness": "explicit",
+        "target_hint": "un geste concret maintenant, pas une exploration",
+        "operation_input": {
+          "preference_type": "coaching_style",
+          "value": "action_first_no_exploration",
+          "evidence": [
+            "J ai besoin que tu appliques la preference: un geste concret maintenant, pas une exploration"
+          ]
+        },
+        "confidence_band": "high",
+        "ambiguity": "none",
+        "user_intent": "update"
+      }
+    ],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "blocked",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  },
+  {
+    "turn": 15,
+    "ok": true,
+    "assistant": "Sans rien modifier :\n- Carte d'attaque : je n'en vois pas en place.\n- Carte de défense : je n'en vois pas en place.\n- Rappels ponctuels : oui, il est programmé à 11:40 (reprendre la facture sans rouvrir tout le bureau).\n- Préférences coach : tu n'en as pas encore défini ; seuls les réglages par défaut système sont actifs. 🙂",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "central_arbitrator_recap_request_priority",
+    "safety": null,
+    "direct_effects": [],
+    "tool_intents": [],
+    "opportunity": null,
+    "executed_tools": [],
+    "tool_execution": "none",
+    "memory_write_candidates_emitted": null,
+    "trace_error": null
+  }
+]

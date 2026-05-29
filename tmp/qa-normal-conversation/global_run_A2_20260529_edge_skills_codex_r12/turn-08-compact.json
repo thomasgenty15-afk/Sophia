@@ -1,0 +1,17 @@
+{
+  "http_status": "200",
+  "ok": true,
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r12-t08",
+  "response_owner": "tool_skill",
+  "selected_handler": "update_coach_preferences",
+  "route_reason": "central_arbitrator_coach_preference_priority",
+  "safety": null,
+  "operation": "f03114b3-7ab5-48cc-9808-1f1d1add14cd",
+  "memory_plan": null,
+  "executed_tools": [],
+  "tool_status": "pending_confirmation",
+  "skill_id": null
+}

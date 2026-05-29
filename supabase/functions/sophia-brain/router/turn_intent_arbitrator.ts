@@ -1,5 +1,6 @@
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
+import { looksLikeReminderExecutionConfirmationForTest } from "../tools/always_on/one_shot_reminder/one_shot_reminder_tool.ts";
 
 // =============================================================================
 // COUCHE L3 — Arbitre de routage
@@ -260,6 +261,40 @@ export function detectsExplicitNoStatusRequest(message: string): boolean {
     .test(text);
 }
 
+/** TRANSITIONNEL — chantier D1 (2026-05-28). Voir A4-r7 T15.
+ *
+ *  Une contrainte de FORMAT sur la réponse courante ("en 4 lignes maximum",
+ *  "pas d'explication", "format strict", "réponds court") n'est PAS une
+ *  préférence coach DURABLE. Sans ce garde, la simple mention "préférence
+ *  coach" dans une demande de recap formaté ("...dis s'il y a une préférence
+ *  coach nouvelle appliquée. Pas d'explication.") tombait à tort sur
+ *  `update_coach_preferences`. C'est la généralisation de C5 (récap
+ *  déterministe) au niveau du routage : forme ponctuelle ≠ règle durable.
+ *
+ *  Anti-faux-positif: si un marqueur de DURABILITÉ explicite est présent
+ *  (toujours / désormais / "garde comme préférence" / "préférence durable"…),
+ *  on NE déclenche PAS — c'est un vrai `update_coach_preferences` (A4-r7 T11
+ *  "Garde comme préférence coach : …"). On exclut volontairement la simple
+ *  mention "préférence coach" car elle apparaît dans des demandes de lecture.
+ *
+ *  Critère de suppression: quand le dispatcher L1 distingue de façon fiable
+ *  "contrainte de forme ponctuelle" de "préférence durable" (few-shots), ce
+ *  garde transitionnel peut disparaître.
+ */
+const RESPONSE_FORMAT_CONSTRAINT =
+  /\b(en \d+ ligne(?:s)?(?: maximum| max| maxi)?|\d+ ligne(?:s)? max(?:imum|i)?|pas d explication(?:s)?|sans explication(?:s)?|sans commentaire(?:s)?|format strict|reponse courte|reponds court|sois bref|en une phrase|en deux phrases|en trois phrases|pas de blabla|va droit au but)\b/;
+const DURABLE_PREFERENCE_MARKER =
+  /\b(toujours|desormais|dorenavant|a partir de maintenant|pour la suite|a chaque fois|systematiquement|par defaut|en regle generale|garde (?:ca |cela )?(?:comme|en) preference|garde comme preference|garde cette preference|enregistre (?:une |cette |ma )?preference|memorise (?:cette |ma )?preference|preference durable|mets a jour (?:ma |la )?preference|regle (?:ma |la )?preference|definis (?:ma |une )?preference)\b/;
+
+export function detectsPonctualResponseFormatConstraint(
+  message: string,
+): boolean {
+  const text = normalizeText(message);
+  if (!RESPONSE_FORMAT_CONSTRAINT.test(text)) return false;
+  if (DURABLE_PREFERENCE_MARKER.test(text)) return false;
+  return true;
+}
+
 /** TRANSITIONNEL — chantier 9 (2026-05-28). Voir A7-r2 T3.
  *
  *  Quand un draft de carte d'attaque attend confirmation (pending intake)
@@ -355,6 +390,56 @@ function looksLikeExplicitAttackCardRequest(message: string): boolean {
     /\b(action\s*:|piege\s*:|signal\s*(visuel)?\s*:|phrase\s*:|technique\s*:|cible\s*:|setup\s*:|texte\s*:)/
       .test(text);
   return hasStructureMarker;
+}
+
+/** TRANSITIONNEL — chantier D5 (2026-05-28). Voir A3-r9 T11/T12.
+ *
+ *  Une demande EXPLICITE de CRÉATION de carte d'attaque ("crée-moi une carte
+ *  d'attaque…, fais-moi le brouillon", "prépare la carte d'attaque maintenant,
+ *  demande-moi de valider") est une intention tool explicite. Elle ne doit pas
+ *  être capturée par `product_help` simplement parce que la réponse/brouillon
+ *  contiendra des mots produit ("Dashboard", "Ressources", "Carte d'attaque").
+ *
+ *  Anti-faux-positif: on exige (a) le NOM "carte d'attaque", (b) un VERBE de
+ *  création, (c) un INDICE de création (brouillon / "prépare la" / "maintenant"
+ *  / "choisis la technique" / "valide cette version"…), et on EXCLUT les vraies
+ *  questions de navigation ("où je la retrouve / comment l'annuler dans l'app").
+ *
+ *  Critère de suppression: quand le dispatcher L1 route fiablement une demande
+ *  de création de carte vers prepare_attack_card (few-shots), retirer ce garde.
+ */
+const ATTACK_CARD_NOUN_PATTERN =
+  /\b(carte d attaque|carte attaque|attack card)\b/;
+const ATTACK_CARD_CREATION_VERB_PATTERN =
+  /\b(prepare|prepares|preparer|cree|crees|creer|cree moi|fais moi (?:une|le|la)|fais une|genere|monte moi|construis)\b/;
+const ATTACK_CARD_CREATION_CUE_PATTERN =
+  /\b(brouillon|prepare (?:la|moi|cette)|prepares (?:la|moi|cette)|fais moi le brouillon|demande(?: moi)?(?: de)? valider|demande(?: moi)? seulement de valider|version courte|choisis la technique|maintenant|valide cette version)\b/;
+const ATTACK_CARD_NAVIGATION_QUESTION_PATTERN =
+  /\b(ou (?:est|se trouve|sont|je (?:la |le )?(?:retrouve|trouve|vois)|puis je)|comment (?:je |on |faire )?(?:la |le )?(?:retrouve|trouver|voir|acceder|modifier|annuler|supprimer))\b/;
+
+export function detectsExplicitAttackCardCreationRequest(
+  message: string,
+): boolean {
+  const text = normalizeText(message);
+  if (!ATTACK_CARD_NOUN_PATTERN.test(text)) return false;
+  if (!ATTACK_CARD_CREATION_VERB_PATTERN.test(text)) return false;
+  if (!ATTACK_CARD_CREATION_CUE_PATTERN.test(text)) return false;
+  if (ATTACK_CARD_NAVIGATION_QUESTION_PATTERN.test(text)) return false;
+  return true;
+}
+
+/** CHANTIER G0 (2026-05-29) — Défense en profondeur L3. Une commande
+ *  d'opération explicite (créer une carte d'attaque, créer/exécuter un rappel)
+ *  ne doit pas être avalée par les rewrites status/recap. On compose les
+ *  détecteurs d'intention explicite déjà présents dans cette couche. Anti-FP:
+ *  un récap de lecture pure ne matche aucun de ces détecteurs.
+ */
+function isExplicitOperationCommand(message: string): boolean {
+  return (
+    detectsExplicitOneShotReminderCreate(message) ||
+    looksLikeReminderExecutionConfirmationForTest(message) ||
+    detectsExplicitAttackCardCreationRequest(message)
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -537,7 +622,14 @@ function rewriteForProductHelp(
   return {
     changed: true,
     reasonCode,
-    clearTargets: [],
+    // CHANTIER C4 (2026-05-28) — Le nettoyage C19 ne touchait que la
+    // tempMemory ; les variables `activeOperationIntake` /
+    // `pendingOperationConfirmation` de run.ts (lues AVANT l'arbitre)
+    // restaient peuplées et le composer aval rendait le draft coach
+    // (A4-r6 T13 : la réponse "produit" reprenait le confirmation_message
+    // d'update_coach_preferences). On déclare les clearTargets pour que
+    // run.ts annule aussi ces variables avant la composition product_help.
+    clearTargets: ["active_tool", "pending_tool"],
     tempMemory: nextTempMemory,
     turnFrame: nextTurnFrame,
     routeDecision: {
@@ -619,6 +711,55 @@ function rewriteForPendingAttackCardContinuation(
   };
 }
 
+// CHANTIER D5 (2026-05-28) — Force prepare_attack_card quand l'utilisateur
+// demande explicitement la CRÉATION d'une carte d'attaque, même si la route
+// (dispatcher/skill_entry) avait choisi product_help. Voir A3-r9 T11/T12.
+function rewriteForExplicitAttackCardCreation(
+  input: TurnIntentArbitrationInput,
+): TurnIntentArbitrationResult {
+  const reasonCode = "central_arbitrator_explicit_attack_card_creation";
+  const hasIntent = input.turnFrame.tool_skill_intents.some((intent) =>
+    intent.operation_type === "prepare_attack_card"
+  );
+  const nextTurnFrame: TurnFrame = {
+    ...input.turnFrame,
+    direct_effects: [],
+    tool_skill_intents: hasIntent
+      ? input.turnFrame.tool_skill_intents
+      : [
+        ...input.turnFrame.tool_skill_intents,
+        {
+          operation_type: "prepare_attack_card",
+          explicitness: "explicit",
+          target_hint: input.userMessage,
+          confidence_band: "high",
+          ambiguity: "none",
+          user_intent: "create",
+        },
+      ],
+    tool_skill_opportunity: noneOpportunity(),
+  };
+  return {
+    changed: true,
+    reasonCode,
+    clearTargets: [],
+    tempMemory: input.tempMemory,
+    turnFrame: nextTurnFrame,
+    routeDecision: {
+      ...input.routeDecision,
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      direct_effects_to_run: [],
+      reason_code: reasonCode,
+      blocked_paths: [
+        ...input.routeDecision.blocked_paths,
+        blockedPath("product_help", reasonCode),
+        blockedPath("status_only", reasonCode),
+      ],
+    },
+  };
+}
+
 function rewriteForStatusOnly(
   input: TurnIntentArbitrationInput,
 ): TurnIntentArbitrationResult {
@@ -671,6 +812,19 @@ export function arbitrateTurnIntent(
     };
   }
 
+  // CHANTIER D5 (2026-05-28) — Une demande EXPLICITE de création de carte
+  // d'attaque est une intention tool ; product_help ne doit pas la capturer
+  // (A3-r9 T11/T12, route product_help via skill_entry_signal). On force
+  // prepare_attack_card. Gardé hors safety pour ne pas démarrer un tool quand
+  // la sécurité bloque les outils.
+  if (
+    !input.safetyBlocksTools &&
+    input.routeDecision.selected_handler !== "prepare_attack_card" &&
+    detectsExplicitAttackCardCreationRequest(input.userMessage)
+  ) {
+    return rewriteForExplicitAttackCardCreation(input);
+  }
+
   // GARDE ANTI-FAUX-POSITIF: si le message est une demande de carte
   // d'attaque structurée (verbe + "carte d'attaque" + marqueurs Action:/
   // Piège:/Signal:/Phrase:), aucun détecteur transitionnel ne doit la
@@ -687,6 +841,18 @@ export function arbitrateTurnIntent(
   }
 
   const activeType = activeOperationType(input);
+  // CHANTIER C1 (2026-05-28) — TRANSITIONNEL. Un flow de carte (attack/defense)
+  // en cours de collecte ne doit pas être tué par les détecteurs status: la
+  // free-text des slots ("je te confirme ça demain matin") fait des faux
+  // positifs sur detectsExactDurableStatus / detectsMultiEntityDurableStatus.
+  // Voir A3-r8 T6/T8 (carte de défense tuée par central_arbitrator_status_
+  // exact_priority). Scope volontairement limité aux flows de CARTE, PAS
+  // update_coach_preferences, pour ne pas régresser A4-r6 T11 (status
+  // légitime malgré un intake coach actif laissé par T10).
+  // Critère de suppression: quand les slot fillers attack/defense renvoient
+  // un signal topic_change fiable (chantier C8), ce garde peut disparaître.
+  const cardDraftingActive = activeType === "prepare_attack_card" ||
+    activeType === "prepare_defense_card";
   const pendingType = pendingOperationType(input.pendingOperationConfirmation);
   const cancelsActive = detectsActiveToolCancellation(input.userMessage);
   const explicitReminder = detectsExplicitOneShotReminderCreate(
@@ -697,6 +863,37 @@ export function arbitrateTurnIntent(
     return rewriteForOneShotReminder(
       input,
       "central_arbitrator_one_shot_reminder_priority",
+    );
+  }
+
+  // CHANTIER F3 (2026-05-29, edgecases-r2 T9) — TRANSITIONNEL.
+  // Promotion d'exécution multi-tour. Le dispatcher (L1) a DÉJÀ compris et
+  // proposé un create_one_shot_reminder (explicit + high) à partir des tours
+  // précédents (heure + texte donnés). Quand l'utilisateur donne ensuite un
+  // ORDRE d'exécution explicite ("programme-le maintenant"), on promeut l'effet
+  // proposé en effet à exécuter. On NE re-dérive PAS l'intention ici : on
+  // s'appuie sur la proposition du dispatcher (compréhension) + un contrat de
+  // confirmation d'exécution (le code valide). Le créneau manquant du message
+  // courant est récupéré du contexte par le runtime (E5/F3).
+  // Critère de suppression: quand le dispatcher promeut nativement l'effet sur
+  // une confirmation d'exécution (few-shot multi-tour), retirer ce garde.
+  const dispatcherProposedOneShotReminder = input.turnFrame.direct_effects.some(
+    (effect) =>
+      effect.effect_type === "create_one_shot_reminder" &&
+      (effect.confidence_band === "high" ||
+        effect.explicitness === "explicit"),
+  );
+  if (
+    dispatcherProposedOneShotReminder &&
+    !input.routeDecision.direct_effects_to_run.includes(
+      "create_one_shot_reminder",
+    ) &&
+    looksLikeReminderExecutionConfirmationForTest(input.userMessage) &&
+    !input.safetyBlocksTools
+  ) {
+    return rewriteForOneShotReminder(
+      input,
+      "central_arbitrator_one_shot_reminder_execution_confirmation",
     );
   }
 
@@ -733,7 +930,10 @@ export function arbitrateTurnIntent(
   // vers update_coach_preferences (qui interpréterait le contenu du
   // récap comme une nouvelle préférence à écrire en DB). Le récap est
   // une lecture, pas une mutation. Voir A7-r2 T15.
-  if (detectsRecapRequest(input.userMessage)) {
+  if (
+    detectsRecapRequest(input.userMessage) &&
+    !isExplicitOperationCommand(input.userMessage)
+  ) {
     return rewriteForNormalReply({
       input,
       reasonCode: "central_arbitrator_recap_request_priority",
@@ -754,8 +954,30 @@ export function arbitrateTurnIntent(
   // AVANT coach_preference. Voir A4-r6 T10 où "Statut fiable sans rien
   // modifier : quelle carte / quels rappels / quelle préférence coach"
   // tombait à tort sur update_coach_preferences.
-  if (detectsMultiEntityDurableStatus(input.userMessage)) {
+  if (
+    detectsMultiEntityDurableStatus(input.userMessage) && !cardDraftingActive &&
+    !isExplicitOperationCommand(input.userMessage)
+  ) {
     return rewriteForStatusOnly(input);
+  }
+
+  // CHANTIER D1 (2026-05-28) — TRANSITIONNEL. Une contrainte de format pour la
+  // réponse courante ("en 4 lignes", "pas d'explication") n'est pas une
+  // préférence coach durable. On subordonne update_coach_preferences AVANT son
+  // rewrite, sauf marqueur de durabilité explicite. Voir A4-r7 T15 (et l'anti-
+  // régression A4-r7 T11 qui reste un vrai update_coach_preferences).
+  if (detectsPonctualResponseFormatConstraint(input.userMessage)) {
+    return rewriteForNormalReply({
+      input,
+      reasonCode: "central_arbitrator_ponctual_response_format",
+      blockedPaths: [
+        "tool_skill.update_coach_preferences",
+        "tool_skill_flow",
+      ],
+      clearTargets: [],
+      removeToolIntents: ["update_coach_preferences"],
+      removeDirectEffects: [],
+    });
   }
 
   if (
@@ -786,7 +1008,12 @@ export function arbitrateTurnIntent(
     return rewriteForProductHelp(input);
   }
 
-  if (detectsExactDurableStatus(input.userMessage)) {
+  // CHANTIER C1 (2026-05-28) — cf. cardDraftingActive plus haut: status cède
+  // à un flow de carte actif (A3-r8 T6/T8).
+  if (
+    detectsExactDurableStatus(input.userMessage) && !cardDraftingActive &&
+    !isExplicitOperationCommand(input.userMessage)
+  ) {
     return rewriteForStatusOnly(input);
   }
 

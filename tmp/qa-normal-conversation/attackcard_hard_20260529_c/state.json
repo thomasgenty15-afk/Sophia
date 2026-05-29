@@ -1,0 +1,741 @@
+{
+  "run_id": "attackcard_hard_20260529_c",
+  "scope": "qa-normal-conversation-attackcard_hard_20260529_c",
+  "base_url": "http://127.0.0.1:54321",
+  "email": "qa-normal-attackcard_hard_20260529_c-1780065550731@example.com",
+  "user_id": "beefe338-675b-46ca-999d-987ad01c90ab",
+  "anon_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0",
+  "service_key": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwOi8vMTI3LjAuMC4xOjU0MzIxL2F1dGgvdjEiLCJzdWIiOiJiZWVmZTMzOC02NzViLTQ2Y2EtOTk5ZC05ODdhZDAxYzkwYWIiLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzgwMDY5MTUwLCJpYXQiOjE3ODAwNjU1NTAsImVtYWlsIjoicWEtbm9ybWFsLWF0dGFja2NhcmRfaGFyZF8yMDI2MDUyOV9jLTE3ODAwNjU1NTA3MzFAZXhhbXBsZS5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7ImVtYWlsIjoicWEtbm9ybWFsLWF0dGFja2NhcmRfaGFyZF8yMDI2MDUyOV9jLTE3ODAwNjU1NTA3MzFAZXhhbXBsZS5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNfdGVzdF9wZXJzb25hIjp0cnVlLCJwaG9uZV92ZXJpZmllZCI6ZmFsc2UsInFhX3J1bl9pZCI6ImF0dGFja2NhcmRfaGFyZF8yMDI2MDUyOV9jIiwic3ViIjoiYmVlZmUzMzgtNjc1Yi00NmNhLTk5OWQtOTg3YWQwMWM5MGFiIn0sInJvbGUiOiJhdXRoZW50aWNhdGVkIiwiYWFsIjoiYWFsMSIsImFtciI6W3sibWV0aG9kIjoicGFzc3dvcmQiLCJ0aW1lc3RhbXAiOjE3ODAwNjU1NTB9XSwic2Vzc2lvbl9pZCI6ImYzNzY4NTRiLTRhMWMtNGM3OC1iNzNiLTQ2MjFmNjY3YzdlMiIsImlzX2Fub255bW91cyI6ZmFsc2V9.f0Q49c9C_C3HGaV_7YFqmzf-x6hvRHrUYHp342PnETc",
+  "auth_check": {
+    "status": 200,
+    "ok": true
+  },
+  "force_full_ai": true,
+  "created_at": "2026-05-29T14:39:11.014Z",
+  "turns": [
+    {
+      "turn": 1,
+      "sent_at": "2026-05-29T14:39:30.704Z",
+      "user": "Je suis fatigue et un peu honteux : je dois appeler mon comptable avant 18h, mais je repousse depuis ce matin. Aide-moi a preparer une carte d'attaque, sans rien creer tant que je ne dis pas explicitement valide.",
+      "http_status": 200,
+      "ok": true,
+      "empty_response": false,
+      "aborted": false,
+      "abort_reason": null,
+      "assistant": "Ouf… la fatigue + la honte, ça fait un combo bien lourd. 😕 Mais déjà, tu l’as vu et tu veux agir: c’est exactement le bon moment pour “réparer” sans te flinguer.\n\nJe te propose une carte d’attaque prête à lire (à garder sous les yeux). Pas de scénario magique, juste du concret.\n\nCarte d’attaque (appel comptable avant 18h)\n1) Objet (une phrase)\n“Bonjour, c’est [Prénom Nom]. Je vous appelle avant 18h pour [raison en 3-6 mots].”\n\n2) Motif (simple, sans te justifier)\n“Je voulais valider/poser [1 point]. On fait comment pour [action] ?”\n\n3) Si ça coupe / si tu bafouilles\n“Désolé, je suis un peu en décalage aujourd’hui. Je voulais juste confirmer [point].”\n\n4) Droit au “petit” (si tu as zéro énergie)\nOption ultra-courte:\n“Je suis dispo maintenant. Vous avez 2 minutes pour me dire quoi faire pour [point] ?”\n\n5) Fin d’appel (pour que ce soit clean)\n“Merci. Donc je fais [action confirmée] d’ici [quand]. Je vous recontacte si besoin.”\n\nMini-ligne pour toi pendant que tu composes (anti-honte)\n“Ce retard n’est pas mon identité. Je corrige juste une action.”\n\nTon seul job maintenant: préparer la raison exacte en 3-6 mots.\nTu me dis: tu dois appeler pour quoi, précisément ? (ex: “documents à envoyer”, “déclaration”, “paiement”, “rendez-vous”, etc.) 😊",
+      "trace_short": {
+        "response_owner": "conversation_handler",
+        "selected_handler": "emotional_repair",
+        "route_reason": "skill_entry_signal",
+        "safety": "low",
+        "skill_entry_ids": [
+          "emotional_repair"
+        ],
+        "tool_skill_intents": [],
+        "opportunity": "none",
+        "opportunity_operation": null,
+        "direct_effects": [],
+        "direct_effects_to_run": [],
+        "confirmation_kind": null,
+        "selected_skill_id": "emotional_repair",
+        "tool_status": null,
+        "tool_operation": null,
+        "executed_tools": [],
+        "tool_execution": "none"
+      },
+      "db_snapshot": {
+        "user_chat_states": {
+          "table": "user_chat_states",
+          "status": 200,
+          "ok": true,
+          "body": [
+            {
+              "current_mode": "companion",
+              "risk_level": 2,
+              "temp_memory": {
+                "__momentum_state_v2": {
+                  "posture": {
+                    "confidence": "high",
+                    "recommended_posture": "simplify"
+                  },
+                  "version": 2,
+                  "blockers": {
+                    "blocker_kind": null,
+                    "blocker_repeat_score": 0
+                  },
+                  "_internal": {
+                    "sources": {
+                      "router_updated_at": "2026-05-29T14:39:30.657Z",
+                      "last_classified_by": "router"
+                    },
+                    "stability": {
+                      "stable_since_at": "2026-05-29T14:39:30.657Z"
+                    },
+                    "signal_log": {
+                      "consent_events": [],
+                      "emotional_turns": [
+                        {
+                          "at": "2026-05-29T14:39:30.657Z",
+                          "level": "medium"
+                        }
+                      ],
+                      "response_quality_events": [
+                        {
+                          "at": "2026-05-29T14:39:30.657Z",
+                          "quality": "substantive"
+                        }
+                      ]
+                    },
+                    "metrics_cache": {
+                      "last_user_turn_at": "2026-05-29T14:39:30.657Z",
+                      "last_user_turn_quality": "substantive",
+                      "days_since_last_user_message": 0
+                    }
+                  },
+                  "assessment": {
+                    "top_risk": null,
+                    "confidence": "low",
+                    "top_blocker": null
+                  },
+                  "dimensions": {
+                    "consent": {
+                      "level": "open",
+                      "reason": "no_decline_detected"
+                    },
+                    "plan_fit": {
+                      "level": "uncertain"
+                    },
+                    "engagement": {
+                      "level": "high",
+                      "reason": "substantive_recent_reply"
+                    },
+                    "load_balance": {
+                      "level": "balanced"
+                    },
+                    "emotional_load": {
+                      "level": "medium",
+                      "reason": "multiple_medium_emotional_markers"
+                    },
+                    "execution_traction": {
+                      "level": "unknown"
+                    }
+                  },
+                  "updated_at": "2026-05-29T14:39:30.657Z",
+                  "active_load": {
+                    "needs_reduce": false,
+                    "needs_consolidate": false,
+                    "current_load_score": 0,
+                    "mission_slots_used": 0,
+                    "support_slots_used": 0,
+                    "habit_building_slots_used": 0
+                  },
+                  "memory_links": {
+                    "last_useful_support_ids": [],
+                    "last_failed_technique_ids": []
+                  },
+                  "state_reason": "engaged_but_not_clearly_progressing",
+                  "current_state": "friction_legere"
+                },
+                "__active_skill_state": {
+                  "status": "active",
+                  "version": 1,
+                  "skill_id": "emotional_repair",
+                  "started_at": "2026-05-29T14:39:30.656Z",
+                  "turn_count": 1,
+                  "updated_at": "2026-05-29T14:39:30.656Z",
+                  "working_state": {
+                    "summary": "Self-attack softened; keep concrete facts separate from identity."
+                  },
+                  "previous_skill_id": null
+                },
+                "__conversation_risk_last": {
+                  "at": "2026-05-29T14:39:30.656Z",
+                  "score": 0,
+                  "threshold": 8,
+                  "reason_codes": [],
+                  "flow_exit_context": null,
+                  "should_exit_flows": false
+                },
+                "__memory_payload_state_v2": {
+                  "items": [],
+                  "budget": {
+                    "max_items": 12,
+                    "max_entities": 5,
+                    "tokens_target": 1800
+                  },
+                  "modules": {},
+                  "version": 2,
+                  "entities": [],
+                  "last_turn_id": "894d684a-eb7d-406e-8361-e7fe8750985c",
+                  "active_topic_id": null
+                },
+                "companion_question_rhythm": {
+                  "preference": "normal",
+                  "recent_turns": [
+                    1
+                  ],
+                  "last_updated_at": "2026-05-29T14:39:30.645Z",
+                  "last_turn_had_question": true,
+                  "turns_since_last_question": 0
+                },
+                "__conversation_risk_history": [
+                  0
+                ]
+              },
+              "updated_at": "2026-05-29T14:39:30.659342+00:00"
+            }
+          ]
+        },
+        "scheduled_checkins": {
+          "table": "scheduled_checkins",
+          "status": 200,
+          "ok": true,
+          "body": []
+        }
+      },
+      "raw_response": {
+        "ok": true,
+        "request_id": "attackcard_hard_20260529_c-t01",
+        "user_id": "beefe338-675b-46ca-999d-987ad01c90ab",
+        "channel": "web",
+        "scope": "qa-normal-conversation-attackcard_hard_20260529_c",
+        "empty_response": false,
+        "aborted": false,
+        "abort_reason": null,
+        "logged_message_id": null,
+        "latest_message_id": null,
+        "response": {
+          "content": "Ouf… la fatigue + la honte, ça fait un combo bien lourd. 😕 Mais déjà, tu l’as vu et tu veux agir: c’est exactement le bon moment pour “réparer” sans te flinguer.\n\nJe te propose une carte d’attaque prête à lire (à garder sous les yeux). Pas de scénario magique, juste du concret.\n\nCarte d’attaque (appel comptable avant 18h)\n1) Objet (une phrase)\n“Bonjour, c’est [Prénom Nom]. Je vous appelle avant 18h pour [raison en 3-6 mots].”\n\n2) Motif (simple, sans te justifier)\n“Je voulais valider/poser [1 point]. On fait comment pour [action] ?”\n\n3) Si ça coupe / si tu bafouilles\n“Désolé, je suis un peu en décalage aujourd’hui. Je voulais juste confirmer [point].”\n\n4) Droit au “petit” (si tu as zéro énergie)\nOption ultra-courte:\n“Je suis dispo maintenant. Vous avez 2 minutes pour me dire quoi faire pour [point] ?”\n\n5) Fin d’appel (pour que ce soit clean)\n“Merci. Donc je fais [action confirmée] d’ici [quand]. Je vous recontacte si besoin.”\n\nMini-ligne pour toi pendant que tu composes (anti-honte)\n“Ce retard n’est pas mon identité. Je corrige juste une action.”\n\nTon seul job maintenant: préparer la raison exacte en 3-6 mots.\nTu me dis: tu dois appeler pour quoi, précisément ? (ex: “documents à envoyer”, “déclaration”, “paiement”, “rendez-vous”, etc.) 😊",
+          "mode": "companion",
+          "tool_execution": "none",
+          "executed_tools": [],
+          "conversation_turn_trace": {
+            "turn_frame": {
+              "turn_id": "attackcard_hard_20260529_c-t01",
+              "source_message_id": "894d684a-eb7d-406e-8361-e7fe8750985c",
+              "user_id": "beefe338-675b-46ca-999d-987ad01c90ab",
+              "channel": "web",
+              "safety": {
+                "risk_band": "low",
+                "reason_codes": [],
+                "evidence": []
+              },
+              "conversation_risk": {
+                "score": 0,
+                "threshold": 8,
+                "should_exit_flows": false,
+                "reason_codes": [],
+                "previous_scores": [],
+                "matrix": [
+                  {
+                    "signal": "system_misunderstanding",
+                    "detected": false,
+                    "weight": 3.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "explicit_stop_or_abandon",
+                    "detected": false,
+                    "weight": 2.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "anger_or_profanity",
+                    "detected": false,
+                    "weight": 2,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "repetition_or_correction",
+                    "detected": false,
+                    "weight": 1.5,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "typographic_intensity",
+                    "detected": false,
+                    "weight": 0.7,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "active_flow_pressure",
+                    "detected": false,
+                    "weight": 1,
+                    "contribution": 0,
+                    "evidence": null
+                  },
+                  {
+                    "signal": "previous_risk",
+                    "detected": false,
+                    "weight": 10,
+                    "contribution": 0,
+                    "evidence": null
+                  }
+                ],
+                "context_summary": null,
+                "flow_exit_context": null
+              },
+              "direct_effects": [],
+              "tool_skill_intents": [],
+              "tool_skill_opportunity": {
+                "type": "none",
+                "operation_type": null,
+                "surface_id": null,
+                "confidence_band": "low",
+                "should_offer": false,
+                "prop_reason": null,
+                "source_span": null,
+                "target_hint": null,
+                "target_status": "none",
+                "suggested_question_intent": null,
+                "offer_timing": "never",
+                "must_not_execute": true
+              },
+              "skill_signals": {
+                "entry": {
+                  "emotional_repair": {
+                    "detected": true,
+                    "confidence_band": "high",
+                    "reason": "self_attack_or_shame"
+                  }
+                },
+                "lifecycle": {},
+                "exit": {}
+              },
+              "needs_research": {
+                "detected": false,
+                "value": false,
+                "query": null,
+                "domain_hint": null,
+                "confidence": 0,
+                "reason": null
+              },
+              "action_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "level_reference": {
+                "detected": false,
+                "status": "none",
+                "expansion_policy": "none",
+                "reason": null
+              },
+              "memory_plan": {
+                "response_intent": "reflection",
+                "reasoning_complexity": "low",
+                "context_need": "targeted",
+                "memory_mode": "light",
+                "model_tier_hint": "lite",
+                "context_budget_tier": "small",
+                "targets": [
+                  {
+                    "type": "domain_key",
+                    "key": "psychologie.emotions",
+                    "query_hint": "honte et fatigue procrastination",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "medium",
+                    "entity_type": null
+                  },
+                  {
+                    "type": "domain_key",
+                    "key": "habitudes.procrastination",
+                    "query_hint": "repousser appel important",
+                    "expansion_policy": null,
+                    "retrieval_policy": "taxonomy_first",
+                    "priority": "high",
+                    "entity_type": null
+                  }
+                ],
+                "retrieval_policy": "semantic_first",
+                "plan_confidence": 0.7
+              },
+              "confirmation_response": null
+            },
+            "route_decision": {
+              "route_version": "v1",
+              "response_owner": "conversation_handler",
+              "selected_handler": "emotional_repair",
+              "blocked_paths": [],
+              "direct_effects_to_run": [],
+              "reason_code": "skill_entry_signal",
+              "memory_used_for_route": false,
+              "memory_item_ids_used_for_route": [],
+              "memory_use_kind": "none",
+              "active_flow_arbitration": {
+                "decision": "none",
+                "active_owner": "none",
+                "selected_owner": "none",
+                "resume_policy": "none",
+                "reason_code": "no_active_flow"
+              }
+            },
+            "skill_run": {
+              "selected_skill_id": "emotional_repair",
+              "reason_code": "skill_entry_signal",
+              "output": {
+                "skill_id": "emotional_repair",
+                "status": "continue",
+                "response_intent": "de_shame",
+                "memory_trace": {
+                  "memory_used_for_response": false,
+                  "memory_item_ids_used": [],
+                  "correction_detected": false,
+                  "correction_target_item_ids": []
+                },
+                "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+                "diagnosis": {
+                  "pattern": "self_attack"
+                },
+                "recommendation_need": {
+                  "needed": true,
+                  "type": "state_regulation",
+                  "urgency": "medium",
+                  "constraints": [
+                    "no_solution_pushing"
+                  ]
+                },
+                "operation_suggestions": [
+                  {
+                    "operation_type": "select_state_potion",
+                    "reason": "state_regulation_before_concrete_action",
+                    "confidence_band": "medium",
+                    "urgency": "medium",
+                    "source_skill_id": "emotional_repair",
+                    "operation_input_hint": {
+                      "state": "shame_guilt",
+                      "potion_type": "guerison"
+                    },
+                    "requires_user_consent": true
+                  }
+                ],
+                "memory_write_candidates": [
+                  {
+                    "kind": "statement",
+                    "content_text": "Je suis fatigue et un peu honteux : je dois appeler mon comptable avant 18h, mais je repousse depuis ce matin. Aide-moi a preparer une carte d'attaque, sans rien creer tant que je ne dis pas explicitement valide.",
+                    "evidence_source_ids": [
+                      "894d684a-eb7d-406e-8361-e7fe8750985c"
+                    ],
+                    "confidence_band": "medium",
+                    "sensitivity_level": 3,
+                    "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                    "should_persist_default": false,
+                    "anti_identity_freeze_checked": true,
+                    "scope_hint": "session"
+                  }
+                ],
+                "state_patch": {
+                  "summary": "Self-attack softened; keep concrete facts separate from identity."
+                }
+              }
+            },
+            "response_owner": "conversation_handler"
+          }
+        },
+        "conversation_turn_trace": {
+          "turn_frame": {
+            "turn_id": "attackcard_hard_20260529_c-t01",
+            "source_message_id": "894d684a-eb7d-406e-8361-e7fe8750985c",
+            "user_id": "beefe338-675b-46ca-999d-987ad01c90ab",
+            "channel": "web",
+            "safety": {
+              "risk_band": "low",
+              "reason_codes": [],
+              "evidence": []
+            },
+            "conversation_risk": {
+              "score": 0,
+              "threshold": 8,
+              "should_exit_flows": false,
+              "reason_codes": [],
+              "previous_scores": [],
+              "matrix": [
+                {
+                  "signal": "system_misunderstanding",
+                  "detected": false,
+                  "weight": 3.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "explicit_stop_or_abandon",
+                  "detected": false,
+                  "weight": 2.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "anger_or_profanity",
+                  "detected": false,
+                  "weight": 2,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "repetition_or_correction",
+                  "detected": false,
+                  "weight": 1.5,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "typographic_intensity",
+                  "detected": false,
+                  "weight": 0.7,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "active_flow_pressure",
+                  "detected": false,
+                  "weight": 1,
+                  "contribution": 0,
+                  "evidence": null
+                },
+                {
+                  "signal": "previous_risk",
+                  "detected": false,
+                  "weight": 10,
+                  "contribution": 0,
+                  "evidence": null
+                }
+              ],
+              "context_summary": null,
+              "flow_exit_context": null
+            },
+            "direct_effects": [],
+            "tool_skill_intents": [],
+            "tool_skill_opportunity": {
+              "type": "none",
+              "operation_type": null,
+              "surface_id": null,
+              "confidence_band": "low",
+              "should_offer": false,
+              "prop_reason": null,
+              "source_span": null,
+              "target_hint": null,
+              "target_status": "none",
+              "suggested_question_intent": null,
+              "offer_timing": "never",
+              "must_not_execute": true
+            },
+            "skill_signals": {
+              "entry": {
+                "emotional_repair": {
+                  "detected": true,
+                  "confidence_band": "high",
+                  "reason": "self_attack_or_shame"
+                }
+              },
+              "lifecycle": {},
+              "exit": {}
+            },
+            "needs_research": {
+              "detected": false,
+              "value": false,
+              "query": null,
+              "domain_hint": null,
+              "confidence": 0,
+              "reason": null
+            },
+            "action_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "level_reference": {
+              "detected": false,
+              "status": "none",
+              "expansion_policy": "none",
+              "reason": null
+            },
+            "memory_plan": {
+              "response_intent": "reflection",
+              "reasoning_complexity": "low",
+              "context_need": "targeted",
+              "memory_mode": "light",
+              "model_tier_hint": "lite",
+              "context_budget_tier": "small",
+              "targets": [
+                {
+                  "type": "domain_key",
+                  "key": "psychologie.emotions",
+                  "query_hint": "honte et fatigue procrastination",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "medium",
+                  "entity_type": null
+                },
+                {
+                  "type": "domain_key",
+                  "key": "habitudes.procrastination",
+                  "query_hint": "repousser appel important",
+                  "expansion_policy": null,
+                  "retrieval_policy": "taxonomy_first",
+                  "priority": "high",
+                  "entity_type": null
+                }
+              ],
+              "retrieval_policy": "semantic_first",
+              "plan_confidence": 0.7
+            },
+            "confirmation_response": null
+          },
+          "route_decision": {
+            "route_version": "v1",
+            "response_owner": "conversation_handler",
+            "selected_handler": "emotional_repair",
+            "blocked_paths": [],
+            "direct_effects_to_run": [],
+            "reason_code": "skill_entry_signal",
+            "memory_used_for_route": false,
+            "memory_item_ids_used_for_route": [],
+            "memory_use_kind": "none",
+            "active_flow_arbitration": {
+              "decision": "none",
+              "active_owner": "none",
+              "selected_owner": "none",
+              "resume_policy": "none",
+              "reason_code": "no_active_flow"
+            }
+          },
+          "skill_run": {
+            "selected_skill_id": "emotional_repair",
+            "reason_code": "skill_entry_signal",
+            "output": {
+              "skill_id": "emotional_repair",
+              "status": "continue",
+              "response_intent": "de_shame",
+              "memory_trace": {
+                "memory_used_for_response": false,
+                "memory_item_ids_used": [],
+                "correction_detected": false,
+                "correction_target_item_ids": []
+              },
+              "reply": "Ce que tu viens de dire ressemble plus a une attaque contre toi qu'a une information fiable. On peut garder le fait concret, sans transformer ca en verdict sur qui tu es.",
+              "diagnosis": {
+                "pattern": "self_attack"
+              },
+              "recommendation_need": {
+                "needed": true,
+                "type": "state_regulation",
+                "urgency": "medium",
+                "constraints": [
+                  "no_solution_pushing"
+                ]
+              },
+              "operation_suggestions": [
+                {
+                  "operation_type": "select_state_potion",
+                  "reason": "state_regulation_before_concrete_action",
+                  "confidence_band": "medium",
+                  "urgency": "medium",
+                  "source_skill_id": "emotional_repair",
+                  "operation_input_hint": {
+                    "state": "shame_guilt",
+                    "potion_type": "guerison"
+                  },
+                  "requires_user_consent": true
+                }
+              ],
+              "memory_write_candidates": [
+                {
+                  "kind": "statement",
+                  "content_text": "Je suis fatigue et un peu honteux : je dois appeler mon comptable avant 18h, mais je repousse depuis ce matin. Aide-moi a preparer une carte d'attaque, sans rien creer tant que je ne dis pas explicitement valide.",
+                  "evidence_source_ids": [
+                    "894d684a-eb7d-406e-8361-e7fe8750985c"
+                  ],
+                  "confidence_band": "medium",
+                  "sensitivity_level": 3,
+                  "persistence_rationale": "Conversation skill observation; memorizer decides durable persistence.",
+                  "should_persist_default": false,
+                  "anti_identity_freeze_checked": true,
+                  "scope_hint": "session"
+                }
+              ],
+              "state_patch": {
+                "summary": "Self-attack softened; keep concrete facts separate from identity."
+              }
+            }
+          },
+          "response_owner": "conversation_handler"
+        },
+        "trace_error": null
+      }
+    }
+  ],
+  "updated_at": "2026-05-29T14:39:30.705Z",
+  "targeted_cleanup": [
+    {
+      "table": "chat_messages",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "scheduled_checkins",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_chat_states",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_memories",
+      "status": 404,
+      "ok": false
+    },
+    {
+      "table": "user_topic_memories",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "memory_items",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_attack_cards",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_defense_cards",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_profile_facts",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_potion_sessions",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "user_recurring_reminders",
+      "status": 204,
+      "ok": true
+    },
+    {
+      "table": "auth.users",
+      "status": 200,
+      "ok": true
+    }
+  ],
+  "cleaned_at": "2026-05-29T14:39:57.283Z",
+  "abandoned_by_user_request": true
+}

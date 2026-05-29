@@ -1,0 +1,82 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": [
+    {
+      "id": "9d2be4ff-082e-4381-9bc1-a2d3bb4ce758",
+      "user_id": "9265aade-0496-412a-b0bc-4ab29a47d774",
+      "transformation_id": null,
+      "content": {
+        "impulses": [
+          {
+            "label": "Comparer les bougies",
+            "triggers": [
+              {
+                "label": "Envoyer Salma",
+                "plan_b": "Mettre le téléphone dans le sac",
+                "signal": "Comparer encore les bougies",
+                "situation": "J'ouvre TradingView avant d'envoyer Salma",
+                "trigger_id": "ac539dd3-d9ca-4bcc-b101-163cc9f58341",
+                "illustration": null,
+                "defense_response": "Fermer TradingView et envoyer Salma",
+                "difficulty_preview": "Cela permet de couper court à la distraction pour finaliser l'action prioritaire."
+              }
+            ],
+            "impulse_id": "f5b43008-8241-44ca-8d41-86c97f6d2df9",
+            "generic_defense": "Fermer TradingView"
+          }
+        ],
+        "difficulty_map_summary": null
+      },
+      "generated_at": "2026-05-29T11:58:37.045+00:00",
+      "last_updated_at": "2026-05-29T11:58:37.045+00:00",
+      "cycle_id": "a111427b-808f-4943-a2e5-a5e20eaddfc1",
+      "scope_kind": "out_of_plan",
+      "metadata": {
+        "draft": {
+          "draft": {
+            "title": "Envoyer Salma",
+            "plan_b": "Mettre le téléphone dans le sac",
+            "signal": "Comparer encore les bougies",
+            "trigger": "Comparer encore les bougies",
+            "situation": "J'ouvre TradingView avant d'envoyer Salma",
+            "target_label": "Envoyer Salma",
+            "why_it_helps": "Cela permet de couper court à la distraction pour finaliser l'action prioritaire.",
+            "fallback_plan": "Mettre le téléphone dans le sac",
+            "impulse_label": "Comparer les bougies",
+            "risk_situation": "J'ouvre TradingView avant d'envoyer Salma",
+            "generic_defense": "Fermer TradingView",
+            "defense_response": "Fermer TradingView et envoyer Salma"
+          },
+          "output_schema": "defense_card_draft_v1",
+          "operation_type": "prepare_defense_card",
+          "confirmation_actions": [
+            "yes",
+            "no"
+          ],
+          "confirmation_message": "Voici ta carte de défense :\nLe moment : J'ouvre TradingView avant d'envoyer Salma\nLe piège : Comparer encore les bougies\nMon geste : Fermer TradingView et envoyer Salma\nPlan B : Mettre le téléphone dans le sac\nOn valide ?"
+        },
+        "source": "sophia_brain_tool_skill",
+        "attachment": {
+          "kind": "personal_action",
+          "title": "Envoyer Salma",
+          "plan_item_id": null
+        },
+        "request_id": "global_run_A2_20260529_edge_skills_codex_r12-t06",
+        "operation_id": "f2d521f7-174b-4781-8f9b-2680fadba950",
+        "operation_type": "prepare_defense_card",
+        "risk_situation": {
+          "label": "Ouverture TradingView avant Salma",
+          "description": "Ouvrir TradingView au lieu d'envoyer Salma",
+          "timing_hint": "Avant d'envoyer Salma",
+          "context_hint": "TradingView"
+        },
+        "source_message_id": "5eb33f39-d768-4528-91cd-766b66f08eae"
+      },
+      "phase_id": null,
+      "plan_item_id": null,
+      "source": "system",
+      "status": "active"
+    }
+  ]
+}

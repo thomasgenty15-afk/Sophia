@@ -1,0 +1,116 @@
+{
+  "status": 200,
+  "ok": true,
+  "body": [
+    {
+      "key": "coach.emoji_policy",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Zéro emoji",
+        "value": "none"
+      },
+      "reason": "Enregistre une préférence durable: 'mode tunnel' = une seule consigne impérative, zéro chaleur, zéro emoji, zéro question finale.",
+      "created_at": "2026-05-29T12:31:20.061104+00:00"
+    },
+    {
+      "key": "coach.final_question_policy",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Pas de question finale inutile",
+        "value": "avoid_unnecessary"
+      },
+      "reason": "Enregistre une préférence durable: 'mode tunnel' = une seule consigne impérative, zéro chaleur, zéro emoji, zéro question finale.",
+      "created_at": "2026-05-29T12:31:20.061104+00:00"
+    },
+    {
+      "key": "coach.challenge_level",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibré",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.feedback_style",
+      "source_type": "system_default",
+      "value": {
+        "label": "Positif puis amélioration",
+        "value": "positive_then_fix"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.talk_propensity",
+      "source_type": "system_default",
+      "value": {
+        "label": "Équilibrée",
+        "value": "balanced"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.message_length",
+      "source_type": "system_default",
+      "value": {
+        "label": "Courte",
+        "value": "short"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.message_format",
+      "source_type": "system_default",
+      "value": {
+        "label": "Mix adaptatif",
+        "value": "adaptive"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.primary_focus",
+      "source_type": "system_default",
+      "value": {
+        "label": "Discipline / action",
+        "value": "discipline"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.emotional_personalization",
+      "source_type": "system_default",
+      "value": {
+        "label": "Chaleureux",
+        "value": "warm"
+      },
+      "reason": "Default coach preferences (v4 canonical)",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.tone",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Très direct",
+        "value": "direct"
+      },
+      "reason": "Enregistre une préférence durable: 'mode tunnel' = une seule consigne impérative, zéro chaleur, zéro emoji, zéro question finale.",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    },
+    {
+      "key": "coach.question_tendency",
+      "source_type": "explicit_user",
+      "value": {
+        "label": "Peu de questions",
+        "value": "low"
+      },
+      "reason": "Enregistre une préférence durable: 'mode tunnel' = une seule consigne impérative, zéro chaleur, zéro emoji, zéro question finale.",
+      "created_at": "2026-05-29T12:27:48.076741+00:00"
+    }
+  ]
+}

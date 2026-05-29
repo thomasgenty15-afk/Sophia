@@ -1,0 +1,22 @@
+{
+  "n": 11,
+  "user": "Ne lance rien maintenant, pas de potion, pas de nouveau rappel. Fais seulement le récap: fait, prévu, fragile, en trois lignes. Pas de question.",
+  "assistant": "Fait : 5 préférence(s) coach active(s).\nPrévu : 11:58 Payer seulement le parking.\nFragile : ce qu'on a nommé reste un repère de conversation, pas une écriture durable.",
+  "compact": {
+    "http_status": "200",
+    "ok": true,
+    "empty_response": false,
+    "aborted": false,
+    "abort_reason": null,
+    "request_id": "global_run_A2_20260528_n3_strict_codex_r8-t11",
+    "response_owner": "tool_skill",
+    "selected_handler": null,
+    "route_reason": "explicit_no_tool_request_blocks_tool_start",
+    "safety": "low",
+    "operation": null,
+    "memory_plan": "light",
+    "executed_tools": [],
+    "tool_status": "answered",
+    "skill_id": null
+  }
+}

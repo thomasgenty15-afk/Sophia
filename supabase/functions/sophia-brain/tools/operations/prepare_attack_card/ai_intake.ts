@@ -580,8 +580,12 @@ function technicalFailure(
     status: "fallback_dashboard",
     source,
     phase: "exit",
+    // CHANTIER C8 (2026-05-28) — Erreur TECHNIQUE propre + invitation à relancer,
+    // au lieu d'un refus vague ("je m'arrête plutôt que deviner à ta place")
+    // qui laissait l'utilisateur croire à un blocage de jugement. Voir A3-r8
+    // T11 (l'utilisateur avait pourtant dit "choisis la technique toi-même").
     ack:
-      "Je n'ai pas réussi à préparer cette carte techniquement. Je préfère m'arrêter plutôt que deviner à ta place.",
+      "Petit raté technique de mon côté en préparant la carte — rien à voir avec ta demande. Redis-moi de la créer et je relance tout de suite.",
     readiness: {
       ready_to_generate: false,
       fallback_to_dashboard: true,
@@ -605,20 +609,38 @@ function normalizeDraft(
   const root = parseJsonObject(raw);
   const draft = objectValue(root.draft);
   if (!draft) throw new Error("attack_card_draft_missing");
-  const technique = normalizeTechnique(draft.technique) ??
-    state.technique.value;
+  // CHANTIER C8 (2026-05-28) — Si l'utilisateur a nommé la technique
+  // explicitement (explicitly_requested), elle est verrouillée: le générateur
+  // (LLM séparé) ne peut pas la remplacer. Voir A2-codex-r7 T5/T7 ("ancre
+  // visuelle" demandée, "Mot de bascule" générée). Sinon, comportement
+  // historique: valeur du draft, fallback sur l'état.
+  const technique =
+    (state.technique.explicitly_requested && state.technique.value)
+      ? state.technique.value
+      : (normalizeTechnique(draft.technique) ?? state.technique.value);
   if (!technique) throw new Error("attack_card_draft_technique_invalid");
-  const title = String(draft.title ?? "").trim();
-  const generatedAsset = String(draft.generated_asset ?? "").trim();
-  const instruction = String(draft.instruction ?? "").trim();
-  const confirmationMessage = String(root.confirmation_message ?? "").trim();
-  if (!title || !generatedAsset || !instruction || !confirmationMessage) {
-    throw new Error("attack_card_draft_required_text_missing");
-  }
-  if (!confirmationMessage.includes(generatedAsset)) {
-    throw new Error("attack_card_confirmation_message_draft_mismatch");
-  }
   const definition = ATTACK_TECHNIQUES[technique];
+  const generatedAsset = String(draft.generated_asset ?? "").trim();
+  // L'asset généré est le coeur de la carte: sans lui on ne peut pas rendre une
+  // carte honnête → vraie erreur technique (retry puis message propre).
+  if (!generatedAsset) throw new Error("attack_card_draft_required_text_missing");
+  // CHANTIER D0 (2026-05-28) — Résilience génération one-shot. Verrouiller la
+  // technique demandée (C8) pouvait désynchroniser le draft LLM (title/
+  // instruction/confirmation_message construits pour une autre technique) et
+  // faire échouer TOUTE la carte en fallback_dashboard. Désormais on répare
+  // déterministe ces champs secondaires au lieu de jeter. Voir régression
+  // A2-codex-r8 T5/T6, A3-r9 T13 (carte one-shot "ancre visuelle").
+  const title = String(draft.title ?? "").trim() ||
+    (state.target.status === "identified"
+      ? `Carte d'attaque — ${state.target.title}`
+      : `Carte d'attaque — ${definition.title}`);
+  const instruction = String(draft.instruction ?? "").trim() ||
+    definition.mode_emploi;
+  let confirmationMessage = String(root.confirmation_message ?? "").trim();
+  if (!confirmationMessage || !confirmationMessage.includes(generatedAsset)) {
+    confirmationMessage =
+      `Voici ta carte « ${title} » (${definition.title}) : ${generatedAsset}. Je te la crée ?`;
+  }
   return {
     operation_type: "prepare_attack_card",
     output_schema: "attack_card_draft_v1",
@@ -644,6 +666,16 @@ function normalizeDraft(
     confirmation_message: confirmationMessage,
     confirmation_actions: ["yes", "no"],
   };
+}
+
+// CHANTIER D0 (2026-05-28) — Hook de test pour la résilience de normalizeDraft
+// (le point exact où la carte one-shot "ancre visuelle" tombait en
+// fallback_dashboard). Voir tests.ts.
+export function normalizeAttackCardDraftForTest(
+  raw: unknown,
+  state: AttackCardIntakeState,
+): AttackCardDraftV1 {
+  return normalizeDraft(raw, state);
 }
 
 export async function generateAttackCardDraftWithAi(
@@ -951,19 +983,28 @@ export async function runPrepareAttackCardAiIntake(input: {
     );
   }
   let draft: AttackCardDraftV1;
+  const generatorArgs = {
+    user_id: input.user_id,
+    request_id: input.request_id,
+    message: input.message,
+    channel: input.channel,
+    timezone: input.timezone,
+    source,
+    trigger_message_id: input.trigger_message_id,
+    state,
+  };
+  const runDraftGenerator = input.draft_generator ?? generateAttackCardDraftWithAi;
   try {
-    draft = await (input.draft_generator ?? generateAttackCardDraftWithAi)({
-      user_id: input.user_id,
-      request_id: input.request_id,
-      message: input.message,
-      channel: input.channel,
-      timezone: input.timezone,
-      source,
-      trigger_message_id: input.trigger_message_id,
-      state,
-    });
+    draft = await runDraftGenerator(generatorArgs);
   } catch {
-    return technicalFailure("ai_draft_generator_error", source);
+    // CHANTIER C8 (2026-05-28) — Un échec de génération est un raté TECHNIQUE
+    // transitoire (timeout/parse), pas une raison de "deviner". On retente
+    // UNE fois avant de tomber en erreur technique propre. Voir A3-r8 T11.
+    try {
+      draft = await runDraftGenerator(generatorArgs);
+    } catch {
+      return technicalFailure("ai_draft_generator_error", source);
+    }
   }
   const operationId = crypto.randomUUID();
   return {

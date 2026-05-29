@@ -650,6 +650,56 @@ anti-faux-positif explicites.
 - Cocher « fix livré » sans test de régression nommé sur le tour exact du
   rapport.
 
+### Étape 7 — Règle impérative quand l'utilisateur demande de respecter ce document
+
+Quand une session d'implémentation (agent, chantier QA, correctif post-run)
+cite explicitement **`13-architecture-skills`** ou demande de « prendre en compte
+la doctrine / l'architecture », cette section **prime** sur toute consigne
+implicite du type « corrige tous les RED vite », « fais passer les tests »,
+« empile un garde-fou ».
+
+**Interdictions explicites pour la session** (sauf accord utilisateur écrit
+dans le même message pour une exception ponctuelle) :
+
+1. **Pas de nouvelle regex sémantique** dans `router/run.ts` (L4),
+   `router/turn_intent_arbitrator.ts` (L3), ni dans
+   `deterministicPatchFromMessage` / slot filling par regex pour **comprendre**
+   une intention (préférence coach, refus potion, recap, carte, rappel, etc.).
+2. **Pas de nouveau message user-facing codé en dur** dans `run.ts` ou l'arbitre
+   (templates de réparation, reset, séquence, preview coach, etc.). La rédaction
+   appartient au skill (appel IA) ou au generator du tool skill.
+3. **Pas d'extension** d'un détecteur L3/L4 existant « pour couvrir aussi ce
+   tour RED » si le fix canonique est L5 (slot filler / generator / composer) ou
+   L6 (extracteur payload).
+4. Le tag **`TRANSITIONNEL`** et la dette historique (groupes C–H déjà en L4)
+   **ne autorisent pas** d'ajouter une nouvelle garde sémantique : ils
+   documentent l'existant à migrer, pas une licence à empiler.
+
+**Obligation** :
+
+- Si le bug ne se règle pas proprement en **L1, L5 ou L6** dans le périmètre
+  du chantier : **s'arrêter**, produire un plan (couche, fichiers skill,
+  tests, paraphrases QA), **ne pas** livrer un patch L4 de contournement.
+- Chaque test de régression doit inclure au minimum **une paraphrase** du tour
+  (formulation différente du rapport) en plus du message littéral, pour éviter
+  les faux verts « regex sur la phrase exacte du run ».
+- Documenter dans `15-chantiers-log.md` la **couche réelle** du fix ; ne pas
+  étiqueter L4/L6 un patch qui interprète le sens du message user.
+
+**Priorité des fixes** (ordre à suivre) :
+
+1. L5 — module du skill concerné (`tools/operations/<skill>/`, composer,
+   loader DB) ;
+2. L6 — extracteur narrow si le bug est un payload DB incorrect ;
+3. L1 — few-shot dispatcher si mauvais `selected_handler` / intent ;
+4. L3/L4 — uniquement garantie dure non-sémantique, avec les 4 conditions
+   de l'étape 2 **et** critère de suppression ; jamais en raccourci QA.
+
+**Anti-pattern observé (2026-05-29, groupes G/H)** : tests unitaires verts sur
+des strings du rapport QA, runs `all_skills` toujours RED car les paraphrases
+repassent par le slot filler IA ou un autre chemin. Ce n'est **pas** un fix
+livré au sens de ce document.
+
 ---
 
 ## 8. Messages User
@@ -784,6 +834,8 @@ Cette règle est commune aux Conversation Skills et aux Tool Skills.
 - `15-chantiers-log.md` — journal des chantiers déclenchés par les runs QA.
   Inclut chaque décision, les fichiers touchés, les tests ajoutés, les
   critères de suppression des gardes transitionnelles, et les hors-scope.
+  **Tout chantier doit indiquer si la session était soumise à l'étape 7
+  (§7) de ce document.**
 - `07-decision-log.md` — décisions produit/architecture durables.
 - `03-forbidden-patterns.md` — patterns interdits à ne pas réintroduire.
 - `06-boundaries.md` — frontières entre modules.

@@ -342,3 +342,155 @@ Deno.test("update_coach_preferences pipeline covers 5 scenarios and strict allow
   });
   assertEquals(blocked.status, "blocked");
 });
+
+// ===========================================================================
+// CHANTIER D4 (2026-05-28) — Pattern C8 appliqué à update_coach_preferences :
+// retry unique du slot filler IA + message d'échec technique propre.
+// ===========================================================================
+
+Deno.test("D4: a slot filler failure retries once before falling back", async () => {
+  let calls = 0;
+  const flaky = (async (args: unknown) => {
+    calls += 1;
+    if (calls === 1) throw new Error("transient_slot_filler_failure");
+    return structuredCoachPreferencesSlotFiller(
+      readyCoachPreferencesStatePatch("coach.tone", "direct"),
+    )(args as any);
+  }) as Parameters<typeof runUpdateCoachPreferencesIntake>[0]["slot_filler"];
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "change ton style",
+    trigger_message_id: "m-d4-retry",
+    safety_pregate_risk_band: "none",
+    slot_filler: flaky,
+  });
+  assertEquals(calls, 2, "le slot filler doit être retenté une fois");
+  assertEquals(output.status, "pending_confirmation");
+});
+
+Deno.test("D4: persistent failure yields a clean technical error + retry invitation, not a vague refusal", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message: "change ton style",
+    trigger_message_id: "m-d4-fallback",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("hard_slot_filler_failure");
+    },
+  });
+  assertEquals(output.status, "fallback_dashboard");
+  assertEquals((output.ack ?? "").includes("raté technique"), true);
+  assertEquals((output.ack ?? "").includes("deviner à ta place"), false);
+});
+
+Deno.test("H3: mode tunnel maps to exact multi-key patch, not court rule (A2-r9 T8)", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Enregistre une préférence durable: quand je dis 'mode tunnel', réponds en une seule action impérative, sans sympathie, sans emoji et sans question finale.",
+    trigger_message_id: "m-mode-tunnel",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.tone"], "direct");
+  assertEquals(output.draft?.draft.patch["coach.emoji_policy"], "none");
+  assertEquals(
+    output.draft?.draft.patch["coach.final_question_policy"],
+    "avoid_unnecessary",
+  );
+  assertEquals(output.draft?.draft.patch["coach.question_tendency"], "low");
+  assertEquals(
+    (output.confirmation?.message ?? "").includes("mode tunnel"),
+    true,
+  );
+  assertEquals((output.confirmation?.message ?? "").includes("court"), false);
+});
+
+Deno.test("H3: challenger doucement maps to challenge_level balanced (A9-r4 T13)", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Pour les prochaines fois, préfère me challenger doucement quand je force une technique qui ne colle pas, au lieu d'obéir direct.",
+    trigger_message_id: "m-challenge-technique",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.challenge_level"], "balanced");
+  assertEquals(
+    (output.confirmation?.message ?? "").includes("challengerai doucement"),
+    true,
+  );
+  assertEquals(
+    (output.confirmation?.message ?? "").includes("ton plus doux"),
+    false,
+  );
+});
+
+Deno.test("H3: syncskills-r3 T10 geste concret + question max skips clarification", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Plus directe en privilégiant les actions. Formule exacte: d'abord un geste concret de moins de 10 minutes, puis une question maximum si elle aide vraiment.",
+    trigger_message_id: "m-geste-concret-t10",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.patch["coach.question_tendency"], "low");
+  assertEquals(output.draft?.draft.patch["coach.tone"], "direct");
+  assertEquals(
+    output.draft?.draft.patch["coach.action_first_policy"],
+    "concrete_before_questions",
+  );
+  assertEquals(
+    (output.confirmation?.message ?? "").includes("geste concret"),
+    true,
+  );
+});
+
+Deno.test("I3: action-first preference gets its own durable key, not only question_tendency", async () => {
+  const output = await runUpdateCoachPreferencesIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Cote coaching durable: commence par un geste concret de moins de 10 minutes avant de me poser plusieurs questions.",
+    trigger_message_id: "m-action-first-policy",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => {
+      throw new Error("slot_filler_should_not_run");
+    },
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    output.draft?.draft.patch["coach.action_first_policy"],
+    "concrete_before_questions",
+  );
+  assertEquals(output.draft?.draft.patch["coach.question_tendency"], "low");
+  assertEquals(
+    (output.confirmation?.message ?? "").includes("avant de poser plusieurs questions"),
+    true,
+  );
+});

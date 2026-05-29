@@ -6,11 +6,17 @@ import {
   buildOneShotReminderAddon,
   detectsReminderAnaphora,
   extractQuotedReminderInstruction,
+  extractReminderInstruction,
+  isDegenerateReminderInstructionForTest,
   isExistingOneShotReminderReferenceOnly,
   isLikelyOneShotReminderRequest,
   loadLastReminderInstructionForUser,
+  looksLikeReminderExecutionConfirmationForTest,
+  looksLikeReminderSlotConfirmationForTest,
+  maybeCancelOneShotReminder,
   maybeCreateOneShotReminder,
   parseOneShotReminderRequest,
+  parseReminderFromMessageDeterministic,
   runCreateOneShotReminderV2,
   summarizeOneShotReminderOutcome,
 } from "./one_shot_reminder_tool.ts";
@@ -144,6 +150,22 @@ Deno.test("parseOneShotReminderRequest preserves colon instruction after program
   assertEquals(parsed.scheduledFor, "2026-05-21T06:30:00.000Z");
 });
 
+Deno.test("I2: parseOneShotReminderRequest strips unquoted Texte exact meta-command after earlier colon", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Ignore la carte. Je parle d'un rappel ponctuel : choisis 16h05. Texte exact : relire l'ancre 'phrase imparfaite = brouillon ouvert'.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-29T08:00:00.000Z",
+  });
+
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "relire l'ancre 'phrase imparfaite = brouillon ouvert'",
+  );
+  assertEquals(parsed.scheduledFor, "2026-05-29T14:05:00.000Z");
+});
+
 Deno.test("parseOneShotReminderRequest parses natural one-hour phrasing", () => {
   const parsed = parseOneShotReminderRequest({
     message: "Rappelle-moi dans une heure de fermer la fenetre du salon",
@@ -225,6 +247,49 @@ Deno.test("parseOneShotReminderRequest strips side coach preference from reminde
     "one_shot_reminder:envoyer_les_trois_premieres_lignes",
   );
   assertEquals(parsed.scheduledFor, "2026-05-07T07:00:00.000Z");
+});
+
+// CHANTIER D3 (2026-05-28) — Exclure une clause de gestion d'un AUTRE rappel
+// du texte extrait. Anti-FP AVANT le test positif. Voir A4-r7 T6.
+Deno.test("D3 anti-FP: une instruction qui contient juste 'actif' n'est PAS amputée", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme un rappel aujourd'hui a 14h20: rester actif sur le dossier Sam.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "rester actif sur le dossier Sam");
+});
+
+Deno.test("D3: strips a trailing management clause about another reminder (A4-r7 T6)", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme le second rappel ponctuel aujourd'hui a 11h39: envoyer a Sam la fiche relue avec les deux captures rangees. Celui de 11h24 doit rester actif.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  assertExists(parsed);
+  assertEquals(
+    parsed.reminderInstruction,
+    "envoyer a Sam la fiche relue avec les deux captures rangees",
+  );
+  assertEquals(
+    parsed.reminderInstruction.includes("actif"),
+    false,
+    "la clause de gestion ne doit pas polluer le texte du rappel",
+  );
+});
+
+Deno.test("D3: strips 'garde celui de X actif' trailing clause", () => {
+  const parsed = parseOneShotReminderRequest({
+    message:
+      "Programme un rappel aujourd'hui a 11h39: envoyer la fiche a Sam, et garde celui de 11h24 actif.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  assertExists(parsed);
+  assertEquals(parsed.reminderInstruction, "envoyer la fiche a Sam");
 });
 
 Deno.test("parseOneShotReminderRequest parses today HHhMM with client now", () => {
@@ -747,4 +812,310 @@ Deno.test("loadLastReminderInstructionForUser strips Rappel-ponctuel-prefix from
   ]);
   const out = await loadLastReminderInstructionForUser(supabase, "u1");
   assertEquals(out, "envoyer le PDF à Mina");
+});
+
+// ===========================================================================
+// CHANTIER E5 (2026-05-28) — Le créneau du tour précédent est récupéré quand
+// le user confirme "rappel unique" sans redonner l'heure. Voir A11 T2/T3.
+// ===========================================================================
+
+Deno.test("E5: 'Oui, rappel unique, une seule fois' est une confirmation de rappel", () => {
+  assertEquals(
+    looksLikeReminderSlotConfirmationForTest(
+      "Oui, rappel unique, une seule fois aujourd'hui.",
+    ),
+    true,
+  );
+  assertEquals(looksLikeReminderSlotConfirmationForTest("récurrent stp"), true);
+});
+
+Deno.test("E5 anti-FP: une demande sans marqueur de confirmation n'en est pas une", () => {
+  assertEquals(
+    looksLikeReminderSlotConfirmationForTest("change plutôt le texte"),
+    false,
+  );
+});
+
+Deno.test("E5: le créneau '16h40' donné au tour précédent est récupérable (A11 T2)", () => {
+  // Message du tour précédent (T2) qui portait l'heure + le texte.
+  const recovered = parseReminderFromMessageDeterministic({
+    message:
+      "Ok pour le rappel: programme-le aujourd'hui à 16h40 avec le texte 'reprendre le devis sans rouvrir toute la réunion'.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  if (!recovered) throw new Error("expected recovered slot");
+  // 16h40 Europe/Paris = 14:40 UTC.
+  assertEquals(recovered.scheduledFor, "2026-05-28T14:40:00.000Z");
+  assertEquals(
+    recovered.reminderInstruction.includes("reprendre le devis"),
+    true,
+    `got: ${recovered.reminderInstruction}`,
+  );
+});
+
+Deno.test("E5: la confirmation seule ('oui, unique') ne porte pas de créneau", () => {
+  // Le message de confirmation ne doit PAS produire de slot à lui seul: c'est
+  // exactement pourquoi la récupération depuis le tour précédent est requise.
+  const fromConfirmation = parseReminderFromMessageDeterministic({
+    message: "Oui, rappel unique, une seule fois aujourd'hui.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-28T08:00:00.000Z",
+  });
+  assertEquals(fromConfirmation, null);
+});
+
+// ===========================================================================
+// CHANTIER F3 (2026-05-29) — Ordre d'exécution multi-tour. "programme-le
+// maintenant" (sans heure dans le message) doit pouvoir exécuter en
+// récupérant le créneau du contexte, au lieu de reboucler. Voir
+// edgecases-r2 T9.
+// ===========================================================================
+
+Deno.test("F3: 'programme-le maintenant' est un ordre d'exécution explicite (edgecases-r2 T9)", () => {
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest(
+      "B, le texte tel quel. Programme-le maintenant.",
+    ),
+    true,
+  );
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest(
+      "vas-y, lance le rappel maintenant",
+    ),
+    true,
+  );
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest("cale-le tout de suite"),
+    true,
+  );
+});
+
+Deno.test("F3 anti-FP: une question produit n'est pas un ordre d'exécution", () => {
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest(
+      "comment je programme un rappel dans l'app ?",
+    ),
+    false,
+  );
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest(
+      "où je peux programmer un rappel ?",
+    ),
+    false,
+  );
+  assertEquals(
+    looksLikeReminderExecutionConfirmationForTest("je réfléchis encore"),
+    false,
+  );
+});
+
+Deno.test("F3: le créneau (15h30 + texte) donné au tour précédent reste récupérable (edgecases-r2 T8)", () => {
+  const recovered = parseReminderFromMessageDeterministic({
+    message:
+      "Moment exact : aujourd'hui a 15h30. Texte exact : relire l'objectif du point client.",
+    timezone: "Europe/Paris",
+    nowIso: "2026-05-29T08:00:00.000Z",
+  });
+  if (!recovered) throw new Error("expected recovered slot");
+  // 15h30 Europe/Paris = 13:30 UTC.
+  assertEquals(recovered.scheduledFor, "2026-05-29T13:30:00.000Z");
+  assertEquals(
+    recovered.reminderInstruction.includes("relire l'objectif du point client"),
+    true,
+    `got: ${recovered.reminderInstruction}`,
+  );
+});
+
+// ===========================================================================
+// CHANTIER G2 (2026-05-29) — Préservation de l'instruction du tour précédent
+// quand la confirmation ne porte que l'heure/le style. Voir edgecases-r3 T7.
+// ===========================================================================
+
+Deno.test("G2: une instruction qui n'est que de l'horaire/du style est dégénérée", () => {
+  assertEquals(
+    isDegenerateReminderInstructionForTest("aujourd'hui à 16h10"),
+    true,
+  );
+  assertEquals(isDegenerateReminderInstructionForTest("14h20 ou 16h10"), true);
+  assertEquals(isDegenerateReminderInstructionForTest("rappel neutre"), true);
+  assertEquals(isDegenerateReminderInstructionForTest("à 16h10"), true);
+  assertEquals(isDegenerateReminderInstructionForTest(""), true);
+  assertEquals(
+    isDegenerateReminderInstructionForTest("ce que tu as prévu"),
+    true,
+  );
+});
+
+Deno.test("G2: une vraie instruction n'est PAS dégénérée", () => {
+  assertEquals(
+    isDegenerateReminderInstructionForTest("vérifier les 5 lignes du devis"),
+    false,
+  );
+  assertEquals(
+    isDegenerateReminderInstructionForTest("appeler le dentiste"),
+    false,
+  );
+});
+
+Deno.test("G2: le message de confirmation T7 produit une instruction dégénérée (à récupérer)", () => {
+  // T7: "Rappel neutre. Programme-le maintenant pour aujourd'hui à 16h10."
+  const t7Instruction = extractReminderInstruction(
+    "Rappel neutre. Programme-le maintenant pour aujourd'hui à 16h10.",
+  );
+  assertEquals(isDegenerateReminderInstructionForTest(t7Instruction), true);
+});
+
+Deno.test("G2: le texte exact donné en T6 est récupérable et non dégénéré", () => {
+  // T6: "Je choisis 16h10. Le texte exact du rappel : vérifier les 5 lignes du devis."
+  const t6Instruction = extractReminderInstruction(
+    "Je choisis 16h10. Le texte exact du rappel : vérifier les 5 lignes du devis.",
+  );
+  assertEquals(
+    t6Instruction.includes("vérifier les 5 lignes du devis"),
+    true,
+    `got: ${t6Instruction}`,
+  );
+  assertEquals(isDegenerateReminderInstructionForTest(t6Instruction), false);
+});
+
+// ===========================================================================
+// CHANTIER G3 (2026-05-29) — Annulation effective d'un rappel ponctuel. Voir
+// edgecases-r3 T9/T10.
+// ===========================================================================
+
+function makeFakeSupabaseForCancel(opts: {
+  profile?: { timezone?: string; locale?: string } | null;
+  pending: any[];
+  onUpdate?: (vals: { vals: unknown; ids: string[] }) => void;
+}) {
+  return {
+    from(_table: string) {
+      const state: { updateVals: unknown } = { updateVals: null };
+      const chain: any = {
+        select() {
+          return chain;
+        },
+        update(vals: unknown) {
+          state.updateVals = vals;
+          return chain;
+        },
+        eq() {
+          return chain;
+        },
+        like() {
+          return chain;
+        },
+        order() {
+          return chain;
+        },
+        limit() {
+          return chain;
+        },
+        in(_col: string, ids: string[]) {
+          opts.onUpdate?.({ vals: state.updateVals, ids });
+          return Promise.resolve({ data: null, error: null });
+        },
+        maybeSingle() {
+          return Promise.resolve({ data: opts.profile ?? null, error: null });
+        },
+        then(onFulfilled: (v: { data: unknown[]; error: null }) => unknown) {
+          return Promise.resolve({ data: opts.pending, error: null }).then(
+            onFulfilled,
+          );
+        },
+      };
+      return chain;
+    },
+  } as any;
+}
+
+Deno.test("G3: 'annule le rappel de 16h10' annule réellement le checkin pending (edgecases-r3 T9)", async () => {
+  let updatedIds: string[] = [];
+  let updatedVals: any = null;
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    // 16h10 Europe/Paris = 14:10 UTC.
+    pending: [
+      {
+        id: "checkin-1",
+        scheduled_for: "2026-05-29T14:10:00.000Z",
+        status: "pending",
+        event_context: "one_shot_reminder:verifier_les_5_lignes_du_devis",
+        message_payload: {
+          reminder_instruction: "vérifier les 5 lignes du devis",
+        },
+      },
+    ],
+    onUpdate: ({ vals, ids }) => {
+      updatedVals = vals;
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "Alors annule le rappel de 16h10. Je ne veux plus de ping.",
+    now: new Date("2026-05-29T08:00:00.000Z"),
+  });
+  assertEquals(outcome.detected, true);
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  }
+  assertEquals(outcome.cancelled_count, 1);
+  assertEquals(updatedIds, ["checkin-1"]);
+  assertEquals((updatedVals as any)?.status, "cancelled");
+});
+
+Deno.test("G3: annulation sans rappel pending -> dit clairement que rien n'est annulé", async () => {
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [],
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "annule le rappel stp",
+    now: new Date("2026-05-29T08:00:00.000Z"),
+  });
+  assertEquals(outcome.detected, true);
+  if (!outcome.detected) throw new Error("expected detected");
+  assertEquals(outcome.status, "no_reminder");
+});
+
+Deno.test("G3: une heure ciblée ne coupe que le rappel correspondant", async () => {
+  let updatedIds: string[] = [];
+  const supabase = makeFakeSupabaseForCancel({
+    profile: { timezone: "Europe/Paris", locale: "fr-FR" },
+    pending: [
+      {
+        id: "checkin-a",
+        scheduled_for: "2026-05-29T14:10:00.000Z", // 16:10 local
+        status: "pending",
+        event_context: "one_shot_reminder:a",
+        message_payload: { reminder_instruction: "tâche A" },
+      },
+      {
+        id: "checkin-b",
+        scheduled_for: "2026-05-29T07:40:00.000Z", // 09:40 local
+        status: "pending",
+        event_context: "one_shot_reminder:b",
+        message_payload: { reminder_instruction: "tâche B" },
+      },
+    ],
+    onUpdate: ({ ids }) => {
+      updatedIds = ids;
+    },
+  });
+  const outcome = await maybeCancelOneShotReminder({
+    supabase,
+    userId: "u1",
+    message: "coupe le rappel de 16h10",
+    now: new Date("2026-05-29T08:00:00.000Z"),
+  });
+  if (!outcome.detected || outcome.status !== "cancelled") {
+    throw new Error(`expected cancelled, got ${JSON.stringify(outcome)}`);
+  }
+  assertEquals(updatedIds, ["checkin-a"]);
+  assertEquals(outcome.cancelled_count, 1);
 });

@@ -696,6 +696,39 @@ function isGenericOrAnaphoricInstruction(instruction: string): boolean {
   return false;
 }
 
+// CHANTIER G2 (2026-05-29, edgecases-r3 T7) — Une instruction de rappel est
+// "dégénérée" quand elle ne porte QUE de l'horaire / du jour / un style
+// ("aujourd'hui à 16h10", "rappel neutre", "14h20 ou 16h10"). C'est le cas d'un
+// message de CONFIRMATION qui ne fixe que l'heure/le style ; l'instruction
+// réelle ("vérifier les 5 lignes du devis") a été donnée à un tour précédent.
+// Quand l'instruction est dégénérée, il faut la récupérer du contexte au lieu
+// d'écrire l'heure comme texte durable.
+export function isDegenerateReminderInstructionForTest(
+  instruction: string,
+): boolean {
+  const v = String(instruction ?? "").trim();
+  if (!v) return true;
+  if (isGenericOrAnaphoricInstruction(v)) return true;
+  const stripped = v
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(
+      /\b(aujourd hui|aujourd'hui|demain|apres demain|apres-demain|ce soir|cet apres midi|cet apres-midi|ce matin|cette nuit)\b/g,
+      " ",
+    )
+    .replace(/\b\d{1,2}\s*h\s*\d{0,2}\b/g, " ")
+    .replace(/\b\d{1,2}:\d{2}\b/g, " ")
+    .replace(
+      /\b(a|vers|pour|le|la|les|du|de|d|et|ou|soit|plutot|maintenant|tout de suite|des maintenant)\b/g,
+      " ",
+    )
+    .replace(/\b(rappel|neutre|imperatif|a faire|style|simple|court|courte)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+  return stripped.length === 0;
+}
+
 export async function loadLastReminderInstructionForUser(
   supabase: SupabaseClient,
   userId: string,
@@ -730,7 +763,7 @@ export async function loadLastReminderInstructionForUser(
   }
 }
 
-function extractReminderInstruction(message: string): string {
+export function extractReminderInstruction(message: string): string {
   const full = compactText(message, 500);
 
   // Chantier 13 (2026-05-28) — Priorité absolue : si l'utilisateur dit
@@ -743,6 +776,15 @@ function extractReminderInstruction(message: string): string {
   if (quotedInstruction) return quotedInstruction;
 
   const clause = extractReminderClause(full) || full;
+  const explicitLabelTarget = clause.match(
+    /\b(?:texte\s+exact|texte|instruction|message|contenu)\s*[:=]\s*([\s\S]+)$/i,
+  )?.[1] ?? "";
+  if (/[\p{L}\p{N}]/u.test(explicitLabelTarget)) {
+    const cleanedExplicitLabel = cleanReminderInstructionTarget(
+      explicitLabelTarget,
+    );
+    if (cleanedExplicitLabel) return cleanedExplicitLabel;
+  }
   const afterColon = clause.match(/:\s*(.+)$/)?.[1] ?? "";
   if (/[\p{L}\p{N}]/u.test(afterColon)) {
     const cleanedAfterColon = cleanReminderInstructionTarget(afterColon);
@@ -794,6 +836,28 @@ function cleanReminderInstructionTarget(value: string): string {
       .replace(/\s*,?\s+mais\b[\s\S]*$/i, "")
       .replace(
         /\s*,?\s+et\s+(?:retiens|garde|enregistre)\s+(?:aussi\s+)?(?:en\s+t[eê]te\s+)?que\b[\s\S]*$/i,
+        "",
+      )
+      // CHANTIER D3 (2026-05-28) — L6. Retirer une clause de GESTION d'un AUTRE
+      // rappel collée en fin d'instruction. C'est une consigne de gestion, pas
+      // le contenu du rappel courant ; sans ça le payload durable était pollué
+      // ("envoyer la fiche... . Celui de 11h24 doit rester actif"). Voir
+      // A4-r7 T6. Narrow + anti-FP : exige (a) un séparateur de fin de phrase
+      // [.,;] et (b) une RÉFÉRENCE à un autre rappel (celui/l'autre/le premier…),
+      // pour ne pas amputer une instruction qui contient juste le mot "actif".
+      // "celui de X (doit) rester actif" en fin de phrase
+      .replace(
+        /\s*[.,;]+\s*(?:et\s+|mais\s+|puis\s+)?(?:celui|celle|ceux|celles|l['’ ]?ancien|l['’ ]?autre|le\s+premier|le\s+second|le\s+deuxi[èe]me|les\s+autres?)\b[^.?!]*?\b(?:rest\w*|doi\w*\s+rester|garde)\b[^.?!]*?\bactif\w*\b.*$/i,
+        "",
+      )
+      // "garde/laisse celui de X / l'autre actif" en fin de phrase
+      .replace(
+        /\s*[.,;]+\s*(?:et\s+|mais\s+|puis\s+)?(?:garde|laisse|conserve|maintiens|maintient)\b[^.?!]*?(?:celui|celle|l['’ ]?autre|l['’ ]?ancien|le\s+premier|le\s+second|le\s+deuxi[èe]me|l['’ ]?existant|autre\s+rappel)\b[^.?!]*?\bactif\w*\b.*$/i,
+        "",
+      )
+      // "ne touche/supprime pas l'autre / le premier / celui de X" en fin de phrase
+      .replace(
+        /\s*[.,;]+\s*(?:et\s+|mais\s+|puis\s+)?ne\s+(?:touche|supprime|annule|change|modifie|enl[èe]ve)\b[^.?!]*?(?:l['’ ]?autre|l['’ ]?ancien|le\s+premier|le\s+second|celui\s+de|l['’ ]?existant)\b.*$/i,
         "",
       )
       .replace(/\b(?:stp|s['’]il te plaît|s'il te plait|please)\b/gi, " ")
@@ -1029,14 +1093,110 @@ function formatLocalReminderLabel(args: {
   }).format(new Date(args.scheduledFor));
 }
 
+// CHANTIER E5 (2026-05-28) — Récupération du créneau depuis le tour précédent.
+// Reparse déterministe (strict -> local -> one-shot, SANS appel IA) d'un message
+// de contexte, pour récupérer une heure/date + instruction déjà fournies.
+export function parseReminderFromMessageDeterministic(args: {
+  message: string;
+  timezone: string;
+  nowIso: string;
+}): ParsedReminderRequest | null {
+  const strictParts = extractStrictAbsoluteParts(args.message);
+  if (strictParts) {
+    const scheduledFor = computeScheduledForFromLocal({
+      timezone: args.timezone,
+      dayOffset: strictParts.dayOffset,
+      localTimeHHMM: strictParts.localTimeHHMM,
+      now: new Date(args.nowIso),
+    });
+    if (scheduledFor) {
+      const instruction = extractReminderInstruction(args.message);
+      return {
+        scheduledFor,
+        reminderInstruction: instruction,
+        eventContext: `one_shot_reminder:${slugify(instruction) || "generic"}`,
+        parseSource: "strict_absolute",
+      };
+    }
+  }
+  return parseStrictAbsoluteReminderRequest({
+    message: args.message,
+    timezone: args.timezone,
+    nowIso: args.nowIso,
+  }) ??
+    parseOneShotReminderRequest({
+      message: args.message,
+      timezone: args.timezone,
+      nowIso: args.nowIso,
+    });
+}
+
+// CHANTIER E5 — Marqueur de confirmation de rappel ("oui, unique, une seule
+// fois", "ponctuel", "récurrent"...). Sert d'anti-faux-positif: on ne récupère
+// le créneau d'un tour précédent QUE si le message courant est une telle
+// confirmation et ne porte pas lui-même d'heure.
+export function looksLikeReminderSlotConfirmationForTest(message: string): boolean {
+  const text = String(message ?? "").toLowerCase().normalize("NFD").replace(
+    /\p{Diacritic}/gu,
+    "",
+  );
+  return /\b(oui|ouais|ok|d accord|c est ca|c est bien ca|exact|exactement|valide|confirme|unique|une seule fois|une fois|ponctuel|ponctuelle|recurrent|recurrente|chaque jour|tous les jours|repete)\b/
+    .test(text);
+}
+
+// CHANTIER F3 (2026-05-29, edgecases-r2 T9) — Détecte un ORDRE EXPLICITE
+// d'exécution d'un rappel déjà cadré au fil des tours ("programme-le
+// maintenant", "vas-y, lance le rappel", "cale-le tout de suite"). Sert,
+// COMBINÉ à un effet create_one_shot_reminder déjà proposé par le dispatcher
+// (compréhension multi-tour), à promouvoir l'exécution même quand le message
+// courant ne reporte pas l'heure (récupérée du contexte via E5). Anti-FP:
+// on exige un verbe d'exécution + un objet/now, et on exclut les questions
+// produit ("comment programmer", "où je programme").
+export function looksLikeReminderExecutionConfirmationForTest(
+  message: string,
+): boolean {
+  const text = String(message ?? "").toLowerCase().normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/['’`]/g, " ");
+  // Question produit / navigation → ce n'est pas un ordre d'exécution.
+  if (
+    /\b(comment|ou est|ou je|ou puis|pourquoi|peux tu|tu peux|pourrais|est ce que|dans l app|dans l application|dans l interface)\b/
+      .test(text)
+  ) {
+    return false;
+  }
+  const hasExecutionVerb =
+    /\b(programme|programmes|programmer|planifie|planifier|lance|lances|lancer|cale|cales|caler|active|activer|mets|met|mettre)\b/
+      .test(text);
+  if (!hasExecutionVerb) return false;
+  const hasObjectOrNow =
+    /\b(le|la|ca|ce|ce rappel|le rappel|celui la|maintenant|tout de suite|des maintenant|la maintenant|vas y|go)\b/
+      .test(text);
+  return hasObjectOrNow;
+}
+
 export async function maybeCreateOneShotReminder(params: {
   supabase: SupabaseClient;
   userId: string;
   message: string;
   requestId?: string;
   now?: Date;
+  // E5: messages user récents (plus récent d'abord) pour récupérer un créneau
+  // donné juste avant une confirmation "unique ou récurrent ?".
+  contextMessages?: string[];
 }): Promise<OneShotReminderToolOutcome> {
-  if (!isLikelyOneShotReminderRequest(params.message)) {
+  // CHANTIER F3 (2026-05-29, edgecases-r2 T9) — Un ORDRE d'exécution explicite
+  // ("programme-le maintenant") ne porte pas forcément l'heure : elle a été
+  // donnée à un tour précédent. On laisse alors la fonction continuer (au lieu
+  // de retourner detected:false trop tôt) pour tenter la récupération du
+  // créneau depuis contextMessages. Anti-boucle: si rien n'est récupérable,
+  // on tombe sur needs_clarify (detected:true), pas sur un silence.
+  const isExecutionConfirmation =
+    looksLikeReminderExecutionConfirmationForTest(params.message) ||
+    looksLikeReminderSlotConfirmationForTest(params.message);
+  const canRecoverFromContext = isExecutionConfirmation &&
+    (params.contextMessages?.length ?? 0) > 0;
+  if (!isLikelyOneShotReminderRequest(params.message) && !canRecoverFromContext) {
     return { detected: false };
   }
 
@@ -1081,13 +1241,44 @@ export async function maybeCreateOneShotReminder(params: {
     timezone: tctx.user_timezone,
     nowIso: tctx.now_utc,
   });
-  const initialParsed = localParsed ??
+  let initialParsed = localParsed ??
     (strictParts ? null : await inferOneShotReminderRequestWithAi({
       message: params.message,
       timezone: tctx.user_timezone,
       nowIso: tctx.now_utc,
       requestId: params.requestId,
     }));
+  // CHANTIER E5 (2026-05-28) — A11 T2/T3. Quand le user confirme un rappel
+  // ("oui, rappel unique, une seule fois") sans redonner l'heure, on récupère
+  // le créneau + l'instruction depuis le dernier message user pertinent. Sans
+  // ça, la confirmation "unique ou récurrent ?" perdait le 16h40 donné juste
+  // avant et le tool se bloquait à tort sur missing_time.
+  if (
+    !initialParsed &&
+    // F3: déclenche aussi la récupération sur un ordre d'exécution explicite
+    // ("programme-le maintenant"), pas seulement sur "oui/unique/récurrent".
+    (looksLikeReminderSlotConfirmationForTest(params.message) ||
+      looksLikeReminderExecutionConfirmationForTest(params.message)) &&
+    (params.contextMessages?.length ?? 0) > 0
+  ) {
+    for (const ctx of params.contextMessages!) {
+      const recovered = parseReminderFromMessageDeterministic({
+        message: ctx,
+        timezone: tctx.user_timezone,
+        nowIso: tctx.now_utc,
+      });
+      if (recovered) {
+        initialParsed = {
+          ...recovered,
+          parseDetails: {
+            ...(recovered.parseDetails ?? {}),
+            slot_recovered_from_prior_turn: true,
+          } as any,
+        };
+        break;
+      }
+    }
+  }
   if (!initialParsed) {
     return {
       detected: true,
@@ -1125,6 +1316,55 @@ export async function maybeCreateOneShotReminder(params: {
             anaphora_source: "last_pending_reminder",
           } as any)
           : previousDetails,
+      };
+    }
+  }
+
+  // CHANTIER G2 (2026-05-29, edgecases-r3 T7) — Préservation de l'instruction.
+  // Quand le message courant ne fait que CONFIRMER l'heure / le style ("Rappel
+  // neutre. Programme-le maintenant pour aujourd'hui à 16h10."), l'instruction
+  // extraite est dégénérée (juste l'horaire). On la récupère depuis un tour
+  // précédent ("Le texte exact du rappel : vérifier les 5 lignes du devis"),
+  // sinon depuis le dernier rappel pending en DB. On NE remplace JAMAIS une
+  // instruction réelle par l'heure.
+  if (
+    isDegenerateReminderInstructionForTest(parsed.reminderInstruction) &&
+    (looksLikeReminderExecutionConfirmationForTest(params.message) ||
+      looksLikeReminderSlotConfirmationForTest(params.message)) &&
+    (params.contextMessages?.length ?? 0) > 0
+  ) {
+    let recoveredInstruction = "";
+    for (const ctx of params.contextMessages!) {
+      const candidate = extractReminderInstruction(ctx);
+      if (
+        candidate &&
+        !isDegenerateReminderInstructionForTest(candidate) &&
+        !isGenericOrAnaphoricInstruction(candidate)
+      ) {
+        recoveredInstruction = candidate;
+        break;
+      }
+    }
+    if (!recoveredInstruction) {
+      const fromDb = await loadLastReminderInstructionForUser(
+        params.supabase,
+        params.userId,
+      );
+      if (fromDb && !isDegenerateReminderInstructionForTest(fromDb)) {
+        recoveredInstruction = fromDb;
+      }
+    }
+    if (recoveredInstruction) {
+      parsed = {
+        ...parsed,
+        reminderInstruction: recoveredInstruction,
+        eventContext: `one_shot_reminder:${
+          slugify(recoveredInstruction) || "generic"
+        }`,
+        parseDetails: {
+          ...(parsed.parseDetails ?? {}),
+          instruction_recovered_from_prior_turn: true,
+        } as any,
       };
     }
   }
@@ -1211,6 +1451,179 @@ export async function maybeCreateOneShotReminder(params: {
       ) || "insert_failed",
     };
   }
+}
+
+// CHANTIER G3 (2026-05-29, edgecases-r3 T9/T10) — Annulation effective d'un
+// rappel ponctuel. Avant: `cancel_one_shot_reminder` était détecté par le
+// dispatcher mais aucun exécuteur ne l'appliquait → Sophia promettait
+// l'annulation alors que le rappel restait `pending` en DB.
+export type CancelOneShotReminderOutcome =
+  | { detected: false }
+  | {
+    detected: true;
+    status: "no_reminder";
+    user_message: string;
+  }
+  | {
+    detected: true;
+    status: "failed";
+    reason: string;
+    user_message: string;
+    error_message: string;
+  }
+  | {
+    detected: true;
+    status: "cancelled";
+    cancelled_count: number;
+    cancelled_local_labels: string[];
+    user_message: string;
+  };
+
+function localHHMMForScheduledFor(
+  scheduledFor: string,
+  timezone: string,
+): string | null {
+  try {
+    if (isEuropeParisTimezone(timezone)) {
+      const offset = parisOffsetMinutesForUtcIso(scheduledFor);
+      const localTotal = utcTotalMinutesFromIso(scheduledFor) + offset;
+      const minutesOfDay = positiveModulo(localTotal, 1440);
+      const hour = Math.floor(minutesOfDay / 60);
+      const minute = minutesOfDay % 60;
+      return `${String(hour).padStart(2, "0")}:${
+        String(minute).padStart(2, "0")
+      }`;
+    }
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: timezone,
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).formatToParts(new Date(scheduledFor));
+    const hh = parts.find((p) => p.type === "hour")?.value ?? "";
+    const mm = parts.find((p) => p.type === "minute")?.value ?? "";
+    return hh && mm ? `${hh}:${mm}` : null;
+  } catch {
+    return null;
+  }
+}
+
+function extractTargetHHMMFromMessage(message: string): string | null {
+  const text = compactText(message, 500)
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase();
+  const match = text.match(/\b(\d{1,2})\s*h\s*(\d{2})\b/) ??
+    text.match(/\b(\d{1,2}):(\d{2})\b/) ??
+    text.match(/\b(\d{1,2})\s*h\b/);
+  if (!match) return null;
+  return parseHHMM(match[1], match[2]);
+}
+
+export async function maybeCancelOneShotReminder(params: {
+  supabase: SupabaseClient;
+  userId: string;
+  message: string;
+  requestId?: string;
+  now?: Date;
+}): Promise<CancelOneShotReminderOutcome> {
+  const tctx = await getUserTimeContext({
+    supabase: params.supabase,
+    userId: params.userId,
+    now: params.now,
+  });
+  let pendingRows: any[] = [];
+  try {
+    const { data, error } = await params.supabase
+      .from("scheduled_checkins")
+      .select("id,scheduled_for,status,event_context,message_payload")
+      .eq("user_id", params.userId)
+      .eq("status", "pending")
+      .like("event_context", "one_shot_reminder:%")
+      .order("scheduled_for", { ascending: true })
+      .limit(10);
+    if (error) throw error;
+    pendingRows = (data ?? []) as any[];
+  } catch (error) {
+    return {
+      detected: true,
+      status: "failed",
+      reason: "read_failed",
+      user_message: compactText(params.message, 500),
+      error_message: compactText(errorText(error), 180) || "read_failed",
+    };
+  }
+
+  if (pendingRows.length === 0) {
+    return {
+      detected: true,
+      status: "no_reminder",
+      user_message: compactText(params.message, 500),
+    };
+  }
+
+  // Si le message cible une heure précise ("annule le rappel de 16h10"), on ne
+  // coupe QUE le(s) rappel(s) à cette heure. Sinon (annulation globale), on
+  // coupe tous les rappels ponctuels pending.
+  const targetHHMM = extractTargetHHMMFromMessage(params.message);
+  let targets = pendingRows;
+  if (targetHHMM) {
+    const matched = pendingRows.filter((row: any) =>
+      localHHMMForScheduledFor(
+        String(row?.scheduled_for ?? ""),
+        tctx.user_timezone,
+      ) === targetHHMM
+    );
+    if (matched.length > 0) targets = matched;
+  }
+
+  const ids = targets
+    .map((row: any) => String(row?.id ?? ""))
+    .filter(Boolean);
+  if (ids.length === 0) {
+    return {
+      detected: true,
+      status: "no_reminder",
+      user_message: compactText(params.message, 500),
+    };
+  }
+
+  try {
+    const writeClient = await getReminderWriteClient(params.supabase);
+    const { error } = await writeClient
+      .from("scheduled_checkins")
+      .update({ status: "cancelled" } as any)
+      .in("id", ids);
+    if (error) throw error;
+  } catch (error) {
+    return {
+      detected: true,
+      status: "failed",
+      reason: "update_failed",
+      user_message: compactText(params.message, 500),
+      error_message: compactText(errorText(error), 180) || "update_failed",
+    };
+  }
+
+  const labels = targets
+    .map((row: any) =>
+      row?.scheduled_for
+        ? formatLocalReminderLabel({
+          scheduledFor: String(row.scheduled_for),
+          timezone: tctx.user_timezone,
+          locale: tctx.user_locale,
+        })
+        : null
+    )
+    .filter((label): label is string => Boolean(label));
+
+  return {
+    detected: true,
+    status: "cancelled",
+    cancelled_count: ids.length,
+    cancelled_local_labels: labels,
+    user_message: compactText(params.message, 500),
+  };
 }
 
 export async function runCreateOneShotReminderV2(params: {

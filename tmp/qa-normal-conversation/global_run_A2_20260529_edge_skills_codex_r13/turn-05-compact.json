@@ -1,0 +1,16 @@
+{
+  "http_status": "200",
+  "ok": true,
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r13-t05",
+  "response_owner": "tool_skill",
+  "selected_handler": "prepare_defense_card",
+  "route_reason": "explicit_defense_card_intent_overrides_attack_card",
+  "safety": null,
+  "operation": "f7632429-c7a5-4070-9f4b-e711175c580f",
+  "memory_plan": null,
+  "executed_tools": [],
+  "tool_status": "pending_confirmation"
+}

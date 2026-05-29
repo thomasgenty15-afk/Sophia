@@ -1,0 +1,392 @@
+{
+  "ok": true,
+  "request_id": "global_run_A2_20260529_edge_skills_codex_r11-t03",
+  "user_id": "750321a6-83c7-43c0-964c-766527abd661",
+  "channel": "web",
+  "scope": "global_run_A2_20260529_edge_skills_codex_r11",
+  "empty_response": false,
+  "aborted": false,
+  "abort_reason": null,
+  "logged_message_id": null,
+  "latest_message_id": null,
+  "response": {
+    "content": "C'est programmé pour vendredi 29 mai à 10:38 : Relire Omar. 🙂",
+    "additional_contents": [],
+    "mode": "companion",
+    "tool_execution": "success",
+    "executed_tools": [
+      "create_one_shot_reminder"
+    ],
+    "conversation_turn_trace": {
+      "turn_frame": {
+        "turn_id": "global_run_A2_20260529_edge_skills_codex_r11-t03",
+        "source_message_id": "babf08e0-0a0a-4627-94c4-69790b7bc093",
+        "user_id": "750321a6-83c7-43c0-964c-766527abd661",
+        "channel": "web",
+        "safety": {
+          "risk_band": "low",
+          "reason_codes": [],
+          "evidence": []
+        },
+        "conversation_risk": {
+          "score": 0,
+          "threshold": 8,
+          "should_exit_flows": false,
+          "reason_codes": [],
+          "previous_scores": [
+            0,
+            0
+          ],
+          "matrix": [
+            {
+              "signal": "system_misunderstanding",
+              "detected": false,
+              "weight": 3.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "explicit_stop_or_abandon",
+              "detected": false,
+              "weight": 2.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "anger_or_profanity",
+              "detected": false,
+              "weight": 2,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "repetition_or_correction",
+              "detected": false,
+              "weight": 1.5,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "typographic_intensity",
+              "detected": false,
+              "weight": 0.7,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "active_flow_pressure",
+              "detected": false,
+              "weight": 1,
+              "contribution": 0,
+              "evidence": null
+            },
+            {
+              "signal": "previous_risk",
+              "detected": false,
+              "weight": 10,
+              "contribution": 0,
+              "evidence": "0,0;decay=0.55;recovery=0"
+            }
+          ],
+          "context_summary": null,
+          "flow_exit_context": null
+        },
+        "direct_effects": [
+          {
+            "effect_type": "create_one_shot_reminder",
+            "explicitness": "explicit",
+            "target_status": "identified",
+            "confidence_band": "high",
+            "payload_hint": {
+              "raw_text": "Phrase prête. Rappelle-moi à 10h38 de relire Omar, et ne crée aucune carte même si j'ai parlé de crypto."
+            }
+          }
+        ],
+        "tool_skill_intents": [],
+        "tool_skill_opportunity": {
+          "type": "none",
+          "operation_type": null,
+          "surface_id": null,
+          "confidence_band": "low",
+          "should_offer": false,
+          "prop_reason": null,
+          "source_span": null,
+          "target_hint": null,
+          "target_status": "none",
+          "suggested_question_intent": null,
+          "offer_timing": "never",
+          "must_not_execute": true
+        },
+        "skill_signals": {
+          "entry": {},
+          "lifecycle": {},
+          "exit": {}
+        },
+        "needs_research": {
+          "detected": false,
+          "value": false,
+          "query": null,
+          "domain_hint": null,
+          "confidence": 0,
+          "reason": null
+        },
+        "action_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": null
+        },
+        "level_reference": {
+          "detected": false,
+          "status": "none",
+          "expansion_policy": "none",
+          "reason": null
+        },
+        "memory_plan": {
+          "response_intent": "reflection",
+          "reasoning_complexity": "low",
+          "context_need": "targeted",
+          "memory_mode": "light",
+          "model_tier_hint": "lite",
+          "context_budget_tier": "small",
+          "targets": [
+            {
+              "type": "topic",
+              "key": "Omar",
+              "query_hint": "contexte Omar et badge parking",
+              "expansion_policy": null,
+              "retrieval_policy": "semantic_first",
+              "priority": "medium",
+              "entity_type": null
+            }
+          ],
+          "retrieval_policy": "semantic_first",
+          "plan_confidence": 0.7
+        },
+        "confirmation_response": null
+      },
+      "route_decision": {
+        "route_version": "v1",
+        "response_owner": "normal_reply",
+        "blocked_paths": [
+          {
+            "path": "tool_skill.prepare_attack_card",
+            "reason_code": "central_arbitrator_one_shot_reminder_priority"
+          },
+          {
+            "path": "tool_skill_flow",
+            "reason_code": "central_arbitrator_one_shot_reminder_priority"
+          }
+        ],
+        "direct_effects_to_run": [
+          "create_one_shot_reminder"
+        ],
+        "reason_code": "central_arbitrator_one_shot_reminder_priority",
+        "memory_used_for_route": false,
+        "memory_item_ids_used_for_route": [],
+        "memory_use_kind": "none",
+        "active_flow_arbitration": {
+          "decision": "none",
+          "active_owner": "none",
+          "selected_owner": "none",
+          "resume_policy": "none",
+          "reason_code": "no_active_flow"
+        }
+      },
+      "tool_skill_run": {
+        "selected_handler": "create_one_shot_reminder",
+        "reason_code": "central_arbitrator_one_shot_reminder_priority",
+        "status": "executed",
+        "scheduled_for": "2026-05-29T08:38:00+00:00",
+        "inserted_checkin_id": "184f2bd2-bd2b-4f85-8850-572b6f1c14de"
+      },
+      "response_owner": "tool_skill"
+    }
+  },
+  "conversation_turn_trace": {
+    "turn_frame": {
+      "turn_id": "global_run_A2_20260529_edge_skills_codex_r11-t03",
+      "source_message_id": "babf08e0-0a0a-4627-94c4-69790b7bc093",
+      "user_id": "750321a6-83c7-43c0-964c-766527abd661",
+      "channel": "web",
+      "safety": {
+        "risk_band": "low",
+        "reason_codes": [],
+        "evidence": []
+      },
+      "conversation_risk": {
+        "score": 0,
+        "threshold": 8,
+        "should_exit_flows": false,
+        "reason_codes": [],
+        "previous_scores": [
+          0,
+          0
+        ],
+        "matrix": [
+          {
+            "signal": "system_misunderstanding",
+            "detected": false,
+            "weight": 3.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "explicit_stop_or_abandon",
+            "detected": false,
+            "weight": 2.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "anger_or_profanity",
+            "detected": false,
+            "weight": 2,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "repetition_or_correction",
+            "detected": false,
+            "weight": 1.5,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "typographic_intensity",
+            "detected": false,
+            "weight": 0.7,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "active_flow_pressure",
+            "detected": false,
+            "weight": 1,
+            "contribution": 0,
+            "evidence": null
+          },
+          {
+            "signal": "previous_risk",
+            "detected": false,
+            "weight": 10,
+            "contribution": 0,
+            "evidence": "0,0;decay=0.55;recovery=0"
+          }
+        ],
+        "context_summary": null,
+        "flow_exit_context": null
+      },
+      "direct_effects": [
+        {
+          "effect_type": "create_one_shot_reminder",
+          "explicitness": "explicit",
+          "target_status": "identified",
+          "confidence_band": "high",
+          "payload_hint": {
+            "raw_text": "Phrase prête. Rappelle-moi à 10h38 de relire Omar, et ne crée aucune carte même si j'ai parlé de crypto."
+          }
+        }
+      ],
+      "tool_skill_intents": [],
+      "tool_skill_opportunity": {
+        "type": "none",
+        "operation_type": null,
+        "surface_id": null,
+        "confidence_band": "low",
+        "should_offer": false,
+        "prop_reason": null,
+        "source_span": null,
+        "target_hint": null,
+        "target_status": "none",
+        "suggested_question_intent": null,
+        "offer_timing": "never",
+        "must_not_execute": true
+      },
+      "skill_signals": {
+        "entry": {},
+        "lifecycle": {},
+        "exit": {}
+      },
+      "needs_research": {
+        "detected": false,
+        "value": false,
+        "query": null,
+        "domain_hint": null,
+        "confidence": 0,
+        "reason": null
+      },
+      "action_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": null
+      },
+      "level_reference": {
+        "detected": false,
+        "status": "none",
+        "expansion_policy": "none",
+        "reason": null
+      },
+      "memory_plan": {
+        "response_intent": "reflection",
+        "reasoning_complexity": "low",
+        "context_need": "targeted",
+        "memory_mode": "light",
+        "model_tier_hint": "lite",
+        "context_budget_tier": "small",
+        "targets": [
+          {
+            "type": "topic",
+            "key": "Omar",
+            "query_hint": "contexte Omar et badge parking",
+            "expansion_policy": null,
+            "retrieval_policy": "semantic_first",
+            "priority": "medium",
+            "entity_type": null
+          }
+        ],
+        "retrieval_policy": "semantic_first",
+        "plan_confidence": 0.7
+      },
+      "confirmation_response": null
+    },
+    "route_decision": {
+      "route_version": "v1",
+      "response_owner": "normal_reply",
+      "blocked_paths": [
+        {
+          "path": "tool_skill.prepare_attack_card",
+          "reason_code": "central_arbitrator_one_shot_reminder_priority"
+        },
+        {
+          "path": "tool_skill_flow",
+          "reason_code": "central_arbitrator_one_shot_reminder_priority"
+        }
+      ],
+      "direct_effects_to_run": [
+        "create_one_shot_reminder"
+      ],
+      "reason_code": "central_arbitrator_one_shot_reminder_priority",
+      "memory_used_for_route": false,
+      "memory_item_ids_used_for_route": [],
+      "memory_use_kind": "none",
+      "active_flow_arbitration": {
+        "decision": "none",
+        "active_owner": "none",
+        "selected_owner": "none",
+        "resume_policy": "none",
+        "reason_code": "no_active_flow"
+      }
+    },
+    "tool_skill_run": {
+      "selected_handler": "create_one_shot_reminder",
+      "reason_code": "central_arbitrator_one_shot_reminder_priority",
+      "status": "executed",
+      "scheduled_for": "2026-05-29T08:38:00+00:00",
+      "inserted_checkin_id": "184f2bd2-bd2b-4f85-8850-572b6f1c14de"
+    },
+    "response_owner": "tool_skill"
+  },
+  "trace_error": null
+}
