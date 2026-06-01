@@ -42,8 +42,8 @@ Agents must not open, print, grep, parse, or inspect `supabase/staging-test/.env
 
 The run is explicitly staging, not local. The agent must still follow:
 
-- `docs/agent-playbook/14-qa-test-guidelines.md`
-- `docs/agent-playbook/01-qa-run-report-structure.md`
+- `docs/agent-playbook/New/test-material/14-qa-test-guidelines.md`
+- `docs/agent-playbook/New/test-material/01-qa-run-report-structure.md`
 
 This staging exception overrides only the "local by default" rule. All other QA constraints still apply:
 
@@ -112,7 +112,7 @@ The report must include short traces, not raw full JSON unless necessary.
 
 ## Report Requirements
 
-Write the final report using `docs/agent-playbook/01-qa-run-report-structure.md`.
+Write the final report using `docs/agent-playbook/New/test-material/01-qa-run-report-structure.md`.
 
 The context section must explicitly say:
 
@@ -142,9 +142,9 @@ If staging code is outdated, migrations are missing, auth is misconfigured, or t
 ```text
 Run this Sophia QA conversation against staging.
 
-Use `supabase/staging-test/.env` for staging connection values. This is an explicit staging/remote QA exception to the local-by-default rule in `docs/agent-playbook/14-qa-test-guidelines.md`.
+Use `supabase/staging-test/.env` for staging connection values. This is an explicit staging/remote QA exception to the local-by-default rule in `docs/agent-playbook/New/test-material/14-qa-test-guidelines.md`.
 
-Follow `docs/agent-playbook/14-qa-test-guidelines.md` and write the final report using `docs/agent-playbook/01-qa-run-report-structure.md`.
+Follow `docs/agent-playbook/New/test-material/14-qa-test-guidelines.md` and write the final report using `docs/agent-playbook/New/test-material/01-qa-run-report-structure.md`.
 
 Use the real Sophia AI path only:
 - call `/functions/v1/test-send-message`;

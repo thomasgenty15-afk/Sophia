@@ -52,6 +52,64 @@ function normalizeRuntimeText(text: string): string {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 }
 
+type RunAdjustPlanItemOperation = (input: {
+  supabase: SupabaseClient;
+  userId: string;
+  userMessage: string;
+  channel: "web" | "whatsapp";
+  userTimezone: string;
+  history: any[];
+  tempMemory: any;
+  planItemSnapshot?: V2PlanItemSnapshotItem[];
+  turnFrame: TurnFrame | null;
+  routeDecision: RouteDecision | null;
+  safetyPregateOutput: any;
+  sourceMessageId: string | null;
+  requestId?: string | null;
+  forceFullAi?: boolean;
+  enableAdjustPlanCoachGuidance?: boolean;
+}) => Promise<OperationRuntimeResult | null>;
+
+type OperationRuntimePipelineGuards = {
+  explicitlySafeWorkReminderRequest: (message: string) => boolean;
+  detectExplicitNoToolRequest: (message: string) => boolean;
+  detectsExplicitAttackCardCreationRequest: (message: string) => boolean;
+  isActiveCardDraftingOperation: (value: unknown) => boolean;
+  isExplicitOperationCommand: (message: string) => boolean;
+  writeAdjustPlanPendingDraftReview: (
+    tempMemory: any,
+    review: null,
+  ) => any;
+};
+
+export type OperationRuntimePipelineInput = {
+  supabase: SupabaseClient;
+  userId: string;
+  userMessage: string;
+  channel: "web" | "whatsapp";
+  userTimezone: string;
+  history: any[];
+  tempMemory: any;
+  state: any;
+  planItemSnapshot?: V2PlanItemSnapshotItem[];
+  turnFrame: TurnFrame | null;
+  routeDecision: RouteDecision | null;
+  safetyPregateOutput: any;
+  sourceMessageId: string | null;
+  requestId?: string | null;
+  v2Runtime: ActiveTransformationRuntime | null;
+  turnAgenda: unknown;
+  activeSkillState: unknown;
+  activeOperationIntake: unknown;
+  pendingOperationConfirmation: unknown;
+  trackProgressBlockedReasonCode?: string | null;
+  fullAiRequested: boolean;
+  clientNow?: Date | null;
+  enableAdjustPlanCoachGuidance?: boolean;
+  runAdjustPlanItemOperation: RunAdjustPlanItemOperation;
+  guards: OperationRuntimePipelineGuards;
+};
+
 function operationRuntimeFromTrackProgress(args: {
   tempMemory: any;
   result: Awaited<ReturnType<typeof runTrackProgressPlanItemDirectEffect>>;
@@ -96,59 +154,9 @@ export type OperationRuntimePipelineResult = {
   routeOrFrameChanged: boolean;
 };
 
-export async function runOperationRuntimePipeline(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  userMessage: string;
-  channel: "web" | "whatsapp";
-  userTimezone: string;
-  history: any[];
-  tempMemory: any;
-  state: any;
-  planItemSnapshot?: V2PlanItemSnapshotItem[];
-  turnFrame: TurnFrame | null;
-  routeDecision: RouteDecision | null;
-  safetyPregateOutput: any;
-  sourceMessageId: string | null;
-  requestId?: string | null;
-  v2Runtime: ActiveTransformationRuntime | null;
-  turnAgenda: unknown;
-  activeSkillState: unknown;
-  activeOperationIntake: unknown;
-  pendingOperationConfirmation: unknown;
-  trackProgressBlockedReasonCode?: string | null;
-  fullAiRequested: boolean;
-  clientNow?: Date | null;
-  enableAdjustPlanCoachGuidance?: boolean;
-  runAdjustPlanItemOperation: (input: {
-    supabase: SupabaseClient;
-    userId: string;
-    userMessage: string;
-    channel: "web" | "whatsapp";
-    userTimezone: string;
-    history: any[];
-    tempMemory: any;
-    planItemSnapshot?: V2PlanItemSnapshotItem[];
-    turnFrame: TurnFrame | null;
-    routeDecision: RouteDecision | null;
-    safetyPregateOutput: any;
-    sourceMessageId: string | null;
-    requestId?: string | null;
-    forceFullAi?: boolean;
-    enableAdjustPlanCoachGuidance?: boolean;
-  }) => Promise<OperationRuntimeResult | null>;
-  guards: {
-    explicitlySafeWorkReminderRequest: (message: string) => boolean;
-    detectExplicitNoToolRequest: (message: string) => boolean;
-    detectsExplicitAttackCardCreationRequest: (message: string) => boolean;
-    isActiveCardDraftingOperation: (value: unknown) => boolean;
-    isExplicitOperationCommand: (message: string) => boolean;
-    writeAdjustPlanPendingDraftReview: (
-      tempMemory: any,
-      review: null,
-    ) => any;
-  };
-}): Promise<OperationRuntimePipelineResult> {
+export async function runOperationRuntimePipeline(
+  args: OperationRuntimePipelineInput,
+): Promise<OperationRuntimePipelineResult> {
   let routeDecision = args.routeDecision;
   let turnFrame = args.turnFrame;
   let tempMemory = args.tempMemory;
@@ -402,7 +410,9 @@ export async function runOperationRuntimePipeline(args: {
           : oneShotReminderDirectEffect.status === "no_reminder"
           ? "none"
           : "blocked",
-        executedTools: oneShotReminderDirectEffect.executed_tools,
+        executedTools: oneShotReminderDirectEffect.committed_effects.length > 0
+          ? oneShotReminderDirectEffect.executed_tools
+          : [],
         toolSkillRun: {
           selected_handler: oneShotReminderDirectEffect.intent === "cancel"
             ? "cancel_one_shot_reminder"

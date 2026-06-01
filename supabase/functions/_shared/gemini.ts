@@ -11,6 +11,108 @@ function safeEnvGet(name: string): string | undefined {
   }
 }
 
+export type GeminiReasoningEffort =
+  | "none"
+  | "minimal"
+  | "low"
+  | "medium"
+  | "high"
+  | "xhigh";
+
+export type GenerateWithGeminiMeta = {
+  requestId?: string;
+  model?: string;
+  fallbackModel?: string;
+  secondFallbackModel?: string;
+  thirdFallbackModel?: string;
+  timeoutOverrides?: Record<string, number>;
+  source?: string;
+  forceRealAi?: boolean;
+  userId?: string;
+  maxRetries?: number;
+  httpTimeoutMs?: number;
+  reasoningEffort?: GeminiReasoningEffort;
+  // If true, attempt #1 always uses meta.model exactly (no policy model override).
+  forceInitialModel?: boolean;
+  // If true, do not append our internal provider/model fallback chain.
+  // Useful when the caller already implements an external model cycle (e.g. judge loops).
+  disableFallbackChain?: boolean;
+  // Eval-only: when present, we emit structured runtime trace events into conversation_eval_events.
+  evalRunId?: string | null;
+};
+
+export type GenerateWithGeminiResult = string | { tool: string; args: any };
+
+type Release = () => void;
+
+class Semaphore {
+  private max: number;
+  private inUse = 0;
+  private q: Array<(r: Release) => void> = [];
+
+  constructor(max: number) {
+    this.max = Math.max(1, Math.floor(max));
+  }
+
+  async acquire(): Promise<Release> {
+    if (this.inUse < this.max) {
+      this.inUse++;
+      return () => this.release();
+    }
+    return await new Promise<Release>((resolve) => {
+      this.q.push((r) => resolve(r));
+    });
+  }
+
+  snapshot() {
+    return { max: this.max, inUse: this.inUse, queued: this.q.length };
+  }
+
+  private release() {
+    if (this.q.length > 0) {
+      // Hand off the slot to the next waiter without changing inUse.
+      const next = this.q.shift()!;
+      next(() => this.release());
+      return;
+    }
+    this.inUse = Math.max(0, this.inUse - 1);
+  }
+}
+
+type GeminiSemaphoreStore = {
+  global: Semaphore;
+  perModel: Map<string, Semaphore>;
+};
+
+function parsePositiveInteger(value: unknown, fallback: number): number {
+  const n = Number(String(value ?? "").trim());
+  return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
+}
+
+function parsePositiveTimeoutMs(
+  value: string | undefined,
+  fallback: number,
+): number {
+  const n = Number(String(value ?? "").trim());
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+function makeTimeoutSignal(
+  timeoutMs: number,
+): { signal: AbortSignal; cancel: () => void } {
+  // Prefer native AbortSignal.timeout when available.
+  const anyAbortSignal = AbortSignal as any;
+  if (anyAbortSignal?.timeout && typeof anyAbortSignal.timeout === "function") {
+    return { signal: anyAbortSignal.timeout(timeoutMs), cancel: () => {} };
+  }
+  const controller = new AbortController();
+  const id = setTimeout(
+    () => controller.abort(new Error("Gemini request timeout")),
+    timeoutMs,
+  );
+  return { signal: controller.signal, cancel: () => clearTimeout(id) };
+}
+
 export function getGlobalAiModel(fallback = "gemini-2.5-flash"): string {
   const model = (
     safeEnvGet("GLOBAL_AI_MODEL") ??
@@ -31,28 +133,8 @@ export async function generateWithGemini(
   jsonMode: boolean = false,
   tools: any[] = [],
   toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
-  meta?: {
-    requestId?: string;
-    model?: string;
-    fallbackModel?: string;
-    secondFallbackModel?: string;
-    thirdFallbackModel?: string;
-    timeoutOverrides?: Record<string, number>;
-    source?: string;
-    forceRealAi?: boolean;
-    userId?: string;
-    maxRetries?: number;
-    httpTimeoutMs?: number;
-    reasoningEffort?: "none" | "minimal" | "low" | "medium" | "high" | "xhigh";
-    // If true, attempt #1 always uses meta.model exactly (no policy model override).
-    forceInitialModel?: boolean;
-    // If true, do not append our internal provider/model fallback chain.
-    // Useful when the caller already implements an external model cycle (e.g. judge loops).
-    disableFallbackChain?: boolean;
-    // Eval-only: when present, we emit structured runtime trace events into conversation_eval_events.
-    evalRunId?: string | null;
-  },
-): Promise<string | { tool: string; args: any }> {
+  meta?: GenerateWithGeminiMeta,
+): Promise<GenerateWithGeminiResult> {
   // --- Debug instrumentation (Cursor debug-mode) ---
   // #region agent log
   const __dbg = (
@@ -82,46 +164,14 @@ export async function generateWithGemini(
   };
   // #endregion
 
-  // --- Simple in-memory rate limiting (per isolate) ---
-  // Goal: cap concurrency to prevent bursts that amplify 429/503.
-  // This is NOT a time-based sleep; callers wait on a queue until a slot frees.
-  type Release = () => void;
-  class Semaphore {
-    private max: number;
-    private inUse = 0;
-    private q: Array<(r: Release) => void> = [];
-    constructor(max: number) {
-      this.max = Math.max(1, Math.floor(max));
-    }
-    async acquire(): Promise<Release> {
-      if (this.inUse < this.max) {
-        this.inUse++;
-        return () => this.release();
-      }
-      return await new Promise<Release>((resolve) => {
-        this.q.push((r) => resolve(r));
-      });
-    }
-    private release() {
-      if (this.q.length > 0) {
-        // Hand off the slot to the next waiter without changing inUse.
-        const next = this.q.shift()!;
-        next(() => this.release());
-        return;
-      }
-      this.inUse = Math.max(0, this.inUse - 1);
-    }
-    snapshot() {
-      return { max: this.max, inUse: this.inUse, queued: this.q.length };
-    }
-  }
-  const parseIntEnv = (name: string, fallback: number) => {
-    const raw = (Deno.env.get(name) ?? "").trim();
-    const n = Number(raw);
-    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : fallback;
-  };
-  const GLOBAL_MAX = parseIntEnv("GEMINI_CONCURRENCY_GLOBAL", 6);
-  const PER_MODEL_MAX = parseIntEnv("GEMINI_CONCURRENCY_PER_MODEL", 3);
+  const GLOBAL_MAX = parsePositiveInteger(
+    safeEnvGet("GEMINI_CONCURRENCY_GLOBAL"),
+    6,
+  );
+  const PER_MODEL_MAX = parsePositiveInteger(
+    safeEnvGet("GEMINI_CONCURRENCY_PER_MODEL"),
+    3,
+  );
   const anyGlobalThis = globalThis as any;
   if (!anyGlobalThis.__sophiaGeminiSemaphores) {
     anyGlobalThis.__sophiaGeminiSemaphores = {
@@ -129,10 +179,8 @@ export async function generateWithGemini(
       perModel: new Map<string, Semaphore>(),
     };
   }
-  const semStore = anyGlobalThis.__sophiaGeminiSemaphores as {
-    global: Semaphore;
-    perModel: Map<string, Semaphore>;
-  };
+  const semStore = anyGlobalThis
+    .__sophiaGeminiSemaphores as GeminiSemaphoreStore;
   const getModelSem = (modelKey: string) => {
     const k = String(modelKey || "default").toLowerCase();
     const found = semStore.perModel.get(k);
@@ -174,10 +222,6 @@ export async function generateWithGemini(
 
   const sleep = (ms: number) =>
     new Promise<void>((resolve) => setTimeout(resolve, ms));
-  const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
-    const n = Number(String(raw ?? "").trim());
-    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
-  };
   /**
    * IMPORTANT:
    * Edge Runtime can hard-kill ("early termination") long-running requests without throwing a normal exception.
@@ -187,38 +231,21 @@ export async function generateWithGemini(
   const GEMINI_HTTP_TIMEOUT_MS = Number.isFinite(Number(meta?.httpTimeoutMs)) &&
       Number(meta?.httpTimeoutMs) > 0
     ? Math.floor(Number(meta?.httpTimeoutMs))
-    : parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 110_000);
+    : parsePositiveTimeoutMs(safeEnvGet("GEMINI_HTTP_TIMEOUT_MS"), 110_000);
   const GEMINI_31_PRO_HTTP_TIMEOUT_MS =
     Number.isFinite(Number(meta?.httpTimeoutMs)) &&
       Number(meta?.httpTimeoutMs) > 0
       ? Math.floor(Number(meta?.httpTimeoutMs))
-      : parseTimeoutMs(
-        Deno.env.get("GEMINI_31_PRO_HTTP_TIMEOUT_MS"),
+      : parsePositiveTimeoutMs(
+        safeEnvGet("GEMINI_31_PRO_HTTP_TIMEOUT_MS"),
         Math.max(GEMINI_HTTP_TIMEOUT_MS, 150_000),
       );
   // Separate (looser) timeout for eval-like traffic. Keep it configurable without affecting normal chat latency.
   // Note: run-evals also has its own wall-clock chunking (`max_wall_clock_ms_per_request`) so do not set this absurdly high.
-  const GEMINI_EVAL_HTTP_TIMEOUT_MS = parseTimeoutMs(
-    Deno.env.get("GEMINI_EVAL_HTTP_TIMEOUT_MS"),
+  const GEMINI_EVAL_HTTP_TIMEOUT_MS = parsePositiveTimeoutMs(
+    safeEnvGet("GEMINI_EVAL_HTTP_TIMEOUT_MS"),
     240_000,
   );
-  const makeTimeoutSignal = (
-    timeoutMs: number,
-  ): { signal: AbortSignal; cancel: () => void } => {
-    // Prefer native AbortSignal.timeout when available.
-    const anyAbortSignal = AbortSignal as any;
-    if (
-      anyAbortSignal?.timeout && typeof anyAbortSignal.timeout === "function"
-    ) {
-      return { signal: anyAbortSignal.timeout(timeoutMs), cancel: () => {} };
-    }
-    const controller = new AbortController();
-    const id = setTimeout(
-      () => controller.abort(new Error("Gemini request timeout")),
-      timeoutMs,
-    );
-    return { signal: controller.signal, cancel: () => clearTimeout(id) };
-  };
 
   // Eval trace: best-effort event stream for qualitative judge context.
   // NOTE: We cannot access raw Edge logs programmatically, so we persist a controlled trace instead.
@@ -370,13 +397,7 @@ export async function generateWithGemini(
       toolChoice: string;
       requestId: string;
       timeoutMs: number;
-      reasoningEffort?:
-        | "none"
-        | "minimal"
-        | "low"
-        | "medium"
-        | "high"
-        | "xhigh";
+      reasoningEffort?: GeminiReasoningEffort;
     },
   ) => {
     if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY missing");
@@ -1671,30 +1692,10 @@ export async function generateEmbedding(
     `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
   const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
 
-  const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
-    const n = Number(String(raw ?? "").trim());
-    return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
-  };
-  const GEMINI_HTTP_TIMEOUT_MS = parseTimeoutMs(
-    Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"),
+  const GEMINI_HTTP_TIMEOUT_MS = parsePositiveTimeoutMs(
+    safeEnvGet("GEMINI_HTTP_TIMEOUT_MS"),
     110_000,
   );
-  const makeTimeoutSignal = (
-    timeoutMs: number,
-  ): { signal: AbortSignal; cancel: () => void } => {
-    const anyAbortSignal = AbortSignal as any;
-    if (
-      anyAbortSignal?.timeout && typeof anyAbortSignal.timeout === "function"
-    ) {
-      return { signal: anyAbortSignal.timeout(timeoutMs), cancel: () => {} };
-    }
-    const controller = new AbortController();
-    const id = setTimeout(
-      () => controller.abort(new Error("Gemini request timeout")),
-      timeoutMs,
-    );
-    return { signal: controller.signal, cancel: () => clearTimeout(id) };
-  };
   const { signal, cancel } = makeTimeoutSignal(GEMINI_HTTP_TIMEOUT_MS);
   const body = JSON.stringify({
     // Gemini expects this "models/..." prefix in the payload (even though the URL also includes the model).

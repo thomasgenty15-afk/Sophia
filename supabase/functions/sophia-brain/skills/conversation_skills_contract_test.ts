@@ -6,14 +6,28 @@ import { conservativeExecutionDecision } from "./execution_breakdown/contract.ts
 import { reduceExecutionBreakdownTurn } from "./execution_breakdown/reducer.ts";
 import { baseProductHelpDecision } from "./product_help/contract.ts";
 import { reduceProductHelpTurn } from "./product_help/reducer.ts";
-import { getProductHelpFeature } from "./product_help/knowledge.ts";
+import { getProductHelpFeature } from "./product_help/retrieval.ts";
 import { STATUS_RECAP_MIGRATION_STATUS } from "./status_recap/contract.ts";
 import { WEEKLY_REVIEW_MIGRATION_STATUS } from "./weekly_review/contract.ts";
+import { conversationEffectsFromCandidates } from "./_shared/conversation_skill_contract.ts";
 
 const ROOT = new URL(".", import.meta.url);
+const KNOWN_CONVERSATION_SKILL_EXCEPTIONS = [{
+  name: "status_recap",
+  reason:
+    "Status recap is a read-only runtime skill and is not yet split into intake.ts + skill.ts.",
+  removal_criteria:
+    "Status recap migrates to the standard contract/intake/reducer/renderer/skill shape or remains documented as read-only.",
+}, {
+  name: "weekly_review",
+  reason:
+    "Weekly review runtime still owns bridge orchestration while operation commits remain behind owner tools.",
+  removal_criteria:
+    "Weekly review exposes standard intake.ts + skill.ts and typed request-only bridge effects.",
+}];
 
-function skillPath(skill: string, file: string): string {
-  return new URL(`./${skill}/${file}`, ROOT).pathname;
+function skillPath(skill: string, file: string): URL {
+  return new URL(`./${skill}/${file}`, ROOT);
 }
 
 function mockRunInput() {
@@ -52,7 +66,9 @@ Deno.test("conversation skills expose standard files or documented exception", a
     "product_help",
   ];
   for (const skill of migrated) {
-    for (const file of ["contract.ts", "intake.ts", "reducer.ts", "renderer.ts"]) {
+    for (
+      const file of ["contract.ts", "intake.ts", "reducer.ts", "renderer.ts"]
+    ) {
       const stat = await Deno.stat(skillPath(skill, file));
       assert(stat.isFile, `${skill}/${file}`);
     }
@@ -64,6 +80,11 @@ Deno.test("conversation skills expose standard files or documented exception", a
   assert(
     WEEKLY_REVIEW_MIGRATION_STATUS.durable_effect_policy.includes(
       "require confirmation",
+    ),
+  );
+  assert(
+    KNOWN_CONVERSATION_SKILL_EXCEPTIONS.every((item) =>
+      item.reason && item.removal_criteria
     ),
   );
 });
@@ -122,6 +143,11 @@ Deno.test("operation suggestions remain suggestions and do not execute tools", (
   };
   decision.phase = "suggest_tool";
   decision.reply = "Je peux te proposer une carte, sans la creer ici.";
+  decision.response_contract = {
+    ...decision.response_contract,
+    allow_tool_suggestion: true,
+    allow_card_suggestion: true,
+  };
   decision.operation_suggestions = [{
     operation_type: "prepare_attack_card",
     reason: "blocage ponctuel",
@@ -138,6 +164,28 @@ Deno.test("operation suggestions remain suggestions and do not execute tools", (
     output.effects?.allowed[0] &&
       (output.effects.allowed[0] as any).type,
     "operation_suggestion_candidate",
+  );
+});
+
+Deno.test("operation suggestions without explicit consent are blocked", () => {
+  const effects = conversationEffectsFromCandidates({
+    operation_suggestions: [{
+      operation_type: "prepare_attack_card",
+      reason: "bad legacy suggestion",
+      confidence_band: "medium",
+      urgency: "low",
+      source_skill_id: "execution_breakdown",
+      requires_user_consent: false,
+    }],
+  });
+
+  assertEquals(effects.allowed, []);
+  assertEquals(effects.committed, []);
+  assert(
+    effects.blocked.some((effect) =>
+      effect.type === "operation_suggestion" &&
+      effect.reason_code === "user_consent_required"
+    ),
   );
 });
 
@@ -168,4 +216,37 @@ Deno.test("memory candidates are candidates, not committed memory", () => {
     output.memory_write_candidates?.[0].should_persist_default,
     false,
   );
+});
+
+Deno.test("conversation skills do not commit durable effects directly", async () => {
+  const skills = [
+    "emotional_repair",
+    "demotivation_repair",
+    "execution_breakdown",
+    "safety_crisis",
+    "product_help",
+    "status_recap",
+    "weekly_review",
+  ];
+  const offenders: string[] = [];
+  for (const skill of skills) {
+    for await (const entry of Deno.readDir(skillPath(skill, ""))) {
+      if (
+        !entry.isFile ||
+        !entry.name.endsWith(".ts") ||
+        entry.name.endsWith("_test.ts")
+      ) continue;
+      const file = `${skill}/${entry.name}`;
+      const text = await Deno.readTextFile(skillPath(skill, entry.name));
+      if (text.includes("recordCommittedEffect")) {
+        offenders.push(`${file}:recordCommittedEffect`);
+      }
+      if (
+        /effects\s*:\s*{[\s\S]{0,240}committed\s*:\s*\[(?!\s*\])/.test(text)
+      ) {
+        offenders.push(`${file}:non_empty_committed_effect_literal`);
+      }
+    }
+  }
+  assertEquals(offenders, []);
 });

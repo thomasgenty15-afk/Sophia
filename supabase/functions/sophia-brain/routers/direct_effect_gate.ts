@@ -13,11 +13,48 @@ export type DirectEffectGateInput = {
   db_idempotency_check: (key: string) => Promise<boolean>;
 };
 
+type GateBlockedReason = Extract<
+  DirectEffectGateOutcome,
+  { decision: "blocked" }
+>["reason_code"];
+type GateClarifyReason = Extract<
+  DirectEffectGateOutcome,
+  { decision: "needs_clarify" }
+>[
+  "reason_code"
+];
+
 function idempotencyKey(
   effectType: DirectEffectType,
   turnFrame: TurnFrame,
 ): string {
   return `${turnFrame.user_id}:${turnFrame.source_message_id}:${effectType}`;
+}
+
+function blocked(
+  toolId: DirectEffectType,
+  reasonCode: GateBlockedReason,
+  message: string,
+): DirectEffectGateOutcome {
+  return {
+    decision: "blocked",
+    tool_id: toolId,
+    reason_code: reasonCode,
+    message,
+  };
+}
+
+function needsClarify(
+  toolId: DirectEffectType,
+  reasonCode: GateClarifyReason,
+  suggestedClarification: string,
+): DirectEffectGateOutcome {
+  return {
+    decision: "needs_clarify",
+    tool_id: toolId,
+    reason_code: reasonCode,
+    suggested_clarification: suggestedClarification,
+  };
 }
 
 export async function runDirectEffectGate(
@@ -28,75 +65,63 @@ export async function runDirectEffectGate(
     candidate.effect_type === input.effect_type
   );
   if (!effect) {
-    return {
-      decision: "blocked",
-      tool_id: toolId,
-      reason_code: "duplicate_db",
-      message: "No matching direct effect candidate.",
-    };
+    return blocked(
+      toolId,
+      "duplicate_db",
+      "No matching direct effect candidate.",
+    );
   }
   if (blocksDirectEffects(input.turn_frame.safety.risk_band)) {
-    return {
-      decision: "blocked",
-      tool_id: toolId,
-      reason_code: "safety_high",
-      message: "Safety risk blocks direct effects.",
-    };
+    return blocked(toolId, "safety_high", "Safety risk blocks direct effects.");
   }
   if (input.pending_tool_skill_confirmation) {
-    return {
-      decision: "blocked",
-      tool_id: toolId,
-      reason_code: "pending_confirmation_active",
-      message: "Pending confirmation blocks direct effects.",
-    };
+    return blocked(
+      toolId,
+      "pending_confirmation_active",
+      "Pending confirmation blocks direct effects.",
+    );
   }
   if (effect.explicitness !== "explicit") {
-    return {
-      decision: "needs_clarify",
-      tool_id: toolId,
-      reason_code: "intent_implied_weak",
-      suggested_clarification: "Tu veux que je le note vraiment ?",
-    };
+    return needsClarify(
+      toolId,
+      "intent_implied_weak",
+      "Tu veux que je le note vraiment ?",
+    );
   }
   if (effect.target_status !== "identified") {
-    return {
-      decision: "needs_clarify",
-      tool_id: toolId,
-      reason_code: effect.target_status === "ambiguous"
+    return needsClarify(
+      toolId,
+      effect.target_status === "ambiguous"
         ? "target_ambiguous"
         : "missing_time",
-      suggested_clarification: "Tu parles de quel element exactement ?",
-    };
+      "Tu parles de quel element exactement ?",
+    );
   }
   if (effect.confidence_band !== "high") {
-    return {
-      decision: "needs_clarify",
-      tool_id: toolId,
-      reason_code: "ambiguity_present",
-      suggested_clarification: "Je prefere confirmer avant de l'ecrire.",
-    };
+    return needsClarify(
+      toolId,
+      "ambiguity_present",
+      "Je prefere confirmer avant de l'ecrire.",
+    );
   }
   if (
     input.recent_writes_idempotency.source_message_ids.includes(
       input.turn_frame.source_message_id,
     )
   ) {
-    return {
-      decision: "blocked",
-      tool_id: toolId,
-      reason_code: "duplicate_source_message",
-      message: "This source message was already consumed.",
-    };
+    return blocked(
+      toolId,
+      "duplicate_source_message",
+      "This source message was already consumed.",
+    );
   }
   const key = idempotencyKey(input.effect_type, input.turn_frame);
   if (await input.db_idempotency_check(key)) {
-    return {
-      decision: "blocked",
-      tool_id: toolId,
-      reason_code: "duplicate_db",
-      message: "Equivalent direct effect already exists.",
-    };
+    return blocked(
+      toolId,
+      "duplicate_db",
+      "Equivalent direct effect already exists.",
+    );
   }
   return {
     decision: "allow",

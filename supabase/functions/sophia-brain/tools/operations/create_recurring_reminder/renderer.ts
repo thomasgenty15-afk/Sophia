@@ -3,12 +3,15 @@ import {
   buildRecurringReminderCreatedMessage,
   type RecurringReminderDraftV1,
 } from "./generator.ts";
+import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
 
 export function renderRecurringReminderPendingConfirmation(input: {
   confirmationMessage?: string | null;
 }): string {
-  return input.confirmationMessage?.trim() ||
-    "Tu veux que je crée ce rappel récurrent ?";
+  return renderNonCommittedReply(
+    input.confirmationMessage,
+    "Tu veux que je crée ce rappel récurrent ?",
+  );
 }
 
 export function renderRecurringReminderAskQuestion(input: {
@@ -20,13 +23,16 @@ export function renderRecurringReminderAskQuestion(input: {
 export function renderRecurringReminderHandoffToOneShot(input: {
   ack?: string | null;
 }): string {
-  return input.ack?.trim() || "Je laisse le rappel ponctuel gérer ça.";
+  return renderNonCommittedReply(
+    input.ack,
+    "Je laisse le rappel ponctuel gérer ça.",
+  );
 }
 
 export function renderRecurringReminderCancelled(input: {
   ack?: string | null;
 } = {}): string {
-  return input.ack?.trim() || "Ok, je ne crée pas ce rappel.";
+  return renderNonCommittedReply(input.ack, "Ok, je ne crée pas ce rappel.");
 }
 
 export function renderRecurringReminderDraftReady(input: {
@@ -34,7 +40,12 @@ export function renderRecurringReminderDraftReady(input: {
   ack?: string | null;
 }): string {
   const explicit = input.ack?.trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    return renderNonCommittedReply(
+      explicit,
+      "J'ai préparé le brouillon du rappel récurrent, sans le créer.",
+    );
+  }
   if (!input.draft) {
     return "J'ai préparé le brouillon du rappel récurrent, sans le créer.";
   }
@@ -46,7 +57,12 @@ export function renderRecurringReminderBlocked(input: {
   ack?: string | null;
 } = {}): string {
   const explicit = input.ack?.trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    return renderNonCommittedReply(
+      explicit,
+      "Je ne crée pas ce rappel tant que les conditions de validation ne sont pas réunies.",
+    );
+  }
   if (input.reasonCode === "draft_invalid") {
     return "Je ne peux pas créer ce rappel : le brouillon est incomplet.";
   }
@@ -58,7 +74,12 @@ export function renderRecurringReminderFailed(input: {
   ack?: string | null;
 } = {}): string {
   const explicit = input.ack?.trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    return renderNonCommittedReply(
+      explicit,
+      "Je n'ai pas réussi à créer ce rappel techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
+    );
+  }
   return "Je n'ai pas réussi à créer ce rappel techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.";
 }
 

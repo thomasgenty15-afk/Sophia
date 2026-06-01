@@ -1,33 +1,77 @@
 import type { WeeklyReviewPlanPatch } from "./contract.ts";
 
+type WeeklyReviewOperation = WeeklyReviewPlanPatch["operations"][number];
+type WeeklyReviewWriteResult = {
+  committed: boolean;
+  id?: string;
+  error?: string;
+};
+
 export type WeeklyReviewEffectWriter = {
   applyWeeklyPlanPatch: (args: {
     user_id: string;
     week_start_date: string;
-    operation: WeeklyReviewPlanPatch["operations"][number];
-  }) => Promise<{ committed: boolean; id?: string; error?: string }>;
+    operation: WeeklyReviewOperation;
+  }) => Promise<WeeklyReviewWriteResult>;
   openLevelReview?: (args: {
     user_id: string;
     week_start_date: string;
-    operation: WeeklyReviewPlanPatch["operations"][number];
-  }) => Promise<{ committed: boolean; id?: string; error?: string }>;
+    operation: WeeklyReviewOperation;
+  }) => Promise<WeeklyReviewWriteResult>;
   writeWeeklySummary?: (args: {
     user_id: string;
     week_start_date: string;
     payload: Record<string, unknown>;
-  }) => Promise<{ committed: boolean; id?: string; error?: string }>;
+  }) => Promise<WeeklyReviewWriteResult>;
 };
 
 export type WeeklyReviewEffectsResult = {
   committed_effects: Array<{
-    op: WeeklyReviewPlanPatch["operations"][number]["op"];
+    op: WeeklyReviewOperation["op"];
     id?: string;
   }>;
   failed_effects: Array<{
-    op: WeeklyReviewPlanPatch["operations"][number]["op"];
+    op: WeeklyReviewOperation["op"];
     error: string;
   }>;
 };
+
+function weeklyEffectError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function committedWeeklyEffect(
+  operation: WeeklyReviewOperation,
+  writeResult: WeeklyReviewWriteResult,
+): WeeklyReviewEffectsResult["committed_effects"][number] {
+  return { op: operation.op, id: writeResult.id };
+}
+
+function failedWeeklyEffect(
+  operation: WeeklyReviewOperation,
+  error: string,
+): WeeklyReviewEffectsResult["failed_effects"][number] {
+  return { op: operation.op, error };
+}
+
+async function writeWeeklyOperation(args: {
+  operation: WeeklyReviewOperation;
+  user_id: string;
+  week_start_date: string;
+  writer: WeeklyReviewEffectWriter;
+}): Promise<WeeklyReviewWriteResult> {
+  const writeArgs = {
+    user_id: args.user_id,
+    week_start_date: args.week_start_date,
+    operation: args.operation,
+  };
+  if (
+    args.operation.op === "open_level_review" && args.writer.openLevelReview
+  ) {
+    return await args.writer.openLevelReview(writeArgs);
+  }
+  return await args.writer.applyWeeklyPlanPatch(writeArgs);
+}
 
 export async function applyWeeklyReviewEffects(args: {
   plan_patch: WeeklyReviewPlanPatch;
@@ -46,31 +90,28 @@ export async function applyWeeklyReviewEffects(args: {
 
   for (const operation of args.plan_patch.operations) {
     try {
-      const writeResult = operation.op === "open_level_review" &&
-          args.writer.openLevelReview
-        ? await args.writer.openLevelReview({
-          user_id: args.user_id,
-          week_start_date: args.week_start_date,
-          operation,
-        })
-        : await args.writer.applyWeeklyPlanPatch({
-          user_id: args.user_id,
-          week_start_date: args.week_start_date,
-          operation,
-        });
+      const writeResult = await writeWeeklyOperation({
+        operation,
+        user_id: args.user_id,
+        week_start_date: args.week_start_date,
+        writer: args.writer,
+      });
       if (writeResult.committed) {
-        result.committed_effects.push({ op: operation.op, id: writeResult.id });
+        result.committed_effects.push(
+          committedWeeklyEffect(operation, writeResult),
+        );
       } else {
-        result.failed_effects.push({
-          op: operation.op,
-          error: writeResult.error ?? "writer_not_committed",
-        });
+        result.failed_effects.push(
+          failedWeeklyEffect(
+            operation,
+            writeResult.error ?? "writer_not_committed",
+          ),
+        );
       }
     } catch (err) {
-      result.failed_effects.push({
-        op: operation.op,
-        error: err instanceof Error ? err.message : String(err),
-      });
+      result.failed_effects.push(
+        failedWeeklyEffect(operation, weeklyEffectError(err)),
+      );
     }
   }
 

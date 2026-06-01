@@ -85,6 +85,17 @@ function buildSkillResult(input: {
   };
 }
 
+function updateCoachPreferencesEffect(args: {
+  operationId: string;
+  draft: CoachPreferencesPatchDraftV1;
+}): UpdateCoachPreferencesEffect {
+  return {
+    type: "update_coach_preferences",
+    operation_id: args.operationId,
+    draft: args.draft,
+  };
+}
+
 function toolExecutionForSkillResult(
   result: UpdateCoachPreferencesSkillResult,
 ): OperationRuntimeResult["toolExecution"] {
@@ -265,12 +276,16 @@ function failedExecutionResult(args: {
   operationId: string | null;
   status?: string;
   error?: string;
+  requested_effects?: UpdateCoachPreferencesEffect[];
+  allowed_effects?: UpdateCoachPreferencesEffect[];
 }): OperationRuntimeResult {
   return skillResultToRuntimeResult({
     result: buildSkillResult({
       status: "failed",
       reply: args.content,
       reason_code: args.error ?? "execution_failed",
+      requested_effects: args.requested_effects,
+      allowed_effects: args.allowed_effects,
       blocked_effects: [{
         type: "update_coach_preferences",
         reason_code: args.error ?? "execution_failed",
@@ -353,6 +368,10 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
       confirmationDecision.decision === "approve" &&
       confirmationDecision.should_execute
     ) {
+      const updateEffect = updateCoachPreferencesEffect({
+        operationId,
+        draft: pendingRaw.draft,
+      });
       const executed = await executeConfirmedCoachPreferenceDraft({
         supabase: args.supabase,
         userId: args.userId,
@@ -370,6 +389,8 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
           operationId,
           status: "failed",
           error: executed.reason_code,
+          requested_effects: [updateEffect],
+          allowed_effects: [updateEffect],
         });
       }
       const committedEffect: UpdateCoachPreferencesCommittedEffect = {
@@ -386,6 +407,8 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
             draft: pendingRaw.draft,
             committedEffects: [committedEffect],
           }),
+          requested_effects: [updateEffect],
+          allowed_effects: [updateEffect],
           committed_effects: [committedEffect],
           reason_code: "executed",
         }),
@@ -705,6 +728,10 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
         (output.pending_confirmation as any)?.operation_id ??
           crypto.randomUUID(),
       );
+      const updateEffect = updateCoachPreferencesEffect({
+        operationId,
+        draft: output.draft,
+      });
       const executed = await executeConfirmedCoachPreferenceDraft({
         supabase: args.supabase,
         userId: args.userId,
@@ -722,6 +749,8 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
           operationId,
           status: "failed",
           error: executed.reason_code,
+          requested_effects: [updateEffect],
+          allowed_effects: [updateEffect],
         });
       }
       const committedEffect: UpdateCoachPreferencesCommittedEffect = {
@@ -738,6 +767,8 @@ export async function maybeRunUpdateCoachPreferencesOperation(args: {
             draft: output.draft,
             committedEffects: [committedEffect],
           }),
+          requested_effects: [updateEffect],
+          allowed_effects: [updateEffect],
           committed_effects: [committedEffect],
           reason_code: "executed",
         }),

@@ -11,7 +11,11 @@ import {
   runCreateRecurringReminderIntake,
 } from "./intake.ts";
 import { maybeRunCreateRecurringReminderOperation } from "./router.ts";
-import { renderRecurringReminderExecuted } from "./renderer.ts";
+import {
+  renderRecurringReminderDraftReady,
+  renderRecurringReminderExecuted,
+  renderRecurringReminderPendingConfirmation,
+} from "./renderer.ts";
 import { structuredRecurringReminderSlotFiller } from "./test_helpers.ts";
 
 const SECRET = "s5-test-secret";
@@ -26,6 +30,19 @@ type Scenario = {
   expectedDays?: string[];
   slot_filler?: CreateRecurringReminderSlotFiller;
 };
+
+Deno.test("create_recurring_reminder renderer blocks success language without committed effect", () => {
+  const pending = renderRecurringReminderPendingConfirmation({
+    confirmationMessage: "C'est fait, rappel créé.",
+  });
+  assertEquals(pending.includes("C'est fait"), false);
+  assertEquals(pending.includes("créé"), false);
+
+  const draft = renderRecurringReminderDraftReady({
+    ack: "C'est enregistré.",
+  });
+  assertEquals(draft.includes("C'est enregistré"), false);
+});
 
 Deno.test("create_recurring_reminder pipeline covers structured intake scenarios", async () => {
   const writes: unknown[] = [];
@@ -578,6 +595,14 @@ Deno.test("create_recurring_reminder router approve executes only through execut
       ?.recurring_reminder_id,
     "rr-1",
   );
+  assertEquals(
+    (runtime?.toolSkillRun.requested_effects as any[])?.[0]?.type,
+    "create_recurring_reminder",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun.allowed_effects as any[])?.[0]?.operation_id,
+    "op-recurring-approve",
+  );
   assertEquals(writes, 1);
   resetConsumedConfirmationTokensForTest();
 });
@@ -698,6 +723,14 @@ Deno.test("create_recurring_reminder write failure is not marked executed", asyn
   assertEquals(
     (runtime?.toolSkillRun.committed_effects as any[])?.length ?? 0,
     0,
+  );
+  assertEquals(
+    (runtime?.toolSkillRun.requested_effects as any[])?.[0]?.type,
+    "create_recurring_reminder",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun.allowed_effects as any[])?.[0]?.operation_id,
+    "op-recurring-write-failure",
   );
   assertEquals(runtime?.content.includes("C'est fait"), false);
   resetConsumedConfirmationTokensForTest();

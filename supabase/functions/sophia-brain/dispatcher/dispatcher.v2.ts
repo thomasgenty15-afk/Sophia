@@ -64,6 +64,58 @@ export type RunDispatcherInput = {
 type TurnFrameWithRouteHints = TurnFrame & {
   route_blocked_codes?: string[];
 };
+type ToolSkillIntent = TurnFrame["tool_skill_intents"][number];
+type ExplicitOperationType =
+  | "prepare_attack_card"
+  | "prepare_defense_card"
+  | "adjust_plan_item"
+  | "select_state_potion"
+  | "update_coach_preferences"
+  | "create_recurring_reminder";
+
+const TOOL_OPPORTUNITY_METADATA: Record<
+  Exclude<ToolSkillOpportunity["type"], "none">,
+  Pick<
+    ToolSkillOpportunity,
+    "operation_type" | "surface_id" | "suggested_question_intent"
+  >
+> = {
+  attack_card: {
+    operation_type: "prepare_attack_card",
+    surface_id: "attack_card",
+    suggested_question_intent: "offer_attack_card",
+  },
+  defense_card: {
+    operation_type: "prepare_defense_card",
+    surface_id: "defense_card",
+    suggested_question_intent: "offer_defense_card",
+  },
+  plan_adjustment: {
+    operation_type: "adjust_plan_item",
+    surface_id: "plan_item.reduce",
+    suggested_question_intent: "offer_plan_adjustment",
+  },
+  portion: {
+    operation_type: "adjust_plan_item",
+    surface_id: "plan_item.reduce",
+    suggested_question_intent: "offer_portion",
+  },
+  state_potion: {
+    operation_type: "select_state_potion",
+    surface_id: "potion.state",
+    suggested_question_intent: "offer_state_potion",
+  },
+  self_reminder: {
+    operation_type: "create_recurring_reminder",
+    surface_id: "dashboard.reminders",
+    suggested_question_intent: "offer_self_reminder",
+  },
+  coach_preferences: {
+    operation_type: "update_coach_preferences",
+    surface_id: "dashboard.preferences",
+    suggested_question_intent: "offer_coach_preferences",
+  },
+};
 
 const RISK_ORDER: RiskBand[] = ["none", "low", "medium", "high", "critical"];
 
@@ -730,7 +782,7 @@ function isNegatedStatePotionRequest(text: string): boolean {
 }
 
 function llmToolSkillIntentIsRouteable(
-  intent: TurnFrame["tool_skill_intents"][number],
+  intent: ToolSkillIntent,
 ): boolean {
   if (
     intent.confidence_band === "low" ||
@@ -761,7 +813,7 @@ function llmToolSkillIntentIsRouteable(
 }
 
 function hasStructuredOperationInput(
-  intent: TurnFrame["tool_skill_intents"][number],
+  intent: ToolSkillIntent,
 ): boolean {
   const input = intent.operation_input ?? intent.payload_hint;
   return Boolean(input && Object.keys(input).length > 0);
@@ -825,7 +877,7 @@ function selectDominantToolSkillIntent(
 }
 
 function fallbackToolSkillIntentIsAllowed(
-  intent: TurnFrame["tool_skill_intents"][number],
+  intent: ToolSkillIntent,
   text: string,
   recentText: string,
 ): boolean {
@@ -1405,50 +1457,12 @@ function sanitizeToolSkillOpportunity(args: {
     return DEFAULT_TOOL_SKILL_OPPORTUNITY;
   }
 
-  const mapping: Record<
-    Exclude<ToolSkillOpportunity["type"], "none">,
-    Pick<
-      ToolSkillOpportunity,
-      "operation_type" | "surface_id" | "suggested_question_intent"
-    >
-  > = {
-    attack_card: {
-      operation_type: "prepare_attack_card",
-      surface_id: "attack_card",
-      suggested_question_intent: "offer_attack_card",
-    },
-    defense_card: {
-      operation_type: "prepare_defense_card",
-      surface_id: "defense_card",
-      suggested_question_intent: "offer_defense_card",
-    },
-    plan_adjustment: {
-      operation_type: "adjust_plan_item",
-      surface_id: "plan_item.reduce",
-      suggested_question_intent: "offer_plan_adjustment",
-    },
-    portion: {
-      operation_type: "adjust_plan_item",
-      surface_id: candidate.surface_id === "plan_item.clarify"
-        ? "plan_item.clarify"
-        : "plan_item.reduce",
-      suggested_question_intent: "offer_portion",
-    },
-    state_potion: {
-      operation_type: "select_state_potion",
-      surface_id: "potion.state",
-      suggested_question_intent: "offer_state_potion",
-    },
-    self_reminder: {
-      operation_type: "create_recurring_reminder",
-      surface_id: "dashboard.reminders",
-      suggested_question_intent: "offer_self_reminder",
-    },
-    coach_preferences: {
-      operation_type: "update_coach_preferences",
-      surface_id: "dashboard.preferences",
-      suggested_question_intent: "offer_coach_preferences",
-    },
+  const metadata = {
+    ...TOOL_OPPORTUNITY_METADATA[validType],
+    surface_id: validType === "portion" &&
+        candidate.surface_id === "plan_item.clarify"
+      ? "plan_item.clarify" as const
+      : TOOL_OPPORTUNITY_METADATA[validType].surface_id,
   };
   const confidence = normalizeOpportunityConfidence(
     candidate.confidence_band ?? args.fallback.confidence_band,
@@ -1479,7 +1493,7 @@ function sanitizeToolSkillOpportunity(args: {
     : "never";
   return {
     type: validType,
-    ...mapping[validType],
+    ...metadata,
     confidence_band: confidence,
     should_offer: shouldOffer,
     prop_reason:
@@ -2069,6 +2083,38 @@ function sanitizeResearchSignal(
   };
 }
 
+function selectExplicitOperation(args: {
+  asksProductHelp: boolean;
+  attackCardRequested: boolean;
+  adjustPlanSignal: boolean;
+  text: string;
+  recentText: string;
+}): ExplicitOperationType | null {
+  if (args.attackCardRequested) return "prepare_attack_card";
+  if (args.asksProductHelp) return null;
+  if (
+    /\bok fais[- ]?le\b/.test(args.text) ||
+    (args.text.trim() === "fais" &&
+      /\bcarte d['’ ]?attaque\b/.test(args.recentText))
+  ) {
+    return "prepare_attack_card";
+  }
+  if (isExplicitDefenseCardOperationRequest(args.text)) {
+    return "prepare_defense_card";
+  }
+  if (args.adjustPlanSignal) return "adjust_plan_item";
+  if (isExplicitStatePotionOperationRequest(args.text)) {
+    return "select_state_potion";
+  }
+  if (isExplicitCoachPreferenceOperationRequest(args.text)) {
+    return "update_coach_preferences";
+  }
+  if (isExplicitRecurringReminderRequest(args.text)) {
+    return "create_recurring_reminder";
+  }
+  return null;
+}
+
 function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
   const message = input.user_message;
   const text = normalize(message);
@@ -2265,22 +2311,13 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
 
   const attackCardRequested = !asksProductHelp &&
     isExplicitAttackCardOperationRequest(text, recentText);
-  const operation = attackCardRequested ||
-      (!asksProductHelp && /\bok fais[- ]?le\b/.test(text)) ||
-      (!asksProductHelp && text.trim() === "fais" &&
-        /\bcarte d['’ ]?attaque\b/.test(recentText))
-    ? "prepare_attack_card"
-    : !asksProductHelp && isExplicitDefenseCardOperationRequest(text)
-    ? "prepare_defense_card"
-    : !asksProductHelp && adjustPlanSignal
-    ? "adjust_plan_item"
-    : !asksProductHelp && isExplicitStatePotionOperationRequest(text)
-    ? "select_state_potion"
-    : !asksProductHelp && isExplicitCoachPreferenceOperationRequest(text)
-    ? "update_coach_preferences"
-    : !asksProductHelp && isExplicitRecurringReminderRequest(text)
-    ? "create_recurring_reminder"
-    : null;
+  const operation = selectExplicitOperation({
+    asksProductHelp,
+    attackCardRequested,
+    adjustPlanSignal,
+    text,
+    recentText,
+  });
 
   if (operation) {
     turnFrame.tool_skill_intents.push({
@@ -2518,6 +2555,16 @@ function sanitizeLlmTurnFrame(
       emotionalRepairDominatesToolSkills
     ? []
     : routedOperationIntents;
+  const suppressToolSurfaces = fallbackConversationRisk.should_exit_flows ||
+    safetyBlocksToolSkills ||
+    emotionalRepairDominatesToolSkills ||
+    reviewSkillActive;
+  const opportunityRaw = suppressToolSurfaces
+    ? DEFAULT_TOOL_SKILL_OPPORTUNITY
+    : raw?.tool_skill_opportunity;
+  const opportunityFallback = suppressToolSurfaces
+    ? DEFAULT_TOOL_SKILL_OPPORTUNITY
+    : fallback.tool_skill_opportunity;
 
   return {
     ...fallback,
@@ -2543,24 +2590,8 @@ function sanitizeLlmTurnFrame(
       : fallback.direct_effects,
     tool_skill_intents: finalRoutedOperationIntents,
     tool_skill_opportunity: sanitizeToolSkillOpportunity({
-      raw: fallbackConversationRisk.should_exit_flows
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : safetyBlocksToolSkills
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : emotionalRepairDominatesToolSkills
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : reviewSkillActive
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : raw?.tool_skill_opportunity,
-      fallback: fallbackConversationRisk.should_exit_flows
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : safetyBlocksToolSkills
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : emotionalRepairDominatesToolSkills
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : reviewSkillActive
-        ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-        : fallback.tool_skill_opportunity,
+      raw: opportunityRaw,
+      fallback: opportunityFallback,
       operationIntents: finalRoutedOperationIntents,
       safetyRisk,
       hasPendingOrActiveFlow: Boolean(

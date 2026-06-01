@@ -79,6 +79,13 @@ export function conversationEffectsFromCandidates(
       operation_type: suggestion.operation_type,
       requires_user_consent: suggestion.requires_user_consent,
     });
+    if (suggestion.requires_user_consent !== true) {
+      effects.blocked.push({
+        type: "operation_suggestion",
+        reason_code: "user_consent_required",
+      });
+      continue;
+    }
     effects.allowed.push({
       type: "operation_suggestion_candidate",
       operation_type: suggestion.operation_type,
@@ -108,4 +115,3 @@ export function conversationEffectsFromCandidates(
   }
   return effects;
 }
-

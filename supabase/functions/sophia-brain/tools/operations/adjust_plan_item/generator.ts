@@ -123,6 +123,8 @@ export type PlanAdjustmentDraftV1 = {
   confirmation_actions: ["yes", "no"];
 };
 
+export type PlanAdjustmentResultScopeKind = "action" | "level" | "whole_plan";
+
 const SCHEDULE_FIELDS = new Set([
   "scheduled_day",
   "scheduled_date",
@@ -134,7 +136,7 @@ const SCHEDULE_FIELDS = new Set([
 
 export type AdjustPlanResultWriterInput = {
   scope_label: string;
-  scope_kind: "action" | "level" | "whole_plan";
+  scope_kind: PlanAdjustmentResultScopeKind;
   adjustment_type: PlanAdjustmentGeneratorInput["adjustment_type"];
   execution_strategy: NonNullable<
     PlanAdjustmentDraftV1["draft"]["execution_strategy"]

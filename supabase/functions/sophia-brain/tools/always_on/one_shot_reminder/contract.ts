@@ -3,8 +3,11 @@ export type OneShotReminderIntent =
   | "cancel"
   | "replace"
   | "status"
+  | "status_question"
   | "modify_request"
   | "answer_product_question"
+  | "product_help"
+  | "ignore"
   | "off_topic"
   | "unclear";
 
@@ -80,7 +83,9 @@ export type OneShotReminderState = {
   reminder_instruction: string | null;
   target_reminder_ids: string[];
   target_local_labels: string[];
-  missing_slots: Array<"scheduled_for" | "reminder_instruction" | "target_reminder">;
+  missing_slots: Array<
+    "scheduled_for" | "reminder_instruction" | "target_reminder"
+  >;
   constraints: OneShotReminderConstraint[];
   effect_plan: OneShotReminderEffectPlan;
   committed_effects: OneShotReminderCommittedEffect[];

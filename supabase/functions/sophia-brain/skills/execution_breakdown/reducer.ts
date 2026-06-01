@@ -3,9 +3,9 @@ import { conversationEffectsFromCandidates } from "../_shared/conversation_skill
 import {
   applyExecutionInvariants,
   EXECUTION_BREAKDOWN_SKILL_ID,
+  type ExecutionIntakeResult,
   toConversationOperationSuggestions,
   toMemoryWriteCandidates,
-  type ExecutionIntakeResult,
 } from "./contract.ts";
 import { renderExecutionBreakdownReply } from "./renderer.ts";
 

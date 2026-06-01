@@ -1,10 +1,10 @@
 import { baseOutput, type RunSkillInput } from "../_shared/skill_helpers.ts";
 import { conversationEffectsFromCandidates } from "../_shared/conversation_skill_contract.ts";
 import {
+  type DemotivationRepairIntakeResult,
   normalizeDemotivationRepairDecision,
   toConversationOperationSuggestions,
   toMemoryWriteCandidates,
-  type DemotivationRepairIntakeResult,
 } from "./contract.ts";
 import { renderDemotivationRepairReply } from "./renderer.ts";
 

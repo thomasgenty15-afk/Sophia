@@ -36,11 +36,13 @@ Deno.test("recordCommittedEffect ajoute une entry committed", () => {
     effect_type: "coach_preferences.update",
     operation_type: "update_coach_preferences",
     operation_id: "op-1",
+    committed_id: "coach.tone",
     tool_id: "update_coach_preferences",
     source: "executor",
     db_ref: { table: "user_profile_facts", key: "coach.tone" },
   });
   assertEquals(entry.status, "committed");
+  assertEquals(entry.committed_id, "coach.tone");
   assertEquals(entry.db_ref?.key, "coach.tone");
 });
 
@@ -80,7 +82,10 @@ Deno.test("summarizeEffectLedgerForTrace ne leak pas de payload massif", () => {
   });
   const summary = summarizeEffectLedgerForTrace(ledger) as any;
   assertEquals(summary.counts.requested, 1);
-  assertEquals(summary.entries[0].payload_summary.long_text.length <= 180, true);
+  assertEquals(
+    summary.entries[0].payload_summary.long_text.length <= 180,
+    true,
+  );
   assertEquals(summary.entries[0].payload_summary.nested, "[object]");
 });
 
@@ -204,4 +209,66 @@ Deno.test("rewriteUncommittedEffectClaims neutralise progres note sans commit", 
     "uncommitted_progress_track_claim",
   ]);
   assertEquals(rewritten.reply, "Je ne l'ai pas noté.");
+});
+
+Deno.test("rewriteUncommittedEffectClaims neutralise memoire enregistree sans commit", () => {
+  const ledger = createEffectLedger("turn-1");
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply: "Je garde ça en mémoire, je m'en souviens.",
+    ledger,
+  });
+  assertEquals(rewritten.changed, true);
+  assertEquals(rewritten.reason_codes, [
+    "uncommitted_memory_write_claim",
+  ]);
+  assertEquals(rewritten.reply, "Je ne l'ai pas enregistré en mémoire.");
+});
+
+Deno.test("rewriteUncommittedEffectClaims neutralise success generique sans commit", () => {
+  const ledger = createEffectLedger("turn-1");
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply: "C'est fait.",
+    ledger,
+  });
+  assertEquals(rewritten.changed, true);
+  assertEquals(rewritten.reason_codes, [
+    "uncommitted_generic_success_claim",
+  ]);
+  assertEquals(
+    rewritten.reply,
+    "Je ne confirme aucun changement durable sans effet confirmé.",
+  );
+});
+
+Deno.test("rewriteUncommittedEffectClaims neutralise success generique avec effet bloque", () => {
+  const ledger = createEffectLedger("turn-1");
+  recordBlockedEffect(ledger, {
+    effect_id: "effect-1",
+    effect_type: "plan_item.adjust",
+    source: "tool_skill",
+    reason_code: "missing_confirmation",
+  });
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply: "C'est fait.",
+    ledger,
+  });
+  assertEquals(rewritten.changed, true);
+  assertEquals(rewritten.reason_codes, [
+    "uncommitted_generic_success_claim",
+  ]);
+});
+
+Deno.test("rewriteUncommittedEffectClaims conserve success generique avec commit", () => {
+  const ledger = createEffectLedger("turn-1");
+  recordCommittedEffect(ledger, {
+    effect_id: "effect-1",
+    effect_type: "plan_item.adjust",
+    source: "executor",
+  });
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply: "C'est fait.",
+    ledger,
+  });
+  assertEquals(rewritten.changed, false);
+  assertEquals(rewritten.reply, "C'est fait.");
 });

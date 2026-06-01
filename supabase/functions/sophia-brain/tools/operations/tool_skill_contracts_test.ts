@@ -19,6 +19,13 @@ Deno.test("tool skill invariant: executedTools is empty unless execution succeed
   );
   assertEquals(
     executedToolsForStatus("success", ["create_recurring_reminder"]),
+    [],
+  );
+  assertEquals(
+    executedToolsForStatus("success", ["create_recurring_reminder"], [{
+      type: "create_recurring_reminder",
+      recurring_reminder_id: "rr_1",
+    }]),
     ["create_recurring_reminder"],
   );
 });
@@ -117,4 +124,70 @@ Deno.test("tool skill invariant: migrated operation contracts are importable", a
     import("./prepare_attack_card/contract.ts"),
   ]);
   assert(modules.every((module) => module && typeof module === "object"));
+});
+
+Deno.test("tool skill architecture: migrated operations expose expected modules", async () => {
+  const operations = [
+    "adjust_plan_item",
+    "prepare_attack_card",
+    "prepare_defense_card",
+    "create_recurring_reminder",
+    "select_state_potion",
+    "update_coach_preferences",
+  ];
+  const knownHybridTools = [{
+    name: "prepare_attack_card",
+    reason:
+      "Legacy migration predates the standard intake.ts/effects.ts split but exposes contract/router/executor/renderer.",
+    removal_criteria:
+      "Add standard intake.ts and effects.ts or document the replacement contract in the operation module.",
+  }, {
+    name: "prepare_defense_card",
+    reason:
+      "Legacy migration predates the standard intake.ts/effects.ts split but exposes contract/router/executor/renderer.",
+    removal_criteria:
+      "Add standard intake.ts and effects.ts or document the replacement contract in the operation module.",
+  }];
+  const hybrid = new Set(knownHybridTools.map((tool) => tool.name));
+  assert(
+    knownHybridTools.every((tool) => tool.reason && tool.removal_criteria),
+  );
+
+  for (const operation of operations) {
+    for (
+      const file of ["contract.ts", "router.ts", "executor.ts", "renderer.ts"]
+    ) {
+      const stat = await Deno.stat(
+        new URL(`./${operation}/${file}`, import.meta.url),
+      );
+      assert(stat.isFile, `${operation}/${file}`);
+    }
+    if (!hybrid.has(operation)) {
+      const intake = await Deno.stat(
+        new URL(`./${operation}/intake.ts`, import.meta.url),
+      );
+      assert(intake.isFile, `${operation}/intake.ts`);
+    }
+  }
+});
+
+Deno.test("tool skill architecture: adjust_plan_item intake stays a thin facade", async () => {
+  const knownLegacy = [{
+    name: "adjust_plan_item/intake.ts massive legacy intake",
+    reason:
+      "Existing adjust_plan_item intake still carries reducer/runtime-like logic; Priority 9 only adds guardrails, not the migration.",
+    removal_criteria:
+      "Split adjust_plan_item into standard contract/intake/reducer/effects/executor modules and reduce intake.ts below 160 non-comment lines.",
+    max_lines_until_migration: 5700,
+  }];
+  assert(
+    knownLegacy.every((item) => item.reason && item.removal_criteria),
+  );
+  const text = await Deno.readTextFile(
+    new URL("./adjust_plan_item/intake.ts", import.meta.url),
+  );
+  assert(
+    text.split(/\r?\n/).length <= knownLegacy[0].max_lines_until_migration,
+    "adjust_plan_item/intake.ts is legacy-large; do not grow it before migration",
+  );
 });

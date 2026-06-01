@@ -32,6 +32,7 @@ import {
 import { buildPotionFollowUpSchedulePlannerPrompt } from "./subskills/follow_up_schedule_planner.ts";
 import { normalizePotionSessionDraft } from "./generator.ts";
 import { maybeRunSelectStatePotionOperation } from "./router.ts";
+import { renderSelectStatePotionSkillResult } from "./renderer.ts";
 import { loadSelectStatePotionFrameFromTempMemory } from "./state.ts";
 import {
   buildExplicitNoPotionConcreteReply,
@@ -47,6 +48,17 @@ import {
   structuredStatePotionDraftGenerator,
   structuredStatePotionSlotFiller,
 } from "./test_helpers.ts";
+
+Deno.test("select_state_potion renderer blocks success language without committed effect", () => {
+  const message = renderSelectStatePotionSkillResult({
+    status: "blocked",
+    user_intent: "activate",
+    reply: "C'est fait, potion activée.",
+    committed_effects: [],
+  } as any);
+  assertEquals(message.includes("C'est fait"), false);
+  assertEquals(message.includes("activée"), false);
+});
 
 const SECRET = "s5-test-secret";
 

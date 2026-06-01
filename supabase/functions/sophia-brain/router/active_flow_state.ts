@@ -25,6 +25,35 @@ export const ACTIVE_FLOW_TEMP_MEMORY_KEYS = {
   ],
 } as const;
 
+const TOOL_SKILL_PENDING_CONFIRMATION_OWNERS = new Set([
+  "adjust_plan_item",
+  "prepare_attack_card",
+  "prepare_defense_card",
+  "create_recurring_reminder",
+  "select_state_potion",
+  "update_coach_preferences",
+]);
+
+const COMMON_OPERATION_SLOT_KEYS = [
+  "target",
+  "attachment",
+  "risk_situation",
+  "scope",
+  "target_granularity",
+  "preference_type",
+  "preference_value",
+  "potion_type",
+  "state",
+];
+
+const ADJUST_PLAN_SLOT_KEYS = [
+  "target_granularity",
+  "scope",
+  "adjustment_type",
+  "reason_change",
+  "change_target",
+];
+
 function readFirstTempMemoryKey(
   tempMemory: unknown,
   keys: readonly string[],
@@ -104,12 +133,9 @@ export function clearToolSkillFlow<
 }
 
 export function clearToolSkillFlowForDirectReminder(tempMemory: any): any {
-  const next = { ...(tempMemory ?? {}) };
-  delete next.__pending_tool_skill_confirmation;
-  delete next.pending_tool_skill_confirmation;
-  delete next.__active_tool_skill_intake;
-  delete next.active_tool_skill_intake;
-  delete next.__pending_recommendation_operation;
+  let next = clearActiveToolFlow(tempMemory);
+  next = clearPendingToolConfirmation(next);
+  next = clearTempMemoryKeys(next, ["__pending_recommendation_operation"]);
   for (const key of Object.keys(next)) {
     if (key.includes("followup_consent")) delete next[key];
   }
@@ -127,14 +153,9 @@ export function pendingOperationType(value: unknown): string | null {
 }
 
 export function pendingConfirmationOwnedByToolSkill(value: unknown): boolean {
-  return [
-    "adjust_plan_item",
-    "prepare_attack_card",
-    "prepare_defense_card",
-    "create_recurring_reminder",
-    "select_state_potion",
-    "update_coach_preferences",
-  ].includes(String(pendingOperationType(value) ?? ""));
+  return TOOL_SKILL_PENDING_CONFIRMATION_OWNERS.has(
+    String(pendingOperationType(value) ?? ""),
+  );
 }
 
 function compactRuntimeString(value: unknown): string | null {
@@ -200,13 +221,10 @@ function buildToolSkillRuntimeContext(args: {
       source: "__pending_adjust_plan_draft_review",
       operation_id: compactRuntimeString(pendingDraftReview.operation_id),
       turn_count: Number(pendingDraftReview.turn_count ?? 0),
-      known_slots: compactRuntimeRecord(pendingDraftReview.operation_input, [
-        "target_granularity",
-        "scope",
-        "adjustment_type",
-        "reason_change",
-        "change_target",
-      ]),
+      known_slots: compactRuntimeRecord(
+        pendingDraftReview.operation_input,
+        ADJUST_PLAN_SLOT_KEYS,
+      ),
     };
   }
 
@@ -223,17 +241,10 @@ function buildToolSkillRuntimeContext(args: {
       source: "__pending_tool_skill_confirmation",
       operation_id: compactRuntimeString(pending?.operation_id),
       turn_count: Number(pending?.turn_count ?? 0),
-      known_slots: compactRuntimeRecord(pending?.operation_input, [
-        "target",
-        "attachment",
-        "risk_situation",
-        "scope",
-        "target_granularity",
-        "preference_type",
-        "preference_value",
-        "potion_type",
-        "state",
-      ]),
+      known_slots: compactRuntimeRecord(
+        pending?.operation_input,
+        COMMON_OPERATION_SLOT_KEYS,
+      ),
     };
   }
 
@@ -256,17 +267,7 @@ function buildToolSkillRuntimeContext(args: {
       ),
       known_slots: compactRuntimeRecord(
         (pendingRecommendation as any)?.operation_input,
-        [
-          "target",
-          "attachment",
-          "risk_situation",
-          "scope",
-          "target_granularity",
-          "preference_type",
-          "preference_value",
-          "potion_type",
-          "state",
-        ],
+        COMMON_OPERATION_SLOT_KEYS,
       ),
     };
   }
@@ -283,17 +284,10 @@ function buildToolSkillRuntimeContext(args: {
       source: "__active_tool_skill_intake",
       operation_id: compactRuntimeString(active.operation_id),
       turn_count: Number(active.turn_count ?? 0),
-      known_slots: compactRuntimeRecord(active.operation_input, [
-        "target",
-        "attachment",
-        "risk_situation",
-        "scope",
-        "target_granularity",
-        "preference_type",
-        "preference_value",
-        "potion_type",
-        "state",
-      ]),
+      known_slots: compactRuntimeRecord(
+        active.operation_input,
+        COMMON_OPERATION_SLOT_KEYS,
+      ),
     };
   }
 

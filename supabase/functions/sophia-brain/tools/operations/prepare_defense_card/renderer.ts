@@ -3,6 +3,7 @@ import type {
   PrepareDefenseCardSkillResult,
 } from "./contract.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
+import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
 
 export const DEFENSE_CARD_CREATED_LOCATION =
   "Tu peux la retrouver dans Ressources > Cartes de défense pour la relire, l'utiliser et l'ajuster depuis la plateforme quand l'option est disponible. Depuis le chat, je ne modifie pas une carte existante; si elle ne convient plus, je peux aussi en préparer une nouvelle version après confirmation.";
@@ -34,7 +35,11 @@ export function renderDefenseCardFallbackFailed(): string {
 export function renderDefenseCardSkillResult(
   result: PrepareDefenseCardSkillResult,
 ): string {
-  if (result.reply) return result.reply;
+  if (result.reply) {
+    return result.committed_effects.length > 0
+      ? result.reply
+      : renderNonCommittedReply(result.reply, renderDefenseCardFallbackFailed());
+  }
   if (result.status === "executed") {
     return result.committed_effects.length > 0
       ? "C'est fait. La carte de défense a été créée."

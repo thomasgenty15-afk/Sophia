@@ -15,6 +15,56 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
+const EFFECT_TYPE_BY_TOOL_TYPE: Record<string, string> = {
+  update_coach_preferences: "coach_preferences.update",
+  create_one_shot_reminder: "one_shot_reminder.create",
+  cancel_one_shot_reminder: "one_shot_reminder.cancel",
+  create_recurring_reminder: "recurring_reminder.create",
+  create_attack_card: "attack_card.create",
+  prepare_attack_card: "attack_card.create",
+  create_defense_card: "defense_card.create",
+  prepare_defense_card: "defense_card.create",
+  select_state_potion: "state_potion.activate",
+  activate_state_potion: "state_potion.activate",
+  track_progress_plan_item: "plan_item_progress.track",
+  adjust_plan_item: "plan_item.adjust",
+};
+
+const OPERATION_TYPE_BY_EFFECT_TYPE: Record<string, string> = {
+  "coach_preferences.update": "update_coach_preferences",
+  "one_shot_reminder.create": "one_shot_reminder",
+  "one_shot_reminder.cancel": "one_shot_reminder",
+  "recurring_reminder.create": "create_recurring_reminder",
+  "attack_card.create": "prepare_attack_card",
+  "defense_card.create": "prepare_defense_card",
+  "state_potion.activate": "select_state_potion",
+  "plan_item_progress.track": "track_progress_plan_item",
+  "plan_item.adjust": "adjust_plan_item",
+};
+
+const COMMITTED_ID_KEYS = [
+  "id",
+  "committed_id",
+  "preferences_update_id",
+  "logged_progress_id",
+  "plan_patch_id",
+  "attack_card_id",
+  "defense_card_id",
+  "recurring_reminder_id",
+  "potion_session_id",
+];
+
+const COMMITTED_DB_TABLE_BY_EFFECT_TYPE: Record<string, string> = {
+  "one_shot_reminder.create": "scheduled_checkins",
+  "one_shot_reminder.cancel": "scheduled_checkins",
+  "recurring_reminder.create": "recurring_reminders",
+  "attack_card.create": "user_attack_cards",
+  "defense_card.create": "user_defense_cards",
+  "plan_item_progress.track": "plan_item_progress_logs",
+  "plan_item.adjust": "plan_patches",
+  "state_potion.activate": "potion_sessions",
+};
+
 // Traduction runtime/tool/Agenda vers le ledger d'effets. Le coeur du ledger reste dans effect_ledger.ts.
 export type OperationRuntimeResult = {
   content: string;
@@ -28,60 +78,21 @@ export type OperationRuntimeResult = {
 export function executedToolsForStatus(
   toolExecution: OperationRuntimeResult["toolExecution"] | string | undefined,
   executedTools: string[] | undefined,
+  committedEffects?: unknown[] | undefined,
 ): string[] {
-  return toolExecution === "success" ? [...(executedTools ?? [])] : [];
+  if (toolExecution !== "success") return [];
+  return Array.isArray(committedEffects) && committedEffects.length > 0
+    ? [...(executedTools ?? [])]
+    : [];
 }
 
 export function effectTypeFromToolType(type: unknown): string {
-  switch (String(type ?? "")) {
-    case "update_coach_preferences":
-      return "coach_preferences.update";
-    case "create_one_shot_reminder":
-      return "one_shot_reminder.create";
-    case "cancel_one_shot_reminder":
-      return "one_shot_reminder.cancel";
-    case "create_recurring_reminder":
-      return "recurring_reminder.create";
-    case "create_attack_card":
-    case "prepare_attack_card":
-      return "attack_card.create";
-    case "create_defense_card":
-    case "prepare_defense_card":
-      return "defense_card.create";
-    case "select_state_potion":
-    case "activate_state_potion":
-      return "state_potion.activate";
-    case "track_progress_plan_item":
-      return "plan_item_progress.track";
-    case "adjust_plan_item":
-      return "plan_item.adjust";
-    default:
-      return String(type ?? "unknown_effect");
-  }
+  const key = String(type ?? "");
+  return EFFECT_TYPE_BY_TOOL_TYPE[key] ?? (key || "unknown_effect");
 }
 
 function operationTypeForEffectType(effectType: string): string | null {
-  switch (effectType) {
-    case "coach_preferences.update":
-      return "update_coach_preferences";
-    case "one_shot_reminder.create":
-    case "one_shot_reminder.cancel":
-      return "one_shot_reminder";
-    case "recurring_reminder.create":
-      return "create_recurring_reminder";
-    case "attack_card.create":
-      return "prepare_attack_card";
-    case "defense_card.create":
-      return "prepare_defense_card";
-    case "state_potion.activate":
-      return "select_state_potion";
-    case "plan_item_progress.track":
-      return "track_progress_plan_item";
-    case "plan_item.adjust":
-      return "adjust_plan_item";
-    default:
-      return null;
-  }
+  return OPERATION_TYPE_BY_EFFECT_TYPE[effectType] ?? null;
 }
 
 function preferenceKeysFromDraft(draft: unknown): string[] {
@@ -91,21 +102,49 @@ function preferenceKeysFromDraft(draft: unknown): string[] {
   return isRecord(patch) ? Object.keys(patch) : [];
 }
 
-function effectPayloadSummary(effect: Record<string, unknown>): Record<string, unknown> {
+function effectPayloadSummary(
+  effect: Record<string, unknown>,
+): Record<string, unknown> {
   const draft = effect.draft;
   return {
+    operation_id: effect.operation_id ?? undefined,
     preference_keys: Array.isArray(effect.preference_keys)
       ? effect.preference_keys
       : preferenceKeysFromDraft(draft),
     preferences_update_ids: Array.isArray(effect.preferences_update_ids)
       ? effect.preferences_update_ids
       : undefined,
+    preference_update_id: effect.preference_update_id ?? undefined,
     scheduled_for: effect.scheduled_for ?? undefined,
     local_label: effect.local_label ?? undefined,
     reminder_instruction: effect.reminder_instruction ?? undefined,
+    target_item_id: effect.target_item_id ?? undefined,
     target_title: effect.target_title ?? undefined,
+    progress_status: effect.progress_status ?? undefined,
     value: effect.value ?? undefined,
+    logged_progress_id: effect.logged_progress_id ?? undefined,
+    plan_patch_id: effect.plan_patch_id ?? undefined,
+    bridge_plan_item_id: effect.bridge_plan_item_id ?? undefined,
+    attack_card_id: effect.attack_card_id ?? undefined,
+    defense_card_id: effect.defense_card_id ?? undefined,
+    recurring_reminder_id: effect.recurring_reminder_id ?? undefined,
+    potion_session_id: effect.potion_session_id ?? undefined,
+    scheduled_checkin_ids: Array.isArray(effect.scheduled_checkin_ids)
+      ? effect.scheduled_checkin_ids
+      : undefined,
   };
+}
+
+function committedIdFromEffect(effect: Record<string, unknown>): string | null {
+  for (const key of COMMITTED_ID_KEYS) {
+    const value = String(effect[key] ?? "").trim();
+    if (value) return value;
+  }
+  const scheduledCheckinIds = Array.isArray(effect.scheduled_checkin_ids)
+    ? effect.scheduled_checkin_ids
+    : [];
+  const scheduledCheckinId = String(scheduledCheckinIds[0] ?? "").trim();
+  return scheduledCheckinId || null;
 }
 
 function dbRefForCommittedEffect(
@@ -123,31 +162,11 @@ function dbRefForCommittedEffect(
       key: keys.length > 0 ? String(keys[0]) : null,
     };
   }
-  if (
-    effectType === "one_shot_reminder.create" ||
-    effectType === "one_shot_reminder.cancel"
-  ) {
+  const table = COMMITTED_DB_TABLE_BY_EFFECT_TYPE[effectType];
+  if (table) {
     return {
-      table: "scheduled_checkins",
-      id: effect.id ? String(effect.id) : null,
-    };
-  }
-  if (effectType === "recurring_reminder.create") {
-    return {
-      table: "recurring_reminders",
-      id: effect.id ? String(effect.id) : null,
-    };
-  }
-  if (effectType === "attack_card.create") {
-    return {
-      table: "user_attack_cards",
-      id: effect.id ? String(effect.id) : null,
-    };
-  }
-  if (effectType === "defense_card.create") {
-    return {
-      table: "user_defense_cards",
-      id: effect.id ? String(effect.id) : null,
+      table,
+      id: committedIdFromEffect(effect),
     };
   }
   return null;
@@ -165,23 +184,34 @@ export function recordToolSkillEffectsInLedger(args: {
   const status = String(run.status ?? "").trim() || null;
 
   const recordEffectArray = (
-    key: "requested_effects" | "allowed_effects" | "committed_effects",
+    key:
+      | "requested_effects"
+      | "allowed_effects"
+      | "committed_effects"
+      | "failed_effects",
     record: typeof recordRequestedEffect,
+    ledgerSource: EffectLedgerEntry["source"],
   ) => {
     const effects = Array.isArray(run[key]) ? run[key] as unknown[] : [];
     for (const [index, rawEffect] of effects.entries()) {
       if (!isRecord(rawEffect)) continue;
-      const effectType = effectTypeFromToolType(rawEffect.type);
+      const effectType = effectTypeFromToolType(
+        rawEffect.type ?? selectedHandler,
+      );
       record(args.ledger, {
-        effect_id:
-          `${args.ledger.turn_id}:${key}:${effectType}:${operationId ?? index}`,
+        effect_id: `${args.ledger.turn_id}:${key}:${effectType}:${
+          operationId ?? index
+        }`,
         effect_type: effectType,
         operation_type: operationTypeForEffectType(effectType) ??
           selectedHandler,
         operation_id: String(rawEffect.operation_id ?? operationId ?? "") ||
           null,
+        committed_id: key === "committed_effects"
+          ? committedIdFromEffect(rawEffect)
+          : null,
         tool_id: selectedHandler,
-        source: key === "committed_effects" ? "executor" : "tool_skill",
+        source: ledgerSource,
         reason_code: String(rawEffect.reason_code ?? status ?? "") || null,
         payload_summary: effectPayloadSummary(rawEffect),
         db_ref: key === "committed_effects"
@@ -191,9 +221,10 @@ export function recordToolSkillEffectsInLedger(args: {
     }
   };
 
-  recordEffectArray("requested_effects", recordRequestedEffect);
-  recordEffectArray("allowed_effects", recordAllowedEffect);
-  recordEffectArray("committed_effects", recordCommittedEffect);
+  recordEffectArray("requested_effects", recordRequestedEffect, "tool_skill");
+  recordEffectArray("allowed_effects", recordAllowedEffect, "tool_skill");
+  recordEffectArray("committed_effects", recordCommittedEffect, "executor");
+  recordEffectArray("failed_effects", recordFailedEffect, "executor");
 
   if (
     selectedHandler === "update_coach_preferences" &&
@@ -207,6 +238,7 @@ export function recordToolSkillEffectsInLedger(args: {
       effect_type: "coach_preferences.update",
       operation_type: "update_coach_preferences",
       operation_id: operationId,
+      committed_id: null,
       tool_id: selectedHandler,
       source: "tool_skill",
       reason_code: "pending_confirmation",
@@ -221,13 +253,17 @@ export function recordToolSkillEffectsInLedger(args: {
     : [];
   for (const [index, rawEffect] of blockedEffects.entries()) {
     if (!isRecord(rawEffect)) continue;
-    const effectType = effectTypeFromToolType(rawEffect.type ?? selectedHandler);
+    const effectType = effectTypeFromToolType(
+      rawEffect.type ?? selectedHandler,
+    );
     recordBlockedEffect(args.ledger, {
-      effect_id:
-        `${args.ledger.turn_id}:blocked:${effectType}:${operationId ?? index}`,
+      effect_id: `${args.ledger.turn_id}:blocked:${effectType}:${
+        operationId ?? index
+      }`,
       effect_type: effectType,
       operation_type: operationTypeForEffectType(effectType) ?? selectedHandler,
       operation_id: operationId,
+      committed_id: null,
       tool_id: selectedHandler,
       source: "executor",
       reason_code: String(rawEffect.reason_code ?? status ?? "") || null,
@@ -235,22 +271,49 @@ export function recordToolSkillEffectsInLedger(args: {
     });
   }
 
+  const hasEffectForStatus = (ledgerStatus: string) =>
+    args.ledger.entries.some((entry) =>
+      entry.status === ledgerStatus &&
+      entry.operation_id === operationId &&
+      entry.tool_id === selectedHandler
+    );
+  const selectedEffectType = selectedHandler
+    ? effectTypeFromToolType(selectedHandler)
+    : null;
+  if (
+    selectedEffectType && args.toolExecution === "blocked" &&
+    !hasEffectForStatus("blocked")
+  ) {
+    recordBlockedEffect(args.ledger, {
+      effect_id: `${args.ledger.turn_id}:blocked:${selectedEffectType}:${
+        operationId ?? "runtime"
+      }`,
+      effect_type: selectedEffectType,
+      operation_type: operationTypeForEffectType(selectedEffectType) ??
+        selectedHandler,
+      operation_id: operationId,
+      committed_id: null,
+      tool_id: selectedHandler,
+      source: "tool_skill",
+      reason_code: status ?? "runtime_blocked",
+      payload_summary: { status },
+    });
+  }
+
   if (
     args.toolExecution === "failed" &&
-    selectedHandler === "update_coach_preferences" &&
-    !args.ledger.entries.some((entry) =>
-      entry.status === "committed" &&
-      entry.effect_type === "coach_preferences.update" &&
-      entry.operation_id === operationId
-    )
+    selectedEffectType &&
+    !hasEffectForStatus("failed")
   ) {
     recordFailedEffect(args.ledger, {
-      effect_id: `${args.ledger.turn_id}:failed:coach_preferences.update:${
+      effect_id: `${args.ledger.turn_id}:failed:${selectedEffectType}:${
         operationId ?? "unknown"
       }`,
-      effect_type: "coach_preferences.update",
-      operation_type: "update_coach_preferences",
+      effect_type: selectedEffectType,
+      operation_type: operationTypeForEffectType(selectedEffectType) ??
+        selectedHandler,
       operation_id: operationId,
+      committed_id: null,
       tool_id: selectedHandler,
       source: "executor",
       reason_code: status,
@@ -272,7 +335,8 @@ export function recordAgendaEffectsInLedger(args: {
   for (const task of agenda.tasks) {
     if (task.kind !== "effect" || !task.operation_type) continue;
     const effectType = effectTypeFromToolType(task.operation_type);
-    const effectId = `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
+    const effectId =
+      `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
     if (seen.has(effectId)) continue;
     seen.add(effectId);
     const entry = {
@@ -280,8 +344,11 @@ export function recordAgendaEffectsInLedger(args: {
       effect_type: effectType,
       operation_type: task.operation_type,
       operation_id: null,
+      committed_id: null,
       tool_id: task.owner,
-      source: task.source === "dispatcher" ? "dispatcher" as const : "router" as const,
+      source: task.source === "dispatcher"
+        ? "dispatcher" as const
+        : "router" as const,
       reason_code: task.reason_code ?? null,
       payload_summary: {
         task_id: task.task_id,
@@ -299,6 +366,56 @@ export function recordAgendaEffectsInLedger(args: {
   }
 }
 
+export function recordRecommendationEffectInLedger(args: {
+  ledger: EffectLedger;
+  recommendation: unknown;
+}): void {
+  if (!isRecord(args.recommendation)) return;
+  const decision = String(args.recommendation.decision ?? "").trim();
+  const operationType = String(args.recommendation.operation_type ?? "").trim();
+  const surfaceId = String(args.recommendation.surface_id ?? "").trim();
+  const recommendationId = String(args.recommendation.recommendation_id ?? "")
+    .trim();
+  const effectType = operationType
+    ? effectTypeFromToolType(operationType)
+    : surfaceId
+    ? `surface.recommend.${surfaceId}`
+    : "product.recommendation";
+  const base = {
+    effect_id: `${args.ledger.turn_id}:recommendation:${decision}:${
+      recommendationId || effectType
+    }`,
+    effect_type: effectType,
+    operation_type: operationType || null,
+    operation_id: recommendationId || null,
+    committed_id: null,
+    tool_id: String(args.recommendation.executor_tool_id ?? operationType ?? "")
+      .trim() || null,
+    source: "recommendation_tool" as const,
+    reason_code: String(
+      args.recommendation.blocked_reason ??
+        args.recommendation.reason ??
+        decision,
+    ).trim() || null,
+    payload_summary: {
+      decision,
+      surface_id: surfaceId || null,
+      requires_consent: args.recommendation.requires_consent === true,
+      presentation_level: args.recommendation.presentation_level,
+    },
+  };
+  if (decision === "blocked") {
+    recordBlockedEffect(args.ledger, base);
+    return;
+  }
+  if (
+    decision === "recommend_operation" || decision === "recommend" ||
+    decision === "ask_clarification"
+  ) {
+    recordRequestedEffect(args.ledger, base);
+  }
+}
+
 export function agendaBlockedReasonForOperation(
   agenda: TurnAgenda | null,
   operationType: string,
@@ -310,4 +427,3 @@ export function agendaBlockedReasonForOperation(
   );
   return blocked?.reason_code ?? null;
 }
-

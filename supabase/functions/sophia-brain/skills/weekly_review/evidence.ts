@@ -37,6 +37,7 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
 }): Promise<{
   toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
   executedTools: string[];
+  toolSkillRun?: Record<string, unknown>;
 }> {
   const multiCandidates = resolveWeeklyForgottenProgressCandidatesFromBridge({
     activeSkillState: args.activeSkillState,
@@ -92,6 +93,9 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
         date_hint: string | null;
         date_hints?: string[];
       }> = [];
+      const committedEffects: unknown[] = [];
+      const requestedEffects: unknown[] = [];
+      const allowedEffects: unknown[] = [];
       for (const item of readyMultiCandidates) {
         const dateHints = Array.isArray(item.date_hints) ? item.date_hints : [];
         const effectiveCount = dateHints.length > 1 &&
@@ -113,6 +117,9 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
               write_progress: weeklyProgressWrite,
             });
             if (result.status === "logged") {
+              requestedEffects.push(...result.requested_effects);
+              allowedEffects.push(...result.allowed_effects);
+              committedEffects.push(...result.committed_effects);
               resultTarget = result.committed_effects[0]?.target_title ??
                 resultTarget;
             }
@@ -130,6 +137,9 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
             write_progress: weeklyProgressWrite,
           });
           if (result.status !== "logged") continue;
+          requestedEffects.push(...result.requested_effects);
+          allowedEffects.push(...result.allowed_effects);
+          committedEffects.push(...result.committed_effects);
           resultTarget = result.committed_effects[0]?.target_title ??
             resultTarget;
         }
@@ -162,7 +172,18 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
         }
         return {
           toolExecution: "success",
-          executedTools: ["weekly_forgotten_progress_log"],
+          executedTools: committedEffects.length > 0
+            ? ["track_progress_plan_item"]
+            : [],
+          toolSkillRun: {
+            selected_handler: "track_progress_plan_item",
+            status: "logged",
+            reason_code: "weekly_forgotten_progress_logged_multi",
+            requested_effects: requestedEffects,
+            allowed_effects: allowedEffects,
+            committed_effects: committedEffects,
+            blocked_effects: [],
+          },
         };
       }
     } catch (error) {
@@ -206,7 +227,19 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
         source_message_id: args.loggedMessageId ?? null,
         updated_at: new Date().toISOString(),
       };
-      return { toolExecution: "blocked", executedTools: [] };
+      return {
+        toolExecution: "blocked",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "track_progress_plan_item",
+          status: result.status,
+          reason_code: result.debug.reason_code,
+          requested_effects: result.requested_effects,
+          allowed_effects: result.allowed_effects,
+          committed_effects: [],
+          blocked_effects: result.blocked_effects,
+        },
+      };
     }
 
     (args.tempMemory as any).__weekly_forgotten_progress = {
@@ -237,7 +270,18 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
     }
     return {
       toolExecution: "success",
-      executedTools: ["weekly_forgotten_progress_log"],
+      executedTools: result.committed_effects.length > 0
+        ? ["track_progress_plan_item"]
+        : [],
+      toolSkillRun: {
+        selected_handler: "track_progress_plan_item",
+        status: "logged",
+        reason_code: result.debug.reason_code,
+        requested_effects: result.requested_effects,
+        allowed_effects: result.allowed_effects,
+        committed_effects: result.committed_effects,
+        blocked_effects: result.blocked_effects,
+      },
     };
   } catch (error) {
     console.warn(
@@ -255,7 +299,19 @@ export async function maybeLogWeeklyForgottenProgressParallel(args: {
     };
     return {
       toolExecution: "failed",
-      executedTools: ["weekly_forgotten_progress_log"],
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "track_progress_plan_item",
+        status: "failed",
+        reason_code: error instanceof Error ? error.message : String(error),
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        failed_effects: [{
+          type: "track_progress_plan_item",
+          reason_code: error instanceof Error ? error.message : String(error),
+        }],
+      },
     };
   }
 }

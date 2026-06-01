@@ -743,7 +743,7 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
 // ---------------------------------------------------------------------------
 // Régression chantier 1 (2026-05-28): le composer status_only ne doit pas
 // déclencher quand le user impose un format conversationnel explicite.
-// Voir docs/agent-playbook/13-architecture-skills, section Couche L3.
+// Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, section Couche L3.
 // ---------------------------------------------------------------------------
 
 Deno.test("explicit conversational format request: 'fait, prévu, fragile' is detected (A2-r4 T13)", () => {

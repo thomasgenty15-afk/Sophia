@@ -6,7 +6,7 @@ import { looksLikeReminderExecutionConfirmation } from "../tools/always_on/one_s
 // COUCHE L3 — Arbitre de routage
 // =============================================================================
 //
-// RÈGLE ARCHITECTURALE (voir docs/agent-playbook/13-architecture-skills,
+// RÈGLE ARCHITECTURALE (voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md,
 // section "Couche L3 — Garanties dures, jamais de détection sémantique"):
 //
 //   Cette couche NE DOIT PAS contenir de détection sémantique d'intention par
@@ -77,7 +77,6 @@ function routeAlreadyOwnsProductHelp(routeDecision: RouteDecision): boolean {
 
 function routeAlreadyOwnsStatusRead(routeDecision: RouteDecision): boolean {
   return routeDecision.selected_handler === "status_only_no_mutation_check" ||
-    routeDecision.reason_code.includes("status_only") ||
     routeDecision.reason_code.includes("status_recap");
 }
 
@@ -1030,7 +1029,8 @@ export function arbitrateTurnIntent(
 
   if (
     detectsExplicitProductHelp(input.userMessage) &&
-    !routeAlreadyOwnsProductHelp(input.routeDecision)
+    !routeAlreadyOwnsProductHelp(input.routeDecision) &&
+    !routeAlreadyOwnsStatusRead(input.routeDecision)
   ) {
     return rewriteForProductHelp(input);
   }

@@ -1,49 +1,5 @@
-// Centralised orchestration for direct-effect gating.
-//
-// PURPOSE
-// -------
-// `runDirectEffectGate` is the single source of truth for whether a direct
-// effect (write-y side effect like creating a one-shot reminder) is allowed
-// to run on a given turn. Historically each tool called the gate itself,
-// which meant a new tool author could ship a tool that bypasses the gate.
-//
-// This orchestrator forces the gate to run BEFORE any tool dispatch:
-// callers iterate `routeDecision.direct_effects_to_run`, get the gated
-// outcomes here, and only invoke the underlying tool with `decision === "allow"`.
-//
-// CONTRACT
-// --------
-// Inputs:
-//   - turn_frame: The TurnFrame produced by the dispatcher.
-//   - direct_effects_to_run: The list selected by `runConversationRouters`
-//     (typically `RouteDecision.direct_effects_to_run`). Effects not present
-//     in `turn_frame.direct_effects` will surface as gate `blocked` outcomes.
-//   - pending_tool_skill_confirmation, recent_writes_idempotency,
-//     db_idempotency_check: same inputs as `runDirectEffectGate`.
-//
-// Outputs:
-//   - outcomes: Map<effect_type, DirectEffectGateOutcome>
-//   - allowed: Effect types whose decision is "allow", in routing order.
-//   - clarifications: Effect types that need clarification, with their
-//     suggested user-facing question (for the response builder).
-//   - additional_blocked_paths: Suitable for merging into
-//     `RouteDecision.blocked_paths` so observability stays consistent.
-//
-// USAGE
-// -----
-// ```ts
-// const gateResult = await runEffectGateOrchestrator({
-//   turn_frame,
-//   direct_effects_to_run: routeDecision.direct_effects_to_run,
-//   pending_tool_skill_confirmation,
-//   recent_writes_idempotency,
-//   db_idempotency_check,
-// });
-// for (const effectType of gateResult.allowed) {
-//   const outcome = gateResult.outcomes[effectType];
-//   await dispatchTool(effectType, outcome);
-// }
-// ```
+// Gate all direct effects before tool dispatch. This keeps the router as the
+// only transverse owner of direct-effect safety/idempotency checks.
 import type {
   DirectEffectGateOutcome,
 } from "../contracts/direct_effect_gate.v1.ts";
@@ -72,6 +28,11 @@ export type EffectGateOrchestratorResult = {
   additional_blocked_paths: Array<{ path: string; reason_code: string }>;
 };
 
+type BlockedPath = EffectGateOrchestratorResult["additional_blocked_paths"][
+  number
+];
+type Clarification = EffectGateOrchestratorResult["clarifications"][number];
+
 const DEFAULT_RECENT_WRITES = { source_message_ids: [] as string[] };
 const DEFAULT_DB_CHECK = async (_key: string): Promise<boolean> => false;
 
@@ -80,14 +41,40 @@ function isKnownEffectType(value: string): value is DirectEffectType {
     value === "track_progress_plan_item";
 }
 
+function unknownEffectOutcome(effectType: string): DirectEffectGateOutcome {
+  return {
+    decision: "blocked",
+    tool_id: effectType,
+    reason_code: "duplicate_db",
+    message: "Unknown direct effect type rejected by orchestrator.",
+  };
+}
+
+function blockedPath(
+  path: string,
+  reasonCode: string,
+): BlockedPath {
+  return { path, reason_code: reasonCode };
+}
+
+function clarificationFromOutcome(
+  effectType: DirectEffectType,
+  outcome: Extract<DirectEffectGateOutcome, { decision: "needs_clarify" }>,
+): Clarification {
+  return {
+    effect_type: effectType,
+    reason_code: outcome.reason_code,
+    suggested_clarification: outcome.suggested_clarification,
+  };
+}
+
 export async function runEffectGateOrchestrator(
   input: EffectGateOrchestratorInput,
 ): Promise<EffectGateOrchestratorResult> {
   const outcomes: Record<string, DirectEffectGateOutcome> = {};
   const allowed: DirectEffectType[] = [];
   const clarifications: EffectGateOrchestratorResult["clarifications"] = [];
-  const additionalBlockedPaths: Array<{ path: string; reason_code: string }> =
-    [];
+  const additionalBlockedPaths: BlockedPath[] = [];
 
   const seen = new Set<string>();
   for (const rawEffect of input.direct_effects_to_run) {
@@ -96,17 +83,11 @@ export async function runEffectGateOrchestrator(
     seen.add(effectType);
 
     if (!isKnownEffectType(effectType)) {
-      const outcome: DirectEffectGateOutcome = {
-        decision: "blocked",
-        tool_id: effectType,
-        reason_code: "duplicate_db",
-        message: "Unknown direct effect type rejected by orchestrator.",
-      };
+      const outcome = unknownEffectOutcome(effectType);
       outcomes[effectType] = outcome;
-      additionalBlockedPaths.push({
-        path: effectType,
-        reason_code: "unknown_effect_type",
-      });
+      additionalBlockedPaths.push(
+        blockedPath(effectType, "unknown_effect_type"),
+      );
       continue;
     }
 
@@ -126,22 +107,12 @@ export async function runEffectGateOrchestrator(
     }
 
     if (outcome.decision === "needs_clarify") {
-      clarifications.push({
-        effect_type: effectType,
-        reason_code: outcome.reason_code,
-        suggested_clarification: outcome.suggested_clarification,
-      });
-      additionalBlockedPaths.push({
-        path: effectType,
-        reason_code: outcome.reason_code,
-      });
+      clarifications.push(clarificationFromOutcome(effectType, outcome));
+      additionalBlockedPaths.push(blockedPath(effectType, outcome.reason_code));
       continue;
     }
 
-    additionalBlockedPaths.push({
-      path: effectType,
-      reason_code: outcome.reason_code,
-    });
+    additionalBlockedPaths.push(blockedPath(effectType, outcome.reason_code));
   }
 
   return {

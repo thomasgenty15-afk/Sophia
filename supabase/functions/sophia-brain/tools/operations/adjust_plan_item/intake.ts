@@ -48,6 +48,9 @@ import {
   type WholePlanChangeFamily,
   type WholePlanReadiness,
 } from "./coach_guidance.ts";
+import {
+  renderAdjustPlanDraftGenerationConfirmationQuestion,
+} from "./renderer.ts";
 
 export { ADJUST_PLAN_SUB_SKILLS } from "./workflow.ts";
 
@@ -5092,7 +5095,7 @@ export async function runAdjustPlanItemIntake(input: {
       }),
     )
   ) {
-    const question = filled.next_question?.trim() ||
+    const generatedQuestion = filled.next_question?.trim() ||
       await nextQuestionForToolSkill({
         state,
         plan_snapshot: input.plan_snapshot,
@@ -5106,6 +5109,8 @@ export async function runAdjustPlanItemIntake(input: {
         recent_messages: input.recent_messages,
         reason_code: "draft_generation_confirmation",
       });
+    const question = generatedQuestion?.trim() ||
+      renderAdjustPlanDraftGenerationConfirmationQuestion();
     return {
       operation_type: "adjust_plan_item",
       status: "ask_question",

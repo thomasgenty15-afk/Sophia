@@ -6,6 +6,7 @@ import {
   clearPendingRecommendation,
   clearPendingToolConfirmation,
   clearToolSkillFlow,
+  clearToolSkillFlowForDirectReminder,
   readActiveFlowState,
 } from "./active_flow_state.ts";
 
@@ -93,6 +94,25 @@ Deno.test("active_flow_state clears pending recommendation", () => {
       keep: "ok",
     }),
     { keep: "ok" },
+  );
+});
+
+Deno.test("active_flow_state direct reminder clear keeps legacy recommendation key contract", () => {
+  assertEquals(
+    clearToolSkillFlowForDirectReminder({
+      __active_tool_skill_intake: { a: 1 },
+      active_tool_skill_intake: { b: 2 },
+      __pending_tool_skill_confirmation: { c: 3 },
+      pending_tool_skill_confirmation: { d: 4 },
+      __pending_recommendation_operation: { e: 5 },
+      pending_recommendation_operation: { keep_legacy: true },
+      reminder_followup_consent_v1: true,
+      keep: "ok",
+    }),
+    {
+      pending_recommendation_operation: { keep_legacy: true },
+      keep: "ok",
+    },
   );
 });
 

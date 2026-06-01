@@ -1,5 +1,6 @@
 import type { AdjustPlanConstraint, AdjustPlanDecision } from "./contract.ts";
 import type { AdjustPlanEffectMaterializationResult } from "./effects.ts";
+import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
 
 function hasCommittedEffect(
   effectResult?: AdjustPlanEffectMaterializationResult | null,
@@ -27,6 +28,8 @@ export function renderAdjustPlanDecision(args: {
   constraints?: AdjustPlanConstraint[];
 }): string {
   const { state, effect_result } = args;
+  const noCommitFallback =
+    "Je n'applique rien sans effet confirmé. Le plan reste inchangé.";
   if (effect_result?.failed_effects.length) {
     return "Je n'ai pas pu appliquer cet ajustement. Le plan reste inchangé.";
   }
@@ -38,28 +41,32 @@ export function renderAdjustPlanDecision(args: {
     return "Ok, je n'applique pas cet ajustement. Le plan reste inchangé.";
   }
   if (state.intent === "off_topic" || state.status === "off_topic") {
-    return state.reply.trim() || "";
+    return renderNonCommittedReply(state.reply, "");
   }
   if (state.intent === "explain_draft") {
-    return state.reply.trim() ||
+    return renderNonCommittedReply(
+      state.reply,
       state.draft.summary ||
-      "Je peux expliquer le brouillon, mais je n'applique rien sans confirmation explicite.";
+        "Je peux expliquer le brouillon, mais je n'applique rien sans confirmation explicite.",
+    );
   }
   if (
     state.effect_plan.blocked_reason === "missing_slots" ||
     state.scope.missing_slots.length > 0 ||
     state.change.missing_slots.length > 0
   ) {
-    return state.reply.trim() || missingSlotReply(state);
+    return renderNonCommittedReply(state.reply, missingSlotReply(state));
   }
   if (state.draft.available) {
-    return state.reply.trim() || [
+    return renderNonCommittedReply(state.reply, [
       state.draft.summary ?? "J'ai un brouillon d'ajustement.",
       "Je n'applique rien tant que tu ne me confirmes pas clairement de l'appliquer.",
-    ].join("\n\n");
+    ].join("\n\n"));
   }
-  return state.reply.trim() ||
-    "Je ne peux pas appliquer cet ajustement dans cet état. Le plan reste inchangé.";
+  return renderNonCommittedReply(
+    state.reply,
+    noCommitFallback,
+  );
 }
 
 export function renderAdjustPlanDraftGenerationConfirmationQuestion(): string {

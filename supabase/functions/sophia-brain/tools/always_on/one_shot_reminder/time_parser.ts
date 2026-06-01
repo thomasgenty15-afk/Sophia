@@ -114,7 +114,11 @@ function positiveModulo(value: number, modulo: number): number {
   return ((value % modulo) + modulo) % modulo;
 }
 
-export function weekdayFromCivil(year: number, month: number, day: number): number {
+export function weekdayFromCivil(
+  year: number,
+  month: number,
+  day: number,
+): number {
   return positiveModulo(daysFromCivil(year, month, day) + 4, 7);
 }
 
@@ -257,11 +261,21 @@ export function computeScheduledForFromLocal(params: {
     Date.UTC(year, month - 1, day + dayOffset, hh, mm, 0),
   );
   const localParts = dtf.formatToParts(targetUtcGuess);
-  const localYear = Number(localParts.find((p) => p.type === "year")?.value ?? year);
-  const localMonth = Number(localParts.find((p) => p.type === "month")?.value ?? month);
-  const localDay = Number(localParts.find((p) => p.type === "day")?.value ?? day);
-  const localHour = Number(localParts.find((p) => p.type === "hour")?.value ?? "0");
-  const localMinute = Number(localParts.find((p) => p.type === "minute")?.value ?? "0");
+  const localYear = Number(
+    localParts.find((p) => p.type === "year")?.value ?? year,
+  );
+  const localMonth = Number(
+    localParts.find((p) => p.type === "month")?.value ?? month,
+  );
+  const localDay = Number(
+    localParts.find((p) => p.type === "day")?.value ?? day,
+  );
+  const localHour = Number(
+    localParts.find((p) => p.type === "hour")?.value ?? "0",
+  );
+  const localMinute = Number(
+    localParts.find((p) => p.type === "minute")?.value ?? "0",
+  );
 
   const minuteDelta = (hh - localHour) * 60 + (mm - localMinute);
   const dayDelta = Date.UTC(year, month - 1, day + dayOffset) -
@@ -278,6 +292,16 @@ export function hasRecurringCadenceHint(message: string): boolean {
   ) ?? [];
   return /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|tous?\s+les\s+jours|chaque\s+jour|jours?\s+de\s+semaine|du\s+lundi\s+au\s+vendredi|hebdo|hebdomadaire|routine|rituel|pendant \d+ jours?)\b/i
     .test(text) || new Set(weekdaysMentioned).size >= 2;
+}
+
+function oneShotParseCandidateMessages(message: string): string[] {
+  const full = compactText(message, 500);
+  const lineCandidates = String(message ?? "")
+    .split(/\n+/)
+    .map((line) => compactText(line, 500))
+    .filter(Boolean)
+    .reverse();
+  return [...new Set([full, ...lineCandidates].filter(Boolean))];
 }
 
 function parseScheduledForFromAbsoluteHint(args: {
@@ -334,21 +358,30 @@ function parseScheduledForFromRelativeHint(args: {
 }): string | null {
   const text = String(args.message ?? "").toLowerCase();
 
-  if (/\bdans\s+un\s+quart\s+d['’]heure\b/i.test(text)) return addMinutes(args.nowIso, 15);
-  if (/\bdans\s+une\s+demi(?:-|\s)heure\b/i.test(text)) return addMinutes(args.nowIso, 30);
+  if (/\bdans\s+un\s+quart\s+d['’]heure\b/i.test(text)) {
+    return addMinutes(args.nowIso, 15);
+  }
+  if (/\bdans\s+une\s+demi(?:-|\s)heure\b/i.test(text)) {
+    return addMinutes(args.nowIso, 30);
+  }
 
   const minuteMatch = text.match(/\bdans\s+(\d{1,3})\s*(?:minutes?|min)\b/i);
   if (minuteMatch) return addMinutes(args.nowIso, Number(minuteMatch[1]));
-  if (/\bdans\s+une?\s+(?:minutes?|min)\b/i.test(text)) return addMinutes(args.nowIso, 1);
+  if (/\bdans\s+une?\s+(?:minutes?|min)\b/i.test(text)) {
+    return addMinutes(args.nowIso, 1);
+  }
 
   const hourMatch = text.match(/\bdans\s+(\d{1,2})\s*(?:heures?|h)\b/i);
   if (hourMatch) return addMinutes(args.nowIso, Number(hourMatch[1]) * 60);
-  if (/\bdans\s+une?\s+(?:heures?|h)\b/i.test(text)) return addMinutes(args.nowIso, 60);
+  if (/\bdans\s+une?\s+(?:heures?|h)\b/i.test(text)) {
+    return addMinutes(args.nowIso, 60);
+  }
 
   const dayMatch = text.match(/\bdans\s+(\d{1,2})\s*jours?\b/i);
   if (dayMatch) {
     return new Date(
-      new Date(args.nowIso).getTime() + Number(dayMatch[1]) * 24 * 60 * 60 * 1000,
+      new Date(args.nowIso).getTime() +
+        Number(dayMatch[1]) * 24 * 60 * 60 * 1000,
     ).toISOString();
   }
 
@@ -360,21 +393,28 @@ export function parseOneShotReminderRequest(args: {
   timezone: string;
   nowIso: string;
 }): ParsedReminderRequest | null {
-  const message = compactText(args.message, 500);
-  if (!message) return null;
-  if (hasRecurringCadenceHint(message)) return null;
+  for (const message of oneShotParseCandidateMessages(args.message)) {
+    if (hasRecurringCadenceHint(message)) continue;
+    const scheduledFor = parseScheduledForFromAbsoluteHint({
+      ...args,
+      message,
+    }) ?? parseScheduledForFromRelativeHint({
+      ...args,
+      message,
+    });
+    if (!scheduledFor) continue;
 
-  const scheduledFor = parseScheduledForFromAbsoluteHint(args) ??
-    parseScheduledForFromRelativeHint(args);
-  if (!scheduledFor) return null;
-
-  const reminderInstruction = extractReminderInstruction(message);
-  return {
-    scheduledFor,
-    reminderInstruction,
-    eventContext: `one_shot_reminder:${slugify(reminderInstruction) || "generic"}`,
-    parseSource: "local_parser",
-  };
+    const reminderInstruction = extractReminderInstruction(message);
+    return {
+      scheduledFor,
+      reminderInstruction,
+      eventContext: `one_shot_reminder:${
+        slugify(reminderInstruction) || "generic"
+      }`,
+      parseSource: "local_parser",
+    };
+  }
+  return null;
 }
 
 function parseStrictAbsoluteReminderRequest(args: {
@@ -401,7 +441,9 @@ function parseStrictAbsoluteReminderRequest(args: {
   return {
     scheduledFor,
     reminderInstruction,
-    eventContext: `one_shot_reminder:${slugify(reminderInstruction) || "generic"}`,
+    eventContext: `one_shot_reminder:${
+      slugify(reminderInstruction) || "generic"
+    }`,
     parseSource: "strict_absolute",
     parseDetails: explicit
       ? {
@@ -439,7 +481,8 @@ export function parseReminderFromMessageDeterministic(args: {
       };
     }
   }
-  return parseStrictAbsoluteReminderRequest(args) ?? parseOneShotReminderRequest(args);
+  return parseStrictAbsoluteReminderRequest(args) ??
+    parseOneShotReminderRequest(args);
 }
 
 export function parseScheduledForFromMessage(args: {
@@ -457,7 +500,8 @@ export function formatLocalReminderLabel(args: {
 }): string {
   if (isEuropeParisTimezone(args.timezone)) {
     const offset = parisOffsetMinutesForUtcIso(args.scheduledFor);
-    const localTotalMinutes = utcTotalMinutesFromIso(args.scheduledFor) + offset;
+    const localTotalMinutes = utcTotalMinutesFromIso(args.scheduledFor) +
+      offset;
     const localDay = Math.floor(localTotalMinutes / 1440);
     const localMinutesOfDay = positiveModulo(localTotalMinutes, 1440);
     const local = civilFromDays(localDay);

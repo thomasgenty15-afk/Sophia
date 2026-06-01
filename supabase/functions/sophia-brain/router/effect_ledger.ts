@@ -10,12 +10,15 @@ export type EffectLedgerEntry = {
   effect_type: string;
   operation_type?: string | null;
   operation_id?: string | null;
+  committed_id?: string | null;
   tool_id?: string | null;
   status: EffectLedgerStatus;
   reason_code?: string | null;
   source:
     | "dispatcher"
     | "router"
+    | "bridge"
+    | "recommendation_tool"
     | "tool_skill"
     | "executor"
     | "memory_runtime"
@@ -45,6 +48,7 @@ export type PersistedEffectLedgerEntry = {
   effect_type: string;
   operation_type: string | null;
   operation_id: string | null;
+  committed_id: string | null;
   tool_id: string | null;
   source: EffectLedgerEntry["source"];
   reason_code: string | null;
@@ -177,6 +181,7 @@ export function serializeEffectLedgerForPersistence(args: {
     effect_type: String(entry.effect_type ?? "").trim() || "unknown_effect",
     operation_type: String(entry.operation_type ?? "").trim() || null,
     operation_id: String(entry.operation_id ?? "").trim() || null,
+    committed_id: String(entry.committed_id ?? "").trim() || null,
     tool_id: String(entry.tool_id ?? "").trim() || null,
     source: entry.source,
     reason_code: String(entry.reason_code ?? "").trim() || null,
@@ -205,6 +210,7 @@ function recordEffect(
     effect_type: String(entry.effect_type ?? "").trim(),
     operation_type: entry.operation_type ?? null,
     operation_id: entry.operation_id ?? null,
+    committed_id: entry.committed_id ?? null,
     tool_id: entry.tool_id ?? null,
     status,
     reason_code: entry.reason_code ?? null,
@@ -278,6 +284,7 @@ export function summarizeEffectLedgerForTrace(
       effect_type: entry.effect_type,
       operation_type: entry.operation_type ?? null,
       operation_id: entry.operation_id ?? null,
+      committed_id: entry.committed_id ?? null,
       tool_id: entry.tool_id ?? null,
       status: entry.status,
       reason_code: entry.reason_code ?? null,
@@ -326,7 +333,7 @@ export function rewriteUncommittedEffectClaims(args: {
       args.ledger,
       (entry) => types.includes(entry.effect_type),
     );
-
+  const hasAnyCommit = hasCommittedEffect(args.ledger, () => true);
   const claimsPreference = /\b(preference|preferences)\b/.test(normalized) &&
     /\b(c est fait|enregistre|enregistree|gardee|garde|applique|appliquee|mis a jour|mise a jour)\b/
       .test(normalized);
@@ -356,7 +363,7 @@ export function rewriteUncommittedEffectClaims(args: {
   }
 
   const claimsCardCreate = /\b(carte|card)\b/.test(normalized) &&
-    /\b(carte (creee|cree)|je l ai creee|je l ai cree|c est cree|c est creee)\b/
+    /\b(carte (creee|cree|preparee|prepare)|je l ai (creee|cree|preparee|prepare)|c est (cree|creee|prepare|preparee))\b/
       .test(normalized);
   if (
     claimsCardCreate &&
@@ -388,6 +395,22 @@ export function rewriteUncommittedEffectClaims(args: {
       .test(normalized);
   if (claimsProgressTrack && !hasCommit(["plan_item_progress.track"])) {
     reasonCodes.push("uncommitted_progress_track_claim");
+  }
+
+  const claimsMemoryWrite =
+    /\b(memoire|souvenir|souviens|retiens|memorise|memorisee|garde en memoire|garde en tete)\b/
+      .test(normalized) &&
+    /\b(enregistre|enregistree|note|notee|memorise|memorisee|je m en souviens|je retiens|je le garde|je garde ca)\b/
+      .test(normalized);
+  if (claimsMemoryWrite && !hasCommit(["memory.write", "memory.item.write"])) {
+    reasonCodes.push("uncommitted_memory_write_claim");
+  }
+
+  const claimsGenericSuccess =
+    /\b(c est fait|c est bon|ca y est|voila c est|j ai (bien )?(applique|cree|creee|enregistre|active|activee|note|memorise|mis en place)|c est (bien )?(cree|creee|applique|appliquee|enregistre|enregistree|active|activee|note|notee|memorise|memorisee))\b/
+      .test(normalized);
+  if (claimsGenericSuccess && !hasAnyCommit && reasonCodes.length === 0) {
+    reasonCodes.push("uncommitted_generic_success_claim");
   }
 
   if (reasonCodes.length === 0) {
@@ -425,6 +448,20 @@ export function rewriteUncommittedEffectClaims(args: {
   if (reasonCodes.includes("uncommitted_progress_track_claim")) {
     return {
       reply: "Je ne l'ai pas noté.",
+      changed: true,
+      reason_codes: reasonCodes,
+    };
+  }
+  if (reasonCodes.includes("uncommitted_memory_write_claim")) {
+    return {
+      reply: "Je ne l'ai pas enregistré en mémoire.",
+      changed: true,
+      reason_codes: reasonCodes,
+    };
+  }
+  if (reasonCodes.includes("uncommitted_generic_success_claim")) {
+    return {
+      reply: "Je ne confirme aucun changement durable sans effet confirmé.",
       changed: true,
       reason_codes: reasonCodes,
     };

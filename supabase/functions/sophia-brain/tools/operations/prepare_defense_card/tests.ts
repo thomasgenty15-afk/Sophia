@@ -21,9 +21,22 @@ import {
   toRuntimeResult,
 } from "./router.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
-import { renderDefenseCardExecuted } from "./renderer.ts";
+import {
+  renderDefenseCardExecuted,
+  renderDefenseCardSkillResult,
+} from "./renderer.ts";
 
 const SECRET = "s5-test-secret";
+
+Deno.test("prepare_defense_card renderer blocks success language without committed effect", () => {
+  const message = renderDefenseCardSkillResult({
+    status: "pending_confirmation",
+    reply: "C'est fait. La carte de défense a été créée.",
+    committed_effects: [],
+  } as any);
+  assertEquals(message.includes("C'est fait"), false);
+  assertEquals(message.includes("créée"), false);
+});
 
 function sampleDefenseDraft(): DefenseCardDraftV1 {
   return {

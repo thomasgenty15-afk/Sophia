@@ -1375,10 +1375,11 @@ Deno.test("emotional_repair safe renderer finalizes failures, memory and prompt 
     },
   });
   assertEquals(intakeFailure.status, "continue");
-  assertEquals(Boolean(intakeFailure.reply?.trim()), true);
+  assertEquals(intakeFailure.reply, undefined);
   assertEquals(intakeFailure.operation_suggestions?.length ?? 0, 0);
   assertEquals(intakeFailure.memory_write_candidates?.length ?? 0, 0);
   assertEquals(intakeFailure.recommendation_need?.needed, false);
+  assertEquals(intakeFailure.effects?.committed, []);
 
   const invalidDoneReply = await runEmotionalRepairSkill({
     user_message: "je suis incapable",
@@ -1619,12 +1620,16 @@ Deno.test("execution_breakdown model failure is conservative and non-mutating", 
       throw new Error("model_down");
     },
   });
-  const decision = output.diagnosis?.execution_decision as any;
   assertEquals(output.diagnosis?.intake_status, "technical_fallback");
-  assertEquals(decision.target.confidence_band, "low");
-  assertEquals(decision.response_contract.allow_tool_suggestion, false);
+  assertEquals(output.diagnosis?.execution_decision, null);
+  assertEquals((output.diagnosis?.target as any).confidence_band, "low");
+  assertEquals(
+    (output.diagnosis?.response_contract as any).allow_tool_suggestion,
+    false,
+  );
   assertEquals(output.operation_suggestions?.length, 0);
-  assertEquals(decision.response_contract.max_questions, 1);
+  assertEquals(output.reply, undefined);
+  assertEquals(output.effects?.committed, []);
 });
 
 Deno.test("execution_breakdown contract owns target blocker constraints and tool suggestions", async () => {
@@ -2451,12 +2456,9 @@ Deno.test("product_help intake failure uses non-mutating conservative fallback",
 
   assertEquals(output.operation_suggestions, []);
   assertEquals(output.diagnosis?.bridge, null);
-  assertStringIncludes(output.reply ?? "", "Je peux t'expliquer la fonction");
-  assertStringIncludes(output.reply ?? "", "pas assez de source");
-  assertEquals(
-    /j'ai créé|c'est fait|c'est programmé/i.test(output.reply ?? ""),
-    false,
-  );
+  assertEquals(output.reply, undefined);
+  assertEquals(output.effects?.committed, []);
+  assertEquals(output.diagnosis?.intake_status, "technical_fallback");
 });
 
 Deno.test("product_help prompt does not force emoji", () => {
@@ -2525,6 +2527,10 @@ Deno.test("product_help tool action requests are bridge only, never execution", 
     context,
   });
   assertEquals(output.operation_suggestions, []);
+  assertEquals(output.handoff_request, undefined);
+  assertEquals(output.effects?.requested, []);
+  assertEquals(output.effects?.allowed, []);
+  assertEquals(output.effects?.committed, []);
   assertEquals(output.diagnosis?.feature_id, "resources.attack_card");
   assertEquals(
     (output.diagnosis?.bridge as any)?.operation_type,

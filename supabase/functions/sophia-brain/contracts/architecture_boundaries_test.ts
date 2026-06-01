@@ -19,6 +19,16 @@ Deno.test("dispatcher_is_memory_planner_not_loader", () => {
   assertEquals((trace.dispatcher as any).owns, ["TurnFrame.memory_plan"]);
 });
 
+Deno.test("dispatcher_source_does_not_load_or_write_memory", async () => {
+  const dispatcherText = await Deno.readTextFile(
+    new URL("../dispatcher/dispatcher.v2.ts", import.meta.url),
+  );
+  assertEquals(dispatcherText.includes("../context/loader.ts"), false);
+  assertEquals(dispatcherText.includes("loadContextForMode"), false);
+  assertEquals(dispatcherText.includes("dispatchMemoryWriteCandidates"), false);
+  assertEquals(dispatcherText.includes("recordCommittedEffect"), false);
+});
+
 Deno.test("routers_choose_owner_from_turnframe", () => {
   assert(boundaryOwns("router", "RouteDecision"));
   assert(boundaryOwns("router", "owner_selection_from_TurnFrame"));

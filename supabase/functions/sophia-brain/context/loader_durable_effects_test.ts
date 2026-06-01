@@ -2,7 +2,7 @@
 // produire un bloc texte fiable (et seulement en mode companion) qui empêche
 // le LLM d'halluciner l'absence d'effets durables existants côté DB.
 //
-// Voir A2-r4 Tour 9 et docs/agent-playbook/13-architecture-skills,
+// Voir A2-r4 Tour 9 et docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md,
 // chantier 2 phase B.
 
 import {

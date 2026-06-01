@@ -1,8 +1,8 @@
 import { baseOutput } from "../_shared/skill_helpers.ts";
 import { conversationEffectsFromCandidates } from "../_shared/conversation_skill_contract.ts";
 import {
-  validateProductHelpDecision,
   type ProductHelpDecision,
+  validateProductHelpDecision,
 } from "./contract.ts";
 import {
   enforceProductHelpReplyInvariants,
@@ -28,9 +28,7 @@ export function reduceProductHelpTurn(args: {
 
   return baseOutput("product_help", {
     status: "complete",
-    response_intent: intakeOk
-      ? decision.intent
-      : "technical_intake_failure",
+    response_intent: intakeOk ? decision.intent : "technical_intake_failure",
     reply,
     diagnosis: {
       feature_id: decision.target.feature_id || args.feature.id,
@@ -73,13 +71,6 @@ export function reduceProductHelpTurn(args: {
     memory_write_candidates: [],
     effects: conversationEffectsFromCandidates({
       intake_failed: !intakeOk,
-      handoff_request: bridge
-        ? {
-          target_skill_id: bridge.operation_type,
-          reason: "product_help_bridge_requires_confirmation",
-          confidence_band: "medium",
-        }
-        : undefined,
     }),
     state_patch: {
       ...(intakeOk ? decision.state_patch : {}),

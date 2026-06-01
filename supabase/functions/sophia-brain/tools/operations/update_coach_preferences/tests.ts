@@ -25,9 +25,20 @@ import {
 import { buildCoachPreferencesStatusReply } from "./status.ts";
 import { COACH_PREFERENCE_VALUES } from "./workflow.ts";
 import { normalizeCoachPreferencesSlotFillerOutput } from "./slot_filler.ts";
+import { renderCoachPreferencesSkillResult } from "./renderer.ts";
 
 const SECRET = "s6-test-secret";
 const legacyKey = (name: string) => `coach.${name}`;
+
+Deno.test("update_coach_preferences renderer blocks success language without committed effect", () => {
+  const message = renderCoachPreferencesSkillResult({
+    status: "pending_confirmation",
+    reply: "C'est fait, préférence enregistrée.",
+    committed_effects: [],
+  } as any);
+  assertEquals(message.includes("C'est fait"), false);
+  assertEquals(message.includes("enregistrée"), false);
+});
 
 Deno.test("update_coach_preferences draft review approves explicit keep preference with side request", async () => {
   const decision = await reviewUpdateCoachPreferencesDraft({
@@ -1090,6 +1101,14 @@ Deno.test("Confirmation contract: pending pref + ok applique executes", async ()
     preference_keys: ["coach.tone"],
     preferences_update_ids: ["coach.tone"],
   });
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.requested_effects?.[0]?.type,
+    "update_coach_preferences",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.allowed_effects?.[0]?.operation_id,
+    "op-contract-approve",
+  );
 });
 
 Deno.test("Confirmation contract: pending pref + oui mais plus doux does not write", async () => {
@@ -1260,6 +1279,14 @@ Deno.test("L5: write failure has no executedTools and no committed effect", asyn
   assertEquals(
     (runtime?.toolSkillRun as any)?.blocked_effects?.[0]?.reason_code,
     "db_down",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.requested_effects?.[0]?.type,
+    "update_coach_preferences",
+  );
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.allowed_effects?.[0]?.operation_id,
+    "op-fail",
   );
 });
 

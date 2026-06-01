@@ -148,9 +148,10 @@ export function summarizeOneShotReminderOutcome(
 } {
   if (!outcome.detected) return { executedTools: [], toolExecution: "none" };
   if (outcome.status === "success") {
+    const committed = String(outcome.inserted_checkin_id ?? "").trim();
     return {
-      executedTools: ["create_one_shot_reminder"],
-      toolExecution: "success",
+      executedTools: committed ? ["create_one_shot_reminder"] : [],
+      toolExecution: committed ? "success" : "failed",
     };
   }
   if (outcome.status === "needs_clarify") {

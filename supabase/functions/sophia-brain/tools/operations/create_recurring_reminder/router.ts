@@ -7,7 +7,10 @@ import {
   hasConsumedConfirmationToken,
 } from "../../../confirmation/confirmation_token.ts";
 import { buildToolConfirmationDecision } from "../_shared/confirmation_adapter.ts";
-import type { CreateRecurringReminderCommittedEffect } from "./contract.ts";
+import type {
+  CreateRecurringReminderCommittedEffect,
+  CreateRecurringReminderEffect,
+} from "./contract.ts";
 import { executeCreateRecurringReminder } from "./executor.ts";
 import type { RecurringReminderDraftV1 } from "./generator.ts";
 import {
@@ -162,6 +165,17 @@ function recurringReminderDraftOperationInput(
         },
       }
       : {}),
+  };
+}
+
+function createRecurringReminderEffect(args: {
+  operationId: string;
+  draft: RecurringReminderDraftV1;
+}): CreateRecurringReminderEffect {
+  return {
+    type: "create_recurring_reminder",
+    operation_id: args.operationId,
+    draft: args.draft,
   };
 }
 
@@ -665,11 +679,18 @@ export async function maybeRunCreateRecurringReminderOperation(args: {
       };
     }
 
+    const operationId = String(
+      pendingRaw.operation_id ?? crypto.randomUUID(),
+    );
+    const createEffect = createRecurringReminderEffect({
+      operationId,
+      draft: pendingRaw.draft,
+    });
     let executed;
     try {
       executed = await executeApprovedRecurringReminder({
         userId: args.userId,
-        pendingRaw,
+        pendingRaw: { ...pendingRaw, operation_id: operationId },
         safetyRiskBand: args.safetyPregateOutput.risk_band,
         sourceMessageId: args.sourceMessageId,
         requestId: args.requestId ?? null,
@@ -703,7 +724,9 @@ export async function maybeRunCreateRecurringReminderOperation(args: {
         toolSkillRun: {
           selected_handler: "create_recurring_reminder",
           status: executed.status,
-          operation_id: pendingRaw.operation_id ?? null,
+          operation_id: operationId,
+          requested_effects: [createEffect],
+          allowed_effects: [createEffect],
           committed_effects: [],
           error: executed.reason_code ?? "executor_not_executed",
           draft_review_decision: draftReviewDecision,
@@ -714,13 +737,17 @@ export async function maybeRunCreateRecurringReminderOperation(args: {
       content: executed.ack,
       nextTempMemory,
       toolExecution: "success",
-      executedTools: ["create_recurring_reminder"],
+      executedTools: committedEffects.length > 0
+        ? ["create_recurring_reminder"]
+        : [],
       committedEffects,
       toolSkillRun: {
         selected_handler: "create_recurring_reminder",
         status: "executed",
-        operation_id: pendingRaw.operation_id ?? null,
+        operation_id: operationId,
         recurring_reminder_id: executed.recurring_reminder_id,
+        requested_effects: [createEffect],
+        allowed_effects: [createEffect],
         committed_effects: committedEffects,
         draft_review_decision: draftReviewDecision,
       },

@@ -7,6 +7,7 @@ import type {
   TrackProgressStatus,
   TrackProgressWrite,
 } from "./contract.ts";
+import { executeTrackProgressWrite } from "./executor.ts";
 import { requestedEffectFromIntake, runTrackProgressIntake } from "./intake.ts";
 import {
   enforceTrackProgressReplyInvariant,
@@ -278,47 +279,23 @@ export async function runTrackProgressPlanItemDirectEffect(
     ...requested,
     target_title: item.title,
   };
-  let written: { logged_progress_id: string };
-  try {
-    written = await input.write_progress({
-      user_id: input.turn_frame.user_id,
-      target_item_id: allowed.target_item_id,
-      target_title: item.title,
-      progress_status: allowed.progress_status,
-      value: allowed.value,
-      source_message_id: allowed.source_message_id,
-      date_hint: allowed.date_hint,
-      idempotency_key: gate.idempotency_key,
-    });
-  } catch (_error) {
+  const execution = await executeTrackProgressWrite({
+    requested_effect: allowed,
+    user_id: input.turn_frame.user_id,
+    idempotency_key: gate.idempotency_key,
+    write_progress: input.write_progress,
+  });
+  if (execution.status === "failed") {
     return blockedResult({
       intent: intake.intent,
       status: "failed",
-      reason_code: "write_failed",
+      reason_code: execution.reason_code,
       requested_effects: requestedEffects,
       allowed_effects: [allowed],
     });
   }
 
-  const loggedProgressId = String(written.logged_progress_id ?? "").trim();
-  if (!loggedProgressId) {
-    return blockedResult({
-      intent: intake.intent,
-      status: "failed",
-      reason_code: "missing_logged_progress_id",
-      requested_effects: requestedEffects,
-      allowed_effects: [allowed],
-    });
-  }
-
-  const committed = {
-    type: "track_progress_plan_item" as const,
-    logged_progress_id: loggedProgressId,
-    target_item_id: allowed.target_item_id,
-    target_title: item.title,
-    progress_status: allowed.progress_status,
-    value: allowed.value,
-  };
+  const committed = execution.committed_effect;
   return enforceTrackProgressReplyInvariant({
     detected: true,
     intent: intake.intent,
@@ -478,38 +455,16 @@ export async function runTrackProgressPlanItemFromWeeklyCorrection(args: {
     date_hint: args.date_hint ?? null,
     source_message_id: args.source_message_id,
   };
-  try {
-    const written = await args.write_progress({
-      user_id: args.user_id,
-      target_item_id: args.target_item_id,
-      target_title: args.target_title,
-      progress_status: args.progress_status,
-      value: args.value,
-      source_message_id: args.source_message_id,
-      date_hint: args.date_hint ?? null,
-      idempotency_key:
-        `weekly:${args.source_message_id}:${args.target_item_id}:${
-          args.date_hint ?? "none"
-        }`,
-    });
-    const loggedProgressId = String(written.logged_progress_id ?? "").trim();
-    if (!loggedProgressId) {
-      return blockedResult({
-        intent: "ignore",
-        status: "failed",
-        reason_code: "missing_logged_progress_id",
-        requested_effects: [requested],
-        allowed_effects: [requested],
-      });
-    }
-    const committed = {
-      type: "track_progress_plan_item" as const,
-      logged_progress_id: loggedProgressId,
-      target_item_id: args.target_item_id,
-      target_title: args.target_title,
-      progress_status: args.progress_status,
-      value: args.value,
-    };
+  const execution = await executeTrackProgressWrite({
+    requested_effect: requested,
+    user_id: args.user_id,
+    idempotency_key: `weekly:${args.source_message_id}:${args.target_item_id}:${
+      args.date_hint ?? "none"
+    }`,
+    write_progress: args.write_progress,
+  });
+  if (execution.status === "committed") {
+    const committed = execution.committed_effect;
     return enforceTrackProgressReplyInvariant({
       detected: true,
       intent: intentForProgressStatus(args.progress_status),
@@ -522,13 +477,12 @@ export async function runTrackProgressPlanItemFromWeeklyCorrection(args: {
       blocked_effects: [],
       debug: { reason_code: "weekly_correction_logged" },
     });
-  } catch (_error) {
-    return blockedResult({
-      intent: "ignore",
-      status: "failed",
-      reason_code: "write_failed",
-      requested_effects: [requested],
-      allowed_effects: [requested],
-    });
   }
+  return blockedResult({
+    intent: "ignore",
+    status: "failed",
+    reason_code: execution.reason_code,
+    requested_effects: [requested],
+    allowed_effects: [requested],
+  });
 }

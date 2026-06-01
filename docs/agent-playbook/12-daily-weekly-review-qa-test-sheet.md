@@ -15,7 +15,7 @@ Regles de validite :
 - utiliser Supabase local, connexions locales et chemin IA reel local de Sophia ;
 - ne pas deployer `sophia-brain` et ne pas utiliser staging sauf consigne explicite ;
 - ne pas appeler directement un executor pour fabriquer un succes ;
-- chaque rapport de run doit suivre strictement `docs/agent-playbook/01-qa-run-report-structure.md` ;
+- chaque rapport de run doit suivre strictement `docs/agent-playbook/New/test-material/01-qa-run-report-structure.md` ;
 - ne pas afficher le JWT ;
 - adapter les tours de conversation a la reponse reelle de Sophia ;
 - ne jamais pre-ecrire une liste fixe de reponses user pour simuler un run : l'agent QA doit lire chaque reponse Sophia, lire la trace courte utile, puis choisir le message user suivant en fonction de l'etat reel de la conversation ;

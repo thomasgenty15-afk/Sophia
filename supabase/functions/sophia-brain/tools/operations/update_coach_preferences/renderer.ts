@@ -3,6 +3,7 @@ import type {
   UpdateCoachPreferencesCommittedEffect,
   UpdateCoachPreferencesSkillResult,
 } from "./contract.ts";
+import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
 
 export function renderCoachPreferencesExecuted(args: {
   draft: CoachPreferencesPatchDraftRef;
@@ -23,6 +24,12 @@ export function renderCoachPreferencesSkillResult(
 ): string {
   if (result.status === "executed" && result.committed_effects.length === 0) {
     return renderCoachPreferencesFailed();
+  }
+  if (result.committed_effects.length === 0) {
+    return renderNonCommittedReply(
+      result.reply,
+      "Je ne confirme aucune modification de préférence sans effet confirmé.",
+    );
   }
   return result.reply ?? "";
 }

@@ -214,6 +214,35 @@ function hasStatusRoute(snapshot: UserTurnSnapshot): boolean {
     );
 }
 
+function agendaHasVisibleReply(tasks: AgendaTask[]): boolean {
+  return tasks.some((task) => task.kind === "reply" || task.kind === "status");
+}
+
+function addFallbackReplyTask(
+  tasks: AgendaTask[],
+  routeDecision: UserTurnSnapshot["route_decision"],
+): void {
+  tasks.push({
+    task_id: "reply:fallback",
+    kind: "reply",
+    owner: routeDecision?.selected_handler ??
+      routeDecision?.response_owner ??
+      "normal_reply",
+    operation_type: null,
+    intent: "reply",
+    priority: 10,
+    requires_confirmation: false,
+    source: routeDecision ? "route_decision" : "guard",
+    status: "pending",
+    reason_code: routeDecision?.reason_code ?? "agenda_reply_fallback",
+    evidence: [],
+  });
+}
+
+function sortTasksByPriority(tasks: AgendaTask[]): AgendaTask[] {
+  return tasks.sort((left, right) => right.priority - left.priority);
+}
+
 export function buildTurnAgenda(snapshot: UserTurnSnapshot): TurnAgenda {
   const tasks: AgendaTask[] = [];
   const turnFrame = snapshot.turn_frame;
@@ -348,27 +377,13 @@ export function buildTurnAgenda(snapshot: UserTurnSnapshot): TurnAgenda {
     });
   }
 
-  if (!tasks.some((task) => task.kind === "reply" || task.kind === "status")) {
-    tasks.push({
-      task_id: "reply:fallback",
-      kind: "reply",
-      owner: routeDecision?.selected_handler ??
-        routeDecision?.response_owner ??
-        "normal_reply",
-      operation_type: null,
-      intent: "reply",
-      priority: 10,
-      requires_confirmation: false,
-      source: routeDecision ? "route_decision" : "guard",
-      status: "pending",
-      reason_code: routeDecision?.reason_code ?? "agenda_reply_fallback",
-      evidence: [],
-    });
+  if (!agendaHasVisibleReply(tasks)) {
+    addFallbackReplyTask(tasks, routeDecision);
   }
 
   return {
     turn_id: snapshot.turn_id,
-    tasks: tasks.sort((left, right) => right.priority - left.priority),
+    tasks: sortTasksByPriority(tasks),
   };
 }
 

@@ -73,7 +73,9 @@ export function reduceOneShotReminderIntake(args: {
     .map((constraint) =>
       typeof constraint === "string" ? constraint : constraint.kind
     )
-    .filter((constraint): constraint is OneShotReminderState["constraints"][number] =>
+    .filter((
+      constraint,
+    ): constraint is OneShotReminderState["constraints"][number] =>
       [
         "requires_explicit_time",
         "requires_instruction",
@@ -90,11 +92,21 @@ export function reduceOneShotReminderIntake(args: {
     status = "blocked";
   } else if (
     args.intake.intent === "status" ||
-    args.intake.intent === "answer_product_question"
+    args.intake.intent === "status_question" ||
+    args.intake.intent === "answer_product_question" ||
+    args.intake.intent === "product_help" ||
+    args.intake.intent === "ignore"
   ) {
     status = "blocked";
-    reason_code = args.intake.intent === "status" ? "status_only" : "product_help";
-    if (!constraints.includes("do_not_mutate")) constraints.push("do_not_mutate");
+    reason_code = args.intake.intent === "status" ||
+        args.intake.intent === "status_question"
+      ? "status_only"
+      : args.intake.intent === "ignore"
+      ? args.intake.reason_code
+      : "product_help";
+    if (!constraints.includes("do_not_mutate")) {
+      constraints.push("do_not_mutate");
+    }
     blocked_effects = blockAll(requested_effects, reason_code);
   } else if (args.noMutationRequested) {
     status = "blocked";
@@ -110,7 +122,10 @@ export function reduceOneShotReminderIntake(args: {
     status = "blocked";
     reason_code = "pending_confirmation_active";
     constraints.push("do_not_mutate");
-    blocked_effects = blockAll(requested_effects, "pending_confirmation_active");
+    blocked_effects = blockAll(
+      requested_effects,
+      "pending_confirmation_active",
+    );
   } else if (args.agendaBlockedReason) {
     status = "blocked";
     reason_code = args.agendaBlockedReason;

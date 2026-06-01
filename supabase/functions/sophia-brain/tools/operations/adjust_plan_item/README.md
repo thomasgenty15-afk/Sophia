@@ -50,7 +50,7 @@ Validation:
 
 - `draft_validation` blocks confirmation when materialized examples are missing, when a level draft touches the global plan, when the confirmation message claims execution before confirmation, or when user-facing messages contain technical JSON vocabulary.
 
-Legacy perimeter still in `legacy_intake.ts`:
+Legacy perimeter now kept in `intake.ts`:
 
 - semantic transition guards and non-AI fallbacks used only to keep existing QA flows stable;
 - scope-specific slot completion for `specific_plan_item`, `current_level`, and `whole_plan` while `structured_intake.ts` is expanded;
@@ -58,6 +58,10 @@ Legacy perimeter still in `legacy_intake.ts`:
 - deterministic draft fallbacks for current-level load and copy-forward cases;
 - draft materialization validation and weekly-review compatibility bridges;
 - safety behavior for missing slots and draft generation confirmation.
+
+`legacy_intake.ts` is only a compatibility re-export for older imports.
+`runtime_adapter.ts` owns the local mapping from `AdjustPlanSkillResult` to the
+runtime result and keeps `executedTools` tied to committed effects.
 
 Extraction target order:
 

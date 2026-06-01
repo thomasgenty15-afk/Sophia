@@ -2050,7 +2050,7 @@ function formatBilanJustStoppedAddon(addon: any): string {
 // préférences coach actives. Sert de "source de vérité" pour empêcher le
 // LLM d'halluciner "on n'a pas validé/créé X" alors que la DB confirme X.
 //
-// Voir docs/agent-playbook/13-architecture-skills, chantier 2 phase B.
+// Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, chantier 2 phase B.
 // ===========================================================================
 
 function ageLabelFromIso(iso: string | null | undefined): string {

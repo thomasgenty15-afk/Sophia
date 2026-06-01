@@ -1,5 +1,6 @@
 import type { CoachPreferenceKey } from "../_shared/operation_payload_builder.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { SUPPORTED_COACH_PREFERENCE_KEYS } from "./status.ts";
 
 export type CoachPreferenceRuntimePolicy = {
   question_tendency?: "low" | "normal" | "high";
@@ -80,6 +81,33 @@ export function loadCoachPreferenceRuntimePolicy(
     if (constraint) policy.composer_constraints.push(constraint);
   }
   return policy;
+}
+
+export async function loadCoachPreferenceRuntimeContext(args: {
+  supabase: SupabaseClient;
+  userId: string;
+}): Promise<string | null> {
+  const { data, error } = await args.supabase
+    .from("user_profile_facts")
+    .select("key,value,status")
+    .eq("user_id", args.userId)
+    .eq("scope", "global")
+    .eq("status", "active")
+    .like("key", "coach.%");
+  if (error || !Array.isArray(data) || data.length === 0) return null;
+  const supportedRows = (data as any[]).filter((row) =>
+    (SUPPORTED_COACH_PREFERENCE_KEYS as readonly string[]).includes(
+      String(row?.key ?? ""),
+    )
+  );
+  const policy = loadCoachPreferenceRuntimePolicy(supportedRows as any);
+  if (policy.composer_constraints.length === 0) return null;
+  return [
+    "=== PREFERENCES COACH UTILISATEUR (réglages UI) ===",
+    ...policy.composer_constraints.map((constraint) => `- ${constraint}`),
+    "Ces contraintes viennent uniquement des trois réglages visibles: ton, niveau de challenge, tendance à poser des questions.",
+    "=== FIN PREFERENCES COACH UTILISATEUR ===",
+  ].join("\n");
 }
 
 export async function loadCoachQuestionTendencyLow(

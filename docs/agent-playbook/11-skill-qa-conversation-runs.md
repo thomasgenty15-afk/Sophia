@@ -67,7 +67,8 @@ Regles :
   assertions, un point systeme court, un verdict couleur global et les artefacts
   disponibles.
 
-Un Mode A ne peut pas valider un rapport demande via `01-qa-run-report-structure.md`
+Un Mode A ne peut pas valider un rapport demande via
+`New/test-material/01-qa-run-report-structure.md`
 quand la consigne dit que l'agent QA parle avec Sophia tour par tour.
 
 ### Mode B - Conversation Skill Probe

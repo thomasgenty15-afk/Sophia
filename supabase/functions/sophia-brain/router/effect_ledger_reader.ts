@@ -25,6 +25,7 @@ function normalizeEntry(value: unknown): PersistedEffectLedgerEntry | null {
     effect_type: String(value.effect_type ?? "unknown_effect"),
     operation_type: String(value.operation_type ?? "").trim() || null,
     operation_id: String(value.operation_id ?? "").trim() || null,
+    committed_id: String(value.committed_id ?? "").trim() || null,
     tool_id: String(value.tool_id ?? "").trim() || null,
     source: String(value.source ?? "router") as PersistedEffectLedgerEntry[
       "source"

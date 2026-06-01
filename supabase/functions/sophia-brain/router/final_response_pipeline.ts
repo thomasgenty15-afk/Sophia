@@ -16,6 +16,73 @@ export type FinalResponsePipelineResult = {
   effectLedgerTrace?: unknown;
 };
 
+export type FinalResponsePipelineDeps = {
+  directSafetyCrisisReplyOverride: (args: {
+    routeDecision: RouteDecision | null;
+    skillOutput: ConversationSkillOutput | null;
+  }) => string | null;
+  directConversationSkillReplyOverride: (args: {
+    routeDecision: RouteDecision | null;
+    skillOutput: ConversationSkillOutput | null;
+  }) => string | null;
+  oneShotReminderManagementReply: (message: string) => string | null;
+  enforceRecommendationToolVisibleReply: (args: any) => string;
+  stripHiddenHtmlComments: (text: unknown) => string;
+  stripDeprecatedProductVocabulary: (text: string) => string;
+  weeklyAdaptiveReviewStateForTurn: (args: {
+    activeSkillState: unknown;
+    tempMemory: any;
+  }) => unknown;
+  cleanWeeklyVisibleResponse: (text: string) => string;
+  applyMemoryV2ResponseGroundingGuardrail: (args: {
+    userMessage: string;
+    responseContent: string;
+    contextBlock: string;
+  }) => string;
+  applyNonDurableMemoryPromiseGuard: (args: {
+    userMessage: string;
+    responseContent: string;
+    routeDecision: RouteDecision | null;
+  }) => string;
+  applyWeeklyForgottenProgressAckGuard: (args: any) => string;
+  applyWeeklyRepeatedClarificationGuard: (args: {
+    responseContent: string;
+    userMessage: string;
+    activeSkillState: unknown;
+    tempMemory: any;
+  }) => string;
+  applyWeeklyConcreteOrganizationGuard: (args: {
+    responseContent: string;
+    userMessage: string;
+    activeSkillState: unknown;
+    tempMemory: any;
+    history: any[];
+  }) => string;
+  applyWeeklyConclusionGuard: (args: {
+    responseContent: string;
+    userMessage: string;
+    activeSkillState: unknown;
+    tempMemory: any;
+  }) => string;
+  applyCompactStartGuard: (args: {
+    userMessage: string;
+    responseContent: string;
+  }) => string;
+  applyIncompleteRecapGuard: (args: {
+    userMessage: string;
+    responseContent: string;
+  }) => string;
+  applyUnexecutedEffectClaimGuard: (args: {
+    responseContent: string;
+    intendedTools: string[];
+    executedTools: string[];
+  }) => string;
+  applyCoachResponseStylePreferences: (args: any) => string;
+  userRequestsShortStyle: (message: string) => boolean;
+  normalizeRouteText: (text: string) => string;
+  ensureVisibleSophiaEmoji: (text: unknown) => string;
+};
+
 // Legacy defensive renderer guards. They are intentionally centralized here so
 // run.ts does not keep owning final semantic rewrites.
 export function runFinalResponsePipeline(args: {
@@ -33,72 +100,7 @@ export function runFinalResponsePipeline(args: {
   loggedMessageId?: string | null;
   planItemSnapshot?: unknown[] | null;
   stylePreferences: unknown;
-  deps: {
-    directSafetyCrisisReplyOverride: (args: {
-      routeDecision: RouteDecision | null;
-      skillOutput: ConversationSkillOutput | null;
-    }) => string | null;
-    directConversationSkillReplyOverride: (args: {
-      routeDecision: RouteDecision | null;
-      skillOutput: ConversationSkillOutput | null;
-    }) => string | null;
-    oneShotReminderManagementReply: (message: string) => string | null;
-    enforceRecommendationToolVisibleReply: (args: any) => string;
-    stripHiddenHtmlComments: (text: unknown) => string;
-    stripDeprecatedProductVocabulary: (text: string) => string;
-    weeklyAdaptiveReviewStateForTurn: (args: {
-      activeSkillState: unknown;
-      tempMemory: any;
-    }) => unknown;
-    cleanWeeklyVisibleResponse: (text: string) => string;
-    applyMemoryV2ResponseGroundingGuardrail: (args: {
-      userMessage: string;
-      responseContent: string;
-      contextBlock: string;
-    }) => string;
-    applyNonDurableMemoryPromiseGuard: (args: {
-      userMessage: string;
-      responseContent: string;
-      routeDecision: RouteDecision | null;
-    }) => string;
-    applyWeeklyForgottenProgressAckGuard: (args: any) => string;
-    applyWeeklyRepeatedClarificationGuard: (args: {
-      responseContent: string;
-      userMessage: string;
-      activeSkillState: unknown;
-      tempMemory: any;
-    }) => string;
-    applyWeeklyConcreteOrganizationGuard: (args: {
-      responseContent: string;
-      userMessage: string;
-      activeSkillState: unknown;
-      tempMemory: any;
-      history: any[];
-    }) => string;
-    applyWeeklyConclusionGuard: (args: {
-      responseContent: string;
-      userMessage: string;
-      activeSkillState: unknown;
-      tempMemory: any;
-    }) => string;
-    applyCompactStartGuard: (args: {
-      userMessage: string;
-      responseContent: string;
-    }) => string;
-    applyIncompleteRecapGuard: (args: {
-      userMessage: string;
-      responseContent: string;
-    }) => string;
-    applyUnexecutedEffectClaimGuard: (args: {
-      responseContent: string;
-      intendedTools: string[];
-      executedTools: string[];
-    }) => string;
-    applyCoachResponseStylePreferences: (args: any) => string;
-    userRequestsShortStyle: (message: string) => boolean;
-    normalizeRouteText: (text: string) => string;
-    ensureVisibleSophiaEmoji: (text: unknown) => string;
-  };
+  deps: FinalResponsePipelineDeps;
 }): FinalResponsePipelineResult {
   const guardEvents: string[] = [];
   let responseContent = args.deps.directSafetyCrisisReplyOverride({
@@ -146,7 +148,9 @@ export function runFinalResponsePipeline(args: {
     tempMemory: args.tempMemory,
     loggedMessageId: args.loggedMessageId,
   });
-  if (/C['’]?est enregistré[\s\S]*Respiration de pause/i.test(responseContent)) {
+  if (
+    /C['’]?est enregistré[\s\S]*Respiration de pause/i.test(responseContent)
+  ) {
     responseContent = args.deps.cleanWeeklyVisibleResponse(responseContent);
   }
   responseContent = args.deps.applyWeeklyRepeatedClarificationGuard({

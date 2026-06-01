@@ -5,11 +5,16 @@ import {
 } from "./instruction_parser.ts";
 import {
   detectsExplicitOneShotReminderCancel,
+  isLikelyOneShotReminderRequest,
   isProductHelpQuestion,
   isStatusQuestion,
   looksLikeReminderCreationCommand,
   normalizeOneShotReminderText,
 } from "./route_guards.ts";
+import {
+  extractTargetHHMMFromMessage,
+  hasRecurringCadenceHint,
+} from "./time_parser.ts";
 import type { ParsedReminderRequest } from "./time_parser.ts";
 
 export type OneShotReminderRecurrenceKind =
@@ -85,6 +90,13 @@ function effectIntent(effectTypes: string[]): OneShotReminderIntent | null {
   return null;
 }
 
+function extractTimeExpression(message: string): string | null {
+  const text = String(message ?? "");
+  const match = text.match(/\b\d{1,2}\s*h\s*\d{0,2}\b/i) ??
+    text.match(/\b\d{1,2}:\d{2}\b/);
+  return match?.[0]?.replace(/\s+/g, "") ?? extractTargetHHMMFromMessage(text);
+}
+
 export function buildOneShotReminderIntake(args: {
   message: string;
   parsed?: ParsedReminderRequest | null;
@@ -96,9 +108,11 @@ export function buildOneShotReminderIntake(args: {
 }): OneShotReminderStructuredIntake {
   const message = String(args.message ?? "");
   const text = normalizeOneShotReminderText(message);
+  const referencesReminder = /\b(rappel|rappelle|reminder|remind)\b/.test(text);
+  const timeExpression = extractTimeExpression(message);
   const targetReference = inferTargetReference(text);
   const directIntent = effectIntent(args.directEffectsToRun ?? []);
-  const legacyAllowed = args.fallbackLegacyGuards === true;
+  const legacyAllowed = args.fallbackLegacyGuards !== false;
 
   if (!text) {
     return {
@@ -121,9 +135,9 @@ export function buildOneShotReminderIntake(args: {
   if (isProductHelpQuestion(text)) {
     return {
       detected: true,
-      intent: "answer_product_question",
+      intent: "product_help",
       recurrence_kind: "ambiguous",
-      time_expression: null,
+      time_expression: timeExpression,
       scheduled_for: args.parsed?.scheduledFor ?? null,
       local_label: args.localLabel ?? null,
       instruction: null,
@@ -139,9 +153,9 @@ export function buildOneShotReminderIntake(args: {
   if (isStatusQuestion(text)) {
     return {
       detected: true,
-      intent: "status",
+      intent: "status_question",
       recurrence_kind: "ambiguous",
-      time_expression: null,
+      time_expression: timeExpression,
       scheduled_for: args.parsed?.scheduledFor ?? null,
       local_label: args.localLabel ?? null,
       instruction: null,
@@ -154,11 +168,38 @@ export function buildOneShotReminderIntake(args: {
     };
   }
 
+  if (referencesReminder && hasRecurringCadenceHint(message)) {
+    return {
+      detected: true,
+      intent: "ignore",
+      recurrence_kind: "recurring",
+      time_expression: timeExpression,
+      scheduled_for: args.parsed?.scheduledFor ?? null,
+      local_label: args.localLabel ?? null,
+      instruction: null,
+      instruction_source: null,
+      target_reference: targetReference,
+      target_reminder_ids: args.targetReminderIds ?? [],
+      target_local_labels: args.targetLocalLabels ?? [],
+      constraints: [{ kind: "one_shot_only", evidence: [message] }],
+      reason_code: "recurring_cadence_handoff",
+    };
+  }
+
   let intent = directIntent;
   if (!intent && legacyAllowed) {
-    const create = looksLikeReminderCreationCommand(message);
+    const create = looksLikeReminderCreationCommand(message) ||
+      isLikelyOneShotReminderRequest(message) ||
+      (Boolean(timeExpression) &&
+        /\b(texte exact|instruction|message)\b/i.test(message));
     const cancel = detectsExplicitOneShotReminderCancel(message);
-    intent = create && cancel ? "replace" : create ? "create" : cancel ? "cancel" : null;
+    intent = create && cancel
+      ? "replace"
+      : create
+      ? "create"
+      : cancel
+      ? "cancel"
+      : null;
   }
 
   if (!intent) {
@@ -166,7 +207,7 @@ export function buildOneShotReminderIntake(args: {
       detected: false,
       intent: "off_topic",
       recurrence_kind: "ambiguous",
-      time_expression: null,
+      time_expression: timeExpression,
       scheduled_for: args.parsed?.scheduledFor ?? null,
       local_label: args.localLabel ?? null,
       instruction: null,
@@ -191,7 +232,7 @@ export function buildOneShotReminderIntake(args: {
     detected: true,
     intent,
     recurrence_kind: "one_shot",
-    time_expression: null,
+    time_expression: timeExpression,
     scheduled_for: args.parsed?.scheduledFor ?? null,
     local_label: args.localLabel ?? null,
     instruction,

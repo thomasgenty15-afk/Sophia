@@ -185,12 +185,13 @@ function adaptSkillResultToRuntime(args: {
   toolExecution: ToolExecutionStatus;
   executedTools?: string[];
 }): SelectStatePotionRuntimeResult {
+  const committed = args.result.committed_effects.length > 0;
   return {
     content: renderSelectStatePotionSkillResult(args.result),
     additionalContents: args.result.additional_replies,
     nextTempMemory: args.nextTempMemory,
     toolExecution: args.toolExecution,
-    executedTools: args.executedTools ?? [],
+    executedTools: committed ? args.executedTools ?? ["select_state_potion"] : [],
     toolSkillRun: {
       selected_handler: "select_state_potion",
       ...args.result,
@@ -680,7 +681,6 @@ export async function maybeRunSelectStatePotionOperation(args: {
       }),
       nextTempMemory,
       toolExecution: "success",
-      executedTools: ["select_state_potion"],
     });
   }
 

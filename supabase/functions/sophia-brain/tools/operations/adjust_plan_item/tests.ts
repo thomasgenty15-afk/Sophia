@@ -15,6 +15,7 @@ import type {
   AdjustPlanResultWriterInput,
 } from "./generator.ts";
 import { runPlanAdjustmentGenerator } from "./generator.ts";
+import { renderAdjustPlanDecision } from "./renderer.ts";
 import {
   ADJUST_PLAN_SUB_SKILLS,
   runAdjustPlanActionSubSkill,
@@ -31,6 +32,48 @@ import type {
 } from "./slot_filler.ts";
 
 const SECRET = "s6-test-secret";
+
+Deno.test("adjust_plan_item renderer blocks success language without committed effect", () => {
+  const message = renderAdjustPlanDecision({
+    state: {
+      intent: "draft",
+      status: "pending_confirmation",
+      reply: "C'est appliqué.",
+      scope: { missing_slots: [] },
+      change: { missing_slots: [] },
+      effect_plan: { blocked_reason: null },
+      draft: {
+        available: true,
+        summary: "Brouillon d'ajustement prêt.",
+      },
+    } as any,
+    effect_result: {
+      committed_effects: [],
+      failed_effects: [],
+    } as any,
+  });
+  assertEquals(message.includes("C'est appliqué"), false);
+  assertStringIncludes(message, "Brouillon d'ajustement prêt");
+});
+
+Deno.test("adjust_plan_item renderer allows success language with committed effect", () => {
+  const message = renderAdjustPlanDecision({
+    state: {
+      intent: "apply",
+      status: "executed",
+      reply: "C'est appliqué.",
+      scope: { missing_slots: [] },
+      change: { missing_slots: [] },
+      effect_plan: { blocked_reason: null },
+      draft: { available: false },
+    } as any,
+    effect_result: {
+      committed_effects: [{ type: "adjust_plan_item" }],
+      failed_effects: [],
+    } as any,
+  });
+  assertStringIncludes(message, "C'est appliqué");
+});
 
 function actionPayload(options: {
   action_request_category?:

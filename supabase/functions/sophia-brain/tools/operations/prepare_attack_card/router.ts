@@ -1532,7 +1532,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   // on demande de clarifier. Empêche le handler de produire le bug
   // historique A2-r4 T8 ("Je n'ai pas encore créé de carte d'attaque, on
   // commence juste la préparation") alors qu'une carte fraîche existe.
-  // Voir docs/agent-playbook/13-architecture-skills, chantier 4.
+  // Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, chantier 4.
   const recentActiveCard = await loadRecentActiveAttackCardForUser({
     supabase: args.supabase,
     userId: args.userId,

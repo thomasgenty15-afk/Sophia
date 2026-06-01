@@ -405,6 +405,14 @@ export type WeeklyExactAdjustPlanProposal = {
   changed_items: Array<Record<string, unknown>>;
 };
 
+export type WeeklyAdjustPlanPendingReview = {
+  operation_id: string;
+  operation_type: "adjust_plan_item";
+  phase: "draft_review";
+  draft: PlanAdjustmentDraftV1;
+  operation_input: Record<string, unknown>;
+};
+
 export function weeklyExactProposalKindFromText(
   text: string,
 ): WeeklyExactAdjustPlanProposal["kind"] | null {
@@ -771,20 +779,8 @@ export function patchPendingAdjustPlanWithWeeklyExactProposal(args: {
 
 export function buildWeeklyExactAdjustPlanPendingReview(args: {
   proposal: WeeklyExactAdjustPlanProposal;
-}): {
-  operation_id: string;
-  operation_type: "adjust_plan_item";
-  phase: "draft_review";
-  draft: PlanAdjustmentDraftV1;
-  operation_input: Record<string, unknown>;
-} {
-  const base: {
-    operation_id: string;
-    operation_type: "adjust_plan_item";
-    phase: "draft_review";
-    draft: PlanAdjustmentDraftV1;
-    operation_input: Record<string, unknown>;
-  } = {
+}): WeeklyAdjustPlanPendingReview {
+  const base: WeeklyAdjustPlanPendingReview = {
     operation_id: crypto.randomUUID(),
     operation_type: "adjust_plan_item",
     phase: "draft_review",
@@ -898,13 +894,7 @@ function weeklyPlanSnapshotChangedItems(
 
 export function buildWeeklyCopyForwardPendingReview(args: {
   planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
-}): {
-  operation_id: string;
-  operation_type: "adjust_plan_item";
-  phase: "draft_review";
-  draft: PlanAdjustmentDraftV1;
-  operation_input: Record<string, unknown>;
-} {
+}): WeeklyAdjustPlanPendingReview {
   const changedItems = weeklyPlanSnapshotChangedItems(args.planItemSnapshot);
   const constraints = [
     "extend_current_level_same_plan",
@@ -1070,7 +1060,7 @@ export function isWeeklyLightRepeatRequest(message: string): boolean {
 export function buildWeeklyMissionCarryOverPendingReview(args: {
   weeklyState?: unknown;
   planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
-}): ReturnType<typeof buildWeeklyCopyForwardPendingReview> {
+}): WeeklyAdjustPlanPendingReview {
   const signal = findWeeklyPlanItemRef({
     title: "Convenir d'un signal de pause",
     weeklyState: args.weeklyState,
@@ -1170,7 +1160,7 @@ export function buildWeeklyMissionCarryOverPendingReview(args: {
 export function buildWeeklyLightRepeatPendingReview(args: {
   weeklyState?: unknown;
   planItemSnapshot?: V2PlanItemSnapshotItem[] | null;
-}): ReturnType<typeof buildWeeklyCopyForwardPendingReview> {
+}): WeeklyAdjustPlanPendingReview {
   const positive = findWeeklyPlanItemRef({
     title: "Partager un point positif",
     weeklyState: args.weeklyState,
