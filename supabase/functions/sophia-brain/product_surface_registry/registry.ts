@@ -1,3 +1,9 @@
+import {
+  type ProductSurfaceHandoffTarget,
+  validateProductSurfaceHandoffTarget,
+} from "./contract.ts";
+import { PRODUCT_SURFACE_DEFINITIONS } from "./surfaces_data.ts";
+
 export type ProductSurfaceFamily =
   | "utility"
   | "transformational"
@@ -25,9 +31,9 @@ export type ProductSurfaceDefinition = {
 export type ProductSurfaceRegistry = {
   surfaces: ProductSurfaceDefinition[];
   by_id: Map<string, ProductSurfaceDefinition>;
+  handoff_targets: ProductSurfaceHandoffTarget[];
+  handoff_targets_by_operation: Map<string, ProductSurfaceHandoffTarget>;
 };
-
-import { PRODUCT_SURFACE_DEFINITIONS } from "./surfaces_data.ts";
 
 const REQUIRED_SURFACE_IDS = [
   "potion.state",
@@ -38,6 +44,15 @@ const REQUIRED_SURFACE_IDS = [
   "dashboard.reminders",
   "dashboard.preferences",
   "dashboard.personal_actions",
+] as const;
+
+const REQUIRED_HANDOFF_OPERATION_TYPES = [
+  "adjust_plan_item",
+  "prepare_attack_card",
+  "prepare_defense_card",
+  "select_state_potion",
+  "create_recurring_reminder",
+  "update_coach_preferences",
 ] as const;
 
 export function validateProductSurfaceDefinition(
@@ -102,7 +117,18 @@ export function validateProductSurfaceDefinition(
 export function buildProductSurfaceRegistry(
   values: unknown[],
 ): ProductSurfaceRegistry {
-  const surfaces = values.map(validateProductSurfaceDefinition);
+  const handoffTargets = values
+    .filter((value) =>
+      (value as Record<string, unknown> | null)?.chat_behavior ===
+        "platform_handoff"
+    )
+    .map(validateProductSurfaceHandoffTarget);
+  const surfaces = values
+    .filter((value) =>
+      (value as Record<string, unknown> | null)?.chat_behavior !==
+        "platform_handoff"
+    )
+    .map(validateProductSurfaceDefinition);
   const ids = new Set<string>();
   for (const surface of surfaces) {
     if (ids.has(surface.id)) throw new Error(`surface_${surface.id}_duplicate`);
@@ -111,9 +137,25 @@ export function buildProductSurfaceRegistry(
   for (const requiredId of REQUIRED_SURFACE_IDS) {
     if (!ids.has(requiredId)) throw new Error(`surface_${requiredId}_missing`);
   }
+  const handoffOperations = new Set<string>();
+  for (const target of handoffTargets) {
+    if (handoffOperations.has(target.operation_type)) {
+      throw new Error(`handoff_target_${target.operation_type}_duplicate`);
+    }
+    handoffOperations.add(target.operation_type);
+  }
+  for (const operation of REQUIRED_HANDOFF_OPERATION_TYPES) {
+    if (!handoffOperations.has(operation)) {
+      throw new Error(`handoff_target_${operation}_missing`);
+    }
+  }
   return {
     surfaces,
     by_id: new Map(surfaces.map((surface) => [surface.id, surface])),
+    handoff_targets: handoffTargets,
+    handoff_targets_by_operation: new Map(
+      handoffTargets.map((target) => [target.operation_type, target]),
+    ),
   };
 }
 
@@ -146,3 +188,5 @@ export function filterSurfacesByContraindications(
 }
 
 export const PRODUCT_SURFACE_REGISTRY_REQUIRED_IDS = REQUIRED_SURFACE_IDS;
+export const PRODUCT_SURFACE_REGISTRY_REQUIRED_HANDOFF_OPERATION_TYPES =
+  REQUIRED_HANDOFF_OPERATION_TYPES;

@@ -500,7 +500,12 @@ export type AdjustPlanItemOperationOutput = {
     | "invalid_recommendation_payload"
     | "blocked_by_safety";
   source: "direct_user_request" | "recommendation_tool";
-  phase: "scope_resolution" | "generation" | "confirmation" | "exit";
+  phase:
+    | "scope_resolution"
+    | "generation"
+    | "confirmation"
+    | "platform_handoff"
+    | "exit";
   draft?: PlanAdjustmentDraftV1;
   confirmation?: { required: boolean; message: string; actions: ["yes", "no"] };
   pending_confirmation?: Record<string, unknown>;
@@ -2237,8 +2242,8 @@ export function runAdjustPlanDraftValidationSubSkill(input: {
     review,
     trace: {
       sub_skill_id: "draft_validation",
-      status: reasonCode ? "needs_clarification" : "ready_for_confirmation",
-      reason_code: reasonCode ?? "draft_ready_for_confirmation",
+      status: reasonCode ? "needs_clarification" : "ready_for_handoff",
+      reason_code: reasonCode ?? "draft_ready_for_handoff",
       missing_slots: reasonCode ? issues : [],
     },
   };
@@ -4133,7 +4138,7 @@ function deterministicWholePlanDirectionalDraft(
     "Si tu valides, je régénère une nouvelle version du plan avec ce feedback. Rien n'est encore appliqué.",
   ].join("\n");
   const executionMessage = [
-    "C'est fait: j'ai ajusté la trajectoire du plan.",
+    "Version à reprendre dans Plan: ajuster la trajectoire du plan.",
     "",
     executionDetail,
   ].join("\n");
@@ -4290,10 +4295,10 @@ function deterministicCurrentLevelLoadDraft(
     "",
     ...changedItems.map((item) => `- ${item.title}: ${item.after}`),
     "",
-    "Ce qui reste stable: l'objectif du niveau et les appuis principaux. Rien n'est appliqué tant que tu ne valides pas.",
+    "Ce qui reste stable: l'objectif du niveau et les appuis principaux. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
   ].join("\n");
   const executionMessage = [
-    "C'est fait: j'ai allégé le niveau actuel sans refaire le plan global.",
+    "Version à reprendre dans Plan: alléger le niveau actuel sans refaire le plan global.",
     "",
     ...changedItems.map((item) => `- ${item.title}: ${item.after}`),
   ].join("\n");
@@ -4443,10 +4448,10 @@ function deterministicCurrentLevelCopyForwardDraft(
     "",
     ...changedItems.map((item) => `- ${item.title}: inchangé.`),
     "",
-    "Rien n'est appliqué tant que tu ne valides pas.",
+    "A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
   ].join("\n");
   const executionMessage = [
-    "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique.",
+    "Version à reprendre dans Plan: prolonger le niveau actuel d'une semaine à l'identique.",
     "",
     "Les actions, le rythme et les repères restent inchangés. Le plan global n'est pas refait.",
   ].join("\n");
@@ -5061,11 +5066,11 @@ export async function runAdjustPlanItemIntake(input: {
       operation_type: "adjust_plan_item",
       status: "draft_review_decision",
       source,
-      phase: "confirmation",
+      phase: "platform_handoff",
       state_patch: {
         summary:
           "Adjust_plan draft validation sub-skill classified the user response.",
-        phase: "confirmation",
+        phase: "platform_handoff",
         missing_slots: [],
         turn_count_increment: 1,
         intake_state: state,
@@ -5073,7 +5078,7 @@ export async function runAdjustPlanItemIntake(input: {
         operation_input: intakeOperationInput,
         draft_review_decision: draftReviewDecision,
         tool_skill_state: toolSkillState({
-          status: "awaiting_user_confirmation",
+          status: "handoff_ready",
           state,
           missing: [],
           trace: intakeTrace,
@@ -5630,20 +5635,20 @@ export async function runAdjustPlanItemIntake(input: {
     },
     state_patch: {
       summary: "Plan adjustment draft generated.",
-      phase: "confirmation",
+      phase: "platform_handoff",
       missing_slots: [],
       turn_count_increment: 1,
       intake_state: state,
       sub_skill_trace: tailTrace,
       draft_review_decision: draftReviewDecision,
       tool_skill_state: toolSkillState({
-        status: "awaiting_user_confirmation",
+        status: "handoff_ready",
         state,
         missing: [],
         trace: tailTrace,
         draftValidation: draftValidation.review,
         summary:
-          "Adjust_plan draft is validated and waiting for user confirmation.",
+          "Adjust_plan handoff draft is validated and ready for platform handoff.",
       }),
       operation_input: operationInput,
     },

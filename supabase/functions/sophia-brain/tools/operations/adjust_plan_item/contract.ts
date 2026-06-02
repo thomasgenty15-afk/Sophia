@@ -57,6 +57,40 @@ export type AdjustPlanDecisionStatus =
   | "blocked"
   | "off_topic";
 
+export type AdjustPlanHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type AdjustPlanHandoffDraft = {
+  operation_type: "adjust_plan_item";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  scope: {
+    kind: AdjustPlanScopeKind;
+    target_summary?: string | null;
+  };
+  user_goal_summary: string;
+  coaching_read: string;
+  recommendation: {
+    summary: string;
+    recommended_change: string;
+    preserve: string[];
+    avoid: string[];
+    platform_destination: string;
+    platform_steps: string[];
+  };
+  missing_decisions: string[];
+};
+
 export type AdjustPlanDecision = {
   skill_id: "adjust_plan_item";
   operation_id: string;
@@ -155,6 +189,8 @@ export type AdjustPlanSkillResult = {
     | "ask_question"
     | "draft_review"
     | "pending_confirmation"
+    | "handoff_ready"
+    | "handoff_delivered"
     | "cancelled"
     | "revised"
     | "explained"
@@ -179,7 +215,13 @@ export type AdjustPlanOperationRuntimeResult = {
   content: string;
   additionalContents?: string[];
   nextTempMemory: any;
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  toolExecution:
+    | "none"
+    | "blocked"
+    | "success"
+    | "failed"
+    | "uncertain"
+    | "platform_handoff";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
 };

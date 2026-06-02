@@ -9,7 +9,8 @@ explicites deja exprimees par les couches amont.
 
 `TurnAgenda` repond a la question : "quelles taches ce tour demande-t-il, meme
 s'il y en a plusieurs ?" Il represente les intentions concurrentes sous forme de
-tasks `reply`, `effect`, `status`, `memory` ou `repair`. Il encadre
+tasks `reply`, `effect`, `platform_handoff`, `clarification`, `status`,
+`memory` ou `repair`. Il encadre
 `route_decision`, mais ne remplace pas encore tout le routage.
 
 Le domaine TurnAgenda est un contrat global d'orchestration, pas un tool skill.
@@ -21,8 +22,8 @@ metier et ne rend pas de texte user-facing.
 Ce domaine depend de :
 
 - `UserTurnSnapshot` pour lire l'etat complet du tour ;
-- `TurnAgenda` pour distinguer `reply` / `effect` / `status` / `memory` /
-  `repair` ;
+- `TurnAgenda` pour distinguer `reply` / `effect` / `platform_handoff` /
+  `clarification` / `status` / `memory` / `repair` ;
 - `Confirmation Contract` pour interpreter approve/reject/revise/explain ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committe ;
 - les contrats locaux des tools pour l'intake, le reducer, les effets et le
@@ -37,13 +38,18 @@ Dans le code actuel :
 - `router/turn_agenda.ts` possede le contrat `TurnAgenda`, les types
   `AgendaTask*`, `buildTurnAgenda`, `selectPrimaryAgendaTask`,
   `findAgendaTasks` et `summarizeTurnAgenda`. Il transforme les
-  `tool_skill_intents`, `direct_effects`, `direct_effects_to_run`, pending
-  confirmations et status routes en tasks typables.
+  `tool_skill_intents`, `tool_skill_opportunity`, `direct_effects`,
+  `direct_effects_to_run`, pending confirmations et status routes en tasks
+  typables.
 - `router/turn_interruption_policy.ts` applique les regles cross-skill
   strictement globales via `resolveFlowInterruptions` : interruption d'un vieux
   flow par une nouvelle intention explicite, confirmation incompatible avec le
   pending, blocages `status_only`, `no_mutation`, `preview_only`, `draft_only`,
   `no_potion` et `no_tool`.
+- `router/handoff_flow_arbitration.ts` protège les handoff states actifs avant
+  que product_help/status/tool routing ne capturent un message de continuité. Il
+  ne remplit aucun slot métier; il choisit seulement continue/interruption/
+  clarification/clear.
 - `router/confirmation_contract.ts` et
   `tools/operations/_shared/confirmation_adapter.ts` restent la source commune
   pour normaliser les confirmations. TurnAgenda ne decide pas seul qu'un "oui"
@@ -51,8 +57,14 @@ Dans le code actuel :
   courante et le pending snapshotte.
 - `router/effect_ledger.ts` et `router/effect_ledger_adapter.ts` recoivent les
   tasks agenda via `recordAgendaEffectsInLedger`. Une task `effect` devient une
-  entree `requested` ou `blocked`; les commits reels viennent ensuite des
-  executors L5 et sont verifies par `rewriteUncommittedEffectClaims`.
+  entree durable `requested` ou `blocked`; une task `platform_handoff` ou
+  `clarification` devient une entree runtime non-mutante. Les commits reels
+  n'existent que pour les direct effects autorises ou domaines durables qui
+  possedent encore un executor, et sont verifies par
+  `rewriteUncommittedEffectClaims`.
+- `product_surface_registry` fournit les `surface_id`, destinations et étapes
+  des tasks `platform_handoff`. TurnAgenda peut tracer ces ids mais ne les
+  invente pas.
 - `router/run.ts` integre ces briques apres le routage et l'arbitrage : il
   construit le snapshot, construit l'agenda, appelle `resolveFlowInterruptions`,
   filtre les effets bloques de `routeDecision.direct_effects_to_run`,
@@ -65,12 +77,13 @@ Dans le code actuel :
 ```txt
 Dispatcher L1 -> TurnFrame
 Routers L2/L3/L4 -> RouteDecision + tempMemory courante
+  -> handoff_flow_arbitration si handoff actif
   -> buildUserTurnSnapshot
   -> buildTurnAgenda
   -> resolveFlowInterruptions
   -> run.ts applique seulement les clears/blocks globaux
   -> recordAgendaEffectsInLedger
-  -> L5 tool/conversation skills executent ou rendent selon leur contrat
+  -> L5 owners executent un direct effect ou rendent un handoff selon contrat
   -> EffectLedger + final response pipeline protegent les claims visibles
 ```
 
@@ -123,18 +136,32 @@ Toute nouvelle comprehension semantique doit rester en L1 dispatcher ou dans le
 slot filler L5 du tool concerne. Il est interdit d'ajouter ici une regex metier
 sur le message brut.
 
+Les contraintes `no_tool`, `no_mutation`, `status_only` et `preview_only` sont
+des contraintes structurees. Elles peuvent venir de `TurnFrame`, de
+`RouteDecision`, de `tempMemory` ou de l'etat actif, mais pas d'une nouvelle
+lecture semantique du message brut dans le runtime global.
+
 ## Reducer / State Transition
 
 Le reducer global est `buildTurnAgenda(snapshot)` :
 
-- transforme `turn_frame.tool_skill_intents[]` en tasks `effect` ou `reply`
-  quand l'intent devient `preview` ;
+- transforme `turn_frame.tool_skill_intents[]` en tasks `effect` quand
+  l'operation est executable depuis le chat, ou en `platform_handoff` quand
+  l'operation complexe doit etre reprise dans une surface produit ;
+- transforme `turn_frame.tool_skill_opportunity` complexe en
+  `platform_handoff` candidat/propose, sans inventer l'intention depuis le
+  texte brut ;
 - transforme `turn_frame.direct_effects[]` en tasks `effect` ;
 - ajoute les effets presents dans `route_decision.direct_effects_to_run` qui ne
   sont pas deja representes ;
-- ajoute une task `pending_confirmation` si un pending existe ;
+- ajoute une task `pending_confirmation` si un pending executable existe, ou
+  une task `platform_handoff` si le pending legacy concerne une operation
+  complexe non executable depuis le chat ;
 - ajoute une task `active_flow` si un flow actif existe et n'est pas deja
   couvert ;
+- ajoute une task `clarification` quand le tour est route vers
+  `orientation_clarification` ou quand des signaux structures indiquent une
+  ambiguite ; cette clarification preempte le handoff produit ;
 - ajoute une task `status` si la route ou les contraintes indiquent
   `status_only` ;
 - ajoute une task `reply:fallback` si le tour n'a aucune task user-facing
@@ -158,11 +185,15 @@ TurnAgenda prepare des effets au sens orchestration, pas au sens payload metier.
 - Une task `effect` avec `status: "blocked"` devient un blocage explicite.
 - `requires_confirmation` indique qu'un workflow durable devra passer par le
   contrat du tool proprietaire avant commit.
-- Les operations reconnues au niveau agenda incluent au minimum :
-  `create_one_shot_reminder`, `cancel_one_shot_reminder`,
-  `update_coach_preferences`, `prepare_attack_card`, `prepare_defense_card`,
-  `select_state_potion`, `create_recurring_reminder`,
+- Les direct effects executables depuis le chat sont explicitement limites a
+  `create_one_shot_reminder`, `cancel_one_shot_reminder` et
   `track_progress_plan_item`.
+- Les operations complexes deviennent `platform_handoff` :
+  `adjust_plan_item`, `prepare_attack_card`, `prepare_defense_card`,
+  `select_state_potion`, `create_recurring_reminder`,
+  `update_coach_preferences`.
+- Un `platform_handoff` n'est pas un effet bloque ; c'est une tache
+  conversationnelle non-mutante avec `no_chat_mutation: true`.
 
 La preparation payload reste dans les modules L5/L6 :
 
@@ -186,6 +217,8 @@ Ce que TurnAgenda peut appliquer dans `run.ts` :
   retourne ;
 - retirer des effets bloques de `routeDecision.direct_effects_to_run`,
   `turnFrame.direct_effects` et `turnFrame.tool_skill_intents` ;
+- retirer ou neutraliser les handoffs produit bloques par safety/no-tool avant
+  qu'ils puissent lancer un runtime executable ;
 - transformer un `selected_handler` bloque en `normal_reply` avec
   `reason_code: "turn_agenda_blocked_selected_effect"`.
 
@@ -194,10 +227,12 @@ Ce que TurnAgenda ne peut jamais appliquer :
 - insert/update/delete dans une table metier ;
 - consommation irreversible d'un token de confirmation ;
 - creation d'une carte, preference, rappel, potion ou progress log ;
+- creation d'une pending confirmation executable pour un `platform_handoff` ;
 - mutation de l'etat interne d'un tool au-dela du nettoyage global de flow.
 
-Les commits reels restent dans les executors L5. Le ledger observe ensuite
-`committed_effects` via `recordToolSkillEffectsInLedger`.
+Les commits reels restent dans les owners explicitement exécutables. Le ledger
+observe ensuite `committed_effects` via `recordToolSkillEffectsInLedger`. Les
+platform handoffs n'ont pas de commit à observer.
 
 ## Renderer / User-Facing Response
 
@@ -226,11 +261,12 @@ TurnAgenda ne rend pas la reponse visible.
 - `UserTurnSnapshot` ;
 - `TurnAgenda` ;
 - `AgendaTask[]` avec `kind`, `owner`, `operation_type`, `intent`, `priority`,
-  `requires_confirmation`, `source`, `status`, `reason_code`, `evidence` ;
+  `requires_confirmation`, `source`, `status`, `reason_code`, `evidence`,
+  `surface_id`, `no_chat_mutation` et champs de clarification quand utiles ;
 - `TurnAgendaSummary` pour traces ;
 - `resolveFlowInterruptions` output : agenda ajuste, clear flags, reason codes ;
-- entrees EffectLedger `requested` / `blocked` via
-  `recordAgendaEffectsInLedger`.
+- entrees EffectLedger `durable_effect`, `platform_handoff` ou
+  `clarification` via `recordAgendaEffectsInLedger`.
 
 ## Responsibilities
 
@@ -245,8 +281,11 @@ TurnAgenda est responsable de :
 - bloquer les effects quand les contraintes globales l'exigent :
   `status_only`, `no_mutation`, `preview_only`, `draft_only`, `no_potion`,
   `no_tool` ;
+- bloquer les `platform_handoff` produit quand safety ou une contrainte globale
+  interdit la surface produit ;
 - prioriser une nouvelle intention explicite face a un vieux flow actif ;
-- fournir a l'EffectLedger une projection requested/blocked observable.
+- fournir a l'EffectLedger une projection `durable_effect`,
+  `platform_handoff` ou `clarification` observable.
 
 TurnAgenda n'est pas responsable de :
 
@@ -268,8 +307,8 @@ TurnAgenda n'est pas responsable de :
 - `status_only` et `no_mutation` bloquent les tasks `effect`; ils ne doivent pas
   supprimer la capacite a repondre.
 - `preview_only` et `draft_only` ne creent pas de pending write executable.
-- `no_potion` bloque `select_state_potion` et laisse une task `reply`
-  concrete.
+- `no_potion` bloque la task `platform_handoff` `select_state_potion` et laisse
+  une task `reply` concrete.
 - `no_tool` bloque les nouvelles tasks `effect`, sauf confirmation explicitement
   compatible.
 - L'agenda peut bloquer ou retirer un effet avant execution, mais ne peut jamais
@@ -353,8 +392,9 @@ Ces tests doivent couvrir au minimum :
   consomme ;
 - vieux flow attack card + nouveau reminder explicite -> interruption du vieux
   flow ;
-- `no_potion` -> `select_state_potion` bloque + task reply ;
-- `preview_only update_coach_preferences` -> preview sans commit/pending write ;
+- `no_potion` -> `select_state_potion` handoff bloque + task reply ;
+- `preview_only update_coach_preferences` -> handoff/read-only sans
+  commit/pending write ;
 - `no_tool` -> nouvelles effects bloquees, pending compatible conserve ;
 - `status + action` -> les deux tasks restent presentes ;
 - owner unique route_decision ne supprime pas les tasks secondaires.
@@ -378,3 +418,4 @@ verifier les modules purs separement.
 | --- | --- | --- | --- |
 | 2026-05-29 | Agenda introduit comme verite des intentions concurrentes du tour. | Active | `15-chantiers-log.md` UserTurnSnapshot + TurnAgenda trace-only |
 | 2026-05-30 | TurnAgenda devient une barriere runtime partiellement branchee : il peut bloquer/retirer des effects incompatibles et alimenter EffectLedger, sans posseder les workflows L5 ni les commits DB. | Active | `15-chantiers-log.md` runtime contract turnagenda |
+| 2026-06-01 | TurnAgenda distingue désormais effets chat exécutables, clarifications et platform handoffs; les complex tools ne deviennent plus des effects durables par défaut. | Active | Architecture handoff V1 |

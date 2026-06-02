@@ -8,8 +8,8 @@
     "anti_noise": "Ne pas pousser comme productivite deguisee ou pendant une crise safety active.",
     "contraindications": ["safety_active", "user_asked_explanation_only"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
-    "executor_tool_id": "select_state_potion",
+    "can_execute_from_chat": false,
+    "executor_tool_id": null,
     "default_level_cap": 2,
     "content_source": "state_potions",
     "aliases": ["potion", "potion d'etat", "regulation"],
@@ -30,7 +30,7 @@
     "anti_noise": "Ne pas pousser si l'emotion haute domine ou si la cible est floue. Ne jamais dire qu'une carte d'attaque generee peut etre modifiee directement; proposer une nouvelle version apres confirmation si le contenu ne convient plus.",
     "contraindications": ["safety_active", "high_emotion", "target_missing"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "prepare_attack_card",
     "default_level_cap": 3,
     "content_source": "attack_cards",
@@ -46,7 +46,7 @@
     "anti_noise": "Ne pas utiliser pour une simple action ponctuelle sans risque recurrent. Une carte de defense peut etre ajustee depuis la plateforme/Ressources quand l'option est disponible, mais pas modifiee directement depuis le chat; proposer une nouvelle version apres confirmation si le contenu ne convient plus.",
     "contraindications": ["safety_active", "target_missing"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "prepare_defense_card",
     "default_level_cap": 3,
     "content_source": "defense_cards",
@@ -68,7 +68,7 @@
     "anti_noise": "Ne pas modifier le plan sans consentement explicite.",
     "contraindications": ["safety_active", "target_missing"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "adjust_plan_item",
     "default_level_cap": 3,
     "content_source": "plan_items",
@@ -90,7 +90,7 @@
     "anti_noise": "Ne pas remplacer un diagnostic humain quand l'auto-attaque domine.",
     "contraindications": ["safety_active", "high_emotion"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "adjust_plan_item",
     "default_level_cap": 2,
     "content_source": "plan_items",
@@ -112,7 +112,7 @@
     "anti_noise": "Ne pas pousser si le user demande un rappel ponctuel direct deja resolu.",
     "contraindications": ["safety_active"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "create_recurring_reminder",
     "default_level_cap": 3,
     "content_source": "reminders",
@@ -134,7 +134,7 @@
     "anti_noise": "Ne pas deduire une preference durable depuis un seul signal faible.",
     "contraindications": ["safety_active", "weak_intent"],
     "requires_consent": true,
-    "can_execute_from_chat": true,
+    "can_execute_from_chat": false,
     "executor_tool_id": "update_coach_preferences",
     "default_level_cap": 3,
     "content_source": "preferences",
@@ -168,5 +168,89 @@
       "suivre",
       "tenir"
     ]
+  },
+  {
+    "operation_type": "adjust_plan_item",
+    "surface_id": "plan",
+    "label": "Plan",
+    "short_destination_label": "Plan",
+    "user_facing_destination": "dans la section Plan",
+    "platform_steps": [
+      "ouvre la section Plan",
+      "sélectionne l’action ou la semaine concernée",
+      "reprends la recommandation proposée"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
+  },
+  {
+    "operation_type": "prepare_attack_card",
+    "surface_id": "attack_cards",
+    "label": "Cartes d’attaque",
+    "short_destination_label": "Cartes d’attaque",
+    "user_facing_destination": "dans la section Cartes d’attaque",
+    "platform_steps": [
+      "ouvre la section Cartes",
+      "choisis Carte d’attaque",
+      "reprends le brouillon proposé"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
+  },
+  {
+    "operation_type": "prepare_defense_card",
+    "surface_id": "defense_cards",
+    "label": "Cartes de défense",
+    "short_destination_label": "Cartes de défense",
+    "user_facing_destination": "dans la section Cartes de défense",
+    "platform_steps": [
+      "ouvre la section Cartes",
+      "choisis Carte de défense",
+      "reprends le brouillon proposé"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
+  },
+  {
+    "operation_type": "select_state_potion",
+    "surface_id": "state_potions",
+    "label": "État / Potions",
+    "short_destination_label": "État / Potions",
+    "user_facing_destination": "dans la section État / Potions",
+    "platform_steps": [
+      "ouvre la section État / Potions",
+      "choisis la potion recommandée",
+      "active-la depuis la plateforme si elle te convient"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
+  },
+  {
+    "operation_type": "create_recurring_reminder",
+    "surface_id": "recurring_reminders",
+    "label": "Rappels récurrents",
+    "short_destination_label": "Rappels",
+    "user_facing_destination": "dans la section Rappels",
+    "platform_steps": [
+      "ouvre la section Rappels",
+      "crée un rappel récurrent",
+      "reprends la cadence, l’heure et le contenu proposés"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
+  },
+  {
+    "operation_type": "update_coach_preferences",
+    "surface_id": "coach_preferences",
+    "label": "Préférences coach",
+    "short_destination_label": "Préférences coach",
+    "user_facing_destination": "dans les Préférences coach",
+    "platform_steps": [
+      "ouvre les Préférences coach",
+      "choisis le réglage correspondant",
+      "applique-le depuis la plateforme"
+    ],
+    "can_execute_from_chat": false,
+    "chat_behavior": "platform_handoff"
   }
 ]

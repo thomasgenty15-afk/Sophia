@@ -60,7 +60,7 @@ export function extractStrictAbsoluteParts(message: string): {
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
   const match = normalized.match(
-    /\b(aujourd'hui|aujourd’hui|ce soir|cet apres-midi|demain|apres-demain)\b(?:\s+(?:vers|a))?\s*(\d{1,2})(?:\s*h\s*|:)(\d{2})?/i,
+    /\b(aujourd'hui|aujourd’hui|ce soir|cet apres-midi|demain|apres-demain)\b(?:\s+(?:matin|midi|soir|apres\s+midi|apres-midi))?(?:\s+(?:vers|a))?\s*(\d{1,2})(?:\s*h\s*|:)(\d{2})?/i,
   );
   if (!match) return null;
   return {

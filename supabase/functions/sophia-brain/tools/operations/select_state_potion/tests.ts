@@ -41,7 +41,6 @@ import {
   detectsExplicitStatePotionExit,
   detectsPotionFollowUpRefusal,
   hardConsentGuards,
-  legacySemanticDetectors,
   statePotionDeclineReply,
 } from "./policy.ts";
 import {
@@ -230,12 +229,6 @@ Deno.test("select_state_potion policy owns no_potion, exit, and concrete reply w
     true,
   );
   assertEquals(
-    legacySemanticDetectors.isExplicitSelectStatePotionRequest(
-      "lance une potion de courage",
-    ),
-    true,
-  );
-  assertEquals(
     detectsExplicitNoPotionRequest(
       "Ça tourne en boucle. Ne me propose pas de potion et donne-moi juste une phrase de réparation.",
     ),
@@ -286,6 +279,14 @@ Deno.test("select_state_potion policy owns no_potion, exit, and concrete reply w
   assertEquals(concreteReply.includes("Phrase de réparation"), true);
   assertEquals(concreteReply.includes("Micro-action"), true);
   assertEquals(concreteReply.includes("?"), false);
+
+  const phraseOnlyReply = buildExplicitNoPotionConcreteReply(
+    "Non, pas de potion pour l'instant. Parle-moi doucement, juste une phrase qui m'aide à ne pas me juger, sans protocole.",
+  );
+  assertEquals(phraseOnlyReply.includes("Phrase de réparation"), true);
+  assertEquals(phraseOnlyReply.includes("verdict"), true);
+  assertEquals(phraseOnlyReply.includes("Micro-action"), false);
+  assertEquals(phraseOnlyReply.toLowerCase().includes("protocole"), false);
 
   const resetReply = buildExplicitNoPotionConcreteReply(
     "Pas de potion. Reset de 2 minutes pour revenir à la facture, sans question.",
@@ -1016,7 +1017,7 @@ Deno.test("select_state_potion action-aware potion asks timing before draft when
   assertEquals(ready.status, "pending_confirmation");
 });
 
-Deno.test("select_state_potion does not confirm action-aware draft when timing was inferred from vague window", async () => {
+Deno.test("select_state_potion does not confirm action-aware draft when support timing slot is absent", async () => {
   const output = await runSelectStatePotionIntake({
     user_id: "u1",
     channel: "whatsapp",
@@ -1053,7 +1054,6 @@ Deno.test("select_state_potion does not confirm action-aware draft when timing w
           required_question_ids: [
             "clarity_problem",
             "clarity_need",
-            SUPPORT_TIMING_QUESTION_ID,
           ],
           answers: [{
             question_id: "clarity_problem",
@@ -1065,12 +1065,6 @@ Deno.test("select_state_potion does not confirm action-aware draft when timing w
             label: "Tu as surtout besoin de comprendre quoi ?",
             answer: "Savoir par ou commencer.",
             evidence: ["par ou commencer"],
-          }, {
-            question_id: SUPPORT_TIMING_QUESTION_ID,
-            label:
-              "Quand est-ce que Sophia doit etre la autour de cette action ?",
-            answer: "demain matin",
-            evidence: ["demain matin"],
           }],
           evidence: ["detail"],
         },
@@ -1916,7 +1910,7 @@ Deno.test("select_state_potion router: no_potion constraint blocks new start", a
   );
 });
 
-Deno.test("select_state_potion router: explicit one-shot reminder hands off active potion", async () => {
+Deno.test("select_state_potion router: structured one-shot interrupt exits potion router", async () => {
   const result = await maybeRunSelectStatePotionOperation({
     supabase: fakeSupabase,
     userId: "u1",
@@ -1932,30 +1926,22 @@ Deno.test("select_state_potion router: explicit one-shot reminder hands off acti
       },
     },
     turnFrame: null,
-    routeDecision: selectPotionRouteDecision,
+    routeDecision: {
+      ...selectPotionRouteDecision,
+      response_owner: "normal_reply",
+      selected_handler: undefined,
+      reason_code: "create_one_shot_reminder_interrupts_active_handoff",
+      direct_effects_to_run: ["create_one_shot_reminder"],
+    },
     safetyPregateOutput: fakeSafetyPregate,
     sourceMessageId: "m-one-shot-handoff",
     requestId: "r-one-shot-handoff",
   });
 
-  assert(result);
-  assertEquals(result.toolSkillRun.status, "handoff");
-  assertEquals(result.toolSkillRun.user_intent, "one_shot_reminder_handoff");
-  assertEquals((result.toolSkillRun as any).handoff, {
-    target: "create_one_shot_reminder",
-  });
-  assertEquals((result.toolSkillRun as any).constraints, [{
-    kind: "no_followup",
-    evidence: ["programme ce rappel ponctuel à 14h35, rien de récurrent"],
-  }]);
-  assertEquals(result.executedTools, []);
-  assertEquals(
-    loadSelectStatePotionFrameFromTempMemory(result.nextTempMemory).active,
-    null,
-  );
+  assertEquals(result, null);
 });
 
-Deno.test("select_state_potion router: followup refusal is carried into allowed activation effect", async () => {
+Deno.test("select_state_potion router: followup refusal stays no-mutation on activation attempt", async () => {
   resetConsumedConfirmationTokensForTest();
   const draft = await structuredStatePotionDraftGenerator()({
     operation_type: "select_state_potion",
@@ -1972,7 +1958,6 @@ Deno.test("select_state_potion router: followup refusal is carried into allowed 
   });
   if (!draft) throw new Error("missing_draft");
 
-  let writerScheduledCount = -1;
   const result = await maybeRunSelectStatePotionOperation({
     supabase: fakeSupabase,
     userId: "u1",
@@ -1999,41 +1984,26 @@ Deno.test("select_state_potion router: followup refusal is carried into allowed 
       evidence: ["oui active cette potion"],
       generated_user_message: null,
     }),
-    writeStatePotionActivationOverride: async ({ scheduledFollowups }) => {
-      writerScheduledCount = scheduledFollowups.length;
-      return {
-        potion_session_id: "potion-contract",
-        recurring_reminder_id: "",
-        scheduled_checkin_ids: [],
-      };
-    },
   });
 
   assert(result);
-  assertEquals(result.toolExecution, "success");
-  assertEquals(result.executedTools, ["select_state_potion"]);
-  assertEquals(writerScheduledCount, 0);
+  assertEquals(result.toolExecution, "platform_handoff");
+  assertEquals(result.executedTools, []);
+  assertEquals((result.toolSkillRun as any).status, "apply_attempt");
   assertEquals((result.toolSkillRun as any).user_intent, "activate");
-  assertEquals((result.toolSkillRun as any).constraints, [{
-    kind: "no_followup",
-    evidence: ["oui active cette potion, juste maintenant sans suivi"],
-  }]);
-  const allowedEffect = (result.toolSkillRun as any).allowed_effects[0];
-  assertEquals(allowedEffect.type, "activate_state_potion");
-  assertEquals(allowedEffect.suppress_follow_up_scheduling, true);
+  assertEquals((result.toolSkillRun as any).allowed_effects, []);
+  assertEquals((result.toolSkillRun as any).committed_effects, []);
   assertEquals(
-    (result.toolSkillRun as any).effect_ledger.committed_effects,
-    [{
-      type: "activate_state_potion",
-      operation_id: "op-contract-followup",
-      potion_session_id: "potion-contract",
-      recurring_reminder_id: "",
-      scheduled_checkin_ids: [],
-    }],
+    (result.toolSkillRun as any).platform_handoff?.no_chat_mutation,
+    true,
+  );
+  assertEquals(
+    String(result.content).includes("Je ne l'active pas depuis le chat."),
+    true,
   );
 });
 
-Deno.test("select_state_potion router: blocked executor has no committed activation", async () => {
+Deno.test("select_state_potion router: activation attempt stays platform handoff", async () => {
   resetConsumedConfirmationTokensForTest();
   const draft = await structuredStatePotionDraftGenerator()({
     operation_type: "select_state_potion",
@@ -2075,26 +2045,16 @@ Deno.test("select_state_potion router: blocked executor has no committed activat
       evidence: ["oui active cette potion"],
       generated_user_message: null,
     }),
-    writeStatePotionActivationOverride: async () => ({
-      potion_session_id: "potion-contract",
-      recurring_reminder_id: "reminder-contract",
-      scheduled_checkin_ids: [],
-    }),
   });
 
   assert(result);
-  assertEquals(result.toolExecution, "blocked");
+  assertEquals(result.toolExecution, "platform_handoff");
   assertEquals(result.executedTools, []);
   assertEquals(
-    String(result.content).includes(draft.draft.instant_support_message),
-    false,
+    String(result.content).includes("Je ne l'active pas depuis le chat."),
+    true,
   );
-  assertEquals(
-    (result.toolSkillRun as any).effect_ledger.committed_effects,
-    [],
-  );
-  assertEquals(
-    (result.toolSkillRun as any).effect_ledger.requested_effects[0].type,
-    "activate_state_potion",
-  );
+  assertEquals((result.toolSkillRun as any).status, "apply_attempt");
+  assertEquals((result.toolSkillRun as any).allowed_effects, []);
+  assertEquals((result.toolSkillRun as any).committed_effects, []);
 });

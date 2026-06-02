@@ -49,8 +49,9 @@ function buildRecommendation(args: {
       }`,
     decision: "recommend_operation",
     surface_id: surfaceId,
-    executor_tool_id: args.surface?.executor_tool_id ??
-      args.suggestion.operation_type,
+    executor_tool_id: args.surface
+      ? args.surface.executor_tool_id
+      : args.suggestion.operation_type,
     operation_type: args.suggestion.operation_type,
     operation_input: args.suggestion.operation_input_hint ?? null,
     confidence: confidenceValue(args.suggestion.confidence_band),
@@ -91,7 +92,10 @@ export function resolveSkillOperationSuggestion(args: {
       });
       continue;
     }
-    if (!access.chat_runtime_ready) {
+    if (
+      !access.chat_runtime_ready &&
+      suggestion.operation_type !== "select_state_potion"
+    ) {
       blocked.push({
         operation_type: access.operation_type,
         reason_code: "tool_skill_chat_runtime_not_ready",

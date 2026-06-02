@@ -95,7 +95,7 @@ export function renderSafetyReply(args: {
     return {
       responseContract,
       reply:
-        "Avant de sortir du mode securite, confirme seulement: tu ne vas pas te faire de mal maintenant, et tu peux rester avec quelqu'un ou rappeler quelqu'un si ca remonte ?",
+        "Tu as fait les bons gestes immediats. Reste avec cette personne au telephone ou pres de toi encore un moment, et si ca remonte, appelle-la tout de suite ou appelle le 15 ou 112.",
     };
   }
 
@@ -103,7 +103,7 @@ export function renderSafetyReply(args: {
     return {
       responseContract,
       reply:
-        "Ok. Le danger immediat est ecarte et tu as un appui humain. On sort du mode securite; on reprend doucement, sans pression.",
+        "Ok. Le danger immediat est ecarte et tu as un appui humain. On reprend doucement, sans pression.",
     };
   }
 

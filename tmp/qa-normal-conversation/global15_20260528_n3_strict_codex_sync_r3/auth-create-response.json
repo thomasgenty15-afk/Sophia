@@ -1,1 +1,0 @@
-{"code":403,"error_code":"bad_jwt","msg":"invalid JWT: unable to parse or verify signature, token signature is invalid: signature is invalid"}

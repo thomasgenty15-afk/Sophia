@@ -17,7 +17,6 @@ import {
   structuredDefenseCardDraftGenerator,
   structuredDefenseCardSlotFiller,
 } from "./prepare_defense_card/test_helpers.ts";
-import { executeUpdateCoachPreferences } from "./update_coach_preferences/executor.ts";
 import { runUpdateCoachPreferencesIntake } from "./update_coach_preferences/intake.ts";
 import {
   readyCoachPreferencesStatePatch,
@@ -105,31 +104,9 @@ Deno.test("S6 operations latency smoke measures intake to generator to ack under
       readyCoachPreferencesStatePatch("coach.tone", "direct"),
     ),
   });
-  if (pref.status !== "pending_confirmation") throw new Error("pref_not_ready");
-  const prefToken = await createConfirmationToken({
-    user_id: "u1",
-    operation_id: String(pref.pending_confirmation?.operation_id),
-    operation_type: "update_coach_preferences",
-    draft: pref.draft,
-    source_message_id: "yes-pref",
-    pending_confirmation_id: "pending-pref",
-    secret: SECRET,
-  });
-  assertEquals(
-    (await executeUpdateCoachPreferences({
-      operation_id: String(pref.pending_confirmation?.operation_id),
-      user_id: "u1",
-      draft: pref.draft!,
-      token: prefToken,
-      safety_pregate_risk_band: "none",
-      pending_confirmation_lookup: async () => ({ consumed: false }),
-      token_consumption_check: async (tokenId) =>
-        hasConsumedConfirmationTokenForTest(tokenId),
-      write_preferences_patch: async () => ({ preferences_update_id: "pref" }),
-      secret: SECRET,
-    })).status,
-    "executed",
-  );
+  if (pref.status !== "handoff_ready") throw new Error("pref_not_ready");
+  assertEquals(pref.pending_confirmation, undefined);
+  assertEquals(pref.handoff_draft?.no_chat_mutation, true);
   completed++;
 
   resetConsumedConfirmationTokensForTest();

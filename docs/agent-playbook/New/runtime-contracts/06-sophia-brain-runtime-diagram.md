@@ -15,16 +15,22 @@ flowchart TD
   RUN --> CTX["Context loaders\nhistory, tempMemory, DB projections"]
   CTX --> DISP["Dispatcher L1\nTurnFrame"]
   DISP --> ROUTERS["Routers L2/L3\nRouteDecision"]
-  ROUTERS --> SNAP["UserTurnSnapshot\ncurrent turn truth"]
-  SNAP --> AGENDA["TurnAgenda\nreply/effect/status/memory/repair tasks"]
+  ROUTERS --> HARB["Handoff Arbitration\ncontinue / interrupt / clarify"]
+  HARB --> CLARIFY["clarification_tool\nquestion or resolve"]
+  CLARIFY --> SNAP["UserTurnSnapshot\ncurrent turn truth"]
+  SNAP --> AGENDA["TurnAgenda\nreply/effect/handoff/clarification/status tasks"]
   AGENDA --> CONF["Confirmation Contract\napprove/reject/revise/explain/status"]
 
   CONF --> OPPIPE["Operation Runtime Pipeline"]
   CONF --> CONVPIPE["Conversation Runtime Pipeline"]
 
-  OPPIPE --> TOOL["Tool Skill Owner\ncontract/intake/reducer/effects"]
-  TOOL --> EXEC["Executor\nDB write or external action"]
+  OPPIPE --> DIRECT["Chat-executable effects\none-shot + track progress"]
+  DIRECT --> EXEC["Executor\nDB write or external action"]
   EXEC --> LEDGER["EffectLedger\nrequested/allowed/blocked/committed/failed"]
+
+  OPPIPE --> HANDOFF["Platform Handoff Skills\ncomplex tools no-mutation"]
+  HANDOFF --> SURFACE["Product Surface Registry\ncanonical destination"]
+  SURFACE --> LEDGER
 
   CONVPIPE --> CSKILL["Conversation Skill Owner\ncontract/intake/reducer/renderer"]
   CSKILL --> LEDGER
@@ -49,10 +55,11 @@ flowchart LR
 
   SNAP["UserTurnSnapshot\nstate of this turn"] --> AGENDA["TurnAgenda\nrequested tasks"]
   AGENDA --> TOOLS
+  AGENDA --> HANDOFFS["Platform handoffs\nnon-mutating"]
   AGENDA --> CONV["Conversation skills"]
 
-  CONF["Confirmation Contract\nuser response to pending"] --> TOOLS
-  CONF --> WEEKLY["weekly/daily confirmations"]
+  CONF["Confirmation Contract\nuser response to pending or handoff"] --> TOOLS
+  CONF --> WEEKLY["weekly/daily decisions"]
 
   MEMORY["Memory\ncontext, not proof"] --> DISP["Dispatcher"]
   MEMORY --> CONV
@@ -70,6 +77,9 @@ Règles :
 - TurnAgenda = vérité des tâches demandées par le tour.
 - Confirmation Contract = vérité de ce que le user vient d'approuver, refuser,
   modifier, demander en preview/status ou rendre ambigu.
+- Product Surface Registry = vérité des destinations de handoff.
+- Platform handoff = résultat conversationnel non-mutant, jamais preuve d'état
+  ni commit.
 - Memory = contexte utile, jamais preuve d'existence.
 
 ## Ownership Par Instance
@@ -84,6 +94,8 @@ flowchart TB
     AGENDA["TurnAgenda"]
     CONF["Confirmation Contract"]
     LEDGER["EffectLedger"]
+    HARB["handoff_flow_arbitration"]
+    SURF["product_surface_registry"]
   end
 
   subgraph Tools["Tool Skills"]
@@ -112,9 +124,11 @@ flowchart TB
   end
 
   RUN --> DISP --> ROUTE --> SNAP --> AGENDA --> CONF
+  ROUTE --> HARB
   CONF --> Tools
   CONF --> Conversation
   CONF --> Proactive
+  Tools --> SURF
   Tools --> LEDGER
   Proactive --> LEDGER
   Conversation --> LEDGER
@@ -155,6 +169,41 @@ Règles :
 - `Execute` est le seul endroit où l'écriture durable est autorisée.
 - `Render` parle à partir de `committed`, `failed` ou `blocked`.
 
+Ce cycle reste valide pour les effets chat exécutables et les domaines durables
+qui possèdent encore un executor. En V1 chat, seuls `create_one_shot_reminder`
+et `track_progress_plan_item` restent mutatifs nominaux.
+
+## Cycle D'Un Platform Handoff Skill
+
+```mermaid
+stateDiagram-v2
+  [*] --> Observe
+  Observe --> Intake: message + snapshot + active handoff state
+  Intake --> Clarify: ambiguity
+  Clarify --> Intake: user answers
+  Intake --> Draft: handoff recommendation
+  Draft --> Delivered: platform destination rendered
+  Delivered --> Revise: user refines
+  Delivered --> Repeat: user asks "redis-moi"
+  Delivered --> ApplyAttempt: user says "ok vas-y"
+  Delivered --> Cancelled: user cancels
+  Delivered --> Interrupted: explicit other intent or safety
+  Revise --> Draft
+  Repeat --> Delivered
+  ApplyAttempt --> Delivered
+  Cancelled --> [*]
+  Interrupted --> [*]
+```
+
+Règles :
+
+- Aucun executor.
+- Aucun writer DB.
+- Aucun pending confirmation exécutable.
+- `ApplyAttempt` refuse l'exécution chat et redonne la destination plateforme.
+- `Delivered` est un succès conversationnel non-mutant.
+- La destination vient du Product Surface Registry.
+
 ## Cycle D'Un Conversation Skill
 
 ```mermaid
@@ -174,8 +223,8 @@ Un conversation skill peut :
 - stabiliser;
 - expliquer;
 - produire une phrase;
-- suggérer un tool avec consentement;
-- demander un handoff.
+- suggérer un handoff avec consentement;
+- demander clarification.
 
 Il ne peut pas :
 
@@ -191,18 +240,15 @@ flowchart TD
   PROJ["Projection factuelle"] --> EVID["Evidence summary"]
   EVID --> RED["Reducer strategy"]
   RED --> Q["Question humaine\nsi preuve faible"]
-  RED --> PATCH["Plan patch\nrequires confirmation"]
+  RED --> HANDOFF["Adjust plan handoff\nplatform destination"]
   Q --> STATE["State patch only"]
-  PATCH --> PENDING["Pending confirmation"]
-  PENDING --> CONF["Confirmation Contract"]
-  CONF --> EFFECTS["Effect plan"]
-  EFFECTS --> EXEC["Writer"]
-  EXEC --> LEDGER["Committed/failed effects"]
+  HANDOFF --> LEDGER["platform_handoff\nno commit"]
   LEDGER --> RENDER["Renderer"]
 ```
 
 Daily collecte des preuves légères. Weekly décide une stratégie hebdomadaire à
-partir des preuves, mais ne modifie rien sans confirmation et writer success.
+partir des preuves. Pour V1 chat, les ajustements de plan sortent en handoff
+plateforme; weekly ne modifie pas le plan depuis le chat.
 
 ## Safety Priority
 
@@ -216,7 +262,8 @@ flowchart LR
 ```
 
 Safety est prioritaire sur tous les autres owners. Aucun tool, plan, potion,
-rappel, product help ou préférence coach ne doit s'exécuter pendant une crise.
+rappel, product help, préférence coach ou handoff produit ne doit s'exécuter ou
+être proposé pendant une crise.
 
 ## Où Lire Ensuite
 
@@ -226,6 +273,8 @@ rappel, product help ou préférence coach ne doit s'exécuter pendant une crise
 - Snapshot/agenda : `03-user-turn-snapshot-agenda.md`
 - Confirmation : `04-confirmation-contract.md`
 - EffectLedger : `05-effect-ledger.md`
+- Active handoff arbitration : `07-active-handoff-arbitration.md`
+- Product Surface Registry : `08-product-surface-registry.md`
 - Contrats locaux : `tools/*`, `conversation-skills/*`, `proactive/*`
 
 ## Suivi Des Décisions Architecturales
@@ -234,3 +283,4 @@ rappel, product help ou préférence coach ne doit s'exécuter pendant une crise
 | --- | --- | --- | --- |
 | 2026-05-30 | Ajouter une carte système détaillée des instances Sophia Brain dans `runtime-contracts`. | Active | J59 |
 | 2026-05-30 | Séparer les vérités DB, EffectLedger, TurnAgenda, Confirmation Contract et Memory. | Active | `00-architecture-doctrine.md` |
+| 2026-06-01 | Ajouter la vue `platform_handoff_skill` : complex tools no-mutation, Product Surface Registry et active handoff arbitration. | Active | Architecture handoff V1 |

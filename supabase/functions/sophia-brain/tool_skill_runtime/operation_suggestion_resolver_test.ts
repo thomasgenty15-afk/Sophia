@@ -105,7 +105,10 @@ Deno.test("operation suggestion access allows demotivation owned operations", ()
 
     assertEquals(decision.allowed, true);
     if (decision.allowed) {
-      assertEquals(decision.chat_runtime_ready, true);
+      assertEquals(
+        decision.chat_runtime_ready,
+        operationType !== "select_state_potion",
+      );
     }
   }
 });
@@ -207,6 +210,7 @@ Deno.test("resolver exposes consented potion suggestion", () => {
     resolution.recommendation?.operation_type,
     "select_state_potion",
   );
+  assertEquals(resolution.recommendation?.executor_tool_id, null);
   assertEquals(resolution.recommendation?.requires_consent, true);
   assertEquals(resolution.blocked_suggestions, []);
 });

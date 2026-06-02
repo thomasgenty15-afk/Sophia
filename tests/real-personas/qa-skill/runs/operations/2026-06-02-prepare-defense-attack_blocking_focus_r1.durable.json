@@ -1,0 +1,225 @@
+{
+  "user_defense_cards": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "user_plan_items": {
+    "status": 200,
+    "ok": true,
+    "body": []
+  },
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "6de33665-122a-495c-8885-427d31f5b3fa",
+        "role": "user",
+        "content": "Je ne sais pas si je veux juste comprendre les cartes d'attaque ou en préparer une pour mon action du matin.",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:04:56.963201+00:00"
+      },
+      {
+        "id": "416b51d1-d150-4efa-810c-c2d0a9787f2d",
+        "role": "assistant",
+        "content": "Veux-tu comprendre le fonctionnement des cartes d'attaque ou en préparer une pour ton action ? 🙂",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:05:07.317484+00:00"
+      },
+      {
+        "id": "78ca05fd-8bf5-42f7-aa93-6751f6180fd0",
+        "role": "user",
+        "content": "Je veux en préparer une pour ouvrir mon carnet avant le café. Le piège, c'est que je me dis que je regarderai plus tard. Ne la crée pas depuis le chat, donne-moi seulement le brouillon.",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1",
+        "metadata": {
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:05:27.613326+00:00"
+      },
+      {
+        "id": "585aa7d5-9f55-44eb-92bf-5c985c853349",
+        "role": "assistant",
+        "content": "Cible/action comprise : Ouvrir mon carnet avant le café\n\nObstacle ou piège identifié : je me dis que je regarderai plus tard\n\nTechnique recommandée : Le texte magique\nPourquoi : Cela court-circuite l'envie de remettre à plus tard en ramenant l'attention sur l'instant présent.\n\nBrouillon de carte :\nOuvrir mon carnet\nPlus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.\nMode d'emploi : Lis ce texte dès que tu commences à négocier avec toi-même, puis ouvre ton carnet immédiatement.\n\nÀ préserver :\n- Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.\n- Casser la négociation mentale\n- Agir avant le café\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+        "scope": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "debug": {
+                "evidence": [
+                  "message_no_create"
+                ],
+                "reason_code": "draft_only_no_create"
+              },
+              "draft": {
+                "draft": {
+                  "title": "Ouvrir mon carnet",
+                  "technique": "texte_recadrage",
+                  "instruction": "Lis ce texte dès que tu penses à repousser l'ouverture de ton carnet.",
+                  "mode_emploi": "Lis ce texte dès que tu commences à négocier avec toi-même, puis ouvre ton carnet immédiatement.",
+                  "target_label": "Ouvrir mon carnet avant le café",
+                  "why_it_helps": "Cela court-circuite l'envie de remettre à plus tard en ramenant l'attention sur l'instant présent.",
+                  "generated_asset": "Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.",
+                  "technique_title": "Le texte magique",
+                  "supporting_points": [
+                    "Casser la négociation mentale",
+                    "Agir avant le café",
+                    "Simplifier le premier geste"
+                  ],
+                  "activation_keyword": null
+                },
+                "output_schema": "attack_card_draft_v1",
+                "operation_type": "prepare_attack_card",
+                "confirmation_actions": [
+                  "yes",
+                  "no"
+                ],
+                "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Ouvrir mon carnet » (Le texte magique) : Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.. Je ne crée pas la carte depuis le chat."
+              },
+              "source": "direct_user_request",
+              "status": "handoff_delivered",
+              "user_intent": "draft_only",
+              "operation_id": "2f5b90ef-8aec-4986-8f2c-b9a5faa960e3",
+              "handoff_state": {
+                "mode": "platform_handoff",
+                "draft": {
+                  "mode": "platform_handoff",
+                  "operation_type": "prepare_attack_card",
+                  "recommendation": {
+                    "avoid": [
+                      "Transformer ce brouillon en promesse trop longue.",
+                      "Ajouter plusieurs techniques concurrentes dans la même carte."
+                    ],
+                    "preserve": [
+                      "Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.",
+                      "Casser la négociation mentale",
+                      "Agir avant le café"
+                    ],
+                    "platform_steps": [
+                      "ouvre la section Cartes",
+                      "choisis Carte d’attaque",
+                      "reprends le brouillon proposé"
+                    ],
+                    "technique_label": "Le texte magique",
+                    "card_draft_summary": "Ouvrir mon carnet\nPlus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.\nMode d'emploi : Lis ce texte dès que tu commences à négocier avec toi-même, puis ouvre ton carnet immédiatement.",
+                    "why_this_technique": "Cela court-circuite l'envie de remettre à plus tard en ramenant l'attention sur l'instant présent.",
+                    "platform_destination": "dans la section Cartes d’attaque"
+                  },
+                  "target_summary": "Ouvrir mon carnet avant le café",
+                  "blocker_summary": "je me dis que je regarderai plus tard",
+                  "no_chat_mutation": true,
+                  "missing_decisions": [],
+                  "executable_from_chat": false
+                },
+                "status": "handoff_delivered",
+                "target": {
+                  "kind": "personal_action",
+                  "title": "Ouvrir mon carnet avant le café",
+                  "plan_item_id": null
+                },
+                "skill_id": "prepare_attack_card",
+                "max_turns": 8,
+                "created_at": "2026-06-02T12:06:01.692Z",
+                "turn_count": 1,
+                "updated_at": "2026-06-02T12:06:01.692Z",
+                "source_draft": {
+                  "draft": {
+                    "title": "Ouvrir mon carnet",
+                    "technique": "texte_recadrage",
+                    "instruction": "Lis ce texte dès que tu penses à repousser l'ouverture de ton carnet.",
+                    "mode_emploi": "Lis ce texte dès que tu commences à négocier avec toi-même, puis ouvre ton carnet immédiatement.",
+                    "target_label": "Ouvrir mon carnet avant le café",
+                    "why_it_helps": "Cela court-circuite l'envie de remettre à plus tard en ramenant l'attention sur l'instant présent.",
+                    "generated_asset": "Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.",
+                    "technique_title": "Le texte magique",
+                    "supporting_points": [
+                      "Casser la négociation mentale",
+                      "Agir avant le café",
+                      "Simplifier le premier geste"
+                    ],
+                    "activation_keyword": null
+                  },
+                  "output_schema": "attack_card_draft_v1",
+                  "operation_type": "prepare_attack_card",
+                  "confirmation_actions": [
+                    "yes",
+                    "no"
+                  ],
+                  "confirmation_message": "Voici le brouillon à reprendre dans Cartes / Attaque : « Ouvrir mon carnet » (Le texte magique) : Plus tard n'existe pas, c'est maintenant ou jamais. Ouvre-le, juste une seconde.. Je ne crée pas la carte depuis le chat."
+                },
+                "no_chat_mutation": true
+              },
+              "allowed_effects": [],
+              "blocked_effects": [],
+              "platform_handoff": {
+                "status": "delivered",
+                "surface_id": "attack_cards",
+                "reason_code": "attack_card_platform_handoff",
+                "operation_type": "prepare_attack_card",
+                "no_chat_mutation": true
+              },
+              "selected_handler": "prepare_attack_card",
+              "committed_effects": [],
+              "requested_effects": [],
+              "pending_confirmation": null
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:06:01.700566+00:00"
+      }
+    ]
+  }
+}

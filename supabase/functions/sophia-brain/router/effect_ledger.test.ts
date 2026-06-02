@@ -3,8 +3,10 @@ import {
   createEffectLedger,
   hasCommittedEffect,
   recordBlockedEffect,
+  recordClarificationInLedger,
   recordCommittedEffect,
   recordFailedEffect,
+  recordPlatformHandoffInLedger,
   recordRequestedEffect,
   rewriteUncommittedEffectClaims,
   summarizeEffectLedgerForTrace,
@@ -271,4 +273,116 @@ Deno.test("rewriteUncommittedEffectClaims conserve success generique avec commit
   });
   assertEquals(rewritten.changed, false);
   assertEquals(rewritten.reply, "C'est fait.");
+});
+
+Deno.test("platform handoff proposed is a first-class ledger entry", () => {
+  const ledger = createEffectLedger("turn-handoff-1");
+  const entry = recordPlatformHandoffInLedger(ledger, {
+    effect_id: "handoff-1",
+    operation_type: "adjust_plan_item",
+    status: "proposed",
+    source: "weekly_review",
+    surface_id: "plan",
+    reason_code: "weekly_recommended_plan_adjustment",
+  });
+
+  assertEquals(entry.kind, "platform_handoff");
+  assertEquals(entry.status, "proposed");
+  assertEquals(entry.no_chat_mutation, true);
+  assertEquals(entry.committed, false);
+  assertEquals(entry.executed_tool, false);
+});
+
+Deno.test("platform handoff delivered does not count as committed or executed", () => {
+  const ledger = createEffectLedger("turn-handoff-2");
+  recordPlatformHandoffInLedger(ledger, {
+    effect_id: "handoff-2",
+    operation_type: "prepare_attack_card",
+    status: "delivered",
+    source: "dispatcher",
+    surface_id: "attack_card",
+  });
+
+  assertEquals(
+    hasCommittedEffect(
+      ledger,
+      (entry) => entry.operation_type === "prepare_attack_card",
+    ),
+    false,
+  );
+  assertEquals(ledger.entries[0].executed_tool, false);
+});
+
+Deno.test("clarification asked is a non-mutant ledger entry", () => {
+  const ledger = createEffectLedger("turn-clarification-1");
+  const entry = recordClarificationInLedger(ledger, {
+    effect_id: "clarification-1",
+    status: "asked",
+    owner: "orientation_clarification",
+    ambiguity_kind: "intent",
+    candidate_ids: ["one_shot", "recurring"],
+    source: "dispatcher",
+  });
+
+  assertEquals(entry.kind, "clarification");
+  assertEquals(entry.status, "asked");
+  assertEquals(entry.no_chat_mutation, true);
+  assertEquals(entry.committed, false);
+});
+
+Deno.test("durable effect blocked remains distinct from platform handoff", () => {
+  const ledger = createEffectLedger("turn-distinct-1");
+  recordBlockedEffect(ledger, {
+    effect_id: "blocked-1",
+    effect_type: "one_shot_reminder.create",
+    source: "tool_skill",
+    reason_code: "missing_time",
+  });
+  recordPlatformHandoffInLedger(ledger, {
+    effect_id: "handoff-1",
+    operation_type: "adjust_plan_item",
+    status: "delivered",
+    source: "dispatcher",
+  });
+
+  assertEquals(ledger.entries[0].kind ?? "durable_effect", "durable_effect");
+  assertEquals(ledger.entries[0].status, "blocked");
+  assertEquals(ledger.entries[1].kind, "platform_handoff");
+  assertEquals(ledger.entries[1].status, "delivered");
+});
+
+Deno.test("handoff wording is allowed without commit", () => {
+  const ledger = createEffectLedger("turn-handoff-wording");
+  recordPlatformHandoffInLedger(ledger, {
+    effect_id: "handoff-wording",
+    operation_type: "adjust_plan_item",
+    status: "delivered",
+    source: "dispatcher",
+    surface_id: "plan",
+  });
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply:
+      "Je te conseille de le faire dans la section Plan. Je ne le modifie pas depuis le chat.",
+    ledger,
+  });
+
+  assertEquals(rewritten.changed, false);
+});
+
+Deno.test("done language for handoff is blocked without commit", () => {
+  const ledger = createEffectLedger("turn-handoff-done");
+  recordPlatformHandoffInLedger(ledger, {
+    effect_id: "handoff-done",
+    operation_type: "adjust_plan_item",
+    status: "delivered",
+    source: "dispatcher",
+    surface_id: "plan",
+  });
+  const rewritten = rewriteUncommittedEffectClaims({
+    reply: "J'ai modifié ton plan.",
+    ledger,
+  });
+
+  assertEquals(rewritten.changed, true);
+  assertEquals(rewritten.reason_codes, ["uncommitted_plan_adjust_claim"]);
 });

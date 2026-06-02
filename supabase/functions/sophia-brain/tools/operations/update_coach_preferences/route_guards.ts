@@ -151,10 +151,12 @@ export function isCoachPreferenceVerificationRequest(
     /\b(tu as bien|t as bien|est ce que tu as|est-ce que tu as|c est bien garde|cest bien garde|tu gardes bien|tu l as bien garde)\b/
       .test(text) ||
     /\b(bien garde|bien enregistre|bien applique|deja garde|deja enregistre)\b/
+      .test(text) ||
+    /\b(verifie|vérifie|quelles preferences|preferences actives|preference coach active|deja actives|sont actives)\b/
       .test(text);
   if (!asksVerification) return false;
   const mentionsPreference =
-    /\b(preference|question courte|une seule question|moins de questions|quand je bloque|ton style|ta facon|ta maniere)\b/
+    /\b(preference|preferences|question courte|une seule question|moins de questions|quand je bloque|ton style|ta facon|ta maniere)\b/
       .test(text);
   if (!mentionsPreference) return false;
   const asksChange =
@@ -240,6 +242,7 @@ export function shouldRuntimeCoachPreferenceOverrideRoute(args: {
   if (args.routeDecision?.response_owner === "safety") return false;
   if (blocksToolSkills(args.safetyRiskBand ?? "none")) return false;
   if (args.hasPendingOperationConfirmation) return false;
+  if (isCoachPreferenceVerificationRequest(args.message)) return true;
   if (
     args.routeDecision?.response_owner === "tool_skill" &&
     args.routeDecision?.selected_handler === "update_coach_preferences"
@@ -247,7 +250,6 @@ export function shouldRuntimeCoachPreferenceOverrideRoute(args: {
   if (!isRuntimeCoachPreferenceRequest(args.message)) return false;
   if (
     isLocalTextRevisionRequest(args.message) ||
-    isCoachPreferenceVerificationRequest(args.message) ||
     isImmediateModeRequestNotCoachPreference(args.message)
   ) return false;
   return true;

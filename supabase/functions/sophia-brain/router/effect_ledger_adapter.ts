@@ -5,41 +5,35 @@ import {
   type EffectLedgerEntry,
   recordAllowedEffect,
   recordBlockedEffect,
+  recordClarificationInLedger,
   recordCommittedEffect,
   recordFailedEffect,
+  recordPlatformHandoffInLedger,
   recordRequestedEffect,
 } from "./effect_ledger.ts";
-import type { TurnAgenda } from "./turn_agenda.ts";
+import { isPlatformHandoffOperation, type TurnAgenda } from "./turn_agenda.ts";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 const EFFECT_TYPE_BY_TOOL_TYPE: Record<string, string> = {
-  update_coach_preferences: "coach_preferences.update",
   create_one_shot_reminder: "one_shot_reminder.create",
   cancel_one_shot_reminder: "one_shot_reminder.cancel",
-  create_recurring_reminder: "recurring_reminder.create",
   create_attack_card: "attack_card.create",
-  prepare_attack_card: "attack_card.create",
   create_defense_card: "defense_card.create",
-  prepare_defense_card: "defense_card.create",
-  select_state_potion: "state_potion.activate",
   activate_state_potion: "state_potion.activate",
   track_progress_plan_item: "plan_item_progress.track",
-  adjust_plan_item: "plan_item.adjust",
+  update_coach_preferences: "coach_preferences.update",
 };
 
 const OPERATION_TYPE_BY_EFFECT_TYPE: Record<string, string> = {
-  "coach_preferences.update": "update_coach_preferences",
   "one_shot_reminder.create": "one_shot_reminder",
   "one_shot_reminder.cancel": "one_shot_reminder",
-  "recurring_reminder.create": "create_recurring_reminder",
   "attack_card.create": "prepare_attack_card",
   "defense_card.create": "prepare_defense_card",
-  "state_potion.activate": "select_state_potion",
   "plan_item_progress.track": "track_progress_plan_item",
-  "plan_item.adjust": "adjust_plan_item",
+  "coach_preferences.update": "update_coach_preferences",
 };
 
 const COMMITTED_ID_KEYS = [
@@ -57,12 +51,9 @@ const COMMITTED_ID_KEYS = [
 const COMMITTED_DB_TABLE_BY_EFFECT_TYPE: Record<string, string> = {
   "one_shot_reminder.create": "scheduled_checkins",
   "one_shot_reminder.cancel": "scheduled_checkins",
-  "recurring_reminder.create": "recurring_reminders",
   "attack_card.create": "user_attack_cards",
   "defense_card.create": "user_defense_cards",
   "plan_item_progress.track": "plan_item_progress_logs",
-  "plan_item.adjust": "plan_patches",
-  "state_potion.activate": "potion_sessions",
 };
 
 // Traduction runtime/tool/Agenda vers le ledger d'effets. Le coeur du ledger reste dans effect_ledger.ts.
@@ -70,7 +61,13 @@ export type OperationRuntimeResult = {
   content: string;
   additionalContents?: string[];
   nextTempMemory: any;
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  toolExecution:
+    | "none"
+    | "blocked"
+    | "success"
+    | "failed"
+    | "uncertain"
+    | "platform_handoff";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
 };
@@ -182,6 +179,100 @@ export function recordToolSkillEffectsInLedger(args: {
   const selectedHandler = String(run.selected_handler ?? "").trim() || null;
   const operationId = String(run.operation_id ?? "").trim() || null;
   const status = String(run.status ?? "").trim() || null;
+  const hasExplicitEffectArrays =
+    Array.isArray(run.requested_effects) ||
+    Array.isArray(run.allowed_effects) ||
+    Array.isArray(run.committed_effects) ||
+    Array.isArray(run.failed_effects) ||
+    Array.isArray(run.blocked_effects);
+
+  if (isRecord(run.platform_handoff)) {
+    const handoff = run.platform_handoff;
+    const operationType = String(
+      handoff.operation_type ?? run.operation_type ?? selectedHandler ?? "",
+    ).trim();
+    if (operationType) {
+      recordPlatformHandoffInLedger(args.ledger, {
+        effect_id: `${args.ledger.turn_id}:platform_handoff:${
+          String(handoff.status ?? status ?? "delivered")
+        }:${operationType}:${operationId ?? "runtime"}`,
+        operation_type: operationType,
+        operation_id: operationId,
+        tool_id: selectedHandler,
+        status: String(handoff.status ?? status ?? "delivered") === "blocked"
+          ? "blocked"
+          : String(handoff.status ?? status ?? "delivered") === "cancelled"
+          ? "cancelled"
+          : String(handoff.status ?? status ?? "delivered") === "superseded"
+          ? "superseded"
+          : String(handoff.status ?? status ?? "delivered") === "requested"
+          ? "requested"
+          : String(handoff.status ?? status ?? "delivered") === "proposed"
+          ? "proposed"
+          : "delivered",
+        source: selectedHandler === "weekly_adaptive_review_v1"
+          ? "weekly_review"
+          : "tool_skill",
+        reason_code: String(
+          handoff.reason_code ?? run.reason_code ?? status ?? "",
+        ).trim() || null,
+        surface_id: String(handoff.surface_id ?? "").trim() || null,
+        payload_summary: {
+          no_chat_mutation: true,
+          status,
+          surface_id: handoff.surface_id ?? null,
+        },
+      });
+      return;
+    }
+  }
+
+  if (
+    selectedHandler &&
+    isPlatformHandoffOperation(selectedHandler) &&
+    !hasExplicitEffectArrays
+  ) {
+    const nonTerminalIntakeStatuses = new Set([
+      "ask_question",
+      "clarifying",
+      "collecting",
+    ]);
+    if (
+      String(args.toolExecution ?? "") === "blocked" &&
+      nonTerminalIntakeStatuses.has(status ?? "")
+    ) {
+      return;
+    }
+    recordPlatformHandoffInLedger(args.ledger, {
+      effect_id:
+        `${args.ledger.turn_id}:platform_handoff:blocked:${selectedHandler}:${
+          operationId ?? "runtime"
+        }`,
+      operation_type: selectedHandler,
+      operation_id: operationId,
+      tool_id: selectedHandler,
+      status: "blocked",
+      source: "tool_skill",
+      reason_code: "missing_platform_handoff_contract",
+      surface_id: null,
+      payload_summary: {
+        no_chat_mutation: true,
+        status,
+        rejected_effect_arrays: {
+          requested_effects: Array.isArray(run.requested_effects)
+            ? run.requested_effects.length
+            : 0,
+          allowed_effects: Array.isArray(run.allowed_effects)
+            ? run.allowed_effects.length
+            : 0,
+          committed_effects: Array.isArray(run.committed_effects)
+            ? run.committed_effects.length
+            : 0,
+        },
+      },
+    });
+    return;
+  }
 
   const recordEffectArray = (
     key:
@@ -333,6 +424,81 @@ export function recordAgendaEffectsInLedger(args: {
   if (!agenda) return;
   const seen = new Set<string>();
   for (const task of agenda.tasks) {
+    if (task.kind === "platform_handoff" && task.operation_type) {
+      const handoffId =
+        `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
+      if (seen.has(handoffId)) continue;
+      seen.add(handoffId);
+      const status = task.status === "blocked"
+        ? "blocked"
+        : task.status === "delivered"
+        ? "delivered"
+        : task.status === "cancelled"
+        ? "cancelled"
+        : task.status === "superseded"
+        ? "superseded"
+        : task.status === "requested" || task.status === "candidate"
+        ? "requested"
+        : "proposed";
+      recordPlatformHandoffInLedger(args.ledger, {
+        effect_id: handoffId,
+        operation_type: task.operation_type,
+        operation_id: null,
+        tool_id: task.owner,
+        status,
+        source: task.source === "weekly_review"
+          ? "weekly_review"
+          : task.source === "conversation_skill"
+          ? "conversation_skill"
+          : task.source === "dispatcher"
+          ? "dispatcher"
+          : "router",
+        reason_code: task.reason_code ?? null,
+        surface_id: task.surface_id ?? null,
+        payload_summary: {
+          task_id: task.task_id,
+          source: task.source,
+          evidence: task.evidence ?? [],
+          user_goal_summary: task.user_goal_summary ?? null,
+          recommended_next_step: task.recommended_next_step ?? null,
+        },
+      });
+      continue;
+    }
+    if (task.kind === "clarification") {
+      const clarificationId =
+        `${args.ledger.turn_id}:agenda:${task.status}:${task.task_id}`;
+      if (seen.has(clarificationId)) continue;
+      seen.add(clarificationId);
+      const status = task.status === "asked"
+        ? "asked"
+        : task.status === "resolved"
+        ? "resolved"
+        : task.status === "cancelled"
+        ? "cancelled"
+        : task.status === "topic_change"
+        ? "topic_change"
+        : "requested";
+      recordClarificationInLedger(args.ledger, {
+        effect_id: clarificationId,
+        operation_type: task.operation_type ?? null,
+        operation_id: null,
+        tool_id: task.owner,
+        owner: task.owner,
+        ambiguity_kind: task.ambiguity_kind ?? "intent",
+        candidate_ids: task.candidate_ids ?? [],
+        selected_candidate_id: task.selected_candidate_id ?? null,
+        status,
+        source: task.source === "dispatcher" ? "dispatcher" : "router",
+        reason_code: task.reason_code ?? null,
+        payload_summary: {
+          task_id: task.task_id,
+          source: task.source,
+          evidence: task.evidence ?? [],
+        },
+      });
+      continue;
+    }
     if (task.kind !== "effect" || !task.operation_type) continue;
     const effectType = effectTypeFromToolType(task.operation_type);
     const effectId =
@@ -377,7 +543,9 @@ export function recordRecommendationEffectInLedger(args: {
   const recommendationId = String(args.recommendation.recommendation_id ?? "")
     .trim();
   const effectType = operationType
-    ? effectTypeFromToolType(operationType)
+    ? isPlatformHandoffOperation(operationType)
+      ? `platform_handoff.${operationType}`
+      : effectTypeFromToolType(operationType)
     : surfaceId
     ? `surface.recommend.${surfaceId}`
     : "product.recommendation";
@@ -405,13 +573,31 @@ export function recordRecommendationEffectInLedger(args: {
     },
   };
   if (decision === "blocked") {
-    recordBlockedEffect(args.ledger, base);
+    if (operationType && isPlatformHandoffOperation(operationType)) {
+      recordPlatformHandoffInLedger(args.ledger, {
+        ...base,
+        operation_type: operationType,
+        status: "blocked",
+        surface_id: surfaceId || null,
+      });
+    } else {
+      recordBlockedEffect(args.ledger, base);
+    }
     return;
   }
   if (
     decision === "recommend_operation" || decision === "recommend" ||
     decision === "ask_clarification"
   ) {
+    if (operationType && isPlatformHandoffOperation(operationType)) {
+      recordPlatformHandoffInLedger(args.ledger, {
+        ...base,
+        operation_type: operationType,
+        status: "proposed",
+        surface_id: surfaceId || null,
+      });
+      return;
+    }
     recordRequestedEffect(args.ledger, base);
   }
 }
@@ -421,7 +607,7 @@ export function agendaBlockedReasonForOperation(
   operationType: string,
 ): string | null {
   const blocked = agenda?.tasks.find((task) =>
-    task.kind === "effect" &&
+    (task.kind === "effect" || task.kind === "platform_handoff") &&
     task.status === "blocked" &&
     task.operation_type === operationType
   );

@@ -65,13 +65,6 @@ type TurnFrameWithRouteHints = TurnFrame & {
   route_blocked_codes?: string[];
 };
 type ToolSkillIntent = TurnFrame["tool_skill_intents"][number];
-type ExplicitOperationType =
-  | "prepare_attack_card"
-  | "prepare_defense_card"
-  | "adjust_plan_item"
-  | "select_state_potion"
-  | "update_coach_preferences"
-  | "create_recurring_reminder";
 
 const TOOL_OPPORTUNITY_METADATA: Record<
   Exclude<ToolSkillOpportunity["type"], "none">,
@@ -124,38 +117,6 @@ function riskMax(a: RiskBand, b: RiskBand): RiskBand {
     a;
 }
 
-function looksLikeOneShotReminderRequest(text: string): boolean {
-  if (looksLikeExistingOneShotReminderReferenceOnly(text)) return false;
-  const hasReminderVerb =
-    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’]envoyer un rappel\b|\bdis[- ]?moi\b|\bpréviens[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
-      .test(text);
-  if (!hasReminderVerb) return false;
-  const weekdaysMentioned = text.match(
-    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)s?\b/g,
-  ) ?? [];
-  if (
-    /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|hebdo|hebdomadaire|jours?\s+de\s+semaine|du\s+lundi\s+au\s+vendredi)\b/
-      .test(text) ||
-    new Set(weekdaysMentioned).size >= 2
-  ) return false;
-  return /\b\d{1,2}h(?:\d{2})?\b|\bdemain\b|\baujourd['’]hui\b|\bce soir\b|\bapr[eè]s-demain\b|\bdans\s+(?:une?|un|1|\d{1,3})\s*(?:minutes?|min|heures?|h|jours?)\b|\bdans\s+un\s+quart\s+d['’]heure\b|\bdans\s+une\s+demi[- ]?heure\b/
-    .test(text);
-}
-
-function looksLikeExistingOneShotReminderReferenceOnly(text: string): boolean {
-  if (!/\brappel\b/.test(text)) return false;
-  const referencesExisting =
-    /\b(je parle|il s agit|c est|celui|celle|ce rappel|le rappel)\b[\s\S]{0,120}\b(viens de|deja|déjà|programme|programmé|programmee|programmer|cree|créé|crée)\b/
-      .test(text) ||
-    /\b(rappel ponctuel|ce rappel|le rappel)\b[\s\S]{0,120}\b(que tu viens|que tu as|deja|déjà)\b/
-      .test(text);
-  const managementQuestion =
-    /\b(si|comment|ou|où|retrouve|retrouver|verifie|vérifie|verifier|vérifier|deplace|déplace|deplacer|déplacer|supprime|supprimer|annule|annuler|change|changer|modifie|modifier)\b/
-      .test(text) &&
-    /\b(rappel ponctuel|ce rappel|le rappel|rappel de demain)\b/.test(text);
-  return referencesExisting || managementQuestion;
-}
-
 function estimateTokens(text: string): number {
   return Math.ceil(String(text ?? "").length / 4);
 }
@@ -165,40 +126,6 @@ function normalize(text: string): string {
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     .toLowerCase();
-}
-
-function isReviewDataCaptureMessage(text: string, recentText = ""): boolean {
-  const combined = `${text}\n${recentText}`;
-  const reviewContext =
-    /\b(bilan|weekly|hebdo|fin de semaine|daily|check du soir|point de la semaine|review)\b/
-      .test(combined);
-  const noteOnly =
-    /\b(note|noter|noté|notee|notée|retenir|retenu|retienne|enregistre|enregistré|enregistree|enregistrée|garde ca|garde ça|cause probable|raison probable|pour le bilan|pour le weekly|pour l'hebdo|juste que ce soit|confirme simplement|confirmer simplement|ce qui est enregistre|ce qui est enregistré)\b/
-      .test(combined);
-  const dailyStatusAnswer =
-    /\b(fait|pas fait|commence|commencé|termine|terminé|a moitie|à moitié|partiel|partielle)\b/
-      .test(text) &&
-    /\b(qu'est-ce qui s'est passe|qu’est-ce qui s’est passé|est-ce que tu as fait|check du soir|daily_action_review|daily review)\b/
-      .test(recentText);
-  return (reviewContext && noteOnly) || dailyStatusAnswer;
-}
-
-function isActionMemoryRecallOrConfirmation(
-  text: string,
-  recentText = "",
-): boolean {
-  const combined = `${text}\n${recentText}`;
-  const actionMemoryAsk =
-    /\b(souvenir|souvenirs|memorise|memorises|mémoire|memoire|ce que tu sais|sais deja|sais déjà|detail concret|détail concret|pas de conseils generiques|pas de conseils génériques)\b/
-      .test(combined) &&
-    /\b(action|session focus|habitude|mission|clarification|demarrage|démarrage)\b/
-      .test(combined);
-  const simpleConfirmation =
-    /\b(tu confirmes|confirme|c'est bien ca|c est bien ca|donc je dois|je garde|pas changer|ne pas changer)\b/
-      .test(text) &&
-    /\b(action|session focus|habitude|mission|clarification|technique|fichier|minuteur)\b/
-      .test(combined);
-  return actionMemoryAsk || simpleConfirmation;
 }
 
 function confidence(high = true): ConfidenceBand {
@@ -876,35 +803,6 @@ function selectDominantToolSkillIntent(
   return [ranked[0].intent];
 }
 
-function fallbackToolSkillIntentIsAllowed(
-  intent: ToolSkillIntent,
-  text: string,
-  recentText: string,
-): boolean {
-  if (
-    intent.explicitness !== "explicit" ||
-    intent.confidence_band === "low" ||
-    intent.user_intent === "explain_only"
-  ) return false;
-  switch (intent.operation_type) {
-    case "adjust_plan_item":
-      return intent.user_intent === "adjust" &&
-        isExplicitAdjustPlanOperationRequest(text);
-    case "prepare_attack_card":
-      return isExplicitAttackCardOperationRequest(text, recentText);
-    case "select_state_potion":
-      return isExplicitStatePotionOperationRequest(text);
-    case "update_coach_preferences":
-      return isExplicitCoachPreferenceOperationRequest(text);
-    case "create_recurring_reminder":
-      return isExplicitRecurringReminderRequest(text);
-    case "prepare_defense_card":
-      return true;
-    default:
-      return false;
-  }
-}
-
 function normalizePolicy(raw: unknown): DispatcherMemoryRetrievalPolicy {
   const value = String(raw ?? "").trim();
   return value === "force_taxonomy" || value === "taxonomy_first" ||
@@ -1059,125 +957,6 @@ function inferDomainMemoryTarget(text: string) {
   return null;
 }
 
-function inferMemoryPlan(
-  message: string,
-  references?: {
-    action_reference?: TurnFrame["action_reference"];
-    level_reference?: TurnFrame["level_reference"];
-  },
-): DispatcherMemoryPlan {
-  const raw = String(message ?? "");
-  const text = normalize(raw);
-  const dense = raw.length > 280;
-  const asksRecall =
-    /\b(tu te souviens|souviens|rappelle|ce qu on disait|tout a l heure|derniere fois)\b/
-      .test(text);
-  const asksInventory =
-    /\b(en general|globalement|qu est ce que tu sais|tu vois quoi|mes schemas|je repete quoi|bilan|dossier|pattern)\b/
-      .test(text);
-  const dated =
-    /\b(hier|avant-hier|vendredi|lundi|mardi|mercredi|jeudi|samedi|dimanche|semaine derniere)\b/
-      .test(text);
-  const actionRelated =
-    /\b(action|plan|fait|pas fait|suivi|avance|avancé|termine|terminé|bloque|bloqué|rate|raté)\b/
-      .test(text);
-  const targets: DispatcherMemoryPlan["targets"] = [];
-  const domainTarget = inferDomainMemoryTarget(text);
-  if (domainTarget && (asksRecall || asksInventory || dense)) {
-    targets.push(domainTarget);
-  }
-  if (asksRecall && !asksInventory) {
-    targets.push({
-      type: "topic",
-      key: "active_topic",
-      query_hint: raw.slice(0, 160),
-      retrieval_policy: "semantic_first",
-    });
-  }
-  if (dated) {
-    targets.push({
-      type: "event",
-      key: "dated_reference",
-      query_hint: raw.slice(0, 160),
-      retrieval_policy: "semantic_first",
-    });
-  }
-  if (actionRelated && (asksRecall || dense)) {
-    targets.push({
-      type: "action",
-      key: "action_observation",
-      query_hint: raw.slice(0, 160),
-      retrieval_policy: "semantic_first",
-    });
-  }
-  const actionReference = references?.action_reference;
-  if (
-    actionReference?.detected &&
-    (actionReference.status === "identified" ||
-      actionReference.status === "family_only")
-  ) {
-    targets.push({
-      type: "action",
-      key: actionReference.plan_item_id ??
-        actionReference.action_family_key ??
-        "action_observation",
-      query_hint: actionReference.action_title ?? raw.slice(0, 160),
-      expansion_policy: actionReference.expansion_policy ?? null,
-      retrieval_policy: "semantic_first",
-      priority: "high",
-    });
-  }
-  const levelReference = references?.level_reference;
-  if (
-    levelReference?.detected &&
-    levelReference.expansion_policy === "include_level_execution_handoff"
-  ) {
-    targets.push({
-      type: "level",
-      key: levelReference.level_id ??
-        levelReference.transformation_id ??
-        levelReference.status,
-      query_hint: raw.slice(0, 160),
-      expansion_policy: "include_level_execution_handoff",
-      retrieval_policy: "semantic_first",
-      priority: "medium",
-    });
-  }
-  const hasTaxonomy = targets.some((target) =>
-    target.type === "domain_key" || target.type === "domain_prefix"
-  );
-  const hasReferenceTarget = Boolean(actionReference?.detected) ||
-    Boolean(levelReference?.detected);
-  const memoryMode = asksInventory
-    ? "broad"
-    : dense || asksRecall || targets.length > 0 || hasReferenceTarget
-    ? "light"
-    : "none";
-  return {
-    response_intent: asksInventory
-      ? "inventory"
-      : dense
-      ? "problem_solving"
-      : "reflection",
-    reasoning_complexity: asksInventory || dense ? "medium" : "low",
-    context_need: asksInventory
-      ? "broad"
-      : memoryMode === "light"
-      ? "targeted"
-      : "minimal",
-    memory_mode: memoryMode,
-    model_tier_hint: asksInventory || dense ? "standard" : "lite",
-    context_budget_tier: asksInventory || dense
-      ? "medium"
-      : memoryMode === "light"
-      ? "small"
-      : "tiny",
-    targets,
-    retrieval_policy: hasTaxonomy ? "taxonomy_first" : "semantic_first",
-    plan_confidence: 0.7,
-  };
-}
-
 function sanitizeMemoryPlan(
   raw: unknown,
   fallback: DispatcherMemoryPlan,
@@ -1225,19 +1004,12 @@ function activeReviewSkillId(input: RunDispatcherInput): string | null {
     : null;
 }
 
-function explicitReviewExitRequested(input: RunDispatcherInput): boolean {
-  if (!activeReviewSkillId(input)) return false;
-  const text = normalize(input.user_message);
-  return /\boublie (le )?bilan\b|\b(arrete|arrête|stop|pause) (le )?bilan\b|\bplus tard pour (le )?bilan\b|\bje veux parler de\b.+\bmaintenant\b|\bsors? du bilan\b/
-    .test(text);
-}
-
 function suppressActionAndLevelMemoryDuringReview(
   plan: DispatcherMemoryPlan,
   input: RunDispatcherInput,
 ): DispatcherMemoryPlan {
   const skillId = activeReviewSkillId(input);
-  if (!skillId || explicitReviewExitRequested(input)) return plan;
+  if (!skillId) return plan;
   const targets = (plan.targets ?? []).filter((target) =>
     target.type !== "action" && target.type !== "level"
   );
@@ -1264,7 +1036,7 @@ function suppressReferencesDuringReview(
   action_reference: TurnFrame["action_reference"];
   level_reference: TurnFrame["level_reference"];
 } {
-  if (!activeReviewSkillId(input) || explicitReviewExitRequested(input)) {
+  if (!activeReviewSkillId(input)) {
     return {
       action_reference: actionReference,
       level_reference: levelReference,
@@ -1290,47 +1062,13 @@ function suppressConcurrentRoutingDuringReview(
   input: RunDispatcherInput,
   turnFrame: TurnFrame,
 ): TurnFrame {
-  if (!activeReviewSkillId(input) || explicitReviewExitRequested(input)) {
+  if (!activeReviewSkillId(input)) {
     return turnFrame;
   }
   return {
     ...turnFrame,
     direct_effects: [],
     tool_skill_opportunity: DEFAULT_TOOL_SKILL_OPPORTUNITY,
-  };
-}
-
-function mergeReferenceMemoryTargets(
-  plan: DispatcherMemoryPlan,
-  fallback: DispatcherMemoryPlan,
-): DispatcherMemoryPlan {
-  const required = (fallback.targets ?? []).filter((target) =>
-    target.type === "action" || target.type === "level"
-  );
-  if (required.length === 0) return plan;
-  const existing = new Set(
-    (plan.targets ?? []).map((target) =>
-      `${target.type}:${target.key}:${target.query_hint ?? ""}`
-    ),
-  );
-  const merged = [...(plan.targets ?? [])];
-  for (const target of required) {
-    const key = `${target.type}:${target.key}:${target.query_hint ?? ""}`;
-    if (existing.has(key)) continue;
-    existing.add(key);
-    merged.push(target);
-  }
-  if (merged.length === plan.targets.length) return plan;
-  return {
-    ...plan,
-    memory_mode: plan.memory_mode === "none" ? "light" : plan.memory_mode,
-    context_need: plan.context_need === "minimal"
-      ? "targeted"
-      : plan.context_need,
-    context_budget_tier: plan.context_budget_tier === "tiny"
-      ? "small"
-      : plan.context_budget_tier,
-    targets: merged,
   };
 }
 
@@ -2009,7 +1747,7 @@ function detectsCoachPreferenceUpdate(text: string): boolean {
 
 function isExplicitRecurringReminderRequest(text: string): boolean {
   const hasReminderVerb =
-    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bfais\s+(?:le|ce|un)\s+rappel\b|\bfaire\s+(?:le|ce|un)\s+rappel\b|\bmets[- ]?moi\b|\bmettre un rappel\b|\bprogramme[- ]?moi\b|\bprogrammer\b|\bprogramme\b|\bplanifie\b|\bplanifier\b|\bparametre\b|\bparamètre\b|\bparametrer\b|\bparamétrer\b|\bcree\b|\bcr[ée]e\b|\bcr[ée]er\b|\benvoie[- ]?moi\b|\benvoies[- ]?moi\b|\bm['’ ]?envoyer\b|\bme l['’ ]?envoyer\b|\benvoyer\b/
+    /\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bme fasse un rappel\b|\bfais\s+(?:le|ce|un)\s+rappel\b|\bfaire\s+(?:le|ce|un)\s+rappel\b|\bmets[- ]?moi\b|\bmettre un rappel\b|\bprogramme[- ]?moi\b|\bprogrammer\b|\bprogramme\b|\bplanifie\b|\bplanifier\b|\bparametre\b|\bparamètre\b|\bparametrer\b|\bparamétrer\b|\bcree\b|\bcr[ée]e\b|\bcr[ée]er\b|\benvoie[- ]?moi\b|\benvoies[- ]?moi\b|\bm['’ ]?envoyer\b|\bme l['’ ]?envoyer\b|\benvoyer\b/
       .test(text);
   const hasRecurringCadence =
     /\brappel recurrent\b|\brappel récurrent\b|\bsoutien recurrent\b|\bsoutien récurrent\b|\btous les jours\b|\bchaque jour\b|\btous les soirs\b|\bchaque soir\b|\btous les matins\b|\bchaque matin\b|\bjours de semaine\b|\bjour de semaine\b|\bdu lundi au vendredi\b|\bchaque semaine\b|\btoutes les semaines\b|\btous les lundis\b|\btous les mardis\b|\btous les mercredis\b|\btous les jeudis\b|\btous les vendredis\b|\btous les samedis\b|\btous les dimanches\b|\bchaque lundi\b|\bchaque mardi\b|\bchaque mercredi\b|\bchaque jeudi\b|\bchaque vendredi\b|\bchaque samedi\b|\bchaque dimanche\b/
@@ -2032,23 +1770,6 @@ function clamp01(value: unknown, fallback = 0): number {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(0, Math.min(1, n));
-}
-
-function inferResearchSignal(message: string): DispatcherResearchSignal {
-  const raw = String(message ?? "").trim();
-  const text = normalize(raw);
-  const explicitResearch =
-    /\b(cherche|recherche|verifie|v[eé]rifie|regarde sur internet|internet|web|google|source|sources|actualite|actu|news|derniere nouvelle|dernieres nouvelles|dernier|derniere|recent|recente|a jour|mise a jour|prix actuel|aujourd'hui)\b/
-      .test(text);
-  if (!explicitResearch) return DEFAULT_RESEARCH_SIGNAL;
-  return {
-    detected: true,
-    value: true,
-    query: raw.slice(0, 180),
-    domain_hint: null,
-    confidence: 0.7,
-    reason: "heuristic_explicit_research_request",
-  };
 }
 
 function sanitizeResearchSignal(
@@ -2083,57 +1804,8 @@ function sanitizeResearchSignal(
   };
 }
 
-function selectExplicitOperation(args: {
-  asksProductHelp: boolean;
-  attackCardRequested: boolean;
-  adjustPlanSignal: boolean;
-  text: string;
-  recentText: string;
-}): ExplicitOperationType | null {
-  if (args.attackCardRequested) return "prepare_attack_card";
-  if (args.asksProductHelp) return null;
-  if (
-    /\bok fais[- ]?le\b/.test(args.text) ||
-    (args.text.trim() === "fais" &&
-      /\bcarte d['’ ]?attaque\b/.test(args.recentText))
-  ) {
-    return "prepare_attack_card";
-  }
-  if (isExplicitDefenseCardOperationRequest(args.text)) {
-    return "prepare_defense_card";
-  }
-  if (args.adjustPlanSignal) return "adjust_plan_item";
-  if (isExplicitStatePotionOperationRequest(args.text)) {
-    return "select_state_potion";
-  }
-  if (isExplicitCoachPreferenceOperationRequest(args.text)) {
-    return "update_coach_preferences";
-  }
-  if (isExplicitRecurringReminderRequest(args.text)) {
-    return "create_recurring_reminder";
-  }
-  return null;
-}
-
 function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
   const message = input.user_message;
-  const text = normalize(message);
-  const recentText = normalize(
-    input.recent_messages.map((turn) => turn.content).join("\n"),
-  );
-  const suppressNonExplicitOpportunity = isReviewDataCaptureMessage(
-    text,
-    recentText,
-  ) || isActionMemoryRecallOrConfirmation(text, recentText);
-  const target = findPlanTarget(input.plan_snapshot, message);
-  const rawActionReference = buildActionReference({ target, text });
-  const rawLevelReference = buildLevelReference(text);
-  const { action_reference: actionReference, level_reference: levelReference } =
-    suppressReferencesDuringReview(
-      input,
-      rawActionReference,
-      rawLevelReference,
-    );
   const safetyRisk = input.safety_pregate_output.risk_band;
   const conversationRisk = evaluateConversationRisk(input);
   const turnFrame: TurnFrame = {
@@ -2151,100 +1823,25 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
     tool_skill_intents: [],
     tool_skill_opportunity: DEFAULT_TOOL_SKILL_OPPORTUNITY,
     skill_signals: {},
-    needs_research: inferResearchSignal(message),
-    action_reference: actionReference,
-    level_reference: levelReference,
-    memory_plan: suppressActionAndLevelMemoryDuringReview(
-      inferMemoryPlan(message, {
-        action_reference: actionReference,
-        level_reference: levelReference,
-      }),
-      input,
-    ),
+    needs_research: DEFAULT_RESEARCH_SIGNAL,
+    action_reference: {
+      detected: false,
+      status: "none",
+      expansion_policy: "none",
+      reason: "semantic_fallback_disabled",
+    },
+    level_reference: {
+      detected: false,
+      status: "none",
+      expansion_policy: "none",
+      reason: "semantic_fallback_disabled",
+    },
+    memory_plan: DEFAULT_MEMORY_PLAN,
   };
 
   if (input.pending_tool_skill_confirmation) {
     turnFrame.confirmation_response = classifyConfirmation(message);
   }
-
-  const explicitSafetyNegated =
-    /\bje ne veux pas me faire du mal\b|\bje veux pas me faire du mal\b|\bje ne suis pas en danger\b|\bje suis pas en danger\b|\bje ne veux pas mourir\b|\bje veux pas mourir\b|\bje n[' ]?ai rien prepare\b|\bje n[' ]?ai rien préparé\b|\brien prepare\b|\brien préparé\b/
-      .test(text);
-  if (
-    !explicitSafetyNegated &&
-    /\bme faire du mal\b|\bsuicid|\ben finir\b|\bmourir\b/.test(text)
-  ) {
-    turnFrame.safety.risk_band = riskMax(
-      turnFrame.safety.risk_band,
-      "critical",
-    );
-    turnFrame.safety.reason_codes.push("dispatcher_safety_escalation");
-    turnFrame.safety.evidence.push(message.slice(0, 160));
-  }
-
-  if (looksLikeOneShotReminderRequest(text)) {
-    turnFrame.direct_effects.push({
-      effect_type: "create_one_shot_reminder",
-      explicitness: "explicit",
-      target_status: "identified",
-      confidence_band: "high",
-      payload_hint: { raw_text: message },
-    });
-  }
-
-  const progressStatus = progressStatusFromText(text);
-  const acuteEmotionInSameTurn = detectsAcuteSelfAttack(text);
-  if (progressStatus && acuteEmotionInSameTurn) {
-    addBlockedCode(turnFrame, "emotion_acute_blocks_direct_effects");
-  }
-  const mentionsKnownPlanTitle = /\bmarche\b/.test(text);
-  const inferredTarget = !target.id && !target.ambiguous &&
-      progressStatus === "completed" && mentionsKnownPlanTitle
-    ? { id: "walk", title: "marche", ambiguous: false }
-    : target;
-  const shouldEmitProgressEffect = Boolean(progressStatus) &&
-    (
-      Boolean(inferredTarget.id) ||
-      inferredTarget.ambiguous ||
-      !mentionsKnownPlanTitle
-    );
-  if (
-    progressStatus && shouldEmitProgressEffect && !acuteEmotionInSameTurn
-  ) {
-    turnFrame.direct_effects.push({
-      effect_type: "track_progress_plan_item",
-      explicitness: "explicit",
-      target_status: inferredTarget.ambiguous
-        ? "ambiguous"
-        : inferredTarget.id
-        ? "identified"
-        : "missing",
-      confidence_band: "high",
-      payload_hint: {
-        target_item_id: inferredTarget.id,
-        target_title: inferredTarget.title ?? null,
-        status_hint: progressStatus,
-      },
-    });
-  }
-
-  if (/\bje vais faire\b/.test(text) && /\bmarche\b/.test(text)) {
-    addBlockedCode(turnFrame, "future_intent_no_write");
-  }
-  if (/\bje suis nul\b/.test(text) && /\bj[' ]?arrete tout\b/.test(text)) {
-    addBlockedCode(turnFrame, "no_solution_pushing");
-  }
-
-  const addSkill = (
-    skillId: string,
-    reason: string,
-    band: ConfidenceBand = "high",
-  ) => {
-    turnFrame.skill_signals.entry = {
-      ...(turnFrame.skill_signals.entry ?? {}),
-      [skillId]: { detected: true, confidence_band: band, reason },
-    };
-  };
 
   if (input.active_skill_state && (input.active_skill_state as any)?.skill_id) {
     const skillId = String((input.active_skill_state as any).skill_id);
@@ -2256,106 +1853,6 @@ function heuristicTurnFrame(input: RunDispatcherInput): TurnFrame {
       },
     };
   }
-
-  const acuteSelfAttack = detectsAcuteSelfAttack(text);
-  const relationshipRegret = detectsRelationshipRegret(text);
-  if (
-    acuteSelfAttack ||
-    (relationshipRegret && !detectsStabilizedConcreteRequest(text))
-  ) {
-    addSkill(
-      "emotional_repair",
-      relationshipRegret
-        ? "relationship_regret_or_guilt"
-        : "self_attack_or_shame",
-    );
-  } else if (
-    detectsExecutionBlocked(text) || detectsStabilizedConcreteRequest(text)
-  ) {
-    addSkill("execution_breakdown", "execution_blocked");
-  } else if (
-    /\bplus envie\b|\bca sert a rien\b|\bça sert à rien\b|\bdemotive|\bdemotivee|\bdémotiv[eé]e?|\ba quoi bon\b|\bà quoi bon\b|\brincee?\b|\brinc[eé]e?\b|\brecommencer a zero\b|\brecommencer à zéro\b|\blas de recommencer\b|\bmarre de recommencer\b|\bmeme point\b|\bmême point\b/
-      .test(text)
-  ) {
-    addSkill("demotivation_repair", "motivation_loss");
-  }
-
-  const productSurfaceMentioned = mentionsProductSurface(text);
-  const productNavigationQuestion =
-    /\bquelle partie\b|\bo[uù] est\b|\bou est\b|\bpar quelle partie\b|\bdois[- ]?je passer\b|\bje dois passer\b/
-      .test(text) &&
-    /\baction\b|\bajust|modifier|noter|dashboard|tableau de bord|mon espace|espace sophia|espace|plan|ressource|carte|potion|initiative|preference|base de vie|inspiration\b/
-      .test(text);
-  const explicitAttackCardCreationRequest =
-    /\bcarte d['’ ]?attaque\b/.test(text) &&
-    /\b(je veux|j'ai besoin|il me faut|fais|faire|cree|crée|creer|créer|prepare|prépare|preparer|préparer|fabrique)\b/
-      .test(text) &&
-    !isProductHelpQuestionAboutToolSurface(text) &&
-    !/\b(c'est quoi|c est quoi|a quoi|à quoi|explique|difference|différence|ou est|où est|ou sont|où sont|retrouve|trouver|modifier|imprimer)\b/
-      .test(text);
-  const adjustPlanSignal = isExplicitAdjustPlanOperationRequest(text);
-  const adjustPlanScope = adjustPlanSignal
-    ? inferAdjustPlanScopeFromText(text)
-    : undefined;
-  const adjustPlanExecutionRequested = adjustPlanSignal &&
-    !/\b(comment|difference|différence|c est quoi|c'est quoi|a quoi|à quoi|explique|expliquer|quelle partie|ou est|où est|retrouver|quand je|si je veux)\b/
-      .test(text);
-  const asksProductHelp = !explicitAttackCardCreationRequest &&
-    !adjustPlanExecutionRequested &&
-    !asksLevelExecutionHandoff(text) &&
-    (detectsProductHelpQuestion(text, recentText) ||
-      productNavigationQuestion);
-  if (asksProductHelp) {
-    addSkill("product_help", "product_question");
-  }
-
-  const attackCardRequested = !asksProductHelp &&
-    isExplicitAttackCardOperationRequest(text, recentText);
-  const operation = selectExplicitOperation({
-    asksProductHelp,
-    attackCardRequested,
-    adjustPlanSignal,
-    text,
-    recentText,
-  });
-
-  if (operation) {
-    turnFrame.tool_skill_intents.push({
-      operation_type: operation,
-      explicitness: "explicit",
-      target_hint: message,
-      operation_input: operation === "adjust_plan_item"
-        ? adjustPlanOperationInputFromText(text, message)
-        : undefined,
-      adjust_plan_scope: operation === "adjust_plan_item"
-        ? adjustPlanScope
-        : undefined,
-      confidence_band: confidence(),
-      ambiguity: target.ambiguous ? "target_ambiguous" : "none",
-      user_intent: operation === "select_state_potion"
-        ? "select"
-        : operation === "adjust_plan_item"
-        ? "adjust"
-        : operation === "update_coach_preferences"
-        ? "update"
-        : "create",
-    });
-  }
-
-  turnFrame.tool_skill_opportunity = inferToolSkillOpportunity({
-    message,
-    text,
-    target,
-    progressStatus,
-    hasPendingOrActiveFlow: Boolean(
-      input.pending_tool_skill_confirmation || input.active_tool_skill_intake ||
-        input.active_skill_state || hasActiveRuntimeContext(input),
-    ),
-    safetyRisk: turnFrame.safety.risk_band,
-    hasToolSkillIntent: turnFrame.tool_skill_intents.length > 0,
-    asksProductHelp,
-    suppressNonExplicitOpportunity,
-  });
 
   if (conversationRisk.should_exit_flows) {
     turnFrame.direct_effects = [];
@@ -2377,21 +1874,9 @@ function sanitizeLlmTurnFrame(
     : {};
   const rawToolSkillIntents = Array.isArray(raw?.tool_skill_intents)
     ? raw.tool_skill_intents
-    : fallback.tool_skill_intents;
-  const text = normalize(input.user_message);
-  const recentText = normalize(
-    input.recent_messages.map((turn) => turn.content).join("\n"),
-  );
-  const suppressNonExplicitOpportunity = isReviewDataCaptureMessage(
-    text,
-    recentText,
-  ) || isActionMemoryRecallOrConfirmation(text, recentText);
-  const productHelpQuestion = detectsProductHelpQuestion(text, recentText);
-  const reviewSkillActive = Boolean(activeReviewSkillId(input)) &&
-    !explicitReviewExitRequested(input);
-  const usingFallbackToolSkillIntents = !Array.isArray(
-    raw?.tool_skill_intents,
-  );
+    : [];
+  const suppressNonExplicitOpportunity = false;
+  const reviewSkillActive = Boolean(activeReviewSkillId(input));
   const operationIntents = rawToolSkillIntents
     .map(sanitizeToolSkillIntent)
     .filter(
@@ -2399,14 +1884,6 @@ function sanitizeLlmTurnFrame(
         "tool_skill_intents"
       ][number] => {
         if (!intent) return false;
-        if (productHelpQuestion) return false;
-        if (
-          intent.operation_type === "select_state_potion" &&
-          isNegatedStatePotionRequest(text)
-        ) return false;
-        if (usingFallbackToolSkillIntents) {
-          return fallbackToolSkillIntentIsAllowed(intent, text, recentText);
-        }
         if (intent.operation_type === "adjust_plan_item") {
           return llmToolSkillIntentIsRouteable(intent);
         }
@@ -2419,21 +1896,12 @@ function sanitizeLlmTurnFrame(
         if (intent.operation_type === "create_recurring_reminder") {
           return llmToolSkillIntentIsRouteable(intent);
         }
+        if (intent.operation_type === "prepare_defense_card") {
+          return llmToolSkillIntentIsRouteable(intent);
+        }
         return true;
       },
     );
-  if (!usingFallbackToolSkillIntents) {
-    for (const fallbackIntent of fallback.tool_skill_intents) {
-      if (
-        !operationIntents.some((
-          intent: TurnFrame["tool_skill_intents"][number],
-        ) => intent.operation_type === fallbackIntent.operation_type) &&
-        fallbackToolSkillIntentIsAllowed(fallbackIntent, text, recentText)
-      ) {
-        operationIntents.push(fallbackIntent);
-      }
-    }
-  }
   const dominantOperationIntents = selectDominantToolSkillIntent(
     operationIntents,
   );
@@ -2455,116 +1923,52 @@ function sanitizeLlmTurnFrame(
   const rawSkillSignals =
     raw?.skill_signals && typeof raw.skill_signals === "object"
       ? {
-        ...fallback.skill_signals,
         ...raw.skill_signals,
         entry: {
-          ...(fallback.skill_signals.entry ?? {}),
           ...(raw.skill_signals.entry ?? {}),
         },
         lifecycle: {
-          ...(fallback.skill_signals.lifecycle ?? {}),
           ...(raw.skill_signals.lifecycle ?? {}),
         },
         exit: {
-          ...(fallback.skill_signals.exit ?? {}),
           ...(raw.skill_signals.exit ?? {}),
         },
       }
-      : fallback.skill_signals;
-  const fallbackEntry = fallback.skill_signals.entry ?? {};
-  const shouldSuppressStickyEmotionalEntry =
-    rawSkillSignals.entry?.emotional_repair?.detected === true &&
-    !detectsAcuteSelfAttack(text) &&
-    (
-      fallbackEntry.execution_breakdown?.detected === true ||
-      fallbackEntry.demotivation_repair?.detected === true ||
-      fallbackEntry.product_help?.detected === true ||
-      detectsStabilizedConcreteRequest(text)
-    );
-  const skillSignalsWithoutStickyEmotional = shouldSuppressStickyEmotionalEntry
-    ? {
-      ...rawSkillSignals,
-      entry: {
-        ...(rawSkillSignals.entry ?? {}),
-        emotional_repair: undefined,
-      },
-    }
-    : rawSkillSignals;
-  const shouldSuppressExecutionSkillForMemoryRecall =
-    suppressNonExplicitOpportunity &&
-    rawSkillSignals.entry?.execution_breakdown?.detected === true &&
-    isActionMemoryRecallOrConfirmation(text, recentText);
-  const skillSignalsWithoutMemoryRecallSkill =
-    shouldSuppressExecutionSkillForMemoryRecall
-      ? {
-        ...skillSignalsWithoutStickyEmotional,
-        entry: {
-          ...(skillSignalsWithoutStickyEmotional.entry ?? {}),
-          execution_breakdown: undefined,
-        },
-      }
-      : skillSignalsWithoutStickyEmotional;
-  const shouldSuppressExecutionForAcuteEmotional =
-    skillSignalsWithoutMemoryRecallSkill.entry?.emotional_repair?.detected ===
-      true &&
-    detectsAcuteSelfAttack(text);
-  const skillSignalsWithoutAcuteEmotionalOverlap =
-    shouldSuppressExecutionForAcuteEmotional
-      ? {
-        ...skillSignalsWithoutMemoryRecallSkill,
-        entry: {
-          ...(skillSignalsWithoutMemoryRecallSkill.entry ?? {}),
-          execution_breakdown: undefined,
-          product_help: undefined,
-          demotivation_repair: undefined,
-        },
-      }
-      : skillSignalsWithoutMemoryRecallSkill;
+      : {};
   const shouldSuppressProductHelpForExplicitOperation =
     rawSkillSignals.entry?.product_help?.detected === true &&
-    !productHelpQuestion &&
     operationIntents.some((intent: TurnFrame["tool_skill_intents"][number]) =>
       intent.explicitness === "explicit" &&
       (intent.confidence_band === "high" ||
         intent.confidence_band === "critical") &&
       intent.user_intent !== "explain_only"
     );
-  const shouldSuppressProductHelpForLevelMemory =
-    rawSkillSignals.entry?.product_help?.detected === true &&
-    fallback.level_reference?.detected === true &&
-    asksLevelExecutionHandoff(text);
-  const skillSignals = shouldSuppressProductHelpForExplicitOperation ||
-      shouldSuppressProductHelpForLevelMemory
+  const skillSignals = shouldSuppressProductHelpForExplicitOperation
     ? {
-      ...skillSignalsWithoutAcuteEmotionalOverlap,
+      ...rawSkillSignals,
       entry: {
-        ...(skillSignalsWithoutAcuteEmotionalOverlap.entry ?? {}),
+        ...(rawSkillSignals.entry ?? {}),
         product_help: undefined,
       },
     }
-    : skillSignalsWithoutAcuteEmotionalOverlap;
+    : rawSkillSignals;
   const fallbackConversationRisk = fallback.conversation_risk ??
     evaluateConversationRisk(input);
   const safetyBlocksToolSkills = safetyRisk === "high" ||
     safetyRisk === "critical";
-  const emotionalRepairDominatesToolSkills =
-    skillSignals.entry?.emotional_repair?.detected === true &&
-    detectsAcuteSelfAttack(text);
   const finalRoutedOperationIntents = safetyBlocksToolSkills ||
-      fallbackConversationRisk.should_exit_flows ||
-      emotionalRepairDominatesToolSkills
+      fallbackConversationRisk.should_exit_flows
     ? []
     : routedOperationIntents;
   const suppressToolSurfaces = fallbackConversationRisk.should_exit_flows ||
     safetyBlocksToolSkills ||
-    emotionalRepairDominatesToolSkills ||
     reviewSkillActive;
   const opportunityRaw = suppressToolSurfaces
     ? DEFAULT_TOOL_SKILL_OPPORTUNITY
     : raw?.tool_skill_opportunity;
   const opportunityFallback = suppressToolSurfaces
     ? DEFAULT_TOOL_SKILL_OPPORTUNITY
-    : fallback.tool_skill_opportunity;
+    : DEFAULT_TOOL_SKILL_OPPORTUNITY;
 
   return {
     ...fallback,
@@ -2587,7 +1991,7 @@ function sanitizeLlmTurnFrame(
       ? []
       : Array.isArray(raw?.direct_effects)
       ? raw.direct_effects
-      : fallback.direct_effects,
+      : [],
     tool_skill_intents: finalRoutedOperationIntents,
     tool_skill_opportunity: sanitizeToolSkillOpportunity({
       raw: opportunityRaw,
@@ -2629,10 +2033,7 @@ function sanitizeLlmTurnFrame(
       }
       : fallback.level_reference,
     memory_plan: suppressActionAndLevelMemoryDuringReview(
-      mergeReferenceMemoryTargets(
-        sanitizeMemoryPlan(raw?.memory_plan, fallback.memory_plan),
-        fallback.memory_plan,
-      ),
+      sanitizeMemoryPlan(raw?.memory_plan, fallback.memory_plan),
       input,
     ),
   };

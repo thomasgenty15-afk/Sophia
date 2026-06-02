@@ -280,7 +280,7 @@ Deno.test("coach_preferences_explicit_are_reported", () => {
   assertStringIncludes(decision.reply, "ton très direct");
 });
 
-Deno.test("fait_prevu_fragile_format_three_lines", async () => {
+Deno.test("fait_prevu_fragile raw text does not arm status runtime", async () => {
   const runtime = await maybeRunStatusRecapRuntime({
     supabase: fakeSupabase(richTables()),
     userId: "user-1",
@@ -291,12 +291,7 @@ Deno.test("fait_prevu_fragile_format_three_lines", async () => {
     routeDecision: null,
     activeOperationIntake: null,
   });
-  assert(runtime);
-  const lines = runtime.content.split("\n");
-  assertEquals(lines.length, 3);
-  assert(lines[0].startsWith("Fait :"));
-  assert(lines[1].startsWith("Prévu :"));
-  assert(lines[2].startsWith("Fragile :"));
+  assertEquals(runtime, null);
 });
 
 Deno.test("product_help_where_question_returns_null", async () => {

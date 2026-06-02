@@ -10,14 +10,6 @@ import {
   rewriteUncommittedEffectClaims,
 } from "./effect_ledger.ts";
 import { executedToolsForStatus } from "./effect_ledger_adapter.ts";
-import {
-  isStatusOnlyNoMutationRequest,
-  shouldRenderStatusOnlyNoMutation,
-} from "./legacy_semantic_patches.ts";
-import {
-  oneShotReminderDirectEffectBlockForNonMutationContext,
-  oneShotReminderStatusBlocksToolFlow,
-} from "../tools/always_on/one_shot_reminder/router.ts";
 
 const ROOT = new URL("../", import.meta.url);
 
@@ -27,80 +19,9 @@ type KnownLegacy = {
   removal_criteria: string;
 };
 
-const KNOWN_L3_SEMANTIC_HELPERS: KnownLegacy[] = [
-  {
-    name: "detectsExplicitOneShotReminderCreate",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher direct_effect.create_one_shot_reminder with raw_text is stable across QA paraphrases.",
-  },
-  {
-    name: "detectsActiveToolCancellation",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher skill_signals.exit covers explicit cancellation of active tool flows.",
-  },
-  {
-    name: "detectsDurableCoachPreference",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher tool_skill_intents.update_coach_preferences covers durable preference asks.",
-  },
-  {
-    name: "detectsExplicitProductHelp",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher product_help few-shots cover product/navigation questions without L3 keywords.",
-  },
-  {
-    name: "detectsExactDurableStatus",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Status/product questions are covered by dispatcher few-shots and status_recap tests.",
-  },
-  {
-    name: "detectsRecapRequest",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher routes recap/read-only memory questions without update_coach_preferences false positives.",
-  },
-  {
-    name: "detectsMultiEntityDurableStatus",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Dispatcher routes multi-entity durable status questions to status_only reliably.",
-  },
-  {
-    name: "detectsExplicitNoStatusRequest",
-    reason:
-      "Known L3 anti-status guard listed in runtime-contracts/00-architecture-doctrine.md as legacy semantic code.",
-    removal_criteria:
-      "Dispatcher and status_recap cover explicit 'no status panel' requests without L3 keywords.",
-  },
-  {
-    name: "looksLikeAttackCardSlotCorrection",
-    reason: "L3 transitional documented in runtime-contracts/00-architecture-doctrine.md.",
-    removal_criteria:
-      "Active prepare_attack_card intake owns slot corrections and product_help no longer hijacks them.",
-  },
-  {
-    name: "detectsPonctualResponseFormatConstraint",
-    reason:
-      "Existing L3 transitional for one-turn response format constraints, documented in code as D1.",
-    removal_criteria:
-      "Dispatcher distinguishes punctual response shape from durable coach preferences.",
-  },
-  {
-    name: "detectsExplicitAttackCardCreationRequest",
-    reason:
-      "Existing L3 transitional for explicit attack-card creation, documented in code as D5.",
-    removal_criteria:
-      "Dispatcher routes explicit attack-card creation to prepare_attack_card across QA paraphrases.",
-  },
-];
+const KNOWN_L3_SEMANTIC_HELPERS: KnownLegacy[] = [];
 
-const KNOWN_L3_TRANSITIONAL_COMMENTS: KnownLegacy[] = KNOWN_L3_SEMANTIC_HELPERS
-  .filter((item) => item.name !== "detectsExplicitNoStatusRequest");
+const KNOWN_L3_TRANSITIONAL_COMMENTS: KnownLegacy[] = [];
 
 const KNOWN_RUN_TOOL_ROUTER_IMPORTS: KnownLegacy[] = [];
 
@@ -254,8 +175,9 @@ Deno.test("legacy_semantic_patches_are_isolated", async () => {
   const legacyText = await Deno.readTextFile(
     new URL("./router/legacy_semantic_patches.ts", ROOT),
   );
-  assert(legacyText.includes("LEGACY SEMANTIC PATCH - do not extend."));
+  assert(legacyText.includes("Legacy semantic patches retired"));
   assert(legacyText.includes("removal_condition"));
+  assert(!/\/.+\/[gimsuy]?\s*\.test\(/.test(legacyText));
 });
 
 Deno.test("turn_intent_arbitrator_transition_detectors_stay_explicitly_listed", async () => {
@@ -306,6 +228,107 @@ Deno.test("run_ts_has_no_local_detects_isExplicit_or_looksLike_helpers", async (
   assertEquals(localHelpers, []);
 });
 
+Deno.test("no_semantic_raw_text_routing_in_global_entrypoints", async () => {
+  const files = [
+    "router/run.ts",
+    "router/operation_runtime_pipeline.ts",
+    "router/turn_intent_arbitrator.ts",
+    "router/handoff_flow_arbitration.ts",
+    "agents/companion.ts",
+    "tools/always_on/one_shot_reminder/intake.ts",
+    "tools/always_on/one_shot_reminder/executor.ts",
+  ];
+  const forbiddenCalls = [
+    "detectsExplicitAttackCardCreationRequest",
+    "detectsExplicitDefenseCardCreationRequest",
+    "detectsExplicitOneShotReminderCreate",
+    "detectsExplicitProductHelp",
+    "detectsExactDurableStatus",
+    "detectsRecapRequest",
+    "detectsDurableCoachPreference",
+    "detectExplicitNoToolRequest",
+    "isExplicitOperationCommand",
+    "isLikelyOneShotReminderRequest",
+    "looksLikeReminderCreationCommand",
+    "isProductHelpQuestion",
+    "isStatusQuestion",
+    "isOneShotReminderOperationCommand",
+    "detectsExplicitOneShotReminderCancel",
+  ];
+  const offenders: string[] = [];
+  for (const file of files) {
+    const text = await Deno.readTextFile(new URL(file, ROOT));
+    for (const name of forbiddenCalls) {
+      const pattern = new RegExp(`\\b${name}\\s*\\(`);
+      if (pattern.test(text)) offenders.push(`${file}:${name}`);
+    }
+  }
+  assertEquals(offenders, []);
+});
+
+Deno.test("one_shot_reminder_runtime_requires_structured_direct_effect", async () => {
+  const intakeText = await Deno.readTextFile(
+    new URL("tools/always_on/one_shot_reminder/intake.ts", ROOT),
+  );
+  const executorText = await Deno.readTextFile(
+    new URL("tools/always_on/one_shot_reminder/executor.ts", ROOT),
+  );
+  const routerText = await Deno.readTextFile(
+    new URL("tools/always_on/one_shot_reminder/router.ts", ROOT),
+  );
+  const companionText = await Deno.readTextFile(
+    new URL("agents/companion.ts", ROOT),
+  );
+
+  assert(!intakeText.includes("fallbackLegacyGuards: true"));
+  assert(intakeText.includes("no_structured_one_shot_intent"));
+  assert(!executorText.includes("isLikelyOneShotReminderRequest"));
+  assert(
+    executorText.includes(
+      "if (!params.forceCreate) return { detected: false };",
+    ),
+  );
+  assert(
+    executorText.includes(
+      "if (!hasDispatcherSignal) return { detected: false };",
+    ),
+  );
+  assert(routerText.includes("fallbackLegacyGuards: false"));
+  assert(!companionText.includes("maybeCreateOneShotReminder"));
+});
+
+Deno.test("product_help_legacy_heuristic_is_not_a_raw_text_fallback", async () => {
+  const text = await Deno.readTextFile(
+    new URL("skills/product_help/intake.ts", ROOT),
+  );
+  assert(text.includes("legacy_product_help_heuristic_removed"));
+  assert(!text.includes("function legacyInferIntent("));
+  assert(!text.includes("function legacyResolveObjectType("));
+  assert(!text.includes("normalizeText(input.user_message)"));
+});
+
+Deno.test("dispatcher_fallback_does_not_invent_business_routing", async () => {
+  const text = await Deno.readTextFile(
+    new URL("dispatcher/dispatcher.v2.ts", ROOT),
+  );
+  const forbiddenFallbackMerges = [
+    "fallback.tool_skill_intents",
+    "fallback.direct_effects",
+    "fallback.tool_skill_opportunity",
+    "fallback.skill_signals",
+  ];
+  for (const fragment of forbiddenFallbackMerges) {
+    assert(!text.includes(fragment), fragment);
+  }
+  const heuristicBody = text.slice(
+    text.indexOf("function heuristicTurnFrame("),
+    text.indexOf("function sanitizeLlmTurnFrame("),
+  );
+  assert(!heuristicBody.includes("turnFrame.direct_effects.push("));
+  assert(!heuristicBody.includes("turnFrame.tool_skill_intents.push("));
+  assert(!heuristicBody.includes("turnFrame.skill_signals.entry ="));
+});
+
 Deno.test("run_ts_has_no_new_tool_runtime_import_sprawl", async () => {
   const runText = await Deno.readTextFile(new URL("./router/run.ts", ROOT));
   const directToolRouterImports = [...runText.matchAll(
@@ -324,8 +347,6 @@ Deno.test("run_ts_has_no_new_tool_runtime_import_sprawl", async () => {
       "create_recurring_reminder",
       "prepare_attack_card",
       "prepare_defense_card",
-      "select_state_potion",
-      "update_coach_preferences",
     ]
   ) {
     assert(
@@ -358,32 +379,14 @@ Deno.test("style_policy_no_emoji_still_applies", () => {
   assertEquals(guarded.includes("?"), false);
 });
 
-Deno.test("one_shot_route_guard_behavior_preserved", () => {
-  const statusGuard = oneShotReminderStatusBlocksToolFlow({
-    message: "Dernier check: le rappel est vraiment programme ?",
-    routeIsProductHelp: false,
-    explicitProductHelp: false,
-    activeCardDrafting: false,
-    explicitOperationCommand: false,
-    statusOnlyNoMutation: true,
-  });
-  assertEquals(statusGuard.blocked, true);
-
-  const directEffectGuard =
-    oneShotReminderDirectEffectBlockForNonMutationContext({
-      message: "Sans rien modifier, recap du rappel.",
-      routeIsProductHelp: false,
-      statusOnlyNoMutation: true,
-      recapOnly: false,
-    });
-  assertEquals(directEffectGuard.blocked, true);
-});
-
-Deno.test("status_recap_guard_behavior_preserved", () => {
-  const message =
-    "Dernier check sans modifier: qu'est-ce qui a vraiment ete cree ou garde ?";
-  assertEquals(isStatusOnlyNoMutationRequest(message), true);
-  assertEquals(shouldRenderStatusOnlyNoMutation(message), true);
+Deno.test("run_no_longer_imports_one_shot_route_regex_guards", async () => {
+  const runText = await Deno.readTextFile(new URL("./router/run.ts", ROOT));
+  assert(!runText.includes("oneShotReminderStatusBlocksToolFlow"));
+  assert(
+    !runText.includes("oneShotReminderDirectEffectBlockForNonMutationContext"),
+  );
+  assert(!runText.includes("oneShotReminderModificationRouteGuard"));
+  assert(!runText.includes("shouldOneShotReminderSupersedeToolFlow"));
 });
 
 Deno.test("operation_runtime_pipeline_is_unique_runtime_entry_for_tools", async () => {
@@ -410,8 +413,7 @@ Deno.test("operation_runtime_pipeline_is_unique_runtime_entry_for_tools", async 
     "maybeRunCreateRecurringReminderOperation",
     "maybeRunPrepareAttackCardOperation",
     "maybeRunPrepareDefenseCardOperation",
-    "maybeRunSelectStatePotionOperation",
-    "maybeRunUpdateCoachPreferencesOperation",
+    "runSelectStatePotionHandoffSkill",
   ];
   for (const symbol of pipelineRuntimeSymbols) {
     assert(pipelineText.includes(symbol), symbol);

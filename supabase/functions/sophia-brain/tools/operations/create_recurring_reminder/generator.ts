@@ -1,4 +1,6 @@
 import type { RecurringReminderBuilderInput } from "../_shared/operation_payload_builder.ts";
+import type { RecurringReminderHandoffDraft } from "./contract.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 export type RecurringReminderDraftMessages = {
   confirmation_message?: string;
@@ -18,6 +20,7 @@ export type RecurringReminderDraftV1 = {
     days?: string[];
     time: string;
     timezone: string;
+    cadence_label?: string | null;
     destination: "current_plan" | "base_de_vie";
     related_plan_item_id?: string | null;
     target_binding?: {
@@ -85,6 +88,74 @@ export function formatRecurringReminderDraftSummary(
   return `"${draft.message}" à ${draft.time}, ${frequency}`;
 }
 
+export function recurringReminderCadenceSummary(
+  draft: RecurringReminderDraftV1["draft"],
+): string {
+  const cadenceLabel = String(draft.cadence_label ?? "").trim();
+  if (cadenceLabel) return cadenceLabel;
+  if (draft.frequency === "daily") return "tous les jours";
+  if (draft.frequency === "weekdays") return "les jours de semaine";
+  if (draft.frequency === "weekly") {
+    return draft.days?.length
+      ? `chaque semaine, ${draft.days.join(", ")}`
+      : "chaque semaine";
+  }
+  if (draft.frequency === "specific_days") {
+    return draft.days?.length
+      ? `les jours suivants : ${draft.days.join(", ")}`
+      : "certains jours de la semaine";
+  }
+  return "cadence personnalisée";
+}
+
+export function buildRecurringReminderHandoffDraft(
+  draft: RecurringReminderDraftV1,
+): RecurringReminderHandoffDraft {
+  const handoffTarget = getHandoffTargetForOperation(
+    "create_recurring_reminder",
+  );
+  const cadenceSummary = recurringReminderCadenceSummary(draft.draft);
+  const timeSummary = draft.draft.time
+    ? `${draft.draft.time}, ${draft.draft.timezone || "heure locale"}`
+    : null;
+  const platformDestination = handoffTarget?.user_facing_destination ??
+    (draft.draft.destination === "current_plan"
+      ? "Rappels, depuis le plan concerné"
+      : "Rappels");
+  return {
+    operation_type: "create_recurring_reminder",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    reminder_summary: `rappel récurrent pour ${draft.draft.message}`,
+    cadence_summary: cadenceSummary,
+    time_summary: timeSummary,
+    content_summary: draft.draft.message,
+    recommendation: {
+      platform_destination: platformDestination,
+      platform_steps: handoffTarget?.platform_steps ?? [
+        "Ouvre la section Rappels de la plateforme.",
+        "Crée un rappel récurrent.",
+        "Reprends le contenu, la cadence et l'heure ci-dessous.",
+      ],
+      preserve: [
+        `Message exact du rappel: ${draft.draft.message}`,
+        `Rythme prévu: ${cadenceSummary}`,
+        ...(timeSummary ? [`Heure locale prévue: ${timeSummary}`] : []),
+      ],
+      avoid: [
+        "Ne pas créer un rappel ponctuel si l'intention reste récurrente.",
+        "Ne pas modifier le contenu sans validation utilisateur.",
+      ],
+    },
+    missing_decisions: [
+      !draft.draft.frequency ? "cadence" : "",
+      !draft.draft.time ? "heure" : "",
+      !draft.draft.message ? "contenu" : "",
+    ].filter(Boolean),
+  };
+}
+
 function recurringReminderLifecycleSentence(
   draft: RecurringReminderDraftV1["draft"],
 ): string {
@@ -110,7 +181,7 @@ export function buildRecurringReminderCreatedMessage(
 ): string {
   const lifecycle = recurringReminderLifecycleSentence(draft.draft);
   return withRecurringReminderManagementHint(
-    `C'est fait. J'ai créé ce rappel récurrent : ${
+    `Je ne crée pas de rappel récurrent depuis le chat. Voici la version à reprendre dans la plateforme : ${
       formatRecurringReminderDraftSummary(draft.draft)
     }.${lifecycle ? ` ${lifecycle}` : ""}`,
     draft.draft,
@@ -149,7 +220,7 @@ export function runRecurringReminderBuilder(
     : `Rappel récurrent : ${message.slice(0, 42)}`;
   const frequency = frequencyLabel(input.recurrence);
   const fallbackConfirmation =
-    `Je te propose de créer ce rappel récurrent : "${message}", ${frequency} à ${input.recurrence.time}. Tu veux que je le crée ?`;
+    `Je te propose de préparer ce rappel récurrent pour la section Rappels : "${message}", ${frequency} à ${input.recurrence.time}.`;
   return {
     operation_type: "create_recurring_reminder",
     output_schema: "recurring_reminder_draft_v1",
@@ -160,6 +231,7 @@ export function runRecurringReminderBuilder(
       days: input.recurrence.days,
       time: input.recurrence.time,
       timezone: input.recurrence.timezone,
+      cadence_label: input.recurrence.cadence_label ?? null,
       destination: input.destination.value,
       related_plan_item_id: input.destination.related_plan_item_id ?? null,
       target_binding: input.destination.target_kind
@@ -183,35 +255,7 @@ export function runRecurringReminderBuilder(
     confirmation_actions: ["yes", "no"],
     user_message_brief: messages.user_message_brief,
     user_message_detailed: messages.user_message_detailed,
-    execution_message: messages.execution_message
-      ? withRecurringReminderManagementHint(messages.execution_message, {
-        title,
-        message,
-        frequency: input.recurrence.frequency,
-        days: input.recurrence.days,
-        time: input.recurrence.time,
-        timezone: input.recurrence.timezone,
-        destination: input.destination.value,
-        related_plan_item_id: input.destination.related_plan_item_id ?? null,
-        target_binding: input.destination.target_kind
-          ? {
-            target_kind: input.destination.target_kind,
-            target_plan_item_id: input.destination.target_plan_item_id ??
-              input.destination.related_plan_item_id ?? null,
-            target_action_family_key:
-              input.destination.target_action_family_key ??
-                null,
-            target_generated_temp_id:
-              input.destination.target_generated_temp_id ??
-                null,
-            binding_policy: input.destination.target_binding_policy ?? "none",
-            lifecycle_policy: input.destination.target_lifecycle_policy ??
-              "independent",
-            target_label: input.destination.target_label ?? null,
-          }
-          : null,
-      })
-      : undefined,
+    execution_message: undefined,
     revision_message: messages.revision_message,
   };
 }

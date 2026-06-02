@@ -1,4 +1,9 @@
 import type { PlanAdjustmentDraftV1 } from "./generator.ts";
+import type {
+  AdjustPlanHandoffDraft,
+  AdjustPlanHandoffStatus,
+  AdjustPlanScopeKind,
+} from "./contract.ts";
 
 export type PendingAdjustPlanDraftReview = {
   operation_id?: string;
@@ -27,7 +32,22 @@ export type AdjustPlanToolSkillFrame = {
   pending_confirmation: PendingAdjustPlanConfirmation | null;
   active_intake: Record<string, unknown> | null;
   pending_recommendation: Record<string, unknown> | null;
+  handoff_state: AdjustPlanHandoffState | null;
   last_execution: Record<string, unknown> | null;
+};
+
+export type AdjustPlanHandoffState = {
+  skill_id: "adjust_plan_item";
+  mode: "platform_handoff";
+  status: AdjustPlanHandoffStatus;
+  scope?: AdjustPlanScopeKind;
+  draft?: AdjustPlanHandoffDraft | null;
+  operation_input?: Record<string, unknown> | null;
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+  no_chat_mutation: true;
 };
 
 export function isPendingAdjustPlanDraftReview(
@@ -88,6 +108,19 @@ export function isPendingAdjustPlanItemRecommendationOperation(
   );
 }
 
+export function isAdjustPlanHandoffState(
+  value: unknown,
+): value is AdjustPlanHandoffState {
+  const record = value as any;
+  return Boolean(
+    record &&
+      typeof record === "object" &&
+      record.skill_id === "adjust_plan_item" &&
+      record.mode === "platform_handoff" &&
+      record.no_chat_mutation === true,
+  );
+}
+
 export function loadAdjustPlanFrameFromTempMemory(
   tempMemory: any,
 ): AdjustPlanToolSkillFrame {
@@ -111,11 +144,36 @@ export function loadAdjustPlanFrameFromTempMemory(
         typeof temp.__pending_recommendation_operation === "object"
       ? temp.__pending_recommendation_operation as Record<string, unknown>
       : null,
+    handoff_state: isAdjustPlanHandoffState(temp.__adjust_plan_handoff_state)
+      ? temp.__adjust_plan_handoff_state
+      : null,
     last_execution: temp.__last_adjust_plan_execution &&
         typeof temp.__last_adjust_plan_execution === "object"
       ? temp.__last_adjust_plan_execution as Record<string, unknown>
       : null,
   };
+}
+
+export function writeAdjustPlanHandoffState(
+  tempMemory: any,
+  value: AdjustPlanHandoffState | null,
+): any {
+  const next = clearAdjustPlanExecutableLegacyState(tempMemory);
+  if (value) {
+    next.__adjust_plan_handoff_state = value;
+  } else {
+    delete next.__adjust_plan_handoff_state;
+  }
+  return next;
+}
+
+export function clearAdjustPlanExecutableLegacyState(tempMemory: any): any {
+  const next = { ...(tempMemory ?? {}) };
+  delete next.__pending_adjust_plan_draft_review;
+  delete next.__pending_tool_skill_confirmation;
+  delete next.pending_tool_skill_confirmation;
+  delete next.__last_adjust_plan_execution;
+  return next;
 }
 
 export function writeAdjustPlanActiveIntake(
@@ -183,5 +241,6 @@ export function clearAdjustPlanFrame(tempMemory: any): any {
   delete next.pending_tool_skill_confirmation;
   delete next.__active_tool_skill_intake;
   delete next.active_tool_skill_intake;
+  delete next.__adjust_plan_handoff_state;
   return next;
 }

@@ -1,8 +1,29 @@
+import type {
+  StatePotionHandoffDraft,
+  StatePotionHandoffStatus,
+} from "./contract.ts";
+import type { SelectStatePotionIntakeState } from "./intake.ts";
+
 export type SelectStatePotionFrame = {
   pending: Record<string, unknown> | null;
   active: Record<string, unknown> | null;
   recommendation: Record<string, unknown> | null;
   followup_consent: "refused" | null;
+};
+
+export type StatePotionHandoffState = {
+  skill_id: "select_state_potion";
+  mode: "platform_handoff";
+  status: StatePotionHandoffStatus;
+  draft?: StatePotionHandoffDraft | null;
+  phase?: string | null;
+  operation_input?: Record<string, unknown> | null;
+  intake_state?: SelectStatePotionIntakeState | null;
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+  no_chat_mutation: true;
 };
 
 export function loadSelectStatePotionFrameFromTempMemory(
@@ -62,6 +83,34 @@ export function clearSelectStatePotionFrame(tempMemory: any) {
   next = writeSelectStatePotionPendingRecommendation(next, null);
   next = clearPotionFollowupConsent(next);
   return next;
+}
+
+export function isStatePotionHandoffState(
+  value: unknown,
+): value is StatePotionHandoffState {
+  const record = value as any;
+  return Boolean(
+    record &&
+      typeof record === "object" &&
+      record.skill_id === "select_state_potion" &&
+      record.mode === "platform_handoff" &&
+      record.no_chat_mutation === true,
+  );
+}
+
+export function loadStatePotionHandoffStateFromTempMemory(
+  tempMemory: any,
+): StatePotionHandoffState | null {
+  const active = (tempMemory ?? {}).__active_tool_skill_intake ??
+    (tempMemory ?? {}).active_tool_skill_intake ?? null;
+  return isStatePotionHandoffState(active) ? active : null;
+}
+
+export function writeStatePotionHandoffState(
+  tempMemory: any,
+  state: StatePotionHandoffState | null,
+) {
+  return writeSelectStatePotionActiveIntake(tempMemory, state);
 }
 
 export function markPotionFollowupConsentRefused(tempMemory: any) {

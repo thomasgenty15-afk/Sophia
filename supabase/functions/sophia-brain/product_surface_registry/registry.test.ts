@@ -12,6 +12,7 @@ import {
 Deno.test("ProductSurfaceRegistry v2 loads surfaces.json and includes every required surface", async () => {
   const registry = await loadProductSurfaceRegistry();
   assertEquals(registry.surfaces.length, 8);
+  assertEquals(registry.handoff_targets.length, 6);
   for (const id of PRODUCT_SURFACE_REGISTRY_REQUIRED_IDS) {
     assertEquals(registry.by_id.has(id), true, id);
   }

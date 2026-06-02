@@ -36,12 +36,6 @@ import {
   parseReminderFromMessageDeterministic,
   parseScheduledForFromMessage,
 } from "./time_parser.ts";
-import {
-  isLikelyOneShotReminderRequest,
-  looksLikeReminderExecutionConfirmation,
-  looksLikeReminderSlotConfirmation,
-} from "./route_guards.ts";
-
 let reminderWriteClient: SupabaseClient | null = null;
 
 function isLocalSupabaseUrl(url: string): boolean {
@@ -156,7 +150,9 @@ async function createReminderFromEffect(args: {
       .select("id,scheduled_for,event_context")
       .single();
     if (error) throw error;
-    const actualScheduledFor = String((data as any)?.scheduled_for ?? scheduledFor);
+    const actualScheduledFor = String(
+      (data as any)?.scheduled_for ?? scheduledFor,
+    );
     return {
       type: "create_one_shot_reminder",
       id: String((data as any)?.id ?? ""),
@@ -188,7 +184,9 @@ async function cancelReminderFromEffect(args: {
   supabase: SupabaseClient;
   requestId?: string | null;
 }): Promise<OneShotReminderCommittedEffect | OneShotReminderFailedEffect> {
-  const ids = [...new Set(args.effect.target_reminder_ids ?? [])].filter(Boolean);
+  const ids = [...new Set(args.effect.target_reminder_ids ?? [])].filter(
+    Boolean,
+  );
   if (ids.length === 0) {
     return {
       type: "cancel_one_shot_reminder",
@@ -280,15 +278,11 @@ export async function maybeCreateOneShotReminder(params: {
   requestId?: string;
   now?: Date;
   contextMessages?: string[];
+  forceCreate?: boolean;
 }): Promise<OneShotReminderToolOutcome> {
-  const isExecutionConfirmation =
-    looksLikeReminderExecutionConfirmation(params.message) ||
-    looksLikeReminderSlotConfirmation(params.message);
-  const canRecoverFromContext = isExecutionConfirmation &&
+  const canRecoverFromContext = params.forceCreate === true &&
     (params.contextMessages?.length ?? 0) > 0;
-  if (
-    !isLikelyOneShotReminderRequest(params.message) && !canRecoverFromContext
-  ) return { detected: false };
+  if (!params.forceCreate) return { detected: false };
 
   const tctx = await getUserTimeContext({
     supabase: params.supabase,
@@ -431,25 +425,34 @@ export async function maybeCancelOneShotReminder(params: {
   }
 
   const targetHHMM = parseScheduledForFromMessage({
-    message: params.message,
-    timezone: tctx.user_timezone,
-    nowIso: tctx.now_utc,
-  })
+      message: params.message,
+      timezone: tctx.user_timezone,
+      nowIso: tctx.now_utc,
+    })
     ? null
     : null;
   const textTargetHHMM = targetHHMM ?? (() => {
-    const match = String(params.message ?? "").match(/\b(\d{1,2})\s*h\s*(\d{2})\b/) ??
-      String(params.message ?? "").match(/\b(\d{1,2}):(\d{2})\b/) ??
-      String(params.message ?? "").match(/\b(\d{1,2})\s*h\b/);
+    const match =
+      String(params.message ?? "").match(/\b(\d{1,2})\s*h\s*(\d{2})\b/) ??
+        String(params.message ?? "").match(/\b(\d{1,2}):(\d{2})\b/) ??
+        String(params.message ?? "").match(/\b(\d{1,2})\s*h\b/);
     return match
-      ? `${String(Math.max(0, Math.min(23, Number(match[1])))).padStart(2, "0")}:${
-        String(Math.max(0, Math.min(59, Number(match[2] ?? "0")))).padStart(2, "0")
+      ? `${
+        String(Math.max(0, Math.min(23, Number(match[1])))).padStart(2, "0")
+      }:${
+        String(Math.max(0, Math.min(59, Number(match[2] ?? "0")))).padStart(
+          2,
+          "0",
+        )
       }`
       : null;
   })();
   const targets = textTargetHHMM
     ? pendingRows.filter((row: any) =>
-      localHHMMForScheduledFor(String(row?.scheduled_for ?? ""), tctx.user_timezone) === textTargetHHMM
+      localHHMMForScheduledFor(
+        String(row?.scheduled_for ?? ""),
+        tctx.user_timezone,
+      ) === textTargetHHMM
     )
     : pendingRows.length === 1
     ? pendingRows
@@ -518,9 +521,7 @@ export async function runCreateOneShotReminderV2(params: {
   const hasDispatcherSignal = params.turn_frame.direct_effects.some((effect) =>
     effect.effect_type === "create_one_shot_reminder"
   );
-  if (!hasDispatcherSignal && !isLikelyOneShotReminderRequest(params.message)) {
-    return { detected: false };
-  }
+  if (!hasDispatcherSignal) return { detected: false };
 
   const gate = await runDirectEffectGate({
     effect_type: "create_one_shot_reminder",

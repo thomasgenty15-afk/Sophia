@@ -2,10 +2,11 @@
 
 ## Mental Model
 
-`EffectLedger` est la preuve d'exécution transversale des effets visibles dans
-Sophia Brain. Il ne décide pas quoi faire et ne comprend pas le métier : les
-skills décident, les executors écrivent, le ledger prouve, puis le renderer ou
-le final guard parle seulement de ce qui est prouvé.
+`EffectLedger` est la preuve transversale des effets visibles et des resultats
+runtime non-mutants dans Sophia Brain. Il ne décide pas quoi faire et ne
+comprend pas le métier : les skills décident, les executors écrivent, le ledger
+prouve ou trace, puis le renderer ou le final guard parle seulement de ce qui
+est prouvé.
 
 Règle non négociable :
 
@@ -18,6 +19,11 @@ un `committed` ledger correspondant, produit après le succès réel de
 l'executor ou de l'écriture DB. `executedTools` n'est jamais une preuve
 suffisante seul.
 
+Un `platform_handoff` ou une `clarification` n'est pas un effet durable. Il
+peut être `proposed`, `delivered` ou `asked` sans commit. C'est un succès
+conversationnel non-mutant quand le message est honnête sur le fait que Sophia
+ne modifie rien depuis le chat.
+
 La DB métier reste la vérité d'état courant. Le ledger persistant est une
 timeline d'exécution observée, pas un read model qui remplace les tables métier.
 
@@ -26,7 +32,8 @@ timeline d'exécution observée, pas un read model qui remplace les tables méti
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour avant mutation ;
-- `TurnAgenda` pour distinguer reply, effects, status, memory et repair ;
+- `TurnAgenda` pour distinguer `reply`, `effect`, `platform_handoff`,
+  `clarification`, `status`, `memory` et `repair` ;
 - Confirmation Contract pour interpréter approve/reject/revise/explain ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
 - les contrats locaux des tools/skills pour l'intake, le reducer, les effets
@@ -38,8 +45,9 @@ Utilisation actuelle dans le code :
   son `turn_id` avec le `TurnFrame`, puis appelle
   `recordAgendaEffectsInLedger`, `recordToolSkillEffectsInLedger` et
   `recordRecommendationEffectInLedger`.
-- `router/turn_agenda.ts` produit les tâches `effect` qui deviennent
-  `requested` ou `blocked` via `recordAgendaEffectsInLedger`.
+- `router/turn_agenda.ts` produit les tâches `effect`, `platform_handoff` et
+  `clarification` qui deviennent respectivement des entries durables ou
+  non-mutantes via `recordAgendaEffectsInLedger`.
 - `router/confirmation_contract.ts` et les confirmations locales des tools
   décident approve/reject/revise/explain. Le ledger ne relit jamais le message
   user pour décider une confirmation.
@@ -61,8 +69,8 @@ Utilisation actuelle dans le code :
 
 ```txt
 dispatcher / routers
-  -> TurnAgenda effect tasks
-  -> EffectLedger requested/blocked agenda entries
+  -> TurnAgenda effect / platform_handoff / clarification tasks
+  -> EffectLedger durable_effect / platform_handoff / clarification entries
 
 tool skill router
   -> local contract + structured intake + reducer
@@ -70,6 +78,13 @@ tool skill router
   -> executor
   -> committed_effects / failed_effects
   -> recordToolSkillEffectsInLedger
+
+platform handoff skill router
+  -> local contract + structured intake + reducer
+  -> platform_handoff proposed / delivered
+  -> no_chat_mutation=true
+  -> committed_effects=[] / executedTools=[]
+  -> record platform_handoff in ledger
 
 normal reply / operation reply
   -> final_response_pipeline
@@ -105,7 +120,7 @@ normal reply / operation reply
 
 ## Inputs
 
-- `TurnAgenda.tasks` de type `effect`.
+- `TurnAgenda.tasks` de type `effect`, `platform_handoff` ou `clarification`.
 - `toolSkillRun.requested_effects`.
 - `toolSkillRun.allowed_effects`.
 - `toolSkillRun.blocked_effects`.
@@ -118,9 +133,10 @@ normal reply / operation reply
 
 ## Outputs
 
-- Entries ledger compactes avec `status`, `effect_type`, `source`,
+- Entries ledger compactes avec `kind`, `status`, `effect_type`, `source`,
   `operation_id`, `committed_id`, `reason_code`, `payload_summary` et
-  `db_ref`.
+  `db_ref`. Les entries `platform_handoff` et `clarification` portent
+  `no_chat_mutation: true`, `committed: false` et `executed_tool: false`.
 - `effect_ledger` dans `conversation_turn_trace`.
 - Entrées persistées compactes dans `turn_summary_logs` quand le writer est
   disponible.
@@ -132,6 +148,8 @@ normal reply / operation reply
 Appartient à `EffectLedger` :
 
 - enregistrer ce qui a été demandé, autorisé, bloqué, commité ou échoué ;
+- tracer les handoffs plateforme et clarifications comme événements runtime
+  non-mutants ;
 - compacter les payloads pour trace/persistence sans gros drafts ni texte brut
   sensible ;
 - fournir une preuve booléenne via `hasCommittedEffect` ;
@@ -154,40 +172,46 @@ N'appartient pas à `EffectLedger` :
 | --- | --- | --- | --- | --- |
 | one-shot reminder | `one_shot_reminder.create`, `one_shot_reminder.cancel` | requested, allowed, blocked, committed, failed | `tools/always_on/one_shot_reminder/executor.ts` | Le runtime direct dans `operation_runtime_pipeline.ts` expose les effets du router. |
 | track progress | `plan_item_progress.track` | requested, allowed, blocked, committed, failed | `tools/always_on/track_progress_plan_item/db.ts` | Un `logged_progress_id` est requis pour commit. |
-| recurring reminder | `recurring_reminder.create` | requested, allowed, blocked, committed, failed | `tools/operations/create_recurring_reminder/executor.ts` | `executedTools` dépend de `committed_effects.length > 0`. |
-| attack card | `attack_card.create` | requested, allowed, blocked, committed, failed | `tools/operations/prepare_attack_card/router.ts` + persistence | Draft/recommendation ne commit jamais. |
-| defense card | `defense_card.create` | requested, allowed, blocked, committed, failed | `tools/operations/prepare_defense_card/router.ts` + persistence | `toRuntimeResult` dérive success du commit. |
-| adjust plan item | `plan_item.adjust` | requested, allowed, blocked, committed, failed | `tools/operations/adjust_plan_item/router.ts` | Weekly bridge ne fait que demander/bloquer. |
-| state potion | `state_potion.activate` | requested, allowed, blocked, committed, failed | `tools/operations/select_state_potion/router.ts` | `adaptSkillResultToRuntime` donne `executedTools` seulement si commit. |
-| coach preferences | `coach_preferences.update` | requested, allowed, blocked, committed, failed | `tools/operations/update_coach_preferences/executor.ts` | `preferences_update_ids` ou keys DB prouvent le commit. |
-| weekly bridge | `plan_item.adjust` request | requested, blocked | aucun | Le commit vient uniquement d'`adjust_plan_item`. |
-| recommendation | operation recommandée | requested, blocked | aucun | `recordRecommendationEffectInLedger` ne produit jamais `committed`. |
+| recurring reminder | `platform_handoff.create_recurring_reminder` | requested, proposed, delivered, blocked, cancelled | aucun | Le rappel récurrent se crée depuis la plateforme; l'ancien effet durable recurring est hors chemin nominal. |
+| attack card | `platform_handoff.prepare_attack_card` | requested, proposed, delivered, blocked, cancelled | aucun | Le brouillon carte est rendu par le skill; aucune DB card write depuis le chat. |
+| defense card | `platform_handoff.prepare_defense_card` | requested, proposed, delivered, blocked, cancelled | aucun | Le brouillon défense est un handoff; `executedTools=[]`. |
+| adjust plan item | `platform_handoff.adjust_plan_item` | requested, proposed, delivered, blocked, cancelled | aucun | Weekly et chat recommandent; aucun patch plan depuis le chat. |
+| state potion | `platform_handoff.select_state_potion` | requested, proposed, delivered, blocked, cancelled | aucun | La potion et ses follow-ups s'activent depuis la plateforme. |
+| coach preferences | `platform_handoff.update_coach_preferences` | requested, proposed, delivered, blocked, cancelled | aucun | Les préférences restent lisibles; l'écriture se fait depuis les préférences coach UI. |
+| weekly bridge | `platform_handoff.adjust_plan_item` request | requested, proposed, blocked | aucun | Le weekly peut recommander un ajustement; aucun commit plan. |
+| platform handoff | `platform_handoff.<operation>` | requested, proposed, delivered, blocked, cancelled | aucun | Succès conversationnel non-mutant ; ne devient jamais `committed`. |
+| clarification | `clarification.<ambiguity_kind>` | requested, asked, resolved, cancelled, topic_change | aucun | Question ou résolution non-mutante ; ne crée jamais de pending executable. |
+| recommendation | operation recommandée | requested, proposed, blocked | aucun | Une recommandation complexe devient `platform_handoff`; elle ne produit jamais `committed`. |
 | memory candidates | `memory.write_candidate` / futur `memory.write` | requested/rejected aujourd'hui, committed futur | memory runtime/memorizer | Un candidate ou une queue n'est pas une mémoire commitée. |
 | status/product reads | aucun effet durable | n/a | DB métier | Le ledger peut compléter l'historique, pas prouver l'état courant seul. |
 | final reply claims | `final_reply.claim` | blocked | final guard | Un claim neutralisé est tracé comme blocked guard. |
 
 ## Inputs Par Domaine
 
-- `update_coach_preferences/router.ts` : `skillResultToRuntimeResult` expose
-  tous les tableaux d'effets ; `executeUpdateCoachPreferences` est la seule
-  source de commit.
+- `update_coach_preferences/router.ts` : expose un handoff Préférences coach;
+  `runtime_policy.ts` peut lire les préférences existantes, mais le chat ne les
+  écrit plus.
 - `one_shot_reminder/router.ts` : `OneShotReminderDirectEffectResult` expose
   `requested_effects`, `allowed_effects`, `attempted_effects`,
   `committed_effects`, `blocked_effects`.
 - `track_progress_plan_item/router.ts` : `runTrackProgressPlanItemDirectEffect`
   exige un `logged_progress_id` avant `committed_effects`.
 - `prepare_attack_card/router.ts` et `prepare_defense_card/router.ts` :
-  les adapters runtime exposent les effets du skill result ; draft-only et
-  recommendation-only restent non commités.
-- `adjust_plan_item/router.ts` : `adaptSkillResultToRuntime` expose le
-  `skill_result`, les effets et `executedTools` depuis `committed_effects`.
-- `create_recurring_reminder/router.ts` : `executeApprovedRecurringReminder`
-  retourne `committed_effects`; les chemins blocked/failed restent sans
-  `executedTools`.
-- `select_state_potion/router.ts` : `skillResult.effect_ledger` local reste
-  interne au tool, et le ledger global lit les effets via `toolSkillRun`.
-- `recommendation/recommendation_tool.ts` : produit une suggestion
-  `recommend_operation`, jamais un commit.
+  les adapters runtime exposent un `platform_handoff` et gardent
+  `executedTools=[]` / `committed_effects=[]`.
+- `adjust_plan_item/router.ts` : expose un handoff Plan; le renderer local
+  porte la recommandation, pas le ledger.
+- `create_recurring_reminder/router.ts` : expose un draft de rappel récurrent à
+  reprendre dans la plateforme; il peut sortir vers le direct effect one-shot si
+  la demande devient ponctuelle.
+- `select_state_potion/router.ts` : expose un handoff Etat / Potions; aucun
+  `user_potion_sessions`, `user_recurring_reminders` ou `scheduled_checkins`
+  n'est créé depuis le chat.
+- `update_coach_preferences/router.ts` : expose un handoff Préférences coach;
+  `runtime_policy.ts` peut lire les préférences existantes, mais le chat ne les
+  écrit plus.
+- `recommendation/recommendation_tool.ts` : produit une suggestion ou un
+  handoff, jamais un commit.
 - `memory_runtime/memorizer_bridge.ts` : valide et queue des
   `MemoryWriteCandidate`, mais ne prouve pas encore une écriture mémoire
   durable.
@@ -201,6 +225,10 @@ N'appartient pas à `EffectLedger` :
 - `executedTools` doit être dérivé de `committed_effects`, directement dans le
   runtime ou via `executedToolsForStatus`.
 - Un bridge weekly/recommendation ne peut pas produire de `committed_effect`.
+- `platform_handoff` ne peut jamais avoir `committed`.
+- `platform_handoff` ne peut jamais ajouter `executedTools`.
+- `platform_handoff delivered` est un succès conversationnel, pas un échec.
+- `clarification asked` est un succès conversationnel non-mutant.
 - Un `MemoryWriteCandidate` n'est pas une mémoire durable.
 - `payload_summary` ne doit pas contenir de draft complet, texte brut user,
   historique conversationnel, transcript ou contenu sensible massif.
@@ -244,6 +272,9 @@ N'appartient pas à `EffectLedger` :
 - Dériver `executedTools` d'un simple `status === "executed"`.
 - Faire produire un `committed_effect` à une recommendation ou à un bridge.
 - Promettre une mémoire durable depuis un `MemoryWriteCandidate` ou une queue.
+- Mapper un handoff plateforme en `durable_effect blocked`.
+- Neutraliser une phrase de handoff honnête du type "je te conseille de le
+  faire dans Plan" ou "je ne le modifie pas depuis le chat".
 - Stocker des drafts complets, raw text, historique ou messages longs dans la
   persistence ledger.
 - Utiliser le ledger persistant seul pour dire "ce rappel existe encore" ou
@@ -276,7 +307,7 @@ N'appartient pas à `EffectLedger` :
   rewrites de claims préférence/rappel/carte/plan/potion/progrès/mémoire.
 - `router/effect_ledger_adapter_test.ts` :
   mapping effect types, db_ref, failed_effects, `executedToolsForStatus`,
-  agenda blocked, recommendation request-only.
+  agenda blocked, recommendation request-only, handoff non-mutant.
 - `router/effect_ledger_integration_test.ts` :
   `executed_tools_requires_committed_effect`,
   `blocked_effect_does_not_authorize_success_reply`,
@@ -298,6 +329,10 @@ N'appartient pas à `EffectLedger` :
   `create_recurring_reminder/tests.ts`,
   `select_state_potion/tests.ts`,
   `update_coach_preferences/tests.ts`.
+- Tests handoff transverses attendus :
+  handoff proposé/livré sans `committed`, sans `executedTools`, wording
+  honnête autorisé, done language bloqué, et complex tools absents des effets
+  durables exécutables.
 
 ## Suivi Des Décisions Architecturales
 
@@ -306,3 +341,4 @@ N'appartient pas à `EffectLedger` :
 | 2026-05-29 | Ledger par tour protège les claims visibles. | Active | `15-chantiers-log.md` J29 |
 | 2026-05-30 | EffectLedger devient la preuve obligatoire pour tout effet durable visible ; bridges/recommendations/memory candidates ne peuvent pas committer. | Active | `15-chantiers-log.md` J53 |
 | 2026-05-30 | Ledger persistant sert de timeline d'exécution, pas d'état métier. | Active | `effect_ledger_persistence.ts`, `effect_ledger_reader.ts` |
+| 2026-06-01 | Les complex tools V1 ne sont plus ledgerisés comme effets durables chat; ils deviennent `platform_handoff.*`, sans commit ni executed tool. | Active | Architecture handoff V1 |

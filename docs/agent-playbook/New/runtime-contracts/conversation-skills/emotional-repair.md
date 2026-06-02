@@ -31,7 +31,8 @@ Ce domaine dépend de:
 
 - `UserTurnSnapshot` pour lire l'état complet du tour;
 - `TurnAgenda` pour distinguer reply/effects/status/memory/repair;
-- `Confirmation Contract` pour interpréter approve/reject/revise/explain;
+- `Confirmation Contract` pour garantir qu'un handoff complexe n'est pas une
+  confirmation exécutable;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé;
 - le contrat local de `emotional_repair` pour l'intake, le reducer, les effets
   préparés et le renderer.
@@ -56,9 +57,9 @@ l'action lui-même.
 Le `Confirmation Contract` n'est pas implémenté localement par ce domaine.
 `emotional_repair` peut produire une `operation_suggestions` pour
 `select_state_potion` ou `create_recurring_reminder`, mais toujours avec
-`requires_user_consent: true`. L'interprétation d'un "oui", "non", "modifie" ou
-"explique" appartient ensuite au domaine outil concerné et au runtime de
-confirmation, pas à `emotional_repair`.
+`requires_user_consent: true`. Pour les flows complexes, l'interprétation d'un
+"oui", "non", "modifie" ou "explique" appartient ensuite au platform handoff
+skill actif; elle ne devient pas une confirmation exécutable.
 
 `EffectLedger` est contraignant même si le skill ne commit aucun effet. Les
 fonctions `validateEmotionalRepairDecision` et `reduceEmotionalRepairTurn`
@@ -67,12 +68,12 @@ interdisent les formulations de type "c'est fait", "j'ai créé", "programmé" o
 `toConversationOperationSuggestion`; aucun `committed_effects`, `executedTools`
 ou write DB ne doit être produit par ce skill.
 
-Le contrat local est propriétaire des décisions métier du domaine:
-`contract.ts` définit `EmotionalRepairSkillDecision`, les intents, phases,
-contraintes, handoffs, suggestions, invariants et validations;
-`intake.ts` appelle l'intake IA structuré; `reducer.ts` transforme la décision
-en `ConversationSkillOutput`; `renderer.ts` fournit uniquement un fallback
-conservateur quand l'intake échoue ou quand la reply modèle viole le contrat.
+Le contrat local est propriétaire des décisions métier du domaine: `contract.ts`
+définit `EmotionalRepairSkillDecision`, les intents, phases, contraintes,
+handoffs, suggestions, invariants et validations; `intake.ts` appelle l'intake
+IA structuré; `reducer.ts` transforme la décision en `ConversationSkillOutput`;
+`renderer.ts` fournit uniquement un fallback conservateur quand l'intake échoue
+ou quand la reply modèle viole le contrat.
 
 ## Runtime Shape
 
@@ -101,15 +102,14 @@ skills/emotional_repair/reducer.ts
 ```
 
 Le routeur peut sélectionner `emotional_repair` et bloquer temporairement un
-tool skill quand `routers/routers.ts` applique la priorité
-`emotion_dominates`. Cette priorité est de l'arbitrage global. Elle ne doit pas
-contenir de compréhension locale de honte, no-potion, relationnel ou handoff
-execution.
+tool skill quand `routers/routers.ts` applique la priorité `emotion_dominates`.
+Cette priorité est de l'arbitrage global. Elle ne doit pas contenir de
+compréhension locale de honte, no-potion, relationnel ou handoff execution.
 
 ## File Ownership
 
-- `supabase/functions/sophia-brain/skills/emotional_repair/contract.ts`
-  possède le contrat: `EmotionalRepairIntent`, `EmotionalRepairConstraint`,
+- `supabase/functions/sophia-brain/skills/emotional_repair/contract.ts` possède
+  le contrat: `EmotionalRepairIntent`, `EmotionalRepairConstraint`,
   `EmotionalRepairPhase`, `EmotionalRepairSkillDecision`,
   `normalizeEmotionalRepairDecision`, `validateEmotionalRepairDecision`,
   `applyEmotionalRepairInvariants` et `toConversationOperationSuggestion`.
@@ -130,8 +130,8 @@ execution.
   reducer.
 - `supabase/functions/sophia-brain/skills/emotional_repair/context_loader.ts`
   charge l'état actif du skill si le runtime le demande.
-- `supabase/functions/sophia-brain/skills/emotional_repair/prompt.ts` possède
-  le prompt d'intake IA et ses règles de réponse; il ne force pas d'emoji.
+- `supabase/functions/sophia-brain/skills/emotional_repair/prompt.ts` possède le
+  prompt d'intake IA et ses règles de réponse; il ne force pas d'emoji.
 - `supabase/functions/sophia-brain/router/run.ts` intègre le skill via
   `runConversationSkillForRecommendation` et doit rester un orchestrateur mince.
 - `supabase/functions/sophia-brain/routers/routers.ts` peut arbitrer la priorité
@@ -179,10 +179,8 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 - Produire une phrase concrète de réparation relationnelle quand l'intake
   structurée le décide et que le contrat le permet.
 - Respecter `no_potion`, `no_tool`, `no_plan`, `no_questions`,
-  `one_question_max`, `short_reply` et
-  `do_not_persist_identity_attack`.
-- Protéger la mémoire contre l'identity freeze:
-  `should_persist_default=false`,
+  `one_question_max`, `short_reply` et `do_not_persist_identity_attack`.
+- Protéger la mémoire contre l'identity freeze: `should_persist_default=false`,
   `anti_identity_freeze_checked=true`, texte contextualisé si une auto-attaque
   brute apparaît.
 - Demander un handoff vers `execution_breakdown` quand l'émotion est basse ou
@@ -198,7 +196,7 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 - Exécuter une potion, créer un rappel, écrire en base, modifier un plan ou
   confirmer un effet durable.
 - Interpréter les réponses `approve`, `reject`, `revise`, `explain` pour un
-  outil en attente: cela appartient au Confirmation Contract et au domaine outil.
+  handoff complexe: cela appartient au platform handoff skill propriétaire.
 - Décomposer une tâche concrète: cela appartient à `execution_breakdown`.
 - Répondre à une crise safety avec contenu de crise: cela appartient à
   `safety_crisis`.
@@ -213,9 +211,9 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
   `safety_crisis`, sans fallback émotionnel local.
 - L'échec d'intake ne produit pas une sortie vide: `reduceEmotionalRepairTurn`
   retourne un output non-mutant, sans tool et sans mémoire persistée.
-- Les replies invalides ne passent pas: `validateEmotionalRepairDecision`
-  bloque les plans interdits, trop de questions, mention potion interdite,
-  wording d'effet durable et handoff execution mal formé.
+- Les replies invalides ne passent pas: `validateEmotionalRepairDecision` bloque
+  les plans interdits, trop de questions, mention potion interdite, wording
+  d'effet durable et handoff execution mal formé.
 - `no_potion` bloque à la fois `select_state_potion` et toute mention visible de
   potion.
 - `no_tool` vide les suggestions d'opération.
@@ -250,8 +248,9 @@ handoff, suggestions d'opération, candidats mémoire, reply et patch d'état.
 
 ## Allowed Changes
 
-- Ajouter un intent, une contrainte ou une phase dans `contract.ts` si le prompt,
-  le normalizer, la validation, le reducer et les tests sont mis à jour ensemble.
+- Ajouter un intent, une contrainte ou une phase dans `contract.ts` si le
+  prompt, le normalizer, la validation, le reducer et les tests sont mis à jour
+  ensemble.
 - Renforcer un invariant de filtrage dans `applyEmotionalRepairInvariants` ou
   `validateEmotionalRepairDecision`.
 - Améliorer `renderer.ts` pour rendre un fallback plus sobre, tant qu'il ne
@@ -293,8 +292,9 @@ l'arbitrage `repair` vs `effect` sans branche locale.
 
 ## Required Tests
 
-Le contrat est protégé par `supabase/functions/sophia-brain/skills/skills_s3.test.ts`
-avec les groupes `emotional_repair`:
+Le contrat est protégé par
+`supabase/functions/sophia-brain/skills/skills_s3.test.ts` avec les groupes
+`emotional_repair`:
 
 - scénarios de honte/auto-attaque sans push de solution;
 - mémoire anti-identity-freeze;
@@ -327,8 +327,8 @@ Cette recherche doit rester vide pour éviter la réintroduction de legacy L4.
 
 ## Suivi Des Décisions Architecturales
 
-| Date | Décision | Statut | Référence |
-| --- | --- | --- | --- |
-| 2026-05-29 | `emotional_repair` porte no-potion, handoff execution et mémoire anti-identity-freeze dans son contrat L5, pas dans `run.ts`. | Actif | J8/J16 |
-| 2026-05-30 | L'échec d'intake ou de validation passe par un renderer fallback conservateur non-mutant; aucune sortie vide ne doit quitter le skill. | Actif | J21 |
-| 2026-05-30 | Le contrat runtime documente `reducer.ts`, le fallback L5 et l'absence de legacy L4 spécifique dans `run.ts`. | Actif | J46 |
+| Date       | Décision                                                                                                                               | Statut | Référence |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------- | ------ | --------- |
+| 2026-05-29 | `emotional_repair` porte no-potion, handoff execution et mémoire anti-identity-freeze dans son contrat L5, pas dans `run.ts`.          | Actif  | J8/J16    |
+| 2026-05-30 | L'échec d'intake ou de validation passe par un renderer fallback conservateur non-mutant; aucune sortie vide ne doit quitter le skill. | Actif  | J21       |
+| 2026-05-30 | Le contrat runtime documente `reducer.ts`, le fallback L5 et l'absence de legacy L4 spécifique dans `run.ts`.                          | Actif  | J46       |

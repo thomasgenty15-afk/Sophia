@@ -1,16 +1,22 @@
-import type { CreateRecurringReminderCommittedEffect } from "./contract.ts";
+import type {
+  CreateRecurringReminderCommittedEffect,
+  RecurringReminderHandoffDraft,
+  RecurringReminderHandoffStatus,
+} from "./contract.ts";
 import {
   buildRecurringReminderCreatedMessage,
+  buildRecurringReminderHandoffDraft,
   type RecurringReminderDraftV1,
 } from "./generator.ts";
 import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 export function renderRecurringReminderPendingConfirmation(input: {
   confirmationMessage?: string | null;
 }): string {
   return renderNonCommittedReply(
     input.confirmationMessage,
-    "Tu veux que je crée ce rappel récurrent ?",
+    "Je peux préparer la version à reprendre dans la section Rappels.",
   );
 }
 
@@ -50,6 +56,64 @@ export function renderRecurringReminderDraftReady(input: {
     return "J'ai préparé le brouillon du rappel récurrent, sans le créer.";
   }
   return `J'ai préparé le brouillon du rappel récurrent : "${input.draft.draft.message}" à ${input.draft.draft.time}. Je ne le crée pas sans validation explicite.`;
+}
+
+function cadenceForSentence(summary: string): string {
+  const trimmed = summary.trim();
+  const weekly = trimmed.match(/^chaque semaine,\s*(.+)$/i);
+  if (weekly?.[1]) {
+    const days = weekly[1].trim();
+    return days.includes(",")
+      ? `chaque semaine, les jours suivants : ${days}`
+      : `chaque semaine, le ${days}`;
+  }
+  const biweekly = trimmed.match(/^toutes les deux semaines,\s*(.+)$/i);
+  if (biweekly?.[1]) {
+    const days = biweekly[1].trim();
+    return days.includes(",")
+      ? `toutes les deux semaines, les jours suivants : ${days}`
+      : `toutes les deux semaines, le ${days}`;
+  }
+  return trimmed;
+}
+
+export function renderRecurringReminderPlatformHandoff(input: {
+  handoffDraft?: RecurringReminderHandoffDraft | null;
+  draft?: RecurringReminderDraftV1 | null;
+  prefix?: string | null;
+  status?: RecurringReminderHandoffStatus | null;
+}): string {
+  const handoff = input.handoffDraft ??
+    (input.draft ? buildRecurringReminderHandoffDraft(input.draft) : null);
+  if (!handoff) {
+    return "Je ne crée pas de rappel récurrent depuis le chat. Va dans Rappels pour créer le rappel récurrent.";
+  }
+  const target = getHandoffTargetForOperation("create_recurring_reminder");
+  const destination = target?.user_facing_destination ??
+    handoff.recommendation.platform_destination;
+  const missing = handoff.missing_decisions.length > 0
+    ? ` Il reste encore à préciser ${handoff.missing_decisions.join(", ")}.`
+    : "";
+  const time = handoff.time_summary ? `, à ${handoff.time_summary}` : "";
+  const cadence = cadenceForSentence(handoff.cadence_summary);
+  const status = input.status ?? "handoff_delivered";
+  const opening = input.prefix?.trim()
+    ? input.prefix.trim()
+    : status === "apply_attempt"
+    ? "Je ne peux pas programmer ce rappel récurrent depuis le chat. Je te redonne ce qu'il faut reprendre dans Rappels."
+    : status === "revise_handoff"
+    ? "Oui, je te mets la version à jour pour la section Rappels."
+    : status === "repeat_handoff"
+    ? "Bien sûr, voici quoi reprendre dans la section Rappels."
+    : "Ok, je te prépare ça pour la section Rappels.";
+
+  return `${opening}
+
+Pour le rappel, garde le message « ${handoff.content_summary} ». Il doit revenir ${cadence}${time}.${missing}
+
+Dans la plateforme, va ${destination}, puis crée un rappel récurrent avec ces éléments.
+
+Je ne crée pas de rappel récurrent depuis le chat.`;
 }
 
 export function renderRecurringReminderBlocked(input: {

@@ -360,7 +360,8 @@ export function isPendingAttackCardRecommendationOperation(
     record &&
       typeof record === "object" &&
       record.operation_type === "prepare_attack_card" &&
-      record.surface_id === "attack_card" &&
+      (record.surface_id === "attack_card" ||
+        record.surface_id === "attack_cards") &&
       record.operation_input?.target?.title,
   );
 }

@@ -2,195 +2,173 @@
 
 ## Mental Model
 
-`create_recurring_reminder` est le Tool Skill propriétaire des rappels répétés.
-Il ne crée jamais de rappel ponctuel. Son workflow canonique est :
+`create_recurring_reminder` est un `platform_handoff_skill`.
+
+Il comprend les demandes de rappels répétés, clarifie les slots utiles, prépare
+un brouillon clair et redirige vers la section Rappels de la plateforme. Il ne
+crée plus de rappel récurrent en DB depuis le chat.
+
+Forme canonique :
 
 ```txt
-contract -> structured intake -> reducer/state transition -> effects
-  -> executor -> renderer -> invariant tests
+contract -> structured intake -> reducer/state transition
+  -> reminder handoff draft -> platform destination -> renderer
+  -> active handoff state
 ```
 
-Une demande de rappel récurrent n'est considérée exécutée que si un
-`CreateRecurringReminderCommittedEffect` prouve l'écriture DB dans
-`user_recurring_reminders`. Une approbation user, un draft complet ou un writer
-appelé ne suffisent pas.
+Une demande de rappel récurrent est traitée quand Sophia a clarifié la cadence,
+le moment, le contenu et la cible, puis livré une version prête à reprendre
+dans la plateforme.
+
+Sortie nominale :
+
+```txt
+toolExecution="platform_handoff"
+executedTools=[]
+committed_effects=[]
+platform_handoff.operation_type="create_recurring_reminder"
+platform_handoff.surface_id="recurring_reminders"
+no_chat_mutation=true
+```
+
+Une approbation user, un draft complet ou un "ok programme-le" deviennent
+`apply_attempt`, jamais une écriture.
 
 ## Dépend De L'Architecture De X
 
 Ce domaine dépend de :
 
-- `UserTurnSnapshot` pour lire l'état complet du tour : dans le code actuel,
-  cette projection arrive encore via `run.ts` sous forme de `turnFrame`,
-  `routeDecision`, `tempMemory`, `v2Runtime`, `planItemSnapshot`,
-  `userTimezone`, `sourceMessageId` et `requestId`, puis est transmise à
-  `tools/operations/create_recurring_reminder/router.ts`.
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair : l'agenda
-  n'est pas encore un objet unique injecté au skill. La frontière effective est
-  `recurringReminderRouteIsSelected()` dans `router.ts`, qui accepte seulement
-  une route Tool Skill recurring, une intake active recurring, une confirmation
-  pending recurring ou une recommandation pending recurring. Les arbitrages
-  globaux one-shot/status/coach/recap restent dans `run.ts` en tant que legacy
-  orchestration.
-- `Confirmation Contract` pour interpréter approve/reject/revise/explain :
-  `router.ts` appelle `reviewCreateRecurringReminderDraft()` depuis
-  `intake.ts`, qui délègue à `reviewToolSkillDraftWithAi()` dans
-  `tools/operations/_shared/draft_review.ts`. La confirmation executable passe
-  ensuite par `createConfirmationToken()` puis `verifyExecutorConfirmation()`
-  dans `executor.ts`.
-- `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé :
-  `contract.ts` définit `CreateRecurringReminderEffect`,
-  `CreateRecurringReminderCommittedEffect` et `CreateRecurringReminderSkillResult`.
-  `executor.ts` ne retourne `status: "executed"` qu'avec
-  `committed_effects`. `router.ts` ne remplit `executedTools` que si
-  `committedEffects.length > 0`. Quand une approbation exécutable lance
-  réellement l'executor, `router.ts` expose aussi le
-  `CreateRecurringReminderEffect` dans `requested_effects` et
-  `allowed_effects` pour que le ledger voie toute la chaîne
-  `requested -> allowed -> committed/failed`.
-- le contrat local de X pour l'intake, le reducer, les effets et le renderer :
-  `contract.ts`, `intake.ts`, `state.ts`, `router.ts`, `executor.ts` et
-  `renderer.ts` forment la base de vérité locale.
+- `UserTurnSnapshot` / `TurnFrame` / `RouteDecision` pour détecter
+  l'opportunité recurring sans parser localement dans `run.ts` ;
+- `TurnAgenda` pour représenter `create_recurring_reminder` comme
+  `platform_handoff`, pas comme effet durable ;
+- `clarification_tool` pour les ambiguïtés one-shot vs recurring, timing,
+  contenu, scope et handoff readiness ;
+- `Active Handoff Arbitration` pour continuer le handoff actif ;
+- `Product Surface Registry` pour fournir la destination canonique
+  `recurring_reminders` ;
+- `EffectLedger` pour tracer le handoff non-mutant ;
+- `one_shot_reminder` pour les rappels ponctuels, qui restent le direct effect
+  exécutable.
 
 ## Runtime Shape
 
 ```txt
-run.ts
+run.ts / operation_runtime_pipeline.ts
   -> maybeRunCreateRecurringReminderOperation(router.ts)
     -> loadRecurringReminderFrameFromTempMemory(state.ts)
     -> runCreateRecurringReminderIntake(intake.ts)
     -> runRecurringReminderBuilder(generator.ts)
-    -> reviewCreateRecurringReminderDraft(intake.ts) for pending draft review
-    -> executeCreateRecurringReminder(executor.ts)
-      -> write_recurring_reminder injected by router/persistence.ts
-    -> renderRecurringReminder*(renderer.ts)
+    -> RecurringReminderHandoffDraft
+    -> write RecurringReminderHandoffState
+    -> renderRecurringReminderPlatformHandoff(renderer.ts)
 ```
 
-Le reducer n'est pas encore un fichier `reducer.ts` séparé. Il est réparti
-entre :
-
-- `intake.ts` : `defaultState()`, `normalizeStatePatch()`, `mergeState()`,
-  `operationInputFromState()`, `normalizeTargetBindingAgainstPlatform()`;
-- `state.ts` : load/write/clear du frame tempMemory recurring;
-- `router.ts` : transitions de workflow entre recommendation, active intake,
-  pending confirmation, draft review, execution et handoff.
+Le reducer peut encore être réparti entre `intake.ts`, `state.ts` et
+`router.ts`. Le point important est comportemental : le chemin nominal ne doit
+pas importer ni appeler `executor.ts`, `persistence.ts`,
+`confirmation_token.ts` ou un guard d'execution.
 
 ## File Ownership
 
 - `tools/operations/create_recurring_reminder/contract.ts`
-  possède les types stables : `CreateRecurringReminderUserIntent`,
-  `CreateRecurringReminderConstraint`, `CreateRecurringReminderEffect`,
-  `CreateRecurringReminderCommittedEffect`, `CreateRecurringReminderSkillResult`.
+  possède les types stables, contraintes, statuts et draft handoff.
 - `tools/operations/create_recurring_reminder/intake.ts`
   possède l'intake structuré IA, le slot filling, la distinction
-  recurring/one-shot, `draft_only`, `no_create`, `cancel`, le draft review et
-  le reducer d'état interne.
+  recurring/one-shot, `draft_only`, `no_create`, cancel, revise, repeat et
+  apply attempt.
 - `tools/operations/create_recurring_reminder/state.ts`
-  encapsule les clés tempMemory existantes :
-  `__active_tool_skill_intake`, `active_tool_skill_intake`,
-  `__pending_tool_skill_confirmation`, `pending_tool_skill_confirmation`,
-  `__pending_recommendation_operation`.
+  encapsule l'état actif de handoff et les clés tempMemory legacy.
 - `tools/operations/create_recurring_reminder/platform_context.ts`
   prépare le contexte plan/action/famille d'action fourni au slot filler.
 - `tools/operations/create_recurring_reminder/generator.ts`
-  construit `RecurringReminderDraftV1` et le résumé du draft.
+  construit le brouillon `RecurringReminderHandoffDraft`.
 - `tools/operations/create_recurring_reminder/router.ts`
-  possède l'orchestration locale : admission recurring, pending recommendation,
-  active intake, pending confirmation, approve/reject/revise/explain,
-  handoff one-shot, appel executor, et mapping runtime result.
-- `tools/operations/create_recurring_reminder/executor.ts`
-  est la seule couche qui peut exécuter l'effet durable après confirmation
-  valide.
-- `tools/operations/create_recurring_reminder/persistence.ts`
-  applique l'effet DB par défaut : mapping days, binding draft -> colonnes,
-  insert `user_recurring_reminders`, liens de target/binding.
+  possède l'orchestration locale et l'adaptation `OperationRuntimeResult`.
 - `tools/operations/create_recurring_reminder/renderer.ts`
-  rend les réponses user-facing du domaine. Le wording de succès passe par
-  `renderRecurringReminderExecuted()` et exige un effet committé.
-- `router/run.ts`
-  ne doit être qu'un orchestrateur : router global, safety, handoff global,
-  appel au skill, persistance de logs runtime. Il ne doit pas reconstruire les
-  slots, réviser un draft recurring, écrire en DB recurring ou décider le
-  binding métier.
+  rend les réponses user-facing du domaine.
+- `tools/operations/create_recurring_reminder/executor.ts` et
+  `persistence.ts` sont legacy hors chemin nominal.
 
 ## Inputs
 
 - Message user courant.
-- `turnFrame` et `routeDecision` pour savoir si le skill est sélectionné.
-- `tempMemory` pour reprendre une intake active, une confirmation pending ou
-  une recommendation pending.
+- `turnFrame` et `routeDecision`.
+- `tempMemory` avec handoff recurring actif éventuel.
 - `v2Runtime` et `planItemSnapshot` pour fournir le contexte plan/action au
   slot filler.
 - Timezone locale user.
 - Risque safety pregate.
-- Draft pending pour approve/reject/revise/explain.
+- Résultat de clarification éventuel.
 
 ## Outputs
 
 - `ask_question` : slot récurrent manquant.
-- `draft_ready` : draft complet mais non exécutable (`draft_only` ou
-  `no_create`).
-- `pending_confirmation` : draft exécutable uniquement après approbation.
-- `handoff_to_one_shot` : demande ponctuelle claire, aucun effet recurring.
-- `cancelled` / `blocked` / `failed`.
-- `executed` avec `committed_effects`.
-- Runtime result avec `executedTools` uniquement si l'effet est committé.
+- `draft_ready` : draft complet non-mutant.
+- `handoff_ready` / `handoff_delivered` : draft plateforme complet.
+- `revise_handoff` : modification du draft.
+- `repeat_handoff` : répétition de la version plateforme.
+- `apply_attempt` : l'utilisateur demande de programmer depuis le chat ; le
+  skill répète le handoff et ne mute pas.
+- `handoff_to_one_shot` : demande ponctuelle claire, transmise au direct effect
+  one-shot.
+- `cancelled` / `blocked` / `failed` / `topic_change`.
+
+Le résultat ne contient jamais `executed` pour `create_recurring_reminder`.
 
 ## Responsabilités De X
 
-- Distinguer demande récurrente, demande ponctuelle et sortie de flow dans
-  l'intake structuré.
+- Distinguer demande récurrente, demande ponctuelle et sortie de flow via
+  intake structuré ou clarification.
 - Posséder fréquence, jours, heure locale, message exact/actionnable,
   destination `base_de_vie` vs `current_plan`.
 - Posséder le sens métier du binding : transformation, plan item, action
   family, live action, snapshot, independent, lifecycle policies.
 - Produire et réviser le draft.
-- Interpréter approve/reject/revise/explain du draft pending.
-- Bloquer `draft_only` et `no_create` avant toute confirmation executable.
-- Annuler/clear son frame quand `user_intent: "cancel"` arrive pendant intake.
-- Se retirer proprement avec `handoff_to_one_shot` si la demande est ponctuelle.
-- Écrire en DB seulement via `executeCreateRecurringReminder()`.
+- Interpréter repeat/revise/apply/cancel/topic_change pendant un handoff actif.
+- Bloquer `draft_only` et `no_create` avant toute tentative d'exécution.
+- Se retirer proprement avec `handoff_to_one_shot` si la demande devient
+  ponctuelle.
 - Rendre le message final via `renderer.ts`.
 
 ## Responsabilités Qui N'Appartiennent Pas À X
 
 - Créer, modifier ou annuler un rappel ponctuel : appartient à
   `tools/always_on/one_shot_reminder/*`.
-- Répondre aux questions produit/status générales : appartient aux conversation
-  skills/status composers.
-- Décider la safety globale : appartient au pregate et au routeur global.
-- Exécuter un effet sans confirmation explicite.
+- Répondre aux questions produit/status générales.
+- Décider la safety globale.
+- Exécuter un effet durable.
 - Réinterpréter dans `run.ts` les slots récurrents, la cadence, le contenu ou
   le binding plan.
 
 ## Invariants
 
+- Pas de création recurring depuis le chat.
 - Pas de création recurring pour une demande ponctuelle.
 - Pas de draft recurring généré sur `handoff_to_one_shot`.
-- Pas de DB write sans approve explicite du draft pending.
-- Pas de DB write si le draft est incomplet.
-- Pas de DB write si `draft_only` ou contrainte `no_create`/`draft_only`.
-- Pas de `executedTools: ["create_recurring_reminder"]` sans
-  `committedEffects.length > 0`.
-- Sur approbation exécutable, le runtime result expose l'effet
-  `create_recurring_reminder` demandé puis autorisé, même si le writer échoue
-  ensuite; l'échec reste sans `committed_effects` ni `executedTools`.
-- Pas de "C'est fait" / "J'ai créé" sans
-  `CreateRecurringReminderCommittedEffect.recurring_reminder_id`.
-- `revise`, `explain`, `reject`, `cancel` ne doivent jamais appeler le writer.
+- Pas de DB write dans le chemin nominal.
+- Pas de pending confirmation exécutable.
+- Pas de confirmation token.
+- Pas de `executedTools: ["create_recurring_reminder"]`.
+- `committed_effects=[]` sur toutes les branches recurring.
+- `apply_attempt`, `revise_handoff`, `repeat_handoff`, `cancelled` et
+  `topic_change` ne doivent jamais appeler de writer.
+- Pas de "C'est fait" / "J'ai créé" / "c'est programmé" /
+  "je te relancerai" pour un rappel récurrent.
 - Un item non-habitude ne doit jamais être transformé en `action_family`.
-- Le writer DB applique le binding décidé par le draft; il ne réinterprète pas
-  le message user.
+- Le renderer doit toujours indiquer la destination plateforme et la
+  non-mutation.
 
 ## Integration Points
 
 - `run.ts` appelle `maybeRunCreateRecurringReminderOperation()` et passe le
-  contexte runtime. Toute nouvelle branche métier recurring ajoutée dans
-  `run.ts` contredit ce contrat.
+  contexte runtime.
 - `one_shot_reminder/router.ts` reste le direct effect propriétaire des rappels
   ponctuels. La frontière est `handoff_to_one_shot`.
-- `confirmation_token.ts` et `_shared/executor_guard.ts` protègent
-  l'exécution post-approve.
-- `persistence.ts` écrit dans `user_recurring_reminders`.
+- `router/handoff_flow_arbitration.ts` protège les suites du handoff actif.
+- `product_surface_registry` fournit la destination `recurring_reminders`.
+- `clarification_tool` clarifie one-shot vs recurring quand les signaux sont
+  ambigus.
 - Les context/status loaders peuvent lire `user_recurring_reminders`, mais ne
   doivent pas créer ou modifier les rappels recurring.
 
@@ -199,21 +177,21 @@ entre :
 - Ajouter un slot ou une contrainte au JSON structuré de `intake.ts`, si le
   contrat est mis à jour.
 - Extraire le reducer vers un `reducer.ts` dédié, sans changer la sémantique.
-- Ajouter un effet préparatoire explicite dans `contract.ts`.
-- Améliorer `renderer.ts` tant que le succès reste conditionné aux effets
-  committés.
+- Améliorer `renderer.ts` tant qu'il reste no-mutation.
 - Renforcer les tests d'invariants du module.
+- Améliorer les adapters legacy à condition que le chemin nominal handoff ne
+  les appelle pas.
 
 ## Forbidden Changes
 
 - Ajouter une regex métier dans `run.ts`, `router.ts` ou `persistence.ts` pour
   distinguer ponctuel/récurrent, cadence, contenu ou binding.
 - Faire créer un one-shot par `create_recurring_reminder`.
-- Appeler `insertRecurringReminderFromDraft()` hors de l'executor guard.
-- Mettre `executedTools` sur une branche failed/blocked.
-- Dire "créé", "programmé", "c'est fait" ou équivalent sans
-  `committed_effects`.
-- Réintroduire une confirmation globale hors draft review local du skill.
+- Appeler `insertRecurringReminderFromDraft()` dans le chemin nominal.
+- Mettre `executedTools` sur une branche recurring.
+- Dire "créé", "programmé", "c'est fait" ou équivalent pour un rappel
+  récurrent.
+- Réintroduire une confirmation globale exécutable.
 - Laisser `draft_only` ou `no_create` produire une pending confirmation
   exécutable.
 
@@ -222,39 +200,34 @@ entre :
 - Les clés tempMemory legacy (`active_tool_skill_intake`,
   `pending_tool_skill_confirmation`, `__pending_recommendation_operation`) sont
   encore lues/écrites par `state.ts` pour compatibilité avec les flows actifs.
-  Condition de suppression : migration globale des Tool Skills vers un frame
-  unique versionné.
+  Elles ne doivent plus signifier qu'une exécution recurring est possible.
 - Le reducer est encore réparti entre `intake.ts`, `state.ts` et `router.ts`.
-  Condition de suppression : extraction d'un `reducer.ts` avec tests qui
-  rejouent toutes les transitions sans runtime Supabase.
+- `executor.ts`, `persistence.ts`, `confirmation_token.ts` et les tests legacy
+  peuvent rester dans le repo pour référence ou migration, mais ils sont hors
+  chemin nominal V1.
 - `run.ts` contient encore des arbitrages globaux d'interruption
-  one-shot/status/coach/recap autour des flows actifs. Ils restent hors métier
-  recurring mais ne sont pas encore remplacés par `UserTurnSnapshot` +
-  `TurnAgenda`. Condition de suppression : admission structurée globale qui
-  expose explicitement supersede/suspend/resume par domaine.
-- `run_product_help_guard.test.ts` est actuellement bloqué par des erreurs hors
-  périmètre recurring dans `weekly_review/runtime.ts` et des helpers
-  adjust-plan manquants. Ce contrat ne les couvre pas.
+  one-shot/status/coach/recap autour des flows actifs. Ils doivent migrer vers
+  `UserTurnSnapshot` + `TurnAgenda` + `handoff_flow_arbitration`.
 
 ## Required Tests
 
 Le contrat est protégé par
 `tools/operations/create_recurring_reminder/tests.ts` :
 
-- one-shot wording -> `handoff_to_one_shot`, sans draft ni pending recurring;
-- recurring wording -> `pending_confirmation`;
+- one-shot wording -> `handoff_to_one_shot`, sans draft recurring;
+- recurring wording -> `platform_handoff`;
 - missing time/content -> `ask_question`;
-- approve -> writer appelé via executor, `committedEffects` rempli,
-  `executedTools` rempli;
-- writer failure -> `toolExecution=failed`, `executedTools=[]`,
-  `committedEffects=[]`, pas de success wording;
-- invalid draft -> blocked, aucun writer, aucun effet committé;
-- revise/explain/reject -> aucun writer;
-- `draft_only` / `no_create` -> `draft_ready`, pas de pending exécutable;
+- draft complet -> `handoff_delivered`, aucun pending exécutable;
+- `ok programme-le` -> `apply_attempt`, aucun writer;
+- `revise_handoff` met à jour le draft;
+- `repeat_handoff` répète destination + contenu;
+- `draft_only` / `no_create` -> handoff non-mutant;
 - active intake cancel -> frame cleared, aucun writer;
-- active recurring + one-shot wording -> handoff, frame cleared;
-- renderer -> pas de wording créé sans effets committés;
-- binding non-habitude -> `plan_item`, jamais `action_family`.
+- active recurring + one-shot wording -> sortie vers one-shot;
+- renderer -> pas de wording créé/programmé sans mutation;
+- binding non-habitude -> `plan_item`, jamais `action_family`;
+- structurel : le runtime nominal n'importe pas executor, persistence ou
+  confirmation token.
 
 Tests frontière utiles :
 
@@ -262,11 +235,13 @@ Tests frontière utiles :
   protège la frontière ponctuel vs récurrent.
 - `router/turn_intent_arbitrator.test.ts` protège le routage global des
   intents concurrents.
+- tests réels : "demain matin, enfin peut-être tous les matins" doit déclencher
+  clarification, pas choisir recurring trop tôt.
 
 ## Suivi Des Décisions Architecturales
 
 | Date | Décision | Statut | Référence |
 | --- | --- | --- | --- |
-| 2026-05-30 | `create_recurring_reminder` suit le modèle `contract -> intake -> reducer/state -> effects -> executor -> renderer`; `committed_effects` est la seule preuve d'exécution. | Active | J45 dans `15-chantiers-log.md` |
-| 2026-05-30 | `draft_only` et `no_create` produisent un `draft_ready` non exécutable. | Active | J45 dans `15-chantiers-log.md` |
-| 2026-05-30 | La suppression des clés tempMemory legacy est différée jusqu'à un frame Tool Skill versionné global. | Legacy temporaire | J45 dans `15-chantiers-log.md` |
+| 2026-05-30 | `create_recurring_reminder` suivait le modèle `contract -> intake -> reducer/state -> effects -> executor -> renderer`; `committed_effects` était la preuve d'exécution. | Superseded pour le chemin nominal | J45 dans `15-chantiers-log.md` |
+| 2026-06-01 | `create_recurring_reminder` devient un handoff plateforme no-mutation; la création récurrente se fait dans la plateforme. | Active | Architecture handoff V1 |
+| 2026-06-01 | La frontière one-shot vs recurring doit passer par clarification quand elle est ambiguë; seul one-shot reste exécutable depuis le chat. | Active | QA clarification dispatcher |

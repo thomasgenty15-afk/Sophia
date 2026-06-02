@@ -2,7 +2,9 @@ import type {
   CoachPreferenceKey,
   CoachPreferencesPatchBuilderInput,
 } from "../_shared/operation_payload_builder.ts";
+import type { CoachPreferenceHandoffDraft } from "./contract.ts";
 import { COACH_PREFERENCE_VALUES } from "./workflow.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 export type CoachPreferencesPatchDraftV1 = {
   operation_type: "update_coach_preferences";
@@ -66,6 +68,30 @@ function labelForPatch(key: CoachPreferenceKey, value: string): string {
     : "un niveau de questions équilibré";
 }
 
+function settingLabel(key: CoachPreferenceKey): string {
+  if (key === "coach.tone") return "Ton global";
+  if (key === "coach.challenge_level") return "Niveau de challenge";
+  return "Tendance à poser des questions";
+}
+
+function readableValueForPatch(key: CoachPreferenceKey, value: string): string {
+  if (key === "coach.tone") {
+    return value === "soft"
+      ? "Doux"
+      : value === "direct"
+      ? "Très direct"
+      : "Bienveillant ferme";
+  }
+  if (key === "coach.challenge_level") {
+    return value === "low" ? "Léger" : value === "high" ? "Élevé" : "Équilibré";
+  }
+  return value === "low"
+    ? "Peu de questions"
+    : value === "high"
+    ? "Très questionnant"
+    : "Équilibré";
+}
+
 function summaryForPatch(
   key: CoachPreferenceKey,
   value: string,
@@ -98,7 +124,7 @@ function summaryForPatch(
 }
 
 function confirmationForPatch(summary: string): string {
-  return `Bien reçu. Pour la suite, ${summary} Si c'est bien ça, je le garde comme préférence.`;
+  return `Bien reçu. Pour la suite, réglage recommandé à reprendre dans les Préférences coach : ${summary}`;
 }
 
 export function validateCoachPreferencePatch(
@@ -141,5 +167,70 @@ export function runCoachPreferencesPatchBuilder(
     },
     confirmation_message: confirmationForPatch(summary),
     confirmation_actions: ["yes", "no"],
+  };
+}
+
+export function runCoachPreferenceHandoffDraftBuilder(input: {
+  user_request_summary: string;
+  requested_patch?: Partial<Record<CoachPreferenceKey, string>> | null;
+  unsupported_parts?: string[];
+  missing_decisions?: string[];
+  preference_kind?: CoachPreferenceHandoffDraft["preference_kind"];
+}): CoachPreferenceHandoffDraft {
+  const handoffTarget = getHandoffTargetForOperation(
+    "update_coach_preferences",
+  );
+  const patch = input.requested_patch ?? {};
+  const supported_settings: CoachPreferenceHandoffDraft["supported_settings"] =
+    [];
+  for (const [rawKey, rawValue] of Object.entries(patch)) {
+    const key = rawKey as CoachPreferenceKey;
+    const value = normalizeCoachPreferenceValue(key, rawValue);
+    if (!value) continue;
+    supported_settings.push({
+      key,
+      label: settingLabel(key),
+      recommended_value: readableValueForPatch(key, value),
+      explanation: summaryForPatch(key, value),
+    });
+  }
+  const unsupportedParts = (input.unsupported_parts ?? []).filter(Boolean);
+  const platformSteps = handoffTarget?.platform_steps ??
+    (supported_settings.length
+    ? [
+      "Ouvre la plateforme.",
+      "Va dans Préférences coach.",
+      ...supported_settings.map((setting) =>
+        `Règle ${setting.label} sur ${setting.recommended_value}.`
+      ),
+    ]
+    : [
+      "Ouvre la plateforme.",
+      "Va dans Préférences coach pour voir les réglages disponibles.",
+    ]);
+  return {
+    operation_type: "update_coach_preferences",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    user_request_summary: input.user_request_summary,
+    preference_kind: input.preference_kind ??
+      (supported_settings.length ? "durable_supported" : "durable_unsupported"),
+    supported_settings,
+    unsupported_parts: unsupportedParts,
+    recommendation: {
+      platform_destination: handoffTarget?.user_facing_destination ??
+        "dans la plateforme, depuis les Préférences coach",
+      platform_steps: platformSteps,
+      preserve: ["garder les réponses utiles et concrètes"],
+      avoid: unsupportedParts.length
+        ? unsupportedParts.map((part) =>
+          `stocker comme préférence durable: ${part}`
+        )
+        : [
+          "transformer ça en règle trop rigide sur la longueur, les questions ou le format si ce n'est pas ton intention",
+        ],
+    },
+    missing_decisions: input.missing_decisions ?? [],
   };
 }

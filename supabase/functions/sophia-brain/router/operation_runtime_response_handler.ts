@@ -58,6 +58,21 @@ export type OperationRuntimeResponseHandlerResult = {
   conversation_turn_trace: Record<string, unknown> | null;
 };
 
+export function routeDecisionForOperationTrace(args: {
+  routeDecision: RouteDecision;
+  toolSkillRun?: unknown;
+}): RouteDecision {
+  const selectedHandler = String(
+    (args.toolSkillRun as any)?.selected_handler ?? "",
+  ).trim();
+  if (!selectedHandler) return args.routeDecision;
+  return {
+    ...args.routeDecision,
+    response_owner: "tool_skill",
+    selected_handler: selectedHandler,
+  };
+}
+
 function envBool(name: string, fallback: boolean): boolean {
   let raw = "";
   try {
@@ -272,20 +287,26 @@ export async function handleOperationRuntimeResponse(args: {
     }
   }
 
-  const effectiveResponseOwner = turnFrame && routeDecision
-    ? effectiveResponseOwnerForOperationRuntime({
+  const traceRouteDecision = turnFrame && routeDecision
+    ? routeDecisionForOperationTrace({
       routeDecision,
       toolSkillRun: operationRuntime.toolSkillRun,
     })
+    : null;
+  const effectiveResponseOwner = turnFrame && traceRouteDecision
+    ? effectiveResponseOwnerForOperationRuntime({
+      routeDecision: traceRouteDecision,
+      toolSkillRun: operationRuntime.toolSkillRun,
+    })
     : "normal_reply";
-  const operationConversationTurnTrace = turnFrame && routeDecision
+  const operationConversationTurnTrace = turnFrame && traceRouteDecision
     ? {
       turn_frame: turnFrame,
-      route_decision: routeDecision,
+      route_decision: traceRouteDecision,
       turn_agenda_summary: turnAgendaSummary,
       tool_skill_run: {
-        selected_handler: routeDecision.selected_handler ?? null,
-        reason_code: routeDecision.reason_code,
+        selected_handler: traceRouteDecision.selected_handler ?? null,
+        reason_code: traceRouteDecision.reason_code,
         ...operationRuntime.toolSkillRun,
       },
       effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
@@ -293,7 +314,7 @@ export async function handleOperationRuntimeResponse(args: {
     }
     : null;
 
-  if (turnFrame && routeDecision) {
+  if (turnFrame && traceRouteDecision) {
     try {
       const dispatcherV2Stat = dispatcherV2Stats[0];
       await logConversationTurn({
@@ -313,15 +334,15 @@ export async function handleOperationRuntimeResponse(args: {
           turn_agenda_summary: turnAgendaSummary,
         },
         turn_frame: turnFrame,
-        route_decision: routeDecision,
+        route_decision: traceRouteDecision,
         direct_effects: operationRuntime.executedTools.map((toolId) => ({
           tool_id: toolId,
           outcome: operationRuntime.toolExecution,
         })),
         effect_ledger: summarizeEffectLedgerForTrace(effectLedger),
         tool_skill_run: {
-          selected_handler: routeDecision.selected_handler ?? null,
-          reason_code: routeDecision.reason_code,
+          selected_handler: traceRouteDecision.selected_handler ?? null,
+          reason_code: traceRouteDecision.reason_code,
           ...operationRuntime.toolSkillRun,
         },
         confirmation_token_outcomes: [],

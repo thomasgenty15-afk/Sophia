@@ -88,21 +88,11 @@ export function runtimeSafetyPregateForTurn<
   turnFrame: TurnFrame | null;
   tempMemory: unknown;
   userMessage: string;
-  allowExplicitSafeWorkReminderDowngrade: (message: string) => boolean;
 }): { riskBand: RiskBand; pregateOutput: T } {
-  const activeSafetyFlow = isActiveSafetyCrisisSkillState(
-    (args.tempMemory as any)?.__active_skill_state ??
-      (args.tempMemory as any)?.active_skill_state,
-  );
-  const canLowerExplicitWorkReminder = !activeSafetyFlow &&
-    args.routeDecision?.direct_effects_to_run.includes(
-      "create_one_shot_reminder",
-    ) &&
-    args.safetyPregateOutput.risk_band === "medium" &&
-    args.allowExplicitSafeWorkReminderDowngrade(args.userMessage);
-  const safetyFloorRiskBand: RiskBand = canLowerExplicitWorkReminder
-    ? "low"
-    : args.safetyPregateOutput.risk_band;
+  void args.userMessage;
+  void args.tempMemory;
+  void args.routeDecision;
+  const safetyFloorRiskBand: RiskBand = args.safetyPregateOutput.risk_band;
   const riskBand = args.turnFrame?.safety?.risk_band &&
       isAtLeast(args.turnFrame.safety.risk_band, safetyFloorRiskBand)
     ? args.turnFrame.safety.risk_band

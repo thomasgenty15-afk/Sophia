@@ -11,6 +11,7 @@ export function structuredRecurringReminderSlotFiller(input: {
   frequency?: RecurringReminderFrequency | null;
   days?: string[];
   time?: string | null;
+  cadence_label?: string | null;
   message?: string | null;
   missing_slots?: string[];
   generated_user_message?: string | null;
@@ -59,6 +60,7 @@ export function structuredRecurringReminderSlotFiller(input: {
           days: input.days ?? [],
           time: input.time ?? null,
           timezone: "Europe/Paris",
+          cadence_label: input.cadence_label ?? null,
           confidence: "high",
           evidence: ["structured_test_fixture"],
         },

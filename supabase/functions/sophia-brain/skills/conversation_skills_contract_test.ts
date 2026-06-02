@@ -133,6 +133,49 @@ Deno.test("intake failure is conservative and produces no durable effects", () =
   }
 });
 
+Deno.test("emotional_repair enforces explicit no-plan and no-question constraints from user text", () => {
+  const runInput = {
+    ...mockRunInput(),
+    user_message:
+      "Je panique un peu. Pas de question s'il te plait, juste une phrase courte.",
+  };
+  const output = reduceEmotionalRepairTurn({
+    run_input: runInput,
+    intake_decision: {
+      skill_id: "emotional_repair",
+      intent: "anxiety_or_panic",
+      phase: "stabilize",
+      emotional_dominance: "high",
+      context_domain: "body",
+      constraints: [],
+      response_contract: {
+        max_questions: 1,
+        allow_plan: true,
+        allow_tool_suggestion: true,
+        allow_potion_suggestion: true,
+        allow_concrete_action: true,
+        tone: "soft",
+      },
+      operation_suggestions: [],
+      memory_write_candidates: [],
+      reply:
+        "1) Respire trois fois.\n2) Regarde autour de toi.\nQuel est ton niveau de panique sur 10 ?",
+      state_patch: {},
+    },
+    intake_errors: [],
+  });
+  const reply = output.reply ?? "";
+  assert(reply.length > 0);
+  assertEquals(reply.includes("?"), false);
+  assertEquals(/(^|\n)\s*\d+[.)]/.test(reply), false);
+  assert(
+    (output.diagnosis as any)?.constraints?.includes("no_questions"),
+  );
+  assert(
+    (output.diagnosis as any)?.constraints?.includes("short_reply"),
+  );
+});
+
 Deno.test("operation suggestions remain suggestions and do not execute tools", () => {
   const runInput = mockRunInput();
   const decision = conservativeExecutionDecision("test");

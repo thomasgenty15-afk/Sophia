@@ -4,16 +4,14 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
-import { createConfirmationToken } from "../../../confirmation/confirmation_token.ts";
 import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
 import { loadPotionBaseContext } from "../../../../_shared/potion-base-context.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import { buildToolConfirmationDecision } from "../_shared/confirmation_adapter.ts";
 import {
   hardConsentGuards,
-  isExplicitSelectStatePotionRequest,
   isPendingStatePotionOperation,
   isPendingStatePotionRecommendationOperation,
-  legacySemanticDetectors,
   noPotionReply,
   selectStatePotionRouteIsSelected,
   statePotionDeclineReply,
@@ -24,8 +22,8 @@ import type {
   SelectStatePotionEffect,
   SelectStatePotionSkillResult,
   SelectStatePotionUserIntent,
+  StatePotionHandoffDraft,
 } from "./contract.ts";
-import { writeStatePotionActivation } from "./persistence.ts";
 import {
   generatePotionSessionDraftWithAi,
   type PotionSessionDraftGeneratorInput,
@@ -33,8 +31,10 @@ import {
 } from "./generator.ts";
 import { runSelectStatePotionIntake } from "./intake.ts";
 import { reviewSelectStatePotionDraft } from "./draft_validation.ts";
-import { executeActivateStatePotion } from "./executor.ts";
-import { renderSelectStatePotionSkillResult } from "./renderer.ts";
+import {
+  renderSelectStatePotionSkillResult,
+  renderStatePotionApplyAttemptHandoff,
+} from "./renderer.ts";
 import {
   clearPotionFollowupConsent,
   clearSelectStatePotionFrame,
@@ -44,6 +44,7 @@ import {
   writeSelectStatePotionActiveIntake,
   writeSelectStatePotionPendingConfirmation,
   writeSelectStatePotionPendingRecommendation,
+  writeStatePotionHandoffState,
 } from "./state.ts";
 
 type ToolExecutionStatus =
@@ -51,7 +52,8 @@ type ToolExecutionStatus =
   | "blocked"
   | "success"
   | "failed"
-  | "uncertain";
+  | "uncertain"
+  | "platform_handoff";
 
 type SelectStatePotionRuntimeResult = {
   content: string;
@@ -66,31 +68,6 @@ type RecentChatMessage = {
   role: "user" | "assistant";
   content: string;
 };
-
-function envString(name: string, fallback = ""): string {
-  try {
-    return String(Deno.env.get(name) ?? fallback);
-  } catch {
-    return fallback;
-  }
-}
-
-function riskBandForStatePotionExecution(
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>,
-): ReturnType<typeof runSafetyPregate>["risk_band"] {
-  const reasonCodes = Array.isArray(safetyPregateOutput.reason_codes)
-    ? safetyPregateOutput.reason_codes
-    : [];
-  const evidence = Array.isArray(safetyPregateOutput.evidence)
-    ? safetyPregateOutput.evidence
-    : [];
-  const isRecentContextOnlyMedium =
-    safetyPregateOutput.risk_band === "medium" &&
-    evidence.length === 0 &&
-    reasonCodes.length > 0 &&
-    reasonCodes.every((code) => code === "recent_safety_context_caution");
-  return isRecentContextOnlyMedium ? "none" : safetyPregateOutput.risk_band;
-}
 
 function recentUserMessagesFromHistory(history: unknown): string[] {
   if (!Array.isArray(history)) return [];
@@ -191,7 +168,9 @@ function adaptSkillResultToRuntime(args: {
     additionalContents: args.result.additional_replies,
     nextTempMemory: args.nextTempMemory,
     toolExecution: args.toolExecution,
-    executedTools: committed ? args.executedTools ?? ["select_state_potion"] : [],
+    executedTools: committed
+      ? args.executedTools ?? ["select_state_potion"]
+      : [],
     toolSkillRun: {
       selected_handler: "select_state_potion",
       ...args.result,
@@ -200,16 +179,42 @@ function adaptSkillResultToRuntime(args: {
   };
 }
 
-function activationEffect(args: {
-  operationId: string;
-  draft: PotionSessionDraftV1;
-  suppressFollowUp: boolean;
-}): SelectStatePotionEffect {
+function platformHandoffDraftFromPendingPotion(
+  draft: PotionSessionDraftV1,
+  suppressFollowUp: boolean,
+): StatePotionHandoffDraft {
+  const target = getHandoffTargetForOperation("select_state_potion");
+  const potionType = String(draft.draft.potion_type ?? "").trim();
   return {
-    type: "activate_state_potion",
-    operation_id: args.operationId,
-    draft: args.draft,
-    suppress_follow_up_scheduling: args.suppressFollowUp,
+    operation_type: "select_state_potion",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    user_state_summary: draft.draft.title ||
+      "tu veux changer d'état avec un appui court.",
+    desired_shift_summary: draft.draft.why_this_potion ||
+      "Le shift recommandé est de changer d'état sans lancer de mutation depuis le chat.",
+    recommendation: {
+      potion_label: potionType ? `potion ${potionType}` : "potion d'état",
+      why_this_potion: draft.draft.why_this_potion,
+      immediate_step: draft.draft.instant_support_message || null,
+      preserve: [
+        "garder le format court",
+        suppressFollowUp ? "ne pas programmer de suivi" : "",
+      ].filter(Boolean),
+      avoid: [
+        "lancer la potion depuis le chat",
+        "transformer ce soutien en obligation",
+      ],
+      platform_destination: target?.user_facing_destination ??
+        "dans la section État / Potions",
+      platform_steps: target?.platform_steps ?? [
+        "ouvre la section État / Potions",
+        "reprends la potion recommandée",
+        "lance-la depuis la plateforme si elle te convient",
+      ],
+    },
+    missing_decisions: [],
   };
 }
 
@@ -289,23 +294,27 @@ export async function maybeRunSelectStatePotionOperation(args: {
   recentUserMessages?: string[];
   recentMessages?: RecentChatMessage[];
   draftReviewOverride?: typeof reviewSelectStatePotionDraft;
-  writeStatePotionActivationOverride?: typeof writeStatePotionActivation;
 }): Promise<SelectStatePotionRuntimeResult | null> {
   const routeSelected = selectStatePotionRouteIsSelected({
     routeDecision: args.routeDecision,
     turnFrame: args.turnFrame,
     tempMemory: args.tempMemory,
     userMessage: args.userMessage,
-  }) || isExplicitSelectStatePotionRequest(args.userMessage);
+  });
   if (!routeSelected) return null;
+  if (
+    args.routeDecision?.reason_code ===
+      "create_one_shot_reminder_interrupts_active_handoff" ||
+    args.routeDecision?.reason_code === "status_recap_interrupts_active_handoff" ||
+    args.routeDecision?.reason_code === "product_help_interrupts_active_handoff" ||
+    args.routeDecision?.reason_code === "safety_interrupts_active_handoff"
+  ) return null;
 
   const recentUserMessages = args.recentUserMessages ??
     recentUserMessagesFromHistory(args.history);
   const recentMessages = args.recentMessages ??
     recentMessagesFromHistory(args.history);
   const reviewDraft = args.draftReviewOverride ?? reviewSelectStatePotionDraft;
-  const writeActivation = args.writeStatePotionActivationOverride ??
-    writeStatePotionActivation;
   let nextTempMemory = { ...(args.tempMemory ?? {}) };
   const frame = loadSelectStatePotionFrameFromTempMemory(nextTempMemory);
   const pendingRaw = frame.pending;
@@ -340,26 +349,6 @@ export async function maybeRunSelectStatePotionOperation(args: {
     });
   }
 
-  if (
-    potionFlowActive &&
-    legacySemanticDetectors.looksLikeOneShotReminderHandoff(args.userMessage) &&
-    hardConsentGuards.detectsPotionFollowUpRefusal(args.userMessage)
-  ) {
-    nextTempMemory = clearSelectStatePotionFrame(nextTempMemory);
-    return adaptSkillResultToRuntime({
-      result: skillResult({
-        status: "handoff",
-        user_intent: "one_shot_reminder_handoff",
-        reply: "",
-        constraints: [constraint("no_followup", [args.userMessage])],
-        handoff: { target: "create_one_shot_reminder" },
-        reason_code: "explicit_one_shot_reminder_supersedes_potion_flow",
-        evidence: [args.userMessage],
-      }),
-      nextTempMemory,
-      toolExecution: "none",
-    });
-  }
 
   const draftGeneratorWithDbContext = async (
     input: PotionSessionDraftGeneratorInput,
@@ -596,92 +585,53 @@ export async function maybeRunSelectStatePotionOperation(args: {
     }
 
     const operationId = String(pendingRaw.operation_id ?? crypto.randomUUID());
-    const activateEffect = activationEffect({
-      operationId,
-      draft: pendingRaw.draft,
-      suppressFollowUp: followUpConsentRefused,
+    const handoffDraft = platformHandoffDraftFromPendingPotion(
+      pendingRaw.draft,
+      followUpConsentRefused,
+    );
+    nextTempMemory = writeStatePotionHandoffState(nextTempMemory, {
+      skill_id: "select_state_potion",
+      mode: "platform_handoff",
+      status: "apply_attempt",
+      draft: handoffDraft,
+      operation_input: {
+        previous_draft: pendingRaw.draft,
+        suppress_follow_up_scheduling: followUpConsentRefused,
+      },
+      turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+      max_turns: 6,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      no_chat_mutation: true,
     });
-    const token = await createConfirmationToken({
-      user_id: args.userId,
-      operation_id: operationId,
-      operation_type: "select_state_potion",
-      draft: pendingRaw.draft,
-      source_message_id: args.sourceMessageId ?? args.requestId ??
-        crypto.randomUUID(),
-      pending_confirmation_id: operationId,
-      secret: envString(
-        "CONFIRMATION_TOKEN_SECRET",
-        envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-      ),
-    });
-    const executed = await executeActivateStatePotion({
-      operation_id: operationId,
-      user_id: args.userId,
-      draft: pendingRaw.draft,
-      token,
-      safety_pregate_risk_band: riskBandForStatePotionExecution(
-        args.safetyPregateOutput,
-      ),
-      pending_confirmation_lookup: async (id) =>
-        id === operationId ? { consumed: false } : null,
-      token_consumption_check: async () => false,
-      suppress_follow_up_scheduling: followUpConsentRefused,
-      write_potion_activation: async ({ draft, scheduled_followups }) =>
-        await writeActivation({
-          supabase: args.supabase,
-          userId: args.userId,
-          draft,
-          scheduledFollowups: scheduled_followups,
-          suppressFollowUp: followUpConsentRefused,
-          operationId,
-          requestId: args.requestId ?? null,
-          sourceMessageId: args.sourceMessageId,
-        }),
-      secret: envString(
-        "CONFIRMATION_TOKEN_SECRET",
-        envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-      ),
-    });
-    nextTempMemory = clearSelectStatePotionFrame(nextTempMemory);
-    if (executed.status !== "executed") {
-      return adaptSkillResultToRuntime({
-        result: skillResult({
-          status: "blocked",
-          user_intent: "activate",
-          reply: executed.ack,
-          constraints: followUpConstraints,
-          requested_effects: [activateEffect],
-          allowed_effects: [activateEffect],
-          reason_code: executed.reason_code,
-          evidence: [args.userMessage],
-        }),
-        nextTempMemory,
-        toolExecution: "blocked",
-      });
-    }
-    const committedEffect: SelectStatePotionCommittedEffect = {
-      type: "activate_state_potion",
-      operation_id: operationId,
-      potion_session_id: executed.potion_session_id,
-      recurring_reminder_id: executed.recurring_reminder_id,
-      scheduled_checkin_ids: executed.scheduled_checkin_ids,
-    };
-    return adaptSkillResultToRuntime({
-      result: skillResult({
-        status: "executed",
-        user_intent: "activate",
-        reply: executed.messages.instant_support_message,
-        additional_replies: [executed.messages.potion_info_message],
-        constraints: followUpConstraints,
-        requested_effects: [activateEffect],
-        allowed_effects: [activateEffect],
-        committed_effects: [committedEffect],
-        reason_code: "activate_state_potion_executed",
-        evidence: [args.userMessage],
-      }),
+    return {
+      content: renderStatePotionApplyAttemptHandoff(handoffDraft),
       nextTempMemory,
-      toolExecution: "success",
-    });
+      toolExecution: "platform_handoff",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "select_state_potion",
+        operation_type: "select_state_potion",
+        operation_id: operationId,
+        status: "apply_attempt",
+        user_intent: "activate",
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        pending_confirmation: null,
+        platform_handoff: {
+          operation_type: "select_state_potion",
+          status: "apply_attempt",
+          surface_id: getHandoffTargetForOperation("select_state_potion")
+            ?.surface_id ?? "state_potions",
+          reason_code: "chat_apply_attempt_redirected_to_platform",
+          no_chat_mutation: true,
+          draft: handoffDraft,
+        },
+        reason_code: "chat_apply_attempt_redirected_to_platform",
+      },
+    };
   }
 
   if (isPendingStatePotionRecommendationOperation(pendingRecommendation)) {

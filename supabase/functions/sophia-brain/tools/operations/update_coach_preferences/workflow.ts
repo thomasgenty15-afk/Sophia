@@ -55,7 +55,7 @@ export type CoachPreferenceToolSkillState = {
   status:
     | "collecting"
     | "draft_ready"
-    | "awaiting_user_confirmation"
+    | "handoff_ready"
     | "executing"
     | "completed"
     | "cancelled"

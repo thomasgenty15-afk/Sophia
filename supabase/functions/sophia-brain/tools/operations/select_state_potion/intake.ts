@@ -679,7 +679,9 @@ function recalculateReadiness(
   const baseRequiredDetailIds = chatDetailQuestionIds(selectedPotion);
   const supportTimingWasRequested = isActionAwarePotion(selectedPotion) &&
     (state.missing_slots.includes(SUPPORT_TIMING_SLOT) ||
-      state.details.required_question_ids.includes(SUPPORT_TIMING_QUESTION_ID) ||
+      state.details.required_question_ids.includes(
+        SUPPORT_TIMING_QUESTION_ID,
+      ) ||
       state.details.answers.some((answer) =>
         answer.question_id === SUPPORT_TIMING_QUESTION_ID
       ));
@@ -688,9 +690,7 @@ function recalculateReadiness(
     : baseRequiredDetailIds;
   const detailAnswers = state.details.answers.filter((answer) =>
     requiredDetailIds.includes(answer.question_id) &&
-    answer.answer.trim() &&
-    (answer.question_id !== SUPPORT_TIMING_QUESTION_ID ||
-      supportTimingAnswerIsPrecise(answer.answer))
+    answer.answer.trim()
   );
   const answeredDetailIds = new Set(
     detailAnswers.map((answer) => answer.question_id),
@@ -966,44 +966,37 @@ function fallbackQuestionForState(
         "Tu voudrais que Sophia te rattrape à quel moment autour de ça ?",
     },
     courage: {
-      avoidance_target:
-        "C'est quel passage concret que tu évites là ?",
+      avoidance_target: "C'est quel passage concret que tu évites là ?",
       blocker_kind:
         "Je vois le passage à franchir. Qu'est-ce qui serre le plus quand tu t'en approches ?",
       support_timing:
         "Tu voudrais que Sophia soit là à quel moment autour de ce passage ?",
     },
     guerison: {
-      recent_hurt:
-        "Quel moment récent a laissé cette trace ?",
+      recent_hurt: "Quel moment récent a laissé cette trace ?",
       dominant_feeling:
         "Je vois l'épisode. Qu'est-ce qui pèse le plus maintenant quand tu y repenses ?",
     },
     clarte: {
-      clarity_problem:
-        "Qu'est-ce qui est le plus mélangé là, concrètement ?",
+      clarity_problem: "Qu'est-ce qui est le plus mélangé là, concrètement ?",
       clarity_need:
         "Je vois le brouillard. Tu as surtout besoin de retrouver quel fil en premier ?",
       support_timing:
         "Tu voudrais placer ce soutien à quel moment, pour que ça aide vraiment ?",
     },
     amour: {
-      self_talk:
-        "Quelle phrase dure revient le plus contre toi en ce moment ?",
+      self_talk: "Quelle phrase dure revient le plus contre toi en ce moment ?",
       love_need:
         "Je vois la dureté. De quoi tu aurais le plus besoin dans la manière de te parler là ?",
     },
     apaisement: {
-      pressure_source:
-        "Qu'est-ce qui met le plus ton corps sous pression là ?",
+      pressure_source: "Qu'est-ce qui met le plus ton corps sous pression là ?",
       pressure_state:
         "Je vois la pression. Comment elle se manifeste le plus dans ton corps maintenant ?",
     },
   };
   return byPotion[selectedPotion]?.[firstMissing] ??
-    `${
-      chatDetailQuestionLabel(selectedPotion, firstMissing)
-    }`;
+    `${chatDetailQuestionLabel(selectedPotion, firstMissing)}`;
 }
 
 function normalizeVisibleQuestionText(value: string): string {
@@ -1064,19 +1057,8 @@ function recoverableQuestionOutput(
 function hasSupportTimingAnswer(state: SelectStatePotionIntakeState): boolean {
   return state.details.answers.some((answer) =>
     answer.question_id === SUPPORT_TIMING_QUESTION_ID &&
-    supportTimingAnswerIsPrecise(answer.answer)
+    answer.answer.trim()
   );
-}
-
-function supportTimingAnswerIsPrecise(answer: string): boolean {
-  const text = answer.toLowerCase().normalize("NFD").replace(
-    /\p{Diacritic}/gu,
-    "",
-  );
-  return /\b([01]?\d|2[0-3])\s*(h|:)\s*([0-5]\d)?\b/.test(text) ||
-    /\b(midi|minuit)\b/.test(text) ||
-    /\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/.test(text) ||
-    /\b(tous les|toutes les|chaque)\b/.test(text);
 }
 
 function draftNeedsSupportTimingClarification(

@@ -1,0 +1,20 @@
+{
+  "http_status": 200,
+  "ok": true,
+  "request_id": "qa-exec-breakdown-r1-t4",
+  "user_id": "bb8acb9c-9486-4432-b4fe-716b0f3ab567",
+  "scope": "qa-execution-breakdown-20260602-r1",
+  "content": "Oui, je peux ouvrir la page maintenant, mais après je risque de repartir dans tous les sens.",
+  "assistant": "Je ne l'ai pas noté. 🙂",
+  "response_owner": "normal_reply",
+  "selected_handler": null,
+  "route_reason": null,
+  "safety": null,
+  "operation": null,
+  "pending_confirmation": null,
+  "executed_tools": [],
+  "direct_effects": [],
+  "memory_plan": null,
+  "trace_error": null,
+  "raw_path": "tmp/qa-execution-breakdown-20260602-r1/qa-exec-breakdown-r1-t4.raw.json"
+}

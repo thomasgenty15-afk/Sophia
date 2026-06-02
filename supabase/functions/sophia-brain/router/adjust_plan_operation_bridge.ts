@@ -1,6 +1,4 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import { getUserTimeContext } from "../../_shared/user_time_context.ts";
-import { generatePlanV2ForTransformation } from "../../generate-plan-v2/index.ts";
 import type { RouteDecision } from "../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 import { runSafetyPregate } from "../safety/safety_pregate.ts";
@@ -12,14 +10,12 @@ import {
   maybeRunAdjustPlanItemOperation as maybeRunAdjustPlanItemOperationInSkill,
 } from "../tools/operations/adjust_plan_item/router.ts";
 import { isPendingAdjustPlanItemRecommendationOperation } from "../tools/operations/adjust_plan_item/state.ts";
-import { writePlanAdjustmentPatch } from "../tools/operations/adjust_plan_item/materializer.ts";
 import {
   isCopyForwardWeeklyRequest,
   isExplicitPendingApplyConfirmation,
   isVagueWholePlanWeeklyAdjustmentRequest,
   isWeeklyLightRepeatRequest,
   isWeeklyMissionCarryOverRequest,
-  operationInputFromPlanAdjustmentScope,
   weeklyAdaptiveReviewStateForTurn,
   weeklyMissionCarryOverContext,
 } from "../skills/weekly_review/runtime.ts";
@@ -27,7 +23,6 @@ import type { OperationRuntimeResult } from "./effect_ledger_adapter.ts";
 import { operationRouteIsSelected } from "./operation_route_selection.ts";
 import type { V2PlanItemSnapshotItem } from "./plan_snapshot_runtime.ts";
 import {
-  normalizePlanTargetText,
   operationInputFromLastPlanItem,
   planItemTitleFromOperationInput,
   readLastResolvedPlanItem,
@@ -39,14 +34,8 @@ import { normalizeRecommendationText } from "./recommendation_runtime_support.ts
 export function isOperationCorrectionOrSafetyInterruption(
   message: string,
 ): boolean {
-  const text = normalizePlanTargetText(message);
-  if (!text) return false;
-  return (
-    /\bje n ai pas demande\b|\bje nai pas demande\b|\bpas demande de rappel\b|\bje voulais surtout\b|\bje parle surtout\b/
-      .test(text) ||
-    /\bdisparaitre\b|\bdisparaitre ferait une pause\b|\bplus la\b|\bplus là\b|\bme faire du mal\b|\bsuicid|\ben finir\b|\bmourir\b/
-      .test(text)
-  );
+  void message;
+  return false;
 }
 
 function envString(name: string, fallback = ""): string {
@@ -154,59 +143,6 @@ export function hasStrongToolSkillIntent(
   );
 }
 
-function isAmbivalentAdjustPlanReflectionRequest(text: string): boolean {
-  const normalized = normalizeRecommendationText(text).replace(/\s+/g, " ")
-    .trim();
-  if (!normalized) return false;
-
-  const hasAmbivalence =
-    /\b(je ne suis pas sur|je suis pas sur|pas sur|pas sure|pas certain|pas certaine|j'hesite|j hesite|je me demande|une partie de moi|je me dis|reaction de fatigue)\b/
-      .test(normalized);
-  const asksForReflection =
-    /\b(aide[- ]?moi a reflechir|reflechir|bonne idee|est ce que c'est|est-ce que c'est|plutot)\b/
-      .test(normalized);
-  const mentionsAdjustment =
-    /\b(ajuster|modifier|changer|baisser|descendre|diminuer|reduire|alleger|laisser tomber|retirer|supprimer|rythme|fois|jour)\b/
-      .test(normalized);
-  const directAdjustmentCommand =
-    /\b(je veux|passe|mets|met|applique|valide|confirme|modifie|change|ajuste|baisse|descends|diminue|reduis|allege|prepare un brouillon|propose[- ]?moi un brouillon)\b/
-      .test(normalized);
-
-  return mentionsAdjustment && (hasAmbivalence || asksForReflection) &&
-    !directAdjustmentCommand;
-}
-
-export function isOperationEscapeMessage(message: string): boolean {
-  const text = normalizePlanTargetText(message);
-  if (!text) return false;
-  return (
-    /\b(resume|recap|recapitule|qu est ce qui existe|ce qui existe|dans mon plan|sans inventer)\b/
-      .test(text) ||
-    /\b(pas maintenant|annule|annuler|laisse tomber|oublie|stop|stop carte|pas de carte|pas une carte|pas d action|pas de plan|pas envie qu on me fasse un plan|je veux juste rester|juste une phrase|une seule phrase|rester sur l apaisement|apaisement|fond de honte)\b/
-      .test(text)
-  );
-}
-
-export function isImplicitWholePlanRepairAdjustmentRequest(
-  message: string,
-): boolean {
-  const text = normalizeRecommendationText(message);
-  const planTrajectoryContext =
-    /\b(plan|suite du plan|prochaine partie|partie suivante|prochaine etape|prochaine étape|niveau suivant|trajectoire)\b/
-      .test(text);
-  const repairBridge =
-    /\b(mini marche|petite marche|marche|etape|étape|palier|transition|pont)\b/
-      .test(text) ||
-    /\b(avant de reparler du fond|avant de reparler|avant d analyser|avant d'analyser)\b/
-      .test(text);
-  const reconnectionNeed =
-    /\b(revenir en lien|retour en lien|retour au lien|retour au contact|se retrouver|reconnexion|reconnecter|reparer|réparer|reparation|réparation)\b/
-      .test(text) &&
-    /\b(apres un accrochage|apres accrochage|apres une dispute|apres dispute|apres tension|apres une tension|après un accrochage|après une dispute|après tension|fond|dispute|tension|accrochage)\b/
-      .test(text);
-  return planTrajectoryContext && repairBridge && reconnectionNeed;
-}
-
 export async function maybeRunAdjustPlanItemOperation(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -246,66 +182,24 @@ export async function maybeRunAdjustPlanItemOperation(args: {
       ),
     },
     deps: {
-      writePlanPatch: async (input) =>
-        await writePlanAdjustmentPatch({
-          supabase: args.supabase,
-          userId: args.userId,
-          draft: input.draft,
-          operationInput: input.operationInput ?? null,
-          operationId: input.operationId,
-          requestId: input.requestId ?? null,
-          sourceMessageId: input.sourceMessageId ?? null,
-          regenerateAdjustedPlan: async (regenerationInput) => {
-            const userTime = await getUserTimeContext({
-              supabase: args.supabase,
-              userId: args.userId,
-            }).catch(() => null);
-            const result = await generatePlanV2ForTransformation({
-              admin: args.supabase,
-              requestId: args.requestId ?? crypto.randomUUID(),
-              userId: args.userId,
-              transformationId: regenerationInput.transformationId,
-              mode: "generate_and_activate",
-              feedback: regenerationInput.feedback,
-              forceRegenerate: true,
-              pace: null,
-              preserveActiveTransformationId:
-                regenerationInput.transformationId,
-              adjustmentContext: {
-                reviewId: input.operationId,
-                scope: regenerationInput.scopeKind === "current_level"
-                  ? "level"
-                  : "plan",
-                effectiveStartDate: userTime?.user_local_date ??
-                  new Date().toISOString().slice(0, 10),
-                reason: regenerationInput.reason,
-                userChangeSummary: regenerationInput.userChangeSummary,
-                assistantMessage: regenerationInput.assistantMessage,
-              },
-            });
-            return {
-              plan_id: result.planRow.id,
-              roadmap_changed: result.roadmapChanged,
-            };
-          },
-        }),
       isExplicitPendingApplyConfirmation,
       isWeeklyMissionCarryOverRequest,
       weeklyMissionCarryOverContext,
       isCopyForwardWeeklyRequest,
       isWeeklyLightRepeatRequest,
-      weeklyAdaptiveReviewStateForTurn: ({ activeSkillState, tempMemory }) =>
-        weeklyAdaptiveReviewStateForTurn({ activeSkillState, tempMemory }),
+      weeklyAdaptiveReviewStateForTurn: (
+        { activeSkillState, tempMemory }: {
+          activeSkillState: unknown;
+          tempMemory: any;
+        },
+      ) => weeklyAdaptiveReviewStateForTurn({ activeSkillState, tempMemory }),
       normalizeRecommendationText,
       isAdjustPlanExplainOnlyIntent,
       isAdjustPlanRevisionIntent,
       operationRouteIsSelected,
-      operationInputFromPlanAdjustmentScope,
       isVagueWholePlanWeeklyAdjustmentRequest,
       isPendingAdjustPlanItemRecommendationOperation,
       isBroaderPlanAdjustmentInput,
-      isAmbivalentAdjustPlanReflectionRequest,
-      isOperationEscapeMessage,
       hasStrongToolSkillIntent,
       readLastResolvedPlanItem,
       resolvePlanItemTargetFromToolSkillIntent,

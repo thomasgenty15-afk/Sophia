@@ -1,4 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.208.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertStringIncludes,
+} from "https://deno.land/std@0.208.0/assert/mod.ts";
 import {
   type PrepareDefenseCardOperationOutput,
   runPrepareDefenseCardAiIntake,
@@ -165,7 +168,7 @@ Deno.test("defense_generation_failed_no_pending_confirmation", async () => {
   assertEquals(output.pending_confirmation, undefined);
 });
 
-Deno.test("defense_pending_confirmation_approve_does_not_need_ai", async () => {
+Deno.test("defense_pending_confirmation_approve_becomes_platform_handoff_apply_attempt", async () => {
   const writes = { defenseWrites: 0 };
   const result = await maybeRunPrepareDefenseCardOperation({
     supabase: fakeDefenseSupabase(writes),
@@ -199,10 +202,89 @@ Deno.test("defense_pending_confirmation_approve_does_not_need_ai", async () => {
     },
   });
 
-  assertEquals(result?.toolExecution, "success");
-  assertEquals(result?.executedTools, ["prepare_defense_card"]);
-  assertEquals((result?.toolSkillRun as any)?.status, "executed");
-  assertEquals(writes.defenseWrites, 1);
+  assertEquals(result?.toolExecution, "platform_handoff");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(
+    (result?.toolSkillRun as any)?.platform_handoff?.status,
+    "apply_attempt",
+  );
+  assertEquals(writes.defenseWrites, 0);
+});
+
+Deno.test("defense card handoff produces UI field content without mutation", async () => {
+  const writes = { defenseWrites: 0 };
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseSupabase(writes),
+    userId: "u1",
+    userMessage:
+      "Prépare-moi une carte de défense pour éviter de repousser l'appel client, sans la créer.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: {
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        confidence_band: "high",
+      }],
+      safety: { risk_band: "none" },
+    } as any,
+    routeDecision: {
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+      reason_code: "test_defense_handoff",
+    } as any,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-defense-ui-fields",
+    requestId: "r-defense-ui-fields",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "handoff_ready",
+      source: "direct_user_request",
+      phase: "generation",
+      draft: sampleDefenseDraft(),
+      readiness: {
+        ready_to_generate: true,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "ready",
+      },
+      state_patch: {
+        summary: "ready",
+        phase: "generation",
+        user_intent: "draft_only",
+        constraints: [{ kind: "no_create", evidence: ["sans la créer"] }],
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: {
+          attachment: {
+            kind: "free_risk_context",
+            title: "appel client",
+          },
+        },
+      },
+    } as any),
+  });
+
+  const content = result?.content ?? "";
+  assertEquals(result?.toolExecution, "platform_handoff");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(writes.defenseWrites, 0);
+  assertStringIncludes(content, "Ressources / Défense / Cartes de défense libres / Ajouter une carte");
+  assertStringIncludes(content, "Besoin libre à renseigner");
+  assertStringIncludes(content, "Réponses aux 3 questions");
+  assertStringIncludes(content, "Nom de la carte");
+  assertStringIncludes(content, "Le moment");
+  assertStringIncludes(content, "Le piège");
+  assertStringIncludes(content, "Mon geste");
+  assertStringIncludes(content, "Plan B");
+  assertStringIncludes(content, "Je ne crée ni ne modifie aucune carte depuis ce chat.");
+  const lower = content.toLowerCase();
+  assertEquals(lower.includes("c'est créé"), false);
+  assertEquals(lower.includes("j'ai créé"), false);
+  assertEquals(lower.includes("j'ai ajouté"), false);
 });
 
 Deno.test("defense_pending_revision_ai_failure_preserves_pending_no_apply", async () => {

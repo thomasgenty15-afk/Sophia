@@ -1181,13 +1181,13 @@ Deno.test("dispatcher preserves LLM needs_research signal on turn_frame", async 
   assertEquals(frame.needs_research?.confidence, 0.82);
 });
 
-Deno.test("dispatcher heuristic emits needs_research when LLM is unavailable", async () => {
+Deno.test("dispatcher fallback does not infer needs_research by regex", async () => {
   const frame = await runDispatcher(
     baseInput("cherche les dernières nouvelles sur OpenAI"),
   );
 
-  assertEquals(frame.needs_research?.value, true);
-  assertEquals(frame.needs_research?.confidence, 0.7);
+  assertEquals(frame.needs_research?.value, false);
+  assertEquals(frame.needs_research?.detected, false);
 });
 
 Deno.test("dispatcher emits one-shot direct effect for natural one-hour reminder", async () => {
@@ -1275,6 +1275,37 @@ Deno.test("dispatcher keeps recurring reminder out of one-shot direct effects", 
   assertEquals(
     frame.tool_skill_intents[0]?.operation_type,
     "create_recurring_reminder",
+  );
+});
+
+Deno.test("dispatcher preserves recurring candidate when LLM only emits one-shot for ambiguous reminder", async () => {
+  const frame = await runDispatcher({
+    ...baseInput(
+      "Je voudrais que Sophia me fasse un rappel demain matin... ou alors peut-être chaque matin, je ne sais pas ce qui est le mieux.",
+    ),
+    llm_runner: async () => ({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: { raw_text: "demain matin" },
+      }],
+      tool_skill_intents: [],
+    }),
+  });
+
+  assertEquals(
+    frame.direct_effects.some((effect) =>
+      effect.effect_type === "create_one_shot_reminder"
+    ),
+    true,
+  );
+  assertEquals(
+    frame.tool_skill_intents.some((intent) =>
+      intent.operation_type === "create_recurring_reminder"
+    ),
+    true,
   );
 });
 

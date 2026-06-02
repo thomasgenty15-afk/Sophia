@@ -9,6 +9,9 @@ export type ActiveFlowState = {
   pendingRecommendationOperation: unknown;
 };
 
+export const SUSPENDED_PLATFORM_HANDOFF_STATE_KEY =
+  "__suspended_platform_handoff_state_v1";
+
 export const ACTIVE_FLOW_TEMP_MEMORY_KEYS = {
   activeSkillState: ["__active_skill_state", "active_skill_state"],
   activeToolSkillIntake: [
@@ -54,6 +57,15 @@ const ADJUST_PLAN_SLOT_KEYS = [
   "change_target",
 ];
 
+const PLATFORM_HANDOFF_KEYS_BY_OPERATION: Record<string, string> = {
+  adjust_plan_item: "__adjust_plan_handoff_state",
+  prepare_attack_card: "__active_attack_card_handoff",
+  prepare_defense_card: "__active_tool_skill_intake",
+  select_state_potion: "__active_tool_skill_intake",
+  create_recurring_reminder: "__recurring_reminder_handoff_state",
+  update_coach_preferences: "__coach_preference_handoff_state_v1",
+};
+
 function readFirstTempMemoryKey(
   tempMemory: unknown,
   keys: readonly string[],
@@ -76,16 +88,60 @@ function clearTempMemoryKeys<
   return next;
 }
 
+function readHandoffOperationType(value: unknown): string {
+  const record = value as any;
+  if (!record || typeof record !== "object" || Array.isArray(record)) {
+    return "";
+  }
+  if (record.mode !== "platform_handoff" || record.no_chat_mutation !== true) {
+    return "";
+  }
+  return String(record.operation_type ?? record.skill_id ?? "").trim();
+}
+
+function readActivePlatformHandoffEntry(
+  tempMemory: unknown,
+): { key: string; operation_type: string; state: unknown } | null {
+  const temp = (tempMemory ?? {}) as Record<string, unknown>;
+  const entries: Array<[string, unknown]> = [
+    ["__adjust_plan_handoff_state", temp.__adjust_plan_handoff_state],
+    ["__active_attack_card_handoff", temp.__active_attack_card_handoff],
+    [
+      "__recurring_reminder_handoff_state",
+      temp.__recurring_reminder_handoff_state,
+    ],
+    [
+      "__coach_preference_handoff_state_v1",
+      temp.__coach_preference_handoff_state_v1,
+    ],
+    ["__active_tool_skill_intake", temp.__active_tool_skill_intake],
+    ["active_tool_skill_intake", temp.active_tool_skill_intake],
+  ];
+  for (const [key, state] of entries) {
+    const operationType = readHandoffOperationType(state);
+    if (operationType) return { key, operation_type: operationType, state };
+  }
+  return null;
+}
+
 export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
+  const adjustPlanFrame = loadAdjustPlanFrameFromTempMemory(tempMemory);
+  const temp = (tempMemory ?? {}) as Record<string, unknown>;
+  const activePlatformHandoff = adjustPlanFrame.handoff_state ??
+    temp.__active_attack_card_handoff ??
+    temp.__recurring_reminder_handoff_state ??
+    temp.__coach_preference_handoff_state_v1 ??
+    null;
   return {
     activeSkillState: readFirstTempMemoryKey(
       tempMemory,
       ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeSkillState,
     ),
-    activeToolSkillIntake: readFirstTempMemoryKey(
-      tempMemory,
-      ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeToolSkillIntake,
-    ),
+    activeToolSkillIntake: activePlatformHandoff ??
+      readFirstTempMemoryKey(
+        tempMemory,
+        ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeToolSkillIntake,
+      ),
     pendingToolSkillConfirmation: readFirstTempMemoryKey(
       tempMemory,
       ACTIVE_FLOW_TEMP_MEMORY_KEYS.pendingToolSkillConfirmation,
@@ -100,10 +156,62 @@ export function readActiveFlowState(tempMemory: unknown): ActiveFlowState {
 export function clearActiveToolFlow<
   T extends Record<string, unknown> | null | undefined,
 >(tempMemory: T): Record<string, unknown> {
-  return clearTempMemoryKeys(
+  const next = clearTempMemoryKeys(
     tempMemory,
     ACTIVE_FLOW_TEMP_MEMORY_KEYS.activeToolSkillIntake,
   );
+  delete next.__adjust_plan_handoff_state;
+  delete next.__active_attack_card_handoff;
+  delete next.__recurring_reminder_handoff_state;
+  delete next.__coach_preference_handoff_state_v1;
+  return next;
+}
+
+export function suspendActivePlatformHandoff<
+  T extends Record<string, unknown> | null | undefined,
+>(
+  tempMemory: T,
+  args: { interrupted_by: string; reason_code: string },
+): Record<string, unknown> {
+  const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
+  const active = readActivePlatformHandoffEntry(next);
+  if (!active) return next;
+  if (active.operation_type === args.interrupted_by) return next;
+  next[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] = {
+    operation_type: active.operation_type,
+    source_key: active.key,
+    state: active.state,
+    interrupted_by: args.interrupted_by,
+    reason_code: args.reason_code,
+    suspended_at: new Date().toISOString(),
+    no_chat_mutation: true,
+  };
+  return next;
+}
+
+export function restoreSuspendedPlatformHandoffForOperation<
+  T extends Record<string, unknown> | null | undefined,
+>(
+  tempMemory: T,
+  operationType: string,
+): Record<string, unknown> {
+  const next = { ...((tempMemory ?? {}) as Record<string, unknown>) };
+  const suspended = next[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] as any;
+  const target = String(operationType ?? "").trim();
+  if (
+    !suspended ||
+    typeof suspended !== "object" ||
+    suspended.no_chat_mutation !== true ||
+    String(suspended.operation_type ?? "").trim() !== target ||
+    !suspended.state
+  ) {
+    return next;
+  }
+  const key = PLATFORM_HANDOFF_KEYS_BY_OPERATION[target] ??
+    String(suspended.source_key ?? "").trim();
+  if (key) next[key] = suspended.state;
+  delete next[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY];
+  return next;
 }
 
 export function clearPendingToolConfirmation<
@@ -208,6 +316,24 @@ function buildToolSkillRuntimeContext(args: {
   pendingOperationConfirmation: unknown;
 }): Record<string, unknown> | null {
   const adjustPlanFrame = loadAdjustPlanFrameFromTempMemory(args.tempMemory);
+  const handoffState = adjustPlanFrame.handoff_state;
+  if (handoffState) {
+    return {
+      owner: "tool_skill",
+      operation_type: "adjust_plan_item",
+      phase: "platform_handoff",
+      runtime_phase: handoffState.status,
+      pending_confirmation: false,
+      confirmation_owned_by_runtime: true,
+      dispatcher_must_not_classify_confirmation: true,
+      source: "__adjust_plan_handoff_state",
+      turn_count: Number(handoffState.turn_count ?? 0),
+      known_slots: compactRuntimeRecord(
+        handoffState.operation_input,
+        ADJUST_PLAN_SLOT_KEYS,
+      ),
+    };
+  }
   const pendingDraftReview = adjustPlanFrame.pending_draft_review;
   if (pendingDraftReview) {
     return {
@@ -273,10 +399,19 @@ function buildToolSkillRuntimeContext(args: {
   }
 
   const active = args.activeOperationIntake as any;
-  if (active && typeof active === "object" && active.operation_type) {
+  const activeOperationType = active && typeof active === "object"
+    ? compactRuntimeString(
+      active.operation_type ??
+        (active.skill_id === "select_state_potion" &&
+            active.mode === "platform_handoff"
+          ? "select_state_potion"
+          : null),
+    )
+    : null;
+  if (active && typeof active === "object" && activeOperationType) {
     return {
       owner: "tool_skill",
-      operation_type: compactRuntimeString(active.operation_type),
+      operation_type: activeOperationType,
       phase: compactRuntimeString(active.phase) ?? "intake",
       pending_confirmation: false,
       confirmation_owned_by_runtime: true,

@@ -77,7 +77,19 @@ export type StatusRecapProjection = {
     updated_at: string | null;
   }>;
   recent_effect_history: Array<{
-    status: "requested" | "allowed" | "committed" | "failed" | "blocked";
+    status:
+      | "requested"
+      | "allowed"
+      | "committed"
+      | "failed"
+      | "blocked"
+      | "proposed"
+      | "delivered"
+      | "cancelled"
+      | "superseded"
+      | "asked"
+      | "resolved"
+      | "topic_change";
     effect_type: string;
     created_at: string;
     reason_code: string | null;
@@ -108,6 +120,6 @@ export const STATUS_RECAP_MIGRATION_STATUS = {
   current_shape:
     "contract -> DB/effect projection -> deterministic reducer -> renderer",
   documented_exception:
-    "status_recap is non-mutating and DB-grounded, but still uses legacy deterministic message guards for activation and target selection.",
+    "none: activation and target selection must come from structured routing signals, not deterministic message guards.",
   durable_effect_policy: "never_mutates",
 } as const;

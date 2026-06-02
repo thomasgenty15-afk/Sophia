@@ -175,6 +175,7 @@ export type RecurringReminderBuilderInput = {
     days?: string[];
     time: string;
     timezone: string;
+    cadence_label?: string | null;
   };
   reminder_content: {
     message: string;

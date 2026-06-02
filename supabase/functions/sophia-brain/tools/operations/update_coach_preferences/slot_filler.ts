@@ -88,6 +88,10 @@ function userIntent(value: unknown): UpdateCoachPreferenceUserIntent {
       "explain",
       "topic_change",
       "status_question",
+      "apply_attempt",
+      "repeat_handoff",
+      "punctual_instruction",
+      "unsupported_preference",
       "clarify",
       "unknown",
     ].includes(raw)
@@ -252,7 +256,9 @@ export async function fillCoachPreferencesSlotsWithAi(
     "- mode tunnel durable => requested_patch coach.tone=direct et coach.question_tendency=low. Ne stocke pas sans emoji, pas de question finale, ni action-first.",
     "- geste concret avant questions => éventuellement coach.question_tendency=low si le user demande durablement moins de questions; sinon clarify/preview_only. Ne crée pas de clé action-first.",
     "- challenge-moi doucement quand la technique ne colle pas => coach.challenge_level=balanced ou low selon l'intensité demandée; ne stocke pas la condition comme règle runtime.",
-    "user_intent est obligatoire: set_preference pour garder une préférence durable; preview_only si le user demande juste une proposition sans enregistrer; verify_preference/status_question s'il demande si c'est gardé; cancel/reject pour finalement non; revise pour correction; explain pour explication; topic_change si le message sort du sujet; clarify si une question est nécessaire.",
+    "Ce skill ne modifie jamais les préférences depuis le chat: il prépare un handoff plateforme.",
+    "user_intent est obligatoire: set_preference pour une préférence durable à rediriger vers la plateforme; preview_only si le user demande juste une proposition; punctual_instruction si la demande est seulement pour maintenant/cette réponse; unsupported_preference si la demande durable ne correspond à aucun des trois réglages visibles; verify_preference/status_question s'il demande ce qui est déjà actif; apply_attempt si le user demande d'appliquer un handoff; repeat_handoff s'il veut réentendre quoi changer; cancel/reject pour finalement non; revise pour correction; explain pour explication; topic_change si le message sort du sujet; clarify si une question est nécessaire.",
+    "Exemples: 'réponds-moi en trois lignes maintenant' => punctual_instruction; 'juste pour cette réponse, fais court' => punctual_instruction; 'pour la suite, sois plus direct' => set_preference avec coach.tone=direct; 'pour la suite, pose moins de questions' => set_preference avec coach.question_tendency=low.",
     "Renseigne structured_constraints seulement avec draft_only/do_not_store pour preview.",
     "Si current_state montre une preference ambiguous/missing apres une question de choix, et que le user repond en selectionnant une des options (ex: d'abord le ton plus direct, commence par moins de questions, traite le challenge plus doux), remplis directement preference et desired_value pour cette option. Ne repose pas la meme question.",
     "Dans une reponse de selection apres ambiguite: 'le ton plus direct' => coach.tone=direct; 'moins de questions' => coach.question_tendency=low; 'plus de questions' => coach.question_tendency=high; 'challenge plus doux/moins fort' => coach.challenge_level=low; 'challenge plus exigeant' => coach.challenge_level=high.",
@@ -267,12 +273,12 @@ export async function fillCoachPreferencesSlotsWithAi(
     task: "fill_update_coach_preferences_tool_skill_slots",
     required_json_shape: {
       user_intent:
-        "set_preference|preview_only|verify_preference|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+        "set_preference|preview_only|verify_preference|cancel|reject|revise|explain|topic_change|status_question|apply_attempt|repeat_handoff|punctual_instruction|unsupported_preference|clarify|unknown",
       current_step:
         "preference_resolution|draft_generation|draft_validation|confirmation",
       state_patch: {
         user_intent:
-          "set_preference|preview_only|verify_preference|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+          "set_preference|preview_only|verify_preference|cancel|reject|revise|explain|topic_change|status_question|apply_attempt|repeat_handoff|punctual_instruction|unsupported_preference|clarify|unknown",
         requested_patch: {
           "coach.tone": "soft|warm_direct|direct",
           "coach.challenge_level": "low|balanced|high",

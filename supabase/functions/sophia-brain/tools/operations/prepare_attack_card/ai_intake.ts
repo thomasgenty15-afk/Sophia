@@ -9,6 +9,7 @@ import {
 } from "./generator.ts";
 import {
   type CardTechnicalBlockReason,
+  hasPrepareAttackCardNoCreateConstraint,
   normalizePrepareAttackCardConstraints,
   normalizePrepareAttackCardUserIntent,
   type PrepareAttackCardConstraint,
@@ -159,9 +160,119 @@ function objectValue(value: unknown): Record<string, unknown> | null {
     : null;
 }
 
+function normalizedLookupText(value: unknown): string {
+  return String(value ?? "").normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
 function normalizeTechnique(value: unknown): AttackTechniqueKey | null {
   const raw = String(value ?? "").trim();
-  return raw in ATTACK_TECHNIQUES ? raw as AttackTechniqueKey : null;
+  if (raw in ATTACK_TECHNIQUES) return raw as AttackTechniqueKey;
+  const normalized = normalizedLookupText(raw);
+  if (!normalized) return null;
+  for (const [key, definition] of Object.entries(ATTACK_TECHNIQUES)) {
+    if (normalizedLookupText(definition.title) === normalized) {
+      return key as AttackTechniqueKey;
+    }
+  }
+  return null;
+}
+
+function structuredOperationInputPatch(
+  operationInput?: Record<string, unknown> | null,
+): Record<string, unknown> {
+  const input = operationInput ?? {};
+  const target = objectValue(input.target);
+  const targetTitle = String(
+    target?.title ?? input.action_title ?? input.action_target ??
+      input.target_label ?? "",
+  ).trim();
+  const technique = normalizeTechnique(
+    input.technique ?? input.technique_hint ?? input.desired_attack_angle ??
+      input.desired_attack_technique,
+  );
+  const keyword = String(input.activation_keyword ?? input.keyword ?? "")
+    .trim();
+  const blockerEvidence = [
+    input.obstacle_hint,
+    input.friction_hint,
+    input.friction_source,
+    input.friction_point,
+    input.blocker,
+    input.blocker_summary,
+    input.blocker_hint,
+  ].map((item) => String(item ?? "").trim()).filter(Boolean).slice(0, 3);
+  const rawText = normalizedLookupText([
+    input.user_message,
+    input.message,
+    input.raw_user_message,
+    input.request_text,
+  ].join(" "));
+  const noCreateFromText =
+    /\b(ne la cree pas|ne le cree pas|sans creer|sans la creer|pas depuis le chat|seulement le brouillon|juste le brouillon|draft only)\b/
+      .test(rawText);
+  return {
+    ...(input.user_intent !== undefined || noCreateFromText
+      ? { user_intent: noCreateFromText ? "draft_only" : input.user_intent }
+      : {}),
+    ...(Array.isArray(input.constraints) || noCreateFromText
+      ? {
+        constraints: [
+          ...(Array.isArray(input.constraints) ? input.constraints : []),
+          ...(noCreateFromText
+            ? [{ kind: "no_create", evidence: ["message_no_create"] }]
+            : []),
+        ],
+      }
+      : {}),
+    ...(target || targetTitle
+      ? {
+        target: {
+          status: "identified",
+          kind: target?.kind === "plan_item" ? "plan_item" : "personal_action",
+          plan_item_id: target?.plan_item_id == null
+            ? null
+            : String(target.plan_item_id),
+          title: targetTitle,
+          confidence: "high",
+          evidence: ["structured_operation_input"],
+        },
+      }
+      : {}),
+    ...(technique
+      ? {
+        technique: {
+          status: "identified",
+          value: technique,
+          explicitly_requested: Boolean(
+            input.technique ?? input.technique_hint ??
+              input.desired_attack_technique,
+          ),
+          confidence: "high",
+          evidence: ["structured_operation_input"],
+        },
+      }
+      : {}),
+    ...(keyword
+      ? {
+        activation_keyword: {
+          status: "identified",
+          value: keyword,
+          confidence: "high",
+          evidence: ["structured_operation_input"],
+        },
+      }
+      : {}),
+    ...(blockerEvidence.length
+      ? {
+        blocker: {
+          type: "friction",
+          confidence: 0.8,
+          evidence: blockerEvidence,
+        },
+      }
+      : {}),
+  };
 }
 
 function parseJsonObject(raw: unknown): Record<string, unknown> {
@@ -231,52 +342,9 @@ function stateFromOperationInput(
   const input = operationInput ?? {};
   const existing = objectValue(input.intake_state);
   const base = defaultState();
-  const target = objectValue(input.target);
-  const technique = normalizeTechnique(
-    input.technique ?? input.desired_attack_angle ??
-      input.desired_attack_technique,
-  );
-  const keyword = String(input.activation_keyword ?? input.keyword ?? "")
-    .trim();
   return mergeState(base, {
     ...(existing ?? {}),
-    ...(target
-      ? {
-        target: {
-          status: "identified",
-          kind: target.kind === "personal_action"
-            ? "personal_action"
-            : "plan_item",
-          plan_item_id: target.plan_item_id == null
-            ? null
-            : String(target.plan_item_id),
-          title: String(target.title ?? "").trim(),
-          confidence: "high",
-          evidence: ["structured_operation_input"],
-        },
-      }
-      : {}),
-    ...(technique
-      ? {
-        technique: {
-          status: "identified",
-          value: technique,
-          explicitly_requested: Boolean(input.desired_attack_technique),
-          confidence: "high",
-          evidence: ["structured_operation_input"],
-        },
-      }
-      : {}),
-    ...(keyword
-      ? {
-        activation_keyword: {
-          status: "identified",
-          value: keyword,
-          confidence: "high",
-          evidence: ["structured_operation_input"],
-        },
-      }
-      : {}),
+    ...structuredOperationInputPatch(input),
   });
 }
 
@@ -303,9 +371,7 @@ function mergeState(
       next.target = title
         ? {
           status: "identified",
-          kind: target.kind === "personal_action"
-            ? "personal_action"
-            : "plan_item",
+          kind: target.kind === "plan_item" ? "plan_item" : "personal_action",
           plan_item_id: target.plan_item_id == null
             ? null
             : String(target.plan_item_id),
@@ -506,6 +572,20 @@ function validatePlanTarget(
   const id = String(state.target.plan_item_id ?? "").trim();
   const exists = id && items.some((item: any) => String(item?.id ?? "") === id);
   if (exists) return state;
+  if (!id && state.target.title) {
+    return {
+      ...state,
+      target: {
+        ...state.target,
+        kind: "personal_action",
+        plan_item_id: null,
+        evidence: [
+          ...state.target.evidence,
+          "plan_item_id_missing_bound_as_free_action",
+        ],
+      },
+    };
+  }
   return {
     ...state,
     target: {
@@ -577,6 +657,59 @@ function operationInputFromState(
       : {}),
     user_intent: state.user_intent ?? "unknown",
     constraints: state.constraints,
+  };
+}
+
+function techniqueFromAvailableContext(
+  state: AttackCardIntakeState,
+  message: string,
+): AttackTechniqueKey {
+  const text = normalizedLookupText([
+    message,
+    state.target.status === "identified" ? state.target.title : "",
+    ...(state.blocker?.evidence ?? []),
+    state.blocker?.type ?? "",
+  ].join(" "));
+  if (
+    /\b(ancre visuelle|tenue|chaise|bureau|carnet visible|post it|environnement|visuel|visible)\b/
+      .test(text)
+  ) return "ancre_visuelle";
+  if (
+    /\b(parfait|perfection|perfectionnisme|tout comprendre|avant d appuyer|avant d envoyer|dossier|administratif)\b/
+      .test(text)
+  ) return "texte_recadrage";
+  if (
+    /\b(terrain|friction|installer|mettre en place|poser|sortir)\b/.test(text)
+  ) {
+    return "preparer_terrain";
+  }
+  return "texte_recadrage";
+}
+
+function fillRecommendedTechniqueWhenReady(
+  state: AttackCardIntakeState,
+  message: string,
+): AttackCardIntakeState {
+  if (
+    state.target.status !== "identified" ||
+    state.technique.status === "identified"
+  ) return state;
+  const technique = techniqueFromAvailableContext(state, message);
+  return {
+    ...state,
+    technique: {
+      status: "identified",
+      value: technique,
+      explicitly_requested: false,
+      fit_warning: null,
+      options: [],
+      confidence: "medium",
+      evidence: [
+        ...(state.technique.evidence ?? []),
+        "recommended_by_attack_card_intake",
+      ],
+    },
+    generated_user_message: null,
   };
 }
 
@@ -695,11 +828,8 @@ function normalizeDraft(
       : `Carte d'attaque — ${definition.title}`);
   const instruction = String(draft.instruction ?? "").trim() ||
     definition.mode_emploi;
-  let confirmationMessage = String(root.confirmation_message ?? "").trim();
-  if (!confirmationMessage || !confirmationMessage.includes(generatedAsset)) {
-    confirmationMessage =
-      `Voici ta carte « ${title} » (${definition.title}) : ${generatedAsset}. Je te la crée ?`;
-  }
+  const confirmationMessage =
+    `Voici le brouillon à reprendre dans Cartes / Attaque : « ${title} » (${definition.title}) : ${generatedAsset}. Je ne crée pas la carte depuis le chat.`;
   return {
     operation_type: "prepare_attack_card",
     output_schema: "attack_card_draft_v1",
@@ -727,6 +857,59 @@ function normalizeDraft(
   };
 }
 
+function canUseNoMutationDraftFallback(state: AttackCardIntakeState): boolean {
+  return state.user_intent === "draft_only" ||
+    hasPrepareAttackCardNoCreateConstraint(state.constraints);
+}
+
+function deterministicAttackCardDraft(
+  state: AttackCardIntakeState,
+): AttackCardDraftV1 {
+  if (state.target.status !== "identified" || !state.technique.value) {
+    throw new Error("attack_card_fallback_state_incomplete");
+  }
+  const technique = state.technique.value;
+  const definition = ATTACK_TECHNIQUES[technique];
+  const target = state.target.title;
+  const blocker = state.blocker.evidence[0] ?? state.blocker.type ??
+    "le moment fragile";
+  const title = `Carte d'attaque - ${target}`;
+  const generatedAsset = technique === "ancre_visuelle"
+    ? `Repere visuel: place un signe visible lie a "${target}". Quand tu le vois, tu lances le premier geste sans rouvrir le debat.`
+    : technique === "preparer_terrain"
+    ? `Micro-setup: prepare maintenant ce qui rend "${target}" facile a demarrer, puis contente-toi du premier geste.`
+    : technique === "mantra_force"
+    ? `Phrase de force: "${target} compte plus que l'envie de reporter. Je fais le premier geste maintenant."`
+    : technique === "visualisation_matinale"
+    ? `Visualisation: vois-toi demarrer "${target}" calmement, traverser ${blocker}, puis finir le premier geste.`
+    : technique === "pre_engagement"
+    ? `Mot de bascule: PRET. Si tu sens que tu repousses "${target}", envoie ce mot puis fais le premier geste.`
+    : `Texte a relire: "${target} n'a pas besoin d'etre parfait. Je fais le premier geste maintenant, meme avec ${blocker}."`;
+  return {
+    operation_type: "prepare_attack_card",
+    output_schema: "attack_card_draft_v1",
+    draft: {
+      title,
+      target_label: target,
+      technique,
+      technique_title: definition.title,
+      instruction: definition.mode_emploi,
+      generated_asset: generatedAsset,
+      activation_keyword: technique === "pre_engagement" ? "PRET" : null,
+      supporting_points: [
+        `Cible: ${target}`,
+        `Piege: ${blocker}`,
+        `Destination: Cartes / Attaque`,
+      ],
+      mode_emploi: definition.mode_emploi,
+      why_it_helps: definition.pour_quoi,
+    },
+    confirmation_message:
+      `Voici le brouillon a reprendre dans Cartes / Attaque : "${title}" (${definition.title}) : ${generatedAsset}. Je ne cree pas la carte depuis le chat.`,
+    confirmation_actions: ["yes", "no"],
+  };
+}
+
 // CHANTIER D0 (2026-05-28) — Hook de test pour la résilience de normalizeDraft
 // (le point exact où la carte one-shot "ancre visuelle" tombait en
 // technical_blocked). Voir tests.ts.
@@ -745,12 +928,13 @@ export async function generateAttackCardDraftWithAi(
     "Tu retournes uniquement un JSON attack_card_draft_v1, jamais de texte libre hors JSON.",
     "Le brouillon doit être court, utilisable sur WhatsApp, et cohérent avec la technique choisie.",
     "Ne change jamais la technique ni la cible données par l'état structuré.",
-    "Le message de confirmation doit être user-ready et demander validation avant création.",
-    'Tu tutoies toujours l\'utilisateur dans confirmation_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
-    'Quand confirmation_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
-    "Le message de confirmation doit montrer le contenu utile de la carte, pas seulement dire qu'un brouillon existe.",
-    "Il doit inclure le titre, la technique, generated_asset EXACTEMENT tel qu'il est dans draft.generated_asset, le mode d'emploi en une phrase, puis une question courte de validation.",
-    "Ne paraphrase jamais generated_asset dans confirmation_message: copie-colle strictement la même chaîne.",
+    "Le message de handoff doit être user-ready et rediriger vers Cartes / Attaque sans demander de validation exécutable.",
+    'Tu tutoies toujours l\'utilisateur dans handoff_message. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
+    'Quand handoff_message parle de toi, utilise la premiere personne du singulier ("je", "me", "moi"), jamais "Sophia".',
+    "Le message de handoff doit montrer le contenu utile de la carte, pas seulement dire qu'un brouillon existe.",
+    "Il doit inclure le titre, la technique, generated_asset EXACTEMENT tel qu'il est dans draft.generated_asset, le mode d'emploi en une phrase, puis la destination Cartes / Attaque.",
+    "Ne paraphrase jamais generated_asset dans handoff_message: copie-colle strictement la même chaîne.",
+    "Ne demande jamais 'je la crée ?' ou une confirmation d'exécution.",
     "Pour WhatsApp, reste compact: 4 à 7 lignes maximum, pas de longue explication.",
   ].join("\n");
   const userPrompt = JSON.stringify({
@@ -770,7 +954,7 @@ export async function generateAttackCardDraftWithAi(
         mode_emploi: "string",
         why_it_helps: "string",
       },
-      confirmation_message: "string",
+      handoff_message: "string",
       confirmation_actions: ["yes", "no"],
     },
     current_user_message: input.message,
@@ -863,21 +1047,40 @@ export async function runPrepareAttackCardAiIntake(input: {
   if (!filled) return technicalFailure("ai_slot_filler_unavailable", source);
 
   const draftReviewDecision = filled.draft_review_decision;
+  const isDraftReviewTurn = Boolean(
+    objectValue(input.operation_input?.previous_draft),
+  );
+  const statePatchUserIntent = normalizePrepareAttackCardUserIntent(
+    (filled.state_patch as any)?.user_intent,
+  );
+  const statePatchConstraints = normalizePrepareAttackCardConstraints(
+    (filled.state_patch as any)?.constraints,
+  );
   let state = mergeState(initialState, {
     ...filled.state_patch,
-    user_intent: filled.user_intent ??
-      (filled.state_patch as any)?.user_intent ??
-      initialState.user_intent ??
-      "unknown",
-    constraints: filled.constraints ??
-      (filled.state_patch as any)?.constraints ??
-      initialState.constraints,
+    user_intent: filled.user_intent && filled.user_intent !== "unknown"
+      ? filled.user_intent
+      : statePatchUserIntent !== "unknown"
+      ? statePatchUserIntent
+      : initialState.user_intent ?? "unknown",
+    constraints: filled.constraints?.length
+      ? filled.constraints
+      : statePatchConstraints.length
+      ? statePatchConstraints
+      : initialState.constraints,
     current_step: filled.current_step,
     missing_slots: filled.missing_slots,
     confidence: filled.confidence,
     generated_user_message: filled.generated_user_message ??
       (filled.state_patch as any)?.generated_user_message,
   });
+  if (!objectValue(input.operation_input?.previous_draft)) {
+    state = mergeState(
+      state,
+      structuredOperationInputPatch(input.operation_input ?? null),
+    );
+  }
+  state = fillRecommendedTechniqueWhenReady(state, input.message);
   state = validatePlanTarget(state, input.plan_snapshot ?? {});
   const missing = requiredMissingSlots(state, input.operation_input);
   state = {
@@ -889,7 +1092,11 @@ export async function runPrepareAttackCardAiIntake(input: {
     state,
     input.operation_input ?? null,
   );
-  if (draftReviewDecision && draftReviewDecision.decision !== "revise") {
+  if (
+    isDraftReviewTurn &&
+    draftReviewDecision &&
+    draftReviewDecision.decision !== "revise"
+  ) {
     return {
       operation_type: "prepare_attack_card",
       user_intent: state.user_intent ?? "unknown",
@@ -1088,10 +1295,14 @@ export async function runPrepareAttackCardAiIntake(input: {
     try {
       draft = await runDraftGenerator(generatorArgs);
     } catch {
-      return technicalFailure("ai_draft_generator_error", source, {
-        state,
-        operation_input: operationInput,
-      });
+      if (canUseNoMutationDraftFallback(state)) {
+        draft = deterministicAttackCardDraft(state);
+      } else {
+        return technicalFailure("ai_draft_generator_error", source, {
+          state,
+          operation_input: operationInput,
+        });
+      }
     }
   }
   const operationId = crypto.randomUUID();

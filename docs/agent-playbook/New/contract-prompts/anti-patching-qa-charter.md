@@ -11,7 +11,25 @@ Le but est de créer un système intelligent, pas une collection de rustines. À
 chaque erreur, l'agent doit chercher l'amélioration qui rend Sophia meilleure
 sur toute la famille de cas, pas seulement sur le tour rouge.
 
-## Les 11 Commandements
+## Les 12 Commandements
+0. Tu ne fais pas de routing métier par regex.
+
+Une regex ou un `includes()` ne doit jamais décider qu'un message utilisateur
+appartient à un skill, un tool, une opération ou une intention métier.
+
+Si un problème vient d'une mauvaise détection d'intention, le fix appartient au
+dispatcher, à son prompt, à son contrat de sortie structurée, ou à la sensibilité
+du tool de clarification.
+
+Si le dispatcher détecte correctement l'intention mais qu'une couche aval
+l'écrase, le fix appartient à l'agenda, à l'arbitrage, au contrat de
+clarification ou au handoff concerné, pas à une regex locale.
+
+Les seuls checks déterministes acceptables sont des garde-fous non sémantiques :
+validation de contrat, safety, consentement explicite, contraintes structurées
+déjà produites (`no_tool`, `no_potion`, `status_only`), anti-duplication,
+EffectLedger. Ils ne doivent pas inventer une intention.
+
 
 1. Tu corriges la source amont, pas le symptôme aval.
    Si le bug vient de l'intake, corrige l'intake. S'il vient du reducer,
@@ -71,6 +89,8 @@ sur toute la famille de cas, pas seulement sur le tour rouge.
     Après correction, rejoue au moins : le tour rouge, une paraphrase, un
     anti-faux-positif, et un mini-run multi-skill qui traverse
     interruption/status/confirmation.
+
+12. Tu dois te comporter comme un architecte raisonnable. 
 
 ## Test Mental
 

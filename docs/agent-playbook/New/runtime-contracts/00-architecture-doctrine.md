@@ -63,14 +63,47 @@ Le runtime peut avoir plusieurs intentions dans un même tour, mais il ne doit
 pas avoir plusieurs propriétaires pour le même effet durable. Chaque effet
 durable a un owner local.
 
+## Skill Classes
+
+`chat_executable_tool_skill` :
+
+- possède un effet durable direct ;
+- expose un gate local explicite ;
+- peut appeler un executor ;
+- produit des `committed_effects` seulement après écriture ou succès observé.
+
+V1 : seuls `create_one_shot_reminder` et `track_progress_plan_item` restent dans
+cette classe.
+
+`platform_handoff_skill` :
+
+- clarifie, coache et prépare une recommandation ;
+- pointe vers une destination plateforme ;
+- ne crée pas de confirmation exécutable ;
+- ne fait aucune mutation chat.
+
+V1 : `adjust_plan_item`, `prepare_attack_card`, `prepare_defense_card`,
+`select_state_potion`, `create_recurring_reminder` et
+`update_coach_preferences`.
+
+`conversation_skill` :
+
+- répond ou diagnostique dans son domaine ;
+- peut proposer une clarification, une suggestion ou un handoff non-mutant ;
+- ne possède aucun executor DB.
+
 ## Contract Shape
 
-La forme cible pour un tool skill est :
+La forme cible pour un direct effect chat-exécutable est :
 
 ```txt
-contract -> structured intake -> reducer -> draft/confirmation
-         -> effect plan -> executor -> committed effects -> renderer
+contract -> gate -> executor -> committed effects -> renderer
 ```
+
+Un direct effect chat-exécutable ne peut entrer dans ce chemin que si le
+dispatcher a déjà produit le signal structuré correspondant dans `TurnFrame`
+ou si `RouteDecision.direct_effects_to_run` le porte. Le runtime global ne doit
+pas auto-déclencher un direct effect depuis le texte brut.
 
 La forme cible pour un conversation skill est :
 
@@ -81,6 +114,23 @@ contract -> structured intake -> reducer/policy -> renderer
 Un conversation skill peut proposer un bridge ou une suggestion consentie, mais
 il ne doit pas exécuter d'effet durable. L'exécution appartient au tool skill
 propriétaire.
+
+La forme cible pour un platform handoff skill est :
+
+```txt
+contract -> structured intake -> reducer/coaching policy
+         -> handoff draft -> platform destination -> renderer
+```
+
+Un `platform_handoff_skill` peut clarifier, recommander et préparer une
+intention utilisateur pour une surface produit. Il ne produit pas d'effect plan
+durable, ne crée pas de confirmation exécutable et ne passe pas par l'executor.
+Son résultat est conversationnellement réussi quand la destination produit et la
+recommandation sont livrées sans mutation.
+
+Un flow complexe ne doit pas exposer de pending exécutable, même en compat
+legacy. Un vieux pending complexe + "oui" devient `apply_attempt` non-mutant
+vers la destination plateforme, jamais une exécution.
 
 La forme cible pour un flow proactif est :
 
@@ -129,6 +179,10 @@ conservateurs et documentés. Ils ne doivent pas inventer une décision métier.
 - l'appel aux pipelines;
 - la persistance et l'observabilité;
 - les guards globaux non sémantiques.
+
+Une route finale `product_help` sans mutation structurée est terminale pour les
+runtimes mutationnels du tour : aucun tool skill ni direct effect ne peut la
+supplanter après le dispatcher.
 
 `run.ts` ne possède pas :
 
@@ -179,11 +233,41 @@ Règles :
   écrite";
 - `committed` signifie "l'executor a réellement écrit ou observé le succès";
 - `failed` et `blocked` doivent être rendus comme tels;
-- la réponse visible ne doit pas transformer `requested`, `allowed`, `failed`
-  ou `blocked` en succès.
+- la réponse visible ne doit pas transformer `requested`, `allowed`, `failed` ou
+  `blocked` en succès.
 
 La DB métier est la vérité d'état actuel. L'EffectLedger est la vérité
 d'exécution observée.
+
+## Platform Handoffs
+
+Un `platform_handoff` n'est ni `blocked`, ni `failed`, ni `committed`, ni
+`executed`. C'est une tâche runtime non-mutante pour une intention complexe
+comprise mais non exécutable depuis le chat.
+
+Opérations canoniques V1 :
+
+- `adjust_plan_item`
+- `prepare_attack_card`
+- `prepare_defense_card`
+- `select_state_potion`
+- `create_recurring_reminder`
+- `update_coach_preferences`
+
+Statuts canoniques : `proposed`, `delivered`, `cancelled`, `superseded`
+(`blocked` reste possible seulement si une contrainte globale, notamment safety,
+empêche même le handoff produit). Seuls `create_one_shot_reminder` et
+`track_progress_plan_item` restent des effets directement exécutables depuis le
+chat.
+
+Un handoff actif est un état conversationnel vivant, pas un pending
+confirmation. Les suites comme "redis-moi", "plus simple", "ok vas-y" ou "où je
+le fais ?" restent au skill handoff propriétaire, sauf intention concurrente
+claire. `ok vas-y` devient `apply_attempt` non-mutant, jamais une approbation
+exécutable.
+
+Les destinations produit des handoffs viennent du Product Surface Registry. Les
+renderers ne doivent pas inventer un chemin UI si une surface canonique existe.
 
 ## Confirmation Ownership
 
@@ -266,7 +350,8 @@ Les familles de tests obligatoires sont :
 
 ## Suivi Des Décisions Architecturales
 
-| Date | Décision | Statut | Référence |
-| --- | --- | --- | --- |
-| 2026-05-30 | Déplacer la doctrine globale depuis `runtime-contracts/00-architecture-doctrine.md` vers `runtime-contracts/00-architecture-doctrine.md`. | Active | J59 |
-| 2026-05-30 | Faire de `runtime-contracts/` la source canonique unique pour doctrine + contrats opérationnels. | Active | J59 |
+| Date       | Décision                                                                                                                                               | Statut | Référence               |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ | ----------------------- |
+| 2026-05-30 | Déplacer la doctrine globale depuis `runtime-contracts/00-architecture-doctrine.md` vers `runtime-contracts/00-architecture-doctrine.md`.              | Active | J59                     |
+| 2026-05-30 | Faire de `runtime-contracts/` la source canonique unique pour doctrine + contrats opérationnels.                                                       | Active | J59                     |
+| 2026-06-01 | Les complex tools V1 deviennent des `platform_handoff_skill` : coaching, clarification, recommandation et destination plateforme, sans exécution chat. | Active | Architecture handoff V1 |

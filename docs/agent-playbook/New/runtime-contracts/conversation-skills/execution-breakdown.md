@@ -4,14 +4,14 @@
 
 `execution_breakdown` est un conversation skill L5. Il possède le diagnostic
 d'exécution d'un tour : cible, type de blocage, readiness, dominance
-émotionnelle, contraintes de réponse, handoff éventuel vers
-`emotional_repair`, et suggestions d'opérations consenties.
+émotionnelle, contraintes de réponse, handoff éventuel vers `emotional_repair`,
+et suggestions d'opérations consenties.
 
 Il ne possède aucun effet durable. Il ne crée pas de carte, ne modifie pas de
-plan, n'écrit pas en base et ne dit jamais qu'un effet est fait. Quand une
-carte ou un ajustement de plan est pertinent, il produit uniquement une
-`operation_suggestion` avec `requires_user_consent: true`; l'exécution appartient
-au tool skill concerné.
+plan, n'écrit pas en base et ne dit jamais qu'un effet est fait. Quand une carte
+ou un ajustement de plan est pertinent, il produit uniquement une
+`operation_suggestion` avec `requires_user_consent: true`; l'exécution
+appartient au tool skill concerné.
 
 ## Runtime Shape
 
@@ -57,7 +57,8 @@ Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
 - `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
-- `Confirmation Contract` pour interpréter approve/reject/revise/explain ;
+- `Confirmation Contract` pour garantir qu'un handoff complexe n'est pas une
+  confirmation exécutable ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
 - le contrat local de X pour l'intake, le reducer, les effets et le renderer.
 
@@ -78,10 +79,11 @@ Usage concret dans le code actuel :
   `operation_suggestions` et `memory_write_candidates`.
 - `Confirmation Contract` n'est pas interprété par `execution_breakdown`. Ce
   skill ne reçoit pas une confirmation de création/modification : il suggère
-  seulement `prepare_attack_card`, `prepare_defense_card` ou
-  `adjust_plan_item`. Les décisions `approve`, `reject`, `revise` ou `explain`
-  appartiennent aux tool skills qui possèdent les brouillons et leurs effets.
-- `EffectLedger` est respecté par absence d'executor durable. Dans
+  seulement `prepare_attack_card`, `prepare_defense_card` ou `adjust_plan_item`
+  comme platform handoff skills. Les suites `approve/reject/revise/explain`
+  appartiennent au handoff actif propriétaire et ne deviennent pas des
+  confirmations exécutables.
+- `EffectLedger` est respecté par absence de mutation durable. Dans
   `reducer.ts`, `conversationEffectsFromCandidates(...)` expose des candidats
   (`operation_suggestions`, `memory_write_candidates`, `handoff_request`) mais
   aucun `committed_effect` de création/modification n'est produit par ce skill.
@@ -95,28 +97,25 @@ Usage concret dans le code actuel :
 ## File Ownership
 
 - `supabase/functions/sophia-brain/skills/execution_breakdown/contract.ts`
-  possède les types `ExecutionDecision`, `ExecutionTarget`,
-  `ExecutionBlocker`, `ExecutionConstraint`,
-  `ExecutionResponseContract`, `ExecutionOperationSuggestion`,
-  `ExecutionMemoryCandidate`, ainsi que `normalizeExecutionDecision(...)`,
-  `applyExecutionInvariants(...)`, `conservativeExecutionDecision(...)`,
+  possède les types `ExecutionDecision`, `ExecutionTarget`, `ExecutionBlocker`,
+  `ExecutionConstraint`, `ExecutionResponseContract`,
+  `ExecutionOperationSuggestion`, `ExecutionMemoryCandidate`, ainsi que
+  `normalizeExecutionDecision(...)`, `applyExecutionInvariants(...)`,
+  `conservativeExecutionDecision(...)`,
   `toConversationOperationSuggestions(...)` et `toMemoryWriteCandidates(...)`.
-- `supabase/functions/sophia-brain/skills/execution_breakdown/intake.ts`
-  possède l'intake structuré L5 :
-  `ExecutionBreakdownStructuredIntakeInput`,
-  `ExecutionBreakdownIntakeModel`,
-  `buildExecutionBreakdownIntakeInput(...)`,
+- `supabase/functions/sophia-brain/skills/execution_breakdown/intake.ts` possède
+  l'intake structuré L5 : `ExecutionBreakdownStructuredIntakeInput`,
+  `ExecutionBreakdownIntakeModel`, `buildExecutionBreakdownIntakeInput(...)`,
   `runExecutionBreakdownStructuredIntake(...)` et
   `defaultExecutionBreakdownIntakeModel(...)`.
-- `supabase/functions/sophia-brain/skills/execution_breakdown/prompt.ts`
-  possède `EXECUTION_BREAKDOWN_PROMPT` et
-  `EXECUTION_BREAKDOWN_PROMPT_VERSION`. Le prompt rappelle les priorités :
-  cible avant diagnostic, geste concret avant question, phrase exacte,
-  handoff émotionnel seulement si l'émotion domine, et suggestions tool
-  consenties.
+- `supabase/functions/sophia-brain/skills/execution_breakdown/prompt.ts` possède
+  `EXECUTION_BREAKDOWN_PROMPT` et `EXECUTION_BREAKDOWN_PROMPT_VERSION`. Le
+  prompt rappelle les priorités : cible avant diagnostic, geste concret avant
+  question, phrase exacte, handoff émotionnel seulement si l'émotion domine, et
+  suggestions tool consenties.
 - `supabase/functions/sophia-brain/skills/execution_breakdown/reducer.ts`
-  possède la transition du tour via `reduceExecutionBreakdownTurn(...)`.
-  Il applique les invariants, convertit les suggestions/candidats mémoire et
+  possède la transition du tour via `reduceExecutionBreakdownTurn(...)`. Il
+  applique les invariants, convertit les suggestions/candidats mémoire et
   construit le `ConversationSkillOutput`.
 - `supabase/functions/sophia-brain/skills/execution_breakdown/renderer.ts`
   possède le rendu user-facing minimal via `renderExecutionBreakdownReply(...)`.
@@ -127,7 +126,7 @@ Usage concret dans le code actuel :
 - `supabase/functions/sophia-brain/router/run.ts` ne possède pas la logique
   métier. Il appelle seulement `await runExecutionBreakdownSkill(input)` dans
   `runConversationSkillForRecommendation(...)`.
-- Les effets durables suggérés appartiennent aux tool skills :
+- Les recommandations complexes appartiennent aux platform handoff skills :
   `tools/operations/prepare_attack_card`,
   `tools/operations/prepare_defense_card` et
   `tools/operations/adjust_plan_item`.
@@ -175,32 +174,30 @@ Usage concret dans le code actuel :
 - Router globalement une nouvelle intention : c'est L1/L2/L3.
 - Ajouter une exception métier dans `run.ts`.
 - Exécuter un tool, créer une carte, modifier un plan ou écrire en base.
-- Interpréter une confirmation utilisateur pour un brouillon tool.
+- Interpréter une confirmation utilisateur pour un handoff complexe.
 - Produire un `committed_effect` durable.
 - Persister une mémoire par défaut : les candidats mémoire restent
   `should_persist_default: false`.
 - Deviner la cible depuis le premier `plan_item` hors décision structurée.
-- Réintroduire un matching lexical pour choisir target, blocker, handoff ou
-  tool suggestion.
+- Réintroduire un matching lexical pour choisir target, blocker, handoff ou tool
+  suggestion.
 
 ## Invariants
 
 - Cible avant diagnostic : si `target.confidence_band === "low"`, la phase est
   `resolve_target`, sans suggestion card ou plan edit.
-- Geste concret avant question : si la contrainte
-  `concrete_before_question` est présente, `response_contract` force
-  `must_start_with_concrete_action`.
+- Geste concret avant question : si la contrainte `concrete_before_question` est
+  présente, `response_contract` force `must_start_with_concrete_action`.
 - `no_questions` force `max_questions: 0`; `one_question_max` empêche toute
   réponse à plusieurs questions.
 - `exact_phrase_requested` autorise et exige une phrase prête à envoyer.
-- `emotional_dominance: "high"` force le handoff
-  `handoff_to_emotional_repair` et bloque les suggestions tool.
+- `emotional_dominance: "high"` force le handoff `handoff_to_emotional_repair`
+  et bloque les suggestions tool.
 - `no_tool` supprime toutes les `operation_suggestions`.
 - `do_not_edit_plan` supprime `adjust_plan_item`.
 - `allow_card_suggestion: false` supprime `prepare_attack_card` et
   `prepare_defense_card`.
-- Toutes les suggestions conservées sortent avec
-  `requires_user_consent: true`.
+- Toutes les suggestions conservées sortent avec `requires_user_consent: true`.
 - Le done language est interdit : pas de "c'est fait", "créé", "programmé" ou
   "enregistré" dans la reply.
 - Un échec technique d'intake ne produit pas de reply métier, pas de tool
@@ -212,7 +209,8 @@ Usage concret dans le code actuel :
   `ExecutionDecision` et les invariants concluent que l'émotion domine.
 - `prepare_attack_card`, `prepare_defense_card` et `adjust_plan_item` peuvent
   recevoir une opportunité future via `operation_suggestions`; ils restent
-  propriétaires de leurs confirmations, brouillons, effets et renderers.
+  propriétaires de leurs handoffs, brouillons, destinations plateforme et
+  renderers.
 - La mémoire reçoit seulement des `MemoryWriteCandidate` conservateurs via
   `toMemoryWriteCandidates(...)`, jamais une écriture directe.
 - `run.ts` reste mince : pas d'addon local `execution_breakdown`, pas de regex
@@ -232,8 +230,8 @@ Usage concret dans le code actuel :
 
 ## Forbidden Changes
 
-- Ajouter une regex ou une liste de mots pour choisir target, blocker,
-  handoff, attack/defense/adjust ou plan item.
+- Ajouter une regex ou une liste de mots pour choisir target, blocker, handoff,
+  attack/defense/adjust ou plan item.
 - Retomber sur une heuristique métier après échec IA.
 - Ajouter un if sémantique dans `router/run.ts`, `routers/routers.ts` ou
   l'arbitre global pour corriger `execution_breakdown`.
@@ -279,8 +277,8 @@ deno check supabase/functions/sophia-brain/skills/execution_breakdown/skill.ts s
 
 ## Suivi Des Décisions Architecturales
 
-| Date | Décision | Statut | Référence |
-| --- | --- | --- | --- |
-| 2026-05-29 | Execution breakdown doit porter target + blocker contract. | Remplacée | Plan execution_breakdown |
-| 2026-05-30 | Le chemin normal devient un intake IA JSON strict suivi de `normalizeExecutionDecision`, `applyExecutionInvariants`, reducer et renderer; le fallback lexical métier est interdit. | Active | J19 / contrat runtime |
-| 2026-05-30 | `execution_breakdown` reste sans executor durable : il ne produit que des suggestions consenties et des candidats conversationnels. | Active | EffectLedger / J19 |
+| Date       | Décision                                                                                                                                                                           | Statut    | Référence                |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------------ |
+| 2026-05-29 | Execution breakdown doit porter target + blocker contract.                                                                                                                         | Remplacée | Plan execution_breakdown |
+| 2026-05-30 | Le chemin normal devient un intake IA JSON strict suivi de `normalizeExecutionDecision`, `applyExecutionInvariants`, reducer et renderer; le fallback lexical métier est interdit. | Active    | J19 / contrat runtime    |
+| 2026-05-30 | `execution_breakdown` reste sans mutation durable : il ne produit que des suggestions consenties et des candidats conversationnels.                                                | Active    | EffectLedger / J19       |

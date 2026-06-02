@@ -4,11 +4,6 @@ import {
   isDegenerateReminderInstruction,
 } from "./instruction_parser.ts";
 import {
-  detectsExplicitOneShotReminderCancel,
-  isLikelyOneShotReminderRequest,
-  isProductHelpQuestion,
-  isStatusQuestion,
-  looksLikeReminderCreationCommand,
   normalizeOneShotReminderText,
 } from "./route_guards.ts";
 import {
@@ -108,11 +103,11 @@ export function buildOneShotReminderIntake(args: {
 }): OneShotReminderStructuredIntake {
   const message = String(args.message ?? "");
   const text = normalizeOneShotReminderText(message);
-  const referencesReminder = /\b(rappel|rappelle|reminder|remind)\b/.test(text);
   const timeExpression = extractTimeExpression(message);
   const targetReference = inferTargetReference(text);
   const directIntent = effectIntent(args.directEffectsToRun ?? []);
-  const legacyAllowed = args.fallbackLegacyGuards !== false;
+  const directCreateIntent = directIntent === "create" ||
+    directIntent === "replace";
 
   if (!text) {
     return {
@@ -132,43 +127,7 @@ export function buildOneShotReminderIntake(args: {
     };
   }
 
-  if (isProductHelpQuestion(text)) {
-    return {
-      detected: true,
-      intent: "product_help",
-      recurrence_kind: "ambiguous",
-      time_expression: timeExpression,
-      scheduled_for: args.parsed?.scheduledFor ?? null,
-      local_label: args.localLabel ?? null,
-      instruction: null,
-      instruction_source: null,
-      target_reference: targetReference,
-      target_reminder_ids: args.targetReminderIds ?? [],
-      target_local_labels: args.targetLocalLabels ?? [],
-      constraints: [{ kind: "product_help", evidence: [message] }],
-      reason_code: "product_help_question",
-    };
-  }
-
-  if (isStatusQuestion(text)) {
-    return {
-      detected: true,
-      intent: "status_question",
-      recurrence_kind: "ambiguous",
-      time_expression: timeExpression,
-      scheduled_for: args.parsed?.scheduledFor ?? null,
-      local_label: args.localLabel ?? null,
-      instruction: null,
-      instruction_source: null,
-      target_reference: targetReference,
-      target_reminder_ids: args.targetReminderIds ?? [],
-      target_local_labels: args.targetLocalLabels ?? [],
-      constraints: [{ kind: "status_only", evidence: [message] }],
-      reason_code: "status_question",
-    };
-  }
-
-  if (referencesReminder && hasRecurringCadenceHint(message)) {
+  if (directCreateIntent && hasRecurringCadenceHint(message)) {
     return {
       detected: true,
       intent: "ignore",
@@ -186,23 +145,7 @@ export function buildOneShotReminderIntake(args: {
     };
   }
 
-  let intent = directIntent;
-  if (!intent && legacyAllowed) {
-    const create = looksLikeReminderCreationCommand(message) ||
-      isLikelyOneShotReminderRequest(message) ||
-      (Boolean(timeExpression) &&
-        /\b(texte exact|instruction|message)\b/i.test(message));
-    const cancel = detectsExplicitOneShotReminderCancel(message);
-    intent = create && cancel
-      ? "replace"
-      : create
-      ? "create"
-      : cancel
-      ? "cancel"
-      : null;
-  }
-
-  if (!intent) {
+  if (!directIntent) {
     return {
       detected: false,
       intent: "off_topic",
@@ -220,6 +163,7 @@ export function buildOneShotReminderIntake(args: {
     };
   }
 
+  const intent = directIntent;
   const rawInstruction = intent === "create" || intent === "replace"
     ? args.parsed?.reminderInstruction ?? extractReminderInstruction(message)
     : null;

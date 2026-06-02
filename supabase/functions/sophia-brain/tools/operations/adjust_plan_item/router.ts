@@ -1,443 +1,50 @@
-import { createConfirmationToken } from "../../../confirmation/confirmation_token.ts";
-import { executeAdjustPlanItem } from "./executor.ts";
-import type { PlanAdjustmentDraftV1 } from "./generator.ts";
-import { runAdjustPlanItemIntake } from "./intake.ts";
+import { buildClarificationRequest } from "../../../clarification/contract.ts";
+import type { ClarificationToolOutput } from "../../../clarification/contract.ts";
 import type {
-  AdjustPlanCommittedEffect,
+  AdjustPlanHandoffDraft,
+  AdjustPlanHandoffStatus,
   AdjustPlanOperationRuntimeResult,
   AdjustPlanRouterContext,
+  AdjustPlanScopeKind,
+  AdjustPlanUserIntent,
 } from "./contract.ts";
 import {
-  adaptSkillResultToRuntime,
-  adjustPlanEffect,
+  buildAdjustPlanHandoffDraft,
+  buildAdjustPlanHandoffDraftFromContext,
+  reviseAdjustPlanHandoffDraft,
+} from "./handoff.ts";
+import { runAdjustPlanItemIntake } from "./intake.ts";
+import { renderAdjustPlanHandoffDraft } from "./renderer.ts";
+import {
+  clearAdjustPlanExecutableLegacyState,
+  isAdjustPlanHandoffState,
+  loadAdjustPlanFrameFromTempMemory,
+  writeAdjustPlanHandoffState,
+} from "./state.ts";
+import {
   adjustPlanSkillResult,
   ensureRuntimeHasSkillResult,
 } from "./runtime_adapter.ts";
-import {
-  adjustmentExecutionAck as defaultAdjustmentExecutionAck,
-  isAdjustPlanDraftRewriteRequest as defaultIsAdjustPlanDraftRewriteRequest,
-  renderLastAdjustPlanDetails as defaultRenderLastAdjustPlanDetails,
-  renderPendingAdjustPlanDraftDetails
-    as defaultRenderPendingAdjustPlanDraftDetails,
-  renderPendingAdjustPlanDraftQuestionAnswer
-    as defaultRenderPendingAdjustPlanDraftQuestionAnswer,
-  revisePendingAdjustPlanDraftDeterministically
-    as defaultRevisePendingAdjustPlanDraftDeterministically,
-  wholePlanDraftNuanceLine as defaultWholePlanDraftNuanceLine,
-} from "./draft_review.ts";
-import {
-  clearAdjustPlanFrame,
-  isPendingAdjustPlanDraftReview,
-  isPendingAdjustPlanItemOperation,
-  pendingOperationType,
-  writeLastAdjustPlanExecution,
-} from "./state.ts";
-import {
-  buildAdjustPlanConfirmationDecision,
-  legacyAdjustPlanApproveReview,
-} from "./confirmation.ts";
-import {
-  buildWeeklyCopyForwardPendingReview
-    as defaultBuildWeeklyCopyForwardPendingReview,
-  buildWeeklyExactAdjustPlanPendingReview
-    as defaultBuildWeeklyExactAdjustPlanPendingReview,
-  buildWeeklyLightRepeatPendingReview
-    as defaultBuildWeeklyLightRepeatPendingReview,
-  buildWeeklyMissionCarryOverPendingReview
-    as defaultBuildWeeklyMissionCarryOverPendingReview,
-  patchPendingAdjustPlanWithWeeklyExactProposal
-    as defaultPatchPendingAdjustPlanWithWeeklyExactProposal,
-  weeklyExactProposalFromConversation
-    as defaultWeeklyExactProposalFromConversation,
-} from "./weekly_bridge.ts";
 
-type ExecutableAdjustPlanPending = {
-  operation_id?: string;
-  operation_type?: "adjust_plan_item";
-  draft: PlanAdjustmentDraftV1;
-  operation_input?: Record<string, unknown> | null;
+type OperationInput = Record<string, unknown> | null;
+type HandoffFollowupDecision = {
+  status: AdjustPlanHandoffStatus;
+  userIntent: AdjustPlanUserIntent;
+  reasonCode: string;
 };
 
-export type AdjustPlanPatchWriter = (args: {
-  draft: PlanAdjustmentDraftV1;
-  operationInput?: Record<string, unknown> | null;
-  operationId: string;
-  requestId?: string | null;
-  sourceMessageId?: string | null;
-  patch: Record<string, unknown>;
-}) => Promise<{
-  plan_patch_id: string;
-  bridge_plan_item_id?: string | null;
-}>;
-
-export type AdjustPlanRouterDeps = {
-  writePlanPatch: AdjustPlanPatchWriter;
-  renderExecutionAck?: (args: {
-    draft?: PlanAdjustmentDraftV1 | null;
-    operationInput?: Record<string, unknown> | null;
-    fallbackAck?: string | null;
-  }) => string;
+export type AdjustPlanLifecycleDeps = {
+  [key: string]: unknown;
+  operationRouteIsSelected?: (args: any) => boolean;
+  clarifyAdjustPlanAmbiguity?: (args: {
+    request: ReturnType<typeof buildClarificationRequest>;
+  }) => Promise<ClarificationToolOutput>;
 };
 
-type DraftReviewDecision = {
-  decision?: string;
-  confidence?: string;
-  evidence?: unknown[];
-  apply_after_revision?: boolean;
-};
+export type AdjustPlanRouterDeps = AdjustPlanLifecycleDeps;
 
-export type AdjustPlanLifecycleDeps = AdjustPlanRouterDeps & {
-  isExplicitPendingApplyConfirmation: (message: string) => boolean;
-  isWeeklyMissionCarryOverRequest: (message: string) => boolean;
-  weeklyMissionCarryOverContext: (args: {
-    userMessage: string;
-    history: any[];
-  }) => boolean;
-  isCopyForwardWeeklyRequest: (message: string) => boolean;
-  isWeeklyLightRepeatRequest: (message: string) => boolean;
-  weeklyAdaptiveReviewStateForTurn: (args: {
-    activeSkillState: unknown;
-    tempMemory: any;
-  }) => unknown;
-  weeklyExactProposalFromConversation?: (args: {
-    userMessage: string;
-    history: any[];
-    tempMemory: any;
-    weeklyState?: unknown;
-    planItemSnapshot?: any[] | null;
-  }) => any | null;
-  patchPendingAdjustPlanWithWeeklyExactProposal?: (args: {
-    pending: any;
-    proposal: any;
-  }) => any;
-  buildWeeklyMissionCarryOverPendingReview?: (args: {
-    weeklyState?: unknown;
-    planItemSnapshot?: any[] | null;
-  }) => ExecutableAdjustPlanPending;
-  buildWeeklyCopyForwardPendingReview?: (args: {
-    planItemSnapshot?: any[] | null;
-  }) => ExecutableAdjustPlanPending;
-  buildWeeklyLightRepeatPendingReview?: (args: {
-    weeklyState?: unknown;
-    planItemSnapshot?: any[] | null;
-  }) => ExecutableAdjustPlanPending;
-  buildWeeklyExactAdjustPlanPendingReview?: (args: {
-    proposal: any;
-  }) => ExecutableAdjustPlanPending;
-  isAdjustPlanDraftRewriteRequest?: (message: string) => boolean;
-  renderPendingAdjustPlanDraftQuestionAnswer?: (
-    raw: any,
-    userMessage: string,
-  ) => string | null;
-  revisePendingAdjustPlanDraftDeterministically?: (args: {
-    pending: { draft: PlanAdjustmentDraftV1 };
-    userMessage: string;
-  }) => PlanAdjustmentDraftV1 | null;
-  normalizeRecommendationText: (value: unknown) => string;
-  wholePlanDraftNuanceLine?: (userMessage: string) => string | null;
-  renderPendingAdjustPlanDraftDetails?: (tempMemory: any) => string | null;
-  renderLastAdjustPlanDetails?: (tempMemory: any) => string | null;
-  isAdjustPlanExplainOnlyIntent: (turnFrame: any) => boolean;
-  isAdjustPlanRevisionIntent: (turnFrame: any) => boolean;
-  operationRouteIsSelected: (args: {
-    operationType: string;
-    routeDecision: any;
-    turnFrame: any;
-    tempMemory: any;
-  }) => boolean;
-  operationInputFromPlanAdjustmentScope: (
-    message: string,
-    turnFrame: any,
-  ) => Record<string, unknown> | null;
-  isVagueWholePlanWeeklyAdjustmentRequest: (
-    message: string,
-    scopedOperationInput: Record<string, unknown> | null,
-  ) => boolean;
-  isPendingAdjustPlanItemRecommendationOperation: (value: unknown) => boolean;
-  isBroaderPlanAdjustmentInput: (
-    value: Record<string, unknown> | null,
-  ) => boolean;
-  isAmbivalentAdjustPlanReflectionRequest: (message: string) => boolean;
-  isOperationEscapeMessage: (message: string) => boolean;
-  hasStrongToolSkillIntent: (
-    turnFrame: any,
-    operationType?: string,
-  ) => boolean;
-  readLastResolvedPlanItem: (tempMemory: any) => Record<string, unknown> | null;
-  resolvePlanItemTargetFromToolSkillIntent: (
-    turnFrame: any,
-    operationType: string,
-    planItems?: any[] | null,
-  ) => any | null;
-  writeLastResolvedPlanItem: (
-    tempMemory: any,
-    item: any,
-    source: string,
-  ) => any;
-  mergeActiveAdjustPlanOperationInput: (args: {
-    active: Record<string, unknown> | null;
-    scoped: Record<string, unknown> | null;
-  }) => Record<string, unknown> | null;
-  operationInputFromLastPlanItem: (
-    tempMemory: any,
-  ) => Record<string, unknown> | null;
-  planItemTitleFromOperationInput: (
-    operationInput?: Record<string, unknown> | null,
-  ) => string | null;
-};
-
-type SkillOwnedLifecycleDepKeys =
-  | "renderExecutionAck"
-  | "weeklyExactProposalFromConversation"
-  | "patchPendingAdjustPlanWithWeeklyExactProposal"
-  | "buildWeeklyMissionCarryOverPendingReview"
-  | "buildWeeklyCopyForwardPendingReview"
-  | "buildWeeklyLightRepeatPendingReview"
-  | "buildWeeklyExactAdjustPlanPendingReview"
-  | "isAdjustPlanDraftRewriteRequest"
-  | "renderPendingAdjustPlanDraftQuestionAnswer"
-  | "revisePendingAdjustPlanDraftDeterministically"
-  | "wholePlanDraftNuanceLine"
-  | "renderPendingAdjustPlanDraftDetails"
-  | "renderLastAdjustPlanDetails";
-
-type ResolvedAdjustPlanLifecycleDeps =
-  & Omit<AdjustPlanLifecycleDeps, SkillOwnedLifecycleDepKeys>
-  & Required<Pick<AdjustPlanLifecycleDeps, SkillOwnedLifecycleDepKeys>>;
-
-function resolveSkillLifecycleDeps(
-  deps: AdjustPlanLifecycleDeps,
-): ResolvedAdjustPlanLifecycleDeps {
-  return {
-    ...deps,
-    renderExecutionAck: deps.renderExecutionAck ??
-      defaultAdjustmentExecutionAck,
-    weeklyExactProposalFromConversation:
-      deps.weeklyExactProposalFromConversation ??
-        defaultWeeklyExactProposalFromConversation,
-    patchPendingAdjustPlanWithWeeklyExactProposal:
-      deps.patchPendingAdjustPlanWithWeeklyExactProposal ??
-        defaultPatchPendingAdjustPlanWithWeeklyExactProposal,
-    buildWeeklyMissionCarryOverPendingReview:
-      deps.buildWeeklyMissionCarryOverPendingReview ??
-        defaultBuildWeeklyMissionCarryOverPendingReview,
-    buildWeeklyCopyForwardPendingReview:
-      deps.buildWeeklyCopyForwardPendingReview ??
-        defaultBuildWeeklyCopyForwardPendingReview,
-    buildWeeklyLightRepeatPendingReview:
-      deps.buildWeeklyLightRepeatPendingReview ??
-        defaultBuildWeeklyLightRepeatPendingReview,
-    buildWeeklyExactAdjustPlanPendingReview:
-      deps.buildWeeklyExactAdjustPlanPendingReview ??
-        defaultBuildWeeklyExactAdjustPlanPendingReview,
-    renderPendingAdjustPlanDraftQuestionAnswer:
-      deps.renderPendingAdjustPlanDraftQuestionAnswer ??
-        defaultRenderPendingAdjustPlanDraftQuestionAnswer,
-    isAdjustPlanDraftRewriteRequest: deps.isAdjustPlanDraftRewriteRequest ??
-      defaultIsAdjustPlanDraftRewriteRequest,
-    revisePendingAdjustPlanDraftDeterministically:
-      deps.revisePendingAdjustPlanDraftDeterministically ??
-        defaultRevisePendingAdjustPlanDraftDeterministically,
-    wholePlanDraftNuanceLine: deps.wholePlanDraftNuanceLine ??
-      defaultWholePlanDraftNuanceLine,
-    renderPendingAdjustPlanDraftDetails:
-      deps.renderPendingAdjustPlanDraftDetails ??
-        defaultRenderPendingAdjustPlanDraftDetails,
-    renderLastAdjustPlanDetails: deps.renderLastAdjustPlanDetails ??
-      defaultRenderLastAdjustPlanDetails,
-  };
-}
-
-function adjustPlanCoachTrace(
-  operationInput?: Record<string, unknown> | null,
-): Record<string, unknown> {
-  const input = operationInput && typeof operationInput === "object"
-    ? operationInput as Record<string, unknown>
-    : {};
-  return {
-    coaching_guidance: input.coaching_guidance ?? null,
-    coaching_guidance_audit: input.coaching_guidance_audit ?? null,
-  };
-}
-
-function pendingScopeKind(
-  pendingRaw: ExecutableAdjustPlanPending,
-): string {
-  return String(
-    (pendingRaw.operation_input as any)?.scope?.kind ??
-      (pendingRaw.operation_input as any)?.intake_state?.scope?.kind ??
-      (pendingRaw.draft as any)?.draft?.patch?.scope_kind ??
-      (pendingRaw.draft as any)?.draft?.adjust_plan_result?.scope ??
-      "",
-  ).trim();
-}
-
-function missingSpecificPlanItemId(
-  pendingRaw: ExecutableAdjustPlanPending,
-): boolean {
-  const scopeKind = pendingScopeKind(pendingRaw);
-  return (!scopeKind || scopeKind === "specific_plan_item") &&
-    !String((pendingRaw.operation_input as any)?.scope?.plan_item_id ?? "")
-      .trim();
-}
-
-export async function executePendingAdjustPlanDraft(args: {
-  context: Pick<
-    AdjustPlanRouterContext,
-    | "userId"
-    | "safetyPregateOutput"
-    | "sourceMessageId"
-    | "requestId"
-    | "confirmationSecret"
-  >;
-  nextTempMemory: any;
-  pendingRaw: ExecutableAdjustPlanPending;
-  deps: AdjustPlanRouterDeps;
-}): Promise<AdjustPlanOperationRuntimeResult> {
-  const operationId = String(
-    args.pendingRaw.operation_id ?? crypto.randomUUID(),
-  );
-  if (missingSpecificPlanItemId(args.pendingRaw)) {
-    let nextTempMemory = clearAdjustPlanFrame(args.nextTempMemory);
-    nextTempMemory = { ...nextTempMemory };
-    const content =
-      'Je ne l\'applique pas automatiquement, parce que je n\'ai pas retrouvé cette action comme item réel du dashboard. Proposition prête à copier : remplace "ranger tous mes papiers" par "trier seulement trois documents". Applique-la depuis ton dashboard pour que le plan canonique reste exact.';
-    const requestedEffect = adjustPlanEffect({
-      operationId,
-      draft: args.pendingRaw.draft,
-    });
-    return adaptSkillResultToRuntime({
-      content,
-      nextTempMemory,
-      toolExecution: "blocked",
-      skillResult: adjustPlanSkillResult({
-        status: "blocked",
-        userIntent: "approve",
-        reply: content,
-        reasonCode: "not_executed_missing_plan_item_id",
-        requestedEffects: [requestedEffect],
-        blockedEffects: [{
-          type: "adjust_plan_item",
-          reason_code: "not_executed_missing_plan_item_id",
-        }],
-      }),
-      toolSkillRun: {
-        status: "not_executed_missing_plan_item_id",
-        operation_id: operationId,
-        ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
-      },
-    });
-  }
-
-  const token = await createConfirmationToken({
-    user_id: args.context.userId,
-    operation_id: operationId,
-    operation_type: "adjust_plan_item",
-    draft: args.pendingRaw.draft,
-    source_message_id: args.context.sourceMessageId ??
-      args.context.requestId ??
-      crypto.randomUUID(),
-    pending_confirmation_id: operationId,
-    secret: args.context.confirmationSecret,
-  });
-  const executed = await executeAdjustPlanItem({
-    operation_id: operationId,
-    user_id: args.context.userId,
-    draft: args.pendingRaw.draft,
-    token,
-    safety_pregate_risk_band: args.context.safetyPregateOutput.risk_band,
-    pending_confirmation_lookup: async (id) =>
-      id === operationId ? { consumed: false } : null,
-    token_consumption_check: async () => false,
-    write_plan_patch: async (patch) => {
-      if (!patch || Object.keys(patch).length === 0) {
-        throw new Error("plan_patch_empty");
-      }
-      return await args.deps.writePlanPatch({
-        draft: args.pendingRaw.draft,
-        operationInput: args.pendingRaw.operation_input ?? null,
-        operationId,
-        requestId: args.context.requestId ?? null,
-        sourceMessageId: args.context.sourceMessageId,
-        patch,
-      });
-    },
-    secret: args.context.confirmationSecret,
-  });
-
-  let nextTempMemory = clearAdjustPlanFrame(args.nextTempMemory);
-  if (executed.status !== "executed") {
-    const requestedEffect = adjustPlanEffect({
-      operationId,
-      draft: args.pendingRaw.draft,
-    });
-    return adaptSkillResultToRuntime({
-      content: executed.ack,
-      nextTempMemory,
-      toolExecution: "blocked",
-      skillResult: adjustPlanSkillResult({
-        status: "blocked",
-        userIntent: "approve",
-        reply: executed.ack,
-        reasonCode: executed.reason_code,
-        requestedEffects: [requestedEffect],
-        blockedEffects: [{
-          type: "adjust_plan_item",
-          reason_code: executed.reason_code,
-        }],
-        updatedState: executed.tool_skill_state,
-      }),
-      toolSkillRun: {
-        status: executed.status,
-        operation_id: operationId,
-        ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
-      },
-    });
-  }
-
-  nextTempMemory = writeLastAdjustPlanExecution(nextTempMemory, {
-    operation_id: operationId,
-    plan_patch_id: executed.plan_patch_id,
-    draft: args.pendingRaw.draft,
-    operation_input: args.pendingRaw.operation_input ?? null,
-    created_at: new Date().toISOString(),
-  });
-  const renderExecutionAck = args.deps.renderExecutionAck ??
-    defaultAdjustmentExecutionAck;
-  const content = renderExecutionAck({
-    draft: args.pendingRaw.draft,
-    operationInput: args.pendingRaw.operation_input ?? null,
-    fallbackAck: executed.ack,
-  }) || executed.ack;
-  const requestedEffect = adjustPlanEffect({
-    operationId,
-    draft: args.pendingRaw.draft,
-  });
-  const committedEffect: AdjustPlanCommittedEffect = {
-    ...requestedEffect,
-    plan_patch_id: executed.plan_patch_id,
-    bridge_plan_item_id: executed.bridge_plan_item_id ?? null,
-  };
-  return adaptSkillResultToRuntime({
-    content,
-    nextTempMemory,
-    skillResult: adjustPlanSkillResult({
-      status: "executed",
-      userIntent: "approve",
-      reply: content,
-      reasonCode: "adjust_plan_executed",
-      requestedEffects: [requestedEffect],
-      allowedEffects: [requestedEffect],
-      committedEffects: [committedEffect],
-      updatedState: executed.tool_skill_state,
-    }),
-    toolSkillRun: {
-      operation_id: operationId,
-      plan_patch_id: executed.plan_patch_id,
-      bridge_plan_item_id: executed.bridge_plan_item_id ?? null,
-      ...adjustPlanCoachTrace(args.pendingRaw.operation_input),
-    },
-  });
+function nowIso(): string {
+  return new Date().toISOString();
 }
 
 function recentMessagesForIntake(history: any[]) {
@@ -450,921 +57,909 @@ function recentMessagesForIntake(history: any[]) {
     .slice(-12);
 }
 
-async function maybeRunAdjustPlanItemOperationRuntime(args: {
+function turnFrameHasAdjustPlanIntent(turnFrame: unknown): boolean {
+  const frame = turnFrame as any;
+  const intents = Array.isArray(frame?.tool_skill_intents)
+    ? frame.tool_skill_intents
+    : [];
+  return intents.some((intent: any) =>
+    intent?.operation_type === "adjust_plan_item" &&
+    intent?.confidence_band !== "low"
+  ) || frame?.tool_skill_opportunity?.operation_type === "adjust_plan_item";
+}
+
+function routeSelectsAdjustPlan(
+  context: AdjustPlanRouterContext,
+  deps: AdjustPlanLifecycleDeps,
+): boolean {
+  if (
+    deps.operationRouteIsSelected?.({
+      operationType: "adjust_plan_item",
+      routeDecision: context.routeDecision,
+      turnFrame: context.turnFrame,
+      tempMemory: context.tempMemory,
+    })
+  ) return true;
+  return context.routeDecision?.selected_handler === "adjust_plan_item" ||
+    context.routeDecision?.response_owner === "tool_skill" &&
+      turnFrameHasAdjustPlanIntent(context.turnFrame) ||
+    turnFrameHasAdjustPlanIntent(context.turnFrame);
+}
+
+function scopeFromOperationInput(value: OperationInput): AdjustPlanScopeKind {
+  const kind = String((value as any)?.scope?.kind ?? "").trim();
+  if (
+    kind === "specific_plan_item" || kind === "action_cluster" ||
+    kind === "current_week" || kind === "current_level" ||
+    kind === "whole_plan"
+  ) return kind;
+  const granularity = String(
+    (value as any)?.target_granularity?.value ??
+      (value as any)?.target_granularity ?? "",
+  ).trim();
+  if (granularity === "current_level" || granularity === "whole_plan") {
+    return granularity;
+  }
+  if (granularity === "current_week" || granularity === "action_cluster") {
+    return granularity;
+  }
+  return "unknown";
+}
+
+function activeOperationInput(tempMemory: any): OperationInput {
+  const active = tempMemory?.__adjust_plan_handoff_state ??
+    tempMemory?.__active_tool_skill_intake ??
+    tempMemory?.active_tool_skill_intake;
+  const input = active?.operation_input ?? active?.known_context ??
+    active?.draft?.operation_input;
+  return input && typeof input === "object" ? input as OperationInput : null;
+}
+
+function scopeKindFromStructuredAdjustPlanScope(
+  value: unknown,
+): AdjustPlanScopeKind {
+  if (value === "specific_action") return "specific_plan_item";
+  if (
+    value === "specific_plan_item" ||
+    value === "action_cluster" ||
+    value === "current_week" ||
+    value === "current_level" ||
+    value === "whole_plan"
+  ) return value;
+  return "unknown";
+}
+
+function operationInputFromStructuredTurnFrame(
+  context: AdjustPlanRouterContext,
+): OperationInput {
+  const intents = Array.isArray(context.turnFrame?.tool_skill_intents)
+    ? context.turnFrame.tool_skill_intents
+    : [];
+  const intent = intents.find((candidate) =>
+    candidate.operation_type === "adjust_plan_item" &&
+    candidate.confidence_band !== "low"
+  );
+  if (!intent) return null;
+  const operationInput = intent.operation_input;
+  if (operationInput && typeof operationInput === "object") {
+    return operationInput;
+  }
+  const payloadOperationInput = (intent.payload_hint as any)?.operation_input;
+  if (payloadOperationInput && typeof payloadOperationInput === "object") {
+    return payloadOperationInput as OperationInput;
+  }
+  const scopeKind = scopeKindFromStructuredAdjustPlanScope(
+    intent.adjust_plan_scope ??
+      (intent.payload_hint as any)?.adjust_plan_scope ??
+      (intent.payload_hint as any)?.scope_kind,
+  );
+  if (scopeKind === "unknown" && !intent.target_hint) return null;
+  return {
+    scope: {
+      kind: scopeKind,
+      target_hint: intent.target_hint ?? null,
+      label: intent.target_hint ?? null,
+    },
+    payload: intent.payload_hint ?? null,
+  };
+}
+
+function mergeOperationInput(
+  a: OperationInput,
+  b: OperationInput,
+): OperationInput {
+  if (!a) return b;
+  if (!b) return a;
+  return {
+    ...a,
+    ...b,
+    scope: (b as any).scope ?? (a as any).scope,
+    intake_state: (a as any).intake_state ?? (b as any).intake_state,
+    payload: (a as any).payload ?? (b as any).payload,
+  };
+}
+
+function decisionFromStatus(
+  status: AdjustPlanHandoffStatus,
+  reasonCode: string,
+): HandoffFollowupDecision | null {
+  if (status === "apply_attempt") {
+    return {
+      status,
+      userIntent: "approve",
+      reasonCode,
+    };
+  }
+  if (status === "repeat_handoff") {
+    return {
+      status,
+      userIntent: "explain",
+      reasonCode,
+    };
+  }
+  if (status === "revise_handoff") {
+    return {
+      status,
+      userIntent: "revise",
+      reasonCode,
+    };
+  }
+  if (status === "cancelled") {
+    return {
+      status,
+      userIntent: "cancel",
+      reasonCode,
+    };
+  }
+  if (status === "topic_change") {
+    return {
+      status,
+      userIntent: "topic_change",
+      reasonCode,
+    };
+  }
+  return null;
+}
+
+function structuredContinuationIntent(
+  value: unknown,
+): AdjustPlanHandoffStatus | null {
+  const raw = String(value ?? "").trim();
+  if (
+    raw === "apply_attempt" ||
+    raw === "repeat_handoff" ||
+    raw === "revise_handoff" ||
+    raw === "cancelled" ||
+    raw === "topic_change"
+  ) return raw;
+  if (raw === "cancel_handoff") return "cancelled";
+  return null;
+}
+
+function handoffFollowupFromStructuredContext(args: {
+  context: AdjustPlanRouterContext;
+  activeOperationType?: string | null;
+}): HandoffFollowupDecision | null {
+  const activeOperationType = args.activeOperationType ?? "adjust_plan_item";
+  const arbitration = (args.context.routeDecision as any)
+    ?.active_flow_arbitration;
+  const arbitrationIntent = structuredContinuationIntent(
+    arbitration?.continuation_intent,
+  );
+  if (arbitrationIntent) {
+    return decisionFromStatus(
+      arbitrationIntent,
+      `active_handoff_structured_${arbitrationIntent}`,
+    );
+  }
+  const confirmation = args.context.turnFrame?.confirmation_response;
+  if (confirmation && confirmation.confidence_band !== "low") {
+    if (confirmation.kind === "yes") {
+      return decisionFromStatus(
+        "apply_attempt",
+        "confirmation_yes_is_handoff_apply_attempt",
+      );
+    }
+    if (confirmation.kind === "no") {
+      return decisionFromStatus(
+        "cancelled",
+        "confirmation_no_cancels_active_handoff",
+      );
+    }
+    if (confirmation.kind === "topic_change") {
+      return decisionFromStatus(
+        "topic_change",
+        "confirmation_topic_change_clears_active_handoff",
+      );
+    }
+    if (confirmation.kind === "correction_to_pending") {
+      return decisionFromStatus(
+        "revise_handoff",
+        "confirmation_correction_revises_active_handoff",
+      );
+    }
+  }
+  const intents = Array.isArray(args.context.turnFrame?.tool_skill_intents)
+    ? args.context.turnFrame.tool_skill_intents
+    : [];
+  for (const intent of intents) {
+    if (
+      intent.operation_type !== activeOperationType ||
+      intent.confidence_band === "low" ||
+      intent.ambiguity !== "none"
+    ) continue;
+    const payloadIntent = structuredContinuationIntent(
+      (intent.payload_hint as any)?.handoff_continuation_intent ??
+        (intent.operation_input as any)?.handoff_continuation_intent,
+    );
+    if (payloadIntent) {
+      return decisionFromStatus(
+        payloadIntent,
+        `tool_skill_intent_structured_${payloadIntent}`,
+      );
+    }
+    if (intent.user_intent === "explain_only") {
+      return decisionFromStatus(
+        "repeat_handoff",
+        "tool_skill_intent_explain_repeats_handoff",
+      );
+    }
+    if (
+      intent.user_intent === "adjust" ||
+      intent.user_intent === "update" ||
+      intent.user_intent === "create" ||
+      intent.user_intent === "select"
+    ) {
+      return decisionFromStatus(
+        "revise_handoff",
+        "tool_skill_intent_updates_active_handoff",
+      );
+    }
+  }
+  return null;
+}
+
+export const __test__handoffFollowupFromStructuredContext =
+  handoffFollowupFromStructuredContext;
+
+function sanitizeClarificationContent(content: string): string {
+  const cleaned = String(content ?? "")
+    .replace(
+      /\bJe dois d['’]abord verrouiller la derni[eè]re pr[eé]cision pour reprendre le brouillon proprement\s*:\s*/gi,
+      "",
+    )
+    .replace(
+      /\s*pour reprendre le brouillon proprement\s*[:;,]?\s*/gi,
+      " ",
+    )
+    .replace(
+      /\bJe dois reprendre le brouillon proprement\.?\s*/gi,
+      "",
+    )
+    .replace(
+      /\bAvant de reprendre le brouillon proprement,?\s*/gi,
+      "",
+    )
+    .replace(/\bavant de te le montrer\.?\s*/gi, "")
+    .replace(/\bavant de te montrer quoi que ce soit\.?\s*/gi, "")
+    .replace(/\bavant de te montrer[^.?!]*[.?!]?\s*/gi, "")
+    .replace(/\s+([.,])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned || content;
+}
+
+function currentLevelAffectedItemsOnlyHandoff(args: {
+  missingSlots: string[];
+  operationInput: Record<string, unknown> | null;
+}): boolean {
+  const missing = args.missingSlots.map((slot) => String(slot).trim()).filter(
+    Boolean,
+  );
+  if (!missing.length) return false;
+  const scope = scopeFromOperationInput(args.operationInput);
+  return scope === "current_level" &&
+    missing.every((slot) => slot === "current_level.affected_items");
+}
+
+function actionGuidanceCanHandoff(args: {
+  missingSlots: string[];
+  operationInput: Record<string, unknown> | null;
+}): boolean {
+  if (scopeFromOperationInput(args.operationInput) !== "specific_plan_item") {
+    return false;
+  }
+  const missing = args.missingSlots.map((slot) => String(slot).trim()).filter(
+    Boolean,
+  );
+  const allowedMissingSlots = new Set([
+    "draft_generation_retry_needed",
+    "specific_plan_item.action_request_category",
+    "specific_plan_item.reason",
+  ]);
+  if (
+    missing.length > 0 &&
+    !missing.every((slot) => allowedMissingSlots.has(slot))
+  ) {
+    return false;
+  }
+  const guidance = (args.operationInput as any)?.coaching_guidance;
+  if (!guidance || typeof guidance !== "object") return false;
+  const questions = Array.isArray(guidance.questions_to_clarify)
+    ? guidance.questions_to_clarify.filter((question: unknown) =>
+      String(question ?? "").trim()
+    )
+    : [];
+  const recommendation = String(guidance.recommendation ?? "").trim();
+  const confidence = String(guidance.confidence ?? "").trim();
+  if (
+    questions.length > 0 &&
+    !(
+      confidence === "high" &&
+      missing.some((slot) => slot.startsWith("specific_plan_item."))
+    )
+  ) {
+    return false;
+  }
+  return Boolean(recommendation) &&
+    (confidence === "high" || confidence === "medium");
+}
+
+function wholePlanGuidanceCanHandoff(args: {
+  missingSlots: string[];
+  operationInput: Record<string, unknown> | null;
+}): boolean {
+  if (scopeFromOperationInput(args.operationInput) !== "whole_plan") {
+    return false;
+  }
+  const missing = args.missingSlots.map((slot) => String(slot).trim()).filter(
+    Boolean,
+  );
+  if (
+    missing.length > 0 &&
+    !missing.every((slot) => slot === "draft_generation_retry_needed")
+  ) {
+    return false;
+  }
+  const guidance = (args.operationInput as any)?.coaching_guidance;
+  if (!guidance || typeof guidance !== "object") return false;
+  const questions = Array.isArray(guidance.questions_to_clarify)
+    ? guidance.questions_to_clarify.filter((question: unknown) =>
+      String(question ?? "").trim()
+    )
+    : [];
+  if (questions.length > 0) return false;
+  const recommendation = String(guidance.recommendation ?? "").trim();
+  if (!recommendation) return false;
+  const candidateOperation = String(guidance.candidate_operation ?? "").trim();
+  const changeFamily = String(guidance.change_family ?? "").trim();
+  return candidateOperation === "reorder" ||
+    changeFamily === "sequence_order_issue";
+}
+
+export const __test__sanitizeClarificationContent =
+  sanitizeClarificationContent;
+export const __test__currentLevelAffectedItemsOnlyHandoff =
+  currentLevelAffectedItemsOnlyHandoff;
+export const __test__actionGuidanceCanHandoff = actionGuidanceCanHandoff;
+export const __test__wholePlanGuidanceCanHandoff = wholePlanGuidanceCanHandoff;
+
+function traceForHandoff(args: {
+  status: AdjustPlanHandoffStatus;
+  userIntent: AdjustPlanUserIntent;
+  reasonCode: string;
+  draft?: AdjustPlanHandoffDraft | null;
+  reply: string;
+  missingSlots?: string[];
+  extra?: Record<string, unknown>;
+}): Record<string, unknown> {
+  return {
+    selected_handler: "adjust_plan_item",
+    operation_type: "adjust_plan_item",
+    status: args.status,
+    reason_code: args.reasonCode,
+    operation_id: null,
+    handoff_draft: args.draft ?? null,
+    missing_slots: args.missingSlots ?? [],
+    requested_effects: [],
+    allowed_effects: [],
+    blocked_effects: [],
+    committed_effects: [],
+    platform_handoff: {
+      operation_type: "adjust_plan_item",
+      status: args.status === "cancelled" ? "cancelled" : "delivered",
+      surface_id: "plan",
+      reason_code: args.reasonCode,
+      no_chat_mutation: true,
+    },
+    skill_result: adjustPlanSkillResult({
+      status: args.status === "cancelled"
+        ? "cancelled"
+        : args.draft
+        ? "handoff_delivered"
+        : "ask_question",
+      userIntent: args.userIntent,
+      reply: args.reply,
+      reasonCode: args.reasonCode,
+    }),
+    ...(args.extra ?? {}),
+  };
+}
+
+function result(args: {
+  content: string;
+  nextTempMemory: any;
+  status: AdjustPlanHandoffStatus;
+  userIntent: AdjustPlanUserIntent;
+  reasonCode: string;
+  draft?: AdjustPlanHandoffDraft | null;
+  missingSlots?: string[];
+  extra?: Record<string, unknown>;
+}): AdjustPlanOperationRuntimeResult {
+  return {
+    content: args.content,
+    nextTempMemory: args.nextTempMemory,
+    toolExecution: "platform_handoff" as any,
+    executedTools: [],
+    toolSkillRun: traceForHandoff({
+      status: args.status,
+      userIntent: args.userIntent,
+      reasonCode: args.reasonCode,
+      draft: args.draft ?? null,
+      reply: args.content,
+      missingSlots: args.missingSlots,
+      extra: args.extra,
+    }),
+  };
+}
+
+async function maybeClarificationQuestion(args: {
+  context: AdjustPlanRouterContext;
+  deps: AdjustPlanLifecycleDeps;
+  missingSlots: string[];
+  knownContext: OperationInput;
+}): Promise<string | null> {
+  if (!args.deps.clarifyAdjustPlanAmbiguity) return null;
+  const request = buildClarificationRequest({
+    owner: "adjust_plan_handoff",
+    ambiguity_kind: args.missingSlots.some((slot) => slot.includes("scope"))
+      ? "scope"
+      : "target",
+    user_message: args.context.userMessage,
+    recent_messages: recentMessagesForIntake(args.context.history),
+    active_flow_state: null,
+    known_context: args.knownContext ?? {},
+    candidates: [
+      {
+        id: "specific_plan_item",
+        label: "une action précise",
+        description: "Ajuster une action du plan.",
+        operation_type: "adjust_plan_item",
+        surface_id: "plan",
+        evidence: args.missingSlots,
+      },
+      {
+        id: "current_week",
+        label: "la semaine en cours",
+        description: "Alléger seulement la charge immédiate.",
+        operation_type: "adjust_plan_item",
+        surface_id: "plan",
+        evidence: args.missingSlots,
+      },
+      {
+        id: "whole_plan",
+        label: "tout le plan",
+        description: "Revoir la trajectoire globale.",
+        operation_type: "adjust_plan_item",
+        surface_id: "plan",
+        evidence: args.missingSlots,
+      },
+    ],
+  });
+  const output = await args.deps.clarifyAdjustPlanAmbiguity({ request });
+  return output.status === "ask" || output.status === "still_ambiguous"
+    ? output.question?.trim() || null
+    : null;
+}
+
+function writeState(args: {
+  tempMemory: any;
+  status: AdjustPlanHandoffStatus;
+  draft?: AdjustPlanHandoffDraft | null;
+  operationInput?: OperationInput;
+  previousTurnCount?: number;
+  maxTurns?: number;
+}): any {
+  const created = nowIso();
+  return writeAdjustPlanHandoffState(
+    clearAdjustPlanExecutableLegacyState(args.tempMemory),
+    {
+      skill_id: "adjust_plan_item",
+      mode: "platform_handoff",
+      status: args.status,
+      scope: args.draft?.scope.kind ?? scopeFromOperationInput(
+        args.operationInput ?? null,
+      ),
+      draft: args.draft ?? null,
+      operation_input: args.operationInput ?? null,
+      turn_count: Number(args.previousTurnCount ?? 0),
+      max_turns: Number(args.maxTurns ?? 6),
+      created_at: created,
+      updated_at: created,
+      no_chat_mutation: true,
+    },
+  );
+}
+
+async function runIntakeToHandoff(args: {
+  context: AdjustPlanRouterContext;
+  deps: AdjustPlanLifecycleDeps;
+  operationInput: OperationInput;
+  previousTurnCount: number;
+  source: "direct_user_request" | "active_handoff_revision" | "legacy_pending";
+}): Promise<AdjustPlanOperationRuntimeResult | null> {
+  const output = await runAdjustPlanItemIntake({
+    user_id: args.context.userId,
+    channel: args.context.channel,
+    timezone: args.context.userTimezone,
+    message: args.context.userMessage,
+    source: args.source === "direct_user_request"
+      ? "direct_user_request"
+      : "recommendation_tool",
+    trigger_message_id: args.context.sourceMessageId ??
+      args.context.requestId ?? crypto.randomUUID(),
+    safety_pregate_risk_band: args.context.safetyPregateOutput.risk_band,
+    turn_count: args.previousTurnCount,
+    recent_messages: recentMessagesForIntake(args.context.history),
+    plan_snapshot: { items: args.context.planItemSnapshot ?? [] },
+    operation_input: args.operationInput,
+    force_ai_slot_filling: args.context.forceFullAi === true,
+    force_coach_guidance: args.context.enableAdjustPlanCoachGuidance === true,
+  });
+
+  const operationInput = output.state_patch.operation_input ??
+    args.operationInput;
+  if (output.status === "pending_confirmation" && output.draft) {
+    const draft = buildAdjustPlanHandoffDraft({
+      draft: output.draft,
+      operationInput,
+    });
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "handoff_delivered",
+      draft,
+      operationInput,
+      previousTurnCount: 0,
+    });
+    return result({
+      content,
+      nextTempMemory,
+      status: "handoff_delivered",
+      userIntent: "start",
+      reasonCode: "platform_handoff_no_chat_mutation",
+      draft,
+      extra: {
+        coaching_guidance: output.state_patch.operation_input
+          ?.coaching_guidance ?? null,
+        coaching_guidance_audit: output.state_patch.operation_input
+          ?.coaching_guidance_audit ?? null,
+      },
+    });
+  }
+
+  const guidance = (operationInput as any)?.coaching_guidance;
+  if (
+    guidance &&
+    (guidance.readiness === "draft_ready" ||
+      Number(args.previousTurnCount) >= 3)
+  ) {
+    const draft = buildAdjustPlanHandoffDraftFromContext({
+      userMessage: args.context.userMessage,
+      operationInput,
+      coachingGuidance: guidance,
+    });
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "handoff_delivered",
+      draft,
+      operationInput,
+      previousTurnCount: 0,
+    });
+    return result({
+      content,
+      nextTempMemory,
+      status: "handoff_delivered",
+      userIntent: "start",
+      reasonCode: "platform_handoff_from_coaching_guidance",
+      draft,
+      extra: {
+        coaching_guidance: guidance,
+        coaching_guidance_audit: (operationInput as any)
+          ?.coaching_guidance_audit ?? null,
+      },
+    });
+  }
+
+  const missingSlots = output.state_patch.missing_slots ?? [];
+  if (
+    currentLevelAffectedItemsOnlyHandoff({ missingSlots, operationInput })
+  ) {
+    const draft = buildAdjustPlanHandoffDraftFromContext({
+      userMessage: args.context.userMessage,
+      operationInput,
+      coachingGuidance: guidance ?? null,
+    });
+    const handoffDraft: AdjustPlanHandoffDraft = {
+      ...draft,
+      missing_decisions: draft.missing_decisions.length
+        ? draft.missing_decisions
+        : [
+          "choisir dans Plan les actions prioritaires à garder sur la période concernée",
+        ],
+    };
+    const content = renderAdjustPlanHandoffDraft(handoffDraft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "handoff_delivered",
+      draft: handoffDraft,
+      operationInput,
+      previousTurnCount: 0,
+    });
+    return result({
+      content,
+      nextTempMemory,
+      status: "handoff_delivered",
+      userIntent: "start",
+      reasonCode: "current_level_partial_scope_platform_handoff",
+      draft: handoffDraft,
+      missingSlots,
+      extra: {
+        coaching_guidance: guidance ?? null,
+        coaching_guidance_audit:
+          (operationInput as any)?.coaching_guidance_audit ?? null,
+      },
+    });
+  }
+  if (
+    actionGuidanceCanHandoff({ missingSlots, operationInput })
+  ) {
+    const draft = buildAdjustPlanHandoffDraftFromContext({
+      userMessage: args.context.userMessage,
+      operationInput,
+      coachingGuidance: guidance ?? null,
+    });
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "handoff_delivered",
+      draft,
+      operationInput,
+      previousTurnCount: 0,
+    });
+    return result({
+      content,
+      nextTempMemory,
+      status: "handoff_delivered",
+      userIntent: "start",
+      reasonCode: "action_guidance_platform_handoff",
+      draft,
+      missingSlots,
+      extra: {
+        coaching_guidance: guidance ?? null,
+        coaching_guidance_audit:
+          (operationInput as any)?.coaching_guidance_audit ?? null,
+      },
+    });
+  }
+  if (
+    wholePlanGuidanceCanHandoff({ missingSlots, operationInput })
+  ) {
+    const draft = buildAdjustPlanHandoffDraftFromContext({
+      userMessage: args.context.userMessage,
+      operationInput,
+      coachingGuidance: guidance ?? null,
+    });
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "handoff_delivered",
+      draft,
+      operationInput,
+      previousTurnCount: 0,
+    });
+    return result({
+      content,
+      nextTempMemory,
+      status: "handoff_delivered",
+      userIntent: "start",
+      reasonCode: "whole_plan_guidance_platform_handoff",
+      draft,
+      missingSlots,
+      extra: {
+        coaching_guidance: guidance ?? null,
+        coaching_guidance_audit:
+          (operationInput as any)?.coaching_guidance_audit ?? null,
+      },
+    });
+  }
+  const clarification = output.status === "ask_question"
+    ? await maybeClarificationQuestion({
+      context: args.context,
+      deps: args.deps,
+      missingSlots,
+      knownContext: operationInput,
+    })
+    : null;
+  const content = sanitizeClarificationContent(
+    clarification ??
+      output.next_question?.question ??
+      output.ack ??
+      "Je peux te guider, mais il me manque une précision avant de formuler la recommandation à reprendre dans Plan.",
+  );
+  const nextTempMemory = writeState({
+    tempMemory: args.context.tempMemory,
+    status: "clarifying",
+    operationInput,
+    previousTurnCount: args.previousTurnCount + 1,
+  });
+  return result({
+    content,
+    nextTempMemory,
+    status: "clarifying",
+    userIntent: "clarify",
+    reasonCode: "adjust_plan_handoff_clarifying",
+    missingSlots,
+    extra: {
+      coaching_guidance: guidance ?? null,
+      coaching_guidance_audit:
+        (operationInput as any)?.coaching_guidance_audit ??
+          null,
+    },
+  });
+}
+
+async function handleActiveHandoff(args: {
   context: AdjustPlanRouterContext;
   deps: AdjustPlanLifecycleDeps;
 }): Promise<AdjustPlanOperationRuntimeResult | null> {
-  const { context, deps } = args;
-  const skillDeps = resolveSkillLifecycleDeps(deps);
-  const nextTempMemory = { ...(context.tempMemory ?? {}) };
-  const pendingDraftReview =
-    nextTempMemory.__pending_adjust_plan_draft_review ?? null;
-  const pendingRaw = nextTempMemory.__pending_tool_skill_confirmation ??
-    nextTempMemory.pending_tool_skill_confirmation ??
-    null;
-  if (pendingOperationType(pendingRaw) === "prepare_attack_card") return null;
-  const activeOperationType = String(
-    (nextTempMemory.__active_tool_skill_intake ??
-      nextTempMemory.active_tool_skill_intake)?.operation_type ?? "",
-  ).trim();
-
-  const executePending = async (
-    pendingRaw: ExecutableAdjustPlanPending,
-  ) =>
-    await executePendingAdjustPlanDraft({
-      context,
-      nextTempMemory,
-      pendingRaw,
-      deps: skillDeps,
+  const active = loadAdjustPlanFrameFromTempMemory(args.context.tempMemory)
+    .handoff_state;
+  if (!active) return null;
+  const followup = handoffFollowupFromStructuredContext({
+    context: args.context,
+    activeOperationType: "adjust_plan_item",
+  });
+  if (!followup) {
+    return await runIntakeToHandoff({
+      context: args.context,
+      deps: args.deps,
+      operationInput: active.operation_input ?? null,
+      previousTurnCount: Number(active.turn_count ?? 0) + 1,
+      source: "active_handoff_revision",
     });
-
-  const queueWeeklyPendingReview = (
-    pending: ExecutableAdjustPlanPending,
-    reasonCode: string,
-  ): AdjustPlanOperationRuntimeResult => {
-    nextTempMemory.__pending_adjust_plan_draft_review = {
-      ...pending,
-      phase: "draft_review",
-      operation_input: pending.operation_input ?? null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      turn_count: 0,
-      revision_history: [],
-    };
-    delete nextTempMemory.__pending_tool_skill_confirmation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    const content = pending.draft.confirmation_message ||
-      "Je te propose ce brouillon d'ajustement. Je n'applique rien tant que tu ne me le confirmes pas clairement.";
-    return adaptSkillResultToRuntime({
+  }
+  if (followup.status === "cancelled" || followup.status === "topic_change") {
+    const nextTempMemory = writeAdjustPlanHandoffState(
+      clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+      null,
+    );
+    return result({
+      content:
+        "Ok, je laisse cet ajustement de côté. Le plan reste inchangé ici.",
+      nextTempMemory,
+      status: followup.status,
+      userIntent: followup.userIntent,
+      reasonCode: followup.reasonCode,
+    });
+  }
+  const draft = active.draft ?? null;
+  if (
+    followup.status === "apply_attempt" ||
+    followup.status === "repeat_handoff"
+  ) {
+    if (!draft) {
+      return await runIntakeToHandoff({
+        context: args.context,
+        deps: args.deps,
+        operationInput: active.operation_input ?? null,
+        previousTurnCount: Number(active.turn_count ?? 0),
+        source: "direct_user_request",
+      });
+    }
+    const content = renderAdjustPlanHandoffDraft(draft, {
+      destinationOnly: false,
+      compact: false,
+    });
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: followup.status,
+      draft,
+      operationInput: active.operation_input ?? null,
+      previousTurnCount: Number(active.turn_count ?? 0) + 1,
+      maxTurns: active.max_turns,
+    });
+    return result({
       content,
       nextTempMemory,
-      toolExecution: "blocked",
-      skillResult: adjustPlanSkillResult({
-        status: "draft_review",
-        userIntent: "weekly_bridge",
-        reply: content,
-        reasonCode,
-        draft: pending.draft,
-        operationId: pending.operation_id ?? null,
-        blockedEffects: [{
-          type: "adjust_plan_item",
-          reason_code: "requires_confirmation",
-        }],
-      }),
-      toolSkillRun: {
-        selected_handler: "adjust_plan_item",
-        status: "draft_review",
-        reason_code: reasonCode,
-        operation_id: pending.operation_id ?? null,
-        draft: pending.draft,
-        ...adjustPlanCoachTrace(pending.operation_input),
-      },
+      status: followup.status,
+      userIntent: followup.userIntent,
+      reasonCode: followup.reasonCode,
+      draft,
     });
-  };
-
-  const directWeeklyMissionCarryOverApply =
-    skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) &&
-    (skillDeps.isWeeklyMissionCarryOverRequest(context.userMessage) ||
-      skillDeps.weeklyMissionCarryOverContext({
-        userMessage: context.userMessage,
-        history: context.history,
-      }));
-  if (directWeeklyMissionCarryOverApply) {
-    const pendingMissionCarryOver = skillDeps
-      .buildWeeklyMissionCarryOverPendingReview({
-        weeklyState: skillDeps.weeklyAdaptiveReviewStateForTurn({
-          activeSkillState: null,
-          tempMemory: nextTempMemory,
-        }),
-        planItemSnapshot: context.planItemSnapshot,
-      });
-    const confirmationDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: pendingMissionCarryOver,
-      local_review: legacyAdjustPlanApproveReview(true),
-      request_id: context.requestId ?? null,
-    });
-    if (confirmationDecision.executable) {
-      return await executePending(pendingMissionCarryOver);
-    }
-    return queueWeeklyPendingReview(
-      pendingMissionCarryOver,
-      "weekly_mission_carry_over_requires_confirmation",
-    );
   }
-
-  const directWeeklyCopyForwardApply =
-    skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) &&
-    skillDeps.isCopyForwardWeeklyRequest(context.userMessage);
-  if (directWeeklyCopyForwardApply) {
-    const pendingCopyForward = skillDeps.buildWeeklyCopyForwardPendingReview({
-      planItemSnapshot: context.planItemSnapshot,
-    });
-    const confirmationDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: pendingCopyForward,
-      local_review: legacyAdjustPlanApproveReview(true),
-      request_id: context.requestId ?? null,
-    });
-    if (confirmationDecision.executable) {
-      return await executePending(pendingCopyForward);
-    }
-    return queueWeeklyPendingReview(
-      pendingCopyForward,
-      "weekly_copy_forward_requires_confirmation",
-    );
-  }
-
-  const directWeeklyLightRepeatApply =
-    skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) &&
-    skillDeps.isWeeklyLightRepeatRequest(context.userMessage);
-  if (directWeeklyLightRepeatApply) {
-    const pendingLightRepeat = skillDeps.buildWeeklyLightRepeatPendingReview({
-      weeklyState: skillDeps.weeklyAdaptiveReviewStateForTurn({
-        activeSkillState: null,
-        tempMemory: nextTempMemory,
-      }),
-      planItemSnapshot: context.planItemSnapshot,
-    });
-    const confirmationDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: pendingLightRepeat,
-      local_review: legacyAdjustPlanApproveReview(true),
-      request_id: context.requestId ?? null,
-    });
-    if (confirmationDecision.executable) {
-      return await executePending(pendingLightRepeat);
-    }
-    return queueWeeklyPendingReview(
-      pendingLightRepeat,
-      "weekly_light_repeat_requires_confirmation",
-    );
-  }
-
-  if (isPendingAdjustPlanDraftReview(pendingDraftReview)) {
-    if (activeOperationType && activeOperationType !== "adjust_plan_item") {
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-    }
-    const weeklyStateForPendingAdjust = skillDeps
-      .weeklyAdaptiveReviewStateForTurn({
-        activeSkillState: null,
-        tempMemory: nextTempMemory,
+  if (followup.status === "revise_handoff") {
+    if (draft) {
+      const revisedDraft = reviseAdjustPlanHandoffDraft({
+        previous: draft,
+        revisionRequest: args.context.userMessage,
       });
-    const weeklyExactProposalForPending = skillDeps
-      .weeklyExactProposalFromConversation({
-        userMessage: context.userMessage,
-        history: context.history,
-        tempMemory: nextTempMemory,
-        weeklyState: weeklyStateForPendingAdjust,
-        planItemSnapshot: context.planItemSnapshot,
+      const content = renderAdjustPlanHandoffDraft(revisedDraft);
+      const nextTempMemory = writeState({
+        tempMemory: args.context.tempMemory,
+        status: "revise_handoff",
+        draft: revisedDraft,
+        operationInput: active.operation_input ?? null,
+        previousTurnCount: Number(active.turn_count ?? 0) + 1,
+        maxTurns: active.max_turns,
       });
-    const effectivePendingDraftReview = weeklyExactProposalForPending
-      ? skillDeps.patchPendingAdjustPlanWithWeeklyExactProposal({
-        pending: pendingDraftReview,
-        proposal: weeklyExactProposalForPending,
-      })
-      : pendingDraftReview;
-    if (weeklyExactProposalForPending) {
-      nextTempMemory.__weekly_exact_adjust_plan_proposal =
-        weeklyExactProposalForPending;
-      nextTempMemory.__pending_adjust_plan_draft_review =
-        effectivePendingDraftReview;
-    }
-    const legacyApproveDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: effectivePendingDraftReview,
-      local_review: legacyAdjustPlanApproveReview(
-        skillDeps.isExplicitPendingApplyConfirmation(context.userMessage),
-      ),
-      request_id: context.requestId ?? null,
-    });
-    if (legacyApproveDecision.executable) {
-      return await executePending(effectivePendingDraftReview);
-    }
-
-    const pendingDraftQuestionAnswer =
-      skillDeps.isAdjustPlanDraftRewriteRequest(
-          context.userMessage,
-        )
-        ? null
-        : skillDeps.renderPendingAdjustPlanDraftQuestionAnswer(
-          effectivePendingDraftReview,
-          context.userMessage,
-        );
-    if (pendingDraftQuestionAnswer) {
-      return {
-        content: pendingDraftQuestionAnswer,
+      return result({
+        content,
         nextTempMemory,
-        toolExecution: "none",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "draft_review_details",
-          operation_id: effectivePendingDraftReview.operation_id ?? null,
-          draft_review_decision: {
-            decision: "explain",
-            confidence: "high",
-            evidence: ["pre_validation_detail_request_deterministic_answer"],
-            apply_after_revision: false,
-          },
-        },
-      };
-    }
-
-    const deterministicRevisedDraft = skillDeps
-      .revisePendingAdjustPlanDraftDeterministically({
-        pending: pendingDraftReview,
-        userMessage: context.userMessage,
+        status: "revise_handoff",
+        userIntent: "revise",
+        reasonCode: followup.reasonCode,
+        draft: revisedDraft,
       });
-    if (deterministicRevisedDraft) {
-      const revisedConstraintAck =
-        /\b(2|deux)\s+actions?\s+(maximum|max|au plus)|\bmaximum\s+(2|deux)\s+actions?\b/
-            .test(skillDeps.normalizeRecommendationText(context.userMessage))
-          ? "C'est corrigé dans le brouillon: la prochaine étape reste limitée à deux actions maximum. Je n'applique rien tant que tu ne me le confirmes pas clairement."
-          : skillDeps.wholePlanDraftNuanceLine(context.userMessage)
-          ? `C'est corrigé dans le brouillon: ${
-            skillDeps.wholePlanDraftNuanceLine(context.userMessage)
-          } Je n'applique rien tant que tu ne me le confirmes pas clairement.`
-          : "C'est corrigé dans le brouillon: on garde 2 fois par semaine, sans créneau fixe, avec une phrase neutre. Je n'applique rien tant que tu ne me le confirmes pas clairement.";
-      nextTempMemory.__pending_adjust_plan_draft_review = {
-        ...pendingDraftReview,
-        draft: deterministicRevisedDraft,
-        updated_at: new Date().toISOString(),
-        turn_count: 0,
-        revision_history: [
-          ...(pendingDraftReview.revision_history ?? []),
-          {
-            user_request: context.userMessage,
-            changed: ["instruction"],
-            apply_after_revision: false,
-            created_at: new Date().toISOString(),
-            source: "deterministic_simple_revision",
-          },
-        ],
-      };
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      return {
-        content: revisedConstraintAck,
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "draft_review_updated",
-          operation_id: pendingDraftReview.operation_id ?? null,
-          draft: deterministicRevisedDraft,
-          draft_review_decision: {
-            decision: "revise",
-            confidence: "high",
-            evidence: ["deterministic_simple_revision"],
-            apply_after_revision: false,
-          },
-        },
-      };
     }
-
-    const output = await runAdjustPlanItemIntake({
-      user_id: context.userId,
-      channel: context.channel,
-      timezone: context.userTimezone,
-      message: context.userMessage,
-      source: "direct_user_request",
-      trigger_message_id: context.sourceMessageId ?? context.requestId ??
-        crypto.randomUUID(),
-      safety_pregate_risk_band: context.safetyPregateOutput.risk_band,
-      turn_count: Number(pendingDraftReview.turn_count ?? 0) + 1,
-      recent_messages: recentMessagesForIntake(context.history),
-      plan_snapshot: { items: context.planItemSnapshot ?? [] },
-      operation_input: {
-        ...(pendingDraftReview.operation_input ?? {}),
-        previous_draft: pendingDraftReview.draft,
-        revision_request: context.userMessage,
-      },
-      force_ai_slot_filling: true,
-      force_coach_guidance: context.enableAdjustPlanCoachGuidance === true,
+    const mergedInput = mergeOperationInput(active.operation_input ?? null, {
+      previous_handoff_draft: draft,
+      revision_request: args.context.userMessage,
     });
-    const draftReviewDecision = output.state_patch
-      .draft_review_decision as DraftReviewDecision | undefined;
-    const confirmationDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: effectivePendingDraftReview,
-      local_review: draftReviewDecision,
-      request_id: context.requestId ?? null,
+    const revised = await runIntakeToHandoff({
+      context: args.context,
+      deps: args.deps,
+      operationInput: mergedInput,
+      previousTurnCount: Number(active.turn_count ?? 0) + 1,
+      source: "active_handoff_revision",
     });
-    if (!draftReviewDecision && confirmationDecision.decision === "unclear") {
-      return null;
-    }
-    if (confirmationDecision.decision === "reject") {
-      delete nextTempMemory.__pending_adjust_plan_draft_review;
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      return {
-        content:
-          "Ok, je n'applique pas cet ajustement. On garde ton plan tel quel pour l'instant; observe encore une journée, et si le besoin d'alléger se confirme, on reprendra proprement.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "draft_review_cancelled",
-          operation_id: pendingDraftReview.operation_id ?? null,
-          confirmation_decision: confirmationDecision,
-          draft_review_decision: draftReviewDecision,
-          ...adjustPlanCoachTrace(
-            output.state_patch.operation_input ??
-              pendingDraftReview.operation_input ?? null,
-          ),
-        },
-      };
-    }
-    if (confirmationDecision.decision === "explain") {
-      const detailReply = skillDeps.renderPendingAdjustPlanDraftQuestionAnswer(
-        effectivePendingDraftReview,
-        context.userMessage,
-      ) ?? skillDeps.renderPendingAdjustPlanDraftDetails({
-        __pending_adjust_plan_draft_review: effectivePendingDraftReview,
-      });
-      if (detailReply) {
-        return {
-          content: detailReply,
-          nextTempMemory,
-          toolExecution: "none",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "adjust_plan_item",
-            status: "draft_review_details",
-            operation_id: effectivePendingDraftReview.operation_id ?? null,
-            confirmation_decision: confirmationDecision,
-            draft_review_decision: draftReviewDecision,
-            ...adjustPlanCoachTrace(
-              output.state_patch.operation_input ??
-                pendingDraftReview.operation_input ?? null,
-            ),
-          },
-        };
-      }
-    }
-    if (
-      confirmationDecision.decision === "topic_change" ||
-      confirmationDecision.decision === "unrelated"
-    ) {
-      delete nextTempMemory.__pending_adjust_plan_draft_review;
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      return {
-        content: output.ack ??
-          "Ok, je laisse cet ajustement de côté et je ne l'applique pas.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "topic_change",
-          operation_id: pendingDraftReview.operation_id ?? null,
-          confirmation_decision: confirmationDecision,
-          draft_review_decision: draftReviewDecision,
-        },
-      };
-    }
-    if (confirmationDecision.decision === "revise") {
-      if (
-        output.status === "pending_confirmation" && output.pending_confirmation
-      ) {
-        const revisedPendingRaw = {
-          ...output.pending_confirmation,
-          phase: "draft_review",
-          operation_input: output.state_patch.operation_input ??
-            (output.pending_confirmation as any).operation_input ??
-            pendingDraftReview.operation_input ??
-            null,
-          created_at: pendingDraftReview.created_at ?? new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          turn_count: 0,
-          revision_history: [
-            ...(pendingDraftReview.revision_history ?? []),
-            {
-              user_request: context.userMessage,
-              changed: ["draft_regenerated"],
-              apply_after_revision:
-                draftReviewDecision?.apply_after_revision === true,
-              created_at: new Date().toISOString(),
-            },
-          ],
-          supersedes_operation_id: pendingDraftReview.operation_id ?? null,
-        };
-        if (draftReviewDecision?.apply_after_revision === true) {
-          delete nextTempMemory.__pending_adjust_plan_draft_review;
-          delete nextTempMemory.__pending_tool_skill_confirmation;
-          delete nextTempMemory.pending_tool_skill_confirmation;
-          return await executePending(revisedPendingRaw as any);
-        }
-        nextTempMemory.__pending_adjust_plan_draft_review = {
-          ...revisedPendingRaw,
-        };
-        delete nextTempMemory.__pending_tool_skill_confirmation;
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: output.confirmation?.message ??
-            output.draft?.confirmation_message ??
-            "",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "adjust_plan_item",
-            status: "draft_review_updated",
-            operation_id: (output.pending_confirmation as any)?.operation_id ??
-              pendingDraftReview.operation_id ?? null,
-            previous_operation_id: pendingDraftReview.operation_id ?? null,
-            draft: output.draft ?? null,
-            confirmation_decision: confirmationDecision,
-            draft_review_decision: draftReviewDecision,
-            ...adjustPlanCoachTrace(
-              output.state_patch.operation_input ??
-                (revisedPendingRaw as any).operation_input ?? null,
-            ),
-          },
-        };
-      }
-      nextTempMemory.__pending_adjust_plan_draft_review = {
-        ...pendingDraftReview,
-        turn_count: Number(pendingDraftReview.turn_count ?? 0) + 1,
-        updated_at: new Date().toISOString(),
-      };
-      return {
-        content: output.next_question?.question ??
-          "Je peux ajuster le brouillon, mais il me manque une précision avant de te proposer une version propre.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: output.status,
-          operation_id: pendingDraftReview.operation_id ?? null,
-          missing_slots: output.state_patch.missing_slots,
-          draft_review: true,
-          confirmation_decision: confirmationDecision,
-          draft_review_decision: draftReviewDecision,
-          ...adjustPlanCoachTrace(
-            output.state_patch.operation_input ??
-              pendingDraftReview.operation_input ?? null,
-          ),
-        },
-      };
-    }
-    if (
-      confirmationDecision.decision === "approve" &&
-      confirmationDecision.executable
-    ) {
-      return await executePending(effectivePendingDraftReview);
-    }
-    return null;
+    if (revised) return revised;
   }
-
-  const weeklyStateForExactApply = skillDeps.weeklyAdaptiveReviewStateForTurn({
-    activeSkillState: null,
-    tempMemory: nextTempMemory,
-  });
-  if (
-    weeklyStateForExactApply &&
-    (skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) ||
-      skillDeps.isWeeklyMissionCarryOverRequest(context.userMessage)) &&
-    skillDeps.isWeeklyMissionCarryOverRequest(context.userMessage)
-  ) {
-    const pendingMissionCarryOver = skillDeps
-      .buildWeeklyMissionCarryOverPendingReview({
-        weeklyState: weeklyStateForExactApply,
-        planItemSnapshot: context.planItemSnapshot,
-      });
-    return queueWeeklyPendingReview(
-      pendingMissionCarryOver,
-      "weekly_mission_carry_over_requires_confirmation",
-    );
-  }
-  if (
-    weeklyStateForExactApply &&
-    (skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) ||
-      skillDeps.isCopyForwardWeeklyRequest(context.userMessage)) &&
-    skillDeps.isCopyForwardWeeklyRequest(context.userMessage)
-  ) {
-    const pendingCopyForward = skillDeps.buildWeeklyCopyForwardPendingReview({
-      planItemSnapshot: context.planItemSnapshot,
+  if (draft) {
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: "repeat_handoff",
+      draft,
+      operationInput: active.operation_input ?? null,
+      previousTurnCount: Number(active.turn_count ?? 0) + 1,
+      maxTurns: active.max_turns,
     });
-    return queueWeeklyPendingReview(
-      pendingCopyForward,
-      "weekly_copy_forward_requires_confirmation",
-    );
-  }
-  if (
-    weeklyStateForExactApply &&
-    (skillDeps.isExplicitPendingApplyConfirmation(context.userMessage) ||
-      skillDeps.isWeeklyLightRepeatRequest(context.userMessage)) &&
-    skillDeps.isWeeklyLightRepeatRequest(context.userMessage)
-  ) {
-    const pendingLightRepeat = skillDeps.buildWeeklyLightRepeatPendingReview({
-      weeklyState: weeklyStateForExactApply,
-      planItemSnapshot: context.planItemSnapshot,
-    });
-    return queueWeeklyPendingReview(
-      pendingLightRepeat,
-      "weekly_light_repeat_requires_confirmation",
-    );
-  }
-  const weeklyExactProposalForImmediateApply = skillDeps
-    .weeklyExactProposalFromConversation({
-      userMessage: context.userMessage,
-      history: context.history,
-      tempMemory: nextTempMemory,
-      weeklyState: weeklyStateForExactApply,
-      planItemSnapshot: context.planItemSnapshot,
-    });
-  if (
-    weeklyStateForExactApply &&
-    weeklyExactProposalForImmediateApply &&
-    skillDeps.isExplicitPendingApplyConfirmation(context.userMessage)
-  ) {
-    nextTempMemory.__weekly_exact_adjust_plan_proposal =
-      weeklyExactProposalForImmediateApply;
-    const pendingFromWeeklyExact = skillDeps
-      .buildWeeklyExactAdjustPlanPendingReview(
-        {
-          proposal: weeklyExactProposalForImmediateApply,
-        },
-      );
-    return queueWeeklyPendingReview(
-      pendingFromWeeklyExact,
-      "weekly_exact_adjust_plan_requires_confirmation",
-    );
-  }
-  if (activeOperationType && activeOperationType !== "adjust_plan_item") {
-    return null;
-  }
-  if (
-    !activeOperationType &&
-    pendingOperationType(pendingRaw) !== "adjust_plan_item" &&
-    !skillDeps.isPendingAdjustPlanItemRecommendationOperation(
-      nextTempMemory.__pending_recommendation_operation,
-    ) &&
-    skillDeps.isAmbivalentAdjustPlanReflectionRequest(context.userMessage)
-  ) {
-    return null;
-  }
-  if (
-    skillDeps.isAdjustPlanExplainOnlyIntent(context.turnFrame) &&
-    !skillDeps.isAdjustPlanRevisionIntent(context.turnFrame)
-  ) {
-    const detailReply = skillDeps.renderPendingAdjustPlanDraftDetails(
+    return result({
+      content,
       nextTempMemory,
-    ) ?? skillDeps.renderLastAdjustPlanDetails(nextTempMemory);
-    if (detailReply) {
-      return {
-        content: detailReply,
-        nextTempMemory,
-        toolExecution: "none",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "answered_last_adjustment_details",
-        },
-      };
-    }
-  }
-
-  const adjustPlanRouteSelected = skillDeps.operationRouteIsSelected({
-    operationType: "adjust_plan_item",
-    routeDecision: context.routeDecision,
-    turnFrame: context.turnFrame,
-    tempMemory: context.tempMemory,
-  });
-  const scopedOperationInput = skillDeps.operationInputFromPlanAdjustmentScope(
-    context.userMessage,
-    context.turnFrame,
-  );
-  if (!adjustPlanRouteSelected && !scopedOperationInput) return null;
-  if (
-    !activeOperationType &&
-    pendingOperationType(pendingRaw) !== "adjust_plan_item" &&
-    !skillDeps.isPendingAdjustPlanItemRecommendationOperation(
-      nextTempMemory.__pending_recommendation_operation,
-    ) &&
-    skillDeps.isVagueWholePlanWeeklyAdjustmentRequest(
-      context.userMessage,
-      scopedOperationInput,
-    )
-  ) {
-    nextTempMemory.__active_tool_skill_intake = {
-      operation_type: "adjust_plan_item",
-      operation_input: scopedOperationInput,
-      status: "collecting",
-      created_at: new Date().toISOString(),
-      reason_code: "whole_plan_vague_needs_context",
-    };
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content:
-        "Oui, là ça touche plutôt le plan global. Avant de proposer une nouvelle organisation, il me manque le point précis: qu'est-ce qui ne colle plus aujourd'hui ? L'objectif, l'ordre des étapes, la charge, ou les actions elles-mêmes ?",
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "adjust_plan_item",
-        status: "collecting",
-        reason_code: "whole_plan_vague_needs_context",
-        missing_slots: ["whole_plan_change_reason"],
-        ...adjustPlanCoachTrace(scopedOperationInput),
-      },
-    };
-  }
-
-  const pendingRecommendation =
-    nextTempMemory.__pending_recommendation_operation;
-
-  if (isPendingAdjustPlanItemOperation(pendingRaw)) {
-    nextTempMemory.__pending_adjust_plan_draft_review = {
-      ...pendingRaw,
-      phase: "draft_review",
-      operation_input: pendingRaw.operation_input ?? null,
-      updated_at: new Date().toISOString(),
-      turn_count: Number(pendingRaw.turn_count ?? 0),
-    };
-    delete nextTempMemory.__pending_tool_skill_confirmation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    return await maybeRunAdjustPlanItemOperation({
-      context: { ...context, tempMemory: nextTempMemory },
-      deps,
+      status: "repeat_handoff",
+      userIntent: "explain",
+      reasonCode: "active_handoff_repeat_fallback",
+      draft,
     });
   }
+  return null;
+}
 
-  if (
-    skillDeps.isPendingAdjustPlanItemRecommendationOperation(
-      pendingRecommendation,
-    )
-  ) {
-    const confirmationDecision = buildAdjustPlanConfirmationDecision({
-      user_message: context.userMessage,
-      turn_frame: context.turnFrame,
-      pending_confirmation: pendingRecommendation,
-      local_review: (pendingRecommendation as any)?.draft_review_decision ??
-        null,
-      request_id: context.requestId ?? null,
-    });
-    const correctionScopeInput = scopedOperationInput;
-    if (
-      confirmationDecision.decision === "revise" ||
-      (confirmationDecision.decision === "approve" &&
-        skillDeps.isBroaderPlanAdjustmentInput(correctionScopeInput))
-    ) {
-      delete nextTempMemory.__pending_recommendation_operation;
-      delete nextTempMemory.__last_resolved_plan_item;
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-    } else {
-      if (confirmationDecision.decision === "reject") {
-        delete nextTempMemory.__pending_recommendation_operation;
-        return {
-          content: "Ok, on ne touche pas au plan pour l'instant.",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "adjust_plan_item",
-            status: "recommendation_cancelled",
-            recommendation_id: (pendingRecommendation as any)
-              ?.recommendation_id ?? null,
-            confirmation_decision: confirmationDecision,
-          },
-        };
-      }
-      if (confirmationDecision.decision !== "approve") return null;
-
-      const output = await runAdjustPlanItemIntake({
-        user_id: context.userId,
-        channel: context.channel,
-        timezone: context.userTimezone,
-        message: context.userMessage,
-        source: "recommendation_tool",
-        trigger_message_id: context.sourceMessageId ?? context.requestId ??
-          crypto.randomUUID(),
-        safety_pregate_risk_band: context.safetyPregateOutput.risk_band,
-        plan_snapshot: { items: context.planItemSnapshot ?? [] },
-        operation_input: (pendingRecommendation as any).operation_input ?? null,
-        force_ai_slot_filling: context.forceFullAi === true,
-        force_coach_guidance: context.enableAdjustPlanCoachGuidance === true,
-      });
-      if (
-        output.status !== "pending_confirmation" ||
-        !output.pending_confirmation || !output.draft
-      ) {
-        delete nextTempMemory.__pending_recommendation_operation;
-        return {
-          content: output.next_question?.question ??
-            "Il me manque l'action exacte à alléger. Tu veux que je réduise quelle action du plan ?",
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "adjust_plan_item",
-            status: output.status,
-            missing_slots: output.state_patch.missing_slots,
-            source: "recommendation_tool",
-            ...adjustPlanCoachTrace(
-              output.state_patch.operation_input ??
-                (pendingRecommendation as any).operation_input ?? null,
-            ),
-          },
-        };
-      }
-
-      delete nextTempMemory.__pending_recommendation_operation;
-      nextTempMemory.__pending_adjust_plan_draft_review = {
-        ...output.pending_confirmation,
-        phase: "draft_review",
-        operation_input: output.state_patch.operation_input ??
-          (output.pending_confirmation as any).operation_input ??
-          (pendingRecommendation as any).operation_input ??
-          null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        turn_count: 0,
-        revision_history: [],
-      };
-      return {
-        content: output.confirmation?.message ??
-          output.draft?.confirmation_message ??
-          "",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "adjust_plan_item",
-          status: "draft_review_from_recommendation",
-          operation_id: (output.pending_confirmation as any)?.operation_id ??
-            null,
-          recommendation_id: (pendingRecommendation as any)
-            ?.recommendation_id ?? null,
-          draft: output.draft,
-          ...adjustPlanCoachTrace(
-            output.state_patch.operation_input ??
-              (output.pending_confirmation as any).operation_input ??
-              (pendingRecommendation as any).operation_input ?? null,
-          ),
-        },
-      };
-    }
-  }
-
-  const hasActiveAdjustPlanIntake =
-    (nextTempMemory.__active_tool_skill_intake as any)?.operation_type ===
-      "adjust_plan_item";
-  if (
-    !hasActiveAdjustPlanIntake && !adjustPlanRouteSelected &&
-    !scopedOperationInput
-  ) return null;
-
-  if (
-    skillDeps.isOperationEscapeMessage(context.userMessage) &&
-    !skillDeps.hasStrongToolSkillIntent(
-      context.turnFrame,
-      "adjust_plan_item",
-    ) &&
-    !hasActiveAdjustPlanIntake
-  ) return null;
-  if (skillDeps.isBroaderPlanAdjustmentInput(scopedOperationInput)) {
-    delete nextTempMemory.__last_resolved_plan_item;
-  }
-  const activeAdjustPlanOperationInput =
-    (nextTempMemory.__active_tool_skill_intake as any)?.operation_input &&
-      typeof (nextTempMemory.__active_tool_skill_intake as any)
-          .operation_input === "object"
-      ? (nextTempMemory.__active_tool_skill_intake as any)
-        .operation_input as Record<string, unknown>
-      : null;
-  let item = scopedOperationInput
-    ? null
-    : skillDeps.readLastResolvedPlanItem(nextTempMemory);
-  if (!scopedOperationInput && !item) {
-    const intentItem = skillDeps.resolvePlanItemTargetFromToolSkillIntent(
-      context.turnFrame,
-      "adjust_plan_item",
-      context.planItemSnapshot,
-    );
-    if (intentItem) {
-      Object.assign(
-        nextTempMemory,
-        skillDeps.writeLastResolvedPlanItem(
-          nextTempMemory,
-          intentItem,
-          "tool_skill_intent_target_hint",
-        ),
-      );
-      item = skillDeps.readLastResolvedPlanItem(nextTempMemory);
-    }
-  }
-  const fallbackOperationInput = skillDeps.mergeActiveAdjustPlanOperationInput({
-    active: activeAdjustPlanOperationInput,
-    scoped: scopedOperationInput,
-  }) ?? skillDeps.operationInputFromLastPlanItem(nextTempMemory);
-  const output = await runAdjustPlanItemIntake({
-    user_id: context.userId,
-    channel: context.channel,
-    timezone: context.userTimezone,
-    message: context.userMessage,
-    source: "direct_user_request",
-    trigger_message_id: context.sourceMessageId ?? context.requestId ??
-      crypto.randomUUID(),
-    safety_pregate_risk_band: context.safetyPregateOutput.risk_band,
-    turn_count: Number(
-      (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
-    ),
-    plan_snapshot: { items: context.planItemSnapshot ?? [] },
-    operation_input: fallbackOperationInput,
-    force_ai_slot_filling: context.forceFullAi === true,
-    force_coach_guidance: context.enableAdjustPlanCoachGuidance === true,
-  });
-
-  if (output.status === "pending_confirmation" && output.pending_confirmation) {
-    nextTempMemory.__pending_adjust_plan_draft_review = {
-      ...output.pending_confirmation,
-      phase: "draft_review",
-      operation_input: output.state_patch.operation_input ??
-        (output.pending_confirmation as any).operation_input ??
-        fallbackOperationInput,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      turn_count: 0,
-      revision_history: [],
-    };
-    delete nextTempMemory.__pending_tool_skill_confirmation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content: output.confirmation?.message ??
-        output.draft?.confirmation_message ??
-        "",
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "adjust_plan_item",
-        status: "draft_review",
-        operation_id: (output.pending_confirmation as any)?.operation_id ??
-          null,
-        draft: output.draft ?? null,
-        ...adjustPlanCoachTrace(
-          output.state_patch.operation_input ??
-            (output.pending_confirmation as any).operation_input ??
-            fallbackOperationInput,
-        ),
-      },
-    };
-  }
-
-  if (output.status === "ask_question") {
-    const previousTurnCount = Number(
-      (nextTempMemory.__active_tool_skill_intake as any)?.turn_count ?? 0,
-    );
-    nextTempMemory.__active_tool_skill_intake = {
-      operation_type: "adjust_plan_item",
-      phase: output.phase,
-      missing_slots: output.state_patch.missing_slots,
-      operation_input: output.state_patch.operation_input ??
-        fallbackOperationInput,
-      turn_count: previousTurnCount + 1,
-      updated_at: new Date().toISOString(),
-    };
-  }
-
+function legacyPendingDraft(tempMemory: any): {
+  draft: any;
+  operation_input?: OperationInput;
+  operation_id?: string | null;
+} | null {
+  const frame = loadAdjustPlanFrameFromTempMemory(tempMemory);
+  const pending = frame.pending_draft_review ?? frame.pending_confirmation;
+  if (!pending?.draft) return null;
   return {
-    content: output.next_question?.question ??
-      output.ack ??
-      output.confirmation?.message ??
-      output.draft?.confirmation_message ??
-      "J'ai bien compris l'ajustement. Je te prépare une proposition concrète, et rien n'est appliqué tant que tu ne confirmes pas clairement.",
-    nextTempMemory,
-    toolExecution: output.status === "blocked_by_safety"
-      ? "blocked"
-      : "blocked",
-    executedTools: [],
-    toolSkillRun: {
-      selected_handler: "adjust_plan_item",
-      status: output.status,
-      plan_item_id: item?.id ?? null,
-      target_title: item?.title ??
-        skillDeps.planItemTitleFromOperationInput(fallbackOperationInput),
-      missing_slots: output.state_patch.missing_slots,
-      ...adjustPlanCoachTrace(
-        output.state_patch.operation_input ??
-          fallbackOperationInput,
-      ),
-    },
+    draft: pending.draft,
+    operation_input: pending.operation_input ?? null,
+    operation_id: pending.operation_id ?? null,
   };
 }
 
@@ -1372,6 +967,97 @@ export async function maybeRunAdjustPlanItemOperation(args: {
   context: AdjustPlanRouterContext;
   deps: AdjustPlanLifecycleDeps;
 }): Promise<AdjustPlanOperationRuntimeResult | null> {
-  const result = await maybeRunAdjustPlanItemOperationRuntime(args);
-  return result ? ensureRuntimeHasSkillResult(result) : null;
+  const active = await handleActiveHandoff(args);
+  if (active) return ensureRuntimeHasSkillResult(active);
+
+  const pending = legacyPendingDraft(args.context.tempMemory);
+  if (pending) {
+    const followup = handoffFollowupFromStructuredContext({
+      context: args.context,
+      activeOperationType: "adjust_plan_item",
+    }) ?? {
+      status: "handoff_delivered" as const,
+      userIntent: "start" as const,
+      reasonCode: "legacy_pending_converted_to_platform_handoff",
+    };
+    if (followup.status === "cancelled" || followup.status === "topic_change") {
+      const nextTempMemory = writeAdjustPlanHandoffState(
+        clearAdjustPlanExecutableLegacyState(args.context.tempMemory),
+        null,
+      );
+      return ensureRuntimeHasSkillResult(result({
+        content:
+          "Ok, je laisse cet ajustement de côté. Le plan reste inchangé ici.",
+        nextTempMemory,
+        status: followup.status,
+        userIntent: followup.userIntent,
+        reasonCode: followup.reasonCode,
+      }));
+    }
+    const baseDraft = buildAdjustPlanHandoffDraft({
+      draft: pending.draft,
+      operationInput: pending.operation_input ?? null,
+    });
+    const draft = followup.status === "revise_handoff"
+      ? reviseAdjustPlanHandoffDraft({
+        previous: baseDraft,
+        revisionRequest: args.context.userMessage,
+      })
+      : baseDraft;
+    const content = renderAdjustPlanHandoffDraft(draft);
+    const nextTempMemory = writeState({
+      tempMemory: args.context.tempMemory,
+      status: followup.status === "apply_attempt" ||
+          followup.status === "repeat_handoff" ||
+          followup.status === "revise_handoff"
+        ? followup.status
+        : "handoff_delivered",
+      draft,
+      operationInput: pending.operation_input ?? null,
+    });
+    return ensureRuntimeHasSkillResult(result({
+      content,
+      nextTempMemory,
+      status: followup.status === "apply_attempt" ||
+          followup.status === "repeat_handoff" ||
+          followup.status === "revise_handoff"
+        ? followup.status
+        : "handoff_delivered",
+      userIntent: followup.status === "apply_attempt" ||
+          followup.status === "repeat_handoff" ||
+          followup.status === "revise_handoff"
+        ? followup.userIntent
+        : "start",
+      reasonCode: followup.status === "apply_attempt"
+        ? "legacy_pending_apply_attempt_no_chat_mutation"
+        : followup.status === "repeat_handoff"
+        ? "legacy_pending_repeat_platform_handoff"
+        : followup.status === "revise_handoff"
+        ? "legacy_pending_revised_platform_handoff"
+        : "legacy_pending_converted_to_platform_handoff",
+      draft,
+    }));
+  }
+
+  const activeInput = activeOperationInput(args.context.tempMemory);
+  const scopedInput = operationInputFromStructuredTurnFrame(args.context);
+  const operationInput = mergeOperationInput(activeInput, scopedInput);
+  const selected = routeSelectsAdjustPlan(args.context, args.deps) ||
+    isAdjustPlanHandoffState(
+      (args.context.tempMemory ?? {}).__adjust_plan_handoff_state,
+    ) ||
+    Boolean(activeInput);
+  if (!selected && !operationInput) return null;
+
+  const runtime = await runIntakeToHandoff({
+    context: args.context,
+    deps: args.deps,
+    operationInput,
+    previousTurnCount: Number(
+      ((args.context.tempMemory ?? {}).__adjust_plan_handoff_state as any)
+        ?.turn_count ?? 0,
+    ),
+    source: "direct_user_request",
+  });
+  return runtime ? ensureRuntimeHasSkillResult(runtime) : null;
 }

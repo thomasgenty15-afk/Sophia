@@ -49,7 +49,6 @@ const CHAT_READY_FROM_SUGGESTION = new Set<OperationSuggestionType>([
   "adjust_plan_item",
   "prepare_attack_card",
   "create_recurring_reminder",
-  "select_state_potion",
 ]);
 
 export function surfaceIdForOperationSuggestion(

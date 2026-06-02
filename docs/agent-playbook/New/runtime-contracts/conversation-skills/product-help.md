@@ -7,10 +7,10 @@ répond aux questions de type "à quoi ça sert", "comment faire", "où retrouve
 "où modifier/annuler dans l'app", "quelles limites", et peut indiquer quel flow
 outil utiliser.
 
-Il n'est pas un tool, pas un status composer et pas un executor. Il ne crée,
+Il n'est pas un tool, pas un status composer et pas un writer DB. Il ne crée,
 modifie, annule, programme, active, enregistre ou applique jamais rien. Une
-action demandée par le user devient au maximum un bridge explicatif vers un
-flow propriétaire avec confirmation.
+action demandée par le user devient au maximum une explication de destination
+plateforme ou une clarification. Il n'expose pas de confirmation exécutable.
 
 ## Dépend De L'Architecture De product_help
 
@@ -18,7 +18,8 @@ Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
 - `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
-- `Confirmation Contract` pour interpréter approve/reject/revise/explain ;
+- `Confirmation Contract` pour reconnaître qu'une approbation de handoff
+  plateforme reste non exécutable ;
 - `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
 - le contrat local de `product_help` pour l'intake, la décision, le grounding,
   le bridge et le renderer.
@@ -27,23 +28,23 @@ Utilisation actuelle dans le code :
 
 - le runtime global ne passe pas encore un objet `UserTurnSnapshot` unique au
   skill ; `runProductHelpSkill` reçoit un `SkillContext` composé dans
-  `skills/_shared/skill_helpers.ts` et `context_loader.ts`, avec
-  `turn_frame`, `recent_messages`, `active_skill_working_state`,
-  `product_surfaces`, plan/memory projections et exclusions ;
-- `TurnAgenda` reste propriétaire des conflits globaux. `product_help` ne
-  décide pas seul de prendre le tour contre safety, status ou un tool explicite.
-  Dans `router/run.ts`, `runConversationSkillForRecommendation` appelle
-  seulement `runProductHelpSkill(input)` quand le route owner sélectionné est
+  `skills/_shared/skill_helpers.ts` et `context_loader.ts`, avec `turn_frame`,
+  `recent_messages`, `active_skill_working_state`, `product_surfaces`,
+  plan/memory projections et exclusions ;
+- `TurnAgenda` reste propriétaire des conflits globaux. `product_help` ne décide
+  pas seul de prendre le tour contre safety, status ou un tool explicite. Dans
+  `router/run.ts`, `runConversationSkillForRecommendation` appelle seulement
+  `runProductHelpSkill(input)` quand le route owner sélectionné est
   `product_help` ;
-- `Confirmation Contract` n'est pas appliqué par `product_help`, car ce skill
-  ne possède aucun pending executable. Une réponse "oui/non/change ça/explique"
-  relative à un brouillon actif appartient au tool skill propriétaire ; si le
-  user pose une vraie question produit inline, `product_help` ajoute la
+- `Confirmation Contract` n'est pas appliqué par `product_help`, car ce skill ne
+  possède aucun pending exécutable. Une réponse "oui/non/change ça/explique"
+  relative à un handoff actif appartient au platform handoff skill propriétaire
+  ; si le user pose une vraie question produit inline, `product_help` ajoute la
   contrainte `preserve_active_flow` et ne valide pas le pending ;
 - `EffectLedger` protège le wording global, mais `product_help` applique aussi
   son invariant local dans `enforceProductHelpReplyInvariants`: sans source
-  committée/récente, les claims de type "j'ai créé", "c'est programmé",
-  "j'ai modifié", "j'ai enregistré" sont neutralisés ;
+  committée/récente, les claims de type "j'ai créé", "c'est programmé", "j'ai
+  modifié", "j'ai enregistré" sont neutralisés ;
 - le contrat local est `skills/product_help/contract.ts`. Il définit
   `ProductHelpDecision`, `ProductHelpIntent`, `ProductHelpTargetKind`,
   `ProductHelpConstraint`, le bridge, le grounding et
@@ -118,8 +119,7 @@ technique d'intake.
 - Context loader :
   `supabase/functions/sophia-brain/skills/product_help/context_loader.ts`
   - `loadProductHelpContext`
-- Intégration globale :
-  `supabase/functions/sophia-brain/router/run.ts`
+- Intégration globale : `supabase/functions/sophia-brain/router/run.ts`
   - `runConversationSkillForRecommendation`
   - `shouldRunRecommendationTool`
   - logging `skill_run` et effect ledger global.
@@ -136,8 +136,8 @@ technique d'intake.
 - candidats objets récents issus de `collectRecentProductObjectCandidates`.
 
 Les candidats déterministes sont du recall, pas le cerveau métier. La décision
-finale `intent / target / object_type / bridge / grounding requirement` vient
-du JSON structuré de l'intake, puis de la normalisation du contrat.
+finale `intent / target / object_type / bridge / grounding requirement` vient du
+JSON structuré de l'intake, puis de la normalisation du contrat.
 
 ## Outputs
 
@@ -163,7 +163,7 @@ Appartient à `product_help` :
 - distinguer aide produit générique vs question sur un objet réel ;
 - répondre "où retrouver / modifier / annuler dans l'app" sans muter ;
 - signaler les limites produit du catalogue ;
-- proposer un bridge explicatif vers un tool flow avec confirmation ;
+- proposer une explication de destination plateforme ;
 - préserver un active flow quand la question produit est inline ;
 - refuser d'affirmer l'existence ou l'état d'un objet réel sans source ;
 - garder `operation_suggestions=[]`.
@@ -174,14 +174,14 @@ N'appartient pas à `product_help` :
 - appliquer une confirmation pending ;
 - rendre un status/recap DB complet ;
 - décider globalement qu'un status doit céder à product_help ;
-- écrire dans la DB ou appeler un executor ;
+- écrire dans la DB ou appeler un writer DB ;
 - remplir les slots d'un tool skill ;
 - faire une recommandation produit indépendante après sa réponse.
 
 ## Reducer / State Transition
 
-`product_help` n'a pas de reducer mutatif parce qu'il ne possède pas de
-workflow durable. La transition locale se limite à :
+`product_help` n'a pas de reducer mutatif parce qu'il ne possède pas de workflow
+durable. La transition locale se limite à :
 
 1. intake structuré vers `ProductHelpDecision` ;
 2. `validateProductHelpDecision` pour forcer les invariants ;
@@ -189,7 +189,7 @@ workflow durable. La transition locale se limite à :
 4. `state_patch` diagnostique.
 
 `reducer.ts` existe aujourd'hui pour harmoniser la forme contractuelle avec les
-autres conversation skills. Il ne crée pas de pending executable, n'interprète
+autres conversation skills. Il ne crée pas de pending exécutable, n'interprète
 pas de confirmation et ne convertit pas `decision.bridge` en effet.
 
 ## Effects Preparation
@@ -205,23 +205,23 @@ effet est `decision.bridge`, qui décrit un flow possible :
 - `adjust_plan_item`
 - `update_coach_preferences`
 
-Ce bridge reste explicatif. Il doit toujours porter `requires_confirmation:
-true` et ne doit jamais être converti en `operation_suggestions`,
+Ce bridge reste explicatif. Pour les flows complexes, il indique la destination
+plateforme et ne doit jamais être converti en `operation_suggestions`,
 `handoff_request`, `requested_effect` ou `allowed_effect` par `product_help`.
 
 ## Effects Application
 
-Aucune application d'effet n'appartient à ce domaine. Les effects sont
-appliqués uniquement par les tool skills propriétaires et par leurs executors.
+Aucune application d'effet n'appartient à ce domaine. Les effets directs sont
+appliqués uniquement par les chat executable tool skills propriétaires. Les
+flows complexes deviennent des platform handoff skills sans mutation chat.
 
 Si le user demande "crée/annule/programme/active/modifie", l'intake doit classer
-`intent="tool_action_request"` et le renderer doit répondre qu'il faut passer
-par le flow adapté avec confirmation. Le skill ne doit pas faire plus.
+`intent="tool_action_request"` et le renderer doit répondre par la destination
+plateforme ou par le direct effect autorisé. Le skill ne doit pas faire plus.
 
 ## Renderer
 
-`renderer.ts` est le seul propriétaire de la réponse user-facing pour ce
-skill :
+`renderer.ts` est le seul propriétaire de la réponse user-facing pour ce skill :
 
 - `renderProductHelpReply` choisit entre réponse catalogue, missing source,
   one-shot reminder grounded ou bridge tool ;
@@ -239,9 +239,10 @@ décision déjà normalisée.
 
 - `operation_suggestions` vaut toujours `[]`.
 - `product_help` ne mute jamais.
-- Aucun "j'ai créé", "j'ai annulé", "c'est programmé", "j'ai modifié",
-  "j'ai enregistré", "c'est appliqué" sans source committée/récente explicite.
-- Un `bridge` exige `requires_confirmation=true`.
+- Aucun "j'ai créé", "j'ai annulé", "c'est programmé", "j'ai modifié", "j'ai
+  enregistré", "c'est appliqué" sans source committée/récente explicite.
+- Un `bridge` de flow complexe indique une destination plateforme et reste non
+  exécutable.
 - Un `bridge` reste diagnostique et visible seulement : il ne remplit pas
   `effects.requested`, `effects.allowed`, `operation_suggestions` ni
   `handoff_request`.
@@ -249,8 +250,8 @@ décision déjà normalisée.
 - `object_status_question` ne devient pas une réponse catalogue générique.
 - `db_sources_required=true` sans source récente/DB/active flow produit une
   réponse prudente, pas une affirmation d'existence.
-- Si `target.kind` vaut `user_object` ou `recent_effect`, `object_type` doit être
-  présent ou la cible est dégradée en `unknown`.
+- Si `target.kind` vaut `user_object` ou `recent_effect`, `object_type` doit
+  être présent ou la cible est dégradée en `unknown`.
 - Le message courant prime sur le contexte récent pour carte/rappel/potion.
 - Le contexte récent ne résout un pronom que si le message courant est ambigu.
 - Une question produit inline pendant un active flow ajoute
@@ -261,12 +262,14 @@ décision déjà normalisée.
 
 - `router/run.ts::runConversationSkillForRecommendation` attend
   `runProductHelpSkill`.
-- `router/run.ts` peut encore réorienter hors `product_help` pour une vraie
-  demande de préférence coach ou une sortie explicite vers conversation/status.
-  Ces gardes sont des arbitrages globaux, pas de la compréhension interne du
-  skill.
+- `router/run.ts` ne réoriente pas hors `product_help` depuis le texte brut.
+  Une opération concurrente doit déjà exister dans `TurnFrame.tool_skill_intents`
+  ou `direct_effects`; en conflit avec product_help, l'arbitrage global clarifie
+  ou bloque au lieu de deviner.
 - `status_recap` reste propriétaire des états réels et des blocs recap.
-- Les tool skills restent propriétaires des actions et confirmations.
+- Les chat executable tool skills restent propriétaires des effets directs.
+- Les platform handoff skills restent propriétaires des recommandations
+  complexes et de leurs destinations plateforme.
 - `EffectLedger` global protège la réponse finale contre les claims non
   committés, en complément des invariants locaux du renderer.
 
@@ -292,7 +295,7 @@ décision déjà normalisée.
 - Convertir `decision.bridge` en `handoff_request`, `requested_effect` ou
   `allowed_effect`.
 - Écrire en DB depuis `product_help`.
-- Appliquer une confirmation pending.
+- Appliquer une confirmation pending ou un handoff complexe.
 - Rendre un status complet.
 - Affirmer un objet réel sans source choisie dans `grounding.db_sources_used`.
 - Forcer un emoji ou une question finale de style.
@@ -313,23 +316,22 @@ Conditions de suppression :
 - aucune dépendance de production ne doit référencer
   `legacyProductHelpHeuristicIntake`.
 
-Le fallback production autorisé est seulement
-`conservativeProductHelpFallback`, déclenché par échec technique ou JSON
-inexploitable. Il ne doit pas inventer de bridge ou d'objet réel.
+Le fallback production autorisé est seulement `conservativeProductHelpFallback`,
+déclenché par échec technique ou JSON inexploitable. Il ne doit pas inventer de
+bridge ou d'objet réel.
 
 ## Required Tests
 
-Tests principaux dans
-`supabase/functions/sophia-brain/skills/skills_s3.test.ts` :
+Tests principaux dans `supabase/functions/sophia-brain/skills/skills_s3.test.ts`
+:
 
 - `product_help uses structured intake model decision`
 - `product_help intake failure uses non-mutating conservative fallback`
 - `product_help prompt does not force emoji`
 - `product_help legacy heuristic intake is not the default structured path`
 - `product_help scenarios never start operations`
-- `product_help tool action requests are bridge only, never execution`
-  (incluant `effects.requested=[]`, `effects.allowed=[]` et aucun
-  `handoff_request`)
+- `product_help tool action requests are bridge only, never execution` (incluant
+  `effects.requested=[]`, `effects.allowed=[]` et aucun `handoff_request`)
 - `product_help status question is not rendered as generic catalog help`
 - `product_help modify/cancel location stays product help and non-mutating`
 - `product_help catalog covers defense free creation and potion follow-up`
@@ -366,9 +368,9 @@ deno check supabase/functions/sophia-brain/skills/product_help/skill.ts supabase
 
 ## Suivi Des Décisions Architecturales
 
-| Date | Décision | Statut | Référence |
-| --- | --- | --- | --- |
-| 2026-05-29 | Product help est un skill d'explication grounded, pas un tool ni status. | Active | `15-chantiers-log.md` J13 |
-| 2026-05-29 | L'intake IA structuré devient le chemin normal ; le déterministe reste recall/fallback conservateur seulement. | Active | `15-chantiers-log.md` J22 |
+| Date       | Décision                                                                                                                                                | Statut | Référence                 |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ | ------------------------- |
+| 2026-05-29 | Product help est un skill d'explication grounded, pas un tool ni status.                                                                                | Active | `15-chantiers-log.md` J13 |
+| 2026-05-29 | L'intake IA structuré devient le chemin normal ; le déterministe reste recall/fallback conservateur seulement.                                          | Active | `15-chantiers-log.md` J22 |
 | 2026-05-30 | Le contrat runtime de `product_help` devient la base opérationnelle pour empêcher regex métier, fallback legacy production et mutation depuis ce skill. | Active | `15-chantiers-log.md` J50 |
-| 2026-05-30 | `product_help/reducer.ts` est propriétaire d'une transition non-mutante ; un bridge reste diagnostic/rendu et ne devient pas un effet conversationnel. | Active | `15-chantiers-log.md` |
+| 2026-05-30 | `product_help/reducer.ts` est propriétaire d'une transition non-mutante ; un bridge reste diagnostic/rendu et ne devient pas un effet conversationnel.  | Active | `15-chantiers-log.md`     |

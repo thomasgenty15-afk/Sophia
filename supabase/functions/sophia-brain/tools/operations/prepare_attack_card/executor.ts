@@ -80,7 +80,9 @@ export async function executePrepareAttackCard(input: {
     status: "executed",
     attack_card_id: written.attack_card_id,
     ack:
-      `C'est fait. J'ai cree une carte d'attaque pour ${input.target.title} : ${input.draft.draft.generated_asset}. Tu peux la retrouver dans ${attackCardResourceLabel(input.target)} pour la relire et l'utiliser.${
+      `Carte d'attaque disponible pour ${input.target.title} : ${input.draft.draft.generated_asset}. Emplacement : ${
+        attackCardResourceLabel(input.target)
+      }.${
         input.draft.draft.technique === "pre_engagement"
           ? " Le mot de cette carte peut etre remplace depuis cette zone; pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation."
           : " Pour changer le contexte, la technique ou le contenu, je peux preparer une nouvelle carte apres confirmation."

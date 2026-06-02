@@ -2,17 +2,21 @@ import {
   attachPendingRecommendationOperation,
   buildRecommendationFromToolSkillOpportunity,
   computeStreakFromEntries,
+  currentTurnConversationSkillOverrideForOrientation,
+  currentTurnSupportsOrientationToolResolution,
   deterministicStaleBilanDecision,
   effectiveResponseOwnerForOperationRuntime,
-  isExplicitPendingApplyConfirmation,
-  isImplicitWholePlanRepairAdjustmentRequest,
   mapMomentumStateV2ToCoachingContext,
   maybeRunAdjustPlanItemOperation,
   renderAdjustPlanDraftDetails,
   resolveAgentChatModel,
   resolveCoachingTargetPlanItem,
-  writePlanAdjustmentPatch,
+  resolveOrientationClarificationConversationSkillHandler,
+  resolveOrientationClarificationToolSkillHandler,
+  shouldBypassOrientationClarificationForExplicitToolRoute,
 } from "./run.ts";
+import { isExplicitPendingApplyConfirmation } from "../skills/weekly_review/runtime.ts";
+import { writePlanAdjustmentPatch } from "../tools/operations/adjust_plan_item/materializer.ts";
 import { resolveWeeklyForgottenProgressCandidate } from "../tools/operations/adjust_plan_item/weekly_bridge.ts";
 import { runPrepareAttackCardAiIntake } from "../tools/operations/prepare_attack_card/ai_intake.ts";
 import { maybeRunPrepareAttackCardOperation } from "../tools/operations/prepare_attack_card/router.ts";
@@ -65,6 +69,42 @@ function maybeRunPrepareAttackCardOperationRunIntakeStub(args: {
   });
 }
 
+function orientationTurnFrame(patch: Record<string, unknown> = {}): any {
+  return {
+    turn_id: "turn-orientation",
+    source_message_id: "msg-orientation",
+    user_id: "u1",
+    channel: "web",
+    safety: { risk_band: "none", reason_codes: [], evidence: [] },
+    confirmation_response: { kind: "unknown", confidence_band: "low" },
+    direct_effects: [],
+    tool_skill_intents: [],
+    tool_skill_opportunity: {
+      type: "none",
+      operation_type: null,
+      surface_id: null,
+      confidence_band: "low",
+      should_offer: false,
+      prop_reason: null,
+      source_span: null,
+      target_hint: null,
+      target_status: "none",
+      suggested_question_intent: null,
+      offer_timing: "never",
+      must_not_execute: true,
+    },
+    skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+    memory_plan: {
+      context_need: "minimal",
+      memory_mode: "none",
+      context_budget_tier: "tiny",
+      targets: [],
+      retrieval_policy: "taxonomy_first",
+    },
+    ...patch,
+  };
+}
+
 Deno.test("deterministicStaleBilanDecision: resumes stale bilan on explicit resume", () => {
   assertEquals(
     deterministicStaleBilanDecision("ok on reprend"),
@@ -113,18 +153,234 @@ Deno.test("isExplicitPendingApplyConfirmation blocks detail requests before vali
   );
 });
 
-Deno.test("implicit whole-plan repair bridge request is detected", () => {
+Deno.test("explicit central tool routes bypass orientation clarification", () => {
+  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "central_arbitrator_explicit_attack_card_creation",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    turnFrame: {
+      turn_id: "t",
+      source_message_id: "m",
+      user_id: "u",
+      channel: "web",
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      confirmation_response: { kind: "unknown", confidence_band: "low" },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      memory_plan: {
+        context_need: "minimal",
+        memory_mode: "none",
+        context_budget_tier: "tiny",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  });
+
+  assertEquals(bypass, true);
+});
+
+Deno.test("ambiguous tool routes can still enter orientation clarification", () => {
+  const bypass = shouldBypassOrientationClarificationForExplicitToolRoute({
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "clarification_required",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
+    turnFrame: {
+      turn_id: "t",
+      source_message_id: "m",
+      user_id: "u",
+      channel: "web",
+      safety: { risk_band: "none", reason_codes: [], evidence: [] },
+      confirmation_response: { kind: "unknown", confidence_band: "low" },
+      direct_effects: [],
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "intent_ambiguous",
+        user_intent: "create",
+      }],
+      tool_skill_opportunity: {
+        type: "none",
+        operation_type: null,
+        surface_id: null,
+        confidence_band: "low",
+        should_offer: false,
+        prop_reason: null,
+        source_span: null,
+        target_hint: null,
+        target_status: "none",
+        suggested_question_intent: null,
+        offer_timing: "never",
+        must_not_execute: true,
+      },
+      skill_signals: { entry: {}, lifecycle: {}, exit: {} },
+      memory_plan: {
+        context_need: "minimal",
+        memory_mode: "none",
+        context_budget_tier: "tiny",
+        targets: [],
+        retrieval_policy: "taxonomy_first",
+      },
+    },
+  });
+
+  assertEquals(bypass, false);
+});
+
+Deno.test("orientation clarification resolved to state potion resumes tool skill", () => {
   assertEquals(
-    isImplicitWholePlanRepairAdjustmentRequest(
-      "Je viens de relire la prochaine partie du plan. Ce qui me manque, ce n est pas analyser la dispute, c est une mini marche pour revenir en lien apres un accrochage avant de reparler du fond.",
-    ),
+    resolveOrientationClarificationToolSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "select_state_potion",
+      selectedCandidateOperationType: "select_state_potion",
+    }),
+    "select_state_potion",
+  );
+  assertEquals(
+    resolveOrientationClarificationToolSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "emotional_repair",
+      selectedCandidateOperationType: null,
+    }),
+    null,
+  );
+});
+
+Deno.test("orientation clarification resolved to conversation skill resumes skill handler", () => {
+  assertEquals(
+    resolveOrientationClarificationConversationSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "execution_breakdown",
+    }),
+    "execution_breakdown",
+  );
+  assertEquals(
+    resolveOrientationClarificationConversationSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "emotional_repair",
+    }),
+    "emotional_repair",
+  );
+  assertEquals(
+    resolveOrientationClarificationConversationSkillHandler({
+      status: "ask",
+      selectedCandidateId: "execution_breakdown",
+    }),
+    null,
+  );
+  assertEquals(
+    resolveOrientationClarificationConversationSkillHandler({
+      status: "resolved",
+      selectedCandidateId: "select_state_potion",
+    }),
+    null,
+  );
+});
+
+Deno.test("orientation clarification: current conversation signal can override stale tool resolution", () => {
+  const turnFrame = orientationTurnFrame({
+    skill_signals: {
+      entry: {
+        demotivation_repair: {
+          detected: true,
+          confidence_band: "high",
+          reason: "structured_demotivation_repair",
+        },
+      },
+      lifecycle: {},
+      exit: {},
+    },
+  });
+
+  assertEquals(
+    currentTurnSupportsOrientationToolResolution({
+      turnFrame,
+      operationType: "select_state_potion",
+    }),
+    false,
+  );
+  assertEquals(
+    currentTurnConversationSkillOverrideForOrientation({
+      status: "resolved",
+      turnFrame,
+      resolvedToolSkillHandler: "select_state_potion",
+    }),
+    "demotivation_repair",
+  );
+});
+
+Deno.test("orientation clarification: explicit current tool signal prevents conversation override", () => {
+  const turnFrame = orientationTurnFrame({
+    skill_signals: {
+      entry: {
+        demotivation_repair: {
+          detected: true,
+          confidence_band: "high",
+          reason: "structured_demotivation_repair",
+        },
+        select_state_potion: {
+          detected: true,
+          confidence_band: "medium",
+          reason: "structured_state_potion",
+        },
+      },
+      lifecycle: {},
+      exit: {},
+    },
+  });
+
+  assertEquals(
+    currentTurnSupportsOrientationToolResolution({
+      turnFrame,
+      operationType: "select_state_potion",
+    }),
     true,
   );
   assertEquals(
-    isImplicitWholePlanRepairAdjustmentRequest(
-      "Apres un accrochage, tu me conseilles quoi pour revenir en lien ?",
-    ),
-    false,
+    currentTurnConversationSkillOverrideForOrientation({
+      status: "resolved",
+      turnFrame,
+      resolvedToolSkillHandler: "select_state_potion",
+    }),
+    null,
   );
 });
 

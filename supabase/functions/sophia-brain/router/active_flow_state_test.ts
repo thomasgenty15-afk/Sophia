@@ -8,6 +8,9 @@ import {
   clearToolSkillFlow,
   clearToolSkillFlowForDirectReminder,
   readActiveFlowState,
+  restoreSuspendedPlatformHandoffForOperation,
+  suspendActivePlatformHandoff,
+  SUSPENDED_PLATFORM_HANDOFF_STATE_KEY,
 } from "./active_flow_state.ts";
 
 Deno.test("active_flow_state exposes canonical tempMemory key families", () => {
@@ -113,6 +116,69 @@ Deno.test("active_flow_state direct reminder clear keeps legacy recommendation k
       pending_recommendation_operation: { keep_legacy: true },
       keep: "ok",
     },
+  );
+});
+
+Deno.test("active_flow_state suspends and restores an interrupted defense handoff", () => {
+  const defenseHandoff = {
+    operation_type: "prepare_defense_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    draft: { title: "Soir sans scroll" },
+    no_chat_mutation: true,
+  };
+  const suspended = suspendActivePlatformHandoff(
+    { __active_tool_skill_intake: defenseHandoff },
+    {
+      interrupted_by: "update_coach_preferences",
+      reason_code: "update_coach_preferences_interrupts_active_handoff",
+    },
+  );
+
+  assertEquals(
+    (suspended[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] as any).operation_type,
+    "prepare_defense_card",
+  );
+
+  const cleared = clearActiveToolFlow(suspended);
+  assertEquals(cleared.__active_tool_skill_intake, undefined);
+  assertEquals(
+    (cleared[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] as any).operation_type,
+    "prepare_defense_card",
+  );
+
+  const restored = restoreSuspendedPlatformHandoffForOperation(
+    cleared,
+    "prepare_defense_card",
+  );
+  assertEquals(restored.__active_tool_skill_intake, defenseHandoff);
+  assertEquals(restored[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY], undefined);
+});
+
+Deno.test("active_flow_state restore ignores non-matching suspended handoff", () => {
+  const attackHandoff = {
+    operation_type: "prepare_attack_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    no_chat_mutation: true,
+  };
+  const suspended = suspendActivePlatformHandoff(
+    { __active_attack_card_handoff: attackHandoff },
+    {
+      interrupted_by: "update_coach_preferences",
+      reason_code: "update_coach_preferences_interrupts_active_handoff",
+    },
+  );
+  const cleared = clearActiveToolFlow(suspended);
+  const restored = restoreSuspendedPlatformHandoffForOperation(
+    cleared,
+    "prepare_defense_card",
+  );
+
+  assertEquals(restored.__active_tool_skill_intake, undefined);
+  assertEquals(
+    (restored[SUSPENDED_PLATFORM_HANDOFF_STATE_KEY] as any).operation_type,
+    "prepare_attack_card",
   );
 });
 

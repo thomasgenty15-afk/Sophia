@@ -182,7 +182,7 @@ Deno.test("attack_generation_failed_no_pending_confirmation", async () => {
   assertEquals(output.pending_confirmation, undefined);
 });
 
-Deno.test("attack_pending_confirmation_approve_does_not_need_ai", async () => {
+Deno.test("attack_pending_confirmation_approve_becomes_non_mutant_apply_attempt", async () => {
   const writes = { attackWrites: 0 };
   const result = await maybeRunPrepareAttackCardOperation({
     supabase: fakeAttackSupabase(writes),
@@ -211,10 +211,14 @@ Deno.test("attack_pending_confirmation_approve_does_not_need_ai", async () => {
     },
   });
 
-  assertEquals(result?.toolExecution, "success");
-  assertEquals(result?.executedTools, ["prepare_attack_card"]);
-  assertEquals((result?.toolSkillRun as any)?.status, "executed");
-  assertEquals(writes.attackWrites, 1);
+  assertEquals(result?.toolExecution, "platform_handoff");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(
+    (result?.toolSkillRun as any)?.committed_effects?.length,
+    0,
+  );
+  assertEquals(writes.attackWrites, 0);
 });
 
 Deno.test("attack_pending_revision_ai_failure_preserves_pending_no_apply", async () => {

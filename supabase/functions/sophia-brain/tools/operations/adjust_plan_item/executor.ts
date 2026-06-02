@@ -1,11 +1,6 @@
 import type { ConfirmationToken } from "../../../contracts/confirmation_token.v1.ts";
 import type { RiskBand } from "../../../contracts/turn_frame.v1.ts";
-import { verifyExecutorConfirmation } from "../_shared/executor_guard.ts";
-import {
-  type PlanAdjustmentDraftV1,
-  planAdjustmentMaterializationBlockReason,
-  validatePlanPatch,
-} from "./generator.ts";
+import type { PlanAdjustmentDraftV1 } from "./generator.ts";
 import type { AdjustPlanToolSkillState } from "./workflow.ts";
 
 export type AdjustPlanItemExecutorOutcome =
@@ -24,36 +19,35 @@ export type AdjustPlanItemExecutorOutcome =
   };
 
 function terminalToolSkillState(args: {
-  status: "completed" | "fallback";
+  status: "handoff_delivered" | "fallback";
   reason_code: string;
 }): AdjustPlanToolSkillState {
   return {
     status: args.status,
-    current_sub_skill: "draft_validation",
+    current_sub_skill: "handoff_validation",
     stage_order: [
       "scope",
       "reason_change",
       "change_target",
       "constraints",
       "affected_items",
-      "draft_generation",
-      "draft_validation",
-      "user_confirmation",
-      "execution",
-      "closure",
+      "handoff_draft_generation",
+      "handoff_validation",
+      "platform_handoff",
+      "closure_no_mutation",
     ],
     missing_slots: [],
-    confidence: args.status === "completed" ? "high" : "low",
+    confidence: args.status === "handoff_delivered" ? "high" : "low",
     sub_skill_trace: [{
-      sub_skill_id: "draft_validation",
-      status: args.status === "completed"
-        ? "ready_for_confirmation"
+      sub_skill_id: "handoff_validation",
+      status: args.status === "handoff_delivered"
+        ? "ready_for_handoff"
         : "skipped",
       reason_code: args.reason_code,
       missing_slots: [],
     }],
-    conversation_summary: args.status === "completed"
-      ? "Adjust_plan executed and closed."
+    conversation_summary: args.status === "handoff_delivered"
+      ? "Adjust_plan handoff delivered without chat mutation."
       : "Adjust_plan blocked and closed without execution.",
   };
 }
@@ -74,98 +68,15 @@ export async function executeAdjustPlanItem(input: {
   now_iso?: string;
   secret?: string;
 }): Promise<AdjustPlanItemExecutorOutcome> {
-  try {
-    validatePlanPatch(
-      input.draft.draft.patch,
-      input.draft.draft.allowed_patch_fields,
-    );
-  } catch (error) {
-    return {
-      status: "blocked",
-      reason_code: error instanceof Error ? error.message : "draft_invalid",
-      ack: "Je ne peux pas appliquer cet ajustement: le patch est invalide.",
-      tool_skill_state: terminalToolSkillState({
-        status: "fallback",
-        reason_code: error instanceof Error ? error.message : "draft_invalid",
-      }),
-    };
-  }
-  const resultMessage = input.draft.execution_message?.trim() ||
-    input.draft.draft.adjust_plan_result?.user_message_detailed?.trim();
-  if (!resultMessage) {
-    return {
-      status: "blocked",
-      reason_code: "adjust_plan_generated_message_missing",
-      ack: "Je ne peux pas appliquer cet ajustement: le message généré manque.",
-      tool_skill_state: terminalToolSkillState({
-        status: "fallback",
-        reason_code: "adjust_plan_generated_message_missing",
-      }),
-    };
-  }
-  const materializationBlockReason = planAdjustmentMaterializationBlockReason(
-    input.draft,
-  );
-  if (materializationBlockReason) {
-    return {
-      status: "blocked",
-      reason_code: materializationBlockReason,
-      ack:
-        "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché à des actions précises du plan.",
-      tool_skill_state: terminalToolSkillState({
-        status: "fallback",
-        reason_code: materializationBlockReason,
-      }),
-    };
-  }
-  const guard = await verifyExecutorConfirmation({
-    token: input.token,
-    draft: input.draft,
-    user_id: input.user_id,
-    operation_type: "adjust_plan_item",
-    pending_confirmation_lookup: input.pending_confirmation_lookup,
-    token_consumption_check: input.token_consumption_check,
-    safety_pregate_risk_band: input.safety_pregate_risk_band,
-    now_iso: input.now_iso,
-    secret: input.secret,
-  });
-  if (!guard.ok) {
-    return {
-      status: "blocked",
-      ...guard,
-      tool_skill_state: terminalToolSkillState({
-        status: "fallback",
-        reason_code: guard.reason_code,
-      }),
-    };
-  }
-  let written: { plan_patch_id: string; bridge_plan_item_id?: string | null };
-  try {
-    written = await input.write_plan_patch(input.draft.draft.patch);
-  } catch (error) {
-    return {
-      status: "blocked",
-      reason_code: error instanceof Error
-        ? error.message
-        : "plan_patch_write_failed",
-      ack:
-        "Je ne peux pas appliquer cet ajustement depuis le chat tant qu'il n'est pas rattaché proprement aux bonnes actions du plan.",
-      tool_skill_state: terminalToolSkillState({
-        status: "fallback",
-        reason_code: error instanceof Error
-          ? error.message
-          : "plan_patch_write_failed",
-      }),
-    };
-  }
+  void input;
   return {
-    status: "executed",
-    plan_patch_id: written.plan_patch_id,
-    bridge_plan_item_id: written.bridge_plan_item_id ?? null,
-    ack: resultMessage,
+    status: "blocked",
+    reason_code: "chat_mutation_disabled_platform_handoff",
+    ack:
+      "Il ne te reste plus qu'à ouvrir Plan et reprendre cette recommandation là-bas.",
     tool_skill_state: terminalToolSkillState({
-      status: "completed",
-      reason_code: "adjust_plan_executed",
+      status: "handoff_delivered",
+      reason_code: "chat_mutation_disabled_platform_handoff",
     }),
   };
 }

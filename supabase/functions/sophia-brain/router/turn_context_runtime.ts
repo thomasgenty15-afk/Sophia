@@ -61,16 +61,6 @@ export function dispatcherSignalsFromTurnFrame(args: {
   const turnFrame = args.turnFrame;
   const riskBand = turnFrame?.safety.risk_band ?? "none";
   const researchSignal = turnFrame?.needs_research;
-  const fallbackResearchSignal =
-    /\bcherche|recherche|internet|actualité|actualite|actu\b/
-        .test(text)
-      ? {
-        detected: true,
-        value: true,
-        query: args.userMessage,
-        confidence: 0.7,
-      }
-      : DEFAULT_SIGNALS.needs_research;
   return {
     ...DEFAULT_SIGNALS,
     safety: DEFAULT_SIGNALS.safety,
@@ -80,7 +70,7 @@ export function dispatcherSignalsFromTurnFrame(args: {
     risk_score: riskScoreFromBand(riskBand),
     needs_research: researchSignal?.detected || researchSignal?.value === true
       ? researchSignal
-      : fallbackResearchSignal,
+      : DEFAULT_SIGNALS.needs_research,
     track_progress_plan_item: dispatcherTrackProgressSignalFromTurnFrame(
       turnFrame,
     ),

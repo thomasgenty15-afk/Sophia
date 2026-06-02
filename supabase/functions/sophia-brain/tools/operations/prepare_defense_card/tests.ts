@@ -21,10 +21,12 @@ import {
   toRuntimeResult,
 } from "./router.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
+import type { DefenseCardHandoffDraft } from "./contract.ts";
 import {
   renderDefenseCardExecuted,
   renderDefenseCardSkillResult,
 } from "./renderer.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 const SECRET = "s5-test-secret";
 
@@ -62,6 +64,64 @@ function sampleDefenseDraft(): DefenseCardDraftV1 {
     confirmation_message:
       "Voici ta carte de défense :\nLe moment : je rentre fatigue et je pars scroller\nLe piège : je pose le sac et j'ouvre le telephone\nMon geste : Je pose le telephone loin de moi et j'attends 10 minutes.\nPlan B : Je reduis les degats et je reprends au prochain moment stable.\nOn valide ?",
     confirmation_actions: ["yes", "no"],
+  };
+}
+
+function sampleDefenseHandoffDraft(
+  draft: DefenseCardDraftV1,
+  targetSummary = "marche",
+): DefenseCardHandoffDraft {
+  return {
+    operation_type: "prepare_defense_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: targetSummary,
+    risk_summary: draft.draft.risk_situation,
+    platform_flow: {
+      route_kind: "free_card",
+      route_label: "Carte de défense libre",
+      entry_need: targetSummary,
+      questionnaire_answers: [
+        {
+          field: "moment",
+          question_label: "A quel moment précis ça arrive ?",
+          answer: draft.draft.situation,
+        },
+        {
+          field: "signal",
+          question_label: "Quel est le premier signal ?",
+          answer: draft.draft.signal,
+        },
+        {
+          field: "response",
+          question_label: "Quel geste simple ?",
+          answer: draft.draft.defense_response,
+        },
+      ],
+    },
+    platform_fields: {
+      label: draft.draft.title,
+      situation: draft.draft.situation,
+      signal: draft.draft.signal,
+      defense_response: draft.draft.defense_response,
+      plan_b: draft.draft.plan_b,
+    },
+    recommendation: {
+      defense_strategy_label: "Réponse préparée",
+      why_this_strategy: "Elle prépare le geste avant le risque.",
+      card_draft_summary: draft.draft.defense_response,
+      preserve: ["signal concret"],
+      avoid: ["mutation chat"],
+      platform_destination:
+        "Ressources / Défense / Cartes de défense libres / Ajouter une carte",
+      platform_steps: [
+        "Ouvre Ressources / Défense.",
+        "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+        "Reprends les champs finaux.",
+      ],
+    },
+    missing_decisions: [],
   };
 }
 
@@ -177,8 +237,6 @@ Deno.test("prepare_defense_card AI flow only advances from structured slots", as
   assertEquals(output.state_patch.missing_slots, [
     "attachment",
     "risk_situation",
-    "trigger",
-    "defense_goal",
   ]);
   assertEquals(
     (output.state_patch.intake_state as any)?.attachment.status,
@@ -190,8 +248,7 @@ Deno.test("prepare_defense_card AI flow only advances from structured slots", as
   );
 });
 
-Deno.test("prepare_defense_card AI flow drafts from structured state and executor writes only after token", async () => {
-  resetConsumedConfirmationTokensForTest();
+Deno.test("prepare_defense_card AI flow produces a platform handoff draft without pending executable", async () => {
   const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
@@ -204,74 +261,118 @@ Deno.test("prepare_defense_card AI flow drafts from structured state and executo
     draft_generator: structuredDefenseCardDraftGenerator,
   });
 
-  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.status, "handoff_ready");
   assertEquals(output.draft?.draft.target_label, "marche");
-  assertEquals(
-    (output.pending_confirmation as any)?.intake_state?.attachment.plan_item_id,
-    "walk",
-  );
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.committed_effects, undefined);
   assertEquals(
     output.confirmation?.message,
     [
-      "Voici ta carte de défense :",
+      "Voici la version à reprendre dans Cartes / Défense :",
       "Le moment : je rentre fatigue et je pars scroller",
       "Le piège : moment de risque identifié",
       "Mon geste : Je pose le telephone loin de moi et j'attends 10 minutes avant de decider.",
       "Plan B : Si ca ne suffit pas, je reduis les degats et je reprends au prochain moment stable.",
-      "On valide ?",
+      "Je ne la crée pas depuis le chat.",
     ].join("\n"),
   );
+});
 
-  let writes = 0;
-  const blocked = await executePrepareDefenseCard({
-    operation_id: String(output.pending_confirmation?.operation_id),
+Deno.test("prepare_defense_card AI flow falls back to structured handoff draft when generator fails", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
-    draft: output.draft!,
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Prépare-moi une carte de défense pour éviter de repousser l'appel client, sans la créer.",
+    plan_snapshot: { items: [{ id: "walk", title: "appel client" }] },
+    trigger_message_id: "m-defense-generator-fallback",
     safety_pregate_risk_band: "none",
-    pending_confirmation_lookup: async () => ({ consumed: false }),
-    token_consumption_check: async () => false,
-    write_defense_card: async () => {
-      writes++;
-      return { defense_card_id: "defense" };
+    slot_filler: structuredDefenseCardSlotFiller(
+      readyDefenseCardStatePatch({
+        title: "appel client",
+        riskLabel: "je risque de repousser l'appel client",
+        triggerType: "avoidance",
+      }),
+    ),
+    draft_generator: async () => {
+      throw new Error("generator_failed_for_test");
     },
-    secret: SECRET,
   });
-  assertEquals(blocked.status, "blocked");
-  assertEquals(writes, 0);
 
-  const token = await createConfirmationToken({
+  assertEquals(output.status, "handoff_ready");
+  assertEquals(output.reason_code, undefined);
+  assertEquals(output.draft?.draft.target_label, "appel client");
+  assertStringIncludes(
+    output.confirmation?.message ?? "",
+    "Voici la version à reprendre dans Cartes / Défense",
+  );
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.committed_effects, undefined);
+});
+
+Deno.test("prepare_defense_card AI flow can generate when risk text is in description only", async () => {
+  const output = await runPrepareDefenseCardAiIntake({
     user_id: "u1",
-    operation_id: String(output.pending_confirmation?.operation_id),
-    operation_type: "prepare_defense_card",
-    draft: output.draft,
-    source_message_id: "yes-defense",
-    pending_confirmation_id: "pending-defense",
-    secret: SECRET,
-  });
-  const executed = await executePrepareDefenseCard({
-    operation_id: String(output.pending_confirmation?.operation_id),
-    user_id: "u1",
-    draft: output.draft!,
-    token,
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux prévenir le moment où je risque de repousser l'appel quand le stress monte.",
+    plan_snapshot: {},
+    trigger_message_id: "m-defense-risk-description",
     safety_pregate_risk_band: "none",
-    pending_confirmation_lookup: async () => ({ consumed: false }),
-    token_consumption_check: async (tokenId) =>
-      hasConsumedConfirmationTokenForTest(tokenId),
-    write_defense_card: async () => ({ defense_card_id: "defense-1" }),
-    secret: SECRET,
+    slot_filler: structuredDefenseCardSlotFiller({
+      tool_fit: {
+        status: "defense",
+        confidence: "high",
+        evidence: ["structured fit"],
+      },
+      attachment: {
+        status: "identified",
+        kind: "personal_action",
+        plan_item_id: null,
+        title: "appel client",
+        confidence: "high",
+        evidence: ["repousser l'appel"],
+      },
+      risk_situation: {
+        status: "identified",
+        label: null,
+        description:
+          "quand le stress monte et que l'envie de repousser l'appel apparaît",
+        confidence: "high",
+        evidence: ["stress", "repousser l'appel"],
+      },
+    }),
+    draft_generator: async (input) => ({
+      operation_type: "prepare_defense_card",
+      output_schema: "defense_card_draft_v1",
+      draft: {
+        title: "Carte de défense - appel client",
+        impulse_label: "repousser l'appel",
+        target_label: input.state.attachment.status === "identified"
+          ? input.state.attachment.title
+          : "appel client",
+        situation: input.state.risk_situation.description ?? "",
+        signal: "je me dis que je le ferai plus tard",
+        risk_situation: input.state.risk_situation.description ?? "",
+        trigger: "avoidance",
+        defense_response: "Je lance l'appel avant de renégocier avec moi-même.",
+        plan_b: "Si je bloque, j'envoie un message court puis je rappelle.",
+        fallback_plan:
+          "Si je bloque, j'envoie un message court puis je rappelle.",
+        why_it_helps: "La réponse arrive avant l'évitement.",
+        generic_defense: "Je lance l'appel avant de renégocier avec moi-même.",
+      },
+      confirmation_message: "",
+      confirmation_actions: ["yes", "no"],
+    }),
   });
-  assertEquals(executed.status, "executed");
-  assertEquals("ack" in executed, false);
-  const renderedAck = renderDefenseCardExecuted({
-    draft: output.draft!,
-    committedEffects: [{
-      type: "create_defense_card",
-      operation_id: String(output.pending_confirmation?.operation_id),
-      defense_card_id: "defense-1",
-    }],
-  });
-  assertStringIncludes(renderedAck, "Ressources > Cartes de défense");
-  assertStringIncludes(renderedAck, "l'ajuster depuis la plateforme");
+
+  assertEquals(output.status, "handoff_ready");
+  assertEquals(output.state_patch.missing_slots, []);
+  assertEquals(output.pending_confirmation, undefined);
+  assertEquals(output.committed_effects, undefined);
 });
 
 Deno.test("prepare_defense_card AI flow sanitizes duplicated labeled draft fields", async () => {
@@ -312,7 +413,7 @@ Deno.test("prepare_defense_card AI flow sanitizes duplicated labeled draft field
     },
   });
 
-  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.status, "handoff_ready");
   assertEquals(
     output.draft?.draft.defense_response,
     "Je pose le telephone loin de moi et j'attends 10 minutes.",
@@ -498,20 +599,20 @@ Deno.test("prepare_defense_card router draft-only never creates defense card", a
     }),
   });
 
-  assertEquals(result?.toolExecution, "blocked");
+  assertEquals(result?.toolExecution, "platform_handoff");
   assertEquals(result?.executedTools, []);
-  assertEquals((result?.toolSkillRun as any)?.status, "draft_ready");
-  assertEquals(
-    (result?.toolSkillRun as any)?.requested_effects?.[0]?.type,
-    "create_defense_card",
-  );
+  assertEquals((result?.toolSkillRun as any)?.status, "handoff_ready");
+  assertEquals((result?.toolSkillRun as any)?.requested_effects, []);
   assertEquals((result?.toolSkillRun as any)?.allowed_effects, []);
   assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(
+    (result?.toolSkillRun as any)?.platform_handoff?.no_chat_mutation,
+    true,
+  );
   assertEquals(writes.defenseWrites, 0);
 });
 
-Deno.test("prepare_defense_card router pending draft create goes through executor", async () => {
-  resetConsumedConfirmationTokensForTest();
+Deno.test("prepare_defense_card apply_attempt does not execute", async () => {
   const writes = { defenseWrites: 0 };
   const draft = sampleDefenseDraft();
   const result = await maybeRunPrepareDefenseCardOperation({
@@ -567,22 +668,21 @@ Deno.test("prepare_defense_card router pending draft create goes through executo
     }),
   });
 
-  assertEquals(result?.toolExecution, "success");
-  assertEquals(result?.executedTools, ["prepare_defense_card"]);
-  assertEquals((result?.toolSkillRun as any)?.status, "executed");
-  assertEquals(
-    (result?.toolSkillRun as any)?.allowed_effects?.[0]?.type,
-    "create_defense_card",
+  assertEquals(result?.toolExecution, "platform_handoff");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals((result?.toolSkillRun as any)?.allowed_effects, []);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertStringIncludes(
+    result?.content ?? "",
+    "Je ne crée pas la carte depuis le chat",
   );
-  assertEquals(
-    (result?.toolSkillRun as any)?.committed_effects?.[0],
-    {
-      type: "create_defense_card",
-      operation_id: "op-create",
-      defense_card_id: "defense-1",
-    },
+  assertStringIncludes(
+    result?.content ?? "",
+    getHandoffTargetForOperation("prepare_defense_card")
+      ?.user_facing_destination ?? "Cartes de défense",
   );
-  assertEquals(writes.defenseWrites, 1);
+  assertEquals(writes.defenseWrites, 0);
 });
 
 Deno.test("prepare_defense_card router pending draft explain does not create", async () => {
@@ -634,10 +734,11 @@ Deno.test("prepare_defense_card router pending draft explain does not create", a
     }),
   });
 
-  assertEquals(result?.toolExecution, "none");
+  assertEquals(result?.toolExecution, "platform_handoff");
   assertEquals(result?.executedTools, []);
   assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
-  assertStringIncludes(result?.content ?? "", "Voici ta carte de défense");
+  assertEquals((result?.toolSkillRun as any)?.status, "repeat_handoff");
+  assertStringIncludes(result?.content ?? "", "Champs finaux à recopier");
   assertEquals(writes.defenseWrites, 0);
 });
 
@@ -690,7 +791,7 @@ Deno.test("prepare_defense_card router pending draft reject clears pending", asy
     }),
   });
 
-  assertEquals(result?.toolExecution, "blocked");
+  assertEquals(result?.toolExecution, "platform_handoff");
   assertEquals((result?.toolSkillRun as any)?.status, "cancelled");
   assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
   assertEquals(
@@ -908,10 +1009,426 @@ Deno.test("prepare_defense_card writer failure has no done language without comm
     }),
   });
 
-  assertEquals(result?.toolExecution, "blocked");
+  assertEquals(result?.toolExecution, "platform_handoff");
   assertEquals(result?.executedTools, []);
   assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
   assertEquals((result?.content ?? "").includes("C'est fait"), false);
+});
+
+Deno.test("prepare_defense_card handoff renderer includes full platform content and no mutation wording", async () => {
+  const writes = { defenseWrites: 0 };
+  const draft = sampleDefenseDraft();
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseWriteSupabase(writes),
+    userId: "u1",
+    userMessage: "prépare une carte de défense sans la créer",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: null,
+    routeDecision: {
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+    } as any,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-handoff-renderer",
+    requestId: "r-handoff-renderer",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "handoff_ready",
+      source: "direct_user_request",
+      phase: "confirmation",
+      draft,
+      confirmation: {
+        required: false,
+        message: draft.confirmation_message,
+        actions: ["yes", "no"],
+      },
+      handoff_message: draft.confirmation_message,
+      readiness: {
+        ready_to_generate: true,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "handoff_ready",
+      },
+      state_patch: {
+        summary: "handoff",
+        phase: "confirmation",
+        user_intent: "draft_only",
+        constraints: [{ kind: "no_create", evidence: ["sans la créer"] }],
+        missing_slots: [],
+        turn_count_increment: 1,
+      },
+    }),
+  });
+
+  const content = result?.content ?? "";
+  assertStringIncludes(content, "Situation / action comprise");
+  assertStringIncludes(content, "Risque identifié");
+  assertStringIncludes(content, "Stratégie de défense recommandée");
+  assertStringIncludes(content, "Champs finaux à recopier");
+  assertStringIncludes(content, "Nom de la carte");
+  assertStringIncludes(content, "Le piège");
+  assertStringIncludes(content, "À préserver");
+  assertStringIncludes(content, "À éviter");
+  assertStringIncludes(
+    content,
+    `Destination plateforme : ${
+      getHandoffTargetForOperation("prepare_defense_card")
+        ?.user_facing_destination
+    }`,
+  );
+  assertStringIncludes(
+    content,
+    "Je ne crée ni ne modifie aucune carte depuis ce chat.",
+  );
+  assertEquals(content.includes("C'est fait"), false);
+  assertEquals(content.includes("j'ai créé"), false);
+  assertEquals(content.includes("j'ai ajouté"), false);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(writes.defenseWrites, 0);
+});
+
+Deno.test("prepare_defense_card handoff never creates confirmation token or calls defense writers", async () => {
+  const source = await Deno.readTextFile(
+    new URL("./router.ts", import.meta.url),
+  );
+  assertEquals(source.includes("createConfirmationToken"), false);
+  assertEquals(source.includes("executePrepareDefenseCard"), false);
+  assertEquals(source.includes("writeDefenseCardFromDraft"), false);
+});
+
+Deno.test("prepare_defense_card active handoff captures redis-moi as repeat_handoff", async () => {
+  const draft = sampleDefenseDraft();
+  const handoffState = {
+    operation_type: "prepare_defense_card",
+    skill_id: "prepare_defense_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    draft: sampleDefenseHandoffDraft(draft, "marche"),
+    draft_payload: draft,
+    operation_input: { previous_draft: draft },
+    turn_count: 1,
+    max_turns: 6,
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z",
+    no_chat_mutation: true,
+  };
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseWriteSupabase({ defenseWrites: 0 }),
+    userId: "u1",
+    userMessage: "redis-moi quoi mettre",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: { __active_tool_skill_intake: handoffState },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-repeat",
+    requestId: "r-repeat",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "draft_review_decision",
+      source: "direct_user_request",
+      phase: "confirmation",
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "draft_review_explain",
+      },
+      state_patch: {
+        summary: "repeat",
+        phase: "confirmation",
+        user_intent: "explain",
+        constraints: [],
+        missing_slots: [],
+        turn_count_increment: 1,
+        draft_review_decision: {
+          decision: "explain",
+          confidence: "high",
+          evidence: ["redis-moi"],
+        },
+      },
+    }),
+  });
+  assertEquals((result?.toolSkillRun as any)?.status, "repeat_handoff");
+  assertEquals(result?.executedTools, []);
+});
+
+Deno.test("prepare_defense_card active handoff captures Pas de carte finalement as cancelled", async () => {
+  const draft = sampleDefenseDraft();
+  const writes = { defenseWrites: 0 };
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseWriteSupabase(writes),
+    userId: "u1",
+    userMessage: "Pas de carte finalement.",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_defense_card",
+        skill_id: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+        draft: sampleDefenseHandoffDraft(draft, "scroll après dîner"),
+        draft_payload: draft,
+        operation_input: { previous_draft: draft },
+        turn_count: 1,
+        max_turns: 6,
+        created_at: "2026-06-01T00:00:00.000Z",
+        updated_at: "2026-06-01T00:00:00.000Z",
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "tool_skill",
+      selected_handler: "prepare_defense_card",
+      reason_code: "explicit_cancel_clears_active_handoff",
+      direct_effects_to_run: [],
+      blocked_paths: [],
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    } as any,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-cancel-active",
+    requestId: "r-cancel-active",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "draft_review_decision",
+      source: "direct_user_request",
+      phase: "confirmation",
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "draft_review_reject",
+      },
+      state_patch: {
+        summary: "cancel",
+        phase: "confirmation",
+        user_intent: "reject",
+        constraints: [],
+        missing_slots: [],
+        turn_count_increment: 1,
+        draft_review_decision: {
+          decision: "reject",
+          confidence: "high",
+          evidence: ["Pas de carte finalement."],
+        },
+      },
+    }),
+  });
+  assertEquals(result?.toolExecution, "platform_handoff");
+  assertEquals((result?.toolSkillRun as any)?.status, "cancelled");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertEquals(writes.defenseWrites, 0);
+  assertEquals(
+    (result?.nextTempMemory as any)?.__active_tool_skill_intake,
+    undefined,
+  );
+});
+
+Deno.test("prepare_defense_card active handoff captures ok crée-la as apply_attempt", async () => {
+  const draft = sampleDefenseDraft();
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseWriteSupabase({ defenseWrites: 0 }),
+    userId: "u1",
+    userMessage: "ok crée-la",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+        draft: sampleDefenseHandoffDraft(draft, "marche"),
+        draft_payload: draft,
+        operation_input: { previous_draft: draft },
+        turn_count: 1,
+        max_turns: 6,
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-apply",
+    requestId: "r-apply",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "draft_review_decision",
+      source: "direct_user_request",
+      phase: "confirmation",
+      readiness: {
+        ready_to_generate: false,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "draft_review_approve",
+      },
+      state_patch: {
+        summary: "apply",
+        phase: "confirmation",
+        user_intent: "create",
+        constraints: [],
+        missing_slots: [],
+        turn_count_increment: 1,
+        draft_review_decision: {
+          decision: "approve",
+          confidence: "high",
+          evidence: ["ok crée-la"],
+        },
+      },
+    }),
+  });
+  assertEquals((result?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+});
+
+Deno.test("prepare_defense_card active handoff control intents do not require AI review", async () => {
+  const draft = sampleDefenseDraft();
+  const handoffState = {
+    operation_type: "prepare_defense_card",
+    skill_id: "prepare_defense_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    draft: sampleDefenseHandoffDraft(draft, "appel client"),
+    draft_payload: draft,
+    operation_input: { previous_draft: draft },
+    turn_count: 1,
+    max_turns: 6,
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z",
+    no_chat_mutation: true,
+  };
+  const cases = [
+    {
+      message: "redis-moi",
+      reason: "active_handoff_repeat_handoff",
+      expected: "repeat_handoff",
+    },
+    {
+      message: "ok crée-la",
+      reason: "active_handoff_apply_attempt",
+      expected: "apply_attempt",
+    },
+    {
+      message: "pas de carte finalement",
+      reason: "explicit_cancel_clears_active_handoff",
+      expected: "cancelled",
+    },
+  ];
+  for (const item of cases) {
+    let reviewCalled = false;
+    const result = await maybeRunPrepareDefenseCardOperation({
+      supabase: fakeDefenseWriteSupabase({ defenseWrites: 0 }),
+      userId: "u1",
+      userMessage: item.message,
+      channel: "whatsapp",
+      userTimezone: "Europe/Paris",
+      tempMemory: { __active_tool_skill_intake: handoffState },
+      turnFrame: null,
+      routeDecision: {
+        response_owner: "tool_skill",
+        selected_handler: "prepare_defense_card",
+        reason_code: item.reason,
+      } as any,
+      safetyPregateOutput: { risk_band: "none" } as any,
+      sourceMessageId: `m-${item.expected}`,
+      requestId: `r-${item.expected}`,
+      runIntake: async () => {
+        reviewCalled = true;
+        throw new Error("review_should_not_run");
+      },
+    });
+    assertEquals(reviewCalled, false);
+    assertEquals((result?.toolSkillRun as any)?.status, item.expected);
+    assertEquals(result?.executedTools, []);
+    assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  }
+});
+
+Deno.test("prepare_defense_card revise_handoff regenerates recommendation without execution", async () => {
+  const draft = sampleDefenseDraft();
+  const revisedDraft: DefenseCardDraftV1 = {
+    ...draft,
+    draft: {
+      ...draft.draft,
+      defense_response:
+        "Je pose doucement le téléphone loin de moi et je prends juste trois respirations.",
+      plan_b:
+        "Si c'est trop dur, je marche deux minutes et je reprends plus tard.",
+    },
+  };
+  const result = await maybeRunPrepareDefenseCardOperation({
+    supabase: fakeDefenseWriteSupabase({ defenseWrites: 0 }),
+    userId: "u1",
+    userMessage: "rends-la plus douce, avec un plan B",
+    channel: "whatsapp",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_defense_card",
+        mode: "platform_handoff",
+        status: "handoff_delivered",
+        draft: sampleDefenseHandoffDraft(draft, "marche"),
+        draft_payload: draft,
+        operation_input: { previous_draft: draft },
+        turn_count: 1,
+        max_turns: 6,
+        no_chat_mutation: true,
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-revise-handoff",
+    requestId: "r-revise-handoff",
+    runIntake: async () => ({
+      operation_type: "prepare_defense_card",
+      status: "handoff_ready",
+      source: "direct_user_request",
+      phase: "confirmation",
+      draft: revisedDraft,
+      readiness: {
+        ready_to_generate: true,
+        fallback_to_dashboard: false,
+        invalid_recommendation_payload: false,
+        missing_required_slots: [],
+        reason: "handoff_ready",
+      },
+      state_patch: {
+        summary: "revise",
+        phase: "confirmation",
+        user_intent: "revise",
+        constraints: [],
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: { previous_draft: draft },
+        draft_review_decision: {
+          decision: "revise",
+          confidence: "high",
+          evidence: ["plus douce", "plan B"],
+        },
+      },
+    }),
+  });
+  assertEquals((result?.toolSkillRun as any)?.status, "revise_handoff");
+  assertEquals(result?.executedTools, []);
+  assertEquals((result?.toolSkillRun as any)?.committed_effects, []);
+  assertStringIncludes(
+    result?.content ?? "",
+    "Je pose doucement le téléphone loin de moi",
+  );
 });
 
 Deno.test("prepare_defense_card executor returns technical success only", async () => {

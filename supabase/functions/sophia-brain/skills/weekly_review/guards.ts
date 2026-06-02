@@ -232,7 +232,7 @@ export function applyWeeklyConcreteOrganizationGuard(args: {
       "- La mission signal de pause reste dans la suite, parce qu'elle est encore utile.",
       "- On ne refait pas toute la semaine à l'identique.",
       "",
-      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
     ].join("\n");
   }
   if (isCopyForwardWeeklyRequest(args.userMessage)) {
@@ -241,7 +241,7 @@ export function applyWeeklyConcreteOrganizationGuard(args: {
       "",
       "Ce qui change: uniquement la durée. Les actions, le rythme et les repères restent les mêmes.",
       "",
-      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
     ].join("\n");
   }
   if (isWeeklyLightRepeatRequest(args.userMessage)) {
@@ -253,7 +253,7 @@ export function applyWeeklyConcreteOrganizationGuard(args: {
       "- Partager un point positif: une fois seulement.",
       "- Mission signal de pause: seulement si une fenêtre naturelle se présente.",
       "",
-      "Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+      "Rien n'est appliqué tant que tu ne confirmes pas clairement. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
     ].join("\n");
   }
   const exactProposalFromContext = weeklyExactProposalFromConversation({
@@ -291,7 +291,7 @@ export function applyWeeklyConcreteOrganizationGuard(args: {
     return [
       "Pour une proposition simple de semaine prochaine, on peut rester dans le weekly.",
       "",
-      "Si on change vraiment la cadence ou le contenu des actions dans ton plan, je passe par l'ajustement du plan avant application. Là, ta version touche bien l'organisation concrète, donc je peux l'appliquer seulement si tu confirmes clairement.",
+      "Si on change vraiment la cadence ou le contenu des actions dans ton plan, je passe par une recommandation d'ajustement puis un handoff vers Plan. Là, ta version touche bien l'organisation concrète: je te donne quoi reprendre dans Plan, sans modifier depuis le chat.",
     ].join("\n");
   }
   if (

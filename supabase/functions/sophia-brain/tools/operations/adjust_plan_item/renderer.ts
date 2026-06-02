@@ -1,11 +1,17 @@
-import type { AdjustPlanConstraint, AdjustPlanDecision } from "./contract.ts";
+import type {
+  AdjustPlanConstraint,
+  AdjustPlanDecision,
+  AdjustPlanHandoffDraft,
+} from "./contract.ts";
 import type { AdjustPlanEffectMaterializationResult } from "./effects.ts";
 import { renderNonCommittedReply } from "../_shared/committed_effect_renderer_guard.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 function hasCommittedEffect(
   effectResult?: AdjustPlanEffectMaterializationResult | null,
 ): boolean {
-  return Boolean(effectResult?.committed_effects.length);
+  void effectResult;
+  return false;
 }
 
 function missingSlotReply(state: AdjustPlanDecision): string {
@@ -29,16 +35,15 @@ export function renderAdjustPlanDecision(args: {
 }): string {
   const { state, effect_result } = args;
   const noCommitFallback =
-    "Je n'applique rien sans effet confirmé. Le plan reste inchangé.";
+    "Tu peux reprendre cet ajustement dans la section Plan; le changement se fait là-bas.";
   if (effect_result?.failed_effects.length) {
-    return "Je n'ai pas pu appliquer cet ajustement. Le plan reste inchangé.";
+    return "Le plan reste inchangé ici. Tu peux reprendre l'ajustement dans la section Plan.";
   }
   if (hasCommittedEffect(effect_result)) {
-    return state.reply.trim() ||
-      "C'est appliqué. L'ajustement a bien été enregistré dans le plan.";
+    return noCommitFallback;
   }
   if (state.intent === "reject_draft" || state.status === "rejected") {
-    return "Ok, je n'applique pas cet ajustement. Le plan reste inchangé.";
+    return "Ok, je laisse cet ajustement de côté. Le plan reste inchangé.";
   }
   if (state.intent === "off_topic" || state.status === "off_topic") {
     return renderNonCommittedReply(state.reply, "");
@@ -47,7 +52,7 @@ export function renderAdjustPlanDecision(args: {
     return renderNonCommittedReply(
       state.reply,
       state.draft.summary ||
-        "Je peux expliquer le brouillon, mais je n'applique rien sans confirmation explicite.",
+        "Je peux expliquer la recommandation et te dire où la reprendre dans Plan.",
     );
   }
   if (
@@ -58,10 +63,13 @@ export function renderAdjustPlanDecision(args: {
     return renderNonCommittedReply(state.reply, missingSlotReply(state));
   }
   if (state.draft.available) {
-    return renderNonCommittedReply(state.reply, [
-      state.draft.summary ?? "J'ai un brouillon d'ajustement.",
-      "Je n'applique rien tant que tu ne me confirmes pas clairement de l'appliquer.",
-    ].join("\n\n"));
+    return renderNonCommittedReply(
+      state.reply,
+      [
+        state.draft.summary ?? "J'ai un brouillon d'ajustement.",
+        "Il ne te reste plus qu'à ouvrir Plan et reprendre cette version là-bas.",
+      ].join("\n\n"),
+    );
   }
   return renderNonCommittedReply(
     state.reply,
@@ -70,5 +78,118 @@ export function renderAdjustPlanDecision(args: {
 }
 
 export function renderAdjustPlanDraftGenerationConfirmationQuestion(): string {
-  return "Je peux préparer un brouillon concret d'ajustement. Tu veux que je le génère maintenant, sans l'appliquer ?";
+  return "Je peux préparer une recommandation concrète d'ajustement, puis te dire où la reprendre dans la plateforme. Tu veux que je la formule ?";
+}
+
+function cleanLine(value: unknown): string {
+  return String(value ?? "")
+    .replace(/\s+/g, " ")
+    .replace(/\b[Cc]['’]est fait\b/g, "La recommandation est prête")
+    .replace(
+      /\bj['’]ai (?:modifi[eé]|ajust[eé]|appliqu[eé])\b/gi,
+      "je recommande d'ajuster",
+    )
+    .replace(
+      /\bje (?:peux|vais) l['’]?appliquer\b/gi,
+      "tu peux le reprendre dans la plateforme",
+    )
+    .replace(
+      /\bdis[- ]moi oui et je le fais\b/gi,
+      "reprends cette version dans la plateforme",
+    )
+    .replace(
+      /\bapplique l['’]ajustement recommandé\b/gi,
+      "reprends l'ajustement recommandé dans Plan",
+    )
+    .replace(
+      /\bapplique cette version\b/gi,
+      "reprends cette version dans Plan",
+    )
+    .trim();
+}
+
+function cleanList(
+  values: unknown[] | undefined,
+  fallback: string[],
+): string[] {
+  const cleaned = (values ?? []).map(cleanLine).filter(Boolean);
+  return cleaned.length ? cleaned : fallback;
+}
+
+function renderList(values: string[]): string {
+  return values.map((value) => `- ${value.replace(/[.。]+$/u, "")}`).join("\n");
+}
+
+function handoffClosing(destination: string): string {
+  const place = destination.toLowerCase().includes("plan")
+    ? "Plan"
+    : destination;
+  return `Il ne te reste plus qu'à ouvrir ${place} et reprendre cette version là-bas.`;
+}
+
+export function renderAdjustPlanHandoffDraft(
+  draft: AdjustPlanHandoffDraft,
+  options: { compact?: boolean; destinationOnly?: boolean } = {},
+): string {
+  const target = getHandoffTargetForOperation("adjust_plan_item");
+  const destination = cleanLine(
+    target?.user_facing_destination ??
+      draft.recommendation.platform_destination ??
+      "Plan",
+  );
+  const steps = cleanList(draft.recommendation.platform_steps, [
+    ...(target?.platform_steps ?? []),
+  ]);
+  const preserve = cleanList(draft.recommendation.preserve, [
+    "l'objectif de fond",
+  ]);
+  const avoid = cleanList(draft.recommendation.avoid, [
+    "changer tout le plan si le blocage vient seulement de la charge actuelle",
+  ]);
+  const missing = cleanList(draft.missing_decisions, []);
+  if (options.destinationOnly) {
+    const destinationBlocks = [
+      `Dans Plan : ${destination}.`,
+      steps.length ? renderList(steps.slice(0, 2)) : "",
+      handoffClosing(destination),
+    ];
+    return destinationBlocks.filter(Boolean).join("\n\n");
+  }
+  if (options.compact) {
+    const compactBlocks = [
+      `À reprendre dans Plan : ${
+        cleanLine(draft.recommendation.recommended_change)
+      }`,
+      `Où : ${destination}.`,
+      steps.length ? renderList(steps.slice(0, 2)) : "",
+      handoffClosing(destination),
+    ];
+    if (missing.length) {
+      compactBlocks.splice(
+        1,
+        0,
+        `À trancher dans Plan : ${missing.join("; ")}.`,
+      );
+    }
+    return compactBlocks.filter(Boolean).join("\n\n");
+  }
+  const blocks = [
+    `Ce que je comprends : ${cleanLine(draft.user_goal_summary)}`,
+    `Ma recommandation : ${cleanLine(draft.recommendation.recommended_change)}`,
+    `Pourquoi : ${cleanLine(draft.coaching_read)}`,
+    `À préserver :\n${renderList(preserve)}`,
+    `À éviter :\n${renderList(avoid)}`,
+    `À reprendre dans Plan : ${destination}.\n${renderList(steps)}`,
+    handoffClosing(destination),
+  ];
+  if (missing.length) {
+    blocks.splice(
+      2,
+      0,
+      `Point à clarifier avant de le reprendre dans Plan : ${
+        missing.join("; ")
+      }.`,
+    );
+  }
+  return blocks.filter(Boolean).join("\n\n");
 }

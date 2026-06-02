@@ -3,7 +3,8 @@ export type AdjustPlanSubSkillId =
   | "action_intake"
   | "level_intake"
   | "whole_plan_intake"
-  | "draft_validation";
+  | "draft_validation"
+  | "handoff_validation";
 
 export type AdjustPlanSubSkillTrace = {
   sub_skill_id: AdjustPlanSubSkillId;
@@ -12,7 +13,7 @@ export type AdjustPlanSubSkillTrace = {
     | "skipped"
     | "needs_clarification"
     | "ready"
-    | "ready_for_confirmation";
+    | "ready_for_handoff";
   reason_code: string;
   missing_slots: string[];
 };
@@ -27,11 +28,15 @@ export type DraftReviewState = {
 export type AdjustPlanToolSkillState<TIntakeState = unknown> = {
   status:
     | "collecting"
-    | "draft_ready"
-    | "awaiting_user_confirmation"
-    | "executing"
-    | "completed"
+    | "clarifying"
+    | "handoff_ready"
+    | "handoff_delivered"
+    | "revise_handoff"
+    | "repeat_handoff"
+    | "apply_attempt"
     | "cancelled"
+    | "topic_change"
+    | "blocked"
     | "fallback";
   current_sub_skill: AdjustPlanSubSkillId;
   stage_order: AdjustPlanStage[];
@@ -51,11 +56,10 @@ export type AdjustPlanStage =
   | "change_target"
   | "constraints"
   | "affected_items"
-  | "draft_generation"
-  | "draft_validation"
-  | "user_confirmation"
-  | "execution"
-  | "closure";
+  | "handoff_draft_generation"
+  | "handoff_validation"
+  | "platform_handoff"
+  | "closure_no_mutation";
 
 export const ADJUST_PLAN_STAGE_ORDER: AdjustPlanStage[] = [
   "scope",
@@ -63,11 +67,10 @@ export const ADJUST_PLAN_STAGE_ORDER: AdjustPlanStage[] = [
   "change_target",
   "constraints",
   "affected_items",
-  "draft_generation",
-  "draft_validation",
-  "user_confirmation",
-  "execution",
-  "closure",
+  "handoff_draft_generation",
+  "handoff_validation",
+  "platform_handoff",
+  "closure_no_mutation",
 ];
 
 export const ADJUST_PLAN_SUB_SKILLS: Array<{
@@ -115,14 +118,15 @@ export const ADJUST_PLAN_SUB_SKILLS: Array<{
     ],
   },
   {
-    id: "draft_validation",
+    id: "handoff_validation",
     role:
-      "Validate the generated draft and require concrete examples before confirmation.",
+      "Validate the generated handoff recommendation and require concrete examples before platform redirection.",
     minimum_ready_slots: [
       "user_ready_review_message",
       "changed_examples",
       "boundaries",
-      "no_pre_confirmation_execution_claim",
+      "no_chat_mutation",
+      "platform_destination",
     ],
   },
 ];

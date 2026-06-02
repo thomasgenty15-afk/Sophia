@@ -2,6 +2,7 @@ export type ResponseOwner =
   | "safety"
   | "pending_confirmation"
   | "tool_skill"
+  | "orientation_clarification"
   | "conversation_handler"
   | "product_help"
   | "normal_reply";

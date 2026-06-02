@@ -77,6 +77,113 @@ function parseJsonObject(raw: unknown): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
+async function repairSlotFillerJsonWithAi(
+  input: DefenseCardSlotFillerInput,
+  raw: unknown,
+): Promise<Record<string, unknown>> {
+  const repaired = await generateWithGemini(
+    [
+      "Tu es un réparateur JSON interne pour prepare_defense_card.",
+      "Tu retournes uniquement un objet JSON valide.",
+      "Ne change pas la décision métier du contenu fourni.",
+      "Respecte exactement les enums du schema demandé.",
+    ].join("\n"),
+    JSON.stringify({
+      task: "repair_prepare_defense_card_slot_filler_json",
+      invalid_or_malformed_output: String(raw ?? "").slice(0, 20_000),
+      required_json_shape: {
+        current_step:
+          "attachment_intake|risk_intake|response_design|draft_generation|draft_validation|confirmation",
+        user_intent:
+          "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+        constraints: [{
+          kind:
+            "draft_only|no_create|keep_short|single_card|protect_current_action|no_attack_card",
+          value: "unknown|null",
+          evidence: ["string"],
+        }],
+        state_patch: {
+          user_intent:
+            "draft_only|create|update|cancel|reject|revise|explain|topic_change|status_question|clarify|unknown",
+          tool_fit: {
+            status: "defense|attack_better|unclear",
+            reason: "string|null",
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          attachment: {
+            status: "missing|ambiguous|identified",
+            kind: "plan_item|personal_action|free_risk_context|recurring_context",
+            plan_item_id: "string|null",
+            title: "string",
+            candidates: [],
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          risk_situation: {
+            status: "missing|ambiguous|identified",
+            label: "string|null",
+            description: "string|null",
+            timing_hint: "string|null",
+            context_hint: "string|null",
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          trigger: {
+            status: "missing|ambiguous|identified",
+            type:
+              "temptation|impulse|emotional_drop|social_context|fatigue|stress|habit_loop|avoidance",
+            confidence: 0.0,
+            evidence: ["string"],
+          },
+          defense_goal: {
+            status: "missing|identified",
+            value:
+              "avoid_relapse|interrupt_impulse|protect_action|leave_context|reduce_damage",
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          defense_response_hint: {
+            status: "missing|ambiguous|identified",
+            strategy_hint:
+              "delay|leave_context|replace_action|contact_support|environment_block|self_talk|unknown",
+            value: "string|null",
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          draft_validation: {
+            decision: "approve|reject|revise|explain|topic_change|unclear",
+            confidence: "low|medium|high",
+            evidence: ["string"],
+          },
+          missing_slots: ["string"],
+          generated_user_message: "string|null",
+          confidence: "low|medium|high",
+        },
+        missing_slots: ["string"],
+        confidence: "low|medium|high",
+        generated_user_message: "string|null",
+        evidence: ["string"],
+      },
+    }),
+    0,
+    true,
+    [],
+    "auto",
+    {
+      requestId: input.request_id ?? undefined,
+      userId: input.user_id,
+      model: getGlobalAiModel("gemini-2.5-flash"),
+      source: "prepare_defense_card.slot_filler.repair",
+      forceRealAi: true,
+      reasoningEffort: "low",
+      httpTimeoutMs: 30_000,
+      maxRetries: 1,
+    },
+  );
+  return parseJsonObject(repaired);
+}
+
 function objectValue(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -362,11 +469,12 @@ export async function fillDefenseCardSlotsWithAi(
     "constraints liste les contraintes explicites sous forme d'objets {kind,value,evidence}: draft_only, no_create, keep_short, single_card, protect_current_action, no_attack_card.",
     "Si le user demande juste un brouillon sans creer, user_intent=draft_only et constraints contient draft_only et no_create.",
     "Si operation_input.previous_draft existe, tu es dans le sous-skill draft_validation: dans le meme JSON, remplis state_patch.draft_validation.decision avec approve|reject|revise|explain|topic_change|unclear.",
-    "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details; topic_change sort du brouillon; unclear ne suffit pas.",
+    "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details ou veut revoir le brouillon; topic_change sort du brouillon; unclear ne suffit pas.",
     "Dans draft_validation, si le user dit oui a une demande de preparer/montrer/reformuler le brouillon, ce n'est pas approve: c'est revise tant qu'il ne demande pas explicitement la creation.",
     "Dans draft_validation, si le user donne une correction exacte puis dit d'appliquer, classe revise si le brouillon doit d'abord intégrer cette correction.",
     "Si operation_input.attachment_candidate existe, tu es dans la validation d'attache: si le user accepte ce candidat, copie-le dans state_patch.attachment avec status identified; s'il le refuse, mets attachment.status missing et pose une nouvelle question; s'il corrige, identifie la nouvelle attache depuis son message.",
     "Pour une carte de defense, le minimum metier est: l'action/contexte a proteger, le moment precis ou ca craque, et le piege concret qui embarque le user (ce qui se passe en fait / pourquoi il cede).",
+    "Si le user formule clairement une defense contre l'evitement ou la procrastination d'une action precise (ex: eviter de repousser un appel, ne pas reporter une tache), considere que le risque est assez clair pour generer: attachment=action precise, risk_situation=moment ou il repousse/evite cette action, trigger.type=avoidance, defense_goal=protect_action. Ne pose une question que si l'action ou le risque reste vraiment absent.",
     "Si la cible est seulement inferee depuis le plan_snapshot sans etre nommee par le user, demande confirmation dans generated_user_message au lieu de generer directement.",
     "Si le moment ou le piege n'est pas clair, pose une question explicite: qu'est-ce qui se passe exactement au moment ou ca craque, et pourquoi ca t'embarque ?",
     "Les messages user doivent être courts et naturels pour WhatsApp. Pas de pavé.",
@@ -485,5 +593,10 @@ export async function fillDefenseCardSlotsWithAi(
       maxRetries: 1,
     },
   );
-  return normalizeDefenseCardSlotFillerOutput(raw);
+  try {
+    return normalizeDefenseCardSlotFillerOutput(raw);
+  } catch {
+    const repaired = await repairSlotFillerJsonWithAi(input, raw);
+    return normalizeDefenseCardSlotFillerOutput(repaired);
+  }
 }

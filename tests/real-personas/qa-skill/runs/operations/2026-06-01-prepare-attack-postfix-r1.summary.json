@@ -1,0 +1,23 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-attack-card-postfix-r1-t01",
+    "http_status": 502,
+    "ok": null,
+    "user": "Je ne sais pas si je veux juste comprendre les cartes d’attaque ou en préparer une pour mon action du matin.",
+    "assistant": "",
+    "response_owner": null,
+    "selected_handler": null,
+    "route_reason": null,
+    "safety": null,
+    "direct_effects": null,
+    "response_tool_execution": null,
+    "response_executed_tools": [],
+    "operation_status": null,
+    "platform_handoff": null,
+    "pending_confirmation": null,
+    "committed_effects": null,
+    "memory_plan": null,
+    "trace_id": "qa-attack-card-postfix-r1-t01"
+  }
+]

@@ -93,7 +93,8 @@ export function runTurnAgendaIntegration(
   const blockedAgendaOperations = new Set(
     turnAgenda.tasks
       .filter((task) =>
-        task.kind === "effect" && task.status === "blocked" &&
+        (task.kind === "effect" || task.kind === "platform_handoff") &&
+        task.status === "blocked" &&
         task.operation_type
       )
       .map((task) => String(task.operation_type)),

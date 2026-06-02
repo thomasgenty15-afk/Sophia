@@ -12,6 +12,47 @@ export type CoachPreferencesPatchDraftRef = {
   confirmation_actions: ["yes", "no"];
 };
 
+export type CoachPreferenceHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "punctual_instruction"
+  | "unsupported_preference"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type CoachPreferenceHandoffDraft = {
+  operation_type: "update_coach_preferences";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  user_request_summary: string;
+  preference_kind:
+    | "durable_supported"
+    | "durable_unsupported"
+    | "punctual_instruction"
+    | "ambiguous";
+  supported_settings: Array<{
+    key: "coach.tone" | "coach.challenge_level" | "coach.question_tendency";
+    label: string;
+    recommended_value: string;
+    explanation: string;
+  }>;
+  unsupported_parts: string[];
+  recommendation: {
+    platform_destination: string;
+    platform_steps: string[];
+    preserve: string[];
+    avoid: string[];
+  };
+  missing_decisions: string[];
+};
+
 export type UpdateCoachPreferenceUserIntent =
   | "set_preference"
   | "preview_only"
@@ -22,6 +63,10 @@ export type UpdateCoachPreferenceUserIntent =
   | "explain"
   | "topic_change"
   | "status_question"
+  | "apply_attempt"
+  | "repeat_handoff"
+  | "punctual_instruction"
+  | "unsupported_preference"
   | "clarify"
   | "unknown";
 
@@ -43,7 +88,13 @@ export type UpdateCoachPreferencesSkillResult = {
   status:
     | "ask_question"
     | "preview_only"
-    | "pending_confirmation"
+    | "handoff_ready"
+    | "handoff_delivered"
+    | "revise_handoff"
+    | "repeat_handoff"
+    | "apply_attempt"
+    | "punctual_instruction"
+    | "unsupported_preference"
     | "cancelled"
     | "revised"
     | "explained"
@@ -53,6 +104,7 @@ export type UpdateCoachPreferencesSkillResult = {
     | "failed";
   user_intent: UpdateCoachPreferenceUserIntent;
   updated_state?: unknown;
+  handoff_draft?: CoachPreferenceHandoffDraft | null;
   reply: string | null;
   requested_effects: UpdateCoachPreferencesEffect[];
   allowed_effects: UpdateCoachPreferencesEffect[];

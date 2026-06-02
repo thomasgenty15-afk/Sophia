@@ -11,9 +11,11 @@ import {
   reviewToolSkillDraftWithAi,
   type ToolSkillDraftReviewDecision,
 } from "../_shared/draft_review.ts";
+import type { CoachPreferenceHandoffDraft } from "./contract.ts";
 import {
   type CoachPreferencesPatchDraftV1,
   normalizeCoachPreferenceValue,
+  runCoachPreferenceHandoffDraftBuilder,
   runCoachPreferencesPatchBuilder,
 } from "./generator.ts";
 import {
@@ -36,7 +38,9 @@ export type UpdateCoachPreferencesOperationOutput = {
     | "preview_only"
     | "verified"
     | "cancelled"
-    | "pending_confirmation"
+    | "handoff_ready"
+    | "punctual_instruction"
+    | "unsupported_preference"
     | "technical_blocked"
     | "invalid_recommendation_payload"
     | "blocked_by_safety";
@@ -44,6 +48,7 @@ export type UpdateCoachPreferencesOperationOutput = {
   phase: "preference_resolution" | "generation" | "confirmation" | "exit";
   user_intent?: UpdateCoachPreferenceUserIntent;
   draft?: CoachPreferencesPatchDraftV1;
+  handoff_draft?: CoachPreferenceHandoffDraft;
   confirmation?: { required: boolean; message: string; actions: ["yes", "no"] };
   pending_confirmation?: Record<string, unknown>;
   next_question?: { needed: boolean; question?: string; reason?: string };
@@ -278,6 +283,10 @@ function normalizeUserIntent(value: unknown): UpdateCoachPreferenceUserIntent {
       "explain",
       "topic_change",
       "status_question",
+      "apply_attempt",
+      "repeat_handoff",
+      "punctual_instruction",
+      "unsupported_preference",
       "clarify",
       "unknown",
     ].includes(raw)
@@ -465,7 +474,11 @@ function requiredMissingSlots(state: CoachPreferenceIntakeState): string[] {
     state.user_intent === "cancel" ||
     state.user_intent === "reject" ||
     state.user_intent === "explain" ||
-    state.user_intent === "topic_change"
+    state.user_intent === "topic_change" ||
+    state.user_intent === "apply_attempt" ||
+    state.user_intent === "repeat_handoff" ||
+    state.user_intent === "punctual_instruction" ||
+    state.user_intent === "unsupported_preference"
   ) return [];
   if (state.requested_patch && Object.keys(state.requested_patch).length > 0) {
     return [];
@@ -544,7 +557,7 @@ function technicalFailure(
     // relancer (même esprit que C8 sur prepare_attack_card), à la place d'un
     // refus vague ("deviner à ta place") qui laissait l'utilisateur sans suite.
     ack:
-      "Petit raté technique de mon côté en réglant cette préférence — rien à voir avec ta demande. Redis-moi de l'enregistrer et je relance tout de suite. 🙂",
+      "Petit raté technique de mon côté en préparant cette préférence. Je ne modifie rien depuis le chat; redis-moi ce que tu veux changer et je reprends le handoff.",
     state_patch: {
       summary: `Coach preferences structured AI flow stopped: ${reason}.`,
       phase: "exit",
@@ -636,30 +649,28 @@ export async function runUpdateCoachPreferencesIntake(input: {
       reason: { evidence: [input.message], confidence: "high" },
       constraints: ["multi_key_deterministic_patch"],
     });
+    const handoffDraft = runCoachPreferenceHandoffDraftBuilder({
+      user_request_summary: input.message,
+      requested_patch: deterministicPatch,
+      unsupported_parts: state.constraints,
+    });
     return {
       operation_type: "update_coach_preferences",
-      status: "pending_confirmation",
+      status: "handoff_ready",
       user_intent: state.user_intent,
       source,
-      phase: "confirmation",
+      phase: "exit",
       draft,
+      handoff_draft: handoffDraft,
       confirmation: {
-        required: true,
-        message: draft.confirmation_message,
+        required: false,
+        message: "",
         actions: ["yes", "no"],
       },
-      pending_confirmation: {
-        operation_id: request.operation_id,
-        operation_type: "update_coach_preferences",
-        source,
-        summary: draft.draft.summary,
-        draft,
-        intake_state: state,
-        expires_after_turns: 2,
-      },
       state_patch: {
-        summary: "Coach preferences multi-key deterministic draft generated.",
-        phase: "confirmation",
+        summary:
+          "Coach preferences multi-key handoff draft generated without persistence.",
+        phase: "platform_handoff",
         missing_slots: [],
         turn_count_increment: 1,
         operation_input: {
@@ -669,11 +680,10 @@ export async function runUpdateCoachPreferencesIntake(input: {
         },
         intake_state: state,
         tool_skill_state: toolSkillState({
-          status: "awaiting_user_confirmation",
+          status: "handoff_ready",
           state,
           missing: [],
-          summary:
-            "Structured deterministic draft is awaiting user confirmation.",
+          summary: "Structured deterministic handoff is ready.",
         }),
       },
     };
@@ -782,29 +792,37 @@ export async function runUpdateCoachPreferencesIntake(input: {
         );
       }
     }
+    const handoffDraft = runCoachPreferenceHandoffDraftBuilder({
+      user_request_summary: input.message,
+      requested_patch: requestedPatch,
+      unsupported_parts: state.constraints,
+      preference_kind: requestedPatch ? "durable_supported" : "ambiguous",
+    });
     return {
       operation_type: "update_coach_preferences",
-      status: "preview_only",
+      status: "handoff_ready",
       user_intent: "preview_only",
       source,
       phase: "exit",
       draft,
+      handoff_draft: handoffDraft,
       ack: draft
-        ? `Proposition (non enregistrée) : ${draft.draft.summary}`
+        ? `Proposition de réglage à reprendre dans la plateforme : ${draft.draft.summary}`
         : state.generated_user_message ??
-          "Je peux te proposer un réglage, sans l'enregistrer.",
+          "Je peux te proposer un réglage à reprendre dans les préférences coach.",
       state_patch: {
-        summary: "Coach preferences preview generated without persistence.",
+        summary:
+          "Coach preferences handoff preview generated without persistence.",
         phase: "exit",
         missing_slots: [],
         turn_count_increment: 1,
         operation_input: operationInput,
         intake_state: state,
         tool_skill_state: toolSkillState({
-          status: "draft_ready",
+          status: "handoff_ready",
           state,
           missing: [],
-          summary: "Preview only: no pending confirmation or DB write.",
+          summary: "Preview handoff only: no pending confirmation or DB write.",
         }),
       },
     };
@@ -847,7 +865,7 @@ export async function runUpdateCoachPreferencesIntake(input: {
       source,
       phase: "exit",
       ack: state.generated_user_message ??
-        "Ok, je ne garde pas cette préférence.",
+        "Ok, je ne prépare pas de changement de préférence.",
       state_patch: {
         summary: "Coach preference cancelled/rejected by user.",
         phase: "exit",
@@ -860,6 +878,68 @@ export async function runUpdateCoachPreferencesIntake(input: {
           state,
           missing: [],
           summary: "Preference flow cancelled.",
+        }),
+      },
+    };
+  }
+
+  if (state.user_intent === "punctual_instruction") {
+    return {
+      operation_type: "update_coach_preferences",
+      status: "punctual_instruction",
+      user_intent: state.user_intent,
+      source,
+      phase: "exit",
+      ack: state.generated_user_message ??
+        "D'accord, je le prends comme consigne ponctuelle pour cette réponse. Je ne prépare pas de préférence durable depuis le chat.",
+      state_patch: {
+        summary: "Punctual coach style instruction; no durable handoff.",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "completed",
+          state,
+          missing: [],
+          summary: "Punctual instruction handled without mutation.",
+        }),
+      },
+    };
+  }
+
+  if (state.user_intent === "unsupported_preference") {
+    const unsupportedParts = state.reason.evidence.length
+      ? state.reason.evidence
+      : state.constraints;
+    const handoffDraft = runCoachPreferenceHandoffDraftBuilder({
+      user_request_summary: input.message,
+      unsupported_parts: unsupportedParts,
+      preference_kind: "durable_unsupported",
+    });
+    return {
+      operation_type: "update_coach_preferences",
+      status: "unsupported_preference",
+      user_intent: state.user_intent,
+      source,
+      phase: "exit",
+      handoff_draft: handoffDraft,
+      ack: state.generated_user_message ??
+        "Je ne vois pas de réglage durable supporté correspondant exactement. Je peux seulement te rediriger vers les préférences coach visibles.",
+      state_patch: {
+        summary:
+          "Unsupported durable coach preference explained without write.",
+        phase: "exit",
+        missing_slots: [],
+        turn_count_increment: 1,
+        operation_input: operationInput,
+        intake_state: state,
+        tool_skill_state: toolSkillState({
+          status: "completed",
+          state,
+          missing: [],
+          summary: "Unsupported preference handled without mutation.",
         }),
       },
     };
@@ -950,39 +1030,39 @@ export async function runUpdateCoachPreferencesIntake(input: {
   } catch {
     return technicalFailure("coach_preferences_draft_builder_error", source);
   }
+  const unsupportedParts = state.constraints.filter((constraint) =>
+    !String(constraint).includes("structured")
+  );
+  const handoffDraft = runCoachPreferenceHandoffDraftBuilder({
+    user_request_summary: input.message,
+    requested_patch: requestedPatch,
+    unsupported_parts: unsupportedParts,
+  });
   return {
     operation_type: "update_coach_preferences",
-    status: "pending_confirmation",
+    status: "handoff_ready",
     user_intent: state.user_intent,
     source,
-    phase: "confirmation",
+    phase: "exit",
     draft,
+    handoff_draft: handoffDraft,
     confirmation: {
-      required: true,
-      message: draft.confirmation_message,
+      required: false,
+      message: "",
       actions: ["yes", "no"],
     },
-    pending_confirmation: {
-      operation_id: request.operation_id,
-      operation_type: "update_coach_preferences",
-      source,
-      summary: draft.draft.summary,
-      draft,
-      intake_state: state,
-      expires_after_turns: 2,
-    },
     state_patch: {
-      summary: "Coach preferences draft generated by structured AI flow.",
-      phase: "confirmation",
+      summary: "Coach preferences handoff generated by structured AI flow.",
+      phase: "platform_handoff",
       missing_slots: [],
       turn_count_increment: 1,
       operation_input: operationInput,
       intake_state: state,
       tool_skill_state: toolSkillState({
-        status: "awaiting_user_confirmation",
+        status: "handoff_ready",
         state,
         missing: [],
-        summary: "Structured AI draft is awaiting user confirmation.",
+        summary: "Structured AI handoff is ready.",
       }),
     },
   };

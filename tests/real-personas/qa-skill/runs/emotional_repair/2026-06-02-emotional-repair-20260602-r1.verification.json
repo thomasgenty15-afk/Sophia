@@ -1,0 +1,600 @@
+{
+  "checked_at": "2026-06-02T12:14:37.325Z",
+  "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+  "chat_messages": {
+    "status": 200,
+    "ok": true,
+    "body": [
+      {
+        "id": "16d394c2-0048-4bfa-afc6-67d98930e868",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Je suis arrivee devant mon ordi avec la gorge serree. J'ai encore repousse le dossier important et je me traite de incapable depuis dix minutes.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:08:43.641638+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "2cc483b1-9ce5-4b0a-be6c-e74304579cdb",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Je sens que la pression est très forte en ce moment. Avant de regarder ce dossier, je te propose de calmer cette sensation de gorge serrée et ce discours intérieur difficile. 🙂",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t01",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:09:06.409083+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "3c620ca6-4148-4a35-bf11-b0f84f099050",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "La je n'arrive meme pas a penser au dossier. J'ai surtout honte, comme si le fait d'avoir evite prouvait que je suis nulle.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:09:17.818467+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "ebe6325f-6ccc-43d1-a7cc-93135333daa0",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Est-ce que tu veux qu'on commence par un soutien émotionnel pour apaiser cette honte, ou est-ce que tu préfères essayer de découper une action pour ton dossier ? 🙂",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t02",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gemini-3-flash-preview",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "standard",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_standard",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:09:33.262984+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "c1506d9f-11c4-4d5f-8af4-c11d77471cb5",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Soutien emotionnel, clairement. Pas de decoupage pour l'instant. J'ai besoin qu'on m'aide a ne pas transformer ce retard en preuve que je vaux rien.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:09:50.458879+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "c3cff7cc-d696-46a3-b489-27a22c2c567d",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Ah… je te crois. Quand tu as évité un dossier, c’est facile que ton cerveau saute à “donc je suis nulle”. Sauf que là, tu confonds deux choses : un retard (un comportement sur un moment) et ta valeur (qui ne bouge pas). Non. Une action repoussée ne prouve rien sur “qui tu es”. 😕\n\nOn va te remettre du bon sens dans le corps, là, tout de suite :\n1) Vérifie l’absurde : “Si je suis nulle, alors pourquoi je suis en train de m’en rendre compte et de demander de l’aide ?” (Les personnes nulles n’agissent pas comme ça.)\n2) Change la phrase-condamnation en phrase-fait : “J’ai repoussé. Ça m’a stressée/honteuse. Et je peux reprendre, même petit.”\n3) Pose une limite au récit : “Honte, tu parles fort, mais tu n’es pas une preuve.”\n\nEt une mini autorisation mentale pour couper la spirale :\nTu as le droit d’avoir eu peur/charge/épuisement, sans que ça devienne une identité.\n\nJe te propose qu’on fasse une étape ultra courte maintenant : dans ta tête, quelle est la phrase exacte que tu te dis (“je suis incapable”, “je vaux rien”, etc.) ? Dis-la telle quelle, et je te la démonte. 😊",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t03",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1.6,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:10:07.782107+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "223f10da-5020-4661-9b2d-1bedbbd5db0b",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "C'est juste trop long la. Quand je lis des etapes, je me sens encore plus en echec. Dis-moi plutot une phrase courte, comme si tu me ramenais doucement.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:10:22.57033+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "492a45b5-d040-47e9-91b9-dee5e8aec07d",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Il me manque le moment exact pour programmer ce rappel. 🙂",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t04",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "target_mode": "companion",
+            "safety_level": "NONE",
+            "tool_skill_runtime": {
+              "reason": "needs_clarify",
+              "status": "needs_clarify",
+              "allowed_effects": [],
+              "blocked_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "reason_code": "missing_time"
+                }
+              ],
+              "selected_handler": "create_one_shot_reminder",
+              "committed_effects": [],
+              "requested_effects": [
+                {
+                  "type": "create_one_shot_reminder",
+                  "reason_code": "needs_clarify"
+                }
+              ]
+            }
+          },
+          "multi_message_count": 1,
+          "multi_message_index": 0
+        },
+        "created_at": "2026-06-02T12:10:43.011125+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "070b3482-fc09-42a6-80bb-90ae74e383d0",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Non, aucun rappel a programmer. Je voulais dire: ramene-moi au calme avec une seule phrase douce, pas une action.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:10:57.243439+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "4de40296-08cf-49a3-9edf-23aa810b9302",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "D’accord. Respire, là maintenant : tu n’es pas “nulle”, tu es juste sous pression, et ça va redescendre. 🙂",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t05",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.5,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:11:02.87335+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "d8107ac3-675e-40bc-aebb-96cacae273aa",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Le pire c'est que je vois les autres avancer normalement. Moi je me sens comme la personne fragile du groupe, celle qui panique pour un mail et qui ralentit tout le monde.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:11:21.560928+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "7b2371cc-15f8-4b4c-9219-8fa8257ee2d4",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Ah ouais… c’est rageant, et en même temps ton cerveau fait un raccourci brutal : il transforme “je galère là” en “je suis fragile et je bloque tout le monde”. 😕  \nMais avancer “normalement” chez les autres, tu ne vois que l’extérieur ; et toi tu vis juste le stress avec plus d’intensité, pas une incapacité magique.\n\nJe te propose une phrase pour te rattraper : “Je ne ralentis pas le monde : je suis en train de me défendre contre la pression, et ça va passer.” ✨  \nTu préfères que je t’aide à garder cette phrase seule… ou que je l’adapte à ton cas exact (le mail / le dossier / l’enjeu) ?",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t06",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.3,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:11:28.503747+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "3a311811-fadf-4e84-a51a-bf2599567b43",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Adapte-la au mail. C'est un mail de relance a une cliente, rien de dramatique, mais dans ma tete si je l'envoie mal ca confirme que je suis pas fiable.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:11:42.092549+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "cd21aa16-7551-4251-b51f-a3aef689b8a5",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Ok. Là, tu n’es pas en train d’être “pas fiable”, tu es en train d’écrire une relance pro. 😊\n\nPhrase à te dire pendant que tu écris :\n“Je peux relancer sans panique : un mail envoyé n’annule pas ma valeur, c’est juste une étape.”\n\nEt version de mail simple (à personnaliser) :\nBonjour [Prénom],  \nJe me permets de vous relancer concernant [sujet/objet]. Auriez-vous un retour quand vous aurez un moment ?  \nMerci beaucoup,  \n[Nom]\n\nTu veux que ce soit plutôt ton “très doux” ou “ton ferme mais poli” ?",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t07",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0.2,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:11:48.344727+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "4d70bd72-0d61-4950-9796-b2bec5598cfa",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Ok, la pression est redescendue un peu. Maintenant je peux faire concret: aide-moi a choisir la premiere micro-action pour envoyer cette relance sans repartir dans la honte.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:12:01.492085+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "9b1539d0-0867-4381-a07e-928021fa87c3",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Yes, nickel que la pression soit un peu redescendue. 😊\n\nPremière micro-action (zéro prise de tête) :\nOuvre ton brouillon et écris juste une phrase : “Bonjour [Prénom], je reviens vers vous concernant [objet] : …”\n\nObjectif : tu n’as pas besoin d’être parfaite, juste d’envoyer une version “suffisamment bien” pour casser la honte. 👌\n\nTu sais déjà quoi mettre après “concernant [objet]” ? (oui/non)",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t08",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 0,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:12:18.312145+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "96bd56dc-1f5c-4069-81c6-cde4cffc541c",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Oui: concernant le devis atelier. Ma premiere action, ce serait d'ouvrir le brouillon et coller juste l'objet. Apres je veux m'arreter trente secondes pour respirer.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t09",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:12:33.642135+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "73c818f9-574f-4ab2-938f-6fe382b885f1",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Tu veux que j'ajuste ton plan avec cette micro-action ou on continue de se concentrer sur ton calme ? 🙂",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t09",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:12:57.970569+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "a7e66248-83cd-4524-ba8e-3ef0612a0e85",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "user",
+        "content": "Pas d'ajustement de plan. Je veux juste finir en restant calme: je vais ouvrir le brouillon, coller l'objet, respirer, et ne pas en faire un jugement sur moi.",
+        "agent_used": null,
+        "metadata": {
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t10",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message"
+        },
+        "created_at": "2026-06-02T12:13:17.871414+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      },
+      {
+        "id": "5a7fadbf-2568-446c-af02-236f7784f5aa",
+        "user_id": "aafdb31e-21d4-46d2-b090-3819408d2b4d",
+        "role": "assistant",
+        "content": "Oui. Fais ça, tranquille : ouvre le brouillon, colle l’objet, respire, et si une pensée jugeuse arrive, tu la laisses passer comme un bruit de fond. Tu n’es pas ton mail. 😊\n\nTu veux que je te donne une mini-phrase à écrire dans le mail (1 ligne) ou tu préfères juste rester sur le calme ?",
+        "agent_used": "companion",
+        "metadata": {
+          "channel": "web",
+          "request_id": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1-t10",
+          "test_persona": true,
+          "force_full_ai": true,
+          "test_endpoint": "test-send-message",
+          "router_decision_v2": {
+            "next_mode": "companion",
+            "risk_score": 2,
+            "surface_id": null,
+            "agent_model": "gpt-5.4-nano",
+            "target_mode": "companion",
+            "outage_error": null,
+            "safety_level": "NONE",
+            "stop_checkup": false,
+            "surface_level": null,
+            "checkup_active": false,
+            "interrupt_kind": "NONE",
+            "research_query": null,
+            "outage_fallback": false,
+            "agent_model_tier": "lite",
+            "llm_retry_job_id": null,
+            "llm_retry_queued": false,
+            "research_executed": false,
+            "agent_model_source": "memory_plan_lite",
+            "outage_failed_mode": null,
+            "research_requested": false,
+            "research_sources_count": 0,
+            "conversation_risk_score": 1.6,
+            "conversation_risk_exit_flows": false,
+            "coaching_intervention_pending": null
+          }
+        },
+        "created_at": "2026-06-02T12:13:36.472359+00:00",
+        "scope": "qa-emotional-repair-2026-06-02-emotional-repair-20260602-r1"
+      }
+    ],
+    "count": 20
+  },
+  "memory_items": {
+    "status": 200,
+    "ok": true,
+    "body": [],
+    "count": 0
+  },
+  "scheduled_checkins": {
+    "status": 200,
+    "ok": true,
+    "body": [],
+    "count": 0
+  },
+  "user_recurring_reminders": {
+    "status": 200,
+    "ok": true,
+    "body": [],
+    "count": 0
+  }
+}

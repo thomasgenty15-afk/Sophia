@@ -10,13 +10,13 @@ const pending = (
   patch: Partial<PendingConfirmationSnapshot> = {},
 ): PendingConfirmationSnapshot => ({
   operation_id: "op-1",
-  operation_type: "update_coach_preferences",
-  effect_type: "coach_preferences.update",
-  summary: "garder une preference coach",
+  operation_type: "create_one_shot_reminder",
+  effect_type: "one_shot_reminder.create",
+  summary: "créer un rappel ponctuel",
   ...patch,
 });
 
-Deno.test("confirmation_contract: skill approve + pending compatible => executable", () => {
+Deno.test("confirmation_contract: one-shot skill approve + pending compatible => executable", () => {
   const decision = buildConfirmationDecisionFromSkillReview({
     pending: pending(),
     review: {
@@ -27,11 +27,53 @@ Deno.test("confirmation_contract: skill approve + pending compatible => executab
   });
   assertEquals(decision.decision, "approve");
   assertEquals(decision.pending_operation_id, "op-1");
-  assertEquals(decision.pending_operation_type, "update_coach_preferences");
+  assertEquals(decision.pending_operation_type, "create_one_shot_reminder");
   assertEquals(decision.applies_to_pending, true);
   assertEquals(decision.applies_to_pending_effect, true);
   assertEquals(decision.should_execute, true);
   assertEquals(assertConfirmationCanExecute(decision), { ok: true });
+});
+
+Deno.test("confirmation_contract: approve on adjust_plan_item is platform handoff apply attempt", () => {
+  const decision = buildConfirmationDecisionFromSkillReview({
+    pending: pending({
+      operation_type: "adjust_plan_item",
+      effect_type: "plan_item.adjust",
+    }),
+    review: {
+      decision: "approve",
+      confidence: "high",
+      evidence: ["legacy pending approval"],
+    },
+  });
+  assertEquals(decision.decision, "approve");
+  assertEquals(decision.should_execute, false);
+  assertEquals(decision.reason_code, "platform_handoff_apply_attempt");
+  assertEquals(assertConfirmationCanExecute(decision), {
+    ok: false,
+    reason_code: "platform_handoff_apply_attempt",
+  });
+});
+
+Deno.test("confirmation_contract: approve on prepare_defense_card is not executable", () => {
+  const decision = buildConfirmationDecisionFromSkillReview({
+    pending: pending({
+      operation_type: "prepare_defense_card",
+      effect_type: "defense_card.create",
+    }),
+    review: {
+      decision: "approve",
+      confidence: "high",
+      evidence: ["legacy pending approval"],
+    },
+  });
+  assertEquals(decision.decision, "approve");
+  assertEquals(decision.should_execute, false);
+  assertEquals(decision.reason_code, "platform_handoff_apply_attempt");
+  assertEquals(assertConfirmationCanExecute(decision), {
+    ok: false,
+    reason_code: "platform_handoff_apply_attempt",
+  });
 });
 
 Deno.test("confirmation_contract: low confidence approve is not executable", () => {

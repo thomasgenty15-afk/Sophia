@@ -14,6 +14,84 @@ export type PrepareAttackCardUserIntent =
   | "clarify"
   | "unknown";
 
+export type AttackCardHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type AttackCardPlatformFlowKind =
+  | "free_attack_card"
+  | "plan_action_cards"
+  | "adjust_existing_attack_card";
+
+export type AttackCardTechniqueKey =
+  | "texte_recadrage"
+  | "mantra_force"
+  | "ancre_visuelle"
+  | "visualisation_matinale"
+  | "preparer_terrain"
+  | "pre_engagement";
+
+export type AttackCardPlatformInput = {
+  question: string;
+  suggested_answer: string;
+};
+
+export type AttackCardKeywordTriggerDraft = {
+  activation_keyword: string;
+  risk_situation: string;
+  strength_anchor: string;
+  first_response_intent: string;
+  assistant_prompt: string;
+};
+
+export type AttackCardExpectedGeneratedResult = {
+  output_title: string;
+  generated_asset: string;
+  supporting_points: string[];
+  mode_emploi: string;
+  keyword_trigger?: AttackCardKeywordTriggerDraft | null;
+};
+
+export type AttackCardPlatformHandoff = {
+  flow_kind: AttackCardPlatformFlowKind;
+  surface_label: string;
+  destination: string;
+  steps: string[];
+  technique_key?: AttackCardTechniqueKey | null;
+  technique_label?: string | null;
+  inputs: AttackCardPlatformInput[];
+  expected_result?: AttackCardExpectedGeneratedResult | null;
+  plan_action_note?: string | null;
+};
+
+export type AttackCardHandoffDraft = {
+  operation_type: "prepare_attack_card";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  target_summary: string;
+  blocker_summary: string;
+  recommendation: {
+    technique_label: string;
+    why_this_technique: string;
+    card_draft_summary: string;
+    preserve: string[];
+    avoid: string[];
+    platform_destination: string;
+    platform_steps: string[];
+  };
+  platform_handoff?: AttackCardPlatformHandoff;
+  missing_decisions: string[];
+};
+
 export type PrepareAttackCardConstraint = {
   kind:
     | "draft_only"
@@ -53,7 +131,11 @@ export type PrepareAttackCardSkillResult = {
   status:
     | "ask_question"
     | "draft_ready"
-    | "pending_confirmation"
+    | "handoff_ready"
+    | "handoff_delivered"
+    | "revise_handoff"
+    | "repeat_handoff"
+    | "apply_attempt"
     | "cancelled"
     | "revised"
     | "explained"
@@ -302,22 +384,16 @@ export function decidePrepareAttackCardNextStep(input: {
     };
   }
   if (userIntent === "create") {
-    if (!requestedEffect) {
-      return {
-        ...base,
-        status: "blocked",
-        blocked_effects: [{
-          type: "create_attack_card",
-          reason_code: "missing_compatible_pending_confirmation",
-        }],
-        debug: { reason_code: "create_missing_pending", evidence },
-      };
-    }
     return {
       ...base,
-      status: "pending_confirmation",
-      allowed_effects: [requestedEffect],
-      debug: { reason_code: "create_allowed_pending_compatible", evidence },
+      status: "apply_attempt",
+      requested_effects: [],
+      allowed_effects: [],
+      blocked_effects: [{
+        type: "create_attack_card",
+        reason_code: "chat_creation_disabled_platform_handoff",
+      }],
+      debug: { reason_code: "apply_attempt_no_chat_mutation", evidence },
     };
   }
   return {

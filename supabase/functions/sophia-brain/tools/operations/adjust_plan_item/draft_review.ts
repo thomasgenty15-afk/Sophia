@@ -120,11 +120,11 @@ export function renderAdjustPlanDraftDetails(raw: any, options?: {
     ? `\n\nCe qui reste inchangé:\n${preservedLines.join("\n")}`
     : "";
   const intro = options?.alreadyApplied
-    ? "Oui. Les changements concrets appliqués sont:"
-    : "Je n'ai encore rien appliqué. Le brouillon actuel prévoit:";
+    ? "Voici les changements concrets à vérifier dans Plan:"
+    : "La recommandation actuelle prévoit:";
   const validation = options?.alreadyApplied
     ? ""
-    : "\n\nSi ça te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.";
+    : "\n\nJe ne le modifie pas depuis le chat. Reprends cette version dans la section Plan, ou dis-moi ce que tu veux alléger dans la recommandation.";
   return `${intro}\n\n${examples.join("\n")}${preservedBlock}${validation}`;
 }
 
@@ -161,8 +161,8 @@ function renderWholePlanTrajectoryDetails(
     .slice(0, 3);
   const lines = [
     options?.alreadyApplied
-      ? "Oui. L'ajustement applique porte sur la trajectoire du plan, pas seulement sur deux actions."
-      : "Je n'ai encore rien applique. Le brouillon porte sur la trajectoire du plan, pas seulement sur deux actions.",
+      ? "La version à vérifier porte sur la trajectoire du plan, pas seulement sur deux actions."
+      : "La recommandation porte sur la trajectoire du plan, pas seulement sur deux actions.",
     before ? `Avant: ${before}` : "",
     after ? `Apres: ${after}` : "",
     insertedStep ? `Etape ajoutee: ${insertedStep}` : "",
@@ -178,7 +178,7 @@ function renderWholePlanTrajectoryDetails(
       : "",
     options?.alreadyApplied
       ? ""
-      : "Si ca te va, dis-moi clairement de l'appliquer. Sinon, dis-moi ce que tu veux modifier dans ce brouillon.",
+      : "Je ne le modifie pas depuis le chat. Reprends cette version dans la section Plan, ou dis-moi ce que tu veux alléger dans la recommandation.",
   ].filter(Boolean);
   return lines.join("\n\n");
 }
@@ -250,7 +250,7 @@ export function renderPendingAdjustPlanDraftQuestionAnswer(
   ) {
     return [
       "Oui. Le brouillon ne supprime pas la discussion de fond: il la place après le retour au calme / la réparation légère.",
-      "Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+      "Je ne le modifie pas depuis le chat; reprends-le dans la section Plan.",
     ].join("\n\n");
   }
 
@@ -259,7 +259,7 @@ export function renderPendingAdjustPlanDraftQuestionAnswer(
   ) {
     return [
       "Oui. Dans ce brouillon, la réparation rapide après tension fait partie du critère de réussite, au même niveau que la discussion réussie.",
-      "Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+      "Je ne le modifie pas depuis le chat; reprends-le dans la section Plan.",
     ].join("\n\n");
   }
 
@@ -274,7 +274,7 @@ export function renderPendingAdjustPlanDraftQuestionAnswer(
       concreteChange
         ? `Oui: le brouillon ne rajoute pas plusieurs nouvelles actions. Il ajuste la trajectoire autour de ça: ${concreteChange}`
         : "Oui: le brouillon ne rajoute pas plusieurs nouvelles actions. Il ajuste la trajectoire du plan sans transformer ça en nouvelle liste de tâches.",
-      "Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+      "Je ne le modifie pas depuis le chat; reprends-le dans la section Plan.",
     ].join("\n\n");
   }
 
@@ -291,7 +291,7 @@ export function renderPendingAdjustPlanDraftQuestionAnswer(
       return [
         "Non: l'idée n'est pas de rendre le plan flou ou de fonctionner au feeling.",
         "Le brouillon garde une progression, mais il change le critère de lecture: on cherche des signes concrets de chaleur, de fiabilité et de réparation rapide, pas une exécution parfaite des actions.",
-        "Si tu valides, ce feedback servira à régénérer le plan dans ce sens. Rien n'est encore appliqué.",
+        "Si cette lecture te va, reprends ce feedback dans la section Plan pour régénérer dans ce sens.",
       ].join("\n\n");
     }
     const progressionAnchor = insertedStep || after;
@@ -300,14 +300,14 @@ export function renderPendingAdjustPlanDraftQuestionAnswer(
       progressionAnchor
         ? `Le brouillon garde une progression. La marche prévue est claire: ${progressionAnchor}`
         : "Le brouillon garde une progression: il clarifie la marche suivante au lieu de laisser le plan avancer au feeling.",
-      "Si tu valides, ce feedback servira à régénérer le plan dans ce sens. Rien n'est encore appliqué.",
+      "Si cette lecture te va, reprends ce feedback dans la section Plan pour régénérer dans ce sens.",
     ].join("\n\n");
   }
 
   if (basis) {
     return [
       `Oui. Le brouillon prévoit bien: ${basis}`,
-      "Je n'applique rien tant que tu ne me le confirmes pas clairement.",
+      "Je ne le modifie pas depuis le chat; reprends-le dans la section Plan.",
     ].join("\n\n");
   }
   return null;

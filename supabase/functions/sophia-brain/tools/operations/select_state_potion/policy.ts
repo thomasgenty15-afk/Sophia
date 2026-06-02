@@ -6,8 +6,6 @@ import type { PotionSessionDraftV1 } from "./generator.ts";
  * Policy split:
  * - hardConsentGuards are deterministic consent/safety guarantees. They can stay
  *   regex-based because they only block or suppress durable effects.
- * - legacySemanticDetectors are transitional routing helpers. They are not the
- *   skill brain and should move toward intake, agenda, or interruption policy.
  */
 
 function normalizePotionPolicyText(value: unknown): string {
@@ -89,11 +87,33 @@ export function buildExplicitNoPotionConcreteReply(
   message: string,
 ): string {
   const text = normalizePotionPolicyText(message);
+  const asksForSinglePhrase =
+    /\b(juste une phrase|une seule phrase|phrase courte|phrase douce|parle moi doucement|doucement|sans protocole|pas de protocole|sans question|pas de question|ne pas me juger|me juger)\b/
+      .test(text);
+  const asksForMicroAction =
+    /\bmicro[- ]?action\b/.test(text) &&
+    !/\b(sans protocole|pas de protocole|juste une phrase|une seule phrase)\b/
+      .test(text);
+
   if (/\breset\b/.test(text) || /\b2 minutes\b/.test(text)) {
     return [
       "Reset 2 minutes - sans potion, sans question :",
       "Minute 1 : pose les deux pieds au sol, expire lentement, et nomme l'objet exact a reprendre.",
       "Minute 2 : ouvre seulement cet objet, fais le premier geste visible, puis stop.",
+    ].join("\n");
+  }
+  if (
+    asksForSinglePhrase && !asksForMicroAction
+  ) {
+    if (/\b(juger|nulle|nul|honte|doucement)\b/.test(text)) {
+      return 'Phrase de réparation : "Ce que je ressens est lourd, mais ce n\'est pas un verdict sur moi."';
+    }
+    return 'Phrase de réparation : "Je peux me poser maintenant, sans devoir tout résoudre."';
+  }
+  if (asksForMicroAction) {
+    return [
+      'Phrase de réparation : "Je reviens au prochain geste, pas a toute la montagne."',
+      "Micro-action : ferme ce qui attire ton attention, rouvre seulement la tâche utile, et fais 90 secondes dessus.",
     ].join("\n");
   }
   return [
@@ -111,48 +131,10 @@ export function noPotionReply(message: string): string {
   return statePotionDeclineReply(message);
 }
 
-export function isExplicitSelectStatePotionRequest(
-  message: unknown,
-): boolean {
-  const normalized = normalizePotionPolicyText(message).replace(/\s+/g, " ");
-  if (!/\bpotion\b/.test(normalized)) return false;
-  if (
-    /\b(potion de|potion d|potion d etat|potion etat|potion)\b/.test(
-      normalized,
-    ) &&
-    /\b(rappel|courage|guerison|clarte|amour|apaisement|etat)\b/.test(
-      normalized,
-    )
-  ) {
-    return true;
-  }
-  return /\b(active|activer|lance|lancer|cree|creer|prepare|preparer|besoin|veux|voudrais|aimerais)\b/
-    .test(normalized) &&
-    /\bpotion\b/.test(normalized);
-}
-
-export function looksLikeOneShotReminderHandoff(
-  message: string,
-): boolean {
-  const text = normalizePotionPolicyText(message);
-  return /\b(rappel|rappelle|programme|programmer|planifie|planifier|ponctuel|ponctuelle)\b/
-    .test(text) &&
-    (/\b\d{1,2}\s*h(?:\s*\d{2})?\b/.test(text) ||
-      /\b(aujourd hui|demain|ce soir|cet apres midi|ponctuel|ponctuelle)\b/
-        .test(text));
-}
-
 export const hardConsentGuards = {
   detectsExplicitNoPotionRequest: detectsExplicitNoPotionRequest,
   detectsPotionFollowUpRefusal: detectsPotionFollowUpRefusal,
   detectsExplicitStatePotionExit: detectsExplicitStatePotionExit,
-};
-
-export const legacySemanticDetectors = {
-  isExplicitSelectStatePotionRequest,
-  looksLikeOneShotReminderHandoff: looksLikeOneShotReminderHandoff,
-  detectsExplicitConcreteDeliverableRequest:
-    detectsExplicitConcreteDeliverableRequest,
 };
 
 export function isPendingStatePotionOperation(value: unknown): value is {
@@ -188,7 +170,8 @@ export function isPendingStatePotionRecommendationOperation(
     record &&
       typeof record === "object" &&
       record.operation_type === "select_state_potion" &&
-      record.surface_id === "potion.state",
+      (record.surface_id === "potion.state" ||
+        record.surface_id === "state_potions"),
   );
 }
 
@@ -237,11 +220,6 @@ export function selectStatePotionRouteIsSelected(args: {
     args.routeDecision?.selected_handler &&
     args.routeDecision.selected_handler !== "select_state_potion"
   ) return false;
-
-  if (
-    detectsExplicitNoPotionRequest(args.userMessage) ||
-    isExplicitSelectStatePotionRequest(args.userMessage)
-  ) return true;
 
   return (args.turnFrame?.tool_skill_intents ?? []).some((intent) =>
     intent.operation_type === "select_state_potion" &&

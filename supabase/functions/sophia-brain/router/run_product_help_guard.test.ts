@@ -5,19 +5,21 @@ import {
   applyIncompleteRecapGuard,
   applyNonDurableMemoryPromiseGuard,
   applyUnexecutedEffectClaimGuard,
-  detectExplicitNoToolRequest,
-  detectsMinuteByMinuteSequenceRequest,
   directConversationSkillReplyOverride,
   enforceRecommendationToolVisibleReply,
+  isFaitPrevuFragileRecapRequest,
+  recordToolSkillEffectsInLedgerForTest,
+} from "./run.ts";
+import {
+  detectExplicitNoToolRequest,
+  detectsMinuteByMinuteSequenceRequest,
   isActiveCardDraftingOperation,
   isExplicitConversationalFormatRequest,
   isExplicitOperationCommand,
-  isFaitPrevuFragileRecapRequest,
   isLocalTextRevisionRequest,
   isStatusOnlyNoMutationRequest,
-  recordToolSkillEffectsInLedgerForTest,
   shouldRenderStatusOnlyNoMutation,
-} from "./run.ts";
+} from "./legacy_semantic_patches.ts";
 import {
   buildFaitPrevuFragileRecapRuntime,
   buildStatusOnlyNoMutationRuntime,
@@ -46,7 +48,6 @@ import {
 } from "../tools/operations/update_coach_preferences/route_guards.ts";
 import { upsertCoachPreferencesFromDraftForTest } from "../tools/operations/update_coach_preferences/status.ts";
 import {
-  buildMinuteByMinuteSequenceAddon,
   detectsExplicitOneShotReminderCancel,
   isExplicitOneShotReminderModificationRequest,
   isOneShotReminderExactStatusRequest,
@@ -263,19 +264,18 @@ Deno.test("active safety flow cannot be downgraded by safe reminder exception", 
       },
     },
     userMessage: "rappelle-moi de finir le dossier demain",
-    allowExplicitSafeWorkReminderDowngrade: () => true,
   });
 
   assertEquals(result.riskBand, "medium");
   assertEquals(result.pregateOutput.risk_band, "medium");
 });
 
-Deno.test("local text revision is not a coach preference update", () => {
+Deno.test("legacy local text revision detector is disabled in global routing", () => {
   assertEquals(
     isLocalTextRevisionRequest(
       "Oui, formule-le en une version ultra courte que tu pourrais réutiliser quand je reparle d'un document à écrire.",
     ),
-    true,
+    false,
   );
   assertEquals(
     isLocalTextRevisionRequest(
@@ -357,18 +357,18 @@ Deno.test("concrete future style request is a coach preference", () => {
   );
 });
 
-Deno.test("explicit no-tool requests block operation starts", () => {
+Deno.test("legacy explicit no-tool detector is disabled in global routing", () => {
   assertEquals(
     detectExplicitNoToolRequest(
       "Merci. Ne lance rien d'autre maintenant, même pas une potion. Fais-moi juste le récap.",
     ),
-    true,
+    false,
   );
   assertEquals(
     detectExplicitNoToolRequest(
       "Non, ne lance rien. Donne-moi juste la prochaine mini-action pour ne pas tout refaire.",
     ),
-    true,
+    false,
   );
 });
 
@@ -515,12 +515,12 @@ Deno.test("compact start guard collapses A/B plans into one gesture", () => {
   assertEquals(guarded.includes("Premier geste"), true);
 });
 
-Deno.test("natural durable recap is treated as status only", () => {
+Deno.test("legacy durable recap detector is disabled in global routing", () => {
   assertEquals(
     isStatusOnlyNoMutationRequest(
       "Avant que je coupe, fais-moi le récap: qu'est-ce qui a vraiment été créé ou gardé, et qu'est-ce qui était juste pour la conversation ?",
     ),
-    true,
+    false,
   );
 });
 
@@ -534,12 +534,12 @@ Deno.test("incomplete recap intro gets a minimal fallback body", () => {
   assertEquals(guarded.endsWith(": 🙂"), false);
 });
 
-Deno.test("existing one-shot reminder modification is not a plan adjustment", () => {
+Deno.test("legacy one-shot reminder modification detector is disabled", () => {
   assertEquals(
     isExplicitOneShotReminderModificationRequest(
       "Décale ce rappel ponctuel à demain 9h10, même texte.",
     ),
-    true,
+    false,
   );
 });
 
@@ -579,28 +579,27 @@ Deno.test("'où je vais modifier/supprimer dans l'app' est du product_help, pas 
   );
 });
 
-Deno.test("une vraie demande de modification reste détectée (régression chantier 14)", () => {
-  // On vérifie qu'on ne casse pas le cas positif.
+Deno.test("une vraie demande de modification n'est plus détectée par regex locale", () => {
   assertEquals(
     isExplicitOneShotReminderModificationRequest(
       "Décale ce rappel à 14h, même texte.",
     ),
-    true,
+    false,
   );
   assertEquals(
     isExplicitOneShotReminderModificationRequest(
       "Reprogramme le rappel ponctuel à 18h30, garde le même message.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("one-shot reminder exact status request is detected", () => {
+Deno.test("one-shot reminder exact status request is not detected by regex locale", () => {
   assertEquals(
     isOneShotReminderExactStatusRequest(
       "L'heure vraiment enregistrée du rappel, c'est 11h05 ou 11h20 ?",
     ),
-    true,
+    false,
   );
 });
 
@@ -746,48 +745,48 @@ Deno.test("explicit memory retention wording does not overpromise durable memory
 // Voir docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md, section Couche L3.
 // ---------------------------------------------------------------------------
 
-Deno.test("explicit conversational format request: 'fait, prévu, fragile' is detected (A2-r4 T13)", () => {
+Deno.test("legacy conversational-format detector is disabled for 'fait, prévu, fragile'", () => {
   assertEquals(
     isExplicitConversationalFormatRequest(
       "Ne lance rien maintenant, pas de potion, pas de nouveau rappel. Fais seulement le récap: fait, prévu, fragile, en trois lignes.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("explicit conversational format request: 'pas de statut système' + 'trois lignes' (A2-r4 T14)", () => {
+Deno.test("legacy conversational-format detector is disabled for no-status wording", () => {
   assertEquals(
     isExplicitConversationalFormatRequest(
       "Ce n'est pas le récap demandé. Pas de statut système: seulement fait, prévu, fragile. Trois lignes, sans emoji.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("explicit conversational format request: 'réponds en une ligne' is detected (A4-r4 T14)", () => {
+Deno.test("legacy conversational-format detector is disabled for one-line wording", () => {
   assertEquals(
     isExplicitConversationalFormatRequest(
       "Donc pour le rappel à 11h12 : confirmé ou non confirmé ? Réponds en une ligne.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("explicit conversational format request: 'récap conversationnel' is detected (A6-r2 T15)", () => {
+Deno.test("legacy conversational-format detector is disabled for conversational recap wording", () => {
   assertEquals(
     isExplicitConversationalFormatRequest(
       "On s'arrête là. Fais seulement un récap conversationnel final.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("explicit conversational format request: 'une seule phrase' is detected", () => {
+Deno.test("legacy conversational-format detector is disabled for one-sentence wording", () => {
   assertEquals(
     isExplicitConversationalFormatRequest(
       "Donne-moi une seule phrase qui me remet au calme, pas plus.",
     ),
-    true,
+    false,
   );
 });
 
@@ -847,7 +846,7 @@ Deno.test("explicit conversational format request stays false when 'une phrase' 
   );
 });
 
-Deno.test("status_only and explicit-format detectors can overlap (the format guard wins)", () => {
+Deno.test("legacy status_only and explicit-format detectors stay disabled in run guard tests", () => {
   // Sur les tours A2-r4 T13/T14, isStatusOnlyNoMutationRequest
   // retournait true (à cause de "en place" / "ce qu'on a fait"), ce qui
   // déclenchait le panneau. La garde de format ferme la porte avant.
@@ -856,7 +855,7 @@ Deno.test("status_only and explicit-format detectors can overlap (the format gua
   assertEquals(isStatusOnlyNoMutationRequest(userMessage), false);
   assertEquals(
     isExplicitConversationalFormatRequest(userMessage),
-    true,
+    false,
   );
 });
 
@@ -1205,18 +1204,18 @@ Deno.test("F1: status ignores backend-only coach preference rows", async () => {
 // CHANTIER C5 (2026-05-28) — Contrat de format « fait / prévu / fragile ».
 // ---------------------------------------------------------------------------
 
-Deno.test("C5: detects the 'fait/prévu/fragile' recap contract (A2-r7 T13/T14)", () => {
+Deno.test("C5: raw text no longer detects the 'fait/prévu/fragile' recap contract", () => {
   assertEquals(
     isFaitPrevuFragileRecapRequest(
       "Ne lance rien maintenant, pas de potion. Fais seulement le récap: fait, prévu, fragile, en trois lignes. Pas de question.",
     ),
-    true,
+    false,
   );
   assertEquals(
     isFaitPrevuFragileRecapRequest(
       "Fais-le maintenant: trois lignes seulement, fait / prévu / fragile, heure France, pas de question.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1308,23 +1307,18 @@ Deno.test("D2: une demande recap avec opt-out 'pas les statuts système' NE rend
   assertEquals(shouldRenderStatusOnlyNoMutation(message), false);
 });
 
-Deno.test("D2 anti-régression: un statut sans opt-out rend toujours le panneau status", () => {
+Deno.test("D2: legacy status detector no longer renders a panel from raw text", () => {
   const message =
     "Sans modifier, dis-moi quelle carte est active et quels rappels sont confirmés avec heure exacte.";
-  assertEquals(shouldRenderStatusOnlyNoMutation(message), true);
+  assertEquals(shouldRenderStatusOnlyNoMutation(message), false);
 });
 
-Deno.test("C1: status detector still fires on A2-r7 T4, so the product_help guard is what protects it", () => {
-  // Le détecteur status matche bien "où le vérifier/annuler dans l'app, sans
-  // modifier" (à cause de "sans modifier" + "rappel"). Sans le garde
-  // `response_owner !== product_help`, ce match écrasait l'aide produit. On
-  // documente que le détecteur reste vrai → la subordination est portée par
-  // le garde, pas par un affaiblissement du détecteur.
+Deno.test("C1: legacy status detector stays disabled for product-help location questions", () => {
   assertEquals(
     isStatusOnlyNoMutationRequest(
       "Pour ce rappel ponctuel de 11h55, où est-ce que je peux le vérifier ou l'annuler dans l'app ? Juste l'emplacement, sans modifier.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1334,30 +1328,30 @@ Deno.test("C1: status detector still fires on A2-r7 T4, so the product_help guar
 // syncskills-r2 T2 (carte d'attaque). Symétrique de F2 côté opérations.
 // ===========================================================================
 
-Deno.test("G0: une création de rappel avec deux horaires candidats est une commande d'opération (edgecases-r3 T5)", () => {
+Deno.test("G0: legacy operation-command detector is disabled for reminder creation text", () => {
   assertEquals(
     isExplicitOperationCommand(
       "Mets-moi plutôt un rappel pour vérifier les 5 lignes du devis, mais j'hésite : 14h20 ou 16h10.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("G0: un ordre d'exécution explicite de rappel est une commande d'opération (edgecases-r3 T7)", () => {
+Deno.test("G0: legacy operation-command detector is disabled for reminder execution text", () => {
   assertEquals(
     isExplicitOperationCommand(
       "Rappel neutre. Programme-le maintenant pour aujourd'hui à 16h10.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("G0: une création explicite de carte d'attaque est une commande d'opération (syncskills-r2 T2)", () => {
+Deno.test("G0: legacy operation-command detector is disabled for attack-card creation text", () => {
   assertEquals(
     isExplicitOperationCommand(
       "Prepare-moi une carte d'attaque pour ce moment-là.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1373,7 +1367,7 @@ Deno.test("G0 anti-FP: un récap de lecture pure n'est PAS une commande d'opéra
     shouldRenderStatusOnlyNoMutation(
       "Merci. Fais le recap exact : carte créée ou non, rappel créé ou annulé.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1391,25 +1385,25 @@ Deno.test("G0 anti-FP: une vraie question d'heure exacte n'est PAS une commande 
 // edgecases-r3 T9/T10.
 // ===========================================================================
 
-Deno.test("G3: 'annule le rappel de 16h10' est une annulation explicite (edgecases-r3 T9)", () => {
+Deno.test("G3: annulation de rappel n'est plus détectée par regex locale", () => {
   assertEquals(
     detectsExplicitOneShotReminderCancel(
       "Alors annule le rappel de 16h10. Je ne veux plus de ping, ça me stresse.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("G3: 'coupe ce ping' / 'annule-le vraiment' (avec ping) sont des annulations", () => {
+Deno.test("G3: 'coupe ce ping' / 'annule-le vraiment' restent non routés localement", () => {
   assertEquals(
     detectsExplicitOneShotReminderCancel("coupe ce rappel maintenant"),
-    true,
+    false,
   );
   assertEquals(
     detectsExplicitOneShotReminderCancel(
       "Zéro ping aujourd'hui. Pas d'alternative, pas de note, juste annule-le vraiment.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1479,12 +1473,12 @@ Deno.test("G3-fix anti-FP: récap 'rappel 15h50 créé ou annulé' (edgecases-r4
   );
 });
 
-Deno.test("G3-fix: une vraie commande combinée annuler+créer reste détectée (normal-conv-r4 T12)", () => {
+Deno.test("G3-fix: commande combinée annuler+créer n'est plus détectée localement", () => {
   assertEquals(
     detectsExplicitOneShotReminderCancel(
       "Alors annule l'ancien rappel de 16h20 et crée celui de 17h00 aujourd'hui, texte : revenir au budget.",
     ),
-    true,
+    false,
   );
 });
 
@@ -1564,26 +1558,23 @@ Deno.test("H3: preview mode tunnel sans enregistrement (A2-r12 T10)", () => {
   assertEquals(preview.includes("court"), false);
 });
 
-Deno.test("H5: rappel ambigu reste ponctuel, pas récurrent (edgecases-r4 T7)", () => {
+Deno.test("H5: préférence ponctuel/récurrent ne vient plus d'une regex locale", () => {
   assertEquals(
     shouldPreferOneShotReminderOverRecurring(
       "Programme un rappel à 18h30 avec le texte exact à relire, pas récurrent.",
     ),
-    true,
+    false,
   );
   assertEquals(
     shouldPreferOneShotReminderOverRecurring(
       "Rappelle-moi demain à 9h de reprendre la facture.",
     ),
-    true,
+    false,
   );
 });
 
-Deno.test("H6: séquence minute par minute détectée (syncskills-r3 T5/T12)", () => {
+Deno.test("H6: legacy minute-by-minute detector is disabled in global routing", () => {
   const msg =
     "Programme le rappel à 8h, et donne-moi la séquence minute par minute pour traiter les mails de la facture.";
-  assertEquals(detectsMinuteByMinuteSequenceRequest(msg), true);
-  const addon = buildMinuteByMinuteSequenceAddon(msg);
-  assertEquals(addon?.includes("8:00"), true);
-  assertEquals(addon?.includes("10:00"), true);
+  assertEquals(detectsMinuteByMinuteSequenceRequest(msg), false);
 });

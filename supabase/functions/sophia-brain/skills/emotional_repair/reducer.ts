@@ -10,6 +10,7 @@ import {
 } from "../_shared/conversation_skill_contract.ts";
 import {
   applyEmotionalRepairInvariants,
+  type EmotionalRepairConstraint,
   type EmotionalRepairMemoryWriteCandidate,
   type EmotionalRepairSkillDecision,
   toConversationOperationSuggestion,
@@ -109,6 +110,60 @@ function memoryCandidatesFromDecision(
 function validationIsReplyOnly(errors: string[]) {
   return errors.length > 0 &&
     errors.every((error) => error.startsWith("reply_"));
+}
+
+function normalizeConstraintText(value: unknown): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’`]/g, " ")
+    .toLowerCase()
+    .trim();
+}
+
+function explicitConstraintsFromUserMessage(
+  userMessage: string,
+): EmotionalRepairConstraint[] {
+  const text = normalizeConstraintText(userMessage);
+  const constraints = new Set<EmotionalRepairConstraint>();
+  if (/\bpas de potion\b|\bsans potion\b|\bpas de protocole\b|\bsans protocole\b/.test(text)) {
+    constraints.add("no_potion");
+    constraints.add("no_tool");
+  }
+  if (
+    /\bpas de plan\b|\bsans plan\b|\bpas de solution\b|\bsans solution\b|\bpas de protocole\b|\bsans protocole\b/
+      .test(text)
+  ) {
+    constraints.add("no_plan");
+  }
+  if (
+    /\bpas de question\b|\bsans question\b|\bne me pose pas\b/.test(text)
+  ) {
+    constraints.add("no_questions");
+  }
+  if (
+    /\bjuste une phrase\b|\bphrase courte\b|\breponse courte\b|\bréponse courte\b|\bsans protocole\b|\bpas de protocole\b/
+      .test(text)
+  ) {
+    constraints.add("short_reply");
+    constraints.add("no_plan");
+    constraints.add("no_questions");
+  }
+  return [...constraints];
+}
+
+function mergeExplicitUserConstraints(
+  decision: EmotionalRepairSkillDecision,
+  userMessage: string,
+): EmotionalRepairSkillDecision {
+  const constraints = new Set<EmotionalRepairConstraint>(decision.constraints);
+  for (const constraint of explicitConstraintsFromUserMessage(userMessage)) {
+    constraints.add(constraint);
+  }
+  return {
+    ...decision,
+    constraints: [...constraints],
+  };
 }
 
 function withSafeRenderedReply(
@@ -211,7 +266,12 @@ export function reduceEmotionalRepairTurn(
     });
   }
 
-  const decision = applyEmotionalRepairInvariants(input.intake_decision);
+  const decision = applyEmotionalRepairInvariants(
+    mergeExplicitUserConstraints(
+      input.intake_decision,
+      input.run_input.user_message,
+    ),
+  );
   const validation = validateEmotionalRepairDecision(decision);
   if (!validation.ok) {
     if (validationIsReplyOnly(validation.errors)) {

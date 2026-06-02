@@ -427,10 +427,10 @@ Deno.test("route replay passes all 25 fixtures with S2 runtime", async () => {
 // par buildDispatcherPrompt, sous la forme attendue.
 // ---------------------------------------------------------------------------
 
-Deno.test("dispatcher prompt version reflects C7 dispatcher precision s18", () => {
+Deno.test("dispatcher prompt version reflects clarification signal contract s19", () => {
   assertEquals(
     DISPATCHER_V2_PROMPT_VERSION,
-    "dispatcher_v2_prompt_2026_05_s18_c7_dispatcher_precision",
+    "dispatcher_v2_prompt_2026_06_s19_clarification_signals",
   );
 });
 
@@ -448,12 +448,12 @@ Deno.test("dispatcher prompt embeds the 5 L3-migration few-shots in critical_rou
       };
     }>;
   };
-  const messages = parsed.critical_routing_examples.map((ex) => ex.user_message);
+  const messages = parsed.critical_routing_examples.map((ex) =>
+    ex.user_message
+  );
   // Few-shot 1: detectsExplicitOneShotReminderCreate
   assertEquals(
-    messages.some((m) =>
-      m.includes("rappel ponctuel") && m.includes("11h35")
-    ),
+    messages.some((m) => m.includes("rappel ponctuel") && m.includes("11h35")),
     true,
     "few-shot create_one_shot_reminder manquant",
   );
@@ -533,7 +533,9 @@ Deno.test("C7: dispatcher embeds 3 precision few-shots with the right expected i
   const statusPref = examples.find((ex) =>
     ex.user_message.includes("quelle préférence coach est appliquée")
   );
-  if (!statusPref) throw new Error("C7 few-shot status 'préférence coach' manquant");
+  if (!statusPref) {
+    throw new Error("C7 few-shot status 'préférence coach' manquant");
+  }
   assertEquals((statusPref.expected.tool_skill_intents ?? []).length, 0);
   assertEquals((statusPref.expected.direct_effects ?? []).length, 0);
 

@@ -2,309 +2,334 @@
 
 ## Mental Model
 
-`select_state_potion` est un Tool Skill L5 propriétaire du workflow potion :
-choisir une potion, présenter deux options quand le choix n'est pas clair,
-collecter les détails propres à la potion, préparer un brouillon, gérer
-`approve/reject/revise/explain/cancel`, appliquer l'activation, et supprimer
-tout suivi quand le user le refuse.
+`select_state_potion` est désormais un `platform_handoff_skill`.
 
-Le dispatcher ou `run.ts` peuvent seulement dire que le tour ressemble à une
-opportunité potion. La décision de continuer, annuler, bloquer, demander une
-précision, activer, supprimer le follow-up ou passer la main appartient au
-skill.
+Il aide Sophia à comprendre l'état actuel du user, clarifier le shift souhaité,
+recommander une potion ou une option d'état, puis rediriger vers la surface
+produit correspondante. Il ne lance plus de potion depuis le chat.
 
-Le flow canonique est :
+Forme cible :
 
 ```txt
-contract.ts
-  -> intake.ts + subskills/*
-  -> router.ts reducer/state transition
-  -> requested/allowed/blocked effects
-  -> executor.ts + persistence.ts
-  -> renderer.ts
+contract -> structured intake + subskills
+         -> reducer/coaching policy
+         -> handoff draft -> platform destination -> renderer
+         -> active handoff state
 ```
 
-## Dépend De L'Architecture De X
+Phrase d'invariant : **`select_state_potion` ne crée aucune session potion,
+aucun rappel récurrent et aucun check-in depuis le chat. Son succès nominal est
+un `platform_handoff` avec `no_chat_mutation=true`, `executedTools=[]` et
+`committed_effects=[]`.**
+
+## Dépend De L'Architecture De select_state_potion
 
 Ce domaine dépend de :
 
 - `UserTurnSnapshot` pour lire l'état complet du tour ;
-- `TurnAgenda` pour distinguer reply/effects/status/memory/repair ;
-- `Confirmation Contract` pour interpréter approve/reject/revise/explain ;
-- `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé ;
-- le contrat local de `select_state_potion` pour l'intake, le reducer, les
-  effets et le renderer.
+- `TurnAgenda` pour représenter `select_state_potion` comme
+  `platform_handoff`, pas comme `effect` exécutable ;
+- `clarification_tool` pour les ambiguïtés internes : soutien émotionnel vs
+  potion, apaisement vs activation, potion vs rappel/suivi, handoff prêt vs
+  encore trop flou ;
+- `handoff_flow_arbitration` pour conserver les suites de handoff dans le skill
+  actif sans capturer safety, one-shot clair, progress clair ou status clair ;
+- `Product Surface Registry` pour obtenir la destination canonique
+  `state_potions` / Etat-Potions ;
+- `EffectLedger` pour tracer le handoff non-mutant et bloquer tout wording
+  d'activation sans commit ;
+- le contrat local de `select_state_potion` pour l'intake, les sous-skills, le
+  reducer, l'état et le renderer.
 
-Dans le code actuel :
+Dans le code cible :
 
-- `router/operation_runtime_pipeline.ts` appelle
-  `maybeRunSelectStatePotionOperation` après les runtimes plus prioritaires
-  et lui passe `turnFrame`, `routeDecision`, `tempMemory`, `history`,
-  `safetyPregateOutput`, `requestId` et `sourceMessageId`. C'est l'adaptateur
-  runtime actuel vers le futur `UserTurnSnapshot` complet.
-- `tools/operations/select_state_potion/policy.ts` lit `TurnFrame` et
-  `RouteDecision` dans `selectStatePotionRouteIsSelected` pour savoir si le
-  skill doit recevoir le tour. Les décisions internes ne doivent pas retourner
-  dans `run.ts`.
-- `tools/operations/select_state_potion/router.ts` construit un
-  `SelectStatePotionSkillResult`, puis l'adapte au format attendu par le
-  runtime avec `adaptSkillResultToRuntime`. Cet adaptateur est la seule zone
-  qui traduit le contrat local vers `content`, `nextTempMemory`,
-  `toolExecution`, `executedTools` et `toolSkillRun`.
-- `tools/operations/select_state_potion/draft_validation.ts` expose
-  `reviewSelectStatePotionDraft`. Le router utilise cette décision structurée
-  dans `reducePotionDraftReview`; le dispatcher global ne doit pas interpréter
-  `approve/reject/revise/explain` pour ce skill.
-- `tools/operations/select_state_potion/contract.ts` porte les intentions
-  (`SelectStatePotionUserIntent`), contraintes
-  (`SelectStatePotionConstraint`), effets (`SelectStatePotionEffect`), effets
-  commités (`SelectStatePotionCommittedEffect`) et le mini ledger local
-  (`SelectStatePotionEffectLedger`).
-- `tools/operations/select_state_potion/renderer.ts` applique le garde-fou
-  user-facing : si `status="executed"` mais que `committed_effects` est vide,
-  Sophia ne doit pas annoncer que la potion est activée.
-
-Limite actuelle : le runtime ne passe pas encore un objet
-`UserTurnSnapshot`/`TurnAgenda` unique au skill. Le router reçoit les briques
-legacy séparées depuis `operation_runtime_pipeline.ts`. Une future migration
-peut changer la forme d'entrée, mais pas déplacer la logique métier vers
-`run.ts`.
+- `router/operation_runtime_pipeline.ts` ne doit plus appeler un runtime
+  d'activation potion. S'il reçoit un signal `select_state_potion`, il doit
+  router vers le handoff ou retourner un résultat `platform_handoff`
+  non-mutant.
+- `tools/operations/select_state_potion/router.ts` possède le runtime handoff :
+  start/continue/clarify/produce/revise/repeat/apply_attempt/cancel/topic_change.
+- `tools/operations/select_state_potion/intake.ts` et `subskills/*` conservent
+  la compréhension structurée utile. Ils ne produisent plus un draft activable
+  ni un pending confirmation exécutable.
+- `tools/operations/select_state_potion/state.ts` possède un état handoff
+  distinct des anciens pending exécutables.
+- `tools/operations/select_state_potion/renderer.ts` est la seule source du
+  message visible handoff. Le ledger ne rend jamais le contenu.
+- `tools/operations/select_state_potion/executor.ts` et `persistence.ts` sont
+  legacy hors chemin nominal. Le runtime V1 handoff ne doit pas les importer ni
+  les appeler.
 
 ## Runtime Shape
 
 ```txt
 router/operation_runtime_pipeline.ts
-  -> maybeRunSelectStatePotionOperation(...)
-       -> loadSelectStatePotionFrameFromTempMemory(...)
-       -> hardConsentGuards / legacySemanticDetectors
-       -> reviewSelectStatePotionDraft(...) si pending draft
-       -> reducePotionDraftReview(...)
-       -> runSelectStatePotionIntake(...) si intake actif ou nouveau départ
-       -> createConfirmationToken(...) si draft prêt
-       -> executeActivateStatePotion(...) si approve explicite
-       -> renderSelectStatePotionSkillResult(...)
+  -> select_state_potion handoff route
+      -> loadStatePotionHandoffState(tempMemory)
+      -> runSelectStatePotionIntake(...) / subskills si besoin
+      -> clarification_tool si ambiguïté interne
+      -> reducer handoff
+          -> collecting / clarifying / handoff_ready / handoff_delivered
+          -> revise_handoff / repeat_handoff / apply_attempt
+          -> cancelled / topic_change / blocked
+      -> Product Surface Registry target
+      -> renderStatePotionHandoff(...)
+      -> OperationRuntimeResult:
+          toolExecution="platform_handoff"
+          executedTools=[]
+          committed_effects=[]
+          platform_handoff.operation_type="select_state_potion"
 ```
 
-Le router raisonne en `SelectStatePotionSkillResult`. Les statuts runtime
-`toolExecution` et `executedTools` sont dérivés à la fin :
+Il ne doit plus exister de chemin nominal :
 
-- `executedTools=["select_state_potion"]` seulement si
-  `committed_effects.length > 0`;
-- `toolExecution="success"` seulement après `executeActivateStatePotion`
-  `status="executed"` et commit writer confirmé;
-- `toolExecution="blocked"` ou `"failed"` ne peut pas produire de claim
-  d'activation.
+```txt
+draft -> confirmation token -> executeActivateStatePotion -> writeStatePotionActivation
+```
 
 ## File Ownership
 
-- `tools/operations/select_state_potion/contract.ts` : source de vérité locale
-  pour intentions, contraintes, effets, effets commités, ledger et résultat
-  skill.
-- `tools/operations/select_state_potion/intake.ts` : intake structuré. Il lit
-  les sorties JSON des sous-skills, valide les enums, merge
-  `SelectStatePotionIntakeState`, calcule les slots manquants et appelle le
-  generator. Il ne doit pas contenir de regex métier.
-- `tools/operations/select_state_potion/subskills/potion_router.ts` :
-  sélection IA de l'état émotionnel, du type de potion ou de la shortlist deux
-  potions.
-- `tools/operations/select_state_potion/subskills/potion_detail_intake.ts` et
-  `subskills/potions/*` : détails propres à chaque potion.
-- `tools/operations/select_state_potion/router.ts` : orchestration L5,
-  contraintes, reducer `reducePotionDraftReview`, préparation d'effets,
-  activation via executor, adaptation runtime.
-- `tools/operations/select_state_potion/state.ts` : seule façade autorisée sur
-  `tempMemory` pour l'active intake, le pending confirmation, la pending
-  recommendation et `__potion_followup_consent`.
-- `tools/operations/select_state_potion/policy.ts` : hard consent guards et
-  détecteurs sémantiques legacy documentés.
-- `tools/operations/select_state_potion/generator.ts` : draft user-ready,
-  messages visibles immédiats et informations potion/follow-up.
-- `tools/operations/select_state_potion/draft_validation.ts` : validation
-  structurée du brouillon pending.
-- `tools/operations/select_state_potion/executor.ts` : seule couche qui peut
-  appliquer `activate_state_potion` après confirmation token valide.
-- `tools/operations/select_state_potion/persistence.ts` :
-  `writeStatePotionActivation`, writer DB des sessions potion et follow-ups.
-- `tools/operations/select_state_potion/renderer.ts` : rendu final protégé par
-  les effets commités.
-- `router/operation_runtime_pipeline.ts` : appel du router comme runtime
-  d'opération; ne possède pas le métier potion.
-- `router/run.ts` : orchestration globale. Il ne doit pas interpréter
-  `approve/reject/revise/explain`, no-potion, follow-up consent, ou détails
-  d'activation potion.
+- `tools/operations/select_state_potion/contract.ts`
+  - types `StatePotionHandoffStatus`, `StatePotionHandoffDraft`,
+    contraintes `no_potion`, `no_followup`, `instant_support_only`,
+    résultat skill non-mutant ;
+  - ne doit pas exposer d'effet durable activable dans le chemin nominal.
+
+- `tools/operations/select_state_potion/intake.ts`
+  - intake structuré et merge des sous-skills ;
+  - lit l'état émotionnel, le shift souhaité, les contraintes et les slots de
+    recommandation ;
+  - ne doit pas contenir de regex métier ni de fallback keyword.
+
+- `tools/operations/select_state_potion/subskills/*`
+  - sélection IA de l'état, shortlist et détails de potion ;
+  - restent propriétaires de la compréhension fine du domaine.
+
+- `tools/operations/select_state_potion/router.ts`
+  - runtime handoff local ;
+  - décide `start_handoff`, `continue_collecting`, `clarify_state`,
+    `produce_handoff`, `revise_handoff`, `repeat_handoff`, `apply_attempt`,
+    `cancel`, `topic_change` ;
+  - ne possède aucun writer DB ;
+  - ne crée aucun pending confirmation exécutable.
+
+- `tools/operations/select_state_potion/state.ts`
+  - lit/écrit/clear l'état `StatePotionHandoffState` ;
+  - garde quelques tours le handoff actif pour révision/répétition/apply attempt ;
+  - ne réutilise pas les clés de pending exécutable pour le chemin nominal.
+
+- `tools/operations/select_state_potion/policy.ts`
+  - conserve seulement les hard consent guards qui bloquent ou annulent, jamais
+    des décisions de slot ;
+  - les legacy semantic detectors doivent être documentés et ne pas grandir.
+
+- `tools/operations/select_state_potion/generator.ts`
+  - produit une recommandation user-ready, pas un objet activable.
+
+- `tools/operations/select_state_potion/renderer.ts`
+  - rend la compréhension de l'état, le shift recommandé, la potion suggérée, les
+    éléments à préserver/éviter, la destination plateforme et la phrase finale de
+    non-mutation ;
+  - interdit tout langage d'activation.
+
+- `tools/operations/select_state_potion/executor.ts` et `persistence.ts`
+  - legacy hors chemin nominal ;
+  - ne doivent pas être importés par le runtime handoff.
 
 ## Inputs
 
 Le skill consomme :
 
 - `userMessage`, `history`, `channel`, `userTimezone`, `requestId`,
-  `sourceMessageId`;
-- `TurnFrame` et `RouteDecision` pour l'admission du tour;
-- `safetyPregateOutput` pour bloquer l'exécution si le risque est incompatible;
-- le frame potion chargé par `loadSelectStatePotionFrameFromTempMemory` :
-  `pending`, `active`, `recommendation`, `followup_consent`;
-- le contexte DB prompt-only chargé par `loadPotionBaseContext` pour aider le
-  generator et les sous-skills IA;
-- les décisions structurées de `reviewSelectStatePotionDraft`;
-- les sorties structurées de `runSelectStatePotionIntake`.
+  `sourceMessageId` ;
+- `TurnFrame` et `RouteDecision` déjà structurés ;
+- l'état handoff actif dans `tempMemory` ;
+- les contraintes globales : safety, no-tool, no-potion, no-followup ;
+- le contexte prompt-only nécessaire à la recommandation ;
+- les sorties structurées des sous-skills ;
+- la destination canonique du Product Surface Registry.
 
 Le contexte DB ne doit jamais devenir un second cerveau déterministe pour
-choisir la potion ou remplir les slots.
+choisir la potion.
 
 ## Outputs
 
-Le résultat canonique est `SelectStatePotionSkillResult` :
+Sortie nominale :
 
-- `user_intent` : `start`, `choose_potion`, `provide_detail`, `draft_only`,
-  `activate`, `cancel`, `reject`, `revise`, `explain`, `topic_change`,
-  `forbid_potion`, `forbid_followup`, `one_shot_reminder_handoff`, `clarify`
-  ou `unknown`;
-- `constraints` : notamment `no_potion`, `no_followup`,
-  `instant_support_only`, `one_question_max`, `respect_existing_potion`;
-- `requested_effects`, `allowed_effects`, `blocked_effects`,
-  `committed_effects`;
-- `effect_ledger` local, miroir explicite des effets;
-- `pending_confirmation` si un brouillon attend validation;
-- `updated_state` si l'intake reste actif;
-- `handoff` si le skill libère le tour pour un autre outil;
-- `reply` et `additional_replies` user-facing.
+- `toolExecution="platform_handoff"` ;
+- `executedTools=[]` ;
+- `committed_effects=[]` ;
+- `platform_handoff.operation_type="select_state_potion"` ;
+- `platform_handoff.surface_id="state_potions"` ;
+- `no_chat_mutation=true` ;
+- `reply` rendu par `renderer.ts`.
 
-L'adaptateur runtime retourne ensuite `content`, `additionalContents`,
-`nextTempMemory`, `toolExecution`, `executedTools` et `toolSkillRun`.
+Statuts handoff canoniques :
+
+- `collecting` ;
+- `clarifying` ;
+- `handoff_ready` ;
+- `handoff_delivered` ;
+- `revise_handoff` ;
+- `repeat_handoff` ;
+- `apply_attempt` ;
+- `cancelled` ;
+- `topic_change` ;
+- `blocked`.
 
 ## Invariants
 
-- Pas de draft, question potion, activation ou follow-up sous contrainte
-  `no_potion`.
-- Un "pas de potion" pendant un flow actif clear le frame via `state.ts` et ne
-  doit pas ressusciter au tour suivant.
-- Pas d'activation durable sans `approve` explicite, pending draft valide et
-  confirmation token créé par `createConfirmationToken`.
-- Toute activation passe par `executeActivateStatePotion`.
-- `executedTools` est dérivé de `committed_effects`, jamais du simple
-  `status`.
-- Le renderer ne dit pas "activé", "programmé" ou équivalent si
-  `committed_effects` est vide.
-- `no_followup`, `no_recurring`, `no_weekly_series` ou
-  `instant_support_only` doivent produire un effet autorisé avec
-  `suppress_follow_up_scheduling=true`, pas un recurring reminder caché.
-- `reject`, `cancel`, `topic_change`, `forbid_potion` et handoff nettoient le
-  pending/active state du skill.
-- `revise` et `explain` ne créent aucun effet durable.
-- Une demande de rappel ponctuel explicite pendant un flow potion retourne un
-  handoff vers le domaine rappel; le router potion ne crée pas ce rappel.
-- Une potion déjà sélectionnée dans `active` doit être respectée; le skill ne
-  redemande pas le choix de potion quand le user fournit seulement un détail.
+- Pas d'activation potion depuis le chat.
+- Pas de `user_potion_sessions` créée depuis ce flow.
+- Pas de `user_recurring_reminders` ou `scheduled_checkins` créé comme follow-up.
+- Pas de confirmation token.
+- Pas de pending confirmation exécutable.
+- Pas de `executedTools=["select_state_potion"]`.
+- Pas de `committed_effects`.
+- Pas de wording "activé", "lancé", "programmé", "je te relance" ou équivalent.
+- `apply_attempt` répète la destination plateforme et refuse l'exécution chat.
+- `repeat_handoff` réaffiche la recommandation plateforme.
+- `revise_handoff` régénère la recommandation depuis le skill.
+- `no_potion` annule ou bloque proprement le handoff.
+- `no_followup` doit apparaître dans la recommandation comme contrainte, jamais
+  comme follow-up caché.
+- Une demande one-shot explicite peut interrompre le handoff et sortir vers le
+  direct effect `create_one_shot_reminder`.
+- Safety préempte toujours.
 - `intake.ts` ne reçoit pas de regex métier, de fallback keyword, ni de choix
   déterministe depuis le contexte DB.
-- Les clés `tempMemory` historiques ne sont manipulées que par `state.ts`.
+
+## Renderer Contract
+
+Un handoff potion complet doit contenir :
+
+1. ce que Sophia comprend de l'état ;
+2. le shift recommandé ;
+3. pourquoi cette potion ou option d'état ;
+4. à préserver ;
+5. à éviter ;
+6. destination plateforme depuis le Product Surface Registry ;
+7. phrase finale no-mutation.
+
+La phrase no-mutation est une ligne de clôture. Elle ne doit jamais remplacer
+le contenu utile.
+
+## Active Handoff Continuation
+
+Pendant un handoff actif, ces messages restent dans le skill sauf intention
+concurrente très explicite :
+
+- "plutôt apaisement" ;
+- "plus doux" ;
+- "pas de suivi" ;
+- "redis-moi" ;
+- "où je la lance ?" ;
+- "ok vas-y" ;
+- "active-la" ;
+- "pas de potion".
+
+Mappage attendu :
+
+- précision ou variation -> `revise_handoff` ;
+- "redis-moi", "où je la lance ?" -> `repeat_handoff` ;
+- "ok vas-y", "active-la" -> `apply_attempt` ;
+- "pas de potion" -> `cancelled` ou `blocked`.
+
+Sorties autorisées du handoff :
+
+- safety ;
+- one-shot reminder explicite ;
+- track progress explicite ;
+- status DB clair ;
+- changement de sujet explicite.
 
 ## Integration Points
 
-- `router/operation_runtime_pipeline.ts` sélectionne le runtime
-  `select_state_potion` après les chemins plus prioritaires et avant les
-  autres tool skills plus bas dans la chaîne.
-- `confirmation/confirmation_token.ts` fournit le token requis par
-  `executeActivateStatePotion`.
-- `tools/operations/_shared/executor_guard.ts` vérifie le token, le pending
-  confirmation et le risk band avant tout writer.
-- `_shared/potion-base-context.ts` fournit le contexte DB prompt-only.
-- `tools/operations/select_state_potion/catalog.ts` expose le catalogue prompt
-  depuis la source canonique `_shared/v2-potions.ts`.
-- `tools/operations/_shared/committed_effect_renderer_guard.ts` protège les
-  messages sans effet commité.
-- Le ledger global de `router/effect_ledger.ts` reste la base transverse; le
-  ledger local du skill expose les effets potion avant adaptation runtime.
+- `router/handoff_flow_arbitration.ts` protège la continuité du handoff actif.
+- `clarification_tool` clarifie les ambiguïtés internes au domaine.
+- `product_surface_registry` fournit `surface_id`, destination et étapes.
+- `router/operation_runtime_pipeline.ts` empêche tout runtime d'activation
+  potion et retourne un handoff non-mutant.
+- `router/effect_ledger_adapter.ts` trace `platform_handoff.select_state_potion`
+  sans `committed`.
+- `router/final_response_pipeline.ts` autorise le wording handoff honnête et
+  bloque tout claim d'activation.
 
 ## Allowed Changes
 
-- Ajouter une potion ou un détail si `catalog.ts`, les sous-skills, le draft,
-  les validations et les tests sont mis à jour ensemble.
-- Améliorer `generator.ts` ou `renderer.ts` sans annoncer d'effet absent du
-  ledger.
-- Remplacer les entrées legacy séparées par un vrai `UserTurnSnapshot` ou
-  `TurnAgenda`, si le contrat `SelectStatePotionSkillResult` reste la source
-  de vérité du skill.
-- Déplacer un détecteur legacy vers l'intake IA, le dispatcher ou une
-  `InterruptionPolicy` explicite.
-- Ajouter des contraintes contractuelles si elles produisent des
-  `blocked_effects` ou un effet autorisé clair.
+- Améliorer les sous-skills, l'intake ou le generator si le résultat reste un
+  handoff non-mutant.
+- Ajouter une nouvelle potion au catalogue si la recommandation, le renderer et
+  les tests sont mis à jour ensemble.
+- Déplacer des legacy guards vers l'intake IA ou `clarification_tool`.
+- Ajouter des reason codes de handoff ou de blocage.
+- Améliorer les destinations via Product Surface Registry.
 
 ## Forbidden Changes
 
-- Ajouter des regex métier dans `intake.ts` ou dans `run.ts`.
-- Laisser `run.ts` interpréter `approve`, `reject`, `revise`, `explain`,
-  `cancel`, `no_potion` ou le refus de follow-up.
-- Activer une potion depuis un draft sans `executeActivateStatePotion`.
-- Marquer le tool exécuté sans `committed_effects`.
-- Dire au user qu'un suivi est programmé si `suppress_follow_up_scheduling`
-  est vrai ou si le writer n'a pas retourné d'ids.
-- Transformer le contexte DB en routing déterministe de potion.
-- Créer le one-shot reminder depuis le router potion.
-- Relancer un flow potion après `forbid_potion`.
+- Réintroduire `executeActivateStatePotion` dans le runtime nominal.
+- Appeler `writeStatePotionActivation`, `user_potion_sessions`,
+  `user_recurring_reminders` ou `scheduled_checkins` depuis le chat.
+- Créer un pending confirmation exécutable.
+- Dire "c'est activé", "j'ai lancé", "je t'ai programmé un suivi".
+- Transformer `apply_attempt` en exécution.
+- Ajouter des regex métier dans `intake.ts`, `router.ts`, `run.ts` ou
+  `operation_runtime_pipeline.ts`.
+- Hardcoder une destination produit si le Product Surface Registry expose une
+  surface canonique.
 
 ## Legacy Exceptions
 
-- `policy.ts` conserve des `hardConsentGuards` regex :
-  `detectsExplicitNoPotionRequest`, `detectsPotionFollowUpRefusal` et
-  `detectsExplicitStatePotionExit`. Elles sont acceptées car elles bloquent ou
-  suppriment des effets durables; elles ne remplissent pas de slots.
-- `policy.ts` conserve `legacySemanticDetectors` :
-  `isExplicitSelectStatePotionRequest`,
-  `looksLikeOneShotReminderHandoff` et
-  `detectsExplicitConcreteDeliverableRequest`. Elles protègent encore des
-  rouges QA de transition, mais ne doivent pas devenir le cerveau métier. Elles
-  pourront disparaître quand le dispatcher, `TurnAgenda` et
-  l'`InterruptionPolicy` fourniront ces signaux structurés.
-- `noPotionReply` et `statePotionDeclineReply` restent des réponses fallback
-  courtes pour garantir qu'un refus explicite reçoit une sortie propre sans
-  relancer la potion. Elles devront être remplacées par un renderer/composer
-  contractuel quand les invariants de composer seront centralisés.
-- `router/run.ts` contient encore de la mise en forme d'opportunités
-  `state_potion` pour des recommendations globales. Cette logique ne doit pas
-  grandir; elle doit migrer vers le builder de recommendation ou le dispatcher.
+- `executor.ts` et `persistence.ts` peuvent rester dans le repo pour référence
+  legacy tant qu'ils ne sont pas importés par le runtime V1 handoff.
+- `policy.ts` peut conserver des hard consent guards qui bloquent ou annulent :
+  no-potion, refus follow-up, exit potion. Ces guards ne remplissent pas de
+  slots et ne créent aucun effet.
+- Les clés tempMemory historiques peuvent rester supportées pendant la
+  migration, mais le chemin nominal doit écrire un état handoff dédié.
 
 ## Required Tests
 
-À lancer pour toute modification runtime du domaine :
+Tests propriétaires :
+
+- handoff complet avec renderer : état compris, recommandation, préserver,
+  éviter, destination, no-mutation ;
+- aucun confirmation token ;
+- aucun appel `executeActivateStatePotion` ;
+- aucun appel `writeStatePotionActivation` ;
+- aucune création `user_potion_sessions`, `user_recurring_reminders` ou
+  `scheduled_checkins` ;
+- `apply_attempt` ne mute pas et répète la destination plateforme ;
+- `repeat_handoff` répète la recommandation ;
+- `revise_handoff` régénère la recommandation ;
+- `no_potion` annule ou bloque proprement ;
+- `no_followup` est respecté dans le wording ;
+- "redis-moi" dans un handoff actif n'est pas status recap ;
+- "ok vas-y" dans un handoff actif n'est pas exécution ;
+- one-shot explicite sort proprement vers `create_one_shot_reminder` ;
+- safety préempte.
+
+Tests transverses :
 
 ```bash
 deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/select_state_potion/tests.ts
 deno check supabase/functions/sophia-brain/tools/operations/select_state_potion/router.ts
 deno check supabase/functions/sophia-brain/tools/operations/select_state_potion/contract.ts
+deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts
+deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/effect_ledger.test.ts
 ```
 
-Tests contractuels attendus dans `tests.ts` :
+QA réelle minimale :
 
-- `no_potion` annule un intake actif et clear le frame;
-- `no_potion` bloque un nouveau start et ne crée aucun pending;
-- `no_potion` + demande micro-action retourne une réponse utile sans relancer
-  potion;
-- refus follow-up avant activation persiste jusqu'à l'effet autorisé avec
-  `suppress_follow_up_scheduling=true`;
-- refus récent de suivi bloque scheduled checkins et recurring reminder;
-- pending draft + approbation explicite appelle l'executor;
-- pending draft + correction produit `revise`, sans activation;
-- pending draft + `explain` produit `explained`, sans activation;
-- `reject` clear le pending;
-- executor bloqué ne produit pas de `committed_effects` ni de message
-  d'activation;
-- succès writer expose `potion_session_id`, `recurring_reminder_id` et
-  `scheduled_checkin_ids` dans `committed_effects`;
-- demande de rappel ponctuel pendant potion retourne `handoff`, sans draft;
-- potion déjà sélectionnée reste préservée quand le user donne un détail.
-
-Les checks globaux utiles, quand le worktree transverse le permet :
-
-```bash
-deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_product_help_guard.test.ts
-deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/turn_intent_arbitrator.test.ts
-deno check supabase/functions/sophia-brain/router/run.ts
-```
+- "Je suis tendu, je veux peut-être une potion, mais pas un suivi."
+- "Ok vas-y active-la." après handoff.
+- "Redis-moi laquelle choisir."
+- "Non, pas de potion, donne-moi juste une phrase pour me poser."
 
 ## Suivi Des Décisions Architecturales
 
 | Date | Décision | Statut | Référence |
 | --- | --- | --- | --- |
-| 2026-05-29 | No-potion doit être porté par le skill, pas seulement par L4. | Remplacée par contrat local | `15-chantiers-log.md` |
-| 2026-05-30 | `select_state_potion` raisonne en `SelectStatePotionSkillResult` avec contraintes, effets, ledger local et renderer protégé par `committed_effects`. | Active | J46 |
+| 2026-05-29 | No-potion doit être porté par le skill, pas seulement par L4. | Conservé comme contrainte de handoff | `15-chantiers-log.md` |
+| 2026-05-30 | `select_state_potion` raisonnait en `SelectStatePotionSkillResult` avec contraintes, effets, ledger local et renderer protégé par `committed_effects`. | Superseded pour le chemin nominal | J46 |
+| 2026-06-01 | `select_state_potion` devient un handoff plateforme no-mutation : pas d'activation, pas de follow-up, pas de writer DB depuis le chat. | Active | Architecture handoff V1 |

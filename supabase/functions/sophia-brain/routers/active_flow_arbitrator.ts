@@ -39,6 +39,10 @@ export type ActiveFlowArbitration = {
 };
 
 function activeOperationType(state: unknown): string | null {
+  if (
+    (state as any)?.skill_id === "adjust_plan_item" &&
+    (state as any)?.mode === "platform_handoff"
+  ) return "adjust_plan_item";
   return typeof (state as any)?.operation_type === "string"
     ? String((state as any).operation_type)
     : null;

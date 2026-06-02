@@ -103,16 +103,27 @@ export function runFinalResponsePipeline(args: {
   deps: FinalResponsePipelineDeps;
 }): FinalResponsePipelineResult {
   const guardEvents: string[] = [];
+  const routeIsOrientationClarification =
+    args.routeDecision?.response_owner === "orientation_clarification";
+  const routeIsSafety = args.routeDecision?.response_owner === "safety" ||
+    args.routeDecision?.selected_handler === "safety_crisis";
+  const baseResponseContent = String(args.baseResponseContent ?? "").trim();
   let responseContent = args.deps.directSafetyCrisisReplyOverride({
     routeDecision: args.routeDecision,
     skillOutput: args.skillOutput,
   }) ?? args.deps.directConversationSkillReplyOverride({
     routeDecision: args.routeDecision,
     skillOutput: args.skillOutput,
-  }) ?? args.deps.oneShotReminderManagementReply(args.userMessage) ??
-    String(args.baseResponseContent ?? "").trim();
+  }) ??
+    (routeIsOrientationClarification
+      ? baseResponseContent
+      : args.deps.oneShotReminderManagementReply(args.userMessage) ??
+        baseResponseContent);
 
-  if (args.routeDecision?.response_owner !== "product_help") {
+  if (
+    args.routeDecision?.response_owner !== "product_help" &&
+    !routeIsOrientationClarification
+  ) {
     responseContent = args.deps.enforceRecommendationToolVisibleReply({
       responseContent,
       userMessage: args.userMessage,
@@ -180,21 +191,25 @@ export function runFinalResponsePipeline(args: {
     userMessage: args.userMessage,
     responseContent,
   });
-  responseContent = args.deps.applyUnexecutedEffectClaimGuard({
-    responseContent,
-    intendedTools: [
-      ...(args.routeDecision?.direct_effects_to_run ?? []),
-      ...(args.routeDecision?.selected_handler
-        ? [args.routeDecision.selected_handler]
-        : []),
-    ],
-    executedTools: [],
-  });
+  if (!routeIsOrientationClarification) {
+    responseContent = args.deps.applyUnexecutedEffectClaimGuard({
+      responseContent,
+      intendedTools: [
+        ...(args.routeDecision?.direct_effects_to_run ?? []),
+        ...(args.routeDecision?.selected_handler
+          ? [args.routeDecision.selected_handler]
+          : []),
+      ],
+      executedTools: [],
+    });
+  }
 
-  const normalClaimRewrite = rewriteUncommittedEffectClaims({
-    reply: responseContent,
-    ledger: args.effectLedger,
-  });
+  const normalClaimRewrite = routeIsOrientationClarification
+    ? { reply: responseContent, changed: false, reason_codes: [] }
+    : rewriteUncommittedEffectClaims({
+      reply: responseContent,
+      ledger: args.effectLedger,
+    });
   let effectLedgerTrace: unknown;
   if (normalClaimRewrite.changed) {
     guardEvents.push(...normalClaimRewrite.reason_codes);
@@ -219,6 +234,7 @@ export function runFinalResponsePipeline(args: {
     preferences: args.stylePreferences,
   });
   if (
+    !routeIsSafety &&
     !(
       args.deps.userRequestsShortStyle(args.userMessage) &&
       (((args.stylePreferences as any)?.noEmoji) ||

@@ -56,7 +56,7 @@ Deno.test("adjust_plan_item renderer blocks success language without committed e
   assertStringIncludes(message, "Brouillon d'ajustement prêt");
 });
 
-Deno.test("adjust_plan_item renderer allows success language with committed effect", () => {
+Deno.test("adjust_plan_item renderer blocks legacy committed effect success language", () => {
   const message = renderAdjustPlanDecision({
     state: {
       intent: "apply",
@@ -72,7 +72,8 @@ Deno.test("adjust_plan_item renderer allows success language with committed effe
       failed_effects: [],
     } as any,
   });
-  assertStringIncludes(message, "C'est appliqué");
+  assertEquals(message.includes("C'est appliqué"), false);
+  assertStringIncludes(message, "section Plan");
 });
 
 function actionPayload(options: {
@@ -1071,7 +1072,7 @@ Deno.test("adjust_plan_item exposes the global skill plus five sub-skills", () =
     "action_intake",
     "level_intake",
     "whole_plan_intake",
-    "draft_validation",
+    "handoff_validation",
   ]);
 
   const rawMessageOnly = runAdjustPlanScopeRouterSubSkill({
@@ -1333,7 +1334,7 @@ Deno.test("adjust_plan_item can use AI slot filler to route and fill multiple sl
   ]);
 });
 
-Deno.test("adjust_plan_item covers 5 structured scenarios and executes confirmed patches", async () => {
+Deno.test("adjust_plan_item covers 5 structured scenarios and blocks legacy patch execution", async () => {
   const scenarios = [
     {
       name: "action_reduce",
@@ -1430,13 +1431,13 @@ Deno.test("adjust_plan_item covers 5 structured scenarios and executes confirmed
       output.state_patch.sub_skill_trace?.find((trace) =>
         trace.sub_skill_id === "draft_validation"
       )?.status,
-      "ready_for_confirmation",
+      "ready_for_handoff",
       scenario.name,
     );
     assertEquals(
       runAdjustPlanDraftValidationSubSkill({ draft: output.draft! }).trace
         .status,
-      "ready_for_confirmation",
+      "ready_for_handoff",
       scenario.name,
     );
     if (scenario.expectBridge) {
@@ -1467,6 +1468,7 @@ Deno.test("adjust_plan_item covers 5 structured scenarios and executes confirmed
       pending_confirmation_id: "pending",
       secret: SECRET,
     });
+    let writeCount = 0;
     const executed = await executeAdjustPlanItem({
       operation_id: String(output.pending_confirmation?.operation_id),
       user_id: "u1",
@@ -1476,29 +1478,25 @@ Deno.test("adjust_plan_item covers 5 structured scenarios and executes confirmed
       pending_confirmation_lookup: async () => ({ consumed: false }),
       token_consumption_check: async (tokenId) =>
         hasConsumedConfirmationTokenForTest(tokenId),
-      write_plan_patch: async () => ({
-        plan_patch_id: "patch",
-        bridge_plan_item_id: output.draft?.draft.execution_strategy ===
-            "bridge_action"
-          ? "bridge-item"
-          : null,
-      }),
+      write_plan_patch: async () => {
+        writeCount += 1;
+        return {
+          plan_patch_id: "patch",
+          bridge_plan_item_id: output.draft?.draft.execution_strategy ===
+              "bridge_action"
+            ? "bridge-item"
+            : null,
+        };
+      },
       secret: SECRET,
     });
-    assertEquals(executed.status, "executed", scenario.name);
-    if (executed.status === "executed") {
-      assertEquals(
-        executed.tool_skill_state.status,
-        "completed",
-        scenario.name,
-      );
-    }
-    if (
-      executed.status === "executed" &&
-      output.draft?.draft.execution_strategy === "bridge_action"
-    ) {
-      assertEquals(executed.bridge_plan_item_id, "bridge-item", scenario.name);
-    }
+    assertEquals(writeCount, 0, scenario.name);
+    assertEquals(executed.status, "blocked", scenario.name);
+    assertEquals(
+      executed.tool_skill_state.status,
+      "handoff_delivered",
+      scenario.name,
+    );
   }
 });
 

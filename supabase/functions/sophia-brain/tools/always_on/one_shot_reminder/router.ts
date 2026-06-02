@@ -16,7 +16,6 @@ import {
 } from "./executor.ts";
 export {
   detectsExplicitOneShotReminderCancel,
-  explicitlySafeWorkReminderRequest,
   hasExplicitOneShotReminderDirectEffectOverride,
   isExplicitOneShotReminderModificationRequest,
   isLikelyOneShotReminderRequest,
@@ -31,7 +30,6 @@ export {
 } from "./route_guards.ts";
 import {
   detectsExplicitOneShotReminderCancel,
-  explicitlySafeWorkReminderRequest,
   hasExplicitOneShotReminderDirectEffectOverride,
   isExplicitOneShotReminderModificationRequest,
   isLikelyOneShotReminderRequest,
@@ -52,8 +50,6 @@ export {
   oneShotReminderManagementReply,
 } from "./renderer.ts";
 
-export const explicitlySafeWorkReminderRequestForTest =
-  explicitlySafeWorkReminderRequest;
 export const hasExplicitOneShotReminderDirectEffectOverrideForTest =
   hasExplicitOneShotReminderDirectEffectOverride;
 export const isOneShotReminderExactStatusRequestForTest =
@@ -71,7 +67,10 @@ export const shouldOneShotReminderSupersedeToolFlowForTest =
 export const shouldPreferOneShotReminderOverRecurringForTest =
   shouldPreferOneShotReminderOverRecurring;
 
-export function classifyOneShotReminderDirectIntent(message: string): {
+export function classifyOneShotReminderDirectIntent(
+  message: string,
+  directEffectsToRun: string[] = [],
+): {
   detected: boolean;
   intent: OneShotReminderIntent | "ignore" | "product_help" | "status_question";
   constraints: Array<{ kind: string; evidence: string[] }>;
@@ -79,7 +78,8 @@ export function classifyOneShotReminderDirectIntent(message: string): {
 } {
   const intake = buildOneShotReminderIntake({
     message,
-    fallbackLegacyGuards: true,
+    directEffectsToRun,
+    fallbackLegacyGuards: false,
   });
   return {
     detected: intake.detected,
@@ -191,7 +191,16 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
   createReminder?: typeof maybeCreateOneShotReminder;
   cancelReminder?: typeof maybeCancelOneShotReminder;
 }): Promise<OneShotReminderDirectEffectResult> {
-  const classified = classifyOneShotReminderDirectIntent(args.message);
+  const classified = classifyOneShotReminderDirectIntent(
+    args.message,
+    (args.turnFrame?.direct_effects ?? []).map((effect) => effect.effect_type),
+  );
+  const hasExplicitCreateDirectEffect = (args.turnFrame?.direct_effects ?? [])
+    .some((effect) =>
+      effect.effect_type === "create_one_shot_reminder" &&
+      effect.explicitness === "explicit" &&
+      effect.confidence_band !== "low"
+    );
   const intent = classified.intent;
   if (!classified.detected || intent === "off_topic") {
     return baseDirectEffectResult({
@@ -449,6 +458,7 @@ export async function maybeRunOneShotReminderDirectEffect(args: {
     requestId: args.requestId,
     now: args.now,
     contextMessages: args.contextMessages,
+    forceCreate: hasExplicitCreateDirectEffect,
   });
   if (!outcome.detected) {
     return baseDirectEffectResult({

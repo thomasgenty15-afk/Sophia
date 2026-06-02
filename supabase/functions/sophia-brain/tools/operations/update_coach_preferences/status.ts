@@ -131,19 +131,19 @@ export async function buildCoachPreferencesStatusReply(args: {
     if (error) return args.fallback;
     const rows = Array.isArray(data) ? data : [];
     if (!rows.length) {
-      return "Je ne vois pas encore de préférence coach enregistrée.";
+      return "Je ne vois pas encore de préférence coach active.";
     }
     const explicitRows = rows.filter((row: any) =>
       String(row?.source_type ?? "") !== "system_default"
     );
     if (!explicitRows.length) {
-      return "Je ne vois pas encore de préférence coach enregistrée.";
+      return "Je ne vois pas encore de préférence coach active.";
     }
     const labels = explicitRows
       .map((row: any) => coachPreferenceStatusLabel(row))
       .filter(Boolean);
     return labels.length
-      ? `Oui. Préférences coach enregistrées : ${labels.join(", ")}.`
+      ? `Oui. Préférences coach actives : ${labels.join(", ")}.`
       : args.fallback;
   } catch {
     return args.fallback;

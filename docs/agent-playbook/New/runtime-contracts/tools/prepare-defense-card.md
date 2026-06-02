@@ -2,11 +2,11 @@
 
 ## Mental Model
 
-`prepare_defense_card` prépare une carte qui protège un moment de risque déjà
-identifié ou en cours d'identification. Une carte de défense ne sert pas à
-démarrer une action; elle sert à protéger un moment où le user risque de
-déraper, éviter, scroller, abandonner, répondre trop vite, ou casser une action
-déjà importante.
+`prepare_defense_card` prépare un handoff plateforme pour une carte qui protège
+un moment de risque déjà identifié ou en cours d'identification. Une carte de
+défense ne sert pas à démarrer une action; elle sert à protéger un moment où le
+user risque de déraper, éviter, scroller, abandonner, répondre trop vite, ou
+casser une action déjà importante.
 
 Le skill possède tout le workflow métier :
 
@@ -15,15 +15,16 @@ Le skill possède tout le workflow métier :
 - collecter `risk_situation`, `trigger`, `defense_goal`,
   `defense_response_hint`;
 - produire un brouillon;
-- gérer `draft_only`, `create`, `reject/cancel`, `revise`, `explain`,
-  `topic_change`;
-- préparer les effets;
-- créer la carte uniquement après confirmation exploitable;
-- rendre la réponse visible uniquement depuis l'état du skill et les effets
-  commités.
+- gérer `draft_only`, `no_create`, `cancel`, `revise`, `explain`,
+  `topic_change`, `repeat_handoff`, `apply_attempt`;
+- produire un brouillon exploitable;
+- livrer la destination plateforme et les étapes de reprise;
+- rendre la réponse visible uniquement depuis l'état du skill et le brouillon
+  de handoff.
 
-Phrase d'invariant : **une carte de défense n'existe que si
-`committed_effects[0].defense_card_id` prouve l'écriture DB.**
+Phrase d'invariant : **`prepare_defense_card` ne crée jamais la carte depuis le
+chat. Son succès nominal est un `platform_handoff` avec
+`no_chat_mutation=true`, `executedTools=[]` et `committed_effects=[]`.**
 
 ## Dépend De L'Architecture De X
 
@@ -53,20 +54,14 @@ Dans le code actuel :
   `slot_filler.ts` portent la compréhension métier structurée, notamment
   `tool_fit`, `user_intent`, `constraints`, `draft_review_decision` et les
   slots de défense;
-- `tools/operations/prepare_defense_card/contract.ts` définit les effets
-  `requested`, `allowed`, `committed`, les contraintes et
+- `tools/operations/prepare_defense_card/contract.ts` définit l'état de
+  handoff, le brouillon de handoff, les contraintes et
   `PrepareDefenseCardSkillResult`;
-- `tools/operations/prepare_defense_card/executor.ts` vérifie la confirmation
-  avec `verifyExecutorConfirmation` et appelle le writer; il ne produit pas la
-  phrase visible de succès;
-- `tools/operations/prepare_defense_card/persistence.ts` possède l'écriture
-  `user_defense_cards` via `writeDefenseCardFromDraft`;
-- `tools/operations/_shared/operation_cycle.ts` centralise uniquement la
-  mécanique DB non user-facing de création/récupération du cycle, sans posséder
-  le draft défense, la confirmation ou le write `user_defense_cards`;
+- `tools/operations/prepare_defense_card/executor.ts` et `persistence.ts` sont
+  legacy hors chemin nominal; le router ne doit pas les appeler;
 - `tools/operations/prepare_defense_card/renderer.ts` produit le wording visible
-  avec `renderDefenseCardExecuted`, `renderDefenseCardBlocked`,
-  `renderDefenseCardFallbackFailed` et `renderDefenseCardSkillResult`;
+  avec `renderDefenseCardHandoff`, les rendus bloqués techniques et les guards
+  anti-succès sans mutation;
 - l'adaptation vers le runtime global passe par `defenseSkillResult` puis
   `toRuntimeResult` dans `router.ts`.
 
@@ -80,17 +75,13 @@ router/run.ts
           -> fillDefenseCardSlotsWithAi(...)
           -> normalizeDefenseCardSlotFillerOutput(...)
           -> generateDefenseCardDraftWithAi(...)
-      -> reducer local dans router.ts
-          -> pending / active / recommendation / draft_review
-          -> requested_effects / allowed_effects / blocked_effects
-      -> executePendingDefenseDraft(...)
-          -> createConfirmationToken(...)
-          -> executePrepareDefenseCard(...)
-              -> verifyExecutorConfirmation(...)
-              -> writeDefenseCardFromDraft(...)
-      -> committed_effects
-      -> renderDefenseCardSkillResult(...)
-      -> OperationRuntimeResult pour run.ts
+  -> reducer local dans router.ts
+      -> collecting / clarifying / handoff_ready / handoff_delivered
+      -> repeat_handoff / revise_handoff / apply_attempt / cancelled
+      -> platform_handoff draft
+      -> requested_effects=[] / allowed_effects=[] / committed_effects=[]
+  -> renderDefenseCardSkillResult(...)
+  -> OperationRuntimeResult pour run.ts
 ```
 
 Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
@@ -131,43 +122,39 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
     `clearDefenseCardFrame`;
   - propriétaire de `maybeRunPrepareDefenseCardOperation`;
   - reducer actuel du workflow;
-  - prépare `requested_effects`, `allowed_effects`, `blocked_effects`;
-  - produit `committed_effects` uniquement après succès executor;
-  - adapte le résultat local via `toRuntimeResult`.
+  - prépare l'état actif `platform_handoff`;
+  - force `requested_effects=[]`, `allowed_effects=[]`,
+    `committed_effects=[]`;
+  - adapte le résultat local en `OperationRuntimeResult` non-mutant.
 
-- `tools/operations/prepare_defense_card/executor.ts`
-  - `executePrepareDefenseCard` vérifie token, pending confirmation, safety et
-    consommation du token;
-  - appelle uniquement le writer injecté;
-  - retourne un résultat technique, pas un message user-facing long.
-
-- `tools/operations/prepare_defense_card/persistence.ts`
-  - `writeDefenseCardFromDraft` écrit `user_defense_cards`;
-  - crée/récupère le cycle via le helper partagé
-    `tools/operations/_shared/operation_cycle.ts::ensureToolOperationCycle(...)`;
-  - met à jour `user_plan_items.defense_card_id` quand la carte protège un plan
-    item.
+- `tools/operations/prepare_defense_card/executor.ts` et
+  `persistence.ts`
+  - legacy hors chemin nominal;
+  - ne doivent pas être appelés depuis le router runtime
+    `prepare_defense_card`;
+  - aucune écriture `user_defense_cards` ne doit être déclenchée par ce skill
+    depuis le chat.
 
 - `tools/operations/prepare_defense_card/renderer.ts`
-  - seule couche dédiée au wording visible de succès/blocage/fallback;
-  - `renderDefenseCardExecuted` ne dit “C'est fait” que si un
-    `committed_effect` contient `defense_card_id`.
+  - seule couche dédiée au wording visible handoff/blocage/fallback;
+  - rend la situation comprise, le risque, la stratégie, le brouillon, les
+    éléments à préserver/éviter, la destination plateforme et la phrase finale
+    de non-mutation.
 
 - `tools/operations/prepare_defense_card/tests.ts`
-  - protège le contrat IA, executor, router, `committed_effects`, draft-only,
-    explain, reject, revise, tool-fit unclear, et absence de done language sans
-    commit.
+  - protège le contrat IA, le router handoff, draft-only/no-create, repeat,
+    apply_attempt, reject, revise, tool-fit unclear, absence de pending
+    confirmation exécutable, absence de DB writer et wording no-mutation.
 
 ## Inputs
 
 - `userMessage`;
 - `RouteDecision` / `TurnFrame` déjà produits par les couches globales;
 - `tempMemory` avec frame défense éventuelle:
-  `__pending_tool_skill_confirmation`, `pending_tool_skill_confirmation`,
   `__active_tool_skill_intake`, `active_tool_skill_intake`,
   `__pending_recommendation_operation`;
 - `planSnapshot` pour rattacher une défense à un plan item;
-- pending draft ou pending recommendation;
+- état handoff actif ou recommandation pending;
 - sortie structurée de `runPrepareDefenseCardAiIntake`.
 
 ## Outputs
@@ -175,11 +162,10 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
 - `PrepareDefenseCardSkillResult` interne:
   - `status`;
   - `user_intent`;
-  - `requested_effects`;
-  - `allowed_effects`;
-  - `committed_effects`;
-  - `blocked_effects`;
-  - `pending_confirmation`;
+  - `requested_effects=[]`;
+  - `allowed_effects=[]`;
+  - `committed_effects=[]`;
+  - `platform_handoff`;
   - `debug.reason_code`.
 - `OperationRuntimeResult` attendu par `run.ts`:
   - `content`;
@@ -187,17 +173,21 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
   - `toolExecution`;
   - `executedTools`;
   - `toolSkillRun`.
-- DB durable uniquement via `writeDefenseCardFromDraft`.
+- Aucun effet durable. Sortie nominale :
+  `toolExecution="platform_handoff"`, `executedTools=[]`,
+  `committed_effects=[]`, `platform_handoff.operation_type="prepare_defense_card"`.
 
 ## Invariants
 
-- Pas de carte créée sans confirmation compatible et token valide.
-- Pas de DB write hors `executePrepareDefenseCard` + writer injecté.
-- Pas de `executedTools=["prepare_defense_card"]` sans
-  `committed_effects[0].defense_card_id`.
-- Pas de “C'est fait” sans `committed_effects[0].defense_card_id`.
+- Pas de carte créée depuis le chat.
+- Pas de confirmation token pour ce flow.
+- Pas de DB write `user_defense_cards`.
+- Pas de `executedTools=["prepare_defense_card"]`.
+- Pas de `committed_effects`.
+- Pas de wording “C'est fait”, “j'ai créé”, “j'ai ajouté”.
 - `draft_only` et contrainte `no_create` peuvent produire un brouillon et un
-  `requested_effect`, mais jamais un `allowed_effect` ni un `committed_effect`.
+  handoff, mais jamais un pending exécutable.
+- `apply_attempt` répète la destination plateforme; il n'exécute jamais.
 - `explain`, `reject/cancel`, `revise`, `topic_change`, `ask_question` ne
   créent jamais de carte.
 - `tool_fit="attack_better"` ne doit pas produire un mauvais brouillon défense;
@@ -211,29 +201,29 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
 
 - `router/run.ts`
   - appelle `maybeRunPrepareDefenseCardOperation`;
-  - ne doit pas connaître les détails de pending draft défense.
+  - ne doit pas connaître les détails du handoff défense.
 
 - `router/turn_intent_arbitrator.ts`
   - peut protéger les flows card actifs contre un status global;
   - ne doit pas ajouter de compréhension métier défense par regex.
 
-- `contracts/confirmation_token.v1.ts` et
-  `confirmation/confirmation_token.ts`
-  - utilisés via `createConfirmationToken` et `verifyExecutorConfirmation`.
+- `router/handoff_flow_arbitration.ts`
+  - protège les suites `repeat_handoff`, `revise_handoff` et `apply_attempt`
+    contre product_help/status trop tôt;
+  - laisse sortir safety, one-shot explicite, progress clair, status clair et
+    changement de sujet.
 
-- `tools/operations/_shared/confirmation_review.ts`
-  - `reviewToolSkillConfirmationWithAi` sert à relire une confirmation
-    pending/recommendation; le sens final reste appliqué dans le router du
-    skill.
+- `product_surface_registry`
+  - fournit la destination canonique des cartes de défense et les étapes à
+    afficher.
 
-- `tools/operations/_shared/operation_cycle.ts`
-  - centralise uniquement la mécanique DB non user-facing de création/récupération
-    du cycle;
-  - ne possède ni draft défense, ni confirmation, ni write `user_defense_cards`.
+- `clarification_tool`
+  - clarifie attaque vs défense, product help vs préparation, risque ponctuel vs
+    risque récurrent, action existante vs situation libre.
 
 - Effect ledger global
-  - le runtime global doit considérer `committed_effects` comme preuve, pas le
-    texte de réponse ni le simple `executedTools`.
+  - trace `platform_handoff.prepare_defense_card`, sans `committed` et sans
+    `executedTools`.
 
 ## Allowed Changes
 
@@ -245,18 +235,19 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
   les mêmes effets et invariants.
 - Ajouter de nouveaux `reason_code` dans `debug` / `blocked_effects` s'ils
   correspondent à un état structuré.
-- Améliorer la persistence dans `persistence.ts` sans déplacer l'écriture dans
-  `run.ts`.
+- Améliorer les helpers legacy dans `executor.ts` / `persistence.ts` seulement
+  s'ils restent hors chemin nominal, avec tests structurels prouvant qu'ils ne
+  sont pas appelés par le runtime handoff.
 
 ## Forbidden Changes
 
 - Ajouter une regex L3/L4 pour décider qu'un message est une défense.
 - Ajouter un fallback regex dans `slot_filler.ts` ou `ai_intake.ts` pour remplir
   `risk_situation`, `trigger`, `defense_goal` ou `defense_response_hint`.
-- Dire “C'est fait” dans l'executor ou dans `run.ts`.
-- Ajouter `executedTools=["prepare_defense_card"]` sans `committed_effects`.
-- Appeler directement `supabase.from("user_defense_cards").insert(...)` depuis
-  `router.ts` ou `run.ts`.
+- Dire “C'est fait” dans le renderer, l'executor ou dans `run.ts`.
+- Ajouter `executedTools=["prepare_defense_card"]`.
+- Appeler directement ou indirectement un writer `user_defense_cards` depuis le
+  runtime handoff.
 - Confondre défense et attaque: un démarrage d'action appartient à
   `prepare_attack_card`, sauf si le user clarifie qu'il veut protéger un moment
   de risque.
@@ -281,10 +272,10 @@ Le reducer n'est pas encore extrait dans un fichier `reducer.ts`; il vit dans
   questions de slot. Suppression possible quand `renderer.ts` couvrira aussi
   toutes les questions intermédiaires.
 
-- `reviewToolSkillConfirmationWithAi` est encore appelé directement par le
-  router pour relire une confirmation/recommandation. Il reste acceptable car il
-  renvoie une classification structurée; il ne doit pas devenir un fallback
-  regex.
+- `reviewToolSkillConfirmationWithAi` peut rester utilisé pour relire une
+  intention de suite, mais son résultat ne peut plus autoriser une exécution. Il
+  doit être adapté en `repeat_handoff`, `revise_handoff`, `apply_attempt`,
+  `cancelled`, `topic_change` ou clarification.
 
 ## Required Tests
 
@@ -292,20 +283,18 @@ Le contrat est protégé par :
 
 - `tools/operations/prepare_defense_card/tests.ts`
   - intake structuré sans fallback regex;
-  - executor écrit seulement après token;
   - slot filler normalise `draft_only` + `no_create`;
-  - draft-only ne crée jamais et ne commit rien;
-  - pending draft + create passe par executor;
-  - success contient `committed_effects[0].defense_card_id`;
-  - explain ne crée pas;
-  - reject clear pending;
-  - revise préserve attachment/risk;
+  - handoff complet avec contenu renderer;
+  - aucun confirmation token, aucun executor, aucun writer défense dans le
+    router;
+  - draft-only/no-create produit un handoff sans pending exécutable;
+  - `apply_attempt` n'exécute jamais;
+  - `repeat_handoff` répète le brouillon plateforme;
+  - `revise_handoff` régénère la recommandation;
+  - reject/cancel clear le handoff actif;
   - `tool_fit=unclear` pose clarification;
   - failed intake ne marque jamais `executedTools`;
-  - writer failure ne dit jamais “C'est fait”;
-  - executor retourne un succès technique sans wording long;
-  - adapter contract -> runtime mappe `committed_effects` vers
-    `executedTools`.
+  - wording interdit absent et destination plateforme présente.
 
 Tests minimaux à lancer après modification :
 
@@ -316,9 +305,7 @@ deno test --allow-env --allow-net --allow-read \
 deno check \
   supabase/functions/sophia-brain/tools/operations/prepare_defense_card/router.ts \
   supabase/functions/sophia-brain/tools/operations/prepare_defense_card/contract.ts \
-  supabase/functions/sophia-brain/tools/operations/prepare_defense_card/executor.ts \
   supabase/functions/sophia-brain/tools/operations/prepare_defense_card/renderer.ts \
-  supabase/functions/sophia-brain/tools/operations/prepare_defense_card/persistence.ts \
   supabase/functions/sophia-brain/tools/operations/prepare_defense_card/tests.ts
 
 deno check supabase/functions/sophia-brain/router/run.ts
@@ -328,7 +315,8 @@ deno check supabase/functions/sophia-brain/router/run.ts
 
 | Date | Décision | Statut | Référence |
 | --- | --- | --- | --- |
-| 2026-05-30 | `prepare_defense_card` est contract-driven : `committed_effects` est la seule preuve de création et conditionne `executedTools` + “C'est fait”. | Active | J15 / J44 |
-| 2026-05-30 | Persistence et renderer sont séparés de l'executor; l'executor retourne un résultat technique. | Active | J15 / J44 |
+| 2026-06-01 | `prepare_defense_card` devient un coaching handoff plateforme : pas de confirmation token, pas d'executor, pas de DB writer, `executedTools=[]`, `committed_effects=[]`. | Active | J75 |
+| 2026-05-30 | `prepare_defense_card` était contract-driven avec création DB après commit. | Superseded | J15 / J44 |
+| 2026-05-30 | Persistence et renderer étaient séparés de l'executor; l'executor retournait un résultat technique. | Superseded pour le chemin nominal | J15 / J44 |
 | 2026-05-30 | Les clés tempMemory legacy restent supportées temporairement pour compatibilité cross-turn. | Legacy temporaire | À supprimer après frame tool-skill versionnée |
 | 2026-05-30 | La mécanique commune `user_cycles` peut être partagée via `_shared/operation_cycle.ts`, sans déplacer l'écriture `user_defense_cards` hors de `prepare_defense_card/persistence.ts`. | Active | J62 |

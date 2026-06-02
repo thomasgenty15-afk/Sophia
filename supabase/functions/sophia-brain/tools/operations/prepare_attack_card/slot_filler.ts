@@ -106,7 +106,15 @@ function objectValue(value: unknown): Record<string, unknown> | null {
 
 function normalizeTechnique(value: unknown): AttackTechniqueKey | null {
   const raw = String(value ?? "").trim();
-  return raw in ATTACK_TECHNIQUES ? raw as AttackTechniqueKey : null;
+  if (raw in ATTACK_TECHNIQUES) return raw as AttackTechniqueKey;
+  const normalized = normalizeFitText(raw).replace(/[^a-z0-9]+/g, " ").trim();
+  if (!normalized) return null;
+  for (const [key, definition] of Object.entries(ATTACK_TECHNIQUES)) {
+    const title = normalizeFitText(definition.title).replace(/[^a-z0-9]+/g, " ")
+      .trim();
+    if (title === normalized) return key as AttackTechniqueKey;
+  }
+  return null;
 }
 
 function normalizeTechniqueOptions(value: unknown) {
@@ -495,10 +503,10 @@ export async function fillAttackCardSlotsWithAi(
     "Tu ne réponds jamais librement au user. Tu retournes uniquement un JSON de progression.",
     "Principe strict: la compréhension du message user est ici, dans ce JSON. Le code ne fera pas de regex ni de fallback métier.",
     "Tu dois identifier ou mettre a jour: user_intent global, contraintes, cible, technique, mot de bascule si applicable, blocker, slots manquants, message court a envoyer au user.",
-    "user_intent vaut draft_only si le user demande un brouillon, une proposition ou un affichage sans création; create seulement s'il demande clairement la création maintenant; cancel/reject s'il refuse; revise s'il corrige; explain s'il demande pourquoi/comment; status_question pour une question produit/statut; topic_change pour une sortie vers un autre sujet; clarify si une précision est demandée; unknown sinon.",
+    "user_intent vaut draft_only si le user demande un brouillon, une proposition ou un affichage sans création; create seulement s'il demande clairement de créer/appliquer maintenant, mais ce flow reste non-mutant côté chat; cancel/reject s'il refuse; revise s'il corrige; explain s'il demande pourquoi/comment ou veut qu'on répète quoi mettre; status_question pour une question produit/statut; topic_change pour une sortie vers un autre sujet; clarify si une précision est demandée; unknown sinon.",
     "Les contraintes no_create/draft_only doivent être explicites dès que le user dit sans créer, pas encore, montre/affiche le brouillon, draft only, ou demande seulement une proposition.",
     "Si operation_input.previous_draft existe, tu es dans le sous-skill draft_validation: dans le meme JSON, remplis state_patch.draft_validation.decision avec approve|reject|revise|explain|topic_change|unclear.",
-    "Dans draft_validation, approve veut dire que le user demande clairement d'appliquer/creer la carte maintenant; reject refuse; revise corrige ou demande de reproposer; explain demande des details; topic_change sort du brouillon; unclear ne suffit pas.",
+    "Dans draft_validation, approve veut dire que le user tente clairement d'appliquer/creer la carte maintenant; le router le transformera en apply_attempt non-mutant, jamais en execution. reject refuse; revise corrige ou demande de reproposer; explain demande des details ou une répétition du brouillon/destination; topic_change sort du brouillon; unclear ne suffit pas.",
     "Dans draft_validation, si le user dit oui a une demande de preparer/montrer/reformuler le brouillon, ce n'est pas approve: c'est revise tant qu'il ne demande pas explicitement la creation.",
     "Dans draft_validation, si le user donne une correction exacte puis dit d'appliquer, classe revise si le brouillon doit d'abord intégrer cette correction.",
     "Les techniques autorisées viennent de la source de vérité fournie. Ne crée jamais une technique hors enum.",

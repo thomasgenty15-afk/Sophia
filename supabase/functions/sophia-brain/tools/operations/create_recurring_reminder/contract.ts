@@ -34,6 +34,49 @@ export type CreateRecurringReminderHandoffTarget =
   | "create_one_shot_reminder"
   | null;
 
+export type RecurringReminderHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "handoff_to_one_shot"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type RecurringReminderHandoffDraft = {
+  operation_type: "create_recurring_reminder";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  reminder_summary: string;
+  cadence_summary: string;
+  time_summary?: string | null;
+  content_summary: string;
+  recommendation: {
+    platform_destination: string;
+    platform_steps: string[];
+    preserve: string[];
+    avoid: string[];
+  };
+  missing_decisions: string[];
+};
+
+export type RecurringReminderHandoffState = {
+  skill_id: "create_recurring_reminder";
+  mode: "platform_handoff";
+  status: RecurringReminderHandoffStatus;
+  draft?: RecurringReminderHandoffDraft | null;
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+  no_chat_mutation: true;
+};
+
 export type CreateRecurringReminderEffect = {
   type: "create_recurring_reminder";
   operation_id: string;
@@ -58,7 +101,11 @@ export type CreateRecurringReminderSkillResult = {
   status:
     | "ask_question"
     | "draft_ready"
-    | "pending_confirmation"
+    | "handoff_ready"
+    | "handoff_delivered"
+    | "revise_handoff"
+    | "repeat_handoff"
+    | "apply_attempt"
     | "cancelled"
     | "revised"
     | "explained"

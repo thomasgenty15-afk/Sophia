@@ -281,6 +281,7 @@ export function hasPendingOrActiveAdjustPlanOperation(
 ): boolean {
   const frame = loadAdjustPlanFrameFromTempMemory(tempMemory);
   if (frame.pending_draft_review || frame.pending_confirmation) return true;
+  if (frame.handoff_state) return true;
   if (
     String(frame.active_intake?.operation_type ?? "").trim() ===
       "adjust_plan_item"

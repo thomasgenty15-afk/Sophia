@@ -1,0 +1,27 @@
+[
+  {
+    "turn": 1,
+    "requestId": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2-t01",
+    "status": 200,
+    "ok": true,
+    "user": "Prépare-moi une carte d'attaque pour envoyer mon dossier administratif avant 16h. Je bloque parce que je veux que ce soit parfait avant d'envoyer. Ne la crée pas, donne-moi juste le brouillon à reprendre dans la plateforme.",
+    "assistant": "Cible/action comprise : Envoyer mon dossier administratif\n\nObstacle ou piège identifié : je veux que ce soit parfait avant d'envoyer\n\nTechnique recommandée : Le texte magique\nPourquoi : Il recadre ton besoin de perfection comme une simple résistance pour t'aider à passer à l'acte.\n\nBrouillon de carte :\nDossier : Fait vaut mieux que parfait\nCe dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.\nMode d'emploi : Lis ce texte au moment où tu sens la résistance monter, puis fais le premier geste.\n\nÀ préserver :\n- Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé. Mon perfectionnisme est une forme de fuite. Je choisis de cliquer sur envoyer maintenant pour me libérer l'esprit.\n- Le perfectionnisme est une forme d'évitement\n- L'objectif est l'envoi avant 16h, pas la perfection\n\nÀ éviter :\n- Transformer ce brouillon en promesse trop longue.\n- Ajouter plusieurs techniques concurrentes dans la même carte.\n\nDestination plateforme : dans la section Cartes d’attaque\n1. ouvre la section Cartes\n2. choisis Carte d’attaque\n3. reprends le brouillon proposé\n\nJe ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes d’attaque. 🙂",
+    "aborted": false,
+    "abort_reason": null,
+    "empty_response": false,
+    "response_tool_execution": "platform_handoff",
+    "response_executed_tools": [],
+    "response_owner": "tool_skill",
+    "selected_handler": "prepare_attack_card",
+    "route_selected_handler": "prepare_attack_card",
+    "route_reason_code": "tool_skill_intent_start",
+    "operation_flow_run": null,
+    "pending_tool_skill_confirmation": null,
+    "pending_operation_resolution": null,
+    "safety_pregate": null,
+    "direct_effects": [],
+    "memory_plan": null,
+    "trace_id": "qa-prepare-defense-card-qa-skill-2026-06-02-attack_blocking_focus_r2-t01",
+    "trace_error": null
+  }
+]

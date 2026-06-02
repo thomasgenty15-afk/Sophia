@@ -4,10 +4,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { RouteDecision } from "../../../contracts/route_decision.v1.ts";
 import type { TurnFrame } from "../../../contracts/turn_frame.v1.ts";
-import { createConfirmationToken } from "../../../confirmation/confirmation_token.ts";
 import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
 import { buildToolConfirmationDecision } from "../_shared/confirmation_adapter.ts";
 import {
+  type DefenseCardHandoffDraft,
+  type DefenseCardHandoffState,
   hasPrepareDefenseCardNoCreateConstraint,
   type PrepareDefenseCardCommittedEffect,
   type PrepareDefenseCardEffect,
@@ -16,15 +17,11 @@ import {
 } from "./contract.ts";
 import { runPrepareDefenseCardAiIntake } from "./ai_intake.ts";
 import type { DefenseCardDraftV1 } from "./generator.ts";
-import { executePrepareDefenseCard } from "./executor.ts";
-import {
-  type DefenseCardAttachment,
-  writeDefenseCardFromDraft,
-} from "./persistence.ts";
+import type { DefenseCardAttachment } from "./persistence.ts";
 import {
   renderDefenseCardBlocked,
-  renderDefenseCardExecuted,
   renderDefenseCardFallbackFailed,
+  renderDefenseCardHandoff,
   renderDefenseCardSkillResult,
 } from "./renderer.ts";
 
@@ -32,18 +29,16 @@ type OperationRuntimeResult = {
   content: string;
   additionalContents?: string[];
   nextTempMemory: any;
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  toolExecution:
+    | "none"
+    | "blocked"
+    | "success"
+    | "failed"
+    | "uncertain"
+    | "platform_handoff";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
 };
-
-function envString(name: string, fallback = ""): string {
-  try {
-    return String(Deno.env.get(name) ?? fallback);
-  } catch {
-    return fallback;
-  }
-}
 
 function pendingOperationType(value: unknown): string | null {
   const record = value && typeof value === "object" && !Array.isArray(value)
@@ -90,7 +85,8 @@ export function isPendingDefenseCardRecommendationOperation(
     record &&
       typeof record === "object" &&
       record.operation_type === "prepare_defense_card" &&
-      record.surface_id === "defense_card",
+      (record.surface_id === "defense_card" ||
+        record.surface_id === "defense_cards"),
   );
 }
 
@@ -223,6 +219,188 @@ export function clearDefenseCardFrame(tempMemory: any) {
   });
 }
 
+function buildDefenseCardHandoffDraft(args: {
+  draft: DefenseCardDraftV1;
+  attachment?: DefenseCardAttachment | null;
+  missingDecisions?: string[];
+}): DefenseCardHandoffDraft {
+  const card = args.draft.draft;
+  const target = String(args.attachment?.title ?? card.target_label ?? "")
+    .trim() || "situation libre";
+  const risk = String(card.risk_situation ?? card.situation ?? "").trim();
+  const signal = String(card.signal ?? "").trim();
+  const response = String(card.defense_response ?? "").trim();
+  const planB = String(card.plan_b ?? card.fallback_plan ?? "").trim();
+  const label = String(card.title ?? "").trim() ||
+    `Carte de défense - ${risk || target}`;
+  const situation = String(card.situation ?? risk).trim();
+  const routeKind = args.attachment?.kind === "plan_item"
+    ? "plan_item_card"
+    : "free_card";
+  const routeLabel = routeKind === "plan_item_card"
+    ? "Carte de défense liée à une mission ou habitude du plan"
+    : "Carte de défense libre";
+  const platformDestination = routeKind === "plan_item_card"
+    ? "Ressources / Défense / Cartes de défense du plan"
+    : "Ressources / Défense / Cartes de défense libres / Ajouter une carte";
+  const entryNeed = routeKind === "plan_item_card"
+    ? target
+    : [
+      target,
+      risk ? `risque : ${risk}` : "",
+    ].filter(Boolean).join(" - ");
+  const platformSteps = routeKind === "plan_item_card"
+    ? [
+      "Ouvre la mission ou l'habitude concernée dans le plan.",
+      "Dans Ressources, utilise Générer si les cartes du plan ne sont pas encore prêtes.",
+      "Ouvre Ressources / Défense / Cartes de défense du plan et ajuste les champs ci-dessous.",
+    ]
+    : [
+      "Ouvre Ressources / Défense.",
+      "Dans Cartes de défense libres, clique sur Ajouter une carte.",
+      "Renseigne le besoin libre, réponds aux 3 questions, puis reprends les champs finaux ci-dessous.",
+    ];
+  return {
+    operation_type: "prepare_defense_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: target,
+    risk_summary: signal ? `${risk} (${signal})` : risk,
+    platform_flow: {
+      route_kind: routeKind,
+      route_label: routeLabel,
+      entry_need: entryNeed,
+      questionnaire_answers: [
+        {
+          field: "moment",
+          question_label:
+            "A quel moment précis ça arrive, et dans quel contexte ?",
+          answer: situation,
+        },
+        {
+          field: "signal",
+          question_label:
+            "Quel est le premier signal qui montre que ça bascule ?",
+          answer: signal || risk,
+        },
+        {
+          field: "response",
+          question_label:
+            "Quel geste simple et réaliste pourrait couper ça tout de suite ?",
+          answer: response,
+        },
+      ],
+    },
+    platform_fields: {
+      label,
+      situation,
+      signal: signal || risk,
+      defense_response: response,
+      plan_b: planB,
+    },
+    recommendation: {
+      defense_strategy_label: "Réponse préparée avant le moment de risque",
+      why_this_strategy: String(card.why_it_helps ?? "").trim() ||
+        "Elle prépare une réponse simple avant que le piège ne décide à ta place.",
+      card_draft_summary: [
+        `Nom de la carte : ${label}`,
+        `Le moment : ${situation}`,
+        `Le piège : ${signal || risk}`,
+        `Mon geste : ${response}`,
+        `Plan B : ${planB}`,
+      ].join("\n"),
+      preserve: [
+        "Le moment précis où le risque apparaît",
+        "Un geste court et faisable même avec peu d'énergie",
+        "Un plan B qui réduit les dégâts sans culpabiliser",
+      ],
+      avoid: [
+        "Transformer la défense en injonction trop dure",
+        "Créer une carte vague sans signal concret",
+        "Compter sur la motivation du moment fragile",
+      ],
+      platform_destination: platformDestination,
+      platform_steps: platformSteps,
+    },
+    missing_decisions: args.missingDecisions ?? [],
+  };
+}
+
+function writeDefenseCardHandoffState(args: {
+  tempMemory: any;
+  status: DefenseCardHandoffState["status"];
+  handoff: DefenseCardHandoffDraft | null;
+  previous?: Record<string, unknown> | null;
+}): any {
+  const now = new Date().toISOString();
+  const previous = args.previous ?? null;
+  const createdAt = String(previous?.created_at ?? now);
+  return writeDefenseCardFrameToTempMemory(args.tempMemory, {
+    pending: null,
+    active: {
+      operation_type: "prepare_defense_card",
+      skill_id: "prepare_defense_card",
+      mode: "platform_handoff",
+      status: args.status,
+      draft: args.handoff,
+      turn_count: Number(previous?.turn_count ?? 0) + 1,
+      max_turns: Number(previous?.max_turns ?? 6),
+      created_at: createdAt,
+      updated_at: now,
+      no_chat_mutation: true,
+      draft_payload: previous?.draft_payload ?? null,
+      operation_input: previous?.operation_input ?? null,
+    },
+  });
+}
+
+function handoffRuntime(args: {
+  status: DefenseCardHandoffState["status"];
+  handoff: DefenseCardHandoffDraft;
+  nextTempMemory: any;
+  userIntent?: PrepareDefenseCardUserIntent;
+  reasonCode: string;
+  extraToolSkillRun?: Record<string, unknown>;
+}): OperationRuntimeResult {
+  return {
+    content: renderDefenseCardHandoff({
+      handoff: args.handoff,
+      status: args.status === "apply_attempt"
+        ? "apply_attempt"
+        : args.status === "revise_handoff"
+        ? "revise_handoff"
+        : args.status === "repeat_handoff"
+        ? "repeat_handoff"
+        : "handoff_delivered",
+    }),
+    nextTempMemory: args.nextTempMemory,
+    toolExecution: "platform_handoff",
+    executedTools: [],
+    toolSkillRun: {
+      selected_handler: "prepare_defense_card",
+      operation_type: "prepare_defense_card",
+      status: args.status,
+      user_intent: args.userIntent ?? "unknown",
+      requested_effects: [],
+      allowed_effects: [],
+      committed_effects: [],
+      blocked_effects: [],
+      pending_confirmation: null,
+      reason: args.reasonCode,
+      reason_code: args.reasonCode,
+      platform_handoff: {
+        operation_type: "prepare_defense_card",
+        status: args.status,
+        surface_id: "defense_cards",
+        no_chat_mutation: true,
+        draft: args.handoff,
+      },
+      ...(args.extraToolSkillRun ?? {}),
+    },
+  };
+}
+
 function intentFromDraftReviewDecision(
   decision: string | undefined,
   fallback: PrepareDefenseCardUserIntent,
@@ -272,13 +450,17 @@ function defenseCardAttachmentFromPendingConfirmation(
     ? null
     : undefined;
   const rawKind = String(attachment.kind ?? "");
+  const title = typeof attachment.title === "string" ? attachment.title : null;
+  const kind = rawKind === "personal_action" ||
+      rawKind === "free_risk_context" ||
+      rawKind === "recurring_context"
+    ? rawKind
+    : rawKind === "plan_item" && planItemId
+    ? "plan_item"
+    : "free_risk_context";
   return {
-    kind: rawKind === "personal_action" ||
-        rawKind === "free_risk_context" ||
-        rawKind === "recurring_context"
-      ? rawKind
-      : "plan_item",
-    title: typeof attachment.title === "string" ? attachment.title : null,
+    kind,
+    title,
     plan_item_id: planItemId ?? null,
   };
 }
@@ -447,131 +629,6 @@ function technicalDefenseCardRuntime(args: {
   };
 }
 
-async function executePendingDefenseDraft(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
-  sourceMessageId: string | null;
-  requestId?: string | null;
-  nextTempMemory: any;
-  pendingRaw: {
-    operation_id?: string;
-    draft: DefenseCardDraftV1;
-    attachment?: DefenseCardAttachment | null;
-    risk_situation?: { label?: string | null } | null;
-  };
-  draftReviewDecision?: Record<string, unknown> | null;
-  userIntent: PrepareDefenseCardUserIntent;
-}): Promise<OperationRuntimeResult> {
-  const operationId = String(
-    args.pendingRaw.operation_id ?? crypto.randomUUID(),
-  );
-  const token = await createConfirmationToken({
-    user_id: args.userId,
-    operation_id: operationId,
-    operation_type: "prepare_defense_card",
-    draft: args.pendingRaw.draft,
-    source_message_id: args.sourceMessageId ?? args.requestId ??
-      crypto.randomUUID(),
-    pending_confirmation_id: operationId,
-    secret: envString(
-      "CONFIRMATION_TOKEN_SECRET",
-      envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-    ),
-  });
-
-  let executed;
-  try {
-    executed = await executePrepareDefenseCard({
-      operation_id: operationId,
-      user_id: args.userId,
-      draft: args.pendingRaw.draft,
-      token,
-      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-      pending_confirmation_lookup: async (id) =>
-        id === operationId ? { consumed: false } : null,
-      token_consumption_check: async () => false,
-      write_defense_card: async (draft) =>
-        await writeDefenseCardFromDraft({
-          supabase: args.supabase,
-          userId: args.userId,
-          draft: { ...args.pendingRaw.draft, draft },
-          operationId,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          attachment: args.pendingRaw.attachment ?? null,
-          riskSituation: args.pendingRaw.risk_situation ?? null,
-        }),
-      secret: envString(
-        "CONFIRMATION_TOKEN_SECRET",
-        envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-      ),
-    });
-  } catch (error) {
-    executed = {
-      status: "blocked" as const,
-      reason_code: error instanceof Error ? error.message : "db_write_failed",
-    };
-  }
-
-  const nextTempMemory = clearDefenseCardFrame(args.nextTempMemory);
-  const requestedEffects = [
-    pendingEffect({ ...args.pendingRaw, operation_id: operationId }),
-  ];
-  if (executed.status !== "executed") {
-    const reasonCode = String(executed.reason_code ?? "execution_blocked");
-    const skillResult = defenseSkillResult({
-      status: "blocked",
-      userIntent: args.userIntent,
-      reasonCode,
-      reply: renderDefenseCardBlocked(reasonCode),
-      requestedEffects,
-      allowedEffects: [],
-      committedEffects: [],
-      blockedEffects: [{
-        type: "create_defense_card",
-        reason_code: reasonCode,
-      }],
-    });
-    return toRuntimeResult({
-      skillResult,
-      nextTempMemory,
-      extraToolSkillRun: {
-        operation_id: operationId,
-        draft_review_decision: args.draftReviewDecision ?? null,
-      },
-    });
-  }
-
-  const committedEffects: PrepareDefenseCardCommittedEffect[] = [{
-    type: "create_defense_card",
-    operation_id: operationId,
-    defense_card_id: executed.defense_card_id,
-  }];
-  const skillResult = defenseSkillResult({
-    status: "executed",
-    userIntent: args.userIntent,
-    reasonCode: "executed",
-    reply: renderDefenseCardExecuted({
-      draft: args.pendingRaw.draft,
-      committedEffects,
-    }),
-    requestedEffects,
-    allowedEffects: requestedEffects,
-    committedEffects,
-    blockedEffects: [],
-  });
-  return toRuntimeResult({
-    skillResult,
-    nextTempMemory,
-    extraToolSkillRun: {
-      operation_id: operationId,
-      defense_card_id: executed.defense_card_id,
-      draft_review_decision: args.draftReviewDecision ?? null,
-    },
-  });
-}
-
 export async function maybeRunPrepareDefenseCardOperation(args: {
   supabase: SupabaseClient;
   userId: string;
@@ -626,48 +683,69 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       local_review: null,
       request_id: args.requestId ?? null,
     });
+    const baseHandoff = buildDefenseCardHandoffDraft({
+      draft: pendingRaw.draft,
+      attachment: pendingRaw.attachment ?? null,
+    });
     if (directConfirmationDecision.decision === "reject") {
-      const cleared = writeDefenseCardPendingConfirmation(nextTempMemory, null);
+      const cleared = clearDefenseCardFrame(nextTempMemory);
       return {
-        content: "Ok, je ne crée pas cette carte de défense.",
+        content:
+          "Ok, pas de carte de défense finalement. Je ne crée rien depuis le chat.",
         nextTempMemory: cleared,
-        toolExecution: "blocked",
+        toolExecution: "platform_handoff",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_defense_card",
+          operation_type: "prepare_defense_card",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
           user_intent: "reject",
-          requested_effects: [pendingEffect(pendingRaw)],
+          requested_effects: [],
           allowed_effects: [],
           committed_effects: [],
-          blocked_effects: [{
-            type: "create_defense_card",
-            reason_code: "user_rejected",
-          }],
+          blocked_effects: [],
+          platform_handoff: {
+            operation_type: "prepare_defense_card",
+            status: "cancelled",
+            no_chat_mutation: true,
+            draft: baseHandoff,
+          },
           confirmation_decision: directConfirmationDecision,
           draft_review_decision: null,
         },
       };
     }
-    if (
-      directConfirmationDecision.decision === "approve" &&
-      directConfirmationDecision.executable
-    ) {
-      return await executePendingDefenseDraft({
-        supabase: args.supabase,
-        userId: args.userId,
-        safetyPregateOutput: args.safetyPregateOutput,
-        sourceMessageId: args.sourceMessageId,
-        requestId: args.requestId ?? null,
-        nextTempMemory,
-        pendingRaw,
-        draftReviewDecision: null,
+    if (directConfirmationDecision.decision === "approve") {
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "apply_attempt",
+        handoff: baseHandoff,
+        previous: {
+          draft_payload: pendingRaw.draft,
+          operation_input: {
+            previous_draft: pendingRaw.draft,
+            attachment: pendingRaw.attachment ?? null,
+            risk_situation: pendingRaw.risk_situation ?? null,
+            intake_state: (pendingRaw as any).intake_state ?? undefined,
+          },
+        },
+      });
+      return handoffRuntime({
+        status: "apply_attempt",
+        handoff: baseHandoff,
+        nextTempMemory: active,
         userIntent: "create",
+        reasonCode: "chat_apply_attempt_redirected_to_platform",
+        extraToolSkillRun: {
+          operation_id: pendingRaw.operation_id ?? null,
+          confirmation_decision: directConfirmationDecision,
+        },
       });
     }
     const pendingReviewOutput = await runIntake({
       user_id: args.userId,
+      request_id: args.requestId ?? null,
       channel: args.channel,
       timezone: args.userTimezone,
       message: args.userMessage,
@@ -717,15 +795,14 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     const noCreate = hasPrepareDefenseCardNoCreateConstraint(
       pendingReviewOutput.state_patch.constraints,
     ) || userIntent === "draft_only";
-    const requestedEffects = [pendingEffect(pendingRaw)];
     if (!draftReviewDecision) {
       if (
-        pendingReviewOutput.status === "pending_confirmation" &&
-        pendingReviewOutput.pending_confirmation &&
+        (pendingReviewOutput.status === "pending_confirmation" ||
+          pendingReviewOutput.status === "handoff_ready") &&
         pendingReviewOutput.draft
       ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
+        const handoff = buildDefenseCardHandoffDraft({
+          draft: pendingReviewOutput.draft,
           attachment: defenseCardAttachmentFromPendingConfirmation(
             pendingReviewOutput.pending_confirmation,
             {
@@ -734,59 +811,60 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
               intake_state: (pendingRaw as any).intake_state ?? undefined,
             },
           ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: pendingReviewOutput.confirmation?.message ??
-            pendingReviewOutput.draft.confirmation_message,
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_defense_card",
-            status: noCreate ? "draft_ready" : "pending_confirmation_updated",
-            operation_id: String(
-              pendingReviewOutput.pending_confirmation.operation_id ??
-                pendingRaw.operation_id ??
-                "",
-            ),
+        });
+        const active = writeDefenseCardHandoffState({
+          tempMemory: nextTempMemory,
+          status: noCreate ? "handoff_ready" : "handoff_delivered",
+          handoff,
+          previous: {
+            draft_payload: pendingReviewOutput.draft,
+            operation_input: pendingReviewOutput.state_patch.operation_input ??
+              null,
+          },
+        });
+        return handoffRuntime({
+          status: noCreate ? "handoff_ready" : "handoff_delivered",
+          handoff,
+          nextTempMemory: active,
+          userIntent,
+          reasonCode: noCreate
+            ? "draft_only_platform_handoff"
+            : "platform_handoff_delivered",
+          extraToolSkillRun: {
             previous_operation_id: pendingRaw.operation_id ?? null,
-            user_intent: userIntent,
-            requested_effects: requestedEffects,
-            allowed_effects: noCreate ? [] : requestedEffects,
-            committed_effects: [],
-            blocked_effects: noCreate
-              ? [{
-                type: "create_defense_card",
-                reason_code: "no_create_constraint",
-              }]
-              : [],
             draft: pendingReviewOutput.draft,
             draft_review_decision: null,
           },
-        };
+        });
       }
       if (pendingReviewOutput.status === "ask_question") {
-        nextTempMemory.__active_tool_skill_intake = {
-          operation_type: "prepare_defense_card",
-          phase: pendingReviewOutput.phase,
-          missing_slots: pendingReviewOutput.state_patch.missing_slots,
-          slot_state: pendingReviewOutput.next_question ?? null,
-          operation_input: pendingReviewOutput.next_question?.known_slots ??
-            null,
-          tool_skill_state: pendingReviewOutput.state_patch.tool_skill_state ??
-            null,
-          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-          updated_at: new Date().toISOString(),
-        };
+        const active = writeDefenseCardFrameToTempMemory(nextTempMemory, {
+          pending: null,
+          active: {
+            operation_type: "prepare_defense_card",
+            skill_id: "prepare_defense_card",
+            mode: "platform_handoff",
+            status: "clarifying",
+            phase: pendingReviewOutput.phase,
+            missing_slots: pendingReviewOutput.state_patch.missing_slots,
+            slot_state: pendingReviewOutput.next_question ?? null,
+            operation_input: pendingReviewOutput.next_question?.known_slots ??
+              null,
+            tool_skill_state:
+              pendingReviewOutput.state_patch.tool_skill_state ??
+                null,
+            turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+            max_turns: 6,
+            no_chat_mutation: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+        });
         return {
           content: renderDefenseCardSlotQuestion(
             pendingReviewOutput.next_question,
           ),
-          nextTempMemory,
+          nextTempMemory: active,
           toolExecution: "blocked",
           executedTools: [],
           toolSkillRun: {
@@ -806,7 +884,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       }
       return {
         content: pendingReviewOutput.ack ??
-          "Je n'ai pas réussi à relire cette validation techniquement. Je préfère ne rien créer sans confirmation claire.",
+          "Je n'ai pas réussi à relire cette demande techniquement. Je ne crée rien depuis le chat.",
         nextTempMemory,
         toolExecution: "blocked",
         executedTools: [],
@@ -831,24 +909,23 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       confirmationDecision.decision === "reject" || userIntent === "cancel" ||
       userIntent === "reject"
     ) {
-      const cleared = writeDefenseCardPendingConfirmation(nextTempMemory, null);
+      const cleared = clearDefenseCardFrame(nextTempMemory);
       return {
-        content: "Ok, je ne crée pas cette carte de défense.",
+        content:
+          "Ok, pas de carte de défense finalement. Je ne crée rien depuis le chat.",
         nextTempMemory: cleared,
-        toolExecution: "blocked",
+        toolExecution: "platform_handoff",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_defense_card",
+          operation_type: "prepare_defense_card",
           status: "cancelled",
           operation_id: pendingRaw.operation_id ?? null,
           user_intent: userIntent,
-          requested_effects: requestedEffects,
+          requested_effects: [],
           allowed_effects: [],
           committed_effects: [],
-          blocked_effects: [{
-            type: "create_defense_card",
-            reason_code: "user_rejected",
-          }],
+          blocked_effects: [],
           confirmation_decision: confirmationDecision,
           draft_review_decision: draftReviewDecision,
         },
@@ -860,34 +937,37 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       userIntent === "status_question" ||
       userIntent === "draft_only"
     ) {
-      return {
-        content: pendingRaw.draft?.confirmation_message ??
-          pendingRaw.draft?.draft?.defense_response ??
-          "",
-        nextTempMemory,
-        toolExecution: "none",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: "draft_review_details",
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "repeat_handoff",
+        handoff: baseHandoff,
+        previous: {
+          draft_payload: pendingRaw.draft,
+          operation_input: {
+            previous_draft: pendingRaw.draft,
+            attachment: pendingRaw.attachment ?? null,
+            risk_situation: pendingRaw.risk_situation ?? null,
+          },
+        },
+      });
+      return handoffRuntime({
+        status: "repeat_handoff",
+        handoff: baseHandoff,
+        nextTempMemory: active,
+        userIntent,
+        reasonCode: "repeat_platform_handoff",
+        extraToolSkillRun: {
           operation_id: pendingRaw.operation_id ?? null,
-          user_intent: userIntent,
-          requested_effects: requestedEffects,
-          allowed_effects: [],
-          committed_effects: [],
-          blocked_effects: userIntent === "draft_only"
-            ? [{ type: "create_defense_card", reason_code: "draft_only" }]
-            : [],
           confirmation_decision: confirmationDecision,
           draft_review_decision: draftReviewDecision,
         },
-      };
+      });
     }
     if (
       confirmationDecision.decision === "topic_change" ||
       userIntent === "topic_change"
     ) {
-      const cleared = writeDefenseCardPendingConfirmation(nextTempMemory, null);
+      const cleared = clearDefenseCardFrame(nextTempMemory);
       return {
         content: pendingReviewOutput.ack ??
           (pendingReviewOutput.state_patch.intake_state &&
@@ -905,11 +985,11 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
           status: "topic_change",
           operation_id: pendingRaw.operation_id ?? null,
           user_intent: userIntent,
-          requested_effects: requestedEffects,
+          requested_effects: [],
           allowed_effects: [],
           committed_effects: [],
           blocked_effects: [{
-            type: "create_defense_card",
+            type: "prepare_defense_card",
             reason_code: "topic_change",
           }],
           confirmation_decision: confirmationDecision,
@@ -919,72 +999,63 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     }
     if (confirmationDecision.decision === "revise" || userIntent === "revise") {
       if (
-        pendingReviewOutput.status === "pending_confirmation" &&
-        pendingReviewOutput.pending_confirmation &&
+        (pendingReviewOutput.status === "pending_confirmation" ||
+          pendingReviewOutput.status === "handoff_ready") &&
         pendingReviewOutput.draft
       ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
-          attachment: defenseCardAttachmentFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            {
-              attachment: pendingRaw.attachment ?? null,
-              risk_situation: pendingRaw.risk_situation ?? null,
-              intake_state: (pendingRaw as any).intake_state ?? undefined,
-            },
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
-        return {
-          content: pendingReviewOutput.confirmation?.message ??
-            pendingReviewOutput.draft.confirmation_message,
-          nextTempMemory,
-          toolExecution: "blocked",
-          executedTools: [],
-          toolSkillRun: {
-            selected_handler: "prepare_defense_card",
-            status: "pending_confirmation_updated",
-            operation_id: String(
-              pendingReviewOutput.pending_confirmation.operation_id ??
-                pendingRaw.operation_id ??
-                "",
-            ),
+        const handoff = buildDefenseCardHandoffDraft({
+          draft: pendingReviewOutput.draft,
+          attachment: pendingRaw.attachment ?? null,
+        });
+        const active = writeDefenseCardHandoffState({
+          tempMemory: nextTempMemory,
+          status: "revise_handoff",
+          handoff,
+          previous: {
+            draft_payload: pendingReviewOutput.draft,
+            operation_input: pendingReviewOutput.state_patch.operation_input ??
+              null,
+          },
+        });
+        return handoffRuntime({
+          status: "revise_handoff",
+          handoff,
+          nextTempMemory: active,
+          userIntent,
+          reasonCode: "revised_platform_handoff",
+          extraToolSkillRun: {
             previous_operation_id: pendingRaw.operation_id ?? null,
-            user_intent: userIntent,
-            requested_effects: requestedEffects,
-            allowed_effects: noCreate ? [] : requestedEffects,
-            committed_effects: [],
-            blocked_effects: noCreate
-              ? [{
-                type: "create_defense_card",
-                reason_code: "no_create_constraint",
-              }]
-              : [],
             confirmation_decision: confirmationDecision,
             draft: pendingReviewOutput.draft,
             draft_review_decision: draftReviewDecision,
           },
-        };
+        });
       }
 
-      delete nextTempMemory.__pending_tool_skill_confirmation;
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      nextTempMemory.__active_tool_skill_intake = {
-        operation_type: "prepare_defense_card",
-        phase: pendingReviewOutput.phase,
-        missing_slots: pendingReviewOutput.state_patch.missing_slots,
-        slot_state: pendingReviewOutput.next_question ?? null,
-        operation_input: pendingReviewOutput.next_question?.known_slots ?? null,
-        turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
-      };
+      const active = writeDefenseCardFrameToTempMemory(nextTempMemory, {
+        pending: null,
+        active: {
+          operation_type: "prepare_defense_card",
+          skill_id: "prepare_defense_card",
+          mode: "platform_handoff",
+          status: "clarifying",
+          phase: pendingReviewOutput.phase,
+          missing_slots: pendingReviewOutput.state_patch.missing_slots,
+          slot_state: pendingReviewOutput.next_question ?? null,
+          operation_input: pendingReviewOutput.next_question?.known_slots ??
+            null,
+          turn_count: Number(pendingRaw.turn_count ?? 0) + 1,
+          max_turns: 6,
+          no_chat_mutation: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      });
       return {
         content: renderDefenseCardSlotQuestion(
           pendingReviewOutput.next_question,
         ),
-        nextTempMemory,
+        nextTempMemory: active,
         toolExecution: "blocked",
         executedTools: [],
         toolSkillRun: {
@@ -1004,48 +1075,32 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       };
     }
     if (confirmationDecision.decision !== "approve") return null;
-    if (
-      !confirmationDecision.executable || userIntent !== "create" || noCreate
-    ) {
-      return {
-        content:
-          "Je garde le brouillon prêt, mais je ne crée rien sans une confirmation explicite de création.",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: "blocked",
-          operation_id: pendingRaw.operation_id ?? null,
-          user_intent: userIntent,
-          requested_effects: requestedEffects,
-          allowed_effects: [],
-          committed_effects: [],
-          blocked_effects: [{
-            type: "create_defense_card",
-            reason_code: noCreate
-              ? "no_create_constraint"
-              : !confirmationDecision.executable
-              ? confirmationDecision.blocked_by[0] ??
-                "confirmation_not_executable"
-              : "intent_not_create",
-          }],
-          confirmation_decision: confirmationDecision,
-          draft_review_decision: draftReviewDecision,
+    const active = writeDefenseCardHandoffState({
+      tempMemory: nextTempMemory,
+      status: "apply_attempt",
+      handoff: baseHandoff,
+      previous: {
+        draft_payload: pendingRaw.draft,
+        operation_input: {
+          previous_draft: pendingRaw.draft,
+          attachment: pendingRaw.attachment ?? null,
+          risk_situation: pendingRaw.risk_situation ?? null,
         },
-      };
-    }
-
-    return await executePendingDefenseDraft({
-      supabase: args.supabase,
-      userId: args.userId,
-      safetyPregateOutput: args.safetyPregateOutput,
-      sourceMessageId: args.sourceMessageId,
-      requestId: args.requestId ?? null,
-      nextTempMemory,
-      pendingRaw,
-      draftReviewDecision,
+      },
+    });
+    return handoffRuntime({
+      status: "apply_attempt",
+      handoff: baseHandoff,
+      nextTempMemory: active,
       userIntent,
+      reasonCode: noCreate
+        ? "no_create_constraint_platform_handoff"
+        : "chat_apply_attempt_redirected_to_platform",
+      extraToolSkillRun: {
+        operation_id: pendingRaw.operation_id ?? null,
+        confirmation_decision: confirmationDecision,
+        draft_review_decision: draftReviewDecision,
+      },
     });
   }
 
@@ -1062,22 +1117,21 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     if (confirmationDecision.decision === "reject") {
       delete nextTempMemory.__pending_recommendation_operation;
       return {
-        content: "Ok, je ne crée pas cette carte de défense.",
+        content:
+          "Ok, pas de carte de défense finalement. Je ne crée rien depuis le chat.",
         nextTempMemory,
-        toolExecution: "blocked",
+        toolExecution: "platform_handoff",
         executedTools: [],
         toolSkillRun: {
           selected_handler: "prepare_defense_card",
-          status: "recommendation_cancelled",
+          operation_type: "prepare_defense_card",
+          status: "cancelled",
           user_intent: "reject",
           recommendation_id: pendingRecommendation.recommendation_id ?? null,
           requested_effects: [],
           allowed_effects: [],
           committed_effects: [],
-          blocked_effects: [{
-            type: "create_defense_card",
-            reason_code: "user_rejected",
-          }],
+          blocked_effects: [],
           confirmation_decision: confirmationDecision,
         },
       };
@@ -1088,6 +1142,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
 
     const recommendationOutput = await runIntake({
       user_id: args.userId,
+      request_id: args.requestId ?? null,
       channel: args.channel,
       timezone: args.userTimezone,
       message: args.userMessage,
@@ -1108,7 +1163,8 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     }
 
     if (
-      recommendationOutput.status !== "pending_confirmation" ||
+      (recommendationOutput.status !== "pending_confirmation" &&
+        recommendationOutput.status !== "handoff_ready") ||
       !recommendationOutput.draft
     ) {
       delete nextTempMemory.__pending_recommendation_operation;
@@ -1153,61 +1209,281 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     const noCreate = hasPrepareDefenseCardNoCreateConstraint(
       recommendationOutput.state_patch.constraints,
     ) || recommendationOutput.state_patch.user_intent === "draft_only";
-    nextTempMemory.__pending_tool_skill_confirmation = {
-      ...recommendationOutput.pending_confirmation,
+    const handoff = buildDefenseCardHandoffDraft({
+      draft: recommendationOutput.draft,
       attachment: defenseCardAttachmentFromPendingConfirmation(
         recommendationOutput.pending_confirmation,
         pendingRecommendation.operation_input ?? null,
       ),
-      created_at: new Date().toISOString(),
-      turn_count: 0,
-    };
+    });
     delete nextTempMemory.__pending_recommendation_operation;
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content: recommendationOutput.confirmation?.message ??
-        recommendationOutput.draft.confirmation_message,
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_defense_card",
-        status: noCreate ? "draft_ready" : "pending_confirmation",
+    const active = writeDefenseCardHandoffState({
+      tempMemory: nextTempMemory,
+      status: noCreate ? "handoff_ready" : "handoff_delivered",
+      handoff,
+      previous: {
+        draft_payload: recommendationOutput.draft,
+        operation_input: recommendationOutput.state_patch.operation_input ??
+          pendingRecommendation.operation_input ?? null,
+      },
+    });
+    return handoffRuntime({
+      status: noCreate ? "handoff_ready" : "handoff_delivered",
+      handoff,
+      nextTempMemory: active,
+      userIntent: recommendationOutput.state_patch.user_intent,
+      reasonCode: noCreate
+        ? "draft_only_platform_handoff"
+        : "platform_handoff_delivered",
+      extraToolSkillRun: {
         source: "recommendation_tool",
-        user_intent: recommendationOutput.state_patch.user_intent,
         recommendation_id: pendingRecommendation.recommendation_id ?? null,
-        operation_id:
-          (recommendationOutput.pending_confirmation as any)?.operation_id ??
-            null,
-        requested_effects: recommendationOutput.draft && !noCreate
-          ? [{
-            type: "create_defense_card",
-            operation_id: String(
-              (recommendationOutput.pending_confirmation as any)
-                ?.operation_id ?? "",
-            ),
-            draft: recommendationOutput.draft,
-          }]
-          : [],
-        allowed_effects: [],
-        committed_effects: [],
-        blocked_effects: noCreate
-          ? [{
-            type: "create_defense_card",
-            reason_code: "no_create_constraint",
-          }]
-          : [],
         draft: recommendationOutput.draft,
       },
-    };
+    });
   }
 
   const activeDefenseIntake = (
     nextTempMemory.__active_tool_skill_intake ??
       nextTempMemory.active_tool_skill_intake
   ) as any;
+  if (
+    activeDefenseIntake?.operation_type === "prepare_defense_card" &&
+    activeDefenseIntake?.mode === "platform_handoff" &&
+    activeDefenseIntake?.draft
+  ) {
+    const handoff = activeDefenseIntake.draft as DefenseCardHandoffDraft;
+    const draftPayload = activeDefenseIntake.draft_payload as
+      | DefenseCardDraftV1
+      | undefined;
+    const operationInput = {
+      ...(activeDefenseIntake.operation_input ?? {}),
+      ...(draftPayload ? { previous_draft: draftPayload } : {}),
+    };
+    const activeRouteReason = String(
+      args.routeDecision?.reason_code ?? "",
+    );
+    if (
+      activeRouteReason === "explicit_cancel_clears_active_handoff" ||
+      activeRouteReason === "negative_confirmation_clears_active_handoff"
+    ) {
+      const cleared = clearDefenseCardFrame(nextTempMemory);
+      return {
+        content:
+          "Ok, pas de carte de défense finalement. Je ne crée rien depuis le chat.",
+        nextTempMemory: cleared,
+        toolExecution: "platform_handoff",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_defense_card",
+          operation_type: "prepare_defense_card",
+          status: "cancelled",
+          user_intent: "reject",
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [],
+          pending_confirmation: null,
+          platform_handoff: {
+            operation_type: "prepare_defense_card",
+            status: "cancelled",
+            no_chat_mutation: true,
+            draft: handoff,
+          },
+        },
+      };
+    }
+    if (activeRouteReason === "active_handoff_repeat_handoff") {
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "repeat_handoff",
+        handoff,
+        previous: activeDefenseIntake,
+      });
+      return handoffRuntime({
+        status: "repeat_handoff",
+        handoff,
+        nextTempMemory: active,
+        userIntent: "explain",
+        reasonCode: "repeat_platform_handoff",
+      });
+    }
+    if (
+      activeRouteReason === "active_handoff_apply_attempt" ||
+      activeRouteReason === "confirmation_yes_is_handoff_apply_attempt"
+    ) {
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "apply_attempt",
+        handoff,
+        previous: activeDefenseIntake,
+      });
+      return handoffRuntime({
+        status: "apply_attempt",
+        handoff,
+        nextTempMemory: active,
+        userIntent: "create",
+        reasonCode: "chat_apply_attempt_redirected_to_platform",
+      });
+    }
+    const reviewOutput = await runIntake({
+      user_id: args.userId,
+      request_id: args.requestId ?? null,
+      channel: args.channel,
+      timezone: args.userTimezone,
+      message: args.userMessage,
+      source: "direct_user_request",
+      trigger_message_id: args.sourceMessageId ?? args.requestId ??
+        crypto.randomUUID(),
+      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+      turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
+      plan_snapshot: args.planSnapshot ?? {},
+      operation_input: operationInput,
+    });
+    if (reviewOutput.status === "technical_blocked") {
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "blocked",
+        handoff,
+        previous: activeDefenseIntake,
+      });
+      return handoffRuntime({
+        status: "blocked",
+        handoff,
+        nextTempMemory: active,
+        reasonCode: "active_handoff_review_failed",
+      });
+    }
+    const decision = reviewOutput.state_patch.draft_review_decision;
+    const userIntent = intentFromDraftReviewDecision(
+      decision?.decision,
+      reviewOutput.state_patch.user_intent,
+    );
+    if (
+      decision?.decision === "reject" || userIntent === "cancel" ||
+      userIntent === "reject"
+    ) {
+      const cleared = clearDefenseCardFrame(nextTempMemory);
+      return {
+        content:
+          "Ok, pas de carte de défense finalement. Je ne crée rien depuis le chat.",
+        nextTempMemory: cleared,
+        toolExecution: "platform_handoff",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_defense_card",
+          operation_type: "prepare_defense_card",
+          status: "cancelled",
+          user_intent: userIntent,
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [],
+          pending_confirmation: null,
+          platform_handoff: {
+            operation_type: "prepare_defense_card",
+            status: "cancelled",
+            no_chat_mutation: true,
+            draft: handoff,
+          },
+        },
+      };
+    }
+    if (decision?.decision === "approve" || userIntent === "create") {
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: "apply_attempt",
+        handoff,
+        previous: activeDefenseIntake,
+      });
+      return handoffRuntime({
+        status: "apply_attempt",
+        handoff,
+        nextTempMemory: active,
+        userIntent,
+        reasonCode: "chat_apply_attempt_redirected_to_platform",
+        extraToolSkillRun: { draft_review_decision: decision ?? null },
+      });
+    }
+    if (
+      decision?.decision === "revise" || userIntent === "revise" ||
+      reviewOutput.status === "handoff_ready" ||
+      reviewOutput.status === "pending_confirmation"
+    ) {
+      if (reviewOutput.draft) {
+        const revised = buildDefenseCardHandoffDraft({
+          draft: reviewOutput.draft,
+          attachment: defenseCardAttachmentFromPendingConfirmation(
+            reviewOutput.pending_confirmation,
+            reviewOutput.state_patch.operation_input ?? null,
+          ),
+        });
+        const active = writeDefenseCardHandoffState({
+          tempMemory: nextTempMemory,
+          status: "revise_handoff",
+          handoff: revised,
+          previous: {
+            ...activeDefenseIntake,
+            draft_payload: reviewOutput.draft,
+            operation_input: reviewOutput.state_patch.operation_input ??
+              activeDefenseIntake.operation_input ?? null,
+          },
+        });
+        return handoffRuntime({
+          status: "revise_handoff",
+          handoff: revised,
+          nextTempMemory: active,
+          userIntent,
+          reasonCode: "revised_platform_handoff",
+          extraToolSkillRun: { draft_review_decision: decision ?? null },
+        });
+      }
+      if (reviewOutput.status === "ask_question") {
+        const active = writeDefenseCardFrameToTempMemory(nextTempMemory, {
+          active: {
+            ...activeDefenseIntake,
+            status: "clarifying",
+            slot_state: reviewOutput.next_question ?? null,
+            operation_input: reviewOutput.next_question?.known_slots ??
+              activeDefenseIntake.operation_input ?? null,
+            turn_count: Number(activeDefenseIntake.turn_count ?? 0) + 1,
+            updated_at: new Date().toISOString(),
+          },
+        });
+        return {
+          content: renderDefenseCardSlotQuestion(reviewOutput.next_question),
+          nextTempMemory: active,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_defense_card",
+            status: "clarifying",
+            user_intent: userIntent,
+            missing_slots: reviewOutput.state_patch.missing_slots,
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [],
+            slot_state: reviewOutput.next_question ?? null,
+          },
+        };
+      }
+    }
+    const active = writeDefenseCardHandoffState({
+      tempMemory: nextTempMemory,
+      status: "repeat_handoff",
+      handoff,
+      previous: activeDefenseIntake,
+    });
+    return handoffRuntime({
+      status: "repeat_handoff",
+      handoff,
+      nextTempMemory: active,
+      userIntent,
+      reasonCode: "repeat_platform_handoff",
+      extraToolSkillRun: { draft_review_decision: decision ?? null },
+    });
+  }
   const activeAttachmentQuestion = activeDefenseIntake?.operation_type ===
       "prepare_defense_card"
     ? activeDefenseIntake.slot_state ?? activeDefenseIntake.next_question
@@ -1221,6 +1497,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       {};
     const candidateOutput = await runIntake({
       user_id: args.userId,
+      request_id: args.requestId ?? null,
       channel: args.channel,
       timezone: args.userTimezone,
       message: args.userMessage,
@@ -1242,65 +1519,48 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
       });
     }
     if (
-      candidateOutput.status === "pending_confirmation" &&
-      candidateOutput.pending_confirmation
+      (candidateOutput.status === "pending_confirmation" ||
+        candidateOutput.status === "handoff_ready") &&
+      candidateOutput.draft
     ) {
-      nextTempMemory.__pending_tool_skill_confirmation = {
-        ...candidateOutput.pending_confirmation,
+      const noCreate = hasPrepareDefenseCardNoCreateConstraint(
+        candidateOutput.state_patch.constraints,
+      ) || candidateOutput.state_patch.user_intent === "draft_only";
+      const handoff = buildDefenseCardHandoffDraft({
+        draft: candidateOutput.draft,
         attachment: defenseCardAttachmentFromPendingConfirmation(
           candidateOutput.pending_confirmation,
           { attachment: activeAttachmentCandidate },
         ),
-        created_at: new Date().toISOString(),
-        turn_count: 0,
-      };
-      delete nextTempMemory.pending_tool_skill_confirmation;
-      delete nextTempMemory.__active_tool_skill_intake;
-      delete nextTempMemory.active_tool_skill_intake;
-      return {
-        content: candidateOutput.confirmation?.message ??
-          candidateOutput.draft?.confirmation_message ?? "",
-        nextTempMemory,
-        toolExecution: "blocked",
-        executedTools: [],
-        toolSkillRun: {
-          selected_handler: "prepare_defense_card",
-          status: hasPrepareDefenseCardNoCreateConstraint(
-              candidateOutput.state_patch.constraints,
-            ) || candidateOutput.state_patch.user_intent === "draft_only"
-            ? "draft_ready"
-            : "pending_confirmation",
-          user_intent: candidateOutput.state_patch.user_intent,
-          operation_id:
-            (candidateOutput.pending_confirmation as any)?.operation_id ??
-              null,
-          requested_effects: candidateOutput.draft
-            ? [{
-              type: "create_defense_card",
-              operation_id: String(
-                (candidateOutput.pending_confirmation as any)?.operation_id ??
-                  "",
-              ),
-              draft: candidateOutput.draft,
-            }]
-            : [],
-          allowed_effects: [],
-          committed_effects: [],
-          blocked_effects: hasPrepareDefenseCardNoCreateConstraint(
-              candidateOutput.state_patch.constraints,
-            ) || candidateOutput.state_patch.user_intent === "draft_only"
-            ? [{
-              type: "create_defense_card",
-              reason_code: "no_create_constraint",
-            }]
-            : [],
+      });
+      const active = writeDefenseCardHandoffState({
+        tempMemory: nextTempMemory,
+        status: noCreate ? "handoff_ready" : "handoff_delivered",
+        handoff,
+        previous: {
+          draft_payload: candidateOutput.draft,
+          operation_input: candidateOutput.state_patch.operation_input ?? {
+            ...activeKnownSlots,
+            attachment_candidate: activeAttachmentCandidate,
+          },
+        },
+      });
+      return handoffRuntime({
+        status: noCreate ? "handoff_ready" : "handoff_delivered",
+        handoff,
+        nextTempMemory: active,
+        userIntent: candidateOutput.state_patch.user_intent,
+        reasonCode: noCreate
+          ? "draft_only_platform_handoff"
+          : "platform_handoff_delivered",
+        extraToolSkillRun: {
           draft: candidateOutput.draft ?? null,
           attachment_slot_resolution: {
             status: "resolved_by_skill_intake",
             attachment: activeAttachmentCandidate,
           },
         },
-      };
+      });
     }
     nextTempMemory.__active_tool_skill_intake = {
       operation_type: "prepare_defense_card",
@@ -1346,6 +1606,7 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
 
   const output = await runIntake({
     user_id: args.userId,
+    request_id: args.requestId ?? null,
     channel: args.channel,
     timezone: args.userTimezone,
     message: args.userMessage,
@@ -1366,54 +1627,43 @@ export async function maybeRunPrepareDefenseCardOperation(args: {
     });
   }
 
-  if (output.status === "pending_confirmation" && output.pending_confirmation) {
+  if (
+    (output.status === "pending_confirmation" ||
+      output.status === "handoff_ready") &&
+    output.draft
+  ) {
     const noCreate = hasPrepareDefenseCardNoCreateConstraint(
       output.state_patch.constraints,
     ) || output.state_patch.user_intent === "draft_only";
-    nextTempMemory.__pending_tool_skill_confirmation = {
-      ...output.pending_confirmation,
+    const handoff = buildDefenseCardHandoffDraft({
+      draft: output.draft,
       attachment: defenseCardAttachmentFromPendingConfirmation(
         output.pending_confirmation,
         fallbackOperationInput,
       ),
-      created_at: new Date().toISOString(),
-      turn_count: 0,
-    };
-    delete nextTempMemory.pending_tool_skill_confirmation;
-    delete nextTempMemory.__active_tool_skill_intake;
-    delete nextTempMemory.active_tool_skill_intake;
-    return {
-      content: output.confirmation?.message ??
-        "Tu veux que je crée cette carte de défense ?",
-      nextTempMemory,
-      toolExecution: "blocked",
-      executedTools: [],
-      toolSkillRun: {
-        selected_handler: "prepare_defense_card",
-        status: noCreate ? "draft_ready" : "pending_confirmation",
-        user_intent: output.state_patch.user_intent,
-        requested_effects: output.pending_confirmation
-          ? [{
-            type: "create_defense_card",
-            operation_id: String(
-              (output.pending_confirmation as any)?.operation_id ?? "",
-            ),
-            draft: output.draft,
-          }]
-          : [],
-        allowed_effects: [],
-        committed_effects: [],
-        blocked_effects: noCreate
-          ? [{
-            type: "create_defense_card",
-            reason_code: "no_create_constraint",
-          }]
-          : [],
-        operation_id: (output.pending_confirmation as any)?.operation_id ??
-          null,
+    });
+    const active = writeDefenseCardHandoffState({
+      tempMemory: nextTempMemory,
+      status: noCreate ? "handoff_ready" : "handoff_delivered",
+      handoff,
+      previous: {
+        draft_payload: output.draft,
+        operation_input: output.state_patch.operation_input ??
+          fallbackOperationInput ?? null,
+      },
+    });
+    return handoffRuntime({
+      status: noCreate ? "handoff_ready" : "handoff_delivered",
+      handoff,
+      nextTempMemory: active,
+      userIntent: output.state_patch.user_intent,
+      reasonCode: noCreate
+        ? "draft_only_platform_handoff"
+        : "platform_handoff_delivered",
+      extraToolSkillRun: {
         draft: output.draft ?? null,
       },
-    };
+    });
   }
 
   if (output.status === "ask_question") {

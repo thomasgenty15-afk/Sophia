@@ -29,6 +29,7 @@ export type PrepareDefenseCardOperationOutput = {
   operation_type: "prepare_defense_card";
   status:
     | "ask_question"
+    | "handoff_ready"
     | "pending_confirmation"
     | "draft_review_decision"
     | "cancelled"
@@ -49,6 +50,7 @@ export type PrepareDefenseCardOperationOutput = {
     message: string;
     actions: ["yes", "no"];
   };
+  handoff_message?: string;
   next_question?: {
     needed: boolean;
     slot: "attachment" | "risk_situation" | "tool_fit" | "defense_response";
@@ -159,6 +161,43 @@ function parseJsonObject(raw: unknown): Record<string, unknown> {
     throw new Error("defense_card_draft_not_object");
   }
   return parsed as Record<string, unknown>;
+}
+
+async function repairStructuredJsonWithAi(args: {
+  raw: unknown;
+  requiredShape: unknown;
+  userId: string;
+  requestId?: string | null;
+  source: string;
+}): Promise<Record<string, unknown>> {
+  const repaired = await generateWithGemini(
+    [
+      "Tu es un réparateur JSON interne.",
+      "Tu retournes uniquement un objet JSON valide.",
+      "Ne change pas le sens métier du contenu fourni.",
+      "Si un champ manque, mets une valeur neutre conforme au schema plutôt qu'un commentaire.",
+    ].join("\n"),
+    JSON.stringify({
+      task: "repair_invalid_prepare_defense_card_json",
+      required_json_shape: args.requiredShape,
+      invalid_or_malformed_output: String(args.raw ?? "").slice(0, 20_000),
+    }),
+    0,
+    true,
+    [],
+    "auto",
+    {
+      requestId: args.requestId ?? undefined,
+      userId: args.userId,
+      model: getGlobalAiModel("gemini-2.5-flash"),
+      source: args.source,
+      forceRealAi: true,
+      reasoningEffort: "low",
+      httpTimeoutMs: 30_000,
+      maxRetries: 1,
+    },
+  );
+  return parseJsonObject(repaired);
 }
 
 function defaultState(): DefenseCardIntakeState {
@@ -389,16 +428,14 @@ function requiredMissingSlots(state: DefenseCardIntakeState): string[] {
   const missing: string[] = [];
   if (state.tool_fit.status !== "defense") missing.push("tool_fit");
   if (state.attachment.status !== "identified") missing.push("attachment");
+  const hasRiskText = Boolean(
+    String(state.risk_situation.label ?? "").trim() ||
+      String(state.risk_situation.description ?? "").trim(),
+  );
   if (
     state.risk_situation.status !== "identified" ||
-    !state.risk_situation.label
+    !hasRiskText
   ) missing.push("risk_situation");
-  if (state.trigger.status !== "identified" || !state.trigger.type) {
-    missing.push("trigger");
-  }
-  if (state.defense_goal.status !== "identified" || !state.defense_goal.value) {
-    missing.push("defense_goal");
-  }
   return missing;
 }
 
@@ -624,18 +661,17 @@ function normalizeDraft(
   );
   const rawPlanB = String(draft.plan_b ?? draft.fallback_plan ?? "").trim();
   const planB = sanitizeDefenseCardField(rawPlanB, ["plan_b"]);
-  const confirmationMessage = String(root.confirmation_message ?? "").trim();
-  if (
-    !title || !situation || !signal || !defenseResponse || !planB ||
-    !confirmationMessage
-  ) {
+  const confirmationMessage = String(root.confirmation_message ?? "").trim() ||
+    [
+      "Voici la version à reprendre dans Cartes / Défense :",
+      `Le moment : ${situation}`,
+      `Le piège : ${signal}`,
+      `Mon geste : ${defenseResponse}`,
+      `Plan B : ${planB}`,
+      "Je ne la crée pas depuis le chat.",
+    ].join("\n");
+  if (!title || !situation || !signal || !defenseResponse || !planB) {
     throw new Error("defense_card_draft_required_text_missing");
-  }
-  if (
-    !confirmationMessage.includes(rawDefenseResponse) &&
-    !confirmationMessage.includes(defenseResponse)
-  ) {
-    throw new Error("defense_card_confirmation_message_draft_mismatch");
   }
   return {
     operation_type: "prepare_defense_card",
@@ -689,13 +725,67 @@ function withPlatformDefenseCardConfirmation(
     ...draft,
     draft: sanitizedDraft,
     confirmation_message: [
-      "Voici ta carte de défense :",
+      "Voici la version à reprendre dans Cartes / Défense :",
       `Le moment : ${sanitizedDraft.situation}`,
       `Le piège : ${sanitizedDraft.signal}`,
       `Mon geste : ${sanitizedDraft.defense_response}`,
       `Plan B : ${sanitizedDraft.plan_b}`,
-      "On valide ?",
+      "Je ne la crée pas depuis le chat.",
     ].join("\n"),
+    confirmation_actions: ["yes", "no"],
+  };
+}
+
+function fallbackDefenseCardDraftFromState(
+  state: DefenseCardIntakeState,
+): DefenseCardDraftV1 {
+  if (
+    state.attachment.status !== "identified" ||
+    state.risk_situation.status !== "identified"
+  ) {
+    throw new Error("defense_card_fallback_missing_structured_state");
+  }
+  const target = String(state.attachment.title ?? "").trim() ||
+    "situation à protéger";
+  const situation = String(
+    state.risk_situation.label ?? state.risk_situation.description ?? "",
+  ).trim() || `moment fragile autour de ${target}`;
+  const signal = String(
+    state.risk_situation.description ??
+      state.risk_situation.context_hint ??
+      state.risk_situation.timing_hint ??
+      state.trigger.evidence?.[0] ??
+      "le signal concret du moment de risque",
+  ).trim() || "le signal concret du moment de risque";
+  const response = String(
+    state.defense_response_hint.status === "identified"
+      ? state.defense_response_hint.value ?? ""
+      : "",
+  ).trim() ||
+    "Je fais une pause courte, je nomme le risque, puis je lance le premier geste utile.";
+  const planB =
+    "Si je n'arrive pas à tenir le geste prévu, je réduis les dégâts et je reprends au prochain moment stable.";
+  const titleBase = target.length > 42 ? target.slice(0, 42).trim() : target;
+  return {
+    operation_type: "prepare_defense_card",
+    output_schema: "defense_card_draft_v1",
+    draft: {
+      title: `Carte de défense - ${titleBase}`,
+      impulse_label: situation,
+      target_label: target,
+      situation,
+      signal,
+      risk_situation: situation,
+      trigger: String(state.trigger.type ?? "moment_fragile").trim() ||
+        "moment_fragile",
+      defense_response: response,
+      plan_b: planB,
+      fallback_plan: planB,
+      why_it_helps:
+        "Elle prépare une réponse simple avant que le moment de risque ne décide à ta place.",
+      generic_defense: response,
+    },
+    confirmation_message: "",
     confirmation_actions: ["yes", "no"],
   };
 }
@@ -759,7 +849,37 @@ export async function generateDefenseCardDraftWithAi(
       maxRetries: 1,
     },
   );
-  return normalizeDraft(raw, input.state);
+  try {
+    return normalizeDraft(raw, input.state);
+  } catch {
+    const repaired = await repairStructuredJsonWithAi({
+      raw,
+      requiredShape: {
+        operation_type: "prepare_defense_card",
+        output_schema: "defense_card_draft_v1",
+        draft: {
+          title: "string",
+          impulse_label: "string",
+          target_label: "string",
+          situation: "string",
+          signal: "string",
+          risk_situation: "string",
+          trigger: "string",
+          defense_response: "string",
+          plan_b: "string",
+          fallback_plan: "string|null",
+          why_it_helps: "string",
+          generic_defense: "string",
+        },
+        confirmation_message: "string",
+        confirmation_actions: ["yes", "no"],
+      },
+      userId: input.user_id,
+      requestId: input.request_id,
+      source: "prepare_defense_card.generator.repair",
+    });
+    return normalizeDraft(repaired, input.state);
+  }
 }
 
 export async function runPrepareDefenseCardAiIntake(input: {
@@ -993,9 +1113,7 @@ export async function runPrepareDefenseCardAiIntake(input: {
 
   if (
     state.attachment.status !== "identified" ||
-    state.risk_situation.status !== "identified" ||
-    state.trigger.status !== "identified" ||
-    state.defense_goal.status !== "identified"
+    state.risk_situation.status !== "identified"
   ) {
     return technicalFailure(
       "structured_ai_contract_incomplete_after_gate",
@@ -1015,61 +1133,39 @@ export async function runPrepareDefenseCardAiIntake(input: {
       trigger_message_id: input.trigger_message_id,
       state,
     });
-    draft = withPlatformDefenseCardConfirmation(draft);
   } catch {
-    return technicalFailure("ai_draft_generator_error", source, {
-      state,
-      operation_input: operationInput,
-    });
+    try {
+      draft = fallbackDefenseCardDraftFromState(state);
+    } catch {
+      return technicalFailure("ai_draft_generator_error", source, {
+        state,
+        operation_input: operationInput,
+      });
+    }
   }
-  const operationId = crypto.randomUUID();
+  draft = withPlatformDefenseCardConfirmation(draft);
   return {
     operation_type: "prepare_defense_card",
-    status: "pending_confirmation",
+    status: "handoff_ready",
     source,
     phase: "confirmation",
     draft,
     confirmation: {
-      required: true,
+      required: false,
       message: draft.confirmation_message,
       actions: ["yes", "no"],
     },
-    pending_confirmation: {
-      operation_id: operationId,
-      operation_type: "prepare_defense_card",
-      source,
-      attachment: {
-        kind: state.attachment.kind,
-        title: state.attachment.title,
-        plan_item_id: state.attachment.plan_item_id ?? null,
-      },
-      risk_situation: {
-        label: state.risk_situation.label,
-        description: state.risk_situation.description ?? null,
-        timing_hint: state.risk_situation.timing_hint ?? null,
-        context_hint: state.risk_situation.context_hint ?? null,
-      },
-      defense_response_hint: state.defense_response_hint.status === "identified"
-        ? {
-          strategy_hint: state.defense_response_hint.strategy_hint ??
-            "unknown",
-          value: state.defense_response_hint.value ?? null,
-        }
-        : undefined,
-      summary: draft.draft.title,
-      draft,
-      intake_state: state,
-      expires_after_turns: 2,
-    },
+    handoff_message: draft.confirmation_message,
+    pending_confirmation: undefined,
     readiness: {
       ready_to_generate: true,
       fallback_to_dashboard: false,
       invalid_recommendation_payload: false,
       missing_required_slots: [],
-      reason: "ready",
+      reason: "handoff_ready",
     },
     state_patch: {
-      summary: "Defense card draft generated by structured AI flow.",
+      summary: "Defense card platform handoff ready.",
       phase: "confirmation",
       user_intent: state.user_intent,
       constraints: state.constraints,
@@ -1081,7 +1177,7 @@ export async function runPrepareDefenseCardAiIntake(input: {
         status: "awaiting_user_confirmation",
         state,
         missing: [],
-        summary: "Structured AI draft is awaiting user confirmation.",
+        summary: "Defense card platform handoff ready.",
       }),
     },
   };

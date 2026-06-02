@@ -38,6 +38,66 @@ export type PrepareDefenseCardCommittedEffect = {
   defense_card_id: string;
 };
 
+export type DefenseCardHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type DefenseCardHandoffDraft = {
+  operation_type: "prepare_defense_card";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  target_summary: string;
+  risk_summary: string;
+  platform_flow: {
+    route_kind: "free_card" | "plan_item_card";
+    route_label: string;
+    entry_need: string;
+    questionnaire_answers: Array<{
+      field: "moment" | "signal" | "response";
+      question_label: string;
+      answer: string;
+    }>;
+  };
+  platform_fields: {
+    label: string;
+    situation: string;
+    signal: string;
+    defense_response: string;
+    plan_b: string;
+  };
+  recommendation: {
+    defense_strategy_label: string;
+    why_this_strategy: string;
+    card_draft_summary: string;
+    preserve: string[];
+    avoid: string[];
+    platform_destination: string;
+    platform_steps: string[];
+  };
+  missing_decisions: string[];
+};
+
+export type DefenseCardHandoffState = {
+  skill_id: "prepare_defense_card";
+  mode: "platform_handoff";
+  status: DefenseCardHandoffStatus;
+  draft?: DefenseCardHandoffDraft | null;
+  turn_count: number;
+  max_turns: number;
+  created_at: string;
+  updated_at: string;
+  no_chat_mutation: true;
+};
+
 export type CardTechnicalBlockReason =
   | "ai_unavailable"
   | "structured_intake_failed"
@@ -51,6 +111,11 @@ export type PrepareDefenseCardSkillResult = {
     | "ask_question"
     | "draft_ready"
     | "pending_confirmation"
+    | "handoff_ready"
+    | "handoff_delivered"
+    | "revise_handoff"
+    | "repeat_handoff"
+    | "apply_attempt"
     | "cancelled"
     | "revised"
     | "explained"

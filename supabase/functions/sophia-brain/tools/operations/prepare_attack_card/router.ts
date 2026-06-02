@@ -9,7 +9,6 @@ import {
   normalizeSkillConfirmationReview,
   type SkillConfirmationReview,
 } from "../../../router/confirmation_contract.ts";
-import { createConfirmationToken } from "../../../confirmation/confirmation_token.ts";
 import type { runSafetyPregate } from "../../../safety/safety_pregate.ts";
 import { loadCoachQuestionTendencyLow } from "../update_coach_preferences/runtime_policy.ts";
 import {
@@ -32,43 +31,48 @@ import {
   userExplicitlyAsksForNewAttackCard,
 } from "./run_support.ts";
 import {
+  type AttackCardHandoffDraft,
+  type AttackCardPlatformFlowKind,
+  type AttackCardTechniqueKey,
   decidePrepareAttackCardNextStep,
   type PrepareAttackCardCommittedEffect,
   type PrepareAttackCardConstraint,
-  type PrepareAttackCardEffect,
   type PrepareAttackCardSkillResult,
   type PrepareAttackCardUserIntent,
 } from "./contract.ts";
 import { runPrepareAttackCardAiIntake } from "./ai_intake.ts";
 import type { AttackCardDraftV1 } from "./generator.ts";
-import { executePrepareAttackCard } from "./executor.ts";
-import { insertAttackCardFromDraft } from "./persistence.ts";
 import {
+  type AttackCardHandoffState,
+  buildAttackCardHandoffState,
+  isAttackCardHandoffState,
+} from "./state.ts";
+import {
+  ATTACK_CARD_PLATFORM_DESTINATION,
+  renderAttackCardApplyAttemptReply,
   renderAttackCardBlockedCreateReply,
   renderAttackCardCancelledReply,
   renderAttackCardDraftOnlyReply,
-  renderAttackCardExecutedReply,
   renderAttackCardExplanationReply,
   renderAttackCardFailedReply,
-  renderAttackCardPendingConfirmationReply,
+  renderAttackCardPlatformHandoff,
 } from "./renderer.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 
 export type OperationRuntimeResult = {
   content: string;
   additionalContents?: string[];
   nextTempMemory: any;
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  toolExecution:
+    | "none"
+    | "blocked"
+    | "success"
+    | "failed"
+    | "uncertain"
+    | "platform_handoff";
   executedTools: string[];
   toolSkillRun: Record<string, unknown>;
 };
-
-function envString(name: string, fallback = ""): string {
-  try {
-    return String(Deno.env.get(name) ?? fallback);
-  } catch {
-    return fallback;
-  }
-}
 
 function attackCardFrameRecord(tempMemory: any) {
   const memory = tempMemory ?? {};
@@ -79,6 +83,7 @@ function attackCardFrameRecord(tempMemory: any) {
     active: memory.__active_tool_skill_intake ??
       memory.active_tool_skill_intake ?? null,
     recommendation: memory.__pending_recommendation_operation ?? null,
+    handoff: memory.__active_attack_card_handoff ?? null,
   };
 }
 
@@ -93,6 +98,7 @@ export function writePrepareAttackCardFrameToTempMemory(
     draftReview?: Record<string, unknown> | null;
     active?: Record<string, unknown> | null;
     recommendation?: Record<string, unknown> | null;
+    handoff?: AttackCardHandoffState | null;
   },
 ) {
   const next = { ...(tempMemory ?? {}) };
@@ -120,6 +126,10 @@ export function writePrepareAttackCardFrameToTempMemory(
       delete next.__pending_recommendation_operation;
     }
   }
+  if ("handoff" in frame) {
+    if (frame.handoff) next.__active_attack_card_handoff = frame.handoff;
+    else delete next.__active_attack_card_handoff;
+  }
   return next;
 }
 
@@ -129,6 +139,7 @@ export function clearPrepareAttackCardFrame(tempMemory: any) {
     draftReview: null,
     active: null,
     recommendation: null,
+    handoff: null,
   });
 }
 
@@ -138,6 +149,111 @@ function committedRuntimeTools(
   return committedEffects.length > 0 ? ["prepare_attack_card"] : [];
 }
 
+function isAttackCardHandoffStatus(status: string): boolean {
+  return [
+    "draft_ready",
+    "handoff_ready",
+    "handoff_delivered",
+    "revise_handoff",
+    "repeat_handoff",
+    "apply_attempt",
+  ].includes(status);
+}
+
+function attackCardPlatformHandoffRun(reasonCode: string) {
+  return {
+    operation_type: "prepare_attack_card",
+    status: "delivered",
+    surface_id: getHandoffTargetForOperation("prepare_attack_card")
+      ?.surface_id ?? "attack_cards",
+    reason_code: reasonCode,
+    no_chat_mutation: true,
+  };
+}
+
+function attackCardPlatformHandoffCancelledRun(reasonCode: string) {
+  return {
+    operation_type: "prepare_attack_card",
+    status: "cancelled",
+    surface_id: getHandoffTargetForOperation("prepare_attack_card")
+      ?.surface_id ?? "attack_cards",
+    reason_code: reasonCode,
+    no_chat_mutation: true,
+  };
+}
+
+function normalizeAttackCardControlText(value: string): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .replace(/[’']/g, " ")
+    .replace(/[-–—]/g, " ")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function controlTextIncludesAny(text: string, values: string[]): boolean {
+  return values.some((value) => text.includes(value));
+}
+
+function activeAttackCardHandoffDecisionFromMessage(
+  message: string,
+): "approve" | "reject" | "revise" | "explain" | null {
+  const text = normalizeAttackCardControlText(message);
+  if (!text) return null;
+  if (
+    controlTextIncludesAny(text, [
+      "pas de carte",
+      "pas une carte",
+      "aucune carte",
+      "stop carte",
+      "annule la carte",
+      "arrete la carte",
+      "laisse tomber",
+      "oublie ca",
+      "non finalement",
+    ])
+  ) return "reject";
+  if (
+    controlTextIncludesAny(text, [
+      "ok cree la",
+      "cree la",
+      "creer la",
+      "vas y",
+      "ok vas y",
+      "applique",
+    ])
+  ) return "approve";
+  if (
+    controlTextIncludesAny(text, [
+      "rends la",
+      "rends le",
+      "rends ca",
+      "plus simple",
+      "plus court",
+      "plus courte",
+      "simplifie",
+      "change la technique",
+      "change le",
+      "change la",
+      "une seule proposition",
+    ])
+  ) return "revise";
+  if (
+    controlTextIncludesAny(text, [
+      "redis moi",
+      "repete",
+      "rappelle moi",
+      "quoi mettre",
+      "ou je la mets",
+      "ou je le mets",
+      "ou la mettre",
+    ])
+  ) return "explain";
+  return null;
+}
+
 function adaptPrepareAttackCardResultToOperationRuntime(args: {
   result: PrepareAttackCardSkillResult;
   nextTempMemory: any;
@@ -145,10 +261,14 @@ function adaptPrepareAttackCardResultToOperationRuntime(args: {
 }): OperationRuntimeResult {
   const committedEffects = args.result.committed_effects;
   const executedTools = committedRuntimeTools(committedEffects);
+  const handoffExecution = isAttackCardHandoffStatus(args.result.status);
+  const extraToolSkillRun = args.extraToolSkillRun ?? {};
   return {
     content: args.result.reply ?? "",
     nextTempMemory: args.nextTempMemory,
-    toolExecution: committedEffects.length > 0
+    toolExecution: handoffExecution
+      ? "platform_handoff"
+      : committedEffects.length > 0
       ? "success"
       : args.result.status === "failed"
       ? "failed"
@@ -166,7 +286,14 @@ function adaptPrepareAttackCardResultToOperationRuntime(args: {
       blocked_effects: args.result.blocked_effects,
       pending_confirmation: args.result.pending_confirmation ?? null,
       debug: args.result.debug,
-      ...(args.extraToolSkillRun ?? {}),
+      ...(handoffExecution && !("platform_handoff" in extraToolSkillRun)
+        ? {
+          platform_handoff: attackCardPlatformHandoffRun(
+            args.result.debug.reason_code || args.result.status,
+          ),
+        }
+        : {}),
+      ...extraToolSkillRun,
     },
   };
 }
@@ -248,6 +375,373 @@ function operationInputFromLastPlanItemLocal(
   };
 }
 
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.map((item) => String(item ?? "").trim()).filter(Boolean)
+    : [];
+}
+
+function summarizeBlocker(value: unknown): string {
+  const blocker = value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+  const evidence = stringArray(blocker?.evidence).slice(0, 2);
+  if (evidence.length > 0) return evidence.join("; ");
+  const type = String(blocker?.type ?? "").trim();
+  switch (type) {
+    case "avoidance":
+      return "Évitement au moment de démarrer.";
+    case "procrastination":
+      return "Procrastination ou négociation intérieure.";
+    case "action_too_heavy":
+      return "Action ressentie comme trop lourde.";
+    case "unclear_first_step":
+      return "Premier pas encore trop flou.";
+    case "low_energy":
+      return "Énergie basse au moment de passer à l'action.";
+    case "friction":
+      return "Friction concrète avant le démarrage.";
+    default:
+      return "Piège de démarrage ou d'évitement identifié pendant l'intake.";
+  }
+}
+
+function isGenericAttackCardBlockerSummary(value: string | null | undefined) {
+  const normalized = String(value ?? "").trim();
+  return !normalized ||
+    normalized ===
+      "Piège de démarrage ou d'évitement identifié pendant l'intake.";
+}
+
+const ATTACK_CARD_PLATFORM_QUESTIONS: Record<AttackCardTechniqueKey, string[]> =
+  {
+    texte_recadrage: [
+      "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+      "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+      "Dans quel etat tu veux te remettre en ecrivant ce texte ?",
+    ],
+    mantra_force: [
+      "Par rapport a quelle action ou quel effort tu veux devenir plus solide ?",
+      "Pourquoi c'est important pour toi d'arreter de reculer la-dessus ?",
+      "Tu veux un mantra plutot calme, noble ou percutant ?",
+    ],
+    ancre_visuelle: [
+      "Quel engagement envers toi-meme tu veux garder vivant ?",
+      "Dans quel lieu ou sur quel objet tu pourrais l'accrocher a ton quotidien ?",
+      "Quelle phrase courte devrait revenir quand tu le vois ?",
+    ],
+    visualisation_matinale: [
+      "Quelle action ou habitude tu veux te voir faire naturellement ?",
+      "A quel moment du matin pourrais-tu prendre 5 minutes pour te projeter calmement ?",
+      "Quelles sensations ou images t'aideraient a te voir deja en train de faire l'action ?",
+    ],
+    preparer_terrain: [
+      "Par rapport a quelle action tu veux te rendre la vie plus simple ?",
+      "Qu'est-ce que tu pourrais preparer en avance pour enlever de la friction ?",
+      "Quand le moment arrive, qu'est-ce qui devrait deja etre pret autour de toi ?",
+    ],
+    pre_engagement: [
+      "Dans quelle situation precise tu sens que tu vas craquer ou perdre le controle ?",
+      "Quand tu tiens bon dans ce moment-la, qu'est-ce que tu proteges de vraiment important chez toi ?",
+    ],
+  };
+
+const ATTACK_CARD_TECHNIQUE_KEYS = new Set<AttackCardTechniqueKey>([
+  "texte_recadrage",
+  "mantra_force",
+  "ancre_visuelle",
+  "visualisation_matinale",
+  "preparer_terrain",
+  "pre_engagement",
+]);
+
+function normalizeAttackCardTechniqueKey(
+  value: unknown,
+): AttackCardTechniqueKey | null {
+  const raw = String(value ?? "").trim();
+  return ATTACK_CARD_TECHNIQUE_KEYS.has(raw as AttackCardTechniqueKey)
+    ? raw as AttackCardTechniqueKey
+    : null;
+}
+
+function firstSentence(value: string): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+  const match = normalized.match(/^(.+?[.!?])\s/);
+  return (match?.[1] ?? normalized).trim();
+}
+
+function compactAttackCardPhrase(value: string, fallback: string): string {
+  const sentence = firstSentence(value);
+  return sentence.length > 0 && sentence.length <= 170 ? sentence : fallback;
+}
+
+function buildAttackCardPlatformInputs(args: {
+  techniqueKey: AttackCardTechniqueKey;
+  targetSummary: string;
+  blockerSummary: string;
+  generatedAsset: string;
+}): Array<{ question: string; suggested_answer: string }> {
+  const { blockerSummary, generatedAsset, targetSummary, techniqueKey } = args;
+  const shortAsset = compactAttackCardPhrase(
+    generatedAsset,
+    "Revenir au premier geste avant que la négociation intérieure prenne le dessus.",
+  );
+  const questions = ATTACK_CARD_PLATFORM_QUESTIONS[techniqueKey];
+  switch (techniqueKey) {
+    case "texte_recadrage":
+      return [
+        { question: questions[0], suggested_answer: targetSummary },
+        { question: questions[1], suggested_answer: blockerSummary },
+        {
+          question: questions[2],
+          suggested_answer:
+            "Un état plus simple et direct : revenir au premier geste sans négocier.",
+        },
+      ];
+    case "mantra_force":
+      return [
+        { question: questions[0], suggested_answer: targetSummary },
+        {
+          question: questions[1],
+          suggested_answer:
+            `Parce que cette action protège une avancée concrète : ${targetSummary}.`,
+        },
+        { question: questions[2], suggested_answer: "Calme et percutant." },
+      ];
+    case "ancre_visuelle":
+      return [
+        {
+          question: questions[0],
+          suggested_answer:
+            `Garder vivant l'engagement suivant : ${targetSummary}.`,
+        },
+        {
+          question: questions[1],
+          suggested_answer:
+            "Sur un objet visible juste avant le moment d'action : carnet, écran, porte ou zone de préparation.",
+        },
+        { question: questions[2], suggested_answer: shortAsset },
+      ];
+    case "visualisation_matinale":
+      return [
+        { question: questions[0], suggested_answer: targetSummary },
+        {
+          question: questions[1],
+          suggested_answer:
+            "Le matin, avant que la journée parte dans tous les sens.",
+        },
+        {
+          question: questions[2],
+          suggested_answer:
+            `Me voir commencer calmement malgré ce piège : ${blockerSummary}.`,
+        },
+      ];
+    case "preparer_terrain":
+      return [
+        { question: questions[0], suggested_answer: targetSummary },
+        {
+          question: questions[1],
+          suggested_answer:
+            "Préparer l'objet, le lieu ou le premier geste pour que l'action devienne évidente.",
+        },
+        {
+          question: questions[2],
+          suggested_answer:
+            `Le support d'action doit être visible et prêt, avec ce rappel : ${shortAsset}`,
+        },
+      ];
+    case "pre_engagement":
+      return [
+        { question: questions[0], suggested_answer: blockerSummary },
+        {
+          question: questions[1],
+          suggested_answer:
+            `Je protège mon engagement envers cette action : ${targetSummary}.`,
+        },
+      ];
+  }
+}
+
+function buildAttackCardKeywordTriggerDraft(args: {
+  techniqueKey: AttackCardTechniqueKey;
+  draft: AttackCardDraftV1;
+  targetSummary: string;
+  blockerSummary: string;
+}) {
+  if (args.techniqueKey !== "pre_engagement") return null;
+  const activationKeyword = String(args.draft.draft.activation_keyword ?? "")
+    .trim() || "BASCULE";
+  return {
+    activation_keyword: activationKeyword,
+    risk_situation: args.blockerSummary,
+    strength_anchor: args.targetSummary,
+    first_response_intent:
+      "Ramener l'attention sur le premier geste et empêcher la sortie automatique.",
+    assistant_prompt:
+      `Quand j'envoie ${activationKeyword}, rappelle-moi l'action cible et guide-moi vers le premier geste sans débat.`,
+  };
+}
+
+function inferAttackCardPlatformFlowKind(args: {
+  target: Record<string, unknown>;
+  previousHandoffDraft?: AttackCardHandoffDraft | null;
+}): AttackCardPlatformFlowKind {
+  const previous = args.previousHandoffDraft?.platform_handoff?.flow_kind;
+  if (previous === "adjust_existing_attack_card") return previous;
+  const targetKind = String(args.target.kind ?? "").trim();
+  if (
+    targetKind === "plan_item" && String(args.target.plan_item_id ?? "").trim()
+  ) {
+    return "plan_action_cards";
+  }
+  return previous ?? "free_attack_card";
+}
+
+function buildAttackCardPlatformSteps(args: {
+  flowKind: AttackCardPlatformFlowKind;
+  targetSummary: string;
+  techniqueLabel: string;
+}): string[] {
+  if (args.flowKind === "plan_action_cards") {
+    return [
+      `Ouvre ton plan puis l'action "${args.targetSummary}".`,
+      "Dans le bloc Ressources, ouvre Attaque ou clique Générer si les cartes ne sont pas encore préparées.",
+      "Retrouve la carte dans Ressources > Attaque > Cartes d'attaque du plan.",
+      "Utilise l'aperçu ci-dessous pour vérifier ou ajuster le résultat proposé par la plateforme.",
+    ];
+  }
+  if (args.flowKind === "adjust_existing_attack_card") {
+    return [
+      "Ouvre Ressources > Attaque.",
+      "Ouvre la carte existante à ajuster.",
+      "Clique Ajuster cette carte.",
+      `Sélectionne ${args.techniqueLabel} si la plateforme te propose de choisir la technique.`,
+      "Renseigne les réponses préparées ci-dessous, puis génère la nouvelle version.",
+    ];
+  }
+  return [
+    "Ouvre Ressources.",
+    "Ouvre Attaque.",
+    "Dans Cartes d'attaque libres, clique Créer ma première carte ou Ajouter une carte.",
+    `Sélectionne ${args.techniqueLabel}.`,
+    "Renseigne les réponses préparées ci-dessous, puis clique Générer la carte.",
+  ];
+}
+
+function buildAttackCardHandoffDraft(args: {
+  draft: AttackCardDraftV1;
+  target: Record<string, unknown>;
+  pendingConfirmation?: Record<string, unknown> | null;
+  previousHandoffDraft?: AttackCardHandoffDraft | null;
+}): AttackCardHandoffDraft {
+  const handoffTarget = getHandoffTargetForOperation("prepare_attack_card");
+  const targetSummary = String(
+    args.target.title ?? args.draft.draft.target_label ?? "",
+  ).trim() || "Action libre à finaliser dans la plateforme";
+  const intakeState = args.pendingConfirmation?.intake_state &&
+      typeof args.pendingConfirmation.intake_state === "object"
+    ? args.pendingConfirmation.intake_state as Record<string, unknown>
+    : null;
+  const preserve = [
+    args.draft.draft.generated_asset,
+    ...stringArray(args.draft.draft.supporting_points),
+  ].filter(Boolean).slice(0, 3);
+  const blockerSummary = summarizeBlocker(intakeState?.blocker);
+  const previousBlockerSummary = String(
+    args.previousHandoffDraft?.blocker_summary ?? "",
+  ).trim();
+  const finalBlockerSummary =
+    isGenericAttackCardBlockerSummary(blockerSummary) &&
+      previousBlockerSummary
+      ? previousBlockerSummary
+      : blockerSummary;
+  const techniqueKey = normalizeAttackCardTechniqueKey(
+    args.draft.draft.technique,
+  );
+  const flowKind = inferAttackCardPlatformFlowKind({
+    target: args.target,
+    previousHandoffDraft: args.previousHandoffDraft,
+  });
+  const platformSteps = buildAttackCardPlatformSteps({
+    flowKind,
+    targetSummary,
+    techniqueLabel: args.draft.draft.technique_title,
+  });
+  const platformInputs = techniqueKey
+    ? buildAttackCardPlatformInputs({
+      techniqueKey,
+      targetSummary,
+      blockerSummary: finalBlockerSummary,
+      generatedAsset: args.draft.draft.generated_asset,
+    })
+    : [];
+  const platformDestination = flowKind === "plan_action_cards"
+    ? "Ressources > Attaque > Cartes d'attaque du plan"
+    : "Ressources > Attaque > Cartes d'attaque libres";
+  return {
+    operation_type: "prepare_attack_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: targetSummary,
+    blocker_summary: finalBlockerSummary,
+    recommendation: {
+      technique_label: args.draft.draft.technique_title,
+      why_this_technique: args.draft.draft.why_it_helps,
+      card_draft_summary: [
+        args.draft.draft.title,
+        args.draft.draft.generated_asset,
+        `Mode d'emploi : ${args.draft.draft.mode_emploi}`,
+      ].filter(Boolean).join("\n"),
+      preserve: preserve.length > 0
+        ? preserve
+        : ["Le geste minuscule qui coupe la négociation intérieure."],
+      avoid: [
+        "Transformer ce brouillon en promesse trop longue.",
+        "Ajouter plusieurs techniques concurrentes dans la même carte.",
+      ],
+      platform_destination: platformDestination,
+      platform_steps: platformSteps.length > 0
+        ? platformSteps
+        : handoffTarget?.platform_steps ?? [
+          "Ouvre Cartes / Attaque.",
+          "Choisis la cible ou l'action correspondante.",
+          "Copie le brouillon puis finalise la carte dans la plateforme.",
+        ],
+    },
+    platform_handoff: {
+      flow_kind: flowKind,
+      surface_label: flowKind === "plan_action_cards"
+        ? "Plan > Action > Ressources > Attaque"
+        : "Ressources > Attaque",
+      destination: platformDestination,
+      steps: platformSteps,
+      technique_key: techniqueKey,
+      technique_label: args.draft.draft.technique_title,
+      inputs: flowKind === "plan_action_cards" ? [] : platformInputs,
+      expected_result: {
+        output_title: args.draft.draft.title,
+        generated_asset: args.draft.draft.generated_asset,
+        supporting_points: stringArray(args.draft.draft.supporting_points),
+        mode_emploi: args.draft.draft.mode_emploi,
+        keyword_trigger: techniqueKey
+          ? buildAttackCardKeywordTriggerDraft({
+            techniqueKey,
+            draft: args.draft,
+            targetSummary,
+            blockerSummary: finalBlockerSummary,
+          })
+          : null,
+      },
+      plan_action_note: flowKind === "plan_action_cards"
+        ? "Pour une action du plan, la plateforme prépare les cartes depuis le bloc Ressources de l'action. Sophia te donne ici l'aperçu et les points à vérifier, pas une création depuis le chat."
+        : null,
+    },
+    missing_decisions: [],
+  };
+}
+
 function detectStructuredAttackCardConfirmation(
   turnFrame: TurnFrame | null,
 ): "yes" | "no" | null {
@@ -311,6 +805,7 @@ function operationRouteIsSelected(args: {
   const pendingType = localOperationType(frame.pending);
   if (pendingType === args.operationType) return true;
   if (pendingType && pendingType !== args.operationType) return false;
+  if (isAttackCardHandoffState(frame.handoff)) return true;
   const activeType = localOperationType(frame.active);
   if (activeType === args.operationType) return true;
   if (activeType && activeType !== args.operationType) return false;
@@ -344,8 +839,11 @@ function buildAttackCardPendingFrame(args: {
     operation_type: "prepare_attack_card",
     draft: args.draft,
     target: args.target,
-    phase: "awaiting_create_confirmation",
-    executable: true,
+    phase: "platform_handoff",
+    executable: false,
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
     created_at: new Date().toISOString(),
     turn_count: 0,
     ...(args.supersedesOperationId
@@ -382,68 +880,55 @@ export function applyPrepareAttackCardInitialDraftDecision(args: {
   ) {
     return null;
   }
-  const pendingFrame = buildAttackCardPendingFrame({
-    pendingConfirmation: args.output.pending_confirmation as Record<
-      string,
-      unknown
-    >,
+  const pendingConfirmation = args.output.pending_confirmation as Record<
+    string,
+    unknown
+  >;
+  const handoffDraft = buildAttackCardHandoffDraft({
     draft: args.output.draft,
     target: args.target,
-    supersedesOperationId: args.supersedesOperationId ?? null,
+    pendingConfirmation,
+  });
+  const handoffState = buildAttackCardHandoffState({
+    draft: handoffDraft,
+    sourceDraft: args.output.draft,
+    target: args.target,
+    status: "handoff_delivered",
   });
   const skillDecision = decidePrepareAttackCardNextStep({
-    pendingRaw: pendingFrame,
+    pendingRaw: null,
     user_intent: args.output.user_intent,
     constraints: args.output.constraints,
     draft_review_decision: args.output.state_patch.draft_review_decision ??
       null,
   });
-  if (skillDecision.status === "draft_ready") {
-    const next = writePrepareAttackCardFrameToTempMemory(args.tempMemory, {
-      pending: null,
-      draftReview: buildAttackCardDraftReviewFrame({
-        pendingConfirmation: args.output.pending_confirmation as Record<
-          string,
-          unknown
-        >,
-        draft: args.output.draft,
-        target: args.target,
-        supersedesOperationId: args.supersedesOperationId ?? null,
-      }),
-      active: null,
-      recommendation: args.source === "recommendation_tool" ? null : undefined,
-    });
-    return adaptPrepareAttackCardResultToOperationRuntime({
-      result: withPrepareAttackCardReply(skillDecision, {
-        reply: renderAttackCardDraftOnlyReply(args.output.draft),
-      }),
-      nextTempMemory: next,
-      extraToolSkillRun: {
-        operation_id: (args.output.pending_confirmation as any)?.operation_id ??
-          null,
-        draft: args.output.draft,
-        source: args.source ?? "direct_user_request",
-      },
-    });
-  }
   const next = writePrepareAttackCardFrameToTempMemory(args.tempMemory, {
-    pending: pendingFrame,
+    pending: null,
     draftReview: null,
     active: null,
+    handoff: handoffState,
     recommendation: args.source === "recommendation_tool" ? null : undefined,
   });
   return adaptPrepareAttackCardResultToOperationRuntime({
     result: withPrepareAttackCardReply(skillDecision, {
-      status: "pending_confirmation",
-      reply: renderAttackCardPendingConfirmationReply(args.output.draft),
-      pending_confirmation: pendingFrame,
+      status: "handoff_delivered",
+      reply: renderAttackCardPlatformHandoff(handoffDraft),
+      pending_confirmation: null,
     }),
     nextTempMemory: next,
     extraToolSkillRun: {
-      operation_id: (args.output.pending_confirmation as any)?.operation_id ??
-        null,
+      operation_id: pendingConfirmation.operation_id ?? null,
       draft: args.output.draft,
       source: args.source ?? "direct_user_request",
+      handoff_state: handoffState,
+      platform_handoff: {
+        operation_type: "prepare_attack_card",
+        status: "delivered",
+        surface_id: getHandoffTargetForOperation("prepare_attack_card")
+          ?.surface_id ?? "attack_cards",
+        reason_code: "attack_card_platform_handoff",
+        no_chat_mutation: true,
+      },
     },
   });
 }
@@ -466,88 +951,22 @@ function routeOrTurnFramePrefersDefenseCard(args: {
   );
 }
 
-async function executeConfirmedAttackCardDraft(args: {
-  supabase: SupabaseClient;
-  userId: string;
-  sourceMessageId: string | null;
-  requestId?: string | null;
-  safetyPregateOutput: ReturnType<typeof runSafetyPregate>;
-  pendingRaw: any;
-  target: PrepareAttackCardEffect["target"];
-  draft: AttackCardDraftV1;
-  operationId: string;
-}): Promise<
-  | { ok: true; committed_effect: PrepareAttackCardCommittedEffect }
-  | { ok: false; reason_code: string; ack: string }
-> {
-  const token = await createConfirmationToken({
-    user_id: args.userId,
-    operation_id: args.operationId,
-    operation_type: "prepare_attack_card",
-    draft: args.draft,
-    source_message_id: args.sourceMessageId ?? args.requestId ??
-      crypto.randomUUID(),
-    pending_confirmation_id: args.operationId,
-    secret: envString(
-      "CONFIRMATION_TOKEN_SECRET",
-      envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-    ),
-  });
-  try {
-    const executed = await executePrepareAttackCard({
-      operation_id: args.operationId,
-      user_id: args.userId,
-      target: args.target,
-      draft: args.draft,
-      token,
-      safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
-      pending_confirmation_lookup: async (id) =>
-        id === args.operationId ? { consumed: false } : null,
-      token_consumption_check: async () => false,
-      write_attack_card: async () => {
-        const { data, error } = await insertAttackCardFromDraft({
-          supabase: args.supabase,
-          userId: args.userId,
-          draft: args.draft,
-          operationId: args.operationId,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          target: args.pendingRaw?.target ?? args.target,
-        });
-        if (error || !data?.attack_card_id) {
-          throw new Error(error?.message ?? "missing_inserted_id");
-        }
-        return { attack_card_id: data.attack_card_id };
-      },
-      secret: envString(
-        "CONFIRMATION_TOKEN_SECRET",
-        envString("INTERNAL_FUNCTION_SECRET", "local-confirmation-secret"),
-      ),
-    });
-    return executed.status === "executed"
-      ? {
-        ok: true,
-        committed_effect: {
-          type: "create_attack_card",
-          operation_id: args.operationId,
-          attack_card_id: executed.attack_card_id,
-          target: args.target,
-          draft: args.draft,
-        },
-      }
-      : {
-        ok: false,
-        reason_code: executed.reason_code,
-        ack: executed.ack,
-      };
-  } catch (error) {
-    return {
-      ok: false,
-      reason_code: error instanceof Error ? error.message : "write_failed",
-      ack:
-        "Je n'ai pas réussi à créer cette carte techniquement. Je préfère ne pas te dire que c'est calé tant que la DB ne l'a pas confirmé.",
-    };
-  }
+function attackCardDispatcherOperationInput(
+  turnFrame: TurnFrame | null,
+  userMessage: string,
+): Record<string, unknown> | null {
+  const intent = (turnFrame?.tool_skill_intents ?? []).find((candidate) =>
+    candidate.operation_type === "prepare_attack_card" &&
+    candidate.confidence_band !== "low"
+  );
+  if (!intent) return null;
+  return {
+    ...(intent.operation_input ?? {}),
+    ...(intent.payload_hint ?? {}),
+    ...(intent.target_hint ? { target_label: intent.target_hint } : {}),
+    user_message: userMessage,
+    dispatcher_user_intent: intent.user_intent,
+  };
 }
 
 export async function maybeRunPrepareAttackCardOperation(args: {
@@ -586,6 +1005,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   const pendingRaw = frame.pending;
   const draftReviewRaw = frame.draftReview;
   const pendingRecommendation = frame.recommendation;
+  const activeHandoffRaw = frame.handoff;
   if (
     isPendingDefenseCardOperation(pendingRaw) ||
     isPendingDefenseCardRecommendationOperation(pendingRecommendation) ||
@@ -602,6 +1022,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     args.routeDecision?.selected_handler === "prepare_attack_card";
   const hasAttackCardFlow = isPendingAttackCardOperation(pendingRaw) ||
     isPendingAttackCardOperation(draftReviewRaw) ||
+    isAttackCardHandoffState(activeHandoffRaw) ||
     isPendingAttackCardRecommendationOperation(pendingRecommendation) ||
     String((activeAttackCardIntakeRaw as any)?.operation_type ?? "") ===
       "prepare_attack_card";
@@ -609,6 +1030,7 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     !explicitAttackCardRoute &&
     !isPendingAttackCardOperation(pendingRaw) &&
     !isPendingAttackCardOperation(draftReviewRaw) &&
+    !isAttackCardHandoffState(activeHandoffRaw) &&
     !isPendingAttackCardRecommendationOperation(pendingRecommendation) &&
     String((activeAttackCardIntakeRaw as any)?.operation_type ?? "") !==
       "prepare_attack_card" &&
@@ -626,8 +1048,20 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   }
   if (!explicitAttackCardRoute && !hasAttackCardFlow) return null;
   if (
+    isAttackCardHandoffState(activeHandoffRaw) &&
+    (args.routeDecision?.selected_handler === "create_one_shot_reminder" ||
+      args.routeDecision?.selected_handler === "cancel_one_shot_reminder" ||
+      (args.routeDecision?.direct_effects_to_run ?? []).some((effect) =>
+        effect === "create_one_shot_reminder" ||
+        effect === "cancel_one_shot_reminder"
+      ))
+  ) {
+    return null;
+  }
+  if (
     !isPendingAttackCardOperation(pendingRaw) &&
     !isPendingAttackCardOperation(draftReviewRaw) &&
+    !isAttackCardHandoffState(activeHandoffRaw) &&
     !isPendingAttackCardRecommendationOperation(pendingRecommendation) &&
     !activeAttackCardIntakeRaw &&
     isAttackCardLocationOrManagementQuestion(args.userMessage)
@@ -660,8 +1094,264 @@ export async function maybeRunPrepareAttackCardOperation(args: {
   let fallbackOperationInput = operationInputFromLastPlanItemLocal(
     nextTempMemory,
   );
+  const dispatcherOperationInput = attackCardDispatcherOperationInput(
+    args.turnFrame,
+    args.userMessage,
+  );
+  if (isAttackCardHandoffState(activeHandoffRaw)) {
+    const activeHandoff = activeHandoffRaw;
+    const sourceDraft = activeHandoff.source_draft;
+    const handoffDraft = activeHandoff.draft ?? null;
+    const target = activeHandoff.target ?? {
+      kind: "personal_action",
+      title: handoffDraft?.target_summary ?? null,
+      plan_item_id: null,
+    };
+    const reviewOutput = sourceDraft
+      ? await runAttackCardIntake({
+        user_id: args.userId,
+        channel: args.channel,
+        timezone: args.userTimezone,
+        message: args.userMessage,
+        source: "direct_user_request",
+        trigger_message_id: args.sourceMessageId ?? args.requestId ??
+          crypto.randomUUID(),
+        safety_pregate_risk_band: args.safetyPregateOutput.risk_band,
+        turn_count: Number(activeHandoff.turn_count ?? 0) + 1,
+        plan_snapshot: args.planSnapshot ?? {},
+        operation_input: withOccupiedAttackKeywords({
+          previous_draft: sourceDraft,
+          target,
+          technique: sourceDraft.draft.technique,
+          activation_keyword: sourceDraft.draft.activation_keyword ??
+            undefined,
+        }),
+      })
+      : null;
+    if (reviewOutput?.status === "technical_blocked") {
+      return technicalAttackCardRuntime({
+        output: reviewOutput,
+        nextTempMemory,
+      });
+    }
+    const draftReviewDecision = reviewOutput?.state_patch
+      .draft_review_decision;
+    const forcedDecision = activeAttackCardHandoffDecisionFromMessage(
+      args.userMessage,
+    );
+    const decision = forcedDecision ?? draftReviewDecision?.decision;
+    const effectiveDraftReviewDecision = decision
+      ? {
+        ...(draftReviewDecision ?? {}),
+        decision,
+        evidence: [
+          ...((draftReviewDecision?.evidence ?? []) as string[]),
+          ...(forcedDecision ? ["active_handoff_control_message"] : []),
+        ],
+      }
+      : draftReviewDecision;
+    if (decision === "reject") {
+      const cleared = clearPrepareAttackCardFrame(nextTempMemory);
+      return {
+        content: renderAttackCardCancelledReply(),
+        nextTempMemory: cleared,
+        toolExecution: "platform_handoff",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_attack_card",
+          status: "cancelled",
+          draft_review_decision: effectiveDraftReviewDecision,
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [],
+          platform_handoff: attackCardPlatformHandoffCancelledRun(
+            "cancelled_platform_handoff",
+          ),
+        },
+      };
+    }
+    if (decision === "topic_change" && !explicitAttackCardRoute) return null;
+    if (decision === "approve") {
+      const nextHandoff = buildAttackCardHandoffState({
+        draft: handoffDraft!,
+        sourceDraft,
+        target,
+        previous: activeHandoff,
+        status: "apply_attempt",
+      });
+      const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+        handoff: nextHandoff,
+        pending: null,
+        draftReview: null,
+        active: null,
+      });
+      return {
+        content: renderAttackCardApplyAttemptReply(handoffDraft),
+        nextTempMemory: next,
+        toolExecution: "platform_handoff",
+        executedTools: [],
+        toolSkillRun: {
+          selected_handler: "prepare_attack_card",
+          status: "apply_attempt",
+          draft_review_decision: effectiveDraftReviewDecision,
+          requested_effects: [],
+          allowed_effects: [],
+          committed_effects: [],
+          blocked_effects: [{
+            type: "create_attack_card",
+            reason_code: "chat_creation_disabled_platform_handoff",
+          }],
+          handoff_state: nextHandoff,
+          platform_handoff: {
+            operation_type: "prepare_attack_card",
+            status: "delivered",
+            surface_id: getHandoffTargetForOperation("prepare_attack_card")
+              ?.surface_id ?? "attack_cards",
+            reason_code: "apply_attempt_no_chat_mutation",
+            no_chat_mutation: true,
+          },
+        },
+      };
+    }
+    if (decision === "revise") {
+      if (
+        reviewOutput?.status === "pending_confirmation" &&
+        reviewOutput.pending_confirmation &&
+        reviewOutput.draft
+      ) {
+        const nextDraft = buildAttackCardHandoffDraft({
+          draft: reviewOutput.draft,
+          target: attackCardTargetFromPendingConfirmation(
+            reviewOutput.pending_confirmation,
+            target,
+          ) as Record<string, unknown>,
+          pendingConfirmation: reviewOutput.pending_confirmation,
+          previousHandoffDraft: handoffDraft,
+        });
+        const nextHandoff = buildAttackCardHandoffState({
+          draft: nextDraft,
+          sourceDraft: reviewOutput.draft,
+          target,
+          previous: activeHandoff,
+          status: "revise_handoff",
+        });
+        const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+          handoff: nextHandoff,
+          pending: null,
+          draftReview: null,
+          active: null,
+        });
+        return {
+          content: renderAttackCardPlatformHandoff(nextDraft),
+          nextTempMemory: next,
+          toolExecution: "platform_handoff",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            status: "revise_handoff",
+            draft_review_decision: effectiveDraftReviewDecision,
+            draft: reviewOutput.draft,
+            requested_effects: [],
+            allowed_effects: [],
+            committed_effects: [],
+            blocked_effects: [],
+            handoff_state: nextHandoff,
+            platform_handoff: attackCardPlatformHandoffRun(
+              "revised_platform_handoff",
+            ),
+          },
+        };
+      }
+      if (reviewOutput?.status === "ask_question") {
+        const nextQuestion = applyAttackCardSingleTechniquePreference(
+          reviewOutput.next_question,
+          { preferSingleTechnique: preferSingleTechniqueQuestion },
+        );
+        const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+          handoff: activeHandoff,
+          active: {
+            operation_type: "prepare_attack_card",
+            phase: reviewOutput.phase,
+            missing_slots: reviewOutput.state_patch.missing_slots,
+            slot_state: nextQuestion ?? null,
+            operation_input: mergeAttackCardQuestionKnownSlots(
+              reviewOutput.state_patch.operation_input ??
+                reviewOutput.next_question?.known_slots ?? null,
+              nextQuestion,
+            ),
+            tool_skill_state: reviewOutput.state_patch.tool_skill_state ?? null,
+            turn_count: Number(activeHandoff.turn_count ?? 0) + 1,
+            updated_at: new Date().toISOString(),
+          },
+        });
+        return {
+          content: renderAttackCardSlotQuestion(nextQuestion),
+          nextTempMemory: next,
+          toolExecution: "blocked",
+          executedTools: [],
+          toolSkillRun: {
+            selected_handler: "prepare_attack_card",
+            status: "clarifying",
+            draft_review_decision: effectiveDraftReviewDecision,
+            missing_slots: reviewOutput.state_patch.missing_slots,
+            committed_effects: [],
+          },
+        };
+      }
+    }
+    const nextHandoff = buildAttackCardHandoffState({
+      draft: handoffDraft!,
+      sourceDraft,
+      target,
+      previous: activeHandoff,
+      status: "repeat_handoff",
+    });
+    const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+      handoff: nextHandoff,
+      pending: null,
+      draftReview: null,
+      active: null,
+    });
+    return {
+      content: handoffDraft
+        ? renderAttackCardPlatformHandoff(handoffDraft)
+        : renderAttackCardBlockedCreateReply(),
+      nextTempMemory: next,
+      toolExecution: "platform_handoff",
+      executedTools: [],
+      toolSkillRun: {
+        selected_handler: "prepare_attack_card",
+        status: "repeat_handoff",
+        draft_review_decision: effectiveDraftReviewDecision ?? null,
+        requested_effects: [],
+        allowed_effects: [],
+        committed_effects: [],
+        blocked_effects: [],
+        handoff_state: nextHandoff,
+        platform_handoff: attackCardPlatformHandoffRun(
+          "repeat_platform_handoff",
+        ),
+      },
+    };
+  }
   if (isPendingAttackCardOperation(pendingRaw)) {
     if (detectAttackCardConfirmation() === "yes") {
+      const target = attackCardTargetFromPendingConfirmation(
+        pendingRaw as unknown as Record<string, unknown>,
+        null,
+      ) as Record<string, unknown>;
+      const handoffDraft = buildAttackCardHandoffDraft({
+        draft: pendingRaw.draft,
+        target,
+        pendingConfirmation: pendingRaw as Record<string, unknown>,
+      });
+      const handoffState = buildAttackCardHandoffState({
+        draft: handoffDraft,
+        sourceDraft: pendingRaw.draft,
+        target,
+        status: "apply_attempt",
+      });
       const skillDecision = decidePrepareAttackCardNextStep({
         pendingRaw,
         user_intent: "create",
@@ -671,56 +1361,36 @@ export async function maybeRunPrepareAttackCardOperation(args: {
           evidence: ["structured_confirmation_response"],
         },
       });
-      const effect = skillDecision.allowed_effects[0];
-      if (effect) {
-        const executed = await executeConfirmedAttackCardDraft({
-          supabase: args.supabase,
-          userId: args.userId,
-          sourceMessageId: args.sourceMessageId,
-          requestId: args.requestId ?? null,
-          safetyPregateOutput: args.safetyPregateOutput,
-          pendingRaw,
-          target: effect.target,
-          draft: effect.draft,
-          operationId: effect.operation_id,
-        });
-        const cleared = clearPrepareAttackCardFrame(nextTempMemory);
-        if (!executed.ok) {
-          return adaptPrepareAttackCardResultToOperationRuntime({
-            result: withPrepareAttackCardReply(skillDecision, {
-              status: "failed",
-              reply: renderAttackCardFailedReply(),
-              allowed_effects: skillDecision.allowed_effects,
-            }),
-            nextTempMemory: cleared,
-            extraToolSkillRun: {
-              operation_id: effect.operation_id,
-              error: executed.reason_code,
-              confirmation_decision: {
-                decision: "approve",
-                source: "structured_confirmation_response",
-              },
-            },
-          });
-        }
-        const committed = executed.committed_effect;
-        return adaptPrepareAttackCardResultToOperationRuntime({
-          result: withPrepareAttackCardReply(skillDecision, {
-            status: "executed",
-            reply: renderAttackCardExecutedReply(committed),
-            committed_effects: [committed],
-          }),
-          nextTempMemory: cleared,
-          extraToolSkillRun: {
-            operation_id: effect.operation_id,
-            attack_card_id: committed.attack_card_id,
-            confirmation_decision: {
-              decision: "approve",
-              source: "structured_confirmation_response",
-            },
+      const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+        pending: null,
+        draftReview: null,
+        active: null,
+        handoff: handoffState,
+      });
+      return adaptPrepareAttackCardResultToOperationRuntime({
+        result: withPrepareAttackCardReply(skillDecision, {
+          status: "apply_attempt",
+          reply: renderAttackCardApplyAttemptReply(handoffDraft),
+          pending_confirmation: null,
+        }),
+        nextTempMemory: next,
+        extraToolSkillRun: {
+          operation_id: pendingRaw.operation_id ?? null,
+          confirmation_decision: {
+            decision: "approve",
+            source: "structured_confirmation_response",
           },
-        });
-      }
+          handoff_state: handoffState,
+          platform_handoff: {
+            operation_type: "prepare_attack_card",
+            status: "delivered",
+            surface_id: getHandoffTargetForOperation("prepare_attack_card")
+              ?.surface_id ?? "attack_cards",
+            reason_code: "apply_attempt_no_chat_mutation",
+            no_chat_mutation: true,
+          },
+        },
+      });
     }
     const injectedDraftReviewDecision = attackCardReviewFromPending(
       pendingRaw as unknown as Record<string, unknown>,
@@ -850,30 +1520,38 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         pendingReviewOutput.pending_confirmation &&
         pendingReviewOutput.draft
       ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
-          target: attackCardTargetFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            {
-              target: pendingRaw.target ?? null,
-              intake_state: (pendingRaw as any).intake_state ?? undefined,
-            },
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
+        const target = attackCardTargetFromPendingConfirmation(
+          pendingReviewOutput.pending_confirmation,
+          {
+            target: pendingRaw.target ?? null,
+            intake_state: (pendingRaw as any).intake_state ?? undefined,
+          },
+        ) as Record<string, unknown>;
+        const handoffDraft = buildAttackCardHandoffDraft({
+          draft: pendingReviewOutput.draft,
+          target,
+          pendingConfirmation: pendingReviewOutput.pending_confirmation,
+        });
+        const handoffState = buildAttackCardHandoffState({
+          draft: handoffDraft,
+          sourceDraft: pendingReviewOutput.draft,
+          target,
+          status: "revise_handoff",
+        });
+        const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+          pending: null,
+          draftReview: null,
+          active: null,
+          handoff: handoffState,
+        });
         return {
-          content: renderAttackCardPendingConfirmationReply(
-            pendingReviewOutput.draft,
-          ),
-          nextTempMemory,
-          toolExecution: "blocked",
+          content: renderAttackCardPlatformHandoff(handoffDraft),
+          nextTempMemory: next,
+          toolExecution: "platform_handoff",
           executedTools: [],
           toolSkillRun: {
             selected_handler: "prepare_attack_card",
-            status: "pending_confirmation_updated",
+            status: "revise_handoff",
             operation_id: String(
               pendingReviewOutput.pending_confirmation.operation_id ??
                 pendingRaw.operation_id ??
@@ -882,6 +1560,11 @@ export async function maybeRunPrepareAttackCardOperation(args: {
             previous_operation_id: pendingRaw.operation_id ?? null,
             draft: pendingReviewOutput.draft,
             draft_review_decision: null,
+            committed_effects: [],
+            handoff_state: handoffState,
+            platform_handoff: attackCardPlatformHandoffRun(
+              "revised_platform_handoff",
+            ),
           },
         };
       }
@@ -968,27 +1651,35 @@ export async function maybeRunPrepareAttackCardOperation(args: {
         pendingReviewOutput.pending_confirmation &&
         pendingReviewOutput.draft
       ) {
-        nextTempMemory.__pending_tool_skill_confirmation = {
-          ...pendingReviewOutput.pending_confirmation,
-          target: attackCardTargetFromPendingConfirmation(
-            pendingReviewOutput.pending_confirmation,
-            null,
-          ),
-          created_at: new Date().toISOString(),
-          turn_count: 0,
-          supersedes_operation_id: pendingRaw.operation_id ?? null,
-        };
-        delete nextTempMemory.pending_tool_skill_confirmation;
+        const target = attackCardTargetFromPendingConfirmation(
+          pendingReviewOutput.pending_confirmation,
+          null,
+        ) as Record<string, unknown>;
+        const handoffDraft = buildAttackCardHandoffDraft({
+          draft: pendingReviewOutput.draft,
+          target,
+          pendingConfirmation: pendingReviewOutput.pending_confirmation,
+        });
+        const handoffState = buildAttackCardHandoffState({
+          draft: handoffDraft,
+          sourceDraft: pendingReviewOutput.draft,
+          target,
+          status: "revise_handoff",
+        });
+        const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+          pending: null,
+          draftReview: null,
+          active: null,
+          handoff: handoffState,
+        });
         return {
-          content: renderAttackCardPendingConfirmationReply(
-            pendingReviewOutput.draft,
-          ),
-          nextTempMemory,
-          toolExecution: "blocked",
+          content: renderAttackCardPlatformHandoff(handoffDraft),
+          nextTempMemory: next,
+          toolExecution: "platform_handoff",
           executedTools: [],
           toolSkillRun: {
             selected_handler: "prepare_attack_card",
-            status: "pending_confirmation_updated",
+            status: "revise_handoff",
             operation_id: String(
               pendingReviewOutput.pending_confirmation.operation_id ??
                 pendingRaw.operation_id ??
@@ -997,6 +1688,11 @@ export async function maybeRunPrepareAttackCardOperation(args: {
             previous_operation_id: pendingRaw.operation_id ?? null,
             draft: pendingReviewOutput.draft,
             draft_review_decision: draftReviewDecision,
+            committed_effects: [],
+            handoff_state: handoffState,
+            platform_handoff: attackCardPlatformHandoffRun(
+              "revised_platform_handoff",
+            ),
           },
         };
       }
@@ -1039,56 +1735,48 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     }
     if (draftReviewDecision.decision !== "approve") return null;
 
-    const effect = skillDecision.allowed_effects[0];
-    if (!effect) {
-      return adaptPrepareAttackCardResultToOperationRuntime({
-        result: withPrepareAttackCardReply(skillDecision, {
-          status: "blocked",
-          reply: renderAttackCardBlockedCreateReply(),
-        }),
-        nextTempMemory,
-        extraToolSkillRun: {
-          operation_id: pendingRaw.operation_id ?? null,
-        },
-      });
-    }
-    const executed = await executeConfirmedAttackCardDraft({
-      supabase: args.supabase,
-      userId: args.userId,
-      sourceMessageId: args.sourceMessageId,
-      requestId: args.requestId ?? null,
-      safetyPregateOutput: args.safetyPregateOutput,
-      pendingRaw,
-      target: effect.target,
-      draft: effect.draft,
-      operationId: effect.operation_id,
+    const handoffDraft = buildAttackCardHandoffDraft({
+      draft: pendingRaw.draft,
+      target: attackCardTargetFromPendingConfirmation(
+        pendingRaw as unknown as Record<string, unknown>,
+        null,
+      ) as Record<string, unknown>,
+      pendingConfirmation: pendingRaw as Record<string, unknown>,
     });
-    const cleared = clearPrepareAttackCardFrame(nextTempMemory);
-    if (!executed.ok) {
-      return adaptPrepareAttackCardResultToOperationRuntime({
-        result: withPrepareAttackCardReply(skillDecision, {
-          status: "failed",
-          reply: renderAttackCardFailedReply(),
-          allowed_effects: skillDecision.allowed_effects,
-        }),
-        nextTempMemory: cleared,
-        extraToolSkillRun: {
-          operation_id: effect.operation_id,
-          error: executed.reason_code,
-        },
-      });
-    }
-    const committed = executed.committed_effect;
+    const handoffState = buildAttackCardHandoffState({
+      draft: handoffDraft,
+      sourceDraft: pendingRaw.draft,
+      target: attackCardTargetFromPendingConfirmation(
+        pendingRaw as unknown as Record<string, unknown>,
+        null,
+      ) as Record<string, unknown>,
+      status: "apply_attempt",
+    });
+    const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
+      pending: null,
+      draftReview: null,
+      active: null,
+      handoff: handoffState,
+    });
     return adaptPrepareAttackCardResultToOperationRuntime({
       result: withPrepareAttackCardReply(skillDecision, {
-        status: "executed",
-        reply: renderAttackCardExecutedReply(committed),
-        committed_effects: [committed],
+        status: "apply_attempt",
+        reply: renderAttackCardApplyAttemptReply(handoffDraft),
+        pending_confirmation: null,
       }),
-      nextTempMemory: cleared,
+      nextTempMemory: next,
       extraToolSkillRun: {
-        operation_id: effect.operation_id,
-        attack_card_id: committed.attack_card_id,
+        operation_id: pendingRaw.operation_id ?? null,
+        draft_review_decision: draftReviewDecision,
+        handoff_state: handoffState,
+        platform_handoff: {
+          operation_type: "prepare_attack_card",
+          status: "delivered",
+          surface_id: getHandoffTargetForOperation("prepare_attack_card")
+            ?.surface_id ?? "attack_cards",
+          reason_code: "apply_attempt_no_chat_mutation",
+          no_chat_mutation: true,
+        },
       },
     });
   }
@@ -1188,28 +1876,47 @@ export async function maybeRunPrepareAttackCardOperation(args: {
       });
     }
 
-    if (skillDecision.status === "pending_confirmation") {
-      const pending = {
-        ...(draftReviewRaw as Record<string, unknown>),
-        phase: "awaiting_create_confirmation",
-        executable: true,
-        turn_count: 0,
-        updated_at: new Date().toISOString(),
-      };
+    if (skillDecision.status === "apply_attempt") {
+      const target = attackCardTargetFromPendingConfirmation(
+        draftReviewRaw as unknown as Record<string, unknown>,
+        null,
+      ) as Record<string, unknown>;
+      const handoffDraft = buildAttackCardHandoffDraft({
+        draft: draftReviewRaw.draft,
+        target,
+        pendingConfirmation: draftReviewRaw as Record<string, unknown>,
+      });
+      const handoffState = buildAttackCardHandoffState({
+        draft: handoffDraft,
+        sourceDraft: draftReviewRaw.draft,
+        target,
+        status: "apply_attempt",
+      });
       const next = writePrepareAttackCardFrameToTempMemory(nextTempMemory, {
-        pending,
+        pending: null,
         draftReview: null,
         active: null,
+        handoff: handoffState,
       });
       return adaptPrepareAttackCardResultToOperationRuntime({
         result: withPrepareAttackCardReply(skillDecision, {
-          reply: renderAttackCardPendingConfirmationReply(draftReviewRaw.draft),
-          pending_confirmation: pending,
+          status: "apply_attempt",
+          reply: renderAttackCardApplyAttemptReply(handoffDraft),
+          pending_confirmation: null,
         }),
         nextTempMemory: next,
         extraToolSkillRun: {
           operation_id: draftReviewRaw.operation_id ?? null,
           draft_review_decision: draftReviewDecision ?? null,
+          handoff_state: handoffState,
+          platform_handoff: {
+            operation_type: "prepare_attack_card",
+            status: "delivered",
+            surface_id: getHandoffTargetForOperation("prepare_attack_card")
+              ?.surface_id ?? "attack_cards",
+            reason_code: "apply_attempt_no_chat_mutation",
+            no_chat_mutation: true,
+          },
         },
       });
     }
@@ -1579,6 +2286,8 @@ export async function maybeRunPrepareAttackCardOperation(args: {
     plan_snapshot: args.planSnapshot ?? {},
     operation_input: {
       ...(fallbackOperationInput ?? {}),
+      ...(dispatcherOperationInput ?? {}),
+      user_message: args.userMessage,
       occupied_activation_keywords: occupiedAttackKeywords,
     },
   });

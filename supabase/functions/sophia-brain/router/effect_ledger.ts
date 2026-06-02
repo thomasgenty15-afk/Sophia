@@ -3,10 +3,25 @@ export type EffectLedgerStatus =
   | "allowed"
   | "blocked"
   | "committed"
-  | "failed";
+  | "failed"
+  | "proposed"
+  | "delivered"
+  | "cancelled"
+  | "superseded"
+  | "asked"
+  | "resolved"
+  | "topic_change";
+
+export type EffectLedgerEntryKind =
+  | "durable_effect"
+  | "platform_handoff"
+  | "clarification"
+  | "memory"
+  | "conversation";
 
 export type EffectLedgerEntry = {
   effect_id: string;
+  kind?: EffectLedgerEntryKind;
   effect_type: string;
   operation_type?: string | null;
   operation_id?: string | null;
@@ -23,6 +38,8 @@ export type EffectLedgerEntry = {
     | "executor"
     | "memory_runtime"
     | "guard"
+    | "weekly_review"
+    | "conversation_skill"
     | "status_projection";
   payload_summary?: Record<string, unknown> | null;
   db_ref?: {
@@ -31,6 +48,14 @@ export type EffectLedgerEntry = {
     key?: string | null;
   } | null;
   error_message?: string | null;
+  surface_id?: string | null;
+  no_chat_mutation?: true;
+  committed?: false;
+  executed_tool?: false;
+  owner?: string | null;
+  ambiguity_kind?: string | null;
+  candidate_ids?: string[];
+  selected_candidate_id?: string | null;
 };
 
 export type EffectLedger = {
@@ -45,6 +70,7 @@ export type PersistedEffectLedgerEntry = {
   request_id: string | null;
   created_at: string;
   status: EffectLedgerStatus;
+  kind?: EffectLedgerEntryKind;
   effect_type: string;
   operation_type: string | null;
   operation_id: string | null;
@@ -59,6 +85,14 @@ export type PersistedEffectLedgerEntry = {
     key?: string | null;
   } | null;
   error_message?: string | null;
+  surface_id?: string | null;
+  no_chat_mutation?: true;
+  committed?: false;
+  executed_tool?: false;
+  owner?: string | null;
+  ambiguity_kind?: string | null;
+  candidate_ids?: string[];
+  selected_candidate_id?: string | null;
 };
 
 export function createEffectLedger(turnId: string): EffectLedger {
@@ -178,6 +212,7 @@ export function serializeEffectLedgerForPersistence(args: {
     request_id: requestId,
     created_at: createdAt,
     status: entry.status,
+    kind: entry.kind ?? "durable_effect",
     effect_type: String(entry.effect_type ?? "").trim() || "unknown_effect",
     operation_type: String(entry.operation_type ?? "").trim() || null,
     operation_id: String(entry.operation_id ?? "").trim() || null,
@@ -196,6 +231,20 @@ export function serializeEffectLedgerForPersistence(args: {
       }
       : null,
     error_message: compactErrorMessage(entry.error_message),
+    surface_id: String(entry.surface_id ?? "").trim() || null,
+    no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
+    committed: entry.committed === false ? false : undefined,
+    executed_tool: entry.executed_tool === false ? false : undefined,
+    owner: String(entry.owner ?? "").trim() || null,
+    ambiguity_kind: String(entry.ambiguity_kind ?? "").trim() || null,
+    candidate_ids: Array.isArray(entry.candidate_ids)
+      ? entry.candidate_ids.map((item) => String(item)).filter(Boolean).slice(
+        0,
+        20,
+      )
+      : undefined,
+    selected_candidate_id: String(entry.selected_candidate_id ?? "").trim() ||
+      null,
   }));
 }
 
@@ -207,6 +256,7 @@ function recordEffect(
   const stored: EffectLedgerEntry = {
     ...entry,
     effect_id: String(entry.effect_id ?? "").trim() || crypto.randomUUID(),
+    kind: entry.kind ?? "durable_effect",
     effect_type: String(entry.effect_type ?? "").trim(),
     operation_type: entry.operation_type ?? null,
     operation_id: entry.operation_id ?? null,
@@ -217,9 +267,73 @@ function recordEffect(
     payload_summary: compactPayloadSummary(entry.payload_summary),
     db_ref: entry.db_ref ?? null,
     error_message: entry.error_message ?? null,
+    surface_id: entry.surface_id ?? null,
+    no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
+    committed: entry.committed === false ? false : undefined,
+    executed_tool: entry.executed_tool === false ? false : undefined,
+    owner: entry.owner ?? null,
+    ambiguity_kind: entry.ambiguity_kind ?? null,
+    candidate_ids: Array.isArray(entry.candidate_ids)
+      ? entry.candidate_ids.map((item) => String(item)).filter(Boolean).slice(
+        0,
+        20,
+      )
+      : undefined,
+    selected_candidate_id: entry.selected_candidate_id ?? null,
   };
   ledger.entries.push(stored);
   return stored;
+}
+
+export function recordPlatformHandoffInLedger(
+  ledger: EffectLedger,
+  entry: Omit<EffectLedgerEntry, "kind" | "status" | "effect_type"> & {
+    operation_type: string;
+    status:
+      | "requested"
+      | "proposed"
+      | "delivered"
+      | "blocked"
+      | "cancelled"
+      | "superseded";
+  },
+): EffectLedgerEntry {
+  return recordEffect(ledger, entry.status, {
+    ...entry,
+    kind: "platform_handoff",
+    effect_type: `platform_handoff.${String(entry.operation_type).trim()}`,
+    committed_id: null,
+    db_ref: null,
+    no_chat_mutation: true,
+    committed: false,
+    executed_tool: false,
+  });
+}
+
+export function recordClarificationInLedger(
+  ledger: EffectLedger,
+  entry: Omit<EffectLedgerEntry, "kind" | "status" | "effect_type"> & {
+    status:
+      | "requested"
+      | "asked"
+      | "resolved"
+      | "cancelled"
+      | "topic_change";
+    owner: string;
+    ambiguity_kind: string;
+  },
+): EffectLedgerEntry {
+  return recordEffect(ledger, entry.status, {
+    ...entry,
+    kind: "clarification",
+    effect_type: `clarification.${String(entry.ambiguity_kind).trim()}`,
+    operation_type: entry.operation_type ?? null,
+    committed_id: null,
+    db_ref: null,
+    no_chat_mutation: true,
+    committed: false,
+    executed_tool: false,
+  });
 }
 
 export function recordRequestedEffect(
@@ -269,18 +383,32 @@ export function hasCommittedEffect(
 export function summarizeEffectLedgerForTrace(
   ledger: EffectLedger,
 ): Record<string, unknown> {
-  const byStatus = ledger.entries.reduce<Record<EffectLedgerStatus, number>>(
+  const byStatus = ledger.entries.reduce<Record<string, number>>(
     (acc, entry) => {
-      acc[entry.status] += 1;
+      acc[entry.status] = (acc[entry.status] ?? 0) + 1;
       return acc;
     },
-    { requested: 0, allowed: 0, blocked: 0, committed: 0, failed: 0 },
+    {
+      requested: 0,
+      allowed: 0,
+      blocked: 0,
+      committed: 0,
+      failed: 0,
+      proposed: 0,
+      delivered: 0,
+      cancelled: 0,
+      superseded: 0,
+      asked: 0,
+      resolved: 0,
+      topic_change: 0,
+    },
   );
   return {
     turn_id: ledger.turn_id,
     counts: byStatus,
     entries: ledger.entries.map((entry) => ({
       effect_id: entry.effect_id,
+      kind: entry.kind ?? "durable_effect",
       effect_type: entry.effect_type,
       operation_type: entry.operation_type ?? null,
       operation_id: entry.operation_id ?? null,
@@ -294,6 +422,14 @@ export function summarizeEffectLedgerForTrace(
       error_message: entry.error_message
         ? String(entry.error_message).slice(0, 240)
         : null,
+      surface_id: entry.surface_id ?? null,
+      no_chat_mutation: entry.no_chat_mutation === true ? true : undefined,
+      committed: entry.committed === false ? false : undefined,
+      executed_tool: entry.executed_tool === false ? false : undefined,
+      owner: entry.owner ?? null,
+      ambiguity_kind: entry.ambiguity_kind ?? null,
+      candidate_ids: entry.candidate_ids ?? undefined,
+      selected_candidate_id: entry.selected_candidate_id ?? null,
     })),
   };
 }
@@ -309,7 +445,7 @@ function normalizeClaimText(value: string): string {
 }
 
 function alreadyHonest(normalized: string): boolean {
-  return /\b(je n ai pas|je ne l ai pas|je n ai rien|pas encore|pas reussi|pas réussi|souci technique|je ne peux pas|je ne vais pas|si tu confirmes|besoin de ta confirmation|rien n est applique|rien n est confirme|je propose|proposition)\b/
+  return /\b(je n ai pas|je ne l ai pas|je ne le modifie pas|je ne la modifie pas|je ne modifie pas|je ne le cree pas|je ne la cree pas|je ne le programme pas|je ne la programme pas|je n ai rien|pas encore|pas reussi|pas réussi|souci technique|je ne peux pas|je ne vais pas|si tu confirmes|besoin de ta confirmation|rien n est applique|rien n est confirme|je propose|proposition|je recommande|ma recommandation|je te conseille|tu peux le faire dans|tu peux la creer dans|tu peux le creer dans|ou le faire dans plan|dans la section plan|dans la plateforme|depuis la plateforme|depuis le chat)\b/
     .test(normalized);
 }
 
@@ -373,7 +509,8 @@ export function rewriteUncommittedEffectClaims(args: {
   }
 
   const claimsPotionActivate =
-    /\b(potion|reset|protocole)\b/.test(normalized) &&
+    /\b(potion|reset|protocole|clarte|apaisement|guerison|amour|courage)\b/
+      .test(normalized) &&
     /\b(active|activee|lance|lancee|demarre|demarree|en place|c est parti)\b/
       .test(normalized);
   if (claimsPotionActivate && !hasCommit(["state_potion.activate"])) {
@@ -433,7 +570,8 @@ export function rewriteUncommittedEffectClaims(args: {
   }
   if (reasonCodes.includes("uncommitted_state_potion_activate_claim")) {
     return {
-      reply: "Je ne l'ai pas activée.",
+      reply:
+        "Je ne l'active pas depuis le chat. Reprends cette recommandation dans la section État / Potions.",
       changed: true,
       reason_codes: reasonCodes,
     };

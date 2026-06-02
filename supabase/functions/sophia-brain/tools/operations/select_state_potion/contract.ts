@@ -54,6 +54,52 @@ export type SelectStatePotionEffectLedger = {
   committed_effects: SelectStatePotionCommittedEffect[];
 };
 
+export type StatePotionHandoffStatus =
+  | "collecting"
+  | "clarifying"
+  | "handoff_ready"
+  | "handoff_delivered"
+  | "revise_handoff"
+  | "repeat_handoff"
+  | "apply_attempt"
+  | "cancelled"
+  | "topic_change"
+  | "blocked";
+
+export type StatePotionHandoffDraft = {
+  operation_type: "select_state_potion";
+  mode: "platform_handoff";
+  no_chat_mutation: true;
+  executable_from_chat: false;
+  user_state_summary: string;
+  desired_shift_summary: string;
+  recommendation: {
+    potion_label: string;
+    why_this_potion: string;
+    immediate_step?: string | null;
+    preserve: string[];
+    avoid: string[];
+    platform_destination: string;
+    platform_steps: string[];
+    platform_inputs?: {
+      potion_type: string;
+      potion_title: string;
+      answers: Array<{
+        question_id: string;
+        question_label: string;
+        value: string;
+        option_value?: string | null;
+        option_label?: string | null;
+      }>;
+      optional_free_text: {
+        label: string;
+        value: string;
+      } | null;
+    };
+  };
+  missing_decisions: string[];
+};
+
 export type SelectStatePotionSkillResult = {
   handled: boolean;
   status:

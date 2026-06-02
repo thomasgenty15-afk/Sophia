@@ -137,7 +137,7 @@ Deno.test("bridge_request_does_not_commit", () => {
   );
 });
 
-Deno.test("recommendation_suggestion_records_request_not_commit", () => {
+Deno.test("recommendation_suggestion_records_platform_handoff_not_commit", () => {
   const ledger = createEffectLedger("turn-recommendation");
   recordRecommendationEffectInLedger({
     ledger,
@@ -150,7 +150,10 @@ Deno.test("recommendation_suggestion_records_request_not_commit", () => {
       reason: "execution_repair",
     },
   });
-  assertEquals(ledger.entries.map((entry) => entry.status), ["requested"]);
+  assertEquals(ledger.entries.map((entry) => entry.kind), [
+    "platform_handoff",
+  ]);
+  assertEquals(ledger.entries.map((entry) => entry.status), ["proposed"]);
   assertEquals(
     hasCommittedEffect(
       ledger,

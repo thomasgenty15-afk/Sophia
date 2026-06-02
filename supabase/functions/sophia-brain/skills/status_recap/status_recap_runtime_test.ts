@@ -67,7 +67,8 @@ Deno.test("status_recap_runtime does not claim reminder in place without DB sour
     tempMemory: {},
     userMessage: "mon rappel est en place ?",
   });
-  assert(runtime.content.includes("aucun actif visible"));
+  assert(runtime.content.includes("sources DB disponibles"));
+  assertEquals(/\bactif,|\ben place :/.test(runtime.content), false);
 });
 
 Deno.test("status_recap_runtime maybe wrapper returns null when not armed", async () => {

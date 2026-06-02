@@ -534,12 +534,12 @@ export function buildWeeklyExactAdjustPlanProposal(args: {
         "- Partager un point positif: vendredi seulement.",
         "- Mission signal de pause: à finir tranquillement, sans pression.",
         "",
-        "Rien n'est appliqué tant que tu ne me le confirmes pas clairement.",
+        "A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
       ].join("\n"),
       user_message_brief:
         "Semaine prochaine allégée: respiration lundi/mercredi, point positif vendredi, mission signal à finir sans pression.",
       user_message_detailed:
-        "J'ai appliqué la version allégée: Respiration de pause passe à lundi et mercredi, Partager un point positif passe à vendredi seulement, et la mission signal de pause reste à finir tranquillement sans pression.",
+        "Version à reprendre dans Plan: Respiration de pause passe à lundi et mercredi, Partager un point positif passe à vendredi seulement, et la mission signal de pause reste à finir tranquillement sans pression.",
       proposed_change:
         "Alléger l'organisation de la semaine prochaine sans changer l'objectif global.",
       constraints: [
@@ -581,12 +581,12 @@ export function buildWeeklyExactAdjustPlanProposal(args: {
       "- Partager un point positif: samedi matin seulement.",
       "- Convenir d'un signal de pause devient Phrase de sortie: vendredi, 10 minutes maximum.",
       "",
-      "Je ne touche pas aux supports, je ne change pas l'objectif du niveau, et je n'ajoute pas de nouvelle action. Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+      "Je te conseille de garder les supports, l'objectif du niveau et le nombre d'actions. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
     ].join("\n"),
     user_message_brief:
       "Ajustement exact du niveau: déconnexion mardi/jeudi, point positif samedi matin, phrase de sortie vendredi.",
     user_message_detailed:
-      "C'est appliqué uniquement sur le niveau actuel: Respiration de pause est remplacée par Deconnexion de 7 minutes apres le diner mardi et jeudi, Partager un point positif passe à samedi matin seulement, et Convenir d'un signal de pause devient Phrase de sortie vendredi, 10 minutes maximum. Le plan global et les supports restent inchangés.",
+      "Version à reprendre dans Plan, uniquement sur le niveau actuel: Respiration de pause est remplacée par Deconnexion de 7 minutes apres le diner mardi et jeudi, Partager un point positif passe à samedi matin seulement, et Convenir d'un signal de pause devient Phrase de sortie vendredi, 10 minutes maximum. Le plan global et les supports restent inchangés.",
     proposed_change:
       "Remplacer l'action qui ne convient plus et alléger les deux autres points du niveau actuel.",
     constraints: [
@@ -954,7 +954,7 @@ export function buildWeeklyCopyForwardPendingReview(args: {
           user_message_brief:
             "Même semaine prolongée d'une semaine, sans changer les actions ni le rythme.",
           user_message_detailed:
-            "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
+            "Version à reprendre dans Plan: prolonger le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
           applied_change: {
             changed_items: changedItems,
             preserved_items: [
@@ -993,9 +993,9 @@ export function buildWeeklyCopyForwardPendingReview(args: {
         ],
       },
       confirmation_message:
-        "Je te propose de refaire la même semaine à l'identique: mêmes actions, même rythme, mêmes repères. Rien n'est appliqué tant que tu ne confirmes pas clairement.",
+        "Je te conseille de refaire la même semaine à l'identique: mêmes actions, même rythme, mêmes repères. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.",
       execution_message:
-        "C'est fait: j'ai prolongé le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
+        "Version à reprendre dans Plan: prolonger le niveau actuel d'une semaine à l'identique. Les actions, le rythme et les repères restent inchangés; le plan global n'est pas refait.",
       confirmation_actions: ["yes", "no"],
     },
     operation_input: {
@@ -1116,7 +1116,7 @@ export function buildWeeklyMissionCarryOverPendingReview(args: {
     user_message_brief:
       "Semaine suivante avancée; seule la mission signal de pause est reportée.",
     user_message_detailed:
-      "C'est appliqué: on passe à la semaine suivante, et seule la mission signal de pause est reportée parce qu'elle reste utile. Les habitudes validées restent acquises.",
+      "Version à reprendre dans Plan: passer à la semaine suivante, avec seulement la mission signal de pause reportée parce qu'elle reste utile. Les habitudes validées restent acquises.",
     applied_change: {
       changed_items: changedItems,
       preserved_items: [
@@ -1143,9 +1143,9 @@ export function buildWeeklyMissionCarryOverPendingReview(args: {
     constraints,
   };
   pending.draft.confirmation_message =
-    "Je propose de passer à la semaine suivante et de reporter seulement la mission signal de pause. Rien n'est appliqué tant que tu ne confirmes pas clairement.";
+    "Je conseille de passer à la semaine suivante et de reporter seulement la mission signal de pause. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.";
   pending.draft.execution_message =
-    "C'est appliqué: on passe à la semaine suivante, et seule la mission signal de pause est reportée parce qu'elle reste utile. Les habitudes validées restent acquises.";
+    "Version à reprendre dans Plan: passer à la semaine suivante, avec seulement la mission signal de pause reportée parce qu'elle reste utile. Les habitudes validées restent acquises.";
   pending.operation_input.payload = {
     scope_kind: "current_level",
     constraints: {
@@ -1248,7 +1248,7 @@ export function buildWeeklyLightRepeatPendingReview(args: {
     user_message_brief:
       "Semaine allégée: respiration 1 fois, point positif 1 fois, mission signal seulement si une fenêtre se présente.",
     user_message_detailed:
-      "C'est appliqué: on repart sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.",
+      "Version à reprendre dans Plan: repartir sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.",
     applied_change: {
       changed_items: changedItems,
       preserved_items: [
@@ -1277,9 +1277,9 @@ export function buildWeeklyLightRepeatPendingReview(args: {
     constraints,
   };
   pending.draft.confirmation_message =
-    "Je propose une semaine allégée: respiration une fois, point positif une fois, et mission signal seulement si une fenêtre naturelle se présente. Rien n'est appliqué tant que tu ne confirmes pas clairement.";
+    "Je conseille une semaine allégée: respiration une fois, point positif une fois, et mission signal seulement si une fenêtre naturelle se présente. A reprendre dans la section Plan; je ne modifie pas le plan depuis le chat.";
   pending.draft.execution_message =
-    "C'est appliqué: on repart sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.";
+    "Version à reprendre dans Plan: repartir sur une semaine allégée. Respiration de pause passe à une fois, Partager un point positif passe à une fois, et la mission signal de pause devient conditionnelle: seulement si une fenêtre naturelle se présente. Le plan global ne change pas.";
   pending.operation_input.payload = {
     scope_kind: "current_level",
     constraints: {

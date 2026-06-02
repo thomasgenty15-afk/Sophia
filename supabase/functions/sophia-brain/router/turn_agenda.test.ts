@@ -222,7 +222,7 @@ Deno.test("no_potion blocks select_state_potion and leaves a concrete reply task
   );
 });
 
-Deno.test("preview_only update_coach_preferences is preview, not commit", () => {
+Deno.test("preview_only update_coach_preferences remains non-mutant", () => {
   const agenda = buildTurnAgenda(snapshot({
     frame: turnFrame({
       tool_skill_intents: [{
@@ -239,9 +239,9 @@ Deno.test("preview_only update_coach_preferences is preview, not commit", () => 
     candidate.operation_type === "update_coach_preferences"
   );
 
-  assertEquals(task?.intent, "preview");
-  assertEquals(task?.kind, "reply");
+  assertEquals(task?.kind, "platform_handoff");
   assertEquals(task?.requires_confirmation, false);
+  assertEquals(task?.no_chat_mutation, true);
 });
 
 Deno.test("no_tool blocks new effect tasks but keeps compatible pending confirmation", () => {
@@ -268,13 +268,13 @@ Deno.test("no_tool blocks new effect tasks but keeps compatible pending confirma
       ?.status,
     "blocked",
   );
-  assertEquals(
-    agenda.tasks.find((task) =>
-      task.source === "pending_confirmation" &&
-      task.operation_type === "prepare_attack_card"
-    )?.status,
-    "pending",
+  const pendingTask = agenda.tasks.find((task) =>
+    task.source === "pending_confirmation" &&
+    task.operation_type === "prepare_attack_card"
   );
+  assertEquals(pendingTask?.kind, "platform_handoff");
+  assertEquals(pendingTask?.status, "proposed");
+  assertEquals(pendingTask?.requires_confirmation, false);
 });
 
 Deno.test("status plus action keeps both tasks", () => {
@@ -338,6 +338,174 @@ Deno.test("route owner does not remove secondary tasks", () => {
   assertEquals(
     agenda.tasks.some((task) =>
       task.operation_type === "create_one_shot_reminder"
+    ),
+    true,
+  );
+});
+
+Deno.test("adjust_plan_item intent becomes platform_handoff, not effect", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "adjust",
+      }],
+    }),
+  }));
+
+  const task = agenda.tasks.find((item) =>
+    item.operation_type === "adjust_plan_item"
+  );
+  assertEquals(task?.kind, "platform_handoff");
+  assertEquals(task?.requires_confirmation, false);
+  assertEquals(task?.no_chat_mutation, true);
+  assertEquals(
+    agenda.tasks.some((item) =>
+      item.kind === "effect" && item.operation_type === "adjust_plan_item"
+    ),
+    false,
+  );
+});
+
+Deno.test("attack card and recurring reminder intents become platform_handoff", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      tool_skill_intents: [
+        {
+          operation_type: "prepare_attack_card",
+          explicitness: "explicit",
+          confidence_band: "high",
+          ambiguity: "none",
+          user_intent: "create",
+        },
+        {
+          operation_type: "create_recurring_reminder",
+          explicitness: "explicit",
+          confidence_band: "high",
+          ambiguity: "none",
+          user_intent: "create",
+        },
+      ],
+    }),
+  }));
+
+  assertEquals(
+    agenda.tasks.filter((item) => item.kind === "platform_handoff").map((
+      item,
+    ) => item.operation_type).sort(),
+    ["create_recurring_reminder", "prepare_attack_card"],
+  );
+  assertEquals(
+    agenda.tasks.some((item) =>
+      item.kind === "effect" &&
+      (item.operation_type === "prepare_attack_card" ||
+        item.operation_type === "create_recurring_reminder")
+    ),
+    false,
+  );
+});
+
+Deno.test("direct executable effects stay effect tasks", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      direct_effects: [{
+        effect_type: "create_one_shot_reminder",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {},
+      }, {
+        effect_type: "track_progress_plan_item",
+        explicitness: "explicit",
+        target_status: "identified",
+        confidence_band: "high",
+        payload_hint: {},
+      }],
+    }),
+  }));
+
+  assertEquals(
+    agenda.tasks.filter((item) => item.kind === "effect").map((item) =>
+      item.operation_type
+    ).sort(),
+    ["create_one_shot_reminder", "track_progress_plan_item"],
+  );
+});
+
+Deno.test("clarification required preempts platform handoff", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        explicitness: "explicit",
+        confidence_band: "medium",
+        ambiguity: "target_ambiguous",
+        user_intent: "adjust",
+      }],
+    }),
+  }));
+
+  assertEquals(
+    agenda.tasks.some((item) => item.kind === "clarification"),
+    true,
+  );
+  assertEquals(
+    agenda.tasks.some((item) => item.kind === "platform_handoff"),
+    false,
+  );
+});
+
+Deno.test("safety active blocks product platform handoff", () => {
+  const agenda = buildTurnAgenda(snapshot({
+    frame: turnFrame({
+      safety: { risk_band: "high", reason_codes: ["risk"], evidence: [] },
+      tool_skill_intents: [{
+        operation_type: "prepare_defense_card",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    }),
+  }));
+
+  const task = agenda.tasks.find((item) =>
+    item.operation_type === "prepare_defense_card"
+  );
+  assertEquals(task?.kind, "platform_handoff");
+  assertEquals(task?.status, "blocked");
+  assertEquals(task?.reason_code, "safety_blocks_runtime_task");
+});
+
+Deno.test("old flow plus explicit platform handoff interrupts active flow", () => {
+  const snap = snapshot({
+    frame: turnFrame({
+      tool_skill_intents: [{
+        operation_type: "adjust_plan_item",
+        explicitness: "explicit",
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "adjust",
+      }],
+    }),
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_attack_card",
+      },
+    },
+  });
+  const resolved = resolveFlowInterruptions({
+    snapshot: snap,
+    agenda: buildTurnAgenda(snap),
+  });
+
+  assertEquals(resolved.clear_active_tool_flow, true);
+  assertEquals(
+    resolved.reason_codes.includes(
+      "explicit_tool_intent_interrupts_active_flow",
     ),
     true,
   );

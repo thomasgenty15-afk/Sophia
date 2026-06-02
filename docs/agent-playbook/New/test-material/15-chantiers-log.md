@@ -38,10 +38,330 @@ l'enlever).
 
 ---
 
+## J77 — Active handoff arbitration and product surface registry
+
+Runs declencheurs. Chantier produit du 2026-06-01 : stabiliser les suites de
+handoff apres transformation des complex tools en `platform_handoff`, et
+centraliser leurs destinations produit.
+
+Couche. L3/L4 orchestration, Product Surface Registry, renderers handoff L5.
+
+Decision. Une policy commune `handoff_flow_arbitration` arbitre les tours quand
+un handoff plateforme est actif : continuer le handoff (`revise_handoff`,
+`repeat_handoff`, `apply_attempt`), sortir vers une intention explicite
+one-shot/progress/status/safety, demander clarification ou clear le handoff.
+La policy ne remplit aucun slot metier et ne declenche aucune execution. Les
+destinations produit sont lues depuis `product_surface_registry` via
+`getHandoffTargetForOperation`; les renderers gardent seulement des fallbacks
+generiques.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/08-product-surface-registry.md`
+- `docs/agent-playbook/New/runtime-contracts/tools/prepare-attack-card.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `supabase/functions/sophia-brain/product_surface_registry/contract.ts`
+- `supabase/functions/sophia-brain/product_surface_registry/registry.ts`
+- `supabase/functions/sophia-brain/product_surface_registry/surfaces.json`
+- `supabase/functions/sophia-brain/product_surface_registry/surfaces_data.ts`
+- `supabase/functions/sophia-brain/router/handoff_flow_arbitration.ts`
+- `supabase/functions/sophia-brain/router/run.ts`
+- `supabase/functions/sophia-brain/router/active_flow_state.ts`
+- `supabase/functions/sophia-brain/router/turn_agenda.ts`
+- `supabase/functions/sophia-brain/router/turn_interruption_policy.ts`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+- handoff renderers/generators/routers sous `tools/operations/*`.
+
+Tests ajoutes. `handoff_flow_arbitration_test.ts`,
+`product_surface_registry_test.ts` et `handoff_renderer_registry_test.ts`
+couvrent les continuations, interruptions, ambiguite, mappings registry,
+operations non-handoff et destinations canoniques dans les renderers.
+
+Tests lances.
+
+- `/usr/local/bin/deno check supabase/functions/sophia-brain/router/handoff_flow_arbitration.ts supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/turn_agenda.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts supabase/functions/sophia-brain/product_surface_registry/contract.ts supabase/functions/sophia-brain/product_surface_registry/registry.ts supabase/functions/sophia-brain/tools/operations/handoff_renderer_registry_test.ts`
+  : vert.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/handoff_flow_arbitration_test.ts supabase/functions/sophia-brain/product_surface_registry/product_surface_registry_test.ts supabase/functions/sophia-brain/product_surface_registry/registry.test.ts supabase/functions/sophia-brain/tools/operations/handoff_renderer_registry_test.ts`
+  : 33 verts.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts supabase/functions/sophia-brain/tools/operations/adjust_plan_item/handoff_runtime_test.ts supabase/functions/sophia-brain/tools/operations/select_state_potion/handoff_test.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/tests.ts supabase/functions/sophia-brain/tools/operations/prepare_attack_card/tests.ts supabase/functions/sophia-brain/tools/operations/prepare_defense_card/tests.ts supabase/functions/sophia-brain/tools/operations/update_coach_preferences/tests.ts`
+  : 99 verts.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tool_skill_runtime/operation_suggestion_resolver_test.ts supabase/functions/sophia-brain/recommendation/recommendation_tool.test.ts`
+  : 9 verts.
+
+Limites restantes. QA reelle via `/functions/v1/test-send-message` a relancer
+sur Supabase local pour verifier les traces end-to-end avec dispatcher L1 reel.
+Tentative locale du 2026-06-01 bloquee car le CLI `supabase` n'est pas present
+dans le PATH de cette session. La clarification active-handoff route vers
+`orientation_clarification`; l'appel outille avec candidats peut encore etre
+affine pour les candidats cross-skill.
+
+---
+
+## J76 — prepare_attack_card platform handoff owner
+
+Runs declencheurs. Chantier produit du 2026-06-01 : transformer
+`prepare_attack_card` depuis un tool flow executable vers un coaching handoff
+proprietaire, sans perdre l'intake structure, le choix de technique, le binding
+cible/action, la generation de draft ni le state multi-tour.
+
+Couche. L5 tool skill, L4 operation runtime pipeline, renderer no-mutation.
+
+Decision. `prepare_attack_card` ne passe plus par le handoff generique global :
+le skill reste owner de son domaine et produit un `platform_handoff` riche avec
+draft, destination `Cartes / Attaque`, et state actif continuable. Les demandes
+d'application type "ok cree-la" deviennent `apply_attempt` non-mutant. Aucun
+confirmation token, executor, writer DB ou `committed_effect` n'est produit par
+le chemin runtime nominal.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/tools/prepare-attack-card.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/ai_intake.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/contract.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/executor.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/renderer.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/router.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/slot_filler.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/state.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/test_helpers.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/tests.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_attack_card/prepare_attack_card_fallback_test.ts`
+
+Tests ajoutes. Tests unitaires couvrant le renderer complet, absence de pending
+executable, `apply_attempt` non-mutant, `repeat_handoff`, `revise_handoff`,
+no-create/draft-only, et approval legacy converti en handoff.
+
+Tests lances.
+
+- `/usr/local/bin/deno check supabase/functions/test-send-message/index.ts supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/tools/operations/prepare_attack_card/router.ts supabase/functions/sophia-brain/tools/operations/prepare_attack_card/tests.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+  : vert.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/prepare_attack_card/tests.ts supabase/functions/sophia-brain/tools/operations/prepare_attack_card/prepare_attack_card_fallback_test.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+  : 44 verts.
+
+QA reelle. `supabase start` local relance via Docker. Scenario ambigu
+product_help vs preparation : vert, owner `orientation_clarification`, aucun
+executor. Le scenario de handoff direct a d'abord montre un mauvais raccord
+`orientation_clarification_resolved -> normal_reply`, corrige dans `run.ts`.
+Apres correction, le endpoint local retourne encore
+`502 upstream prematurely
+closed connection` sur le tour de handoff, malgre
+`deno check` vert; la connexion temporaire QA creee pour ce run a ete nettoyee.
+
+Limites restantes. Relancer le run reel complet quand l'Edge Runtime local ne
+renvoie plus 502 sur `test-send-message`. Aucune commande DB destructive large
+lancee; seul le nettoyage cible de la connexion QA temporaire du run a ete
+effectue.
+
+---
+
+## J75 — prepare_defense_card platform handoff
+
+Runs declencheurs. Chantier produit du 2026-06-01 : transformer
+`prepare_defense_card` depuis un tool flow executable vers un flow de coaching
+et handoff plateforme.
+
+Couche. L4/L5 operation runtime pipeline, router local du skill, contrat runtime
+et renderer.
+
+Decision. `prepare_defense_card` garde l'intake structure, le target/action
+binding, l'analyse du risque, le choix de strategie et la generation de
+brouillon, mais supprime le terminal operationnel depuis le chat. Le succes
+nominal est un `platform_handoff` continuable avec `no_chat_mutation=true`,
+`executedTools=[]`, `committed_effects=[]`, sans confirmation token, sans
+executor et sans writer `user_defense_cards`. `apply_attempt` repete la
+destination plateforme au lieu d'executer.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/tools/prepare-defense-card.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+- `supabase/functions/sophia-brain/router/turn_agenda.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/contract.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/ai_intake.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/slot_filler.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/router.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/renderer.ts`
+- `supabase/functions/sophia-brain/tools/operations/prepare_defense_card/tests.ts`
+
+Tests ajoutes. `prepare_defense_card/tests.ts` couvre le renderer handoff
+complet, l'absence de confirmation token/executor/writer dans le router, le
+draft-only/no-create non executable, `apply_attempt` non mutant,
+`repeat_handoff` sur "redis-moi" et le wording no-mutation avec destination
+plateforme.
+
+Tests lances.
+
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read
+  supabase/functions/sophia-brain/tools/operations/prepare_defense_card/tests.ts`
+  : 22 verts.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+  : 4 verts.
+
+Limites restantes. Les runs QA reels via Supabase local et
+`/functions/v1/test-send-message` avec `force_full_ai=true` restent a executer.
+Les fichiers legacy `executor.ts` et `persistence.ts` existent encore pour
+compatibilite historique, mais ne sont plus appeles par le router nominal
+`prepare_defense_card`.
+
+---
+
+## J75 — Recurring reminder platform handoff
+
+Runs declencheurs. Chantier produit du 2026-06-01 : transformer
+`create_recurring_reminder` depuis un flow de creation executable en handoff
+plateforme non-mutant.
+
+Couche. L4/L5 operation runtime, Tool Skill recurring reminder, renderer et
+tests de contrat.
+
+Decision. Le skill conserve l'intake structure cadence/jours/heure/contenu, les
+contraintes `draft_only` / `no_create`, la distinction recurring vs one-shot et
+l'etat multi-tour. Il ne produit plus de pending confirmation executable, ne
+cree plus de confirmation token, n'appelle plus l'executor et n'ecrit plus dans
+`user_recurring_reminders`. Le resultat nominal est `platform_handoff` avec
+`no_chat_mutation=true`, `executedTools=[]` et `committed_effects=[]`. Une
+clarification one-shot sort proprement vers le proprietaire one-shot.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/tools/create-recurring-reminder.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+- `supabase/functions/sophia-brain/router/turn_agenda.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/contract.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/generator.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/intake.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/renderer.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/router.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/state.ts`
+- `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/tests.ts`
+
+Tests ajoutes. `create_recurring_reminder/tests.ts` couvre le renderer handoff
+complet, l'absence de pending confirmation/token/writer, `apply_attempt`
+non-mutant, `repeat_handoff`, `revise_handoff`, `draft_only/no_create`, sortie
+one-shot et ambiguite one-shot vs recurring.
+
+Tests lances.
+
+- `/usr/local/bin/deno check supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/contract.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/state.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/intake.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/generator.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/router.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/renderer.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+  : vert.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/tests.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+  : 12 verts.
+
+Limites restantes. Les runs QA reels via Supabase local restent a lancer. Les
+fichiers legacy `executor.ts` et `persistence.ts` existent encore mais ne sont
+plus importes par le router recurring handoff.
+
+Addendum QA reelle. Une tentative locale via `/functions/v1/test-send-message`
+avec connexion temporaire `qa-skill/recurring_handoff_20260601` a ete nettoyee.
+Le chemin L5 corrige fonctionne quand le dispatcher fournit
+`tool_skill_intents.operation_input`, mais le run direct est reste rouge en L1/L3
+: `route_decision.reason_code=orientation_clarification_resolved`,
+`selected_handler=normal_reply`, `tool_skill_intents=[]`, donc le router
+recurring n'est pas appele et la reponse normale peut encore employer un wording
+interdit. Ce point est hors terminal L5 recurring et doit etre repris cote
+dispatcher/clarification arbitration.
+
+## J74 — Platform handoff runtime category
+
+Runs declencheurs. Chantier produit du 2026-06-01 : separer trois resultats
+runtime aujourd'hui confondus (`durable_effect`, `clarification`,
+`platform_handoff`), et eviter de representer un handoff plateforme comme un
+effet bloque ou rate.
+
+Couche. L2/L3/L4 orchestration, EffectLedger transversal, final guards et
+operation runtime pipeline.
+
+Decision. `platform_handoff` devient une categorie runtime canonique : Sophia
+peut comprendre une intention complexe, clarifier, coacher et livrer une
+redirection vers une surface produit sans creer/modifier depuis le chat. Les
+operations complexes (`adjust_plan_item`, cartes, potion, rappel recurrent,
+preferences coach) ne deviennent plus des effects executables par defaut. Les
+effets chat executables restent limites a one-shot reminder, cancel one-shot et
+track progress. `clarification` devient egalement une task agenda/ledger
+non-mutante.
+
+Fichiers modifies.
+
+- `docs/agent-playbook/New/runtime-contracts/00-architecture-doctrine.md`
+- `docs/agent-playbook/New/runtime-contracts/03-user-turn-snapshot-agenda.md`
+- `docs/agent-playbook/New/runtime-contracts/05-effect-ledger.md`
+- `docs/agent-playbook/New/runtime-contracts/README.md`
+- `docs/agent-playbook/New/test-material/15-chantiers-log.md`
+- `supabase/functions/sophia-brain/router/turn_agenda.ts`
+- `supabase/functions/sophia-brain/router/turn_interruption_policy.ts`
+- `supabase/functions/sophia-brain/router/run_turn_agenda.ts`
+- `supabase/functions/sophia-brain/router/effect_ledger.ts`
+- `supabase/functions/sophia-brain/router/effect_ledger_adapter.ts`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts`
+- `supabase/functions/sophia-brain/router/turn_agenda.test.ts`
+- `supabase/functions/sophia-brain/router/effect_ledger.test.ts`
+- `supabase/functions/sophia-brain/router/effect_ledger_adapter_test.ts`
+- `supabase/functions/sophia-brain/router/effect_ledger_integration_test.ts`
+- `supabase/functions/sophia-brain/router/final_response_pipeline_test.ts`
+- `supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+- `supabase/functions/sophia-brain/tools/operations/adjust_plan_item/adjust_plan_handoff_architecture_test.ts`
+- `supabase/functions/sophia-brain/skills/status_recap/contract.ts`
+- `supabase/functions/sophia-brain/skills/status_recap/effect_history.ts`
+
+Tests ajoutes. `turn_agenda.test.ts` couvre les handoffs pour adjust plan,
+attack card et recurring reminder, les direct effects qui restent executables,
+la preemption par clarification, safety et l'interruption d'ancien flow.
+`effect_ledger*.test.ts` couvre handoff/clarification comme entries non
+mutantes, recommendation complexe -> handoff, absence de commit/executed tool,
+et distinction durable blocked. `final_response_pipeline_test.ts` couvre le
+wording handoff honnete autorise et le langage "fait/cree/modifie" bloque sans
+commit. `operation_runtime_pipeline_test.ts` couvre l'absence d'appel executor
+sur operation complexe et sur approval legacy.
+
+Tests lances.
+
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read
+  supabase/functions/sophia-brain/router/turn_agenda.test.ts
+  supabase/functions/sophia-brain/router/effect_ledger.test.ts
+  supabase/functions/sophia-brain/router/effect_ledger_adapter_test.ts
+  supabase/functions/sophia-brain/router/effect_ledger_integration_test.ts
+  supabase/functions/sophia-brain/router/final_response_pipeline_test.ts
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline_test.ts`
+  : 70 verts.
+- `/usr/local/bin/deno test --allow-env --allow-net --allow-read
+  supabase/functions/sophia-brain/tools/operations/adjust_plan_item/adjust_plan_handoff_architecture_test.ts`
+  : 3 verts.
+- `/usr/local/bin/deno check
+  supabase/functions/sophia-brain/router/turn_agenda.ts
+  supabase/functions/sophia-brain/router/turn_interruption_policy.ts
+  supabase/functions/sophia-brain/router/run_turn_agenda.ts
+  supabase/functions/sophia-brain/router/effect_ledger.ts
+  supabase/functions/sophia-brain/router/effect_ledger_adapter.ts
+  supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts
+  supabase/functions/sophia-brain/skills/status_recap/contract.ts
+  supabase/functions/sophia-brain/skills/status_recap/effect_history.ts`
+  : vert.
+- Runs reels locaux via `/functions/v1/test-send-message` avec
+  `force_full_ai=true` :
+  - adjust plan ambigu : `tool_execution=platform_handoff`, `executed_tools=[]`,
+    ledger `platform_handoff proposed` puis `delivered`, aucun commit, wording
+    "Je ne le modifie pas depuis le chat" ;
+  - carte d'attaque vs explication produit : `response_owner` et
+    `selected_handler=orientation_clarification`, agenda `clarification asked`,
+    ledger `clarification asked`, `executed_tools=[]`.
+
+Limites restantes. Les runs QA reels restent a executer via Supabase local et
+`/functions/v1/test-send-message` ont ete faits avec des users QA temporaires
+locaux ; aucun cleanup destructif n'a ete lance. Aucune commande DB destructive
+lancee ; aucun nouveau classifier regex metier ajoute pour choisir l'intention.
+
+---
+
 ## J62 — Card tools persistence cycle helper
 
-Runs declencheurs. Passe de nettoyage ciblee sur
-`prepare_attack_card` / `prepare_defense_card` demandee le 2026-05-30.
+Runs declencheurs. Passe de nettoyage ciblee sur `prepare_attack_card` /
+`prepare_defense_card` demandee le 2026-05-30.
 
 Couche. L5 tool skills, persistence DB non user-facing.
 
@@ -52,10 +372,10 @@ metier, et rendait les deux writers plus longs sans clarifier leur ownership.
 
 Fix reel. Extraction de
 `tools/operations/_shared/operation_cycle.ts::ensureToolOperationCycle(...)`.
-`prepare_attack_card/persistence.ts` conserve l'ecriture
-`user_attack_cards`; `prepare_defense_card/persistence.ts` conserve l'ecriture
-`user_defense_cards`; le helper partage ne possede ni draft, ni confirmation,
-ni renderer, ni effet commite.
+`prepare_attack_card/persistence.ts` conserve l'ecriture `user_attack_cards`;
+`prepare_defense_card/persistence.ts` conserve l'ecriture `user_defense_cards`;
+le helper partage ne possede ni draft, ni confirmation, ni renderer, ni effet
+commite.
 
 Fichiers modifies.
 
@@ -94,14 +414,13 @@ Tests lances.
   : 12 verts.
 - `/usr/local/bin/deno check supabase/functions/sophia-brain/router/run.ts` :
   rouge hors perimetre, erreurs preexistantes d'import/declaration locale en
-  conflit (`attachDynamicAddons`,
-  `DEFAULT_DISPATCHER_MEMORY_PLAN`,
+  conflit (`attachDynamicAddons`, `DEFAULT_DISPATCHER_MEMORY_PLAN`,
   `dispatcherSignalsFromTurnFrame`, etc.).
 
 Limites restantes. Le reducer defense reste dans `router.ts` comme exception
 documentee. Les duplications d'intake structurées entre attaque et defense
-restent volontairement locales tant qu'elles portent des slots metier
-distincts. Aucun nouveau fallback regex, aucun write DB hors executor/persistence
+restent volontairement locales tant qu'elles portent des slots metier distincts.
+Aucun nouveau fallback regex, aucun write DB hors executor/persistence
 proprietaire, aucune commande destructive DB lancee.
 
 ---
@@ -3731,7 +4050,8 @@ Symptôme architectural :
 Fix réel :
 
 - remplacement complet de
-  `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md` ;
+  `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md`
+  ;
 - ajout de la section `Dépend De L'Architecture De product_help` ;
 - documentation des fichiers réels : `contract.ts`, `intake.ts`, `retrieval.ts`,
   `knowledge.ts`, `prompt.ts`, `renderer.ts`, `skill.ts`, `context_loader.ts` et
@@ -3746,7 +4066,8 @@ Fix réel :
 
 Fichiers modifiés :
 
-- `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md` ;
+- `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md`
+  ;
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
@@ -5441,7 +5762,8 @@ Symptôme architectural :
 Fix réel :
 
 - remplacement complet de
-  `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md` ;
+  `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md`
+  ;
 - ajout de la section `Dépend De L'Architecture De product_help` reliant le
   domaine à `UserTurnSnapshot`, `TurnAgenda`, `Confirmation Contract`,
   `EffectLedger` et `ProductHelpDecision` ;
@@ -5455,7 +5777,8 @@ Fix réel :
 
 Fichiers modifiés :
 
-- `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md` ;
+- `docs/agent-playbook/New/runtime-contracts/conversation-skills/product-help.md`
+  ;
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
@@ -5714,7 +6037,8 @@ Fix réel :
 
 Fichiers modifiés :
 
-- `docs/agent-playbook/New/runtime-contracts/conversation-skills/safety-crisis.md` ;
+- `docs/agent-playbook/New/runtime-contracts/conversation-skills/safety-crisis.md`
+  ;
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
@@ -6253,6 +6577,7 @@ Limites :
 Couche. Tool Skills L5 / EffectLedger.
 
 Symptôme :
+
 - `create_recurring_reminder` et certains chemins `update_coach_preferences`
   exposaient bien les `committed_effects`, mais pas toujours l'effet demandé et
   autorisé correspondant dans le runtime result;
@@ -6261,6 +6586,7 @@ Symptôme :
   le contrat.
 
 Fix :
+
 - `create_recurring_reminder/router.ts` construit un
   `CreateRecurringReminderEffect` au moment de l'approbation exécutable et
   l'expose dans `requested_effects` et `allowed_effects` sur succès comme sur
@@ -6272,6 +6598,7 @@ Fix :
 - aucun slot, fallback sémantique, phrase métier ou writer DB n'a été déplacé.
 
 Fichiers modifiés :
+
 - `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/router.ts`;
 - `supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/tests.ts`;
 - `supabase/functions/sophia-brain/tools/operations/update_coach_preferences/router.ts`;
@@ -6281,6 +6608,7 @@ Fichiers modifiés :
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
+
 - `/usr/local/bin/deno fmt supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/router.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/tests.ts supabase/functions/sophia-brain/tools/operations/update_coach_preferences/router.ts supabase/functions/sophia-brain/tools/operations/update_coach_preferences/tests.ts`
   : vert;
 - `/usr/local/bin/deno check supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/router.ts supabase/functions/sophia-brain/tools/operations/create_recurring_reminder/contract.ts supabase/functions/sophia-brain/tools/operations/update_coach_preferences/router.ts supabase/functions/sophia-brain/tools/operations/update_coach_preferences/contract.ts`
@@ -6299,9 +6627,10 @@ Tests / vérifications :
   : 9 verts.
 
 Limites :
-- `select_state_potion` exposait déjà la chaîne d'effets via son
-  `effect_ledger` local; aucun changement comportemental n'a été nécessaire
-  dans ce domaine pendant cette passe.
+
+- `select_state_potion` exposait déjà la chaîne d'effets via son `effect_ledger`
+  local; aucun changement comportemental n'a été nécessaire dans ce domaine
+  pendant cette passe.
 
 ---
 
@@ -6310,6 +6639,7 @@ Limites :
 Couche. Conversation Skills L5 / EffectLedger conversationnel.
 
 Symptôme :
+
 - `product_help` gardait bien `operation_suggestions=[]`, mais son reducer
   convertissait encore `decision.bridge` en `handoff_request` dans
   `effects.requested/allowed`;
@@ -6321,6 +6651,7 @@ Symptôme :
   appelant legacy oubliait `requires_user_consent=true`.
 
 Fix :
+
 - `product_help/reducer.ts` ne convertit plus `decision.bridge` en
   `handoff_request`; le bridge reste uniquement dans `diagnosis` et dans la
   réponse rendue;
@@ -6334,6 +6665,7 @@ Fix :
   effet.
 
 Fichiers modifiés :
+
 - `supabase/functions/sophia-brain/skills/_shared/conversation_skill_contract.ts`;
 - `supabase/functions/sophia-brain/skills/product_help/reducer.ts`;
 - `supabase/functions/sophia-brain/skills/conversation_skills_contract_test.ts`;
@@ -6342,6 +6674,7 @@ Fichiers modifiés :
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
+
 - `/usr/local/bin/deno fmt supabase/functions/sophia-brain/skills/_shared/conversation_skill_contract.ts supabase/functions/sophia-brain/skills/product_help/reducer.ts supabase/functions/sophia-brain/skills/conversation_skills_contract_test.ts supabase/functions/sophia-brain/skills/skills_s3.test.ts`
   : vert;
 - `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/skills/conversation_skills_contract_test.ts`
@@ -6356,14 +6689,18 @@ Tests / vérifications :
   : 19 verts.
 
 Vérification bloquée :
+
 - `/usr/local/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_product_help_guard.test.ts`
   échoue au type-check dans `router/run.ts` sur des duplications/imports
   coaching préexistants hors périmètre `skills/**`;
 - `/usr/local/bin/deno test --no-check --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_product_help_guard.test.ts`
-  échoue avant exécution des tests sur `SyntaxError: Duplicate export of
-  'mapMomentumStateV2ToCoachingContext'` dans `router/run.ts`.
+  échoue avant exécution des tests sur
+  `SyntaxError: Duplicate export of
+  'mapMomentumStateV2ToCoachingContext'`
+  dans `router/run.ts`.
 
 Limites :
+
 - `run_product_help_guard.test.ts` reste bloqué par `router/run.ts`, hors
   périmètre de cette passe;
 - `product_help` conserve son intake legacy exporté uniquement comme exception
@@ -6377,6 +6714,7 @@ Couche. Always-on direct effects `one_shot_reminder` et
 `track_progress_plan_item`.
 
 Symptôme :
+
 - `one_shot_reminder/router.ts` adaptait les outcomes legacy directement et
   pouvait dériver `executed_tools` d'un statut `cancelled`/`success` plutôt que
   d'un commit local construit;
@@ -6389,6 +6727,7 @@ Symptôme :
   commit dans le même bloc de routing.
 
 Fix :
+
 - `one_shot_reminder/router.ts` centralise la classification via l'intake local,
   traite `product_help`, `status_question` et `ignore` comme non-mutants, gère
   `replace` comme cancel + create avec réponse honnête en succès partiel, et
@@ -6403,6 +6742,7 @@ Fix :
   `logged_progress_id`; le router garde l'intake/gate/routing/rendu.
 
 Fichiers modifiés :
+
 - `supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/contract.ts`;
 - `supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intake.ts`;
 - `supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/reducer.ts`;
@@ -6415,12 +6755,14 @@ Fichiers modifiés :
 - `docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Tests / vérifications :
+
 - `/usr/local/Cellar/deno/2.6.0/bin/deno check supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/router.ts supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/intake.ts supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/time_parser.ts supabase/functions/sophia-brain/tools/always_on/track_progress_plan_item/router.ts supabase/functions/sophia-brain/tools/always_on/track_progress_plan_item/executor.ts`
   : vert;
 - `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/one_shot_reminder_tool_test.ts supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/one_shot_reminder_router_test.ts supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/one_shot_reminder_reducer_test.ts supabase/functions/sophia-brain/tools/always_on/one_shot_reminder/one_shot_reminder_executor_test.ts supabase/functions/sophia-brain/tools/always_on/track_progress_plan_item/track_progress_plan_item_tool_test.ts`
   : 88 verts.
 
 Conflit / arbitrage :
+
 - conflit mineur entre le contrat one-shot qui ne nommait que `status` /
   `answer_product_question` et les chemins/tests legacy qui exposent
   `status_question` / `product_help` / `ignore`; option conservatrice retenue :
@@ -6433,6 +6775,7 @@ Conflit / arbitrage :
 Couche. L4/L5 orchestration runtime.
 
 Symptôme :
+
 - `run.ts` restait au-dessus de 6K lignes malgré les premières extractions;
 - des blocs entiers de ciblage plan, recommendation, onboarding/checkup,
   coaching intervention, persistance conversationnelle et bridge adjust-plan
@@ -6441,6 +6784,7 @@ Symptôme :
   seulement des petits helpers.
 
 Fix :
+
 - extraction de `plan_targeting_support.ts`;
 - extraction de `recommendation_runtime_support.ts`;
 - extraction de `turn_context_runtime.ts`;
@@ -6449,21 +6793,25 @@ Fix :
 - extraction de `adjust_plan_operation_bridge.ts`;
 - `run.ts` descend à 4136 lignes après formatage;
 - suppression du dernier import direct de router tool operation dans `run.ts`;
-- mise à jour du garde-fou architecture pour exiger zéro import direct de
-  router tool operation depuis `run.ts`;
+- mise à jour du garde-fou architecture pour exiger zéro import direct de router
+  tool operation depuis `run.ts`;
 - les exports historiques utilisés par les tests sont conservés via ré-export
   depuis `run.ts`.
 
 Tests :
+
 - `/usr/local/Cellar/deno/2.6.0/bin/deno fmt supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/adjust_plan_operation_bridge.ts supabase/functions/sophia-brain/router/conversation_route_runtime_support.ts supabase/functions/sophia-brain/router/coaching_intervention_runtime_support.ts supabase/functions/sophia-brain/router/turn_context_runtime.ts supabase/functions/sophia-brain/router/recommendation_runtime_support.ts supabase/functions/sophia-brain/router/plan_targeting_support.ts`;
 - `/usr/local/Cellar/deno/2.6.0/bin/deno check supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts supabase/functions/sophia-brain/router/effect_ledger.ts supabase/functions/sophia-brain/router/effect_ledger_adapter.ts supabase/functions/sophia-brain/router/final_response_pipeline.ts supabase/functions/sophia-brain/router/adjust_plan_operation_bridge.ts supabase/functions/sophia-brain/router/conversation_route_runtime_support.ts supabase/functions/sophia-brain/router/coaching_intervention_runtime_support.ts supabase/functions/sophia-brain/router/turn_context_runtime.ts supabase/functions/sophia-brain/router/recommendation_runtime_support.ts supabase/functions/sophia-brain/router/plan_targeting_support.ts`;
-- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_test.ts supabase/functions/sophia-brain/router/run_product_help_guard.test.ts supabase/functions/sophia-brain/router/final_response_pipeline_test.ts` : 122 verts;
-- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/effect_ledger.test.ts supabase/functions/sophia-brain/router/turn_agenda.test.ts supabase/functions/sophia-brain/router/user_turn_snapshot.test.ts supabase/functions/sophia-brain/routers/routers.test.ts` : 45 verts;
-- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/runtime_guards_architecture_test.ts` :
-  14/15 verts; échec documentaire préexistant sur deux fichiers qui citent
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/run_test.ts supabase/functions/sophia-brain/router/run_product_help_guard.test.ts supabase/functions/sophia-brain/router/final_response_pipeline_test.ts`
+  : 122 verts;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/effect_ledger.test.ts supabase/functions/sophia-brain/router/turn_agenda.test.ts supabase/functions/sophia-brain/router/user_turn_snapshot.test.ts supabase/functions/sophia-brain/routers/routers.test.ts`
+  : 45 verts;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/runtime_guards_architecture_test.ts`
+  : 14/15 verts; échec documentaire préexistant sur deux fichiers qui citent
   encore une ancienne commande de reset DB Supabase.
 
 Limites :
+
 - 3K lignes reste possible, mais le prochain gain doit sortir des parties de
   `processMessage` lui-même : debounce abort, stale checkup/risk reset,
   construction du contexte agent, post-runtime persistence/trace;
@@ -6480,6 +6828,7 @@ Limites :
 Couche. L4/L5 orchestration runtime.
 
 Symptôme :
+
 - `run.ts` restait à 4136 lignes après les extractions précédentes;
 - la réponse post-runtime d'opération contenait encore ledger, rendu visible,
   trace et persistance dans l'orchestrateur;
@@ -6487,12 +6836,13 @@ Symptôme :
   encore dans `processMessage`, ce qui rendait le debug trop large.
 
 Fix :
+
 - extraction de `operation_runtime_response_handler.ts` pour gérer la sortie
-  `OperationRuntimeResult` : style, weekly guard, ledger, trace, turn summary
-  et retour final;
-- extraction de `normal_reply_persistence_pipeline.ts` pour gérer merge
-  mémoire, recommendation pending, coaching observability, momentum/repair,
-  relation preferences, assistant log, turn summary et conversation pulse;
+  `OperationRuntimeResult` : style, weekly guard, ledger, trace, turn summary et
+  retour final;
+- extraction de `normal_reply_persistence_pipeline.ts` pour gérer merge mémoire,
+  recommendation pending, coaching observability, momentum/repair, relation
+  preferences, assistant log, turn summary et conversation pulse;
 - renforcement de `recommendation_runtime_support.ts` pour posséder la
   recommendation de tour au lieu de laisser `run.ts` appeler registry/tool;
 - extraction de `defense_card_win_runtime.ts`;
@@ -6503,15 +6853,17 @@ Fix :
 - `run.ts` descend à 2988 lignes après formatage.
 
 Tests :
+
 - `/usr/local/Cellar/deno/2.6.0/bin/deno fmt supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/operation_runtime_response_handler.ts supabase/functions/sophia-brain/router/normal_reply_persistence_pipeline.ts supabase/functions/sophia-brain/router/recommendation_runtime_support.ts supabase/functions/sophia-brain/router/defense_card_win_runtime.ts supabase/functions/sophia-brain/router/turn_context_runtime.ts supabase/functions/sophia-brain/router/plan_targeting_support.ts supabase/functions/sophia-brain/router/adjust_plan_operation_bridge.ts`;
 - `/usr/local/Cellar/deno/2.6.0/bin/deno check supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/operation_runtime_response_handler.ts supabase/functions/sophia-brain/router/normal_reply_persistence_pipeline.ts supabase/functions/sophia-brain/router/recommendation_runtime_support.ts supabase/functions/sophia-brain/router/defense_card_win_runtime.ts supabase/functions/sophia-brain/router/operation_runtime_pipeline.ts supabase/functions/sophia-brain/router/effect_ledger.ts supabase/functions/sophia-brain/router/effect_ledger_adapter.ts supabase/functions/sophia-brain/router/final_response_pipeline.ts`;
-- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/effect_ledger.test.ts supabase/functions/sophia-brain/router/turn_agenda.test.ts supabase/functions/sophia-brain/router/user_turn_snapshot.test.ts supabase/functions/sophia-brain/routers/routers.test.ts supabase/functions/sophia-brain/router/run_product_help_guard.test.ts supabase/functions/sophia-brain/router/run_test.ts` :
-  164 verts;
-- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/runtime_guards_architecture_test.ts` :
-  15 verts;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/effect_ledger.test.ts supabase/functions/sophia-brain/router/turn_agenda.test.ts supabase/functions/sophia-brain/router/user_turn_snapshot.test.ts supabase/functions/sophia-brain/routers/routers.test.ts supabase/functions/sophia-brain/router/run_product_help_guard.test.ts supabase/functions/sophia-brain/router/run_test.ts`
+  : 164 verts;
+- `/usr/local/Cellar/deno/2.6.0/bin/deno test --allow-env --allow-net --allow-read supabase/functions/sophia-brain/router/runtime_guards_architecture_test.ts`
+  : 15 verts;
 - `git diff --check -- supabase/functions/sophia-brain/router/run.ts supabase/functions/sophia-brain/router/operation_runtime_response_handler.ts supabase/functions/sophia-brain/router/normal_reply_persistence_pipeline.ts supabase/functions/sophia-brain/router/recommendation_runtime_support.ts supabase/functions/sophia-brain/router/defense_card_win_runtime.ts supabase/functions/sophia-brain/router/turn_context_runtime.ts supabase/functions/sophia-brain/router/plan_targeting_support.ts supabase/functions/sophia-brain/router/adjust_plan_operation_bridge.ts docs/agent-playbook/New/test-material/15-chantiers-log.md`.
 
 Limites :
+
 - `run.ts` reste un orchestrateur très dense : dispatcher/arbitration et
   quelques bridges weekly/safety y sont encore visibles;
 - certains imports legacy conversation/one-shot restent nécessaires pour les
@@ -6526,36 +6878,40 @@ Limites :
 Couche. QA architecture / anti-patching / documentation operationnelle.
 
 Symptôme :
+
 - les anciens runs et les nouvelles regressions post-contrats etaient analyses
   dans des rapports longs, mais sans registre fin permettant de suivre bug par
   bug la famille, l'owner, le fix et la verification;
 - `15-chantiers-log.md` servait a la fois de journal de decisions et de
   substitute de suivi QA detaille, ce qui rendait les corrections difficiles a
   relire;
-- sans nomenclature partagee, un agent pouvait encore corriger un tour rouge
-  par patch local au lieu de corriger la famille amont.
+- sans nomenclature partagee, un agent pouvait encore corriger un tour rouge par
+  patch local au lieu de corriger la famille amont.
 
 Fix :
-- ajout de `docs/agent-playbook/New/test-material/familly-bugs.md` comme document canonique de
-  suivi QA;
+
+- ajout de `docs/agent-playbook/New/test-material/familly-bugs.md` comme
+  document canonique de suivi QA;
 - definition de 26 familles coeur + 3 familles transverses `BF-*` couvrant
   routing, agenda, intake, reducer, confirmation, effects, ledger, renderer,
   status, memory, preferences, safety, proactive et tests;
-- creation du dossier `docs/agent-playbook/New/test-material/run-bug-sheets/` avec
-  `README.md`, `TEMPLATE.md` et une premiere feuille pour
+- creation du dossier `docs/agent-playbook/New/test-material/run-bug-sheets/`
+  avec `README.md`, `TEMPLATE.md` et une premiere feuille pour
   `global15_20260530_arch_r1`;
-- mise a jour de `01-qa-run-report-structure.md` pour exiger une feuille de
-  bugs sur les runs red/yellow;
-- mise a jour des prompts contractuels pour obliger la classification `BF-*`
-  et la mise a jour de la feuille quand la mission part d'un run QA.
+- mise a jour de `01-qa-run-report-structure.md` pour exiger une feuille de bugs
+  sur les runs red/yellow;
+- mise a jour des prompts contractuels pour obliger la classification `BF-*` et
+  la mise a jour de la feuille quand la mission part d'un run QA.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
 - verification manuelle de coherence avec les rapports QA presents dans
   `docs/agent-playbook/qa-run-global15-*` et les runs historiques dans
   `tests/real-personas/qa-skill/runs/`.
 
 Limites :
+
 - les anciennes salves n'ont pas encore chacune leur feuille retroactive;
 - le premier usage operationnel devra mettre a jour le statut des lignes
   `open -> fixed -> verified` au fil des corrections.
@@ -6567,6 +6923,7 @@ Limites :
 Couche. Documentation QA / test material / compatibilite prompts.
 
 Symptôme :
+
 - la structure des rapports QA, le chantiers-log, la taxonomie de bugs et les
   feuilles par run etaient disperses entre la racine `agent-playbook/` et
   `qa-operations/`;
@@ -6575,6 +6932,7 @@ Symptôme :
 - les anciens chemins restent mentionnes dans beaucoup de prompts et documents.
 
 Fix :
+
 - creation de `docs/agent-playbook/New/test-material/` comme dossier canonique;
 - deplacement de `01-qa-run-report-structure.md`, `15-chantiers-log.md`,
   `familly-bugs.md` et `run-bug-sheets/` dans ce dossier;
@@ -6582,14 +6940,16 @@ Fix :
   chantiers-log;
 - conservation de stubs de compatibilite aux anciens chemins racine;
 - mise a jour des references principales dans `runtime-contracts`,
-  `contract-prompts`, `14-qa-test-guidelines.md`, `11-skill-qa-conversation-runs.md`
-  et les rapports QA recents.
+  `contract-prompts`, `14-qa-test-guidelines.md`,
+  `11-skill-qa-conversation-runs.md` et les rapports QA recents.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
 - verification par `rg` des references encore actives aux anciens chemins.
 
 Limites :
+
 - les references historiques internes au chantiers-log peuvent encore citer
   `15-chantiers-log.md` de maniere courte; elles sont conservees comme archive,
   pas comme consigne active.
@@ -6601,6 +6961,7 @@ Limites :
 Couche. Documentation agents / organisation playbook.
 
 Symptôme :
+
 - `contract-prompts`, `runtime-contracts` et `test-material` etaient trois
   dossiers racine distincts sous `docs/agent-playbook/`;
 - l'utilisateur veut une entree unique pour tout le nouveau systeme documentaire
@@ -6608,6 +6969,7 @@ Symptôme :
   bases contractuelles.
 
 Fix :
+
 - creation de `docs/agent-playbook/New/`;
 - deplacement de `contract-prompts/`, `runtime-contracts/` et `test-material/`
   dans `New/`;
@@ -6616,14 +6978,16 @@ Fix :
   rapports QA et commentaires de code.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
-- verification par `rg` des anciens chemins absolus des trois dossiers
-  deplaces vers `New/`.
+- verification par `rg` des anciens chemins absolus des trois dossiers deplaces
+  vers `New/`.
 
 Limites :
-- les mentions courtes historiques `runtime-contracts/...` dans le
-  chantiers-log restent des references d'archive; les nouveaux prompts doivent
-  utiliser `docs/agent-playbook/New/...`.
+
+- les mentions courtes historiques `runtime-contracts/...` dans le chantiers-log
+  restent des references d'archive; les nouveaux prompts doivent utiliser
+  `docs/agent-playbook/New/...`.
 
 ---
 
@@ -6632,12 +6996,14 @@ Limites :
 Couche. Documentation QA / organisation playbook.
 
 Symptôme :
+
 - `14-qa-test-guidelines.md` restait a la racine du playbook alors qu'il fait
   partie du materiel de test;
 - le document de taxonomie `16-suivi-tests.md` gardait un nom numerote qui ne
   disait pas clairement son role de registre des familles de bugs.
 
 Fix :
+
 - deplacement canonique de `14-qa-test-guidelines.md` dans
   `docs/agent-playbook/New/test-material/`;
 - renommage de `16-suivi-tests.md` en `familly-bugs.md` dans
@@ -6646,12 +7012,14 @@ Fix :
 - mise a jour des references actives vers les nouveaux chemins.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
 - verification par `rg` des anciennes references canoniques.
 
 Limites :
-- les references courtes historiques dans le chantiers-log peuvent rester
-  comme archive lorsqu'elles ne sont pas des consignes actives.
+
+- les references courtes historiques dans le chantiers-log peuvent rester comme
+  archive lorsqu'elles ne sont pas des consignes actives.
 
 ---
 
@@ -6660,25 +7028,29 @@ Limites :
 Couche. Documentation agents / process de changement.
 
 Symptôme :
+
 - `New/README.md` listait les trois dossiers mais ne reliait pas encore
   clairement contrats runtime, prompts agents et materiel QA;
 - un agent pouvait encore savoir qu'un dossier existe sans comprendre quoi lire
   dans son perimetre, quoi tester et quoi mettre a jour a la fin.
 
 Fix :
+
 - refonte de `docs/agent-playbook/New/README.md` en guide operationnel;
 - ajout d'un parcours obligatoire avant modification de code;
-- ajout d'une section sur l'usage de `runtime-contracts/`,
-  `contract-prompts/` et `test-material/`;
+- ajout d'une section sur l'usage de `runtime-contracts/`, `contract-prompts/`
+  et `test-material/`;
 - ajout d'une checklist de sortie pour contrat lu, famille `BF-*`, feuille de
   bugs, chantiers-log, tests et conflits architecturaux;
 - ajout de criteres d'escalade quand le code et le contrat divergent.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
 - verification `git diff --check`.
 
 Limites :
+
 - les README de sous-dossiers restent les sources detaillees; le README racine
   sert de routage et de process, pas de duplication exhaustive.
 
@@ -6689,6 +7061,7 @@ Limites :
 Couche. Documentation QA / suivi bugs / anti-patching.
 
 Symptôme :
+
 - les rapports QA pouvaient conclure `yellow` ou `red` sans rattacher chaque
   tour problematique a une famille `BF-*`;
 - les fixes proposes pouvaient rester trop locaux si le rapport ne forçait pas
@@ -6697,19 +7070,114 @@ Symptôme :
   rapport exploitable apres execution.
 
 Fix :
-- mise a jour de `01-qa-run-report-structure.md` pour exiger un verdict par
-  tour et une famille `BF-*` pour chaque tour `yellow` ou `red`;
-- ajout d'un bloc d'analyse par tour rouge/jaune : symptome, source amont,
-  owner runtime, correction recommandee et justification anti-patch;
+
+- mise a jour de `01-qa-run-report-structure.md` pour exiger un verdict par tour
+  et une famille `BF-*` pour chaque tour `yellow` ou `red`;
+- ajout d'un bloc d'analyse par tour rouge/jaune : symptome, source amont, owner
+  runtime, correction recommandee et justification anti-patch;
 - mise a jour de `14-qa-test-guidelines.md` pour rendre le rapport post-test
   obligatoire et encadrer les corrections proposees;
 - mise a jour de `New/README.md` pour rendre visible cette obligation dans le
   process general agents.
 
 Tests / verifications :
+
 - changement documentaire uniquement;
 - verification `git diff --check`.
 
 Limites :
-- les anciens rapports ne sont pas retroactivement convertis; la regle vaut
-  pour les nouveaux runs et les reprises de runs.
+
+- les anciens rapports ne sont pas retroactivement convertis; la regle vaut pour
+  les nouveaux runs et les reprises de runs.
+
+---
+
+### J73 — Clarification transverse dispatcher et skills conversationnels
+
+Couche. Runtime Sophia Brain / dispatcher / clarification non-mutante.
+
+Symptôme :
+
+- les ambiguïtés hors flow pouvaient être capturées par `product_help` ou par un
+  tool skill avant qu'une question discriminante soit posée;
+- les primitives `clarification_tool` existaient mais n'étaient pas encore
+  branchées dans le runtime réel après production du `TurnFrame`;
+- les runs QA réels `clarification-dispatcher-real-20260601-r1/r2` étaient
+  rouges sur rappel ponctuel vs récurrent et aide produit vs carte d'attaque.
+
+Fix :
+
+- ajout de `router/clarification_candidate_builder.ts` pour convertir seulement
+  des signaux structurés `TurnFrame` en candidats;
+- ajout de `router/clarification_arbitrator.ts` après `TurnFrame` et avant les
+  handlers exécutables;
+- ajout de `orientation_clarification` comme owner runtime non-mutant;
+- blocage de `tool_skill_router`, `product_help`, `operation_runtime_pipeline`
+  et `direct_effects` quand une clarification est requise;
+- stockage temporaire `__clarification_state_v1` sans pending confirmation
+  exécutable;
+- ajout de `skills/_shared/clarification_adapter.ts` pour les conversation
+  skills;
+- mise à jour du prompt dispatcher pour conserver les signaux concurrents sans
+  trancher l'intention.
+
+Tests / vérifications :
+
+- `deno check` sur le module clarification, l'arbitrator, l'adapter et
+  `router/run.ts`;
+- tests unitaires `clarification_tool`, builder, arbitrator et adapter;
+- tests dispatcher et route replays avec `deno test --allow-read`;
+- QA réelle locale à exécuter via `/functions/v1/test-send-message` avec
+  `force_full_ai=true` pour fermer les bugs CDR.
+
+Limites :
+
+- les tool skills complexes ne sont pas refondus dans ce lot;
+- les skills conversationnels disposent de l'adapter commun, mais leur adoption
+  fine reste progressive par domaine.
+
+---
+
+### J74 — `adjust_plan_item` devient un handoff plateforme no-mutation
+
+Couche. Runtime Sophia Brain / tool skill adjust_plan_item / weekly bridge.
+
+Symptome :
+
+- `adjust_plan_item` gardait un terminal operationnel dans le chat :
+  confirmation token, draft executable, executor et writer DB plan;
+- les suites courtes comme "ok vas-y" pouvaient encore etre interpretees comme
+  une autorisation d'appliquer;
+- les runs QA full AI montraient un renderer trop pauvre ou une perte de flow
+  vers `status_recap` / aide produit.
+
+Fix :
+
+- remplacement du router nominal par un runtime `platform_handoff_skill`;
+- ajout du contrat `AdjustPlanHandoffDraft` / `AdjustPlanHandoffState` avec
+  `no_chat_mutation=true` et `executable_from_chat=false`;
+- renderer proprietaire avec recommandation complete, destination Plan et phrase
+  no-mutation;
+- protection des suites actives `repeat_handoff`, `revise_handoff` et
+  `apply_attempt`;
+- retrait de `adjust_plan_item` du chemin executable du pipeline nominal;
+- bridge weekly garde le signal d'ajustement mais route vers handoff, pas vers
+  patch ou execution;
+- contrat documentaire `runtime-contracts/tools/adjust-plan-item.md` aligne sur
+  la categorie `platform_handoff_skill`.
+
+Tests / verifications :
+
+- test unitaire handoff runtime : renderer complet, apply_attempt no-execute,
+  repeat_handoff, classification des suites, imports structurels interdits;
+- verification `rg` : le runtime nominal n'importe plus `executeAdjustPlanItem`,
+  `writePlanAdjustmentPatch` ou `createConfirmationToken`;
+- QA reelle full AI a executer selon `14-qa-test-guidelines.md` pour fermer le
+  chantier.
+
+Limites :
+
+- le code legacy executable reste isole dans `legacy_execution_router.ts` et
+  certains tests historiques couvrent encore l'ancien materiel de generation;
+- la suppression complete du legacy devra se faire apres migration des tests
+  anciens qui validaient explicitement l'application de patchs.

@@ -41,6 +41,7 @@ import {
   type ProductHelpStructuredIntakeInput,
 } from "./product_help/intake.ts";
 import { PRODUCT_HELP_PROMPT } from "./product_help/prompt.ts";
+import { getProductHelpFeature } from "./product_help/retrieval.ts";
 import {
   runProductHelpSkill as runProductHelpSkillImpl,
 } from "./product_help/skill.ts";
@@ -485,6 +486,14 @@ Deno.test("safety_crisis deescalates when means are away and human support is pr
   });
   assertEquals(exitCheck.status, "continue");
   assertEquals(exitCheck.state_patch?.phase, "exit_check");
+  assertEquals(
+    /mode securite|mode sécurité/i.test(String(exitCheck.reply ?? "")),
+    false,
+  );
+  assertEquals(
+    /confirme seulement/i.test(String(exitCheck.reply ?? "")),
+    false,
+  );
 
   const contactedSupport = await runSafetyCrisisSkill({
     user_message:
@@ -580,6 +589,10 @@ Deno.test("safety_crisis deescalates when means are away and human support is pr
   assertEquals(resolved.status, "exit");
   assertEquals(resolved.state_patch?.phase, "resolved");
   assertEquals(resolved.state_patch?.risk_band, "low");
+  assertEquals(
+    /mode securite|mode sécurité/i.test(String(resolved.reply ?? "")),
+    false,
+  );
 
   const resolvedByPhoneSupport = await runSafetyCrisisSkill({
     user_message:
@@ -2518,6 +2531,36 @@ Deno.test("product_help scenarios never start operations", async () => {
     assertEquals(output.recommendation_need?.needed, false);
     assertEquals(output.operation_suggestions, []);
   }
+});
+
+Deno.test("product_help describes the three coach preference settings", () => {
+  const feature = getProductHelpFeature("coach_preferences");
+  const text = [
+    feature?.explain,
+    feature?.how_to,
+    ...(feature?.benefits ?? []),
+    ...(feature?.limits ?? []),
+  ].join("\n");
+  assertStringIncludes(text, "Ton global");
+  assertStringIncludes(text, "Niveau de challenge");
+  assertStringIncludes(text, "Tendance a poser des questions");
+  assertStringIncludes(text, "zero emoji");
+  assertStringIncludes(text, "ne sauvegarde pas directement");
+});
+
+Deno.test("product_help renders coach preference setting descriptions", async () => {
+  const context = await loadProductHelpContext(contextInput());
+  const output = await runProductHelpSkill({
+    user_message:
+      "Dans les Préférences coach, ça fait quoi exactement ton global, challenge et tendance à poser des questions ?",
+    context,
+  });
+
+  assertEquals(output.diagnosis?.feature_id, "coach_preferences");
+  assertStringIncludes(output.reply ?? "", "Ton global");
+  assertStringIncludes(output.reply ?? "", "Niveau de challenge");
+  assertStringIncludes(output.reply ?? "", "Tendance a poser des questions");
+  assertStringIncludes(output.reply ?? "", "zero emoji");
 });
 
 Deno.test("product_help tool action requests are bridge only, never execution", async () => {

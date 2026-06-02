@@ -25,6 +25,9 @@ une exception legacy temporaire dans `../test-material/15-chantiers-log.md`.
 - confirmations : `04-confirmation-contract.md`
 - effets, claims, "c'est fait" : `05-effect-ledger.md`
 - diagrammes système : `06-sophia-brain-runtime-diagram.md`
+- continuité des handoffs actifs : `07-active-handoff-arbitration.md`
+- destinations plateforme : `08-product-surface-registry.md`
+- clarification transverse : `clarification-tool.md`
 - guards legacy ou `*ForTest` : `testing/legacy-guards.md`
 - suite centrale de tests : `testing/central-test-suite.md`
 
@@ -40,6 +43,7 @@ une exception legacy temporaire dans `../test-material/15-chantiers-log.md`.
 - `tools/select-state-potion.md`
 - `tools/update-coach-preferences.md`
 - `tools/track-progress-plan-item.md`
+- `tools/clarification-tool.md`
 
 ### Conversation Skills
 
@@ -79,3 +83,7 @@ Chaque contrat de domaine doit garder ces sections :
 | 2026-05-30 | Création du dossier `runtime-contracts` comme base de vérité opérationnelle. | Active | À reporter dans `../test-material/15-chantiers-log.md` |
 | 2026-05-30 | Intégrer la doctrine globale dans `00-architecture-doctrine.md` et garder `../13-architecture-skills` comme stub de compatibilité. | Active | J59 |
 | 2026-05-30 | Renuméroter les contrats transverses pour réserver `00` à la doctrine et `06` au diagramme runtime. | Active | J59 |
+| 2026-06-01 | Ajouter `clarification-tool.md` comme contrat transverse pour l'intégration dispatcher et conversation skills. | Active | J73 |
+| 2026-06-01 | `platform_handoff` devient une catégorie runtime canonique distincte des effets durables bloqués ou échoués. | Active | J74 |
+| 2026-06-01 | Ajouter `07-active-handoff-arbitration.md` pour protéger la continuité des handoffs sans relancer l'exécution. | Active | Architecture handoff V1 |
+| 2026-06-01 | Ajouter `08-product-surface-registry.md` comme source canonique des destinations plateforme. | Active | Architecture handoff V1 |

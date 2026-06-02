@@ -2,22 +2,19 @@ import {
   assertEquals,
   assertStringIncludes,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-import {
-  createConfirmationToken,
-  hasConsumedConfirmationTokenForTest,
-  resetConsumedConfirmationTokensForTest,
-} from "../../../confirmation/confirmation_token.ts";
+import { createEffectLedger } from "../../../router/effect_ledger.ts";
+import { recordToolSkillEffectsInLedger } from "../../../router/effect_ledger_adapter.ts";
 import {
   loadReplayFixtures,
   runReplayFixtures,
 } from "../../../test_harness/conversation_route_replay/runner.ts";
+import { getHandoffTargetForOperation } from "../../../product_surface_registry/contract.ts";
 import type { AttackCardDraftGenerator } from "./ai_intake.ts";
 import {
   normalizeAttackCardDraft,
   runPrepareAttackCardAiIntake,
 } from "./ai_intake.ts";
 import { decidePrepareAttackCardNextStep } from "./contract.ts";
-import { executePrepareAttackCard } from "./executor.ts";
 import {
   detectExplicitlyNamedTechnique,
   enforceExplicitTechniqueRequest,
@@ -36,16 +33,14 @@ import {
 } from "./run_support.ts";
 import {
   renderAttackCardDraftOnlyReply,
-  renderAttackCardExecutedReply,
   renderAttackCardFailedReply,
   renderAttackCardPendingConfirmationReply,
+  renderAttackCardPlatformHandoff,
 } from "./renderer.ts";
 import {
   applyPrepareAttackCardInitialDraftDecision,
   maybeRunPrepareAttackCardOperation,
 } from "./router.ts";
-
-const SECRET = "s5-test-secret";
 
 const sampleAttackCardDraft = () => ({
   operation_type: "prepare_attack_card" as const,
@@ -62,7 +57,8 @@ const sampleAttackCardDraft = () => ({
     mode_emploi: "Lis-la au moment où la résistance monte.",
     why_it_helps: "Elle coupe le débat intérieur.",
   },
-  confirmation_message: "Je crée cette carte ?",
+  confirmation_message:
+    "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes / Attaque de la plateforme.",
   confirmation_actions: ["yes", "no"] as ["yes", "no"],
 });
 
@@ -102,12 +98,53 @@ function makeFakeSupabaseForAttackRouter() {
         limit() {
           return Promise.resolve({ data: [], error: null });
         },
+        order() {
+          return this;
+        },
         maybeSingle() {
           return Promise.resolve({ data: null, error: null });
         },
       };
     },
   } as any;
+}
+
+function sampleAttackCardHandoffState() {
+  return {
+    skill_id: "prepare_attack_card",
+    mode: "platform_handoff",
+    status: "handoff_delivered",
+    draft: {
+      operation_type: "prepare_attack_card",
+      mode: "platform_handoff",
+      no_chat_mutation: true,
+      executable_from_chat: false,
+      target_summary: "marche",
+      blocker_summary: "négociation intérieure",
+      recommendation: {
+        technique_label: "Le texte magique",
+        why_this_technique: "Elle coupe le débat intérieur.",
+        card_draft_summary:
+          "Carte d'attaque - marche\nQuand je négocie, je reviens au premier geste minuscule.",
+        preserve: ["premier geste minuscule"],
+        avoid: ["plusieurs propositions"],
+        platform_destination: "Plateforme > Cartes / Attaque",
+        platform_steps: [
+          "Ouvre Cartes / Attaque.",
+          "Choisis la cible.",
+          "Copie le brouillon.",
+        ],
+      },
+      missing_decisions: [],
+    },
+    source_draft: sampleAttackCardDraft(),
+    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+    turn_count: 1,
+    max_turns: 8,
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z",
+    no_chat_mutation: true,
+  };
 }
 
 Deno.test("prepare_attack_card contract normalizes user_intent=draft_only + no_create", () => {
@@ -133,6 +170,235 @@ Deno.test("prepare_attack_card contract normalizes user_intent=draft_only + no_c
     (output.constraints ?? []).map((constraint) => constraint.kind),
     ["no_create", "draft_only"],
   );
+});
+
+Deno.test("prepare_attack_card initial intake ignores draft_review_decision without previous draft", async () => {
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Prépare-moi une carte d'attaque pour ouvrir mon carnet, sans la créer.",
+    source: "direct_user_request",
+    trigger_message_id: "m-initial-draft-review-noise",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => ({
+      current_step: "draft_generation",
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["sans la créer"] }],
+      state_patch: {
+        ...readyAttackCardStatePatch({ title: "ouvrir mon carnet" }),
+        target: {
+          status: "identified",
+          kind: "personal_action",
+          plan_item_id: null,
+          title: "ouvrir mon carnet",
+          confidence: "high",
+          evidence: ["free action from user"],
+        },
+      } as any,
+      draft_review_decision: {
+        decision: "unclear",
+        confidence: "high",
+        evidence: ["slot filler defaulted draft validation"],
+      },
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["structured test filler"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.target_label, "ouvrir mon carnet");
+  assertEquals(output.state_patch.draft_review_decision, undefined);
+});
+
+Deno.test("prepare_attack_card initial intake accepts dispatcher aliases for target and technique", async () => {
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Prépare une carte d'attaque en Ancre visuelle pour poser ma tenue de sport.",
+    source: "direct_user_request",
+    trigger_message_id: "m-dispatcher-aliases",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      action_title: "Poser ma tenue de sport sur la chaise",
+      technique_hint: "Ancre visuelle",
+      obstacle_hint: "je repousse en disant que je verrai demain",
+    },
+    slot_filler: async () => ({
+      current_step: "draft_generation",
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["ne la crée pas"] }],
+      state_patch: {
+        target: {
+          status: "missing",
+          confidence: "low",
+          evidence: [],
+        },
+        technique: {
+          status: "missing",
+          confidence: "low",
+          evidence: [],
+        },
+      } as any,
+      missing_slots: [],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["structured test filler"],
+    }),
+    draft_generator: async (input) => ({
+      ...sampleAttackCardDraft(),
+      draft: {
+        ...sampleAttackCardDraft().draft,
+        target_label: input.state.target.status === "identified"
+          ? input.state.target.title
+          : "",
+        technique: "ancre_visuelle",
+        technique_title: "Ancre visuelle",
+      },
+    }),
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    output.draft?.draft.target_label,
+    "Poser ma tenue de sport sur la chaise",
+  );
+  assertEquals(output.draft?.draft.technique, "ancre_visuelle");
+  assertEquals(
+    (output.pending_confirmation as any)?.intake_state?.blocker?.evidence,
+    ["je repousse en disant que je verrai demain"],
+  );
+});
+
+Deno.test("prepare_attack_card initial intake recommends technique when target and blocker are enough", async () => {
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Prépare-moi une carte d'attaque pour envoyer mon dossier administratif avant 16h. Je bloque parce que je veux que ce soit parfait avant d'appuyer sur envoyer. Ne la crée pas, je veux seulement le brouillon.",
+    source: "direct_user_request",
+    trigger_message_id: "m-recommend-technique",
+    safety_pregate_risk_band: "none",
+    slot_filler: async () => ({
+      current_step: "technique_selection",
+      user_intent: "draft_only",
+      constraints: [
+        { kind: "draft_only", evidence: ["seulement le brouillon"] },
+        { kind: "no_create", evidence: ["ne la crée pas"] },
+      ],
+      state_patch: {
+        target: {
+          status: "identified",
+          kind: "personal_action",
+          plan_item_id: null,
+          title: "envoyer mon dossier administratif avant 16h",
+          confidence: "high",
+          evidence: ["envoyer mon dossier administratif avant 16h"],
+        },
+        blocker: {
+          type: "avoidance",
+          confidence: 0.9,
+          evidence: ["je veux que ce soit parfait avant d'appuyer sur envoyer"],
+        },
+        technique: {
+          status: "missing",
+          value: null,
+          explicitly_requested: false,
+          fit_warning: null,
+          options: [],
+          confidence: "low",
+          evidence: [],
+        },
+      } as any,
+      missing_slots: ["technique"],
+      confidence: "high",
+      generated_user_message:
+        "Je peux la créer, quelle technique préfères-tu ?",
+      evidence: ["structured test filler"],
+    }),
+    draft_generator: async (input) => ({
+      ...sampleAttackCardDraft(),
+      draft: {
+        ...sampleAttackCardDraft().draft,
+        target_label: input.state.target.status === "identified"
+          ? input.state.target.title
+          : "",
+        technique: input.state.technique.value ?? "texte_recadrage",
+        technique_title: "Le texte magique",
+        generated_asset:
+          "Ce dossier n'a pas besoin d'être parfait, il a besoin d'être envoyé.",
+      },
+    }),
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.technique, "texte_recadrage");
+  assertStringIncludes(
+    output.confirmation?.message ?? "",
+    "Je ne crée pas la carte depuis le chat",
+  );
+});
+
+Deno.test("prepare_attack_card initial intake binds titled plan target without id as free action", async () => {
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "web",
+    timezone: "Europe/Paris",
+    message:
+      "Je veux en préparer une pour mon action du matin : ouvrir mon carnet avant le café. Le piège, c'est que je regarderai après. Ne la crée pas depuis le chat.",
+    source: "direct_user_request",
+    trigger_message_id: "m-plan-title-no-id",
+    safety_pregate_risk_band: "none",
+    plan_snapshot: { items: [] },
+    slot_filler: async () => ({
+      current_step: "technique_selection",
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["ne la crée pas"] }],
+      state_patch: {
+        target: {
+          status: "identified",
+          kind: "plan_item",
+          plan_item_id: null,
+          title: "ouvrir mon carnet avant le café",
+          confidence: "high",
+          evidence: ["action du matin"],
+        },
+        blocker: {
+          type: "avoidance",
+          confidence: 0.8,
+          evidence: ["je regarderai après"],
+        },
+        technique: {
+          status: "missing",
+          value: null,
+          explicitly_requested: false,
+          fit_warning: null,
+          options: [],
+          confidence: "low",
+          evidence: [],
+        },
+      } as any,
+      missing_slots: ["technique"],
+      confidence: "high",
+      generated_user_message: null,
+      evidence: ["structured test filler"],
+    }),
+    draft_generator: structuredAttackCardDraftGenerator,
+  });
+
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(
+    (output.pending_confirmation as any)?.intake_state?.target?.kind,
+    "personal_action",
+  );
+  assertEquals(output.draft?.draft.technique, "texte_recadrage");
 });
 
 Deno.test("prepare_attack_card contract blocks draft-only create effects", () => {
@@ -181,46 +447,239 @@ Deno.test("prepare_attack_card initial draft-only stores review draft, not execu
   });
 
   assertEquals(runtime?.executedTools, []);
-  assertEquals(runtime?.toolSkillRun.status, "draft_ready");
+  assertEquals(runtime?.toolExecution, "platform_handoff");
+  assertEquals(runtime?.toolSkillRun.status, "handoff_delivered");
   assertEquals(
     runtime?.nextTempMemory.__pending_tool_skill_confirmation,
     undefined,
   );
   assertEquals(
-    runtime?.nextTempMemory.__pending_attack_card_draft_review?.executable,
-    false,
+    runtime?.nextTempMemory.__pending_attack_card_draft_review,
+    undefined,
   );
-  assertStringIncludes(runtime?.content ?? "", "Je n'ai rien créé");
+  assertEquals(
+    runtime?.nextTempMemory.__active_attack_card_handoff?.no_chat_mutation,
+    true,
+  );
+  assertStringIncludes(runtime?.content ?? "", "Cible/action comprise");
+  assertStringIncludes(runtime?.content ?? "", "Destination plateforme");
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Je ne crée pas la carte depuis le chat",
+  );
   assertEquals(
     (runtime?.content ?? "").includes("Confirme explicitement"),
     false,
   );
 });
 
-Deno.test("prepare_attack_card renderer separates draft, pending, executed and failed states", () => {
+Deno.test("prepare_attack_card router forwards dispatcher operation_input into intake", async () => {
+  let seenOperationInput: Record<string, unknown> | null = null;
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage:
+      "Prépare-moi une carte d'attaque pour envoyer mon dossier administratif avant 16h. Ne la crée pas, je veux seulement le brouillon.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {},
+    turnFrame: {
+      tool_skill_intents: [{
+        operation_type: "prepare_attack_card",
+        explicitness: "explicit",
+        target_hint: "envoyer mon dossier administratif avant 16h",
+        operation_input: {
+          action_title: "Envoyer le dossier administratif",
+          deadline: "16h",
+          friction_point: "perfectionnisme avant l'envoi",
+        },
+        confidence_band: "high",
+        ambiguity: "none",
+        user_intent: "create",
+      }],
+    } as any,
+    routeDecision: {
+      response_owner: "tool_skill",
+      selected_handler: "prepare_attack_card",
+      reason_code: "tool_skill_intent_start",
+    } as any,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-router-dispatcher-input",
+    runIntake: async (input) => {
+      seenOperationInput = input.operation_input ?? null;
+      return {
+        status: "pending_confirmation",
+        user_intent: "draft_only",
+        constraints: [{ kind: "no_create", evidence: ["ne la crée pas"] }],
+        phase: "confirmation",
+        draft: sampleAttackCardDraft(),
+        pending_confirmation: {
+          operation_id: "op-router-dispatcher-input",
+          operation_type: "prepare_attack_card",
+          target: {
+            kind: "personal_action",
+            title: "Envoyer le dossier administratif",
+          },
+          intake_state: {
+            blocker: {
+              type: "friction",
+              evidence: ["perfectionnisme avant l'envoi"],
+            },
+          },
+        },
+        state_patch: {
+          missing_slots: [],
+          operation_input: input.operation_input,
+        },
+      } as any;
+    },
+  });
+
+  assertEquals(runtime?.toolExecution, "platform_handoff");
+  const observedOperationInput = seenOperationInput as
+    | Record<string, unknown>
+    | null;
+  assertEquals(
+    observedOperationInput?.action_title,
+    "Envoyer le dossier administratif",
+  );
+  assertEquals(
+    observedOperationInput?.friction_point,
+    "perfectionnisme avant l'envoi",
+  );
+  assertEquals(observedOperationInput?.user_message !== undefined, true);
+});
+
+Deno.test("prepare_attack_card renderer separates handoff and failed states", () => {
   const draft = sampleAttackCardDraft();
   const draftOnly = renderAttackCardDraftOnlyReply(draft);
-  assertStringIncludes(draftOnly, "Je n'ai rien créé");
+  assertStringIncludes(draftOnly, "Je ne crée pas la carte depuis le chat");
   assertEquals(draftOnly.includes("Confirme explicitement"), false);
 
   const pending = renderAttackCardPendingConfirmationReply(draft);
-  assertStringIncludes(pending, "Confirme explicitement");
+  assertStringIncludes(
+    pending,
+    getHandoffTargetForOperation("prepare_attack_card")
+      ?.user_facing_destination ?? "Cartes d’attaque",
+  );
 
-  const executed = renderAttackCardExecutedReply({
-    type: "create_attack_card",
-    operation_id: "op-committed",
-    attack_card_id: "attack-1",
-    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
-    draft,
+  const handoff = renderAttackCardPlatformHandoff({
+    operation_type: "prepare_attack_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: "marche",
+    blocker_summary: "négociation intérieure",
+    recommendation: {
+      technique_label: "Le texte magique",
+      why_this_technique: "Elle coupe le débat intérieur.",
+      card_draft_summary: "Quand je négocie, je reviens au premier geste.",
+      preserve: ["premier geste"],
+      avoid: ["plusieurs techniques"],
+      platform_destination: "Plateforme > Cartes / Attaque",
+      platform_steps: ["Ouvre Cartes / Attaque"],
+    },
+    platform_handoff: {
+      flow_kind: "free_attack_card",
+      surface_label: "Ressources > Attaque",
+      destination: "Ressources > Attaque > Cartes d'attaque libres",
+      steps: [
+        "Ouvre Ressources.",
+        "Ouvre Attaque.",
+        "Dans Cartes d'attaque libres, clique Ajouter une carte.",
+      ],
+      technique_key: "texte_recadrage",
+      technique_label: "Le texte magique",
+      inputs: [
+        {
+          question:
+            "Quelle action tu sais que tu dois faire, mais que tu commences souvent a negocier ?",
+          suggested_answer: "marche",
+        },
+        {
+          question:
+            "Quelles excuses ou pensees reviennent quand tu sens que tu glisses ?",
+          suggested_answer: "négociation intérieure",
+        },
+      ],
+      expected_result: {
+        output_title: "Carte d'attaque - marche",
+        generated_asset: "Quand je négocie, je reviens au premier geste.",
+        supporting_points: ["premier geste"],
+        mode_emploi: "Lire puis agir.",
+      },
+    },
+    missing_decisions: [],
   });
-  assertStringIncludes(executed, "attack-1");
-  assertStringIncludes(executed, "C'est fait");
+  assertStringIncludes(handoff, "Cible/action comprise");
+  assertStringIncludes(handoff, "Obstacle ou piège identifié");
+  assertStringIncludes(handoff, "Champs à renseigner dans la plateforme");
+  assertStringIncludes(handoff, "Question plateforme");
+  assertStringIncludes(handoff, "Réponse proposée : marche");
+  assertStringIncludes(handoff, "Aperçu du résultat attendu");
+  assertStringIncludes(handoff, "Brouillon de carte");
+  assertStringIncludes(handoff, "À préserver");
+  assertStringIncludes(handoff, "À éviter");
+  assertStringIncludes(handoff, "Destination plateforme");
+  assertEquals(
+    /c'est créé|j'ai créé|j'ai ajouté|c'est fait/i.test(handoff),
+    false,
+  );
 
   const failed = renderAttackCardFailedReply();
   assertEquals(failed.includes("C'est fait"), false);
 });
 
-Deno.test("prepare_attack_card contract allows approve only with compatible pending draft", () => {
+Deno.test("prepare_attack_card renderer handles plan action handoff without manual fields", () => {
+  const handoff = renderAttackCardPlatformHandoff({
+    operation_type: "prepare_attack_card",
+    mode: "platform_handoff",
+    no_chat_mutation: true,
+    executable_from_chat: false,
+    target_summary: "ouvrir mon carnet avant le café",
+    blocker_summary: "je me dis que je regarderai plus tard",
+    recommendation: {
+      technique_label: "Meditation de 5 minutes",
+      why_this_technique: "Elle prépare le geste avant la friction.",
+      card_draft_summary:
+        "Me voir ouvrir le carnet avant que la journée démarre.",
+      preserve: ["agir avant le café"],
+      avoid: ["ajouter une deuxième technique"],
+      platform_destination: "Ressources > Attaque > Cartes d'attaque du plan",
+      platform_steps: ["Ouvre le bloc Ressources de l'action."],
+    },
+    platform_handoff: {
+      flow_kind: "plan_action_cards",
+      surface_label: "Plan > Action > Ressources > Attaque",
+      destination: "Ressources > Attaque > Cartes d'attaque du plan",
+      steps: [
+        'Ouvre ton plan puis l\'action "ouvrir mon carnet avant le café".',
+        "Dans le bloc Ressources, clique Générer.",
+      ],
+      technique_key: "visualisation_matinale",
+      technique_label: "Meditation de 5 minutes",
+      inputs: [],
+      expected_result: {
+        output_title: "Ouvrir mon carnet",
+        generated_asset:
+          "Visualise-toi en train d'ouvrir le carnet avant le café.",
+        supporting_points: ["agir avant la négociation"],
+        mode_emploi: "Prendre cinq minutes le matin.",
+      },
+      plan_action_note:
+        "Pour une action du plan, la plateforme prépare les cartes depuis le bloc Ressources de l'action.",
+    },
+    missing_decisions: [],
+  });
+
+  assertStringIncludes(handoff, "Plan > Action > Ressources > Attaque");
+  assertStringIncludes(handoff, "Aucun champ manuel à remplir");
+  assertStringIncludes(handoff, "Générer");
+  assertStringIncludes(handoff, "Aperçu du résultat attendu");
+  assertStringIncludes(handoff, "Je ne crée pas la carte depuis le chat");
+});
+
+Deno.test("prepare_attack_card contract maps approve to non-mutant apply_attempt", () => {
   const pendingRaw = {
     operation_id: "op-approve",
     operation_type: "prepare_attack_card",
@@ -236,8 +695,12 @@ Deno.test("prepare_attack_card contract allows approve only with compatible pend
       evidence: ["ok crée-la"],
     },
   });
-  assertEquals(allowed.status, "pending_confirmation");
-  assertEquals(allowed.allowed_effects[0]?.type, "create_attack_card");
+  assertEquals(allowed.status, "apply_attempt");
+  assertEquals(allowed.allowed_effects.length, 0);
+  assertEquals(
+    allowed.blocked_effects[0]?.reason_code,
+    "chat_creation_disabled_platform_handoff",
+  );
 
   const incompatible = decidePrepareAttackCardNextStep({
     pendingRaw: {
@@ -251,7 +714,7 @@ Deno.test("prepare_attack_card contract allows approve only with compatible pend
       evidence: ["ok crée-la"],
     },
   });
-  assertEquals(incompatible.status, "blocked");
+  assertEquals(incompatible.status, "apply_attempt");
   assertEquals(incompatible.allowed_effects.length, 0);
 });
 
@@ -326,7 +789,7 @@ Deno.test("Confirmation contract: pending attack card preview does not create", 
     safetyPregateOutput: { risk_band: "none" } as any,
     sourceMessageId: "m-attack-preview",
   });
-  assertEquals(runtime?.toolExecution, "blocked");
+  assertEquals(runtime?.toolExecution, "platform_handoff");
   assertEquals(runtime?.executedTools, []);
   assertEquals((runtime?.toolSkillRun as any)?.status, "draft_ready");
   assertEquals(
@@ -361,6 +824,440 @@ Deno.test("Confirmation contract: pending attack card ignores reminder command",
     sourceMessageId: "m-attack-unrelated",
   });
   assertEquals(runtime, null);
+});
+
+Deno.test("prepare_attack_card apply_attempt does not execute from active handoff", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "ok crée-la",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-apply-attempt",
+    runIntake: async () =>
+      ({
+        status: "draft_review_decision",
+        user_intent: "create",
+        constraints: [],
+        phase: "confirmation",
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "approve",
+            confidence: "high",
+            evidence: ["ok crée-la"],
+          },
+        },
+      }) as any,
+  });
+  assertEquals(runtime?.toolExecution, "platform_handoff");
+  assertEquals(runtime?.executedTools, []);
+  assertEquals((runtime?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.committed_effects?.length,
+    0,
+  );
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Je ne crée pas la carte depuis le chat",
+  );
+  assertStringIncludes(
+    runtime?.content ?? "",
+    getHandoffTargetForOperation("prepare_attack_card")
+      ?.user_facing_destination ?? "Cartes d’attaque",
+  );
+});
+
+Deno.test("prepare_attack_card active handoff captures redis-moi as repeat_handoff", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "redis-moi quoi mettre",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-repeat",
+    runIntake: async () =>
+      ({
+        status: "draft_review_decision",
+        user_intent: "explain",
+        constraints: [],
+        phase: "confirmation",
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "explain",
+            confidence: "high",
+            evidence: ["redis-moi"],
+          },
+        },
+      }) as any,
+  });
+  assertEquals((runtime?.toolSkillRun as any)?.status, "repeat_handoff");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
+    "repeat_platform_handoff",
+  );
+  const ledger = createEffectLedger("turn_repeat_platform_handoff");
+  recordToolSkillEffectsInLedger({
+    ledger,
+    toolExecution: runtime?.toolExecution ?? "platform_handoff",
+    toolSkillRun: runtime?.toolSkillRun,
+  });
+  assertEquals(ledger.entries.length, 1);
+  assertEquals(ledger.entries[0].kind, "platform_handoff");
+  assertEquals(ledger.entries[0].status, "delivered");
+  assertEquals(
+    ledger.entries[0].reason_code,
+    "repeat_platform_handoff",
+  );
+  assertStringIncludes(runtime?.content ?? "", "Brouillon de carte");
+});
+
+Deno.test("prepare_attack_card active handoff forces plus simple to revise_handoff", async () => {
+  const revisedDraft = {
+    ...sampleAttackCardDraft(),
+    draft: {
+      ...sampleAttackCardDraft().draft,
+      generated_asset: "J'envoie le dossier maintenant, imparfait mais envoyé.",
+    },
+  };
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "rends-la plus simple, une seule proposition",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-force-revise",
+    runIntake: async () =>
+      ({
+        status: "pending_confirmation",
+        user_intent: "explain",
+        constraints: [],
+        phase: "confirmation",
+        draft: revisedDraft,
+        pending_confirmation: {
+          operation_id: "op-force-revised",
+          operation_type: "prepare_attack_card",
+          target: {
+            kind: "plan_item",
+            plan_item_id: "admin",
+            title: "dossier",
+          },
+          intake_state: {
+            blocker: {
+              type: "avoidance",
+              evidence: ["perfectionnisme avant envoi"],
+            },
+          },
+        },
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "explain",
+            confidence: "high",
+            evidence: ["misclassified by ai"],
+          },
+        },
+      }) as any,
+  });
+
+  assertEquals((runtime?.toolSkillRun as any)?.status, "revise_handoff");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
+    "revised_platform_handoff",
+  );
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "J'envoie le dossier maintenant",
+  );
+});
+
+Deno.test("prepare_attack_card active handoff forces ok cree-la to apply_attempt", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "ok crée-la",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-force-apply",
+    runIntake: async () =>
+      ({
+        status: "ask_question",
+        user_intent: "clarify",
+        constraints: [],
+        phase: "technique_selection",
+        next_question: { question: "Quelle technique préfères-tu ?" },
+        state_patch: {
+          missing_slots: ["technique"],
+        },
+      }) as any,
+  });
+
+  assertEquals((runtime?.toolSkillRun as any)?.status, "apply_attempt");
+  assertEquals(runtime?.executedTools, []);
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Je ne crée pas la carte depuis le chat",
+  );
+  assertEquals(
+    /je vais la cr[eé]er directement/i.test(runtime?.content ?? ""),
+    false,
+  );
+});
+
+Deno.test("prepare_attack_card revise_handoff regenerates recommendation", async () => {
+  const revisedDraft = {
+    ...sampleAttackCardDraft(),
+    draft: {
+      ...sampleAttackCardDraft().draft,
+      generated_asset: "Je fais seulement le premier pas, sans débattre.",
+    },
+  };
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "rends-la plus simple",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-revise",
+    runIntake: async () =>
+      ({
+        status: "pending_confirmation",
+        user_intent: "revise",
+        constraints: [{ kind: "single_proposal", evidence: ["plus simple"] }],
+        phase: "confirmation",
+        draft: revisedDraft,
+        pending_confirmation: {
+          operation_id: "op-revised",
+          operation_type: "prepare_attack_card",
+          target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+          intake_state: {
+            blocker: {
+              type: "avoidance",
+              evidence: ["je négocie au démarrage"],
+            },
+          },
+        },
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "revise",
+            confidence: "high",
+            evidence: ["plus simple"],
+          },
+        },
+      }) as any,
+  });
+  assertEquals((runtime?.toolSkillRun as any)?.status, "revise_handoff");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
+    "revised_platform_handoff",
+  );
+  assertEquals(runtime?.executedTools, []);
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Je fais seulement le premier pas",
+  );
+});
+
+Deno.test("prepare_attack_card revise_handoff preserves blocker when revision intake is generic", async () => {
+  const revisedDraft = {
+    ...sampleAttackCardDraft(),
+    draft: {
+      ...sampleAttackCardDraft().draft,
+      generated_asset: "Je fais une seule action maintenant.",
+    },
+  };
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "rends-la plus simple, une seule proposition",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-revise-preserve-blocker",
+    runIntake: async () =>
+      ({
+        status: "pending_confirmation",
+        user_intent: "revise",
+        constraints: [{ kind: "single_proposal", evidence: ["plus simple"] }],
+        phase: "confirmation",
+        draft: revisedDraft,
+        pending_confirmation: {
+          operation_id: "op-revised-generic-blocker",
+          operation_type: "prepare_attack_card",
+          target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
+          intake_state: {
+            blocker: {
+              type: "mixed",
+              evidence: [],
+            },
+          },
+        },
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "revise",
+            confidence: "high",
+            evidence: ["plus simple"],
+          },
+        },
+      }) as any,
+  });
+
+  assertEquals((runtime?.toolSkillRun as any)?.status, "revise_handoff");
+  assertStringIncludes(runtime?.content ?? "", "négociation intérieure");
+  assertEquals(
+    (runtime?.content ?? "").includes(
+      "Piège de démarrage ou d'évitement identifié pendant l'intake.",
+    ),
+    false,
+  );
+});
+
+Deno.test("prepare_attack_card active handoff cancellation clears state", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage: "pas de carte finalement",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_attack_card_handoff: sampleAttackCardHandoffState(),
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-cancel-handoff",
+    runIntake: async () =>
+      ({
+        status: "draft_review_decision",
+        user_intent: "reject",
+        constraints: [],
+        phase: "confirmation",
+        state_patch: {
+          missing_slots: [],
+          draft_review_decision: {
+            decision: "reject",
+            confidence: "high",
+            evidence: ["pas de carte"],
+          },
+        },
+      }) as any,
+  });
+  assertEquals((runtime?.toolSkillRun as any)?.status, "cancelled");
+  assertEquals(runtime?.toolExecution, "platform_handoff");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.platform_handoff?.status,
+    "cancelled",
+  );
+  assertEquals(runtime?.nextTempMemory.__active_attack_card_handoff, undefined);
+});
+
+Deno.test("prepare_attack_card active intake continuation can deliver initial handoff", async () => {
+  const runtime = await maybeRunPrepareAttackCardOperation({
+    supabase: makeFakeSupabaseForAttackRouter(),
+    userId: "u1",
+    userMessage:
+      "Je veux en préparer une pour mon action du matin : ouvrir mon carnet avant le café. Le piège, c'est que je me dis que je regarderai après. Ne la crée pas depuis le chat.",
+    channel: "web",
+    userTimezone: "Europe/Paris",
+    tempMemory: {
+      __active_tool_skill_intake: {
+        operation_type: "prepare_attack_card",
+        phase: "intent_clarification",
+        missing_slots: ["target"],
+        operation_input: {},
+        turn_count: 1,
+      },
+    },
+    turnFrame: null,
+    routeDecision: null,
+    safetyPregateOutput: { risk_band: "none" } as any,
+    sourceMessageId: "m-active-continuation",
+    runIntake: async () =>
+      ({
+        status: "pending_confirmation",
+        user_intent: "draft_only",
+        constraints: [{ kind: "no_create", evidence: ["ne la crée pas"] }],
+        phase: "draft_generation",
+        draft: {
+          ...sampleAttackCardDraft(),
+          draft: {
+            ...sampleAttackCardDraft().draft,
+            target_label: "ouvrir mon carnet avant le café",
+          },
+        },
+        pending_confirmation: {
+          operation_id: "op-active-continuation",
+          operation_type: "prepare_attack_card",
+          target: {
+            kind: "personal_action",
+            title: "ouvrir mon carnet avant le café",
+          },
+          intake_state: {
+            blocker: {
+              type: "avoidance",
+              evidence: ["je regarderai après"],
+            },
+          },
+        },
+        state_patch: {
+          missing_slots: [],
+        },
+      }) as any,
+  });
+
+  assertEquals(runtime?.toolExecution, "platform_handoff");
+  assertEquals((runtime?.toolSkillRun as any)?.status, "handoff_delivered");
+  assertEquals(
+    (runtime?.toolSkillRun as any)?.platform_handoff?.reason_code,
+    "attack_card_platform_handoff",
+  );
+  assertStringIncludes(runtime?.content ?? "", "Cible/action comprise");
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Champs à renseigner dans la plateforme",
+  );
+  assertStringIncludes(
+    runtime?.content ?? "",
+    "Je ne crée pas la carte depuis le chat",
+  );
 });
 
 Deno.test("prepare_attack_card technique fit prefers ancre visuelle over mot de bascule for perfectionism start blocker", () => {
@@ -533,8 +1430,7 @@ Deno.test("prepare_attack_card AI flow only advances from structured slots", asy
   assertEquals((output.state_patch.operation_input as any)?.target, undefined);
 });
 
-Deno.test("prepare_attack_card AI flow drafts from structured state and executor writes only after token", async () => {
-  resetConsumedConfirmationTokensForTest();
+Deno.test("prepare_attack_card AI flow drafts from structured state without creating an executable token", async () => {
   const output = await runPrepareAttackCardAiIntake({
     user_id: "u1",
     channel: "whatsapp",
@@ -553,80 +1449,8 @@ Deno.test("prepare_attack_card AI flow drafts from structured state and executor
     (output.pending_confirmation as any)?.intake_state?.target.plan_item_id,
     "walk",
   );
-  assertStringIncludes(output.confirmation?.message ?? "", "Je crée");
-
-  let writes = 0;
-  const blocked = await executePrepareAttackCard({
-    operation_id: String(output.pending_confirmation?.operation_id),
-    user_id: "u1",
-    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
-    draft: output.draft!,
-    safety_pregate_risk_band: "none",
-    pending_confirmation_lookup: async () => ({ consumed: false }),
-    token_consumption_check: async () => false,
-    write_attack_card: async () => {
-      writes++;
-      return { attack_card_id: "attack" };
-    },
-    secret: SECRET,
-  });
-  assertEquals(blocked.status, "blocked");
-  assertEquals(writes, 0);
-
-  const token = await createConfirmationToken({
-    user_id: "u1",
-    operation_id: String(output.pending_confirmation?.operation_id),
-    operation_type: "prepare_attack_card",
-    draft: output.draft,
-    source_message_id: "yes-attack",
-    pending_confirmation_id: "pending-attack",
-    secret: SECRET,
-  });
-  const executed = await executePrepareAttackCard({
-    operation_id: String(output.pending_confirmation?.operation_id),
-    user_id: "u1",
-    target: { kind: "plan_item", plan_item_id: "walk", title: "marche" },
-    draft: output.draft!,
-    token,
-    safety_pregate_risk_band: "none",
-    pending_confirmation_lookup: async () => ({ consumed: false }),
-    token_consumption_check: async (tokenId) =>
-      hasConsumedConfirmationTokenForTest(tokenId),
-    write_attack_card: async () => ({ attack_card_id: "attack-1" }),
-    secret: SECRET,
-  });
-  assertEquals(executed.status, "executed");
-  assertStringIncludes(executed.ack, "Ressources > Cartes d'attaque du plan");
-  assertEquals(executed.ack.includes("ne se modifie pas directement"), false);
-
-  const freeToken = await createConfirmationToken({
-    user_id: "u1",
-    operation_id: "op-free-attack",
-    operation_type: "prepare_attack_card",
-    draft: output.draft,
-    source_message_id: "yes-free-attack",
-    pending_confirmation_id: "pending-free-attack",
-    secret: SECRET,
-  });
-  const freeExecuted = await executePrepareAttackCard({
-    operation_id: "op-free-attack",
-    user_id: "u1",
-    target: { kind: "personal_action", title: "poser le telephone" },
-    draft: output.draft!,
-    token: freeToken,
-    safety_pregate_risk_band: "none",
-    pending_confirmation_lookup: async () => ({ consumed: false }),
-    token_consumption_check: async (tokenId) =>
-      hasConsumedConfirmationTokenForTest(tokenId),
-    write_attack_card: async () => ({ attack_card_id: "attack-free-1" }),
-    secret: SECRET,
-  });
-  assertEquals(freeExecuted.status, "executed");
-  assertStringIncludes(freeExecuted.ack, "Ressources > Cartes d'attaque");
-  assertEquals(
-    freeExecuted.ack.includes("Ressources > Cartes d'attaque du plan"),
-    false,
-  );
+  assertStringIncludes(output.confirmation?.message ?? "", "Je ne crée pas");
+  assertEquals((output.pending_confirmation as any)?.executable, undefined);
 });
 
 Deno.test("prepare_attack_card AI flow preserves single_proposal constraint into operation_input", async () => {
@@ -998,6 +1822,63 @@ Deno.test("C8: persistent failure yields a clean technical error + retry invitat
   assertEquals((output.ack ?? "").includes("deviner à ta place"), false);
 });
 
+Deno.test("prepare_attack_card no_create draft generator failure falls back to no-mutation handoff draft", async () => {
+  const alwaysFails: AttackCardDraftGenerator = async () => {
+    throw new Error("hard_generation_failure");
+  };
+  const output = await runPrepareAttackCardAiIntake({
+    user_id: "u1",
+    channel: "whatsapp",
+    timezone: "Europe/Paris",
+    message:
+      "Prépare une carte d'attaque pour envoyer mon dossier administratif avant 16h, technique Ancre visuelle, mais ne la crée pas.",
+    plan_snapshot: { items: [] },
+    trigger_message_id: "m-no-create-fallback",
+    safety_pregate_risk_band: "none",
+    operation_input: {
+      user_intent: "draft_only",
+      constraints: [{ kind: "no_create", evidence: ["ne la crée pas"] }],
+    },
+    slot_filler: structuredAttackCardSlotFiller({
+      current_step: "draft_generation" as const,
+      target: {
+        status: "identified" as const,
+        kind: "free_text_action" as const,
+        plan_item_id: null,
+        title: "envoyer mon dossier administratif avant 16h",
+        confidence: "high" as const,
+        evidence: ["envoyer mon dossier administratif avant 16h"],
+      },
+      blocker: {
+        status: "identified" as const,
+        type: "perfectionism" as const,
+        confidence: "medium" as const,
+        evidence: ["je veux trop bien faire"],
+      },
+      technique: {
+        status: "identified" as const,
+        value: "ancre_visuelle" as const,
+        explicitly_requested: true,
+        fit_warning: null,
+        options: [],
+        confidence: "high" as const,
+        evidence: ["Ancre visuelle"],
+      },
+      missing_slots: [],
+      confidence: "high" as const,
+      generated_user_message: null,
+    }),
+    draft_generator: alwaysFails,
+  });
+  assertEquals(output.status, "pending_confirmation");
+  assertEquals(output.draft?.draft.technique, "ancre_visuelle");
+  assertStringIncludes(
+    output.draft?.confirmation_message ?? "",
+    "Je ne cree pas la carte depuis le chat",
+  );
+  assertEquals(output.committed_effects, undefined);
+});
+
 // ===========================================================================
 // CHANTIER D0 (2026-05-28) — Régression carte one-shot "ancre visuelle".
 // Le verrou de technique C8 pouvait désynchroniser le draft LLM (confirmation
@@ -1059,7 +1940,7 @@ Deno.test("D0: a desynced LLM draft (confirmation ne cite pas l'asset, technique
       why_it_helps: "",
     },
     // Confirmation construite SANS citer generated_asset → cassait tout avant D0.
-    confirmation_message: "Je crée cette carte ?",
+    confirmation_message: "Ancien message incomplet.",
   };
   const normalized = normalizeAttackCardDraft(
     raw,
@@ -1097,6 +1978,30 @@ Deno.test("D0: un title manquant est défaillé déterministe au lieu de jeter",
   assertStringIncludes(normalized.confirmation_message, "Post-it visuel");
 });
 
+Deno.test("prepare_attack_card normalized draft confirmation stays no-mutation", () => {
+  const normalized = normalizeAttackCardDraft(
+    {
+      draft: {
+        technique: "ancre_visuelle",
+        title: "Carte d'attaque",
+        generated_asset: "Carnet ouvert sur la table.",
+        instruction: "Pose le carnet ce soir.",
+      },
+      confirmation_message: "Je l'ai préparé dans Cartes / Attaque.",
+    },
+    ancreVisuelleLockedState(),
+  );
+
+  assertStringIncludes(
+    normalized.confirmation_message,
+    "Je ne crée pas la carte depuis le chat",
+  );
+  assertEquals(
+    normalized.confirmation_message.includes("Je l'ai préparé"),
+    false,
+  );
+});
+
 Deno.test("D0 anti-régression: un generated_asset manquant reste une vraie erreur technique", () => {
   const raw = {
     draft: {
@@ -1105,7 +2010,7 @@ Deno.test("D0 anti-régression: un generated_asset manquant reste une vraie erre
       generated_asset: "",
       instruction: "x",
     },
-    confirmation_message: "Je crée cette carte ?",
+    confirmation_message: "Ancien message incomplet.",
   };
   let threw = false;
   try {

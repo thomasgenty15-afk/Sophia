@@ -122,6 +122,8 @@ function skillStatusFromRuntimeStatus(
     status === "recommendation_cancelled"
   ) return "cancelled";
   if (status === "pending_confirmation") return "pending_confirmation";
+  if (status === "handoff_ready") return "handoff_ready";
+  if (status === "handoff_delivered") return "handoff_delivered";
   if (status === "ask_question" || status === "collecting") {
     return "ask_question";
   }

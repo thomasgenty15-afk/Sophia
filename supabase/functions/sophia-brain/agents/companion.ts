@@ -4,20 +4,6 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../../_shared/gemini.ts";
-import {
-  buildOneShotReminderAddon,
-  summarizeOneShotReminderOutcome,
-} from "../tools/always_on/one_shot_reminder/renderer.ts";
-import {
-  isLikelyOneShotReminderRequest,
-} from "../tools/always_on/one_shot_reminder/route_guards.ts";
-import {
-  maybeCreateOneShotReminder,
-} from "../tools/always_on/one_shot_reminder/executor.ts";
-import type {
-  OneShotReminderToolOutcome,
-} from "../tools/always_on/one_shot_reminder/contract.ts";
-
 declare const Deno: any;
 
 const COMPANION_PROMPT_MAX_TOKENS = 5000;
@@ -309,35 +295,6 @@ export type CompanionRunResult = {
   temp_memory?: any;
 };
 
-function renderStandaloneOneShotReminderReply(
-  outcome: OneShotReminderToolOutcome,
-): string | null {
-  if (!outcome.detected) return null;
-  if (outcome.status === "success") {
-    return `C’est programmé pour ${outcome.scheduled_for_local_label} : ${outcome.reminder_instruction}.`;
-  }
-  if (outcome.status === "needs_clarify") {
-    return "J’ai besoin d’un horaire plus précis pour programmer ce rappel.";
-  }
-  return "Je n’ai pas pu programmer ce rappel maintenant. Il y a eu un souci technique côté outil.";
-}
-
-function isStandaloneOneShotReminderMessage(message: string): boolean {
-  if (!isLikelyOneShotReminderRequest(message)) return false;
-  const normalized = message
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase()
-    .trim();
-  if (
-    !/\brappelle[- ]?moi\b|\bme rappeler\b|\bme faire un rappel\b|\bm['’ ]?envoyer un rappel\b|\benvoie[- ]?moi un rappel\b|\bfais[- ]?moi un rappel\b|\bprogramme[- ]?moi\b|\bprogramme un rappel\b|\bprogrammer un rappel\b|\bplanifie[- ]?moi\b|\bdis[- ]?moi\b|\bpreviens[- ]?moi\b|\bfais[- ]?moi signe\b/
-      .test(normalized)
-  ) {
-    return false;
-  }
-  return normalized.length <= 220;
-}
-
 function normalizeCompanionIntentText(message: string): string {
   return String(message ?? "")
     .normalize("NFD")
@@ -420,21 +377,6 @@ function renderMemoryOnlyActionRecallReply(args: {
   const target = args.message.match(/\bPour\s+([^,?.]+?)(?:,|\?|\.|$)/i)?.[1]
     ?.trim();
   return renderHumanMemoryOnlyActionRecall(actionLines, target);
-}
-
-function recentSafetyContextBlocksSideEffects(
-  history: any[],
-): boolean {
-  const recentUserText = history
-    .slice(-8)
-    .filter((message: any) => message?.role === "user")
-    .map((message: any) => String(message?.content ?? ""))
-    .join("\n")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  return /\bme faire du mal\b|\bsuicid|\ben finir\b|\benvie de mourir\b|\bje veux mourir\b|\benvie\b.{0,60}\bdisparaitre\b|\bpensees?\b.{0,80}\bdisparaitre\b|\bdisparaitre\b.{0,60}\bferait une pause\b|\bne plus exister\b|\bne pas me reveiller\b/
-    .test(recentUserText);
 }
 
 function buildCompanionStablePrompt(opts: {
@@ -975,48 +917,14 @@ export async function runCompanion(
   const lastAssistantMessage =
     history.filter((m: any) => m.role === "assistant").pop()?.content || "";
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp";
-  if (
-    isLikelyOneShotReminderRequest(message) &&
-    (meta?.blockSideEffects || recentSafetyContextBlocksSideEffects(history))
-  ) {
-    return {
-      text:
-        "Je préfère ne pas programmer de rappel juste maintenant, vu le contexte encore sensible. Garde d'abord l'action simple et immédiate : écrire à quelqu'un après cette conversation, puis on pourra reprogrammer un rappel quand ce sera redescendu.",
-      executed_tools: [],
-      tool_execution: "blocked",
-      temp_memory: userState?.temp_memory ?? {},
-    };
-  }
-  const clientNow = meta?.clientNowIso ? new Date(meta.clientNowIso) : null;
-  const oneShotReminderOutcome = await maybeCreateOneShotReminder({
-    supabase,
-    userId,
-    message,
-    requestId: meta?.requestId,
-    now: clientNow && Number.isFinite(clientNow.getTime())
-      ? clientNow
-      : undefined,
-  });
-  const oneShotReminderAddon = buildOneShotReminderAddon(
-    oneShotReminderOutcome,
-  );
-  const oneShotReminderToolSummary = summarizeOneShotReminderOutcome(
-    oneShotReminderOutcome,
-  );
-  const standaloneReminderReply = isStandaloneOneShotReminderMessage(message)
-    ? renderStandaloneOneShotReminderReply(oneShotReminderOutcome)
-    : null;
-  if (standaloneReminderReply) {
-    return {
-      text: standaloneReminderReply,
-      executed_tools: oneShotReminderToolSummary.executedTools,
-      tool_execution: oneShotReminderToolSummary.toolExecution,
-      temp_memory: userState?.temp_memory ?? {},
-    };
-  }
-  const augmentedContext = oneShotReminderAddon
-    ? `${context}\n${oneShotReminderAddon}`.trim()
-    : context;
+  const oneShotReminderToolSummary: {
+    executedTools: string[];
+    toolExecution: CompanionRunResult["tool_execution"];
+  } = {
+    executedTools: [],
+    toolExecution: "none",
+  };
+  const augmentedContext = context;
   const memoryOnlyActionReply = renderMemoryOnlyActionRecallReply({
     message,
     context: augmentedContext,

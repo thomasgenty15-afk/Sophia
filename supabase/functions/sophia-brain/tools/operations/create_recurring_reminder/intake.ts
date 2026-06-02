@@ -15,6 +15,7 @@ import {
   type ToolSkillDraftReviewDecision,
 } from "../_shared/draft_review.ts";
 import {
+  buildRecurringReminderHandoffDraft,
   type RecurringReminderDraftMessages,
   type RecurringReminderDraftV1,
   runRecurringReminderBuilder,
@@ -23,6 +24,7 @@ import type {
   CreateRecurringReminderConstraint,
   CreateRecurringReminderHandoffTarget,
   CreateRecurringReminderUserIntent,
+  RecurringReminderHandoffDraft,
 } from "./contract.ts";
 
 export type RecurringReminderConfidence = "low" | "medium" | "high";
@@ -53,6 +55,7 @@ export type RecurringReminderIntakeState = {
     days: string[];
     time: string | null;
     timezone: string | null;
+    cadence_label: string | null;
     confidence: RecurringReminderConfidence;
     evidence: string[];
   };
@@ -123,7 +126,7 @@ export type CreateRecurringReminderOperationOutput = {
   status:
     | "ask_question"
     | "draft_ready"
-    | "pending_confirmation"
+    | "handoff_ready"
     | "handoff_to_one_shot"
     | "cancelled"
     | "fallback_dashboard"
@@ -138,6 +141,7 @@ export type CreateRecurringReminderOperationOutput = {
     | "confirmation"
     | "exit";
   draft?: RecurringReminderDraftV1;
+  handoff_draft?: RecurringReminderHandoffDraft;
   confirmation?: {
     required: boolean;
     message: string;
@@ -333,6 +337,7 @@ function defaultState(timezone: string): RecurringReminderIntakeState {
       days: [],
       time: null,
       timezone,
+      cadence_label: null,
       confidence: "low",
       evidence: [],
     },
@@ -399,6 +404,7 @@ function normalizeStatePatch(
       days: stringArray(recurrence.days),
       time: normalizedTime,
       timezone: String(recurrence.timezone ?? timezone).trim() || timezone,
+      cadence_label: String(recurrence.cadence_label ?? "").trim() || null,
       confidence: confidence(recurrence.confidence),
       evidence: stringArray(recurrence.evidence),
     };
@@ -545,6 +551,7 @@ function stateFromOperationInput(
       days: recurrence?.days ?? input.days,
       time: recurrence?.time ?? input.time,
       timezone,
+      cadence_label: recurrence?.cadence_label ?? input.cadence_label,
       status: recurrence?.status ??
         (input.frequency || input.time ? "identified" : undefined),
       evidence: recurrence?.evidence ?? ["structured_operation_input"],
@@ -621,6 +628,9 @@ function operationInputFromState(
       ? { days: state.recurrence.days }
       : {}),
     ...(state.recurrence.time ? { time: state.recurrence.time } : {}),
+    ...(state.recurrence.cadence_label
+      ? { cadence_label: state.recurrence.cadence_label }
+      : {}),
     ...(state.reminder_content.message
       ? { message: state.reminder_content.message }
       : {}),
@@ -672,33 +682,6 @@ export function normalizeCreateRecurringReminderSlotFillerOutput(
   };
 }
 
-function shouldRetryLikelyTimeMiss(input: {
-  message: string;
-  output: CreateRecurringReminderSlotFillerOutput;
-}): boolean {
-  const generated = String(input.output.generated_user_message ?? "")
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  const patchGenerated = String(
-    input.output.state_patch.generated_user_message ?? "",
-  )
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .toLowerCase();
-  const patchTimeMissing = !input.output.state_patch.recurrence?.time;
-  const outputAsksForTime = input.output.missing_slots.includes("time") ||
-    generated.includes("heure") ||
-    generated.includes("horaire") ||
-    patchGenerated.includes("heure") ||
-    patchGenerated.includes("horaire") ||
-    patchTimeMissing;
-  if (!outputAsksForTime) return false;
-  const text = String(input.message ?? "").toLowerCase();
-  return /\b\d{1,2}\s*h(?:\s*\d{2})?\b/.test(text) ||
-    /\b\d{1,2}:\d{2}\b/.test(text);
-}
-
 export async function fillCreateRecurringReminderSlotsWithAi(
   input: CreateRecurringReminderSlotFillerInput,
 ): Promise<CreateRecurringReminderSlotFillerOutput | null> {
@@ -719,8 +702,8 @@ export async function fillCreateRecurringReminderSlotsWithAi(
     "Les messages visibles doivent préciser qu'un rappel lié à une action s'applique tant que cette action reste active dans le plan. Pour une habitude/famille, dis tant que cette famille d'habitude reste active dans le plan.",
     "Les messages visibles ne doivent jamais promettre de modifier/annuler depuis le chat: ils doivent dire d'aller sur la plateforme, dans les Initiatives du plan ou la Base de vie.",
     "Si le user modifie un brouillon, intègre la correction dans le state_patch au lieu d'approuver directement.",
-    "Quand tous les slots sont prêts, current_sub_skill='draft_generation' et draft_messages.confirmation_message doit être une phrase naturelle qui présente le rappel et demande une validation explicite.",
-    "draft_messages doit aussi inclure user_message_brief, user_message_detailed, execution_message et revision_message quand c'est possible.",
+    "Quand tous les slots sont prêts, current_sub_skill='draft_generation' et draft_messages.confirmation_message doit être une phrase naturelle qui présente la version à reprendre dans la section Rappels, sans demander d'approbation exécutable.",
+    "draft_messages doit aussi inclure user_message_brief, user_message_detailed et revision_message quand c'est possible. N'écris jamais de message qui dit que le rappel a été créé, programmé ou qu'il sera relancé depuis le chat.",
     "Si un slot manque, generated_user_message pose une seule question courte pour le prochain slot métier.",
     "Les messages user doivent être courts et naturels pour WhatsApp. Pas de vocabulaire technique.",
     'Tu tutoies toujours l\'utilisateur dans les messages. N\'utilise "vous", "votre" ou "vos" que si tu parles explicitement du couple ou de plusieurs personnes, jamais pour t\'adresser directement à l\'utilisateur.',
@@ -828,37 +811,7 @@ export async function fillCreateRecurringReminderSlotsWithAi(
       raw,
       input.timezone,
     );
-    if (!shouldRetryLikelyTimeMiss({ message: input.message, output: first })) {
-      return first;
-    }
-    const retryRaw = await generateWithGemini(
-      systemPrompt,
-      [
-        userPrompt,
-        "RELECTURE OBLIGATOIRE: ton JSON precedent indiquait que l'heure manquait, mais le message utilisateur contient probablement une heure francaise explicite comme 12h30, 7h30 ou 18h. Ne redemande pas l'heure si elle est presente; convertis-la en HH:mm. Si le message dit 'jours de semaine', utilise frequency='weekdays'. Retourne uniquement le JSON corrige.",
-      ].join("\n"),
-      0,
-      true,
-      [],
-      "auto",
-      {
-        requestId: input.request_id ?? undefined,
-        userId: input.user_id,
-        model: getGlobalAiModel("gemini-2.5-flash"),
-        source: "create_recurring_reminder.slot_filler_retry",
-        forceRealAi: true,
-        reasoningEffort: "low",
-        httpTimeoutMs: 45_000,
-        maxRetries: 1,
-      },
-    );
-    const retry = normalizeCreateRecurringReminderSlotFillerOutput(
-      retryRaw,
-      input.timezone,
-    );
-    return retry.missing_slots.length <= first.missing_slots.length
-      ? retry
-      : first;
+    return first;
   } catch (error) {
     console.warn("[CreateRecurringReminder] AI slot filler failed", error);
     return null;
@@ -1144,6 +1097,7 @@ export async function runCreateRecurringReminderIntake(input: {
     days: nextState.recurrence.days,
     time: nextState.recurrence.time,
     timezone: nextState.recurrence.timezone || input.timezone,
+    cadence_label: nextState.recurrence.cadence_label,
   };
   request.reminder_content = {
     message: nextState.reminder_content.message,
@@ -1173,15 +1127,16 @@ export async function runCreateRecurringReminderIntake(input: {
   ) {
     return {
       operation_type: "create_recurring_reminder",
-      status: "draft_ready",
+      status: "handoff_ready",
       source,
       phase: "confirmation",
       draft,
+      handoff_draft: buildRecurringReminderHandoffDraft(draft),
       ack: nextState.generated_user_message ??
-        "J'ai préparé le brouillon du rappel récurrent, sans le créer.",
+        "J'ai préparé la version à reprendre dans la section Rappels.",
       state_patch: {
         summary:
-          "Recurring reminder draft generated without executable confirmation.",
+          "Recurring reminder handoff draft generated without executable confirmation.",
         phase: "confirmation",
         missing_slots: [],
         turn_count_increment: 1,
@@ -1192,25 +1147,18 @@ export async function runCreateRecurringReminderIntake(input: {
   }
   return {
     operation_type: "create_recurring_reminder",
-    status: "pending_confirmation",
+    status: "handoff_ready",
     source,
     phase: "confirmation",
     draft,
+    handoff_draft: buildRecurringReminderHandoffDraft(draft),
     confirmation: {
-      required: true,
+      required: false,
       message: draft.confirmation_message,
       actions: ["yes", "no"],
     },
-    pending_confirmation: {
-      operation_id: request.operation_id,
-      operation_type: "create_recurring_reminder",
-      source,
-      summary: draft.draft.title,
-      draft,
-      expires_after_turns: 2,
-    },
     state_patch: {
-      summary: "Recurring reminder draft generated.",
+      summary: "Recurring reminder handoff draft generated.",
       phase: "confirmation",
       missing_slots: [],
       turn_count_increment: 1,

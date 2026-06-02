@@ -56,6 +56,15 @@ export type SkillConfirmationReview = {
   generated_user_message?: string | null;
 };
 
+export const PLATFORM_HANDOFF_OPERATIONS = new Set([
+  "adjust_plan_item",
+  "prepare_attack_card",
+  "prepare_defense_card",
+  "select_state_potion",
+  "create_recurring_reminder",
+  "update_coach_preferences",
+]);
+
 const REVIEW_DECISIONS: SkillConfirmationReview["decision"][] = [
   "approve",
   "reject",
@@ -92,8 +101,13 @@ function decisionFlags(args: {
   decision: ConfirmationDecisionKind;
   applies: boolean;
   confidence: ConfirmationDecision["confidence"];
+  pendingOperationType?: string | null;
 }) {
-  const shouldExecute = args.decision === "approve" && args.applies &&
+  const isPlatformHandoff = PLATFORM_HANDOFF_OPERATIONS.has(
+    String(args.pendingOperationType ?? "").trim(),
+  );
+  const shouldExecute = !isPlatformHandoff && args.decision === "approve" &&
+    args.applies &&
     args.confidence !== "low";
   return {
     should_clear_pending:
@@ -117,6 +131,9 @@ function buildDecision(args: {
 }): ConfirmationDecision {
   const pendingOperationId = args.target?.operation_id ?? null;
   const pendingOperationType = args.target?.operation_type ?? null;
+  const isPlatformHandoffApplyAttempt = args.decision === "approve" &&
+    args.applies &&
+    PLATFORM_HANDOFF_OPERATIONS.has(String(pendingOperationType ?? "").trim());
   return {
     decision: args.decision,
     pending_operation_id: pendingOperationId,
@@ -126,12 +143,15 @@ function buildDecision(args: {
     target: args.target,
     confidence: args.confidence,
     evidence: args.evidence,
-    reason_code: args.reason_code,
+    reason_code: isPlatformHandoffApplyAttempt
+      ? "platform_handoff_apply_attempt"
+      : args.reason_code,
     user_text_span: args.user_text_span ?? null,
     ...decisionFlags({
       decision: args.decision,
       applies: args.applies,
       confidence: args.confidence,
+      pendingOperationType,
     }),
   };
 }
@@ -233,6 +253,13 @@ export function assertConfirmationCanExecute(
   }
   if (decision.confidence === "low") {
     return { ok: false, reason_code: "confirmation_confidence_low" };
+  }
+  if (
+    PLATFORM_HANDOFF_OPERATIONS.has(
+      String(decision.pending_operation_type ?? "").trim(),
+    )
+  ) {
+    return { ok: false, reason_code: "platform_handoff_apply_attempt" };
   }
   if (!decision.should_execute) {
     return { ok: false, reason_code: "confirmation_not_executable" };

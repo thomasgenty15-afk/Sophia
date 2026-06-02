@@ -16,7 +16,13 @@ export type WeeklyOperationRuntimeResult = {
   content?: string;
   additionalContents?: string[];
   nextTempMemory?: unknown;
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+  toolExecution:
+    | "none"
+    | "blocked"
+    | "success"
+    | "failed"
+    | "uncertain"
+    | "platform_handoff";
   executedTools: string[];
   toolSkillRun?: Record<string, unknown>;
 };

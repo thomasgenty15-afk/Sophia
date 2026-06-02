@@ -626,12 +626,13 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
       "directif",
     ],
     explain:
-      "Les preferences coach reglent ma maniere d'accompagner: ton global, niveau de challenge et tendance a poser des questions.",
+      "Les preferences coach reglent ma maniere d'accompagner. Ton global ajuste la couleur relationnelle de mes reponses, par exemple plus douce, bienveillante-ferme ou tres directe. Niveau de challenge ajuste l'exigence et la confrontation constructive: plus leger, equilibre ou plus eleve. Tendance a poser des questions ajuste la frequence des questions et demandes de precision: peu de questions, equilibre ou tres questionnant. Elles ne reglent pas les formats fins comme exactement trois lignes, zero emoji ou jamais de question finale.",
     how_to:
-      "Ouvre Preferences depuis le dashboard, modifie les options disponibles puis sauvegarde.",
+      "Ouvre Preferences depuis le dashboard, va dans Preferences coach, modifie les options visibles puis sauvegarde depuis la plateforme.",
     benefits: [
       "Rend l'accompagnement plus adapte au user.",
-      "Clarifie si je dois etre plus douce, directe ou challengeante.",
+      "Clarifie si je dois etre plus douce, plus directe, plus challengeante ou plus sobre en questions.",
+      "Separe le ton, le niveau de challenge et la tendance aux questions au lieu de melanger ces demandes.",
       "Evite de repeter les memes preferences dans chaque conversation.",
     ],
     locations: [{
@@ -645,10 +646,13 @@ export const PRODUCT_HELP_FEATURES: ProductHelpFeature[] = [
     }],
     limits: [
       "Ne modifie pas le contenu du plan.",
+      "Ne regle pas les formats fins comme exactement trois lignes, zero emoji ou jamais de question finale.",
+      "Depuis le chat, Sophia peut expliquer ou preparer une recommandation, mais ne sauvegarde pas directement ces preferences.",
       "Certaines preferences peuvent etre liees a des fonctionnalites verrouillees selon l'acces.",
     ],
     sophia_must_not_claim: [
       "Ne pas dire qu'une preference est sauvegardee sans succes outil ou UI.",
+      "Ne pas dire que le chat a applique ou enregistre une preference coach.",
     ],
     operation_bridge: {
       skill_or_operation: "update_coach_preferences",

@@ -9,12 +9,15 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function operationType(value: unknown): string | null {
   const record = asRecord(value);
-  const operation = String(record.operation_type ?? record.type ?? "").trim();
+  const operation = String(
+    record.operation_type ?? record.type ??
+      (record.mode === "platform_handoff" ? record.skill_id : "") ?? "",
+  ).trim();
   return operation || null;
 }
 
-function isExplicitNewEffectTask(task: AgendaTask): boolean {
-  return task.kind === "effect" &&
+function isExplicitNewRuntimeTask(task: AgendaTask): boolean {
+  return (task.kind === "effect" || task.kind === "platform_handoff") &&
     task.source === "dispatcher" &&
     task.status !== "blocked" &&
     (task.intent === "create" || task.intent === "update" ||
@@ -46,7 +49,9 @@ function confirmationCompatible(args: {
     args.snapshot.active_flows.pending_tool_confirmation,
   );
   if (!pendingOperation) return false;
-  const explicitEffectTasks = args.agenda.tasks.filter(isExplicitNewEffectTask);
+  const explicitEffectTasks = args.agenda.tasks.filter(
+    isExplicitNewRuntimeTask,
+  );
   if (explicitEffectTasks.length === 0) return true;
   return explicitEffectTasks.some((task) =>
     task.operation_type === pendingOperation
@@ -72,7 +77,9 @@ export function resolveFlowInterruptions(args: {
   let clearActiveToolFlow = false;
   let clearPendingConfirmation = false;
 
-  const explicitEffectTasks = args.agenda.tasks.filter(isExplicitNewEffectTask);
+  const explicitEffectTasks = args.agenda.tasks.filter(
+    isExplicitNewRuntimeTask,
+  );
   if (
     activeOperation &&
     explicitEffectTasks.some((task) => task.operation_type !== activeOperation)
@@ -88,21 +95,31 @@ export function resolveFlowInterruptions(args: {
 
   const constraints = args.snapshot.explicit_constraints;
   const nextTasks = args.agenda.tasks.map((task) => {
-    if (task.kind !== "effect") return task;
+    if (task.kind !== "effect" && task.kind !== "platform_handoff") {
+      return task;
+    }
+    const taskLabel = task.kind === "platform_handoff"
+      ? "platform_handoff"
+      : "effect";
     if (constraints.status_only || constraints.no_mutation) {
       reasonCodes.push(
         constraints.status_only
-          ? "status_only_blocks_effects"
-          : "no_mutation_blocks_effects",
+          ? `status_only_blocks_${taskLabel}s`
+          : `no_mutation_blocks_${taskLabel}s`,
       );
       return blockTask(
         task,
         constraints.status_only
-          ? "status_only_blocks_effect"
+          ? task.kind === "platform_handoff"
+            ? "status_only_blocks_platform_handoff"
+            : "status_only_blocks_effect"
+          : task.kind === "platform_handoff"
+          ? "no_mutation_blocks_platform_handoff"
           : "no_mutation_blocks_effect",
       );
     }
     if (constraints.preview_only || constraints.draft_only) {
+      if (task.kind === "platform_handoff") return task;
       reasonCodes.push(
         constraints.preview_only
           ? "preview_only_blocks_pending_write"
@@ -126,8 +143,17 @@ export function resolveFlowInterruptions(args: {
       task.source !== "pending_confirmation" &&
       task.operation_type !== pendingOperation
     ) {
-      reasonCodes.push("no_tool_blocks_new_effect");
-      return blockTask(task, "no_tool_blocks_new_effect");
+      reasonCodes.push(
+        task.kind === "platform_handoff"
+          ? "no_tool_blocks_new_platform_handoff"
+          : "no_tool_blocks_new_effect",
+      );
+      return blockTask(
+        task,
+        task.kind === "platform_handoff"
+          ? "no_tool_blocks_platform_handoff"
+          : "no_tool_blocks_new_effect",
+      );
     }
     return task;
   });

@@ -107,9 +107,7 @@ export async function maybeRunStatusRecapRuntime(args: {
     })
   ) return null;
 
-  const shouldActivate = statusRecapRouteSignal(args.routeDecision) ||
-    isFaitPrevuFragileRecapRequest(args.userMessage) ||
-    shouldRenderStatusOnlyNoMutation(args.userMessage);
+  const shouldActivate = statusRecapRouteSignal(args.routeDecision);
   if (!shouldActivate) return null;
 
   const projection = await loadStatusRecapProjection({
@@ -205,7 +203,17 @@ export async function buildFaitPrevuFragileRecapRuntime(args: {
     userTimezone: args.userTimezone ?? "Europe/Paris",
     tempMemory: args.tempMemory ?? {},
     turnFrame: null,
-    routeDecision: null,
+    routeDecision: {
+      route_version: "v1",
+      response_owner: "normal_reply",
+      selected_handler: "status_only_no_mutation_check",
+      blocked_paths: [],
+      direct_effects_to_run: [],
+      reason_code: "recap_fait_prevu_fragile",
+      memory_used_for_route: false,
+      memory_item_ids_used_for_route: [],
+      memory_use_kind: "none",
+    },
     activeOperationIntake: null,
   });
   if (!runtime) throw new Error("status_recap_fpf_runtime_not_activated");

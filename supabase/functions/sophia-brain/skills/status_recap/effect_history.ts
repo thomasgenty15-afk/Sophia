@@ -1,5 +1,17 @@
 type StatusEffectHistoryEntry = {
-  status: "requested" | "allowed" | "committed" | "failed" | "blocked";
+  status:
+    | "requested"
+    | "allowed"
+    | "committed"
+    | "failed"
+    | "blocked"
+    | "proposed"
+    | "delivered"
+    | "cancelled"
+    | "superseded"
+    | "asked"
+    | "resolved"
+    | "topic_change";
 };
 
 export function buildRecentEffectHistoryRecapLines(

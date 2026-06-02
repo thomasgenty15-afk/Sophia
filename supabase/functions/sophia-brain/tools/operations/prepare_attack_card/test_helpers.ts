@@ -103,7 +103,8 @@ export const structuredAttackCardDraftGenerator: AttackCardDraftGenerator =
         mode_emploi: "Utilise-la au moment où la résistance monte.",
         why_it_helps: "Elle coupe le débat intérieur.",
       },
-      confirmation_message: "Je crée cette carte ?",
+      confirmation_message:
+        "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes / Attaque de la plateforme.",
       confirmation_actions: ["yes", "no"],
     };
   };

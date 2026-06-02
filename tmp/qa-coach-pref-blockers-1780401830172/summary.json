@@ -1,0 +1,268 @@
+{
+  "run_id": "qa-coach-pref-blockers-1780401830172",
+  "api_url": "http://127.0.0.1:54321",
+  "raw_path": "/Users/ahmedamara/Dev/Sophia 2/tmp/qa-coach-pref-blockers-1780401830172/raw.json",
+  "scenarios": [
+    {
+      "label": "attack",
+      "before_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 0
+      },
+      "after_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 6
+      },
+      "cleanup": {
+        "chat_messages": {
+          "status": 204,
+          "ok": true
+        },
+        "user_profile_facts": {
+          "status": 204,
+          "ok": true
+        },
+        "auth_user": {
+          "status": 200,
+          "ok": true
+        }
+      },
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "user": "Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place.",
+          "assistant_preview": "Cible/action comprise : Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place. Obstacle ou piège identifié : quand je repousse et que j'ouvre YouTube à la place Technique recommandée : Le texte magique Pourquoi : Il court-circuite la négociation mentale en rappelant la réalité de l'évitement. Brouillon de carte : Dossier Fiscal vs YouTube YouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "route_selected_handler": "prepare_attack_card",
+            "route_reason": "central_arbitrator_explicit_attack_card_creation",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "user": "Préférence coach très claire : pour la suite, sois plus direct et pose moins de questions.",
+          "assistant_preview": "Ce que je comprends : Préférence coach très claire : pour la suite, sois plus direct et pose moins de questions. Durable ou ponctuel : préférence durable correspondant à un réglage supporté. Réglage supporté recommandé : - Ton global : Très direct (je serai plus directe, sans perdre le côté soutenant.) - Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.) À préserver : garder les réponses utiles et concrètes. À éviter : ",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "update_coach_preferences",
+            "route_selected_handler": "update_coach_preferences",
+            "route_reason": "update_coach_preferences_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "user": "Ok, on reprend la carte d'attaque d'avant.",
+          "assistant_preview": "Cible/action comprise : Prépare une carte d'attaque pour lancer mon dossier fiscal quand je repousse et que j'ouvre YouTube à la place. Obstacle ou piège identifié : quand je repousse et que j'ouvre YouTube à la place Technique recommandée : Le texte magique Pourquoi : Il court-circuite la négociation mentale en rappelant la réalité de l'évitement. Brouillon de carte : Dossier Fiscal vs YouTube YouTube ne m'apportera rien de plus que du bruit. Mon dossier fiscal est ma priorité de l'instant. Je ",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_attack_card",
+            "route_selected_handler": "prepare_attack_card",
+            "route_reason": "prepare_attack_card_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        }
+      ]
+    },
+    {
+      "label": "recurring",
+      "before_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 0
+      },
+      "after_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 6
+      },
+      "cleanup": {
+        "chat_messages": {
+          "status": 204,
+          "ok": true
+        },
+        "user_profile_facts": {
+          "status": 204,
+          "ok": true
+        },
+        "auth_user": {
+          "status": 200,
+          "ok": true
+        }
+      },
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "user": "Je veux mettre en place un rappel récurrent tous les lundis à 9h pour préparer ma semaine.",
+          "assistant_preview": "Ok, je te prépare ça pour la section Rappels. Pour le rappel, garde le message « Préparer ma semaine ». Il doit revenir chaque semaine, le lundi, à 09:00, Europe/Paris. Dans la plateforme, va dans la section Rappels, puis crée un rappel récurrent avec ces éléments. Je ne crée pas de rappel récurrent depuis le chat. 🙂",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "create_recurring_reminder",
+            "route_selected_handler": "create_recurring_reminder",
+            "route_reason": "central_arbitrator_recurring_reminder_intent_priority",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "user": "Préférence coach explicite : pour la suite, challenge-moi plus mais garde peu de questions.",
+          "assistant_preview": "Ce que je comprends : Préférence coach explicite : pour la suite, challenge-moi plus mais garde peu de questions. Durable ou ponctuel : préférence durable correspondant à un réglage supporté. Réglage supporté recommandé : - Niveau de challenge : Élevé (je te challengerai davantage quand tu demandes un vrai coup de lucidité.) - Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.) À préserver : garder les réponses utiles et",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "update_coach_preferences",
+            "route_selected_handler": "update_coach_preferences",
+            "route_reason": "update_coach_preferences_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "user": "Reprends le rappel récurrent d'avant, celui du lundi matin.",
+          "assistant_preview": "Veux-tu que je te redonne les détails de ce rappel ou veux-tu modifier un élément ? 🙂",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "create_recurring_reminder",
+            "route_selected_handler": "create_recurring_reminder",
+            "route_reason": "create_recurring_reminder_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        }
+      ]
+    },
+    {
+      "label": "defense",
+      "before_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 0
+      },
+      "after_counts": {
+        "user_profile_facts": null,
+        "chat_messages": 6
+      },
+      "cleanup": {
+        "chat_messages": {
+          "status": 204,
+          "ok": true
+        },
+        "user_profile_facts": {
+          "status": 204,
+          "ok": true
+        },
+        "auth_user": {
+          "status": 200,
+          "ok": true
+        }
+      },
+      "turns": [
+        {
+          "turn": 1,
+          "status": 200,
+          "user": "Prépare une carte de défense pour éviter de scroller le soir quand je suis fatigué, mais ne crée rien sans me demander.",
+          "assistant_preview": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes de défense. 1. Situation / action comprise : Sommeil 2. Risque identifié : Le soir quand je suis fatigué (L'envie de scroller) 3. Stratégie de défense recommandée : Réponse préparée avant le moment de risque Pourquoi : Cela permet de rompre le cycle de la fatigue et de favoriser l'endormissement. 4. Brouillon de carte : Titre : Scrolling du soir Moment : Le soir quand je suis fatigué Signal : L'envie de s",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "route_selected_handler": "prepare_defense_card",
+            "route_reason": "tool_skill_intent_start",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 2,
+          "status": 200,
+          "user": "Préférence coach très claire : pour la suite, parle-moi plus doucement et pose moins de questions.",
+          "assistant_preview": "Ce que je comprends : Préférence coach très claire : pour la suite, parle-moi plus doucement et pose moins de questions. Durable ou ponctuel : préférence durable correspondant à un réglage supporté. Réglage supporté recommandé : - Ton global : Doux (je prendrai un ton plus doux quand je te réponds.) - Tendance à poser des questions : Peu de questions (je te poserai moins de questions, plus courtes, surtout quand tu es bloqué.) À préserver : garder les réponses utiles et concrètes. À éviter : tra",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "update_coach_preferences",
+            "route_selected_handler": "update_coach_preferences",
+            "route_reason": "update_coach_preferences_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        },
+        {
+          "turn": 3,
+          "status": 200,
+          "user": "Ok, maintenant reprends la carte de défense d'avant.",
+          "assistant_preview": "Je ne crée pas la carte depuis le chat. Voici la version à reprendre dans la section Cartes de défense. 1. Situation / action comprise : scroller le soir 2. Risque identifié : Le soir quand je suis fatigué (L'envie de scroller) 3. Stratégie de défense recommandée : Réponse préparée avant le moment de risque Pourquoi : Interrompt l'automatisme de consultation. 4. Brouillon de carte : Titre : Scrolling du soir Moment : Le soir quand je suis fatigué Signal : L'envie de scroller Geste : Poser le tél",
+          "trace": {
+            "response_owner": "tool_skill",
+            "selected_handler": "prepare_defense_card",
+            "route_selected_handler": "prepare_defense_card",
+            "route_reason": "prepare_defense_card_interrupts_active_handoff",
+            "operation_status": null,
+            "operation_type": null,
+            "platform_handoff": null,
+            "direct_effects": [],
+            "pending_confirmation": null,
+            "executed_tools": [],
+            "committed_effects": [],
+            "tool_execution": "platform_handoff"
+          }
+        }
+      ]
+    }
+  ]
+}

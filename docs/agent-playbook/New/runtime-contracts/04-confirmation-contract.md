@@ -4,15 +4,27 @@
 
 Le Confirmation Contract est le vocabulaire commun qui repond a la question :
 ce tour user confirme-t-il, rejette-t-il, corrige-t-il, demande-t-il une
-preview, demande-t-il une explication, demande-t-il un status, ou parle-t-il
-d'autre chose ?
+preview, demande-t-il une explication, demande-t-il un status, tente-t-il une
+application depuis le chat, ou parle-t-il d'autre chose ?
 
 Il ne possede aucun brouillon metier et n'execute aucun effet. Il produit une
-decision ciblee et typée que le skill L5 proprietaire convertit ensuite en
-transition de workflow. Une confirmation courte comme `ok` ne valide donc rien
-par elle-meme : elle ne peut autoriser l'execution que si elle cible un pending
-precis, compatible, unique et non contredit par une correction, une demande de
-preview, une explication, un status ou une nouvelle intention.
+decision ciblee et typée que le skill proprietaire convertit ensuite en
+transition de workflow.
+
+Dans l'architecture handoff V1, une confirmation courte comme `ok`, `oui` ou
+`vas-y` ne suffit jamais a muter un objet complexe. Pour les platform handoffs,
+elle devient une suite conversationnelle non-mutante :
+
+```txt
+apply_attempt -> repeat destination plateforme -> no_chat_mutation
+```
+
+Elle ne devient une execution durable que pour les effets chat explicitement
+autorisés, avec pending compatible et commit prouve. En V1, les effets chat
+exécutables restent :
+
+- `create_one_shot_reminder`
+- `track_progress_plan_item`
 
 ## Dépend De L'Architecture De X
 
@@ -22,39 +34,34 @@ Ce domaine depend de :
   `decideConfirmation(...)` accepte encore des snapshots partiels
   (`pending`, `active_operation`, `agenda_tasks`,
   `turn_frame_confirmation`) plutot qu'un objet `UserTurnSnapshot` complet.
-  Les snapshots complets sont construits dans
-  `router/user_turn_snapshot.ts` et exposes par `router/run.ts`, mais cette
-  brique n'est pas encore le seul input du contrat confirmation.
-- `TurnAgenda` pour distinguer reply, effects, status, memory et repair. Le
-  contrat accepte deja `agenda_tasks` et les utilise pour rendre `approve`
-  ambigu quand plusieurs cibles compatibles existent. La construction de
-  l'agenda vit dans `router/turn_agenda.ts`; l'integration confirmation est
-  encore partielle.
-- `Confirmation Contract` lui-meme, possede par
-  `router/confirmation_contract.ts`. La fonction canonique est
-  `decideConfirmation(...)`.
-- `EffectLedger` pour ne jamais dire "c'est fait" sans effet committe. Le
-  Confirmation Contract ne ledgerise pas; il expose `should_execute`,
-  `should_clear_pending`, `should_revise` et `should_explain` pour que le tool
-  L5 produise ensuite des `requested_effects`, `allowed_effects`,
-  `blocked_effects` ou `committed_effects`. Le ledger courant vit dans
-  `router/effect_ledger.ts` et est orchestre depuis `router/run.ts`.
-- le contrat local du tool L5 pour l'intake, le reducer, les effets et le
-  renderer. Exemple : `prepare_attack_card` appelle
-  `decidePrepareAttackCardNextStep(...)` dans
-  `tools/operations/prepare_attack_card/contract.ts`; le contrat global ne
-  remplace pas cette decision metier.
+- `TurnAgenda` pour distinguer `effect`, `platform_handoff`,
+  `clarification`, `status`, `memory`, `repair` et `reply`.
+- `Active Handoff Arbitration` pour que les suites d'un handoff actif soient
+  interpretees comme `repeat_handoff`, `revise_handoff`, `apply_attempt`,
+  `cancelled` ou `topic_change`, pas comme approvals exécutables.
+- `EffectLedger` pour ne jamais dire "c'est fait" sans effet committé, et pour
+  tracer les handoffs/clarifications comme resultats non-mutants.
+- le contrat local du skill pour l'intake, le reducer, le draft, le handoff et
+  le renderer.
 
 ## Runtime Shape
 
 ```txt
-TurnFrame + pending/active/agenda snapshot + user message
+TurnFrame + active state + agenda snapshot + user message
   -> router/confirmation_contract.ts::decideConfirmation
-  -> tool L5 owner router
-  -> tool local intake/reducer/effect plan
-  -> executor only when the local tool allows it
-  -> renderer / status reply grounded in committed or read-only state
-  -> EffectLedger / final response guard
+  -> direct effect owner OR platform handoff owner
+
+direct effect owner
+  -> local pending/effect reducer
+  -> executor only for chat-executable effects
+  -> committed_effects / failed_effects
+  -> EffectLedger + renderer
+
+platform handoff owner
+  -> active handoff arbitration
+  -> repeat / revise / apply_attempt / cancel / topic_change
+  -> platform_handoff result
+  -> EffectLedger non-mutant + renderer no-mutation
 ```
 
 Le contrat global est une decision de ciblage et de securite, pas un troisieme
@@ -71,34 +78,28 @@ ne l'execute jamais aveuglement sans target compatible.
   `ConfirmationTarget`.
 - Tests du contrat global :
   `supabase/functions/sophia-brain/router/confirmation_contract.test.ts`.
-- Integration `update_coach_preferences` :
-  `tools/operations/update_coach_preferences/router.ts` appelle
-  `decideConfirmation(...)` quand
-  `loadCoachPreferenceFrameFromTempMemory(...).pending` est une operation
-  `update_coach_preferences`.
-- Integration `prepare_attack_card` :
-  `tools/operations/prepare_attack_card/router.ts` appelle
-  `decideConfirmation(...)` quand `isPendingAttackCardOperation(pendingRaw)` est
-  vrai.
-- Legacy confirmation IA partagee :
-  `tools/operations/_shared/confirmation_review.ts` et sa fonction
-  `reviewToolSkillConfirmationWithAi(...)`.
-- Legacy reviews draft locales :
-  `tools/operations/_shared/draft_review.ts`,
-  `tools/operations/update_coach_preferences/intake.ts`,
-  `tools/operations/prepare_attack_card/ai_intake.ts`,
-  `tools/operations/prepare_defense_card/ai_intake.ts`.
+- Arbitration handoff :
+  `supabase/functions/sophia-brain/router/handoff_flow_arbitration.ts`.
+- Clarification :
+  `supabase/functions/sophia-brain/clarification/*`.
+- Owners directs executables :
+  `tools/always_on/one_shot_reminder/*`,
+  `tools/always_on/track_progress_plan_item/*`.
+- Owners handoff :
+  `tools/operations/adjust_plan_item/*`,
+  `tools/operations/prepare_attack_card/*`,
+  `tools/operations/prepare_defense_card/*`,
+  `tools/operations/select_state_potion/*`,
+  `tools/operations/create_recurring_reminder/*`,
+  `tools/operations/update_coach_preferences/*`.
 
 ## Inputs
 
 `decideConfirmation(...)` lit :
 
 - `message` : dernier message user brut, normalise localement dans le contrat ;
-- `pending` : `PendingConfirmationSnapshot` avec `operation_id`,
-  `operation_type`, `effect_type`, `summary`, `draft`,
-  `expires_after_turns` ;
-- `active_operation` : contexte actif optionnel, utilise surtout quand il n'y a
-  pas de pending executable ;
+- `pending` : pending executable seulement pour les effets chat compatibles ;
+- `active_operation` : contexte actif optionnel, notamment handoff actif ;
 - `agenda_tasks` : taches concurrentes optionnelles pour detecter plusieurs
   cibles compatibles ;
 - `turn_frame_confirmation` : signal L1 optionnel
@@ -106,11 +107,11 @@ ne l'execute jamais aveuglement sans target compatible.
 
 Inputs metier qui restent hors contrat :
 
-- slots de preference coach, carte, rappel ou potion ;
+- slots de plan, carte, potion, rappel ou preference ;
 - contenu complet du brouillon ;
-- contraintes comme `draft_only` / `no_create` au-dela de leur traduction en
-  decision `preview` ou `revise` ;
-- safety gates et droits d'ecriture DB.
+- choix de surface produit ;
+- validation metier d'un draft ;
+- droits d'ecriture DB.
 
 ## Outputs
 
@@ -118,8 +119,8 @@ Inputs metier qui restent hors contrat :
 
 - `decision` :
   `approve | reject | revise | explain | preview | status | unrelated | ambiguous` ;
-- `applies_to_pending_effect` : vrai seulement si la cible correspond au
-  pending courant ;
+- `applies_to_pending_effect` : vrai seulement si la cible correspond a un
+  pending executable compatible ;
 - `target` : operation/effect/source ciblee ;
 - `confidence` : `low | medium | high` ;
 - `evidence` et `reason_code` ;
@@ -127,9 +128,26 @@ Inputs metier qui restent hors contrat :
   `should_execute`, `should_clear_pending`, `should_revise`,
   `should_explain`.
 
-Seul `approve` peut porter `should_execute=true`, et seulement si la cible
-pending est compatible. Tous les autres outputs doivent produire zero effet
-committe.
+Pour les `platform_handoff`, les owners doivent adapter ces decisions ainsi :
+
+| ConfirmationDecision | Transition handoff |
+| --- | --- |
+| `approve` / `ok vas-y` | `apply_attempt`, non-mutant |
+| `revise` | `revise_handoff` |
+| `preview` / `explain` | `repeat_handoff` ou explication propriétaire |
+| `status` | status/read-only si explicitement demandé |
+| `reject` | `cancelled` |
+| `unrelated` | interruption par owner concurrent |
+| `ambiguous` | clarification |
+
+`should_execute=true` est interdit pour les operation types suivants :
+
+- `adjust_plan_item`
+- `prepare_attack_card`
+- `prepare_defense_card`
+- `select_state_potion`
+- `create_recurring_reminder`
+- `update_coach_preferences`
 
 ## Responsibilities
 
@@ -140,9 +158,9 @@ Le Confirmation Contract possede :
 - la normalisation de ciblage minimal entre pending, active flow et agenda ;
 - la regle de precedence : status/explain/preview/revise/reject bloquent toute
   execution avant approve ;
-- la protection contre les confirmations incompatibles, par exemple pending
-  attack card + `programme le rappel` => `unrelated` ;
-- les flags utilisables par l'EffectLedger et les routers L5.
+- la protection contre les confirmations incompatibles, par exemple handoff
+  carte + `programme le rappel` => `unrelated` ;
+- les flags utilisables par l'EffectLedger et les routers propriétaires.
 
 Le Confirmation Contract ne possede pas :
 
@@ -152,6 +170,7 @@ Le Confirmation Contract ne possede pas :
 - le reducer/state machine local ;
 - la preparation exacte des effets metier ;
 - l'execution DB ;
+- la destination produit ;
 - la reponse user-facing finale.
 
 ## Intake Structuré
@@ -164,114 +183,105 @@ structurees existantes :
   `kind: yes | no | correction_to_pending | topic_change | unknown` et
   `confidence_band` ;
 - L5 skill/tool intake :
-  chaque tool lit le message dans son contexte metier, par exemple
-  `runUpdateCoachPreferencesIntake(...)` dans
-  `tools/operations/update_coach_preferences/intake.ts` ou
-  `runPrepareAttackCardAiIntake(...)` dans
-  `tools/operations/prepare_attack_card/ai_intake.ts`.
+  chaque owner lit le message dans son contexte metier.
 
-Le contrat global peut filtrer un `yes` L1, mais il ne doit pas devenir un
-troisieme classifier IA entre dispatcher et skill.
+Pour les ambiguïtés réelles, le dispatcher ou le skill actif doit utiliser
+`clarification_tool` avec candidats structurés. Le Confirmation Contract ne doit
+pas devenir un routeur metier par regex.
 
 ## Reducer / State Transition
 
 Le reducer n'est pas dans `confirmation_contract.ts`.
 
-- `update_coach_preferences` fait la transition dans
-  `tools/operations/update_coach_preferences/router.ts` :
-  `approve.should_execute` appelle `executeConfirmedCoachPreferenceDraft(...)`,
-  `reject` clear le frame via `clearCoachPreferenceFrame(...)`, `revise`
-  repasse par `runUpdateCoachPreferencesIntake(...)`, `preview`/`explain`/
-  `status` restent read-only.
-- `prepare_attack_card` fait la transition dans
-  `tools/operations/prepare_attack_card/router.ts` puis dans
-  `decidePrepareAttackCardNextStep(...)` :
-  `preview` devient `draft_ready`, `reject` devient `cancelled`,
-  `explain/status` deviennent read-only, `revise` force
-  `draft_review_decision=revise` pour empecher une execution.
-- Les tools non branches (`prepare_defense_card`, reminders,
-  `select_state_potion`) gardent leurs transitions locales jusqu'a migration.
+- Direct effects executables :
+  - `one_shot_reminder` peut transformer une approval compatible en execution
+    uniquement si le pending/target est unique et que l'executor retourne un
+    commit ;
+  - `track_progress_plan_item` peut logger une progression uniquement si le
+    writer retourne un `logged_progress_id`.
+- Platform handoffs :
+  - `approve` devient `apply_attempt` ;
+  - `revise` regenere une recommandation ;
+  - `preview` / `explain` reste read-only ;
+  - `reject` clear l'etat actif ;
+  - `unrelated` laisse un owner concurrent explicite reprendre ;
+  - aucun chemin ne crée de pending executable.
 
 ## Effects
 
 Le contrat ne prepare pas les effets metier complets. Il autorise ou bloque
 l'idee d'executer un pending.
 
-- `update_coach_preferences/router.ts` convertit une approval compatible en
-  `UpdateCoachPreferencesCommittedEffect` seulement apres retour `executed` de
-  `executeUpdateCoachPreferences(...)`.
-- `prepare_attack_card/contract.ts` prepare un `PrepareAttackCardEffect` via
-  `decidePrepareAttackCardNextStep(...)` quand le pending est compatible et que
-  l'intention locale est `create`.
-- `prepare_attack_card/router.ts` appelle ensuite
-  `executeConfirmedAttackCardDraft(...)`, qui passe par
-  `executePrepareAttackCard(...)` et `insertAttackCardFromDraft(...)`.
+- Pour un direct effect autorisé, l'owner peut produire `requested_effects`,
+  `allowed_effects`, `committed_effects` ou `failed_effects`.
+- Pour un `platform_handoff`, l'owner produit `platform_handoff` et
+  `no_chat_mutation=true`, avec `committed_effects=[]` et `executedTools=[]`.
+- Pour une clarification, l'owner produit une question ou une resolution
+  non-mutante.
 
 ## Executor
 
-Executors proprietaires :
+Executors nominaux autorisés en V1 :
 
-- `tools/operations/update_coach_preferences/executor.ts` :
-  `executeUpdateCoachPreferences(...)` est le seul chemin d'ecriture durable
-  preference coach.
-- `tools/operations/prepare_attack_card/executor.ts` :
-  `executePrepareAttackCard(...)` est le guard token/safety/idempotence avant
-  ecriture.
-- `tools/operations/prepare_attack_card/persistence.ts` :
-  `insertAttackCardFromDraft(...)` fait l'insertion DB.
+- one-shot reminder ;
+- track progress.
+
+Les operations complexes suivantes ne doivent pas appeler d'executor dans leur
+runtime nominal :
+
+- `adjust_plan_item`
+- `prepare_attack_card`
+- `prepare_defense_card`
+- `select_state_potion`
+- `create_recurring_reminder`
+- `update_coach_preferences`
 
 Le Confirmation Contract ne doit jamais importer Supabase ni appeler un
 executor.
 
 ## Renderer
 
-Le rendu user-facing reste proprietaire du tool ou du status reader :
+Le rendu user-facing reste proprietaire du direct effect, du handoff skill ou
+du status reader. Le contrat global ne doit pas contenir de phrase finale
+metier.
 
-- `update_coach_preferences/router.ts` rend les reponses pending/read-only
-  simples et appelle `buildCoachPreferencesStatusReply(...)` dans
-  `tools/operations/update_coach_preferences/status.ts` pour status DB-grounded.
-- `prepare_attack_card/router.ts` utilise
-  `renderAttackCardDraftOnlyReply(...)`,
-  `renderAttackCardCancelledReply(...)`,
-  `renderAttackCardExplanationReply(...)` et
-  `renderAttackCardPendingConfirmationReply(...)` depuis
-  `tools/operations/prepare_attack_card/renderer.ts`.
+Pour un `apply_attempt` handoff, le renderer doit dire la vérité :
 
-Le contrat global ne doit pas contenir de phrase finale metier.
+```txt
+Je ne le fais pas depuis le chat. Voici où le reprendre dans la plateforme.
+```
+
+Cette phrase est un succès handoff honnête, pas un blocked effect.
 
 ## Invariants
 
-- `approve` ne peut jamais executer sans `pending`.
+- `approve` ne peut jamais executer sans pending executable compatible.
 - `approve.should_execute=true` exige :
   pending compatible, cible unique, confidence `medium` ou `high`, aucun marker
-  revise/reject/preview/explain/status.
+  revise/reject/preview/explain/status, et operation type chat-executable.
 - `revise`, `preview`, `explain`, `status`, `reject`, `unrelated` et
   `ambiguous` ne commitent jamais.
 - `oui mais...` est toujours `revise`, jamais `approve`.
 - `montre-moi`, `brouillon`, `avant de creer`, `prepare sans creer` sont
   read-only (`preview`).
-- Une demande status (`tu l'as deja garde ?`, `c'est deja cree ?`) est read-only
-  et ne consomme pas le pending.
-- Une intention explicite incompatible avec le pending retourne `unrelated` et
-  laisse la main au router/tool concerne.
-- Un pending ne doit pas etre cleared par une intention de cancel qui cible un
-  objet existant incompatible, par exemple carte pending + `annule le rappel de
-  16h`.
-- Le contrat peut utiliser des detecteurs deterministes centralises, mais un
-  agent ne doit pas ajouter de nouvelles regex metier dans chaque tool.
+- Une demande status est read-only et ne consomme pas un handoff.
+- Une intention explicite incompatible avec l'etat actif retourne `unrelated`
+  et laisse la main au router/tool concerne.
+- `ok vas-y` dans un handoff complexe est `apply_attempt`, pas execution.
+- Un platform handoff ne crée jamais `__pending_tool_skill_confirmation`.
+- Le contrat peut utiliser des detecteurs deterministes centralises pour la
+  securite confirmation, mais un agent ne doit pas ajouter de nouvelles regex
+  metier dans chaque tool.
 
 ## Integration Points
 
 - `router/run.ts` orchestre le tour et garde les protections globales, mais ne
   doit pas recevoir de nouvelles confirmations metier ad hoc.
-- `router/turn_intent_arbitrator.ts` peut encore router/clear dans certains cas
+- `router/turn_intent_arbitrator.ts` peut router/clear dans certains cas
   legacy, mais ne doit pas reclassifier localement `ok`/`oui` en execution
   metier.
-- `tools/operations/update_coach_preferences/router.ts` est le premier tool L5
-  branche completement sur les pending confirmations.
-- `tools/operations/prepare_attack_card/router.ts` est branche pour les pending
-  create/draft review les plus risques : preview, reject, explain/status,
-  unrelated, revise no-execute.
+- `router/handoff_flow_arbitration.ts` protège la continuité des handoffs
+  actifs avant qu'un status/product help opportuniste capture le tour.
 - `router/effect_ledger.ts` et les guards de reponse finale restent la preuve
   aval : le contrat confirmation n'est pas une preuve de commit.
 
@@ -281,16 +291,17 @@ Le contrat global ne doit pas contenir de phrase finale metier.
   `confirmation_contract.ts`.
 - Ajouter un champ de target si un nouveau runtime global l'exige, tant que
   `should_execute` reste conservateur.
-- Brancher un nouveau tool L5 en convertissant `ConfirmationDecision` vers son
-  reducer local.
+- Brancher un direct effect ou un handoff en convertissant
+  `ConfirmationDecision` vers son reducer local.
 - Ajouter un test de regression dans `confirmation_contract.test.ts` avant de
   changer une classification.
-- Ajouter un test d'integration dans le tool branche.
+- Ajouter un test d'integration dans le owner branche.
 
 ## Forbidden Changes
 
 - Faire de `ok`, `oui`, `vas-y` une validation universelle.
 - Executer un pending sans target compatible.
+- Executer un `platform_handoff`.
 - Traiter `oui mais...` comme approve.
 - Commit sur `preview`, `explain` ou `status`.
 - Ajouter une nouvelle regex confirmation dans `run.ts`, L3 ou un tool alors
@@ -301,23 +312,17 @@ Le contrat global ne doit pas contenir de phrase finale metier.
 
 ## Legacy Exceptions
 
-- `tools/operations/update_coach_preferences/route_guards.ts` garde
-  `isCoachPreferenceExplicitApprovalForTest(...)`. Il reste utilise pour des
-  chemins de compatibilite hors pending deja branche. Condition de suppression :
-  tous les chemins d'approval preference passent par `decideConfirmation` ou par
-  l'intake L5 structure, et les tests `update_coach_preferences/tests.ts`
-  couvrent les confirmations directes et pending.
-- `tools/operations/_shared/confirmation_review.ts` garde
-  `reviewToolSkillConfirmationWithAi(...)`. Il protege encore des flows non
-  branches directement au contrat global, notamment des confirmations de
-  recommendation/draft review. Condition de suppression : `prepare_defense_card`,
-  reminders, `select_state_potion` et recommendations utilisent
-  `ConfirmationDecision` avec tests d'integration equivalents.
+- Les chemins historiques de confirmation executable peuvent rester dans le
+  repo pour reference ou migration, mais ils ne sont plus le chemin nominal des
+  complex tools V1.
+- `tools/operations/_shared/confirmation_review.ts` peut rester utilisé comme
+  lecture de suite dans un skill actif. Son resultat ne peut plus autoriser une
+  execution pour `adjust_plan_item`, cartes, potion, recurring reminder ou
+  preferences; il doit etre adapté en `repeat_handoff`, `revise_handoff`,
+  `apply_attempt`, `cancelled`, `topic_change` ou clarification.
 - Les draft reviews locales IA restent autorisees quand elles relisent un
   brouillon dans le contexte du skill proprietaire. Elles ne doivent pas
-  contredire le contrat global : si `decideConfirmation` dit `revise`,
-  `preview`, `explain`, `status`, `reject` ou `unrelated`, le tool ne doit pas
-  executer meme si une review legacy retourne approve.
+  contredire le contrat global.
 
 ## Required Tests
 
@@ -327,29 +332,26 @@ Contrat global :
   couvre approve/reject/revise/preview/explain/status/unrelated/ambiguous,
   target incompatible, plusieurs targets compatibles et signal
   `turn_frame.confirmation_response`.
+- Confirmation pour direct effect compatible -> `should_execute=true` possible
+  seulement avec pending unique.
+- Confirmation pour complex operation -> `should_execute=false`.
+- `ok vas-y` dans un handoff actif -> `apply_attempt` côté owner, aucun
+  `committed_effects`, aucun `executedTools`.
 
-Tools branches :
+Tests handoff attendus :
 
-- `tools/operations/update_coach_preferences/tests.ts` couvre pending pref +
-  `ok applique` => execute, `oui mais plus doux` => revise no write,
-  `explique`/status => read-only, preview-only no write, writer failure no
-  committed effect.
-- `tools/operations/prepare_attack_card/tests.ts` couvre draft-only no create,
-  pending preview no create, pending reminder command => unrelated/null, create
-  through executor/token, renderer states.
-
-Regression globale :
-
-- `tools/operations/prepare_defense_card/tests.ts` protege les flows defense
-  non branches.
-- `router/run_product_help_guard.test.ts` protege no done language, product
-  help/status et claims sans commit.
-- `router/turn_intent_arbitrator.test.ts` protege routage explicit reminder,
-  product help, status et pending flow.
+- `adjust_plan_item`, cartes, potion, recurring reminder et preferences :
+  `apply_attempt` non-mutant ;
+- `repeat_handoff` et `revise_handoff` restent dans le skill actif ;
+- nouvelle intention explicite one-shot/progress/status/safety interrompt le
+  handoff ;
+- wording "c'est fait" reste bloqué sans commit, wording handoff honnête est
+  autorisé.
 
 ## Suivi Des Décisions Architecturales
 
 | Date | Decision | Statut | Reference |
 | --- | --- | --- | --- |
 | 2026-05-29 | ConfirmationContract devient le vocabulaire commun, pas un executor global. | Active | `15-chantiers-log.md` J24 |
-| 2026-05-30 | Le contrat runtime confirmation documente explicitement ses dependances UserTurnSnapshot, TurnAgenda, EffectLedger et les reducers L5 proprietaires; `tools/operations/_shared/confirmation_adapter.ts` n'est pas un fichier reel et ne doit plus etre cite. | Active | Mise a jour runtime-contracts confirmation |
+| 2026-05-30 | Le contrat runtime confirmation documente explicitement ses dependances UserTurnSnapshot, TurnAgenda, EffectLedger et les reducers L5 proprietaires. | Active | Mise a jour runtime-contracts confirmation |
+| 2026-06-01 | Les complex tools V1 ne consomment plus une confirmation comme approval executable; `ok vas-y` devient `apply_attempt` non-mutant. | Active | Architecture handoff V1 |
