@@ -28,6 +28,7 @@ const INCOMPLETE_CYCLE_STATUSES = [
   "profile_pending",
   "ready_for_plan",
 ] as const;
+const DASHBOARD_PLAN_STATUSES = ["generated", "active", "paused", "completed"] as const;
 const DASHBOARD_LOAD_TIMEOUT_MS = 30_000;
 
 export type DashboardV2PlanItemRuntime = UserPlanItemRow & {
@@ -154,7 +155,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         firstName: getFirstName(profileRow?.full_name ?? null, user.email),
       });
 
-      const { data: cycleRow, error: cycleError } = await supabase
+      const { data: activeCycleRow, error: cycleError } = await supabase
         .from("user_cycles")
         .select("*")
         .eq("user_id", user.id)
@@ -164,6 +165,36 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         .maybeSingle();
 
       if (cycleError) throw cycleError;
+
+      let cycleRow = activeCycleRow;
+      let recoveredPlan: UserPlanV2Row | null = null;
+
+      if (!cycleRow) {
+        const { data: latestPlanRow, error: latestPlanError } = await supabase
+          .from("user_plans_v2")
+          .select("*")
+          .eq("user_id", user.id)
+          .in("status", [...DASHBOARD_PLAN_STATUSES])
+          .order("activated_at", { ascending: false, nullsFirst: false })
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (latestPlanError) throw latestPlanError;
+
+        recoveredPlan = (latestPlanRow as UserPlanV2Row | null) ?? null;
+        if (recoveredPlan) {
+          const { data: recoveredCycleRow, error: recoveredCycleError } = await supabase
+            .from("user_cycles")
+            .select("*")
+            .eq("id", recoveredPlan.cycle_id)
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (recoveredCycleError) throw recoveredCycleError;
+          cycleRow = recoveredCycleRow;
+        }
+      }
 
       if (!cycleRow) {
         const { data: incompleteCycleRow, error: incompleteCycleError } =
@@ -236,7 +267,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         .select("*")
         .eq("cycle_id", cycleRow.id)
         .eq("transformation_id", resolvedTransformations.transformation.id)
-        .in("status", ["active", "paused", "completed"])
+        .in("status", [...DASHBOARD_PLAN_STATUSES])
         .order("activated_at", { ascending: false })
         .order("updated_at", { ascending: false })
         .limit(1)
@@ -244,7 +275,12 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
 
       if (planResult.error) throw planResult.error;
 
-      const activePlan = (planResult.data as UserPlanV2Row | null) ?? null;
+      const fallbackPlanForTransformation =
+        recoveredPlan?.transformation_id === resolvedTransformations.transformation.id
+          ? recoveredPlan
+          : null;
+      const activePlan = (planResult.data as UserPlanV2Row | null) ??
+        fallbackPlanForTransformation;
       setPlan(activePlan);
       const rawContent = (activePlan?.content ?? null) as Record<string, unknown> | null;
       setPlanContent(toPlanContent(rawContent));
